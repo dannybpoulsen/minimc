@@ -21,26 +21,29 @@ namespace MiniMC {
 
 	
 	
-	class Type {
+    class Type : public std::enable_shared_from_this<Type> {
 	public:
 	  Type (const TypeID& ty) : id(ty) {} 
 	  virtual ~Type () {}
 	  virtual std::ostream& output (std::ostream& os) const = 0;
 
+      //Size in bytes
 	  virtual std::size_t getSize () const = 0;
-
+      
 	  TypeID getTypeID () const  {return id;}
 
 	  virtual bool isEqual (const Type& t) {
 		return (&t == this) ||
-				(getTypeID () == t.getTypeID () && innerEq (t));
+		  (getTypeID () == t.getTypeID () && innerEq (t));
 	  }
 	protected:
 	  virtual bool innerEq (const Type& t) = 0;
 	private:
 	  TypeID id;
 	};
-	
+
+    using Type_ptr = std::shared_ptr<Type>;
+    
 	template<TypeID id>
 	bool is (Type& t) {
 	  return t.getTypeID () == id;
@@ -54,24 +57,24 @@ namespace MiniMC {
 	public:
 	  TypeFactory () {}
 	  virtual ~TypeFactory () {}
-	  virtual Type* makeIntegerType (size_t t) = 0;
-	  virtual Type* makeFloatType () = 0;
-	  virtual Type* makeBoolType () = 0;
-	  virtual Type* makeDoubleType () = 0;
-	  virtual Type* makePointerType () = 0;
-	  virtual Type* makeVoidType () = 0;
+	  virtual const Type_ptr makeIntegerType (size_t t) = 0;
+	  virtual const Type_ptr makeFloatType () = 0;
+	  virtual const Type_ptr makeBoolType () = 0;
+	  virtual const Type_ptr makeDoubleType () = 0;
+	  virtual const Type_ptr makePointerType () = 0;
+	  virtual const Type_ptr makeVoidType () = 0;
 	};
 
 	class TypeFactory64 {
 	public:
 	  TypeFactory64 ();
 	  ~TypeFactory64 ();
-	  virtual Type* makeIntegerType (size_t t);
-	  virtual Type* makeFloatType () ;
-	  virtual Type* makeBoolType () ;
-	  virtual Type* makeDoubleType ();
-	  virtual Type* makePointerType ();
-	  virtual Type* makeVoidType ();
+	  virtual const Type_ptr makeIntegerType (size_t t);
+	  virtual const Type_ptr makeFloatType () ;
+	  virtual const Type_ptr makeBoolType () ;
+	  virtual const Type_ptr makeDoubleType ();
+	  virtual const Type_ptr makePointerType ();
+	  virtual const Type_ptr makeVoidType ();
 	private:
 	  struct Inner;
 	  std::unique_ptr<Inner> impl;

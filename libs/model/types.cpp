@@ -5,15 +5,15 @@ namespace MiniMC {
 	class IntegerType : public Type {
 	public:
 	  IntegerType (size_t b) : Type(TypeID::Integer) ,
-							   bits(b) {}
-	  virtual std::size_t getSize () const {return bits;}
-	  virtual std::ostream& output (std::ostream& os) const {return os << "Int"<< bits;}
+							   bytes(b) {}
+	  virtual std::size_t getSize () const {return bytes;}
+	  virtual std::ostream& output (std::ostream& os) const {return os << "Int"<< bytes;}
 	  
 	protected:
-	  virtual bool innerEq (const Type& t) {return bits== static_cast<const IntegerType&> (t).bits;
+	  virtual bool innerEq (const Type& t) {return bytes == static_cast<const IntegerType&> (t).bytes;
 	  }
 	private:
-	  size_t bits;
+	  size_t bytes;
 	};
 
 	class FloatType : public Type {
@@ -43,7 +43,7 @@ namespace MiniMC {
 	class BoolType : public Type {
 	public:
 	  BoolType () : Type(TypeID::Pointer) {}
-	  virtual std::size_t getSize () const {return 64;}
+	  virtual std::size_t getSize () const {return 8;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Bool";}
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
@@ -56,52 +56,57 @@ namespace MiniMC {
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
 
-	struct TypeFactory64::Inner {
-	  Inner () : i8(8),
-				 i16(16),
-				 i32(32),
-				 i64(64) {}
-	  VoidType vt;
-	  DoubleType dt;
-	  FloatType ft;
-	  BoolType bt;
-	  PointerType pt;
-	  IntegerType i8 ;
-	  IntegerType i16;
-	  IntegerType i32;
-	  IntegerType i64;
-	};
-
+    struct TypeFactory64::Inner {
+      Inner () :
+	vt(new VoidType()),
+	dt(new DoubleType()),
+	ft(new FloatType ()),
+	pt(new PointerType()),
+	i8(new IntegerType(8)),
+	i16(new IntegerType(16)),
+	i32(new IntegerType(32)),
+	i64(new IntegerType(64)) {}
+      Type_ptr vt;
+      Type_ptr dt;
+      Type_ptr ft;
+      Type_ptr bt;
+      Type_ptr pt;
+      Type_ptr i8 ;
+      Type_ptr i16;
+      Type_ptr i32;
+      Type_ptr i64;
+    };
+    
 	
-	TypeFactory64::TypeFactory64 () {
-	  impl = std::make_unique<Inner> ();
-	}
-	TypeFactory64::~TypeFactory64 () {}
-
-
-	Type* TypeFactory64::makeIntegerType (size_t t) {
-	  if (t <= 8) {
-		return &impl->i8;
+    TypeFactory64::TypeFactory64 () {
+      impl = std::make_unique<Inner> ();
+    }
+    TypeFactory64::~TypeFactory64 () {}
+    
+    
+    const Type_ptr TypeFactory64::makeIntegerType (size_t t) {
+      if (t <= 8) {
+	return impl->i8;
 	  }
-	  else if (t <= 16) {
-		return &impl->i16;
-	  }
-	  else if (t <= 32) {
-		return &impl->i32;
-	  }
-	  else if (t <= 64) {
-		return &impl->i64;
-	  }
-
-	  else
-		return nullptr;
-	}
+      else if (t <= 16) {
+	return impl->i16;
+      }
+      else if (t <= 32) {
+	return impl->i32;
+      }
+      else if (t <= 64) {
+		return impl->i64;
+      }
+      
+      else
+	return nullptr;
+    }
 	
-	Type* TypeFactory64::makeFloatType () {return &impl->ft;}
-	Type* TypeFactory64::makeBoolType () {return &impl->bt;}
-	Type* TypeFactory64::makeDoubleType () {return &impl->dt;}
-	Type* TypeFactory64::makePointerType () {return &impl->pt;}
-	Type* TypeFactory64::makeVoidType () {return &impl->vt;}		
+    const Type_ptr TypeFactory64::makeFloatType () {return impl->ft;}
+    const Type_ptr TypeFactory64::makeBoolType () {return impl->bt;}
+    const Type_ptr TypeFactory64::makeDoubleType () {return impl->dt;}
+    const Type_ptr TypeFactory64::makePointerType () {return impl->pt;}
+    const Type_ptr TypeFactory64::makeVoidType () {return impl->vt;}		
 	
   }
 }
