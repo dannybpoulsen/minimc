@@ -78,6 +78,8 @@ namespace MiniMC {
       std::size_t totalSize = 0;
     
     };
+
+	using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
     
   }
 }
