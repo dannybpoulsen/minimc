@@ -53,12 +53,10 @@ namespace MiniMC {
     class Variable : public Value,
 		     public Placed<Variable> {
     public:
-      friend class  VariableStackDescr;
       Variable (const std::string& name) : name(name) {}
       const std::string& getName () const {return name;}
       virtual std::ostream& output (std::ostream& os) const  {return os << getName();}
       bool isVariable () const {return true;}
-    protected:
       void setOwnerId (std::size_t s) {stackOwnerId = s;}
     private:
       std::string name;
@@ -68,10 +66,10 @@ namespace MiniMC {
 
     using Variable_ptr = std::shared_ptr<Variable>;
     
-    class VariableStackDescr {
-      VariableStackDescr (std::size_t id) : id(id) {}
+    class ExplicitStackDescr {
+      ExplicitStackDescr (std::size_t id) : id(id) {}
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
-      
+      auto& getVariables () const {return variables;}
     private:
       std::vector<Variable_ptr> variables;
       std::size_t id;
@@ -79,7 +77,7 @@ namespace MiniMC {
     
     };
 
-	using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
+    using ExplicitStackDescr_ptr = std::shared_ptr<ExplicitStackDescr>;
     
   }
 }
