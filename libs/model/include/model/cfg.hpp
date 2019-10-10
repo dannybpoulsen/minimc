@@ -114,11 +114,14 @@ namespace MiniMC {
       }
 
       auto& getFunctions  () const {return functions;}
-
-	  
+      void addEntryPoint (gsl::not_null<Function_ptr<VariableStackDescr_ptr>>& func) {
+	entrypoints.push_back(func.get());
+      }
+      
     private:
       std::vector<Function_ptr<VariableStackDescr_ptr> > functions;
       gsl::not_null<VariableStackDescr_ptr> globals;
+      std::vector<Function_ptr<VariableStackDescr_ptr> > entrypoints;
     };
 
     
