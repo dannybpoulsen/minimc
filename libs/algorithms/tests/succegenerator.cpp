@@ -3,10 +3,10 @@
 #include "model/types.hpp"
 #include "algorithms/successorgen.hpp"
 #include "cpa/location.hpp"
+#include "loaders/loader.hpp"
 
 
-int main () {
-  MiniMC::Model::TypeFactory64 tfactory;
+/*MiniMC::Model::TypeFactory64 tfactory;
   MiniMC::Model::Program prgm;
   auto i8 = tfactory.makeIntegerType(8);
   auto globals = prgm.makeVariableStack ();
@@ -23,12 +23,18 @@ int main () {
   cfg->makeEdge (init,ss,inst,nullptr);
   cfg->makeEdge (init,ss3,inst,nullptr);
   std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
+
+
   auto f = prgm.addFunction ("Main",params,globals,gsl::not_null<MiniMC::Model::CFG_ptr>(cfg));
   prgm.addEntryPoint (f);
   prgm.addEntryPoint (f);
+*/
+
+int main (int argc,char* argv[]) {
+  auto loader = MiniMC::Loaders::makeLoader<MiniMC::Loaders::Type::LLVM> ();
+  auto prgm = loader->loadFromFile (argv[1]);
   
-  
-  auto initialState =  MiniMC::CPA::Location::CPADef::Query::makeInitialState (prgm);
+  auto initialState =  MiniMC::CPA::Location::CPADef::Query::makeInitialState (*prgm);
   std::cerr << *initialState << std::endl;
   MiniMC::Algorithms::Generator<MiniMC::CPA::Location::CPADef::Query,MiniMC::CPA::Location::CPADef::Transfer> gen (initialState);
   auto it = gen.begin();

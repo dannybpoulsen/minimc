@@ -1,2 +1,2 @@
 add_executable (succ succegenerator.cpp)
-target_link_libraries  (succ model support algorithms)
+target_link_libraries  (succ model support algorithms loader)

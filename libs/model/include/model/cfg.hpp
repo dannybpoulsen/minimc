@@ -52,8 +52,8 @@ namespace MiniMC {
     public:
 	  
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-	locations.emplace_back (new Location (name));
-	return locations.back();
+		locations.emplace_back (new Location (name));
+		return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard) {
@@ -137,7 +137,7 @@ namespace MiniMC {
       std::size_t stacks = 0;
     };
 
-    
+	using Program_ptr = std::unique_ptr<Program>;
     
   }
 }
