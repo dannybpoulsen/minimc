@@ -11,15 +11,20 @@
 namespace MiniMC {
   namespace Model {
     class Edge;    
-    
-    class Location {
+    using Edge_ptr = std::shared_ptr<Edge>;
+    class Location : public std::enable_shared_from_this<Location>{
     public:
+      using edge_iterator = std::vector<gsl::not_null<Edge_ptr>>::const_iterator;
+      
       Location (const std::string& n) : name(n) {}
       auto& getEdges () const {return edges;}
-      void addEdge (gsl::not_null<Edge*> e) {edges.push_back(e);}
+      void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e);}
+      edge_iterator ebegin () const {return edges.begin();}
+      edge_iterator eend () const {return edges.end();}
+      auto& getName () const {return name;}
       
     private:
-      std::vector<gsl::not_null<Edge*>> edges;
+      std::vector<gsl::not_null<Edge_ptr>> edges;
       std::string name;
     };
 
@@ -40,7 +45,7 @@ namespace MiniMC {
       Value_ptr value;
     };
 
-    using Edge_ptr = std::shared_ptr<Edge>;
+    
     
 	
     class CFG {
@@ -53,6 +58,7 @@ namespace MiniMC {
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard) {
 	edges.emplace_back (new Edge (from,to,inst,guard));
+	from->addEdge (edges.back());
 	return edges.back();
       }
 
@@ -73,7 +79,6 @@ namespace MiniMC {
 
     using CFG_ptr = std::shared_ptr<CFG>;
 
-    template<class VariableStackDescr_ptr>
     class Function {
     public:
       Function (std::size_t id, 
@@ -98,30 +103,38 @@ namespace MiniMC {
       std::size_t id;
     };
     
-    template<class VariableStackDescr_ptr>
-    using Function_ptr = std::shared_ptr<Function<VariableStackDescr_ptr>>;
+    using Function_ptr = std::shared_ptr<Function>;
 
-    template<class VariableStackDescr_ptr>
     class Program {
     public:
-      Program (const gsl::not_null<VariableStackDescr_ptr>& stack) : globals(stack) {}
+      Program ()  {
+	globals = makeVariableStack().get();
+      }
       gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
-      void addFunction (const std::string& name,
+      gsl::not_null<Function_ptr>  addFunction (const std::string& name,
 			const std::vector<gsl::not_null<Variable_ptr>>& params,
 			const VariableStackDescr_ptr& variableStackDescr,
 			const gsl::not_null<CFG_ptr> cfg) {
-	functions.push_back (std::make_shared<Function<VariableStackDescr_ptr>> (functions.size(),name,params,variableStackDescr,cfg));
+	functions.push_back (std::make_shared<Function> (functions.size(),name,params,variableStackDescr,cfg));
+	return functions.back();
       }
 
       auto& getFunctions  () const {return functions;}
-      void addEntryPoint (gsl::not_null<Function_ptr<VariableStackDescr_ptr>>& func) {
+      void addEntryPoint (gsl::not_null<Function_ptr>& func) {
 	entrypoints.push_back(func.get());
+      }
+
+      auto& getEntryPoints () const {return entrypoints;}
+      
+      gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
+	return std::make_shared<VariableStackDescr> (stacks++); 
       }
       
     private:
-      std::vector<Function_ptr<VariableStackDescr_ptr> > functions;
-      gsl::not_null<VariableStackDescr_ptr> globals;
-      std::vector<Function_ptr<VariableStackDescr_ptr> > entrypoints;
+      std::vector<Function_ptr> functions;
+      VariableStackDescr_ptr globals;
+      std::vector<Function_ptr> entrypoints;
+      std::size_t stacks = 0;
     };
 
     

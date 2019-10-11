@@ -39,13 +39,17 @@ namespace MiniMC {
     template<class T>
     class Placed  {
     public:
-      Placed () : place(unused) {}
+      Placed () : place(unused),id(unused) {}
       std::size_t getPlace () const {return place;}
+      std::size_t getId () const {return id;}
+      
       void setPlace (std::size_t p) {place = p;}
-
+      void setId (std::size_t i)  {id = i;} 
+      
     private:
       static constexpr std::size_t unused = std::numeric_limits<std::size_t>::max ();
       std::size_t place;
+      std::size_t id;
     };
 
     
@@ -66,10 +70,13 @@ namespace MiniMC {
 
     using Variable_ptr = std::shared_ptr<Variable>;
     
-    class ExplicitStackDescr {
-      ExplicitStackDescr (std::size_t id) : id(id) {}
+    class VariableStackDescr {
+    public:
+      VariableStackDescr (std::size_t id) : id(id) {}
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
       auto& getVariables () const {return variables;}
+      auto getTotalSize () const {return totalSize;}
+      auto getTotalVariables () const {return variables.size();}
     private:
       std::vector<Variable_ptr> variables;
       std::size_t id;
@@ -77,7 +84,7 @@ namespace MiniMC {
     
     };
 
-    using ExplicitStackDescr_ptr = std::shared_ptr<ExplicitStackDescr>;
+    using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
     
   }
 }

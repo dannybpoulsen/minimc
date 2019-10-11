@@ -51,7 +51,7 @@ namespace MiniMC {
 #undef X
     };
 
-    std::ostream& operator<< (std::ostream& os, const InstructionCode& c) {
+    inline std::ostream& operator<< (std::ostream& os, const InstructionCode& c) {
       switch (c) {
 #define X(OP)					\
 	case InstructionCode::OP:		\
