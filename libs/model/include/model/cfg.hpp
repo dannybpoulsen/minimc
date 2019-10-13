@@ -135,7 +135,8 @@ namespace MiniMC {
       VariableStackDescr_ptr globals;
       std::vector<Function_ptr> entrypoints;
       std::size_t stacks = 0;
-    };
+	  
+	};
 
 	using Program_ptr = std::unique_ptr<Program>;
     

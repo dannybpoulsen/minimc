@@ -65,7 +65,9 @@ namespace MiniMC {
 	  virtual const Type_ptr makeVoidType () = 0;
 	};
 
-	class TypeFactory64 {
+	using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
+	
+	class TypeFactory64 : public TypeFactory {
 	public:
 	  TypeFactory64 ();
 	  ~TypeFactory64 ();

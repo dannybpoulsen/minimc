@@ -35,7 +35,7 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 
-
+#include "support/exceptions.hpp"
 #include "loaders/loader.hpp"
 #include "model/cfg.hpp"
 
@@ -62,7 +62,17 @@ namespace MiniMC {
 
 	struct Constructor : public llvm::PassInfoMixin<InstructionNamer> {
 	 
-	  Constructor (MiniMC::Model::Program_ptr& prgm) : prgm(prgm) {}
+	  Constructor (MiniMC::Model::Program_ptr& prgm,
+				   MiniMC::Model::TypeFactory_ptr& tfac
+				   ) : prgm(prgm) {
+		tbool = tfac->makeBoolType ();
+		i8 = tfac->makeIntegerType (8);
+		i16 = tfac->makeIntegerType (16);
+		i32 = tfac->makeIntegerType (32);
+		i64 = tfac->makeIntegerType (32);
+		pointer = tfac->makePointerType ();
+		voidtype = tfac->makeVoidType ();
+	  }
 	  llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
 		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
@@ -73,6 +83,7 @@ namespace MiniMC {
 		std::vector<MiniMC::Model::Instruction> inst;
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
+		pickVariables (F,variablestack);
 		auto& entry = F.getEntryBlock ();
 		cfg->setInitial (locmap.at(&entry));
 		for (llvm::BasicBlock &BB : F) {
@@ -89,16 +100,90 @@ namespace MiniMC {
 		}
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
 		prgm->addEntryPoint (f);
-		std::cerr << "Function" << std::endl;
 		return llvm::PreservedAnalyses::all();
 	  }
+
+	  MiniMC::Model::Type_ptr getType (llvm::Type* type) {
+		if (type->isVoidTy ()) {
+		  return voidtype;
+		}
+		else if (type->isPointerTy ()) {
+		  return pointer;
+		}
+
+		else if (type->isIntegerTy ()) {
+		  unsigned  bits = type->getIntegerBitWidth ();
+		  if (bits == 1) {
+			return tbool;
+		  }
+		  else if (bits <= 8)
+			return i8;
+		  else if (bits <=16)
+			return i16;
+		  else if (bits <=32)
+			return i32;
+		  else if (bits <=64)
+			return i64;
+		}
+		throw MiniMC::Support::Exception ("Unknown Type");
+		return nullptr;
+	  }
+	  
+	  void pickVariables (const llvm::Function& func,MiniMC::Model::VariableStackDescr_ptr stack) {
+		for (auto itt = func.arg_begin();itt!=func.arg_end(); itt++) {
+		  auto lltype = itt->getType ();
+		  auto type = getType (lltype);
+		  makeVariable (itt,itt->getName(),type,stack);
+		}
+		
+		for (const llvm::BasicBlock& bb : func) {
+		  for (auto& inst : bb) {
+			auto ops = inst.getNumOperands ();
+			for (std::size_t i = 0; i < ops; i++) {
+			  auto op = inst.getOperand (i);
+			  llvm::Constant* oop = llvm::dyn_cast<llvm::Constant> (op);
+			  auto lltype = op->getType();
+			  if (lltype->isLabelTy ())
+				continue;
+			  auto type = getType (op->getType());
+			  if (oop) {
+				continue;
+				//throw MiniMC::Support::Exception ("ERRROR");
+			  }
+			  else {
+				makeVariable (op,op->getName(),type,stack);
+			  }
+			}
+			
+
+			  
+		  }
+		}
+	  }
+
+	  void makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
+		if (!values.count (val)) {
+		  auto newVar = stack->addVariable (name,type);
+		  values[val] = newVar;
+		}
+	  }
+	  
 	private:
 	  MiniMC::Model::Program_ptr& prgm;
+	  MiniMC::Model::TypeFactory_ptr tfactory;
+	  MiniMC::Model::Type_ptr tbool;
+	  MiniMC::Model::Type_ptr i8;
+	  MiniMC::Model::Type_ptr i16;
+	  MiniMC::Model::Type_ptr i32;
+	  MiniMC::Model::Type_ptr i64;
+	  MiniMC::Model::Type_ptr pointer;
+	  MiniMC::Model::Type_ptr voidtype;
+	  std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr> values;
+	  
 	};
 	
 	class LLVMLoader : public Loader {
-	  virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file) {
-		std::cerr << "Load From FIle" << std::endl;
+	  virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac) {
 		auto prgm = std::make_unique<MiniMC::Model::Program> ();
 		std::fstream str;
 		str.open (file);
@@ -128,9 +213,9 @@ namespace MiniMC {
 		PB.crossRegisterProxies(lam, fam, cgam, mam);
 
 		funcmanager.addPass (InstructionNamer());
-		funcmanager.addPass (Constructor(prgm));
+		funcmanager.addPass (Constructor(prgm,tfac));
 		mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
-	
+		
 		mpm.run (*module,mam);
 		
 		return prgm;

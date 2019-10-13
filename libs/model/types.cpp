@@ -42,7 +42,7 @@ namespace MiniMC {
 
 	class BoolType : public Type {
 	public:
-	  BoolType () : Type(TypeID::Pointer) {}
+	  BoolType () : Type(TypeID::Bool) {}
 	  virtual std::size_t getSize () const {return 8;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Bool";}
 	  virtual bool innerEq (const Type& t) {return true;}
@@ -61,6 +61,7 @@ namespace MiniMC {
 	vt(new VoidType()),
 	dt(new DoubleType()),
 	ft(new FloatType ()),
+	bt(new BoolType()),
 	pt(new PointerType()),
 	i8(new IntegerType(8)),
 	i16(new IntegerType(16)),
