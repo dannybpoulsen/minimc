@@ -28,7 +28,8 @@ namespace MiniMC {
     
     using Value_ptr = std::shared_ptr<Value>;
 
-    class IntegerConstant {
+    class IntegerConstant :public Value  {
+	public:
       IntegerConstant (uint64_t val) : value(val) {}
       auto getValue () const {return value;}
       bool isConstant () const {return true;}

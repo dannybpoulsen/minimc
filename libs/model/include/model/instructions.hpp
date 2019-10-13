@@ -23,7 +23,7 @@ namespace MiniMC {
     X(ICMP_SGE)								\
     X(ICMP_UGE)								\
     X(ICMP_SLT)								\
-    X(ICMP_ULT)								\
+	X(ICMP_ULT)								\
     X(ICMP_SLE)								\
     X(ICMP_ULE)								\
     X(PtrAdd)								\
@@ -178,10 +178,10 @@ namespace MiniMC {
       void setLeft (const Value_ptr& ptr) {left = ptr;}
       void setRight (const Value_ptr& ptr) {right = ptr;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(left);
-	assert(right);
-	return Instruction (i,{res,left,right});
+		assert(res);
+		assert(left);
+		assert(right);
+		return Instruction (i,{res,left,right});
       }
     private:
       Value_ptr res;
