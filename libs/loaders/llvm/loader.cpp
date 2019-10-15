@@ -79,7 +79,7 @@ namespace MiniMC {
 			locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
 		}
 
-		std::vector<MiniMC::Model::Instruction> inst;
+		
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
 		pickVariables (F,variablestack);
@@ -88,13 +88,27 @@ namespace MiniMC {
 		for (llvm::BasicBlock &BB : F) {
 		  auto loc = locmap.at(&BB);
 		  auto term = BB.getTerminator ();
+		  std::vector<MiniMC::Model::Instruction> insts;
+		  for (llvm::Instruction& inst : BB) {
+		    if (&inst!=term) {
+		      addInstruction (&inst,insts);
+		    }
+		  }
+
+		  if (insts.size()) {
+		    auto mloc = cfg->makeLocation (loc->getName () + "-mid");
+		    cfg->makeEdge (loc,mloc,insts,nullptr);
+		    loc = mloc;
+		  }
+		  
 		  if (term) {
-			auto nb = term->getNumSuccessors ();
-			for (unsigned i = 0; i < nb; i++) {
-			  auto succ = term->getSuccessor (i);
-			  auto succloc = locmap.at(succ);
-			  cfg->makeEdge (loc,succloc,inst,nullptr);
-			}
+		    auto nb = term->getNumSuccessors ();
+		    for (unsigned i = 0; i < nb; i++) {
+		      std::vector<MiniMC::Model::Instruction> insts;
+		      auto succ = term->getSuccessor (i);
+		      auto succloc = locmap.at(succ);
+		      cfg->makeEdge (loc,succloc,insts,nullptr);
+		    }
 		  }
 		}
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
@@ -161,11 +175,51 @@ namespace MiniMC {
 	  }
 
 	  void makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
-		if (!values.count (val)) {
-		  auto newVar = stack->addVariable (name,type);
-		  values[val] = newVar;
-		}
+	    if (!values.count (val)) {
+	      auto newVar = stack->addVariable (name,type);
+	      values[val] = newVar;
+	    }
 	  }
+
+#define SUPPORTEDLLVM				\
+	  X(Add)				\
+	  X(Sub)				\
+	  X(Mul)				\
+	  X(UDiv)				\
+	  X(SDiv)				\
+	  X(Shl)				\
+	  X(LShr)				\
+	  X(AShr)				\
+	  X(And)				\
+	  X(Or)					\
+	  X(Xor)				\
+	  X(ICmp)				\
+	  X(Trunc)				\
+	  X(ZExt)				\
+	  X(SExt)				\
+	  X(PtrToInt)				\
+	  X(IntToPtr)				\
+	  X(BitCast)
+	  
+	  
+	  void addInstruction (llvm::Instruction* inst, std::vector<MiniMC::Model::Instruction>& insts) {
+	    Types tt;
+	    tt.i8 = i8;
+	    tt.i16 = i16;
+	    tt.i32 = i32;
+	    tt.i64 = i64;
+
+	    switch (inst->getOpcode()) {
+#define X(TT)					\
+	      case llvm::Instruction::TT:	\
+		translateAndAddInstruction<llvm::Instruction::TT> (inst,values,insts,tt);\
+		break;
+	      SUPPORTEDLLVM
+	    }
+	    
+	    
+	  }
+			       
 	  
 	private:
 	  MiniMC::Model::Program_ptr& prgm;

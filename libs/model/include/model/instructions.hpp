@@ -23,7 +23,7 @@ namespace MiniMC {
     X(ICMP_SGE)								\
     X(ICMP_UGE)								\
     X(ICMP_SLT)								\
-	X(ICMP_ULT)								\
+    X(ICMP_ULT)								\
     X(ICMP_SLE)								\
     X(ICMP_ULE)								\
     X(PtrAdd)								\
