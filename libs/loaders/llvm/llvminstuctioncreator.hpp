@@ -13,6 +13,28 @@ namespace MiniMC {
 	  MiniMC::Model::Type_ptr i16;
 	  MiniMC::Model::Type_ptr i32;
 	  MiniMC::Model::Type_ptr i64;
+	  MiniMC::Model::Type_ptr pointer;
+	  MiniMC::Model::Type_ptr getType (llvm::Type* type) {
+	    
+	    if (type->isIntegerTy ()) {
+	      unsigned  bits = type->getIntegerBitWidth ();
+	      
+	      if (bits <= 8)
+		return i8;
+	      else if (bits <=16)
+		return i16;
+	      else if (bits <=32)
+		return i32;
+	      else if (bits <=64)
+		return i64;
+	    }
+	    else if (type->isPointerTy ())
+	      return pointer;
+	    
+	    throw MiniMC::Support::Exception ("Unknown Type");
+	    return nullptr;
+	  }
+	  
 	};
 
 	
@@ -21,7 +43,9 @@ namespace MiniMC {
 	  if (ltype->isIntegerTy ()) {
 	    llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
 	    assert(csti);
-	    return std::make_shared<MiniMC::Model::IntegerConstant> (csti->getZExtValue ());
+	    auto cst = std::make_shared<MiniMC::Model::IntegerConstant> (csti->getZExtValue ());
+	    cst->setType (tt.getType(csti->getType()));
+	    return cst;
 	  }
 	  throw MiniMC::Support::Exception ("Error");
 	}
@@ -71,13 +95,18 @@ namespace MiniMC {
   LLVMTAC
 #undef LLVMTAC
 #undef X
+
+ 
   
   template<>								
   void translateAndAddInstruction<llvm::Instruction::Alloca> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
-    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder; 
-    assert(inst->isBinaryOp ());					
+    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder;
+   
+    auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
+    auto llalltype = alinst->getAllocatedType ();
+    auto outalltype = tt.getType (llalltype);
     auto res = findValue (inst,values,tt);		
-    auto size = findValue (inst->getOperand (0),values,tt);		
+    auto size = std::make_shared<MiniMC::Model::IntegerConstant> (outalltype->getSize());		
     builder.setRes (res);						
     builder.setSize (size);						
     instr.push_back(builder.BuildInstruction ());			

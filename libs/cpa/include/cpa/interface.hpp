@@ -3,6 +3,7 @@
 
 #include <ostream>
 #include <memory>
+#include <unordered_map>
 #include "model/cfg.hpp"
 #include "hash/hashing.hpp"
 
@@ -39,10 +40,12 @@ namespace MiniMC {
     
     class Storer {
     public:
-      using StorageTag = std::size_t;
+      using StorageTag = MiniMC::Hash::hash_t;
       virtual ~Storer () {}
-      StorageTag saveState (const State_ptr& state) {return 0;}
-      State_ptr loadState (StorageTag) {return std::make_shared<State> ();}
+      bool saveState (const State_ptr& state,StorageTag* tag = nullptr);
+      State_ptr loadState (StorageTag);
+    private:
+      std::unordered_map<MiniMC::Hash::hash_t, State_ptr> actualStore;;
     };
 
     struct CPADef {

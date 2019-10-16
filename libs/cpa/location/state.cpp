@@ -63,7 +63,6 @@ namespace MiniMC {
 	return state->getLocation (id);
       }
       
-      
     }
   }
 }

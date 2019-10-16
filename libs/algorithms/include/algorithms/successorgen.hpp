@@ -15,7 +15,7 @@ namespace MiniMC {
     
     template<class StateQuery,class Transfer>
     class Generator {
-            class Iterator {
+      class Iterator {
       public:
 
 	static Iterator makeBegin (MiniMC::CPA::State_ptr& pt) {

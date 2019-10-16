@@ -19,7 +19,7 @@ namespace MiniMC {
 	class FloatType : public Type {
 	public:
 	  FloatType () : Type(TypeID::Float) {}
-	  virtual std::size_t getSize () const {return 32;}
+	  virtual std::size_t getSize () const {return 4 ;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Float";}
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
@@ -27,7 +27,7 @@ namespace MiniMC {
 	class DoubleType : public Type {
 	public:
 	  DoubleType () : Type(TypeID::Double) {}
-	  virtual std::size_t getSize () const {return 64;}
+	  virtual std::size_t getSize () const {return 8 ;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Double";}
 	  virtual bool innerEq (const Type& t) {return false;}
 	};
@@ -35,7 +35,7 @@ namespace MiniMC {
 	class PointerType : public Type {
 	public:
 	  PointerType () : Type(TypeID::Pointer) {}
-	  virtual std::size_t getSize () const {return 64;}
+	  virtual std::size_t getSize () const {return 8 ;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Float";}
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
@@ -43,7 +43,7 @@ namespace MiniMC {
 	class BoolType : public Type {
 	public:
 	  BoolType () : Type(TypeID::Bool) {}
-	  virtual std::size_t getSize () const {return 8;}
+	  virtual std::size_t getSize () const {return 1;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Bool";}
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
@@ -63,10 +63,10 @@ namespace MiniMC {
 	ft(new FloatType ()),
 	bt(new BoolType()),
 	pt(new PointerType()),
-	i8(new IntegerType(8)),
-	i16(new IntegerType(16)),
-	i32(new IntegerType(32)),
-	i64(new IntegerType(64)) {}
+	i8(new IntegerType(1)),
+	i16(new IntegerType(2 )),
+	i32(new IntegerType(4 )),
+	i64(new IntegerType(8 )) {}
       Type_ptr vt;
       Type_ptr dt;
       Type_ptr ft;
@@ -96,7 +96,7 @@ namespace MiniMC {
 	return impl->i32;
       }
       else if (t <= 64) {
-		return impl->i64;
+	return impl->i64;
       }
       
       else

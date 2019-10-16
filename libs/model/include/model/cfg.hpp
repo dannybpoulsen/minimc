@@ -46,7 +46,9 @@ namespace MiniMC {
     };
 
     
-    
+    inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
+      return os << e.getInstructions ();
+    }
 	
     class CFG {
     public:
@@ -135,10 +137,10 @@ namespace MiniMC {
       VariableStackDescr_ptr globals;
       std::vector<Function_ptr> entrypoints;
       std::size_t stacks = 0;
-	  
-	};
+      
+    };
 
-	using Program_ptr = std::unique_ptr<Program>;
+    using Program_ptr = std::unique_ptr<Program>;
     
   }
 }

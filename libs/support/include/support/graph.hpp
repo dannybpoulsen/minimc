@@ -17,7 +17,7 @@ namespace MiniMC {
       virtual ~Node () {}
       virtual void setLabel (std::string str) = 0;
       virtual void connect (Node& n,std::string label) = 0;
-	virtual void color (Color& c ) = 0;
+      virtual void color (Color& c ) = 0;
       virtual void color ( ) = 0;
     };
 
@@ -28,12 +28,8 @@ namespace MiniMC {
       virtual void write (std::string f) = 0;
       virtual void write (std::ostream& os) = 0;
     };
-    
-    class GraphCreator {
-    public:
-      virtual ~GraphCreator () {}
-	virtual std::unique_ptr<Graph> CreateGraph (const std::string& s) = 0;
-    };
+
+    using Graph_ptr = std::unique_ptr<Graph>;
     
     enum class GraphType {
 			  DOT,

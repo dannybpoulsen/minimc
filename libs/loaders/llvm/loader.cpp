@@ -96,7 +96,7 @@ namespace MiniMC {
 		  }
 
 		  if (insts.size()) {
-		    auto mloc = cfg->makeLocation (loc->getName () + "-mid");
+		    auto mloc = cfg->makeLocation (loc->getName () + ":");
 		    cfg->makeEdge (loc,mloc,insts,nullptr);
 		    loc = mloc;
 		  }
@@ -199,7 +199,11 @@ namespace MiniMC {
 	  X(SExt)				\
 	  X(PtrToInt)				\
 	  X(IntToPtr)				\
-	  X(BitCast)
+	  X(BitCast)				\
+	  X(Load)				\
+	  X(Store)				\
+	  X(Alloca)				\
+	  
 	  
 	  
 	  void addInstruction (llvm::Instruction* inst, std::vector<MiniMC::Model::Instruction>& insts) {
@@ -215,6 +219,8 @@ namespace MiniMC {
 		translateAndAddInstruction<llvm::Instruction::TT> (inst,values,insts,tt);\
 		break;
 	      SUPPORTEDLLVM
+	    default:
+	      throw MiniMC::Support::Exception ("Unsupported operation");
 	    }
 	    
 	    

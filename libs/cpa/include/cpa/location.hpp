@@ -23,19 +23,11 @@ namespace MiniMC {
 	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
       };
       
-      class Storer : public MiniMC::CPA::Storer {
-      public:
-	using StorageTag = std::size_t;
-	virtual ~Storer () {}
-	StorageTag saveState (const State_ptr& state) {return 0;}
-	State_ptr loadState (StorageTag) {return std::make_shared<State> ();}
-      };
-      
       struct CPADef {
 	using Query = StateQuery;
 	using Transfer = Transferer;
 	using Joing = Joiner;
-	using Storage = Storer; 
+	using Storage = MiniMC::CPA::Storer; 
     };
     }
   }

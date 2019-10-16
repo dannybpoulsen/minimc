@@ -303,7 +303,19 @@ namespace MiniMC {
       return InstHelper<code,void> (inst);
     }
     
-    
+
+    using instructionstream = std::vector<Instruction>;
+
+    inline std::ostream& operator<< (std::ostream& os, const instructionstream& str) {
+      os << "{";
+      for (auto& i : str) {
+	os << i << std::endl;
+      }
+      return os <<"}";
+      
+    }
+
+				    
   }
 }
 
