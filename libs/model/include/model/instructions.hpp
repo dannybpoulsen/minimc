@@ -41,6 +41,9 @@ namespace MiniMC {
     X(Alloca)					\
     X(Store)					\
     X(Load)					\
+
+#define INTERNAL				\
+    X(Skip)
     
     enum class InstructionCode {
 #define X(OP)					\
@@ -48,6 +51,7 @@ namespace MiniMC {
 				TACOPS
 				CASTOPS
 				MEMORY
+				INTERNAL
 #undef X
     };
 
@@ -59,6 +63,7 @@ namespace MiniMC {
 	TACOPS
 	  MEMORY
 	  CASTOPS
+	  INTERNAL
 #undef X
       default:
 	return os << "Unknown";
@@ -108,7 +113,15 @@ namespace MiniMC {
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
-    
+
+    template<>						
+    struct InstructionData<InstructionCode::Skip> {		
+      static const bool isTAC = false;			
+      static const bool isMemory = false;			
+      static const bool isCast = false;			
+      static const std::size_t operands = 0;			
+      static const bool hasResVar = false;			
+    };
     
     template<>						
     struct InstructionData<InstructionCode::Load>{		
@@ -215,7 +228,7 @@ namespace MiniMC {
       Value_ptr res;
       Value_ptr castee;
     };
-
+    
       
 
     template<>
@@ -228,6 +241,7 @@ namespace MiniMC {
       private:
       Instruction& inst;
     };
+
 
     template<>
     class InstBuilder<InstructionCode::Alloca,void> {
@@ -243,13 +257,59 @@ namespace MiniMC {
       Value_ptr res;
       Value_ptr size;
     };
+    
+    template<>
+    class InstHelper<InstructionCode::Skip,void> {
+    public:
+      
+      InstHelper (Instruction& inst) : inst(inst) {}
+    private:
+      Instruction& inst;
+    };
 
+    template<>
+    class InstBuilder<InstructionCode::Skip,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::Skip,{});
+      }
+    
+    };
+
+    template<>
+    class InstHelper<InstructionCode::PtrAdd,void> {
+    public:
+      
+      InstHelper (Instruction& inst) : inst(inst) {}
+      auto& getValue () const {return inst.getOp(0);}
+      auto& getAddress () const {return inst.getOp(1);}
+    private:
+      Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::PtrAdd,void> {
+    public:
+      void setSkipSize (const Value_ptr& ptr) {skipSize = ptr;}
+      void setValue (const Value_ptr& ptr) {value = ptr;}
+      void setAddress (const Value_ptr& ptr) {address = ptr;}
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::PtrAdd,{value,address,skipSize});
+      }
+      
+    private:
+      Value_ptr skipSize;
+      Value_ptr value;
+      Value_ptr address;
+    };
+    
     template<>
     class InstHelper<InstructionCode::Store,void> {
     public:
       InstHelper (Instruction& inst) : inst(inst) {}
       auto& getValue () const {return inst.getOp(0);}
       auto& getAddress () const {return inst.getOp(1);}
+      auto& getSkipSize () const {return inst.getOp(2);}
       
       private:
       Instruction& inst;

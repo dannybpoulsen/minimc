@@ -8,36 +8,20 @@
 
 namespace MiniMC {
   namespace Loaders {
-	struct Types {
-	  MiniMC::Model::Type_ptr i8;
-	  MiniMC::Model::Type_ptr i16;
-	  MiniMC::Model::Type_ptr i32;
-	  MiniMC::Model::Type_ptr i64;
-	  MiniMC::Model::Type_ptr pointer;
-	  MiniMC::Model::Type_ptr getType (llvm::Type* type) {
-	    
-	    if (type->isIntegerTy ()) {
-	      unsigned  bits = type->getIntegerBitWidth ();
-	      
-	      if (bits <= 8)
-		return i8;
-	      else if (bits <=16)
-		return i16;
-	      else if (bits <=32)
-		return i32;
-	      else if (bits <=64)
-		return i64;
-	    }
-	    else if (type->isPointerTy ())
-	      return pointer;
-	    
-	    throw MiniMC::Support::Exception ("Unknown Type");
-	    return nullptr;
-	  }
-	  
-	};
+    MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
+    uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
+    struct Types {
+      MiniMC::Model::TypeFactory_ptr tfac;
+      MiniMC::Model::Type_ptr getType (llvm::Type* type) {
+	return  MiniMC::Loaders::getType (type,tfac);
+      }
+      std::size_t getSizeInBytes (llvm::Type* type) {
+	return computeSizeInBytes (type,tfac);
+      }
+    };
 
-	
+    
+    
 	MiniMC::Model::Value_ptr makeConstant (llvm::Constant* constant, Types& tt ) {
 	  auto ltype = constant->getType ();
 	  if (ltype->isIntegerTy ()) {
@@ -132,6 +116,57 @@ namespace MiniMC {
       instr.push_back(builder.BuildInstruction ());			
     }
 
+    template<>								\
+    void translateAndAddInstruction<llvm::Instruction::GetElementPtr> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+      auto gep = static_cast<llvm::GetElementPtrInst*> (inst);
+      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::PtrAdd> builder;
+      auto source = gep->getSourceElementType ();
+      if (gep->getNumIndices () == 1) {
+	auto size = tt.getSizeInBytes(source);
+	auto sizec = std::make_shared<MiniMC::Model::IntegerConstant> (size);
+	auto val = findValue (gep->getOperand (1),values,tt);
+	auto ptr = findValue (gep->getOperand (0),values,tt);
+	sizec->setType (val->getType ());
+	builder.setSkipSize (sizec);
+	builder.setValue (val);
+	builder.setAddress (ptr);
+      }
+      else {
+	auto i64 = tt.tfac->makeIntegerType (64);
+	auto one = std::make_shared<MiniMC::Model::IntegerConstant> (1);
+	
+	if (source->isArrayTy () ) {
+	  auto elemType = tt.getType ( static_cast<llvm::ArrayType*> (source)->getElementType());
+	  auto sizec = std::make_shared<MiniMC::Model::IntegerConstant> (elemType->getSize());
+	  auto val = findValue (gep->getOperand (2),values,tt);
+	  auto ptr = findValue (gep->getOperand (0),values,tt);
+	  sizec->setType (val->getType ());
+	  builder.setSkipSize (sizec);
+	  builder.setValue (val);
+	  builder.setAddress (ptr);
+	}
+	else if (source->isStructTy ()) {
+	  auto strucTy = static_cast<llvm::StructType*> (source);
+	  auto ptr = findValue (gep->getOperand (0),values,tt);
+	  size_t size = 0;
+	  auto cinst = llvm::dyn_cast<llvm::ConstantInt> (gep->getOperand(2));
+	  assert (cinst);
+	  auto t = cinst->getZExtValue ();
+	  for (size_t i = 0; i < t; ++i) {
+	    size+=tt.getSizeInBytes (strucTy->getElementType(i));
+	  }
+	  auto sizec = std::make_shared<MiniMC::Model::IntegerConstant> (size);
+	  sizec->setType (i64);
+	  builder.setValue (one);
+	  builder.setAddress (ptr);
+	  builder.setSkipSize (sizec);
+	}
+
+      }
+      
+      instr.push_back(builder.BuildInstruction ());			
+    }
+    
 #define LLVMICMP					\
     X(ICMP_SGT,ICMP_SGT)				\
     X(ICMP_UGT,ICMP_UGT)				\
@@ -172,7 +207,7 @@ namespace MiniMC {
     X(PtrToInt,PtrToInt)				\
     X(IntToPtr,IntToPtr)				\
     X(BitCast,BitCast)					\
-
+    
     #define X(LLVM,OUR)							\
     template<>								\
 	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \

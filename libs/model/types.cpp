@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 #include "model/types.hpp"
 
 namespace MiniMC {
@@ -56,6 +58,28 @@ namespace MiniMC {
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
 
+
+    class AggregateType : public Type {
+    public:
+      AggregateType (TypeID h,size_t size) : Type(h),size(size) {}
+      virtual std::size_t getSize () const {return size;}
+      virtual std::ostream& output (std::ostream& os) const {return os << "Aggr:"<<size;}
+      virtual bool innerEq (const Type& t) {return size == static_cast<const AggregateType&> (t).size;}
+    private:
+      std::size_t size;
+    };
+
+
+    class StructType : public AggregateType  {
+    public:
+      StructType (std::size_t size) : AggregateType(TypeID::Struct,size) {}
+    };
+
+    class ArrayType : public AggregateType  {
+    public:
+      ArrayType (std::size_t size) : AggregateType(TypeID::Array,size) {}
+    };
+    
     struct TypeFactory64::Inner {
       Inner () :
 	vt(new VoidType()),
@@ -76,6 +100,10 @@ namespace MiniMC {
       Type_ptr i16;
       Type_ptr i32;
       Type_ptr i64;
+
+      std::unordered_map<size_t,Type_ptr> structs;
+      std::unordered_map<size_t,Type_ptr> arrays;
+      
     };
     
 	
@@ -108,6 +136,18 @@ namespace MiniMC {
     const Type_ptr TypeFactory64::makeDoubleType () {return impl->dt;}
     const Type_ptr TypeFactory64::makePointerType () {return impl->pt;}
     const Type_ptr TypeFactory64::makeVoidType () {return impl->vt;}		
-	
+    const Type_ptr TypeFactory64::makeArrayType (size_t t) {
+      if (!impl->arrays.count(t)) {
+	impl->arrays.insert(std::make_pair (t,std::make_shared<ArrayType> (t)));
+      }
+      return impl->arrays.at(t);
+    }
+    const Type_ptr TypeFactory64::makeStructType (size_t t) {
+      if (!impl->structs.count(t)) {
+	impl->structs.insert(std::make_pair (t,std::make_shared<ArrayType> (t)));
+      }
+      return impl->structs.at(t);
+    }
+    
   }
 }

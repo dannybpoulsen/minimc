@@ -15,7 +15,9 @@ namespace MiniMC {
 					   Integer,
 					   Float,
 					   Double,
-					   Pointer
+					   Pointer,
+					   Struct,
+					   Array
 	};
 
 
@@ -63,6 +65,8 @@ namespace MiniMC {
 	  virtual const Type_ptr makeDoubleType () = 0;
 	  virtual const Type_ptr makePointerType () = 0;
 	  virtual const Type_ptr makeVoidType () = 0;
+	  virtual const Type_ptr makeArrayType (size_t) = 0;
+	  virtual const Type_ptr makeStructType (size_t) = 0;
 	};
 
 	using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
@@ -77,6 +81,8 @@ namespace MiniMC {
 	  virtual const Type_ptr makeDoubleType ();
 	  virtual const Type_ptr makePointerType ();
 	  virtual const Type_ptr makeVoidType ();
+	  virtual const Type_ptr makeArrayType (size_t);
+	  virtual const Type_ptr makeStructType (size_t);
 	private:
 	  struct Inner;
 	  std::unique_ptr<Inner> impl;
