@@ -25,8 +25,16 @@ namespace MiniMC {
     X(ICMP_SLT)								\
     X(ICMP_ULT)								\
     X(ICMP_SLE)								\
-    X(ICMP_ULE)								\
-    X(PtrAdd)								\
+    X(ICMP_ULE)
+    
+#define POINTEROPS				\
+    X(PtrAdd)					\
+
+#define AGGREGATEOPS				\
+    X(ExtractValue)				\
+    X(InsertValue)				\
+    X(InsertValueFromConst)			\
+    
     
 #define CASTOPS					\
     X(Trunc)					\
@@ -43,7 +51,8 @@ namespace MiniMC {
     X(Load)					\
 
 #define INTERNAL				\
-    X(Skip)
+    X(Skip)					\
+    X(Assign)					\
     
     enum class InstructionCode {
 #define X(OP)					\
@@ -52,6 +61,8 @@ namespace MiniMC {
 				CASTOPS
 				MEMORY
 				INTERNAL
+				POINTEROPS
+				AGGREGATEOPS
 #undef X
     };
 
@@ -64,6 +75,7 @@ namespace MiniMC {
 	  MEMORY
 	  CASTOPS
 	  INTERNAL
+	  AGGREGATEOPS
 #undef X
       default:
 	return os << "Unknown";
@@ -76,34 +88,85 @@ namespace MiniMC {
       static const bool isTAC = false;
       static const bool isMemory = false;
       static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
     };
 
-#define X(OP)					\
-    template<>						\
-    struct InstructionData<InstructionCode::OP>{	\
-      static const bool isTAC = true;			\
+#define X(OP)							\
+    template<>							\
+    struct InstructionData<InstructionCode::OP>{		\
+      static const bool isTAC = true;				\
       static const bool isMemory = false;			\
-      static const bool isCast = false;		\
+      static const bool isCast = false;				\
+      static const bool isPointer = false;			\
+      static const bool isAggregate = false;			\
       static const std::size_t operands = 2;			\
-      static const bool hasResVar = true;		\
+      static const bool hasResVar = true;			\
     };
     TACOPS
 #undef X
 
-#define X(OP)						\
-    template<>						\
-    struct InstructionData<InstructionCode::OP>{	\
-      static const bool isTAC = false;			\
+#define X(OP)							\
+    template<>							\
+    struct InstructionData<InstructionCode::OP>{		\
+      static const bool isTAC = false;				\
       static const bool isMemory = false;			\
-      static const bool isCast = true;			\
+      static const bool isCast = true;				\
+      static const bool isPointer = false;			\
+      static const bool isAggregate = false;			\
       static const std::size_t operands = 1;			\
-      static const bool hasResVar = true;		\
+      static const bool hasResVar = true;			\
     };
     CASTOPS
 #undef X
+
+    template<>							
+    struct InstructionData<InstructionCode::ExtractValue>{		
+      static const bool isTAC = false;				
+      static const bool isMemory = false;			
+      static const bool isCast = false;				
+      static const bool isPointer = false;			
+      static const bool isAggregate = true;
+      static const std::size_t operands = 3;			
+      static const bool hasResVar = true;			
+    };
     
+    template<>							
+    struct InstructionData<InstructionCode::InsertValue>{		
+      static const bool isTAC = false;				
+      static const bool isMemory = false;			
+      static const bool isCast = false;				
+      static const bool isPointer = false;			
+      static const bool isAggregate = true;
+      static const std::size_t operands = 3;			
+      static const bool hasResVar = true;			
+    };
+    
+    template<>							
+    struct InstructionData<InstructionCode::InsertValueFromConst>{		
+      static const bool isTAC = false;				
+      static const bool isMemory = false;			
+      static const bool isCast = false;				
+      static const bool isPointer = false;			
+      static const bool isAggregate = true;
+      static const std::size_t operands = 0;			
+      static const bool hasResVar = true;			
+    };
+
+    template<>							
+    struct InstructionData<InstructionCode::PtrAdd>{		
+      static const bool isTAC = false;				
+      static const bool isMemory = false;			
+      static const bool isCast = false;				
+      static const bool isPointer = true;			
+      static const bool isAggregate = false;			
+      static const std::size_t operands = 4;			
+      static const bool hasResVar = true;			
+    };
+
+
     
     template<>						
     struct InstructionData<InstructionCode::Alloca> {		
@@ -118,7 +181,9 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::Skip> {		
       static const bool isTAC = false;			
       static const bool isMemory = false;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
       static const std::size_t operands = 0;			
       static const bool hasResVar = false;			
     };
@@ -127,7 +192,9 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::Load>{		
       static const bool isTAC = false;			
       static const bool isMemory = true;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -136,7 +203,9 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::Store>{		
       static const bool isTAC = false;			
       static const bool isMemory = true;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = false;			
     };
@@ -146,17 +215,20 @@ namespace MiniMC {
     public:
       Instruction (InstructionCode code, std::initializer_list<Value_ptr> ops) : opcode(code),
 										    ops(ops) {}
+      Instruction (InstructionCode code, std::vector<Value_ptr> ops) : opcode(code),
+								       ops(ops) {}
+      
       auto getOpcode () const {return opcode;}
       auto& getOps () const {return ops;}
       auto& getOp (std::size_t i) const {return ops.at(i);}
       auto getNbOps () const {return ops.size();}
-      std::ostream& output (std::ostream& os) const {
+      std::ostream& output (std::ostream& os) const; /*{
 	os << "(" << opcode;
 	for (auto& op : ops) {
 	  os << " " << *op; 
 	}
 	return os << ")";
-      }
+      }*/
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;
@@ -171,17 +243,22 @@ namespace MiniMC {
 
     template<InstructionCode i,class T = void>
     class InstBuilder;
+
+    template<InstructionCode i,class T = void>
+    struct Formatter {
+      static std::ostream& output (std::ostream& os, const Instruction&) { return os << "??";} 
+    };
     
     template<InstructionCode i>
     class InstHelper<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
     public:
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
       auto getLeftOp () const {return inst.getOp(1);}
       auto getRightOp () const {return inst.getOp(2);}
       
       private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<InstructionCode i>
@@ -201,16 +278,24 @@ namespace MiniMC {
       Value_ptr left;
       Value_ptr right;
     };
+    
+    template<InstructionCode i> 
+    struct Formatter<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<i> h (inst);
+	return os << *h.getResult () << " = " << i << h.getLeftOp () << " " << h.getRightOp ();
+      } 
+    };
 
     template<InstructionCode i>
     class InstHelper<i,typename std::enable_if<InstructionData<i>::isCast>::type> {
     public:
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
       auto& getCastee () const {return inst.getOp(1);}
       
-      private:
-      Instruction& inst;
+    private:
+      const Instruction& inst;
     };
 
     
@@ -229,17 +314,23 @@ namespace MiniMC {
       Value_ptr castee;
     };
     
-      
-
+    template<InstructionCode i> 
+    struct Formatter<i,typename std::enable_if<InstructionData<i>::isCast>::type> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<i> h (inst);
+	return os << *h.getResult () << " = " << i << *h.getCastee ();
+      } 
+    };
+    
     template<>
     class InstHelper<InstructionCode::Alloca,void> {
     public:
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
       auto& getSize () const {return inst.getOp(1);}
       
       private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
 
@@ -256,6 +347,14 @@ namespace MiniMC {
     private:
       Value_ptr res;
       Value_ptr size;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::Alloca,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Alloca> h (inst);
+	return os << *h.getResult () << " = " << InstructionCode::Alloca << *h.getSize ();
+      } 
     };
     
     template<>
@@ -276,15 +375,25 @@ namespace MiniMC {
     
     };
 
+    template<> 
+    struct Formatter<InstructionCode::Skip,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Alloca> h (inst);
+	return os <<  InstructionCode::Skip;
+      } 
+    };
+    
     template<>
     class InstHelper<InstructionCode::PtrAdd,void> {
     public:
       
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getValue () const {return inst.getOp(0);}
       auto& getAddress () const {return inst.getOp(1);}
+      auto& getSkipSize () const {return inst.getOp(2);}
+      auto& getResult () const {return inst.getOp(3);}
     private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<>
@@ -293,14 +402,172 @@ namespace MiniMC {
       void setSkipSize (const Value_ptr& ptr) {skipSize = ptr;}
       void setValue (const Value_ptr& ptr) {value = ptr;}
       void setAddress (const Value_ptr& ptr) {address = ptr;}
+      void setResult (const Value_ptr& ptr) {result = ptr;}
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::PtrAdd,{value,address,skipSize});
+	return Instruction (InstructionCode::PtrAdd,{value,address,skipSize,result});
       }
       
     private:
       Value_ptr skipSize;
       Value_ptr value;
       Value_ptr address;
+      Value_ptr result;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::PtrAdd,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::PtrAdd> h (inst);
+	return os << *h.getResult () << " = " << *h.getAddress () << " + " << *h.getSkipSize() << "*"<<*h.getValue ();
+      } 
+    };
+    
+    
+    template<>
+    class InstHelper<InstructionCode::ExtractValue,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getAggregate () const {return inst.getOp (0);}
+      auto& getOffset () const {return inst.getOp (1);}
+      auto& getResult () const {return inst.getOp (2);}
+      
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::ExtractValue,void> {
+    public:
+      void setAggregate (const Value_ptr& aggr) {aggregate = aggr;}
+      void setOffset (const Value_ptr& ptr) {offset = ptr;}
+      void setResult (const Value_ptr& ptr) {res = ptr;}
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::ExtractValue,{aggregate,offset,res});
+      }
+      
+    private:
+      Value_ptr aggregate;
+      Value_ptr offset;
+      Value_ptr res;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::ExtractValue,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::ExtractValue> h (inst);
+	return os << *h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ] ";
+      } 
+    };
+    
+
+    template<>
+    class InstHelper<InstructionCode::Assign,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getValue () const  {return inst.getOp (1);} 
+      auto& getResult () const {return inst.getOp (0);}
+      
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::Assign,void> {
+    public:
+      void setValue (const Value_ptr& aggr) {value = aggr;}
+      void setResult (const Value_ptr& ptr) {res = ptr;}
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::Assign,{res,value});
+      }
+      
+    private:
+      Value_ptr value;
+      Value_ptr res;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::Assign,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Assign> h (inst);
+	return os << *h.getResult () << " = " << *h.getValue ();
+      } 
+    };
+    
+    template<>
+    class InstHelper<InstructionCode::InsertValue,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getAggregate () const  {return inst.getOp (0);}
+      auto& getOffset () const {return inst.getOp (1);}
+      auto& getInsertee () const {return inst.getOp (3);} 
+      auto& getResult () const {return inst.getOp (2);}
+      
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::InsertValue,void> {
+    public:
+      void setAggregate (const Value_ptr& aggr) {aggregate = aggr;}
+      void setOffset (const Value_ptr& ptr) {offset = ptr;}
+      void setResult (const Value_ptr& ptr) {res = res;}
+      void setInsertee (const Value_ptr& ptr)  {insertee = ptr;}
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::PtrAdd,{aggregate,offset,res,insertee});
+      }
+      
+    private:
+      Value_ptr aggregate;
+      Value_ptr offset;
+      Value_ptr insertee;
+      Value_ptr res;
+    };
+
+    template<>
+    class InstHelper<InstructionCode::InsertValueFromConst,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getAggregate () const  {return inst.getOp (0);}
+      size_t nbOps () const {return inst.getNbOps () - 3;}
+      auto& getOp (size_t op) const {return inst.getOp (op+3);}
+      auto& getInsertee () const {return inst.getOp (2);} 
+      auto& getResult () const {return inst.getOp (1);}
+      
+    private:
+      const Instruction& inst;
+    };
+    
+    template<>
+    class InstBuilder<InstructionCode::InsertValueFromConst,void> {
+    public:
+      void setAggregate (const Value_ptr& aggr) {aggregate = aggr;}
+      void addOps (const Value_ptr& ptr) {consts.push_back(ptr);}
+      void setResult (const Value_ptr& ptr) {res = res;}
+      void setInsertee (const Value_ptr& ptr)  {insertee = ptr;}
+      Instruction BuildInstruction () {
+	std::vector<Value_ptr> vals ({aggregate,res,insertee});
+	std::copy (consts.begin(),consts.end(),std::back_inserter (vals));
+	return Instruction (InstructionCode::InsertValueFromConst,vals);
+      }
+      
+    private:
+      Value_ptr aggregate;
+      Value_ptr insertee;
+      Value_ptr res;
+      std::vector<Value_ptr> consts;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::InsertValue,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::InsertValue> h (inst);
+	return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
+      } 
     };
     
     template<>
@@ -309,7 +576,6 @@ namespace MiniMC {
       InstHelper (Instruction& inst) : inst(inst) {}
       auto& getValue () const {return inst.getOp(0);}
       auto& getAddress () const {return inst.getOp(1);}
-      auto& getSkipSize () const {return inst.getOp(2);}
       
       private:
       Instruction& inst;
@@ -329,17 +595,25 @@ namespace MiniMC {
       Value_ptr value;
       Value_ptr address;
     };
+
+    template<> 
+    struct Formatter<InstructionCode::Store,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::PtrAdd> h (inst);
+	return os << "*" <<*h.getAddress () << " = " << *h.getValue ();
+      } 
+    };
     
     template<>
     class InstHelper<InstructionCode::Load,void> {
     public:
-      InstHelper (Instruction& inst) : inst(inst) {
+      InstHelper (const Instruction& inst) : inst(inst) {
       }
       auto& getResult () const {return inst.getOp(0);}
       auto& getAddress () const {return inst.getOp(1);}
       
       private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<>
@@ -355,6 +629,14 @@ namespace MiniMC {
     private:
       Value_ptr res;
       Value_ptr address;
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::Load,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Load> h (inst);
+	return os  <<h.getResult () << " = *" << *h.getAddress ();
+      } 
     };
     
     template<InstructionCode code>
@@ -375,7 +657,23 @@ namespace MiniMC {
       
     }
 
-				    
+    inline std::ostream& Instruction::output (std::ostream& os) const {
+      switch (getOpcode () ) {
+#define X(OP)								\
+	case InstructionCode::OP:					\
+	  return Formatter<InstructionCode::OP>::output (os,*this);	\
+	  break;							
+	  TACOPS
+	CASTOPS
+	  MEMORY
+	  INTERNAL
+	  POINTEROPS
+	  AGGREGATEOPS
+#undef X
+	    }
+      return os << "??";
+    }
+    
   }
 }
 

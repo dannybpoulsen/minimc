@@ -28,15 +28,45 @@ namespace MiniMC {
     
     using Value_ptr = std::shared_ptr<Value>;
 
+    class Constant : public Value {
+    public:
+      bool isConstant () const {return true;}
+      virtual bool isAggregate () const {return false;}
+  };
+    
     class IntegerConstant :public Value  {
 	public:
       IntegerConstant (uint64_t val) : value(val) {}
       auto getValue () const {return value;}
-      bool isConstant () const {return true;}
+  
       virtual std::ostream& output (std::ostream& os) const {return os << value;}
     private:
       uint64_t value;
     };
+
+    class AggregateConstant :public Value  {
+    public:
+      AggregateConstant (std::vector<Value_ptr>& vals, bool isarr) : values(vals),
+								     is_Array(isarr)
+      {}
+      auto& getValues () const {return values;}
+      bool isArray () const {return is_Array;}
+      bool isAggregate () const {return true;}
+  
+      virtual std::ostream& output (std::ostream& os) const {
+	const std::string start = is_Array ? "[ " : "{ ";
+	const std::string stop = is_Array ? "]" : "}";
+	os << start;
+	for (auto& v : values)
+	  os << *v << " " ;
+	return os << stop;
+      }
+    private:
+      std::vector<Value_ptr> values;
+      bool is_Array = false;
+    };
+
+    
     template<class T>
     class Placed  {
     public:

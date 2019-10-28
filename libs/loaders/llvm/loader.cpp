@@ -1,3 +1,4 @@
+
 #include <fstream>
 #include <unordered_map>
 
@@ -261,6 +262,9 @@ namespace MiniMC {
 	  X(Store)				\
 	  X(Alloca)				\
 	  X(GetElementPtr)			\
+	  X(InsertValue)			\
+	  X(ExtractValue)			\
+	  
 	  
 	  
 	  
@@ -326,9 +330,9 @@ namespace MiniMC {
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
 		
 	mpm.run (*module,mam);
-
-	//llvm::raw_os_ostream os (std::cerr);
-	//module->print (os,nullptr);
+	
+	llvm::raw_os_ostream os (std::cerr);
+	module->print (os,nullptr);
 	
 	return prgm;
       }

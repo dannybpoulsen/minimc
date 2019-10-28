@@ -22,7 +22,9 @@ namespace MiniMC {
 
     
     
-	MiniMC::Model::Value_ptr makeConstant (llvm::Constant* constant, Types& tt ) {
+	MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt ) {
+	  auto constant = llvm::dyn_cast<llvm::Constant> (val);
+	  assert(constant);
 	  auto ltype = constant->getType ();
 	  if (ltype->isIntegerTy ()) {
 	    llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
@@ -31,9 +33,35 @@ namespace MiniMC {
 	    cst->setType (tt.getType(csti->getType()));
 	    return cst;
 	  }
+	  else if (ltype->isStructTy()) {
+	    std::vector<MiniMC::Model::Value_ptr> vals;
+	    const size_t oper = constant->getNumOperands ();
+	    for (size_t i = 0; i < oper;++i) {
+	      auto elem = constant->getOperand(i);
+	      vals.push_back(makeConstant(elem,tt));
+	    }
+	    auto type = tt.getType (constant->getType ());
+	    auto cst = std::make_shared<MiniMC::Model::AggregateConstant> (vals,false);
+	    cst->setType (type);
+	    return cst;
+	  }
+
+	  else if (ltype->isArrayTy()) {
+	    std::vector<MiniMC::Model::Value_ptr> vals;
+	    const size_t oper = constant->getNumOperands ();
+	    for (size_t i = 0; i < oper;++i) {
+	      auto elem = constant->getOperand(i);
+	      vals.push_back(makeConstant(elem,tt));
+	    }
+	    auto type = tt.getType (constant->getType());
+	    auto cst = std::make_shared<MiniMC::Model::AggregateConstant> (vals,true);
+	    cst->setType (type);
+	    return cst;
+	  }
+	  
 	  throw MiniMC::Support::Exception ("Error");
 	}
-
+    
 	MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt ) {
 	  llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
 	  if (cst)
@@ -116,6 +144,99 @@ namespace MiniMC {
       instr.push_back(builder.BuildInstruction ());			
     }
 
+    size_t calcSkip (llvm::Type* t, size_t index,Types& tt) {
+      if (t->isArrayTy ()) {
+	return tt.getSizeInBytes (static_cast<llvm::ArrayType*> (t)->getElementType())*index; 
+      }
+
+      else if (t->isStructTy ()) {
+	size_t size = 0;
+	auto strucTy = static_cast<llvm::StructType*> (t);
+	for (size_t i = 0; i < index; ++i) {
+	  size+=tt.getSizeInBytes (strucTy->getElementType(i));
+	}
+	return size;
+      }
+      else {
+	throw MiniMC::Support::Exception ("Can't calculate size");
+      }
+    }
+    
+    template<>								\
+    void translateAndAddInstruction<llvm::Instruction::ExtractValue> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+      llvm::ExtractValueInst* extractinst = llvm::dyn_cast<llvm::ExtractValueInst> (inst);
+      auto extractfrom = extractinst->getAggregateOperand();
+      if (llvm::Constant* cstextract = llvm::dyn_cast<llvm::Constant> (extractfrom)) {
+	llvm::Constant* cur = cstextract;
+	
+	for (auto i : extractinst->getIndices ()) {
+	  cur = cur->getAggregateElement (i);
+	  assert(cur);
+	}
+	auto value = findValue (cur,values,tt);
+	auto res = findValue (inst,values,tt);
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
+	builder.setResult (res);
+	builder.setValue (value);
+	instr.push_back(builder.BuildInstruction ());
+      }
+      else {
+	auto aggre = findValue (extractfrom,values,tt);
+	size_t skip = 0;
+	auto cur = extractfrom->getType ();
+	for (auto i : extractinst->getIndices ()) {
+	  skip+=calcSkip (cur,i,tt);
+	}
+	auto skipee = std::make_shared<MiniMC::Model::IntegerConstant> (skip);
+	auto type = tt.tfac->makeIntegerType(32);
+	skipee->setType (type);
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::ExtractValue> builder; 
+	builder.setResult (findValue(inst,values,tt));
+	builder.setOffset (skipee);
+	builder.setAggregate (aggre);
+	
+	instr.push_back(builder.BuildInstruction ());
+      }
+      
+    }
+
+    template<>								\
+    void translateAndAddInstruction<llvm::Instruction::InsertValue> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+       llvm::InsertValueInst* insertinst = llvm::dyn_cast<llvm::InsertValueInst> (inst);
+      auto insertfrom = insertinst->getAggregateOperand();
+      auto insertval = insertinst->getInsertedValueOperand ();
+      if (llvm::Constant* cstextract = llvm::dyn_cast<llvm::Constant> (insertfrom)) {
+
+	auto aggregate = findValue (insertfrom,values,tt);
+	auto value = findValue (insertval,values,tt);
+	auto res = findValue (inst,values,tt);
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::InsertValueFromConst> builder;
+	builder.setAggregate (aggregate);
+	builder.setResult (res);
+	builder.setInsertee (value);
+	instr.push_back(builder.BuildInstruction ());
+      }
+      else {
+	auto aggre = findValue (insertfrom,values,tt);
+	size_t skip = 0;
+	auto cur = insertfrom->getType ();
+	for (auto i : insertinst->getIndices ()) {
+	  skip+=calcSkip (cur,i,tt);
+	}
+	auto skipee = std::make_shared<MiniMC::Model::IntegerConstant> (skip);
+	auto type = tt.tfac->makeIntegerType(32);
+	skipee->setType (type);
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::InsertValue> builder; 
+	builder.setResult (findValue(inst,values,tt));
+	builder.setOffset (skipee);
+	builder.setAggregate (aggre);
+	builder.setInsertee (aggre);
+	
+	
+	instr.push_back(builder.BuildInstruction ());
+      }
+    }
+    
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::GetElementPtr> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
       auto gep = static_cast<llvm::GetElementPtrInst*> (inst);
@@ -163,7 +284,7 @@ namespace MiniMC {
 	}
 
       }
-      
+      builder.setResult (findValue (inst,values,tt));
       instr.push_back(builder.BuildInstruction ());			
     }
     
