@@ -104,33 +104,64 @@ namespace MiniMC {
 	}
       };
 
-      
-      
+	  template<class A>
+	  struct TagElement {
+		typename A::Storage::StorageTag tag;
+	  };
+	  
+	  template<class ...args>
+	  struct StoreTag : public TagElement<args>... {
+		template<class A>
+		  auto& getSubTag () {TagElement<A>::tag;}
+	  };
+
+	  template<class A>
+	  struct StoreElement {
+		typename A::Storage store;
+	  };
+	  
+	  template<class ...args>
+	  struct Storing : public StoreElement<args>... {
+		template<class A>
+		  auto& getSubStore () {StoreElement<A>::store;}
+	  };
+	  
+	  
       template<class... args>
       class Storer : public MiniMC::CPA::Storer {
       public:
-	using StorageTag = std::tuple<args...>;
-	
-	bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
-	  MiniMC::Hash::hash_t hash= state->hash(0);
-	  if (stored.count(hash))
-	    return false;
-	  
-	  return true;
-	}
-	State_ptr loadState (StorageTag) {
-	  return nullptr;
-	}
-      private:
-	std::set<MiniMC::Hash::hash_t> stored;
-      };
+		using StorageTag = StoreTag<args...>;
 
-      template<size_t ask,class... CPAs>
+		
+		
+		bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
+		  MiniMC::Hash::hash_t hash= state->hash(0);
+		  if (stored.count(hash))
+			return false;
+		  else {
+			stored.insert(hash);
+			if (!tag) 
+			  return true;
+			else {
+			  
+			}
+		  }
+		}
+		State_ptr loadState (StorageTag) {
+		  return nullptr;
+		}
+      private:
+		std::set<MiniMC::Hash::hash_t> stored;
+		Storing<args...> store;
+	  };
+	  
+
+	  template<size_t ask,class... CPAs>
       struct CPADef {
-	using Query = StateQuery<ask,CPAs...>;
-	using Transfer = Transferer<CPAs...>;
-	using Join = MiniMC::CPA::Joiner;
-	using Storage = Storer<CPAs...>;
+		using Query = StateQuery<ask,CPAs...>;
+		using Transfer = Transferer<CPAs...>;
+		using Join = MiniMC::CPA::Joiner;
+		using Storage = Storer<CPAs...>;
       };
     }
   }
