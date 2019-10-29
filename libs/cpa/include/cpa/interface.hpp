@@ -51,7 +51,7 @@ namespace MiniMC {
     struct CPADef {
       using Query = StateQuery;
       using Transfer = Transferer;
-      using Joing = Joiner;
+      using Join = Joiner;
       using Storage = Storer; 
     };
     
