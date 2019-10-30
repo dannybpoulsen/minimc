@@ -1,5 +1,5 @@
-#ifndef _TYPES__
-#define _TYPES__
+#ifndef _TYPES___
+#define _TYPES___
 
 #include <memory>
 #include <iostream>

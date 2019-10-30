@@ -1,3 +1,6 @@
+#ifndef _TYPES__
+#define _TYPES__
+
 #include <cstdint>
 
 namespace MiniMC {
@@ -19,42 +22,42 @@ namespace MiniMC {
   };
 
   template<>
-  struct TypeD<InternalTypes::uint8_t> {
+  struct TypeD<InternalTypes::uint8> {
     using type = std::uint8_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::uint16_t> {
+  struct TypeD<InternalTypes::uint16> {
     using type = std::uint16_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::uint32_t> {
+  struct TypeD<InternalTypes::uint32> {
     using type = std::uint32_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::uint64_t> {
+  struct TypeD<InternalTypes::uint64> {
     using type = std::uint64_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::int64_t> {
+  struct TypeD<InternalTypes::int64> {
     using type = std::int64_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::int32_t> {
+  struct TypeD<InternalTypes::int32> {
     using type = std::int32_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::int16_t> {
+  struct TypeD<InternalTypes::int16> {
     using type = std::int16_t;
   };
 
   template<>
-  struct TypeD<InternalTypes::int8_t> {
+  struct TypeD<InternalTypes::int8> {
     using type = std::int8_t;
   };
 
@@ -70,3 +73,4 @@ namespace MiniMC {
 }
 
 
+#endif
