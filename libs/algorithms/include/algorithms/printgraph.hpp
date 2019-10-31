@@ -5,6 +5,7 @@
 #include "support/feedback.hpp"
 #include "support/exceptions.hpp"
 #include "support/graph.hpp"
+#include "algorithms/algorithm.hpp"
 #include "algorithms/passedwaiting.hpp"
 #include "algorithms/successorgen.hpp"
 

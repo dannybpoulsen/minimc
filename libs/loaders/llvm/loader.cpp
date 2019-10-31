@@ -2,7 +2,6 @@
 #include <fstream>
 #include <unordered_map>
 
-#include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IR/Module.h>
@@ -30,8 +29,6 @@
 #include <llvm/PassRegistry.h>
 
 #include <llvm/Passes/PassBuilder.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 
@@ -330,9 +327,6 @@ namespace MiniMC {
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
 		
 	mpm.run (*module,mam);
-	
-	llvm::raw_os_ostream os (std::cerr);
-	module->print (os,nullptr);
 	
 	return prgm;
       }

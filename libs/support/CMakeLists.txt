@@ -3,12 +3,12 @@ Find_Package (CGraph)
 add_library (support SHARED jsongraph.cpp dotgraph.cpp)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_subdirectory (linux)
-	target_sources (support PUBLIC $<TARGET_OBJECTS:linuxsupport>)
+	target_link_libraries (support PUBLIC linuxsupport)
 endif()	       
 
 if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 	add_subdirectory (x86_64)
-	target_sources (support PUBLIC $<TARGET_OBJECTS:x86_64support>)
+	target_link_libraries (support PUBLIC x86_64support)
 endif()
 
 

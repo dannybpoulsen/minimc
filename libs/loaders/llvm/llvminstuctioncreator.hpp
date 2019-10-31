@@ -22,7 +22,7 @@ namespace MiniMC {
 
     
     
-	MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt ) {
+    MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt ) {
 	  auto constant = llvm::dyn_cast<llvm::Constant> (val);
 	  assert(constant);
 	  auto ltype = constant->getType ();
