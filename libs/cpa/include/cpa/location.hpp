@@ -1,10 +1,8 @@
 #ifndef _LOCATION__
 #define _LOCATION__
 
-#include <ostream>
-#include <memory>
 #include "model/cfg.hpp"
-#include "hash/hashing.hpp"
+#include "cpa/interface.hpp"
 
 namespace MiniMC {
   namespace CPA {

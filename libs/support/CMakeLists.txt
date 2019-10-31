@@ -14,8 +14,3 @@ endif()
 
 target_include_directories (support PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
 target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES})
-
-add_subdirectory (test)	
-	
-	
-	

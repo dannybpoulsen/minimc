@@ -1,6 +1,5 @@
 add_subdirectory (location)
 add_subdirectory (concrete_no_mem)
-add_library (cpa INTERFACE)
-target_sources (cpa INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/interface.cpp)
-target_link_libraries (cpa INTERFACE hash location)
+add_library (cpa SHARED interface.cpp)
+target_link_libraries (cpa hash location)
 target_include_directories (cpa INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -7,10 +7,11 @@ namespace MiniMC {
   namespace CPA {
     bool MiniMC::CPA::Storer::saveState (const State_ptr& state, MiniMC::CPA::Storer::StorageTag* tag) {
 	auto hash = state->hash ();
+	if (tag)
+	  *tag = hash;
 	if (!actualStore.count(hash)) {
 	  actualStore.insert(std::make_pair (hash,state));		     
-	  if (tag)
-	    *tag = hash;
+	  
 	  return true;
 	}
 	return false;

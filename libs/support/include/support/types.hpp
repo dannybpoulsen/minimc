@@ -70,6 +70,13 @@ namespace MiniMC {
   using uint16_t = TypeD<InternalTypes::uint16>::type;
   using uint32_t = TypeD<InternalTypes::uint32>::type;
   using uint64_t = TypeD<InternalTypes::uint64>::type;
+
+  template<class From, class To>
+  To bit_cast (const From& f) {
+    static_assert(sizeof(From) == sizeof(To));
+    return reinterpret_cast<const To&> (f);
+  }
+  
 }
 
 

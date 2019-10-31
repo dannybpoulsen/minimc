@@ -112,7 +112,7 @@ namespace MiniMC {
 	  template<class ...args>
 	  struct StoreTag : public TagElement<args>... {
 		template<class A>
-		  auto& getSubTag () {TagElement<A>::tag;}
+		  auto& getSubTag () {return TagElement<A>::tag;}
 	  };
 
 	  template<class A>
@@ -123,45 +123,80 @@ namespace MiniMC {
 	  template<class ...args>
 	  struct Storing : public StoreElement<args>... {
 		template<class A>
-		  auto& getSubStore () {StoreElement<A>::store;}
+		  auto& getSubStore () {return StoreElement<A>::store;}
 	  };
 	  
 	  
       template<class... args>
       class Storer : public MiniMC::CPA::Storer {
       public:
-		using StorageTag = StoreTag<args...>;
+	using StorageTag = StoreTag<args...>;
+	
+	template<size_t statenb,class A, class ... As>
+	struct Saver {
+	  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
+	    auto& ss = static_cast<State<sizeof... (args)>& > (*state);
+	    store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
+	    Saver<statenb,As...>::doSave (state,t);
+	  }
+	};
+	
+	template<size_t statenb,class A>
+	struct Saver<statenb,A> {
+	  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
+	    auto& ss = static_cast<State<sizeof... (args)>& > (*state);
+	    store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
+	  }
+	};
+	
+	
+	bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
+	  MiniMC::Hash::hash_t hash= state->hash(0);
+	  if (tag) {
+	    Saver<0,args...>::doSave (state,*tag,store);
+	  }
+	  if (stored.count(hash))
+	    return false;
+	  else {
+	    stored.insert(hash);
+	    return true;
+	  }
+	}
 
-		
-		
-		bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
-		  MiniMC::Hash::hash_t hash= state->hash(0);
-		  if (stored.count(hash))
-			return false;
-		  else {
-			stored.insert(hash);
-			if (!tag) 
-			  return true;
-			else {
-			  
-			}
-		  }
-		}
-		State_ptr loadState (StorageTag) {
-		  return nullptr;
-		}
+	template<size_t statenb,class A, class ... As>
+	struct Loader {
+	  static void doLoad (std::vector<State_ptr>& vec, StorageTag& t, Storing<args...> store) {
+	    vec.push_back(store.template getSubStore<A> ().loadState (t.template getSubTag<A> ()));
+	    Loader<statenb,As...>::doLoad (vec,t,store);
+	  }
+	};
+	
+	template<size_t statenb,class A>
+	struct Loader<statenb,A> {
+	  static void doLoad (std::vector<State_ptr>& vec, StorageTag& t, Storing<args...> store) {	    
+	    vec.push_back(store.template getSubStore<A> ().loadState (t.template getSubTag<A> ()));
+	  }
+	};
+	
+	State_ptr loadState (StorageTag tag) {
+	  std::vector<State_ptr> vec;
+	  vec.reserve (sizeof... (args));
+	  Loader<0,args...>::doLoad (vec,tag,store);
+	  return std::make_shared<State<sizeof... (args)>> (vec);
+	}
+	
       private:
-		std::set<MiniMC::Hash::hash_t> stored;
-		Storing<args...> store;
-	  };
-	  
-
-	  template<size_t ask,class... CPAs>
+	std::set<MiniMC::Hash::hash_t> stored;
+	Storing<args...> store;
+      };
+      
+      
+      template<size_t ask,class... CPAs>
       struct CPADef {
-		using Query = StateQuery<ask,CPAs...>;
-		using Transfer = Transferer<CPAs...>;
-		using Join = MiniMC::CPA::Joiner;
-		using Storage = Storer<CPAs...>;
+	using Query = StateQuery<ask,CPAs...>;
+	using Transfer = Transferer<CPAs...>;
+	using Join = MiniMC::CPA::Joiner;
+	using Storage = Storer<CPAs...>;
       };
     }
   }

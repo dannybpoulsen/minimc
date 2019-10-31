@@ -1,5 +1,5 @@
 find_package (Murmur REQUIRED)
-add_library (hash)
+add_library (hash SHARED)
 target_sources (hash PRIVATE hash.cpp)
 target_link_libraries (hash ${MURMUR_LIBRARIES})
 target_include_directories (hash PRIVATE ${MURMUR_INCLUDE_DIRS} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
