@@ -9,16 +9,18 @@
 namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
-	  template<MiniMC::Model::InstructionCode,class T>
+      template<MiniMC::Model::InstructionCode i,class T>
 	  struct TACExec {
-		static OutRegister execute (const InRegister& left, const InRegister& right);
-	  };
+	static OutRegister execute (const InRegister& left, const InRegister& right){
+	  assert(false && "Not Implemented");
+	}
+      };
 	  
 	  template<class T>
 	  struct TACExec<MiniMC::Model::InstructionCode::Add,T> {
 		static OutRegister execute (const InRegister& left, const InRegister& right) {
 		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  +right.template get<T> ();
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () + right.template get<T> ();
 		  return OutRegister(hh,sizeof(T)); 
 		}
 	  };
@@ -106,16 +108,16 @@ namespace MiniMC {
 	  
 	  template<class T>
 	  struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
+	    static OutRegister execute (const InRegister& left, const InRegister& right) {
 		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
 		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () ^ right.template get<T> ();
 		  return OutRegister(hh,sizeof(T)); 
 		}
 	  };
-	  
-	  
-	  
-	  
-	}
+      
+          
+      
+      
+    }
   }
 }
