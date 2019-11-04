@@ -12,11 +12,6 @@ target_link_libraries (sdivisions  minimclib ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (rshifts  minimclib ${GTEST_BOTH_LIBRARIES})
 
 
-gtest_add_tests(TARGET      divisions
-)
-
-gtest_add_tests(TARGET      sdivisions
-)
-
-gtest_add_tests(TARGET      rshifts
-)
+gtest_discover_tests(divisions)
+gtest_discover_tests(sdivisions)
+gtest_discover_tests(rshifts)

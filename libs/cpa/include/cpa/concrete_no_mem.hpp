@@ -1,5 +1,5 @@
 #ifndef _CONCRETE_NOMEM__
-#ifndef _CONCRETE_NOMEM__
+#define _CONCRETE_NOMEM__
 
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
@@ -8,8 +8,8 @@
 namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
-      struct StateQuery {
-	static State_ptr makeInitialState (const MiniMC::Model::Program&);
+    struct StateQuery {
+      static State_ptr makeInitialState (const MiniMC::Model::Program&);
 	static size_t nbOfProcesses (const State_ptr& );
 	static MiniMC::Model::Location_ptr getLocation (const State_ptr&, proc_id);
       };

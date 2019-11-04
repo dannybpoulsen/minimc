@@ -1,6 +1,7 @@
 #ifndef _STACK__
 #define _STACK__
 
+#include "hash/hashing.hpp"
 #include "model/variables.hpp"
 #include "support/types.hpp"
 
@@ -11,12 +12,13 @@ namespace MiniMC {
     namespace ConcreteNoMem {
       class Stack {
       public:
-	Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer),size(s)   {}
+	Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer)),size(s)   {}
 	Stack (const Stack& s)   {
-	  buffer.reset (new MiniMC::uint8_t[s.size ()]);
+	  buffer.reset (new MiniMC::uint8_t[s.getSize ()]);
 	  size = s.size;
 	}
-	
+
+	Stack() : buffer(nullptr), size(0) {}
 	
 	InRegister load (MiniMC::Model::Variable_ptr& ptr) {
 	  return InRegister (buffer.get()+ptr->getPlace(),ptr->getType()->getSize());
@@ -29,6 +31,11 @@ namespace MiniMC {
 
 	std::size_t getSize () const {return size;}
 	const MiniMC::uint8_t* getBuffer () const {return buffer.get();}
+
+	
+	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+	  return MiniMC::Hash::Hash (getBuffer(),getSize(),seed);
+	}
 	
       private:
 	std::unique_ptr<MiniMC::uint8_t[]> buffer;

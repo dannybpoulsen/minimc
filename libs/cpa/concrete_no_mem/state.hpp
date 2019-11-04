@@ -1,12 +1,12 @@
-#ifndef _STATE__
-#define _STATE__
+#ifndef _CSTATE__
+#define _CSTATE__
 
 #include <memory>
 
 #include "hash/hashing.hpp"
 #include "cpa/interface.hpp"
 #include "stack.hpp"
-#uinclude "support/types.hpp"
+#include "support/types.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -14,11 +14,20 @@ namespace MiniMC {
       class State : public MiniMC::CPA::State,
 		    public Stack
       {
-	State (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t s) : stack(buffer,s) {}
+      public:
+	State (std::vector<Stack>& s)  {}
 	virtual std::ostream& output (std::ostream& os) const {return os << "S";}
-	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return MiniMC::Hash::Hash (getBufer(),getSize());}
-	virtual std::shared_ptr<State> copy () const {return std::make_shared<State> (*this);}
-	Stack& getStack () {return *this;}
+	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+	  MiniMC::Hash::seed_t s = seed;
+	  for (auto& i : stacks)
+	    s = i.hash (s);
+	  return s; 
+	}
+	virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
+	const Stack& getStack (size_t p) const  {return stacks[p];}
+	std::size_t nbProcs () const {return stacks.size();}
+      private:
+	std::vector<Stack> stacks;
       };
     }
   }
