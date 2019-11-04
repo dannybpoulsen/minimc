@@ -12,9 +12,10 @@ namespace MiniMC {
     namespace ConcreteNoMem {
       class Stack {
       public:
-	Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer)),size(s)   {}
+		Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer)),size(s)   {}
 	Stack (const Stack& s)   {
 	  buffer.reset (new MiniMC::uint8_t[s.getSize ()]);
+	  std::copy(s.buffer.get(),s.buffer.get()+size,buffer.get());
 	  size = s.size;
 	}
 

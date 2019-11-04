@@ -5,6 +5,7 @@
 
 #include "register.hpp"
 #include "stack.hpp"
+#include "state.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -114,9 +115,49 @@ namespace MiniMC {
 		  return OutRegister(hh,sizeof(T)); 
 		}
 	  };
-      
-          
-      
+	  
+	  template<MiniMC::Model::InstructionCode opc>
+	  OutRegister TACRedirect (const InRegister& left, const InRegister& right, MiniMC::Model::Type_ptr& t ) {
+		  switch (t->getTypeID ()) {
+		  case MiniMC::Model::TypeID::Integer: {
+			switch (t->getSize ()) {
+			case 1:
+			  return TACExec<opc,MiniMC::uint8_t>::execute (left,right);
+			case 2:
+			  return TACExec<opc,MiniMC::uint16_t>::execute (left,right);
+			case 4:
+			  return TACExec<opc,MiniMC::uint32_t>::execute (left,right);
+			case 8:
+			  return TACExec<opc,MiniMC::uint64_t>::execute (left,right);
+			}
+		  }
+		  case MiniMC::Model::TypeID::Bool:
+			return TACExec<opc,MiniMC::uint8_t>::execute (left,right);
+		  default:
+			assert(false && "Not Implemented");
+		  }
+	  }
+	 	  
+	  template<MiniMC::Model::InstructionCode opc,class S = void>
+	  struct ExecuteInstruction {
+		void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, MiniMC::Model::Instruction& )  {
+		  //Skip
+		}
+	  };
+
+	  template<MiniMC::Model::InstructionCode opc>
+	  struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isTAC>::type> {
+		void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<opc> helper (inst);
+		  auto l = s.load (helper.getLeftOp ());
+		  auto r = s.load (helper.getRightOp ());
+		  auto res = TACRedirect (l,r,helper.getLeftOp ()->getType ());
+		  s.save (res,helper.getResult ());
+		  
+		}
+	  };
+
+	  
       
     }
   }

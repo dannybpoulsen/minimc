@@ -34,7 +34,7 @@ namespace MiniMC {
       };
 
       MiniMC::CPA::State_ptr MiniMC::CPA::Location::Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& edge,proc_id id) {
-	auto state = static_cast<State*> (s.get ());
+	auto state = static_cast<const State*> (s.get ());
 	assert(id < state->nbOfProcesses());
 	if (edge->getFrom().get() == state->getLocation (id)) {
 	  auto nstate = state->lcopy ();

@@ -17,8 +17,8 @@ namespace MiniMC {
 	return false;
       }
 
-      MiniMC::CPA::State_ptr MiniMC::CPA::Storer::loadState (StorageTag st) {
-	return actualStore.at(st);
-      }
+	MiniMC::CPA::State_ptr MiniMC::CPA::Storer::loadState (StorageTag st) {
+	  return actualStore.at(st);
+	}
   }
 }
