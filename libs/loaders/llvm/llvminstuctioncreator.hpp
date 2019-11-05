@@ -297,7 +297,7 @@ namespace MiniMC {
     X(ICMP_ULT,ICMP_ULT)				\
     X(ICMP_SLE,ICMP_SLE)				\
     X(ICMP_ULE,ICMP_ULE)				
-
+    
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::ICmp> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
       auto ins = llvm::dyn_cast<llvm::ICmpInst> (inst);
@@ -315,7 +315,8 @@ namespace MiniMC {
 	  break;			\
 	}	
 	LLVMICMP
-	
+      default:
+	throw MiniMC::Support::Exception ("Unsupported Operation");
 	    }	
     }
 #undef LLVMICMP

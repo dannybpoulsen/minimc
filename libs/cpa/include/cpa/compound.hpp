@@ -25,8 +25,9 @@ namespace MiniMC {
 
 	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const  {
 	  MiniMC::Hash::hash_t hash = seed;
-	  for (auto& state : states) 
+	  for (auto& state : states) {
 	    hash = state->hash(hash);
+	  }
 	  return hash;
 	}
 
@@ -100,6 +101,10 @@ namespace MiniMC {
 	  auto s = static_cast<State<sizeof... (args)>&> (*a);
 	  std::vector<MiniMC::CPA::State_ptr> vec;
 	  BuildVector<0,sizeof...(args),args...>::doIt (vec,s,e,id);
+	  for (auto& s : vec){
+	    if (!s)
+	      return nullptr;
+	  }
 	  return std::make_shared<State<sizeof... (args)>> (vec);
 	}
       };
@@ -137,7 +142,7 @@ namespace MiniMC {
 	  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
 	    auto& ss = static_cast<State<sizeof... (args)>& > (*state);
 	    store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
-	    Saver<statenb,As...>::doSave (state,t);
+	    Saver<statenb,As...>::doSave (state,t,store);
 	  }
 	};
 	

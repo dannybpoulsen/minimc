@@ -12,20 +12,24 @@ namespace MiniMC {
     namespace ConcreteNoMem {
       class Stack {
       public:
-		Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer)),size(s)   {}
-	Stack (const Stack& s)   {
-	  buffer.reset (new MiniMC::uint8_t[s.getSize ()]);
-	  std::copy(s.buffer.get(),s.buffer.get()+size,buffer.get());
-	  size = s.size;
-	}
+	Stack (std::unique_ptr<MiniMC::uint8_t[]>& buffer,std::size_t& s) : buffer(std::move(buffer)),size(s)   {}
+	Stack (const Stack& s) : buffer(new MiniMC::uint8_t[s.size]),
+				 size(s.size)
+	{
+	  
+	  if (s.buffer)
+	    assert(s.buffer);
+	    std::copy(s.buffer.get(),s.buffer.get()+size,buffer.get());
+	  }
 
 	Stack() : buffer(nullptr), size(0) {}
 	
-	InRegister load (MiniMC::Model::Variable_ptr& ptr) {
+	InRegister load (const MiniMC::Model::Variable_ptr& ptr) {
 	  return InRegister (buffer.get()+ptr->getPlace(),ptr->getType()->getSize());
 	}
-	
-	void save (OutRegister& reg,MiniMC::Model::Variable_ptr& ptr) {
+
+	template <class RegClass>
+	void save (RegClass& reg,const MiniMC::Model::Variable_ptr& ptr) {
 	  assert(reg.getSize() == ptr->getType()->getSize());
 	  std::copy (reinterpret_cast<const MiniMC::uint8_t*> (reg.getMem()),reinterpret_cast<const MiniMC::uint8_t*> (reg.getMem())+reg.getSize(),buffer.get()+ptr->getPlace());
 	}
