@@ -25,7 +25,10 @@ namespace MiniMC {
     X(ICMP_SLT)								\
     X(ICMP_ULT)								\
     X(ICMP_SLE)								\
-    X(ICMP_ULE)
+    X(ICMP_ULE)								\
+    X(ICMP_EQ)								\
+    X(ICMP_NEQ)								\
+    
     
 #define POINTEROPS				\
     X(PtrAdd)					\

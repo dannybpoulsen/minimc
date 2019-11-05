@@ -296,7 +296,9 @@ namespace MiniMC {
     X(ICMP_SLT,ICMP_SLT)				\
     X(ICMP_ULT,ICMP_ULT)				\
     X(ICMP_SLE,ICMP_SLE)				\
-    X(ICMP_ULE,ICMP_ULE)				
+    X(ICMP_ULE,ICMP_ULE)				\
+    X(ICMP_EQ,ICMP_EQ)					\
+    
     
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::ICmp> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 

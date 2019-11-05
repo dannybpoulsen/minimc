@@ -216,7 +216,6 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isTAC>::type> {
 	void static execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& inst)  {
-	  std::cerr << "TAC" << std::endl;
 	  MiniMC::Model::InstHelper<opc> helper (inst);
 	  RegisterLoader l (s,helper.getLeftOp ());
 	  RegisterLoader r (s,helper.getRightOp ());
