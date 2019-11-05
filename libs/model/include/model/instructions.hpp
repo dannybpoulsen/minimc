@@ -17,7 +17,9 @@ namespace MiniMC {
     X(AShr)								\
     X(And)								\
     X(Or)								\
-    X(Xor)								\
+    X(Xor)
+	
+#define COMPARISONS							\
     X(ICMP_SGT)								\
     X(ICMP_UGT)								\
     X(ICMP_SGE)								\
@@ -61,6 +63,7 @@ namespace MiniMC {
 #define X(OP)					\
 				OP,
 				TACOPS
+				COMPARISONS
 				CASTOPS
 				MEMORY
 				INTERNAL
@@ -89,7 +92,8 @@ namespace MiniMC {
     template<InstructionCode>
     struct InstructionData{
       static const bool isTAC = false;
-      static const bool isMemory = false;
+	  static const bool isComparison = false;
+	  static const bool isMemory = false;
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
@@ -102,6 +106,7 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::OP>{		\
       static const bool isTAC = true;				\
       static const bool isMemory = false;			\
+	static const bool isComparison = false;			\
       static const bool isCast = false;				\
       static const bool isPointer = false;			\
       static const bool isAggregate = false;			\
@@ -111,11 +116,27 @@ namespace MiniMC {
     TACOPS
 #undef X
 
+#define X(OP)											\
+    template<>											\
+    struct InstructionData<InstructionCode::OP>{		\
+      static const bool isTAC = false;					\
+      static const bool isMemory = false;				\
+	  static const bool isComparison = true;			\
+	  static const bool isCast = false;					\
+      static const bool isPointer = false;				\
+      static const bool isAggregate = false;			\
+      static const std::size_t operands = 2;			\
+      static const bool hasResVar = true;				\
+    };
+    COMPARISONS
+#undef X
+	
 #define X(OP)							\
     template<>							\
     struct InstructionData<InstructionCode::OP>{		\
       static const bool isTAC = false;				\
-      static const bool isMemory = false;			\
+	  static const bool isComparison = false;		\
+	  static const bool isMemory = false;			\
       static const bool isCast = true;				\
       static const bool isPointer = false;			\
       static const bool isAggregate = false;			\
@@ -127,7 +148,8 @@ namespace MiniMC {
 
     template<>							
     struct InstructionData<InstructionCode::ExtractValue>{		
-      static const bool isTAC = false;				
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = false;			
@@ -138,7 +160,8 @@ namespace MiniMC {
     
     template<>							
     struct InstructionData<InstructionCode::InsertValue>{		
-      static const bool isTAC = false;				
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = false;			
@@ -149,7 +172,8 @@ namespace MiniMC {
     
     template<>							
     struct InstructionData<InstructionCode::InsertValueFromConst>{		
-      static const bool isTAC = false;				
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = false;			
@@ -160,7 +184,8 @@ namespace MiniMC {
 
     template<>							
     struct InstructionData<InstructionCode::PtrAdd>{		
-      static const bool isTAC = false;				
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = true;			
@@ -173,7 +198,8 @@ namespace MiniMC {
     
     template<>						
     struct InstructionData<InstructionCode::Alloca> {		
-      static const bool isTAC = false;			
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = true;			
       static const bool isCast = false;			
       static const std::size_t operands = 1;			
@@ -182,7 +208,8 @@ namespace MiniMC {
 
     template<>						
     struct InstructionData<InstructionCode::Skip> {		
-      static const bool isTAC = false;			
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = false;			
       static const bool isCast = false;
       static const bool isPointer = false;
@@ -193,7 +220,8 @@ namespace MiniMC {
     
     template<>						
     struct InstructionData<InstructionCode::Load>{		
-      static const bool isTAC = false;			
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = true;			
       static const bool isCast = false;
       static const bool isPointer = false;
@@ -204,7 +232,8 @@ namespace MiniMC {
     
     template<>						
     struct InstructionData<InstructionCode::Store>{		
-      static const bool isTAC = false;			
+      static const bool isTAC = false;
+	  static const bool isComparison = false;
       static const bool isMemory = true;			
       static const bool isCast = false;
       static const bool isPointer = false;
@@ -281,12 +310,42 @@ namespace MiniMC {
       Value_ptr left;
       Value_ptr right;
     };
-    
+
+	template<InstructionCode i>
+    class InstBuilder<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
+    public:
+      void setRes (const Value_ptr& ptr) {res = ptr;}
+      void setLeft (const Value_ptr& ptr) {left = ptr;}
+      void setRight (const Value_ptr& ptr) {right = ptr;}
+      Instruction BuildInstruction () {
+		assert(res);
+		assert(left);
+		assert(right);
+		return Instruction (i,{res,left,right});
+      }
+    private:
+      Value_ptr res;
+      Value_ptr left;
+      Value_ptr right;
+    };
+
+	template<InstructionCode i>
+    class InstHelper<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+      auto getLeftOp () const {return inst.getOp(1);}
+      auto getRightOp () const {return inst.getOp(2);}
+      
+      private:
+      const Instruction& inst;
+    };
+	
     template<InstructionCode i> 
-    struct Formatter<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
+    struct Formatter<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << h.getLeftOp () << " " << h.getRightOp ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << h.getLeftOp () << " " << h.getRightOp ();
       } 
     };
 

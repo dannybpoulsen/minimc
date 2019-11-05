@@ -4,7 +4,8 @@
 namespace MiniMC  {
   namespace Support {
 #ifdef __x86_64__
-  uint8_t ashr (uint8_t l, uint8_t r) {
+	template<>
+	uint8_t ashr<uint8_t> (uint8_t l, uint8_t r) {
 	uint8_t res;;
 	asm ("sarb %%cl,%%al;"
 		 :"=a"(res) /* output */
@@ -13,8 +14,9 @@ namespace MiniMC  {
 		 );
 	return res;
   }
-	  
-  uint16_t ashr (uint16_t l, uint16_t r) {
+
+  template<>
+  uint16_t ashr<uint16_t> (uint16_t l, uint16_t r) {
 	uint16_t res;
 	asm ("sarw %%cl,%%ax;"
 		 :"=a"(res)        /* output */
@@ -23,7 +25,9 @@ namespace MiniMC  {
 		 );
 	return res;
   }
-  uint32_t ashr (uint32_t l, uint32_t r) {
+
+  template<>
+  uint32_t ashr<uint32_t> (uint32_t l, uint32_t r) {
 	uint32_t res;
 	asm (
 		 "sarl %%cl,%%eax;"
@@ -35,7 +39,8 @@ namespace MiniMC  {
 	return res;
   }
 
-  uint64_t ashr (uint64_t l, uint64_t r) {	
+  template<>
+  uint64_t ashr<uint64_t> (uint64_t l, uint64_t r) {	
 	uint64_t res;
 	asm ("sarq %%cl,%%rax;"
 		 :"=a"(res)        /* output */
@@ -44,8 +49,9 @@ namespace MiniMC  {
 		 );
 	return res;
   }
-
-    uint8_t lshr (uint8_t l, uint8_t r) {
+	
+	template<>
+    uint8_t lshr<uint8_t> (uint8_t l, uint8_t r) {
 	uint8_t res;;
 	asm (
 		 "shrb %%cl,%%al;"
@@ -55,8 +61,9 @@ namespace MiniMC  {
 		 );
 	return res;
   }
-	  
-  uint16_t lshr (uint16_t l, uint16_t r) {
+
+  template<>
+  uint16_t lshr<uint16_t> (uint16_t l, uint16_t r) {
 	uint16_t res;
 	asm ("shrw %%cl,%%ax;"
 		 :[res]"=a"(res)        /* output */
@@ -65,7 +72,9 @@ namespace MiniMC  {
 		 );
 	return res;
   }
-  uint32_t lshr (uint32_t l, uint32_t r) {
+
+  template<>
+  uint32_t lshr<uint32_t> (uint32_t l, uint32_t r) {
 	uint32_t res;
 	asm ("shrl %%cl,%%eax;"
 		 :[res]"=a"(res)        /* output */
@@ -75,7 +84,8 @@ namespace MiniMC  {
 	return res;
   }
 
-  uint64_t lshr (uint64_t l, uint64_t r) {	
+  template<>
+  uint64_t lshr<uint64_t> (uint64_t l, uint64_t r) {	
 	uint64_t res;
 	asm ("shrq %%cl,%%rax;"
 		 :[res]"=a"(res)        /* output */

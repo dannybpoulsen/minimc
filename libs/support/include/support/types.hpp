@@ -16,6 +16,8 @@ namespace MiniMC {
 	      int64,
   };
 
+  
+  
   template<InternalTypes>
   struct TypeD {
     using type = std::int8_t;
@@ -60,7 +62,7 @@ namespace MiniMC {
   struct TypeD<InternalTypes::int8> {
     using type = std::int8_t;
   };
-
+  
   using int8_t = TypeD<InternalTypes::int8>::type;
   using int16_t = TypeD<InternalTypes::int16>::type;
   using int32_t = TypeD<InternalTypes::int32>::type;
@@ -71,8 +73,35 @@ namespace MiniMC {
   using uint32_t = TypeD<InternalTypes::uint32>::type;
   using uint64_t = TypeD<InternalTypes::uint64>::type;
 
+
+  template<typename T>
+  struct EquivSigned {
+	using type = int8_t;
+  };
+
+  template<>
+  struct EquivSigned<uint8_t> {
+	using type = int8_t;
+  };
+
+  template<>
+  struct EquivSigned<uint16_t> {
+	using type = int16_t;
+  };
+
+  template<>
+  struct EquivSigned<uint32_t> {
+	using type = int32_t;
+  };
+
+  template<>
+  struct EquivSigned<uint64_t> {
+	using type = int64_t;
+  };
+  
+  
   template<class From, class To>
-  To bit_cast (const From& f) {
+  const To& bit_cast (const From& f) {
     static_assert(sizeof(From) == sizeof(To));
     return reinterpret_cast<const To&> (f);
   }

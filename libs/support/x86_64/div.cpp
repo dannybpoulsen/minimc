@@ -1,11 +1,13 @@
 #include <cstdint>
 #include <iostream>
 #include "support/div.hpp"
+#include "support/types.hpp"
 
 namespace MiniMC {
   namespace Support {
 #ifdef __x86_64__
-  uint8_t div (uint8_t l, uint8_t r) {
+	template<>
+	uint8_t div<uint8_t> (uint8_t l, uint8_t r) {
 	uint8_t res;;
 	asm ("divb %%cl;"
 		 :"=a"(res) /* output */
@@ -14,8 +16,9 @@ namespace MiniMC {
 		 );
 	return res;
   }
-	  
-  uint16_t div (uint16_t l, uint16_t r) {
+
+  template<>	
+  uint16_t div<uint16_t> (uint16_t l, uint16_t r) {
 	uint16_t res;
 	asm ("xor %%dx,%%dx;"
          "divw %%cx;"
@@ -26,8 +29,9 @@ namespace MiniMC {
 		 );
 	return res;
   }
-  
-  uint32_t div (uint32_t l, uint32_t r) {
+
+  template<>	
+  uint32_t div<uint32_t> (uint32_t l, uint32_t r) {
 	uint32_t res;
 	asm ("xor %%edx,%%edx;"
          "divl %%ecx;"
@@ -39,7 +43,8 @@ namespace MiniMC {
 	return res;
   }
 
-  uint64_t div (uint64_t l, uint64_t r) {	
+  template<>	
+  uint64_t div<uint64_t> (uint64_t l, uint64_t r) {	
 	uint64_t res;
 	asm ("xor %%rdx,%%rdx;"
          "divq %%rcx;"
@@ -50,8 +55,8 @@ namespace MiniMC {
 		 );
 	return res;
   }
-
-    uint8_t idiv (uint8_t l, uint8_t r) {
+    template<>
+    uint8_t idiv<uint8_t> (uint8_t l, uint8_t r) {
 	uint8_t res;
 	asm ("cbw;"
 		 "idivb %%cl;"
@@ -61,8 +66,9 @@ namespace MiniMC {
 		 );
 	return res;
   }
-	  
-  uint16_t idiv (uint16_t l, uint16_t r) {
+
+  template<>	
+  uint16_t idiv<uint16_t> (uint16_t l, uint16_t r) {
 	uint16_t res;
 	asm ("cwd;"
          "idivw %%cx;"
@@ -73,8 +79,9 @@ namespace MiniMC {
 		 );
 	return res;
   }
-  
-  uint32_t idiv (uint32_t l, uint32_t r) {
+
+  template<>
+  uint32_t idiv<uint32_t> (uint32_t l, uint32_t r) {
 	uint32_t res;
 	asm ("cdq;"
          "idivl %%ecx;"
@@ -86,7 +93,8 @@ namespace MiniMC {
 	return res;
   }
 
-  uint64_t idiv (uint64_t l, uint64_t r) {	
+  template<>
+  uint64_t idiv<uint64_t> (uint64_t l, uint64_t r) {	
 	uint64_t res;
 	asm ("cqo;"
          "idivq %%rcx;"
