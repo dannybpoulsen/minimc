@@ -33,16 +33,18 @@ namespace MiniMC {
     class Instruction;
     class Edge {
     public:
-      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val) : instructions(inst),from(from),to(to),value(val) {}
+      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val,bool neg = false) : instructions(inst),from(from),to(to),value(val),negGuard(neg) {}
       auto& getInstructions () const {return instructions;}
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
       auto getGuard () const {return value;}
+      auto negatedGuard () const {return  negGuard;}
     private:
       std::vector<Instruction> instructions;
       gsl::not_null<Location_ptr> from;
       gsl::not_null<Location_ptr> to;
       Value_ptr value;
+      bool negGuard;
     };
 
     
@@ -58,8 +60,8 @@ namespace MiniMC {
 		return locations.back();
       }
 	  
-      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard) {
-	edges.emplace_back (new Edge (from,to,inst,guard));
+      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard,bool neg = false) {
+	edges.emplace_back (new Edge (from,to,inst,guard,neg));
 	from->addEdge (edges.back());
 	return edges.back();
       }

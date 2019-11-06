@@ -8,6 +8,7 @@
 
 namespace MiniMC {
   namespace Loaders {
+    
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
     struct Types {
@@ -20,6 +21,7 @@ namespace MiniMC {
       }
     };
 
+    MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt );
     
     
     MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt ) {
@@ -62,29 +64,22 @@ namespace MiniMC {
 	  throw MiniMC::Support::Exception ("Error");
 	}
     
-	MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt ) {
-	  llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
-	  if (cst)
-		return makeConstant (cst,tt);
-	  else {
-		return values.at(val); 
-	  }
-	}
+
 	
 	
-#define LLVMTAC									\
-	X(Add,Add)									\
-	X(Sub,Sub)									\
-	X(Mul,Mul)									\
-	X(UDiv,UDiv)								\
-	X(SDiv,SDiv)								\
-	X(Shl,Shl)									\
-	X(LShr,LShr)								\
-	X(AShr,AShr)								\
-	X(And,And)									\
-	X(Or,Or)									\
-	X(Xor,Xor)									\
-   
+#define LLVMTAC								\
+    X(Add,Add)								\
+    X(Sub,Sub)								\
+    X(Mul,Mul)								\
+    X(UDiv,UDiv)							\
+    X(SDiv,SDiv)							\
+    X(Shl,Shl)								\
+    X(LShr,LShr)							\
+    X(AShr,AShr)							\
+    X(And,And)								\
+    X(Or,Or)								\
+    X(Xor,Xor)								\
+    
 	
 	template<unsigned>
 	void translateAndAddInstruction (llvm::Instruction*, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>&, Types& ) {

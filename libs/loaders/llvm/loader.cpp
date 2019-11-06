@@ -39,6 +39,16 @@
 
 namespace MiniMC {
   namespace Loaders {
+    MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt ) {
+      std::cerr << val->getName().str() << std::endl;
+      llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
+      if (cst) 
+	return makeConstant (cst,tt);
+      else {
+	return values.at(val); 
+      }
+    }
+    
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (ty -> isArrayTy ()) {
@@ -160,7 +170,9 @@ namespace MiniMC {
 			locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
 		}
 
-		
+		Types tt;
+		tt.tfac = tfactory;
+	    
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
 		pickVariables (F,variablestack);
@@ -172,7 +184,7 @@ namespace MiniMC {
 		  std::vector<MiniMC::Model::Instruction> insts;
 		  for (llvm::Instruction& inst : BB) {
 		    if (&inst!=term) {
-		      addInstruction (&inst,insts);
+		      addInstruction (&inst,insts,tt);
 		    }
 		  }
 
@@ -183,13 +195,25 @@ namespace MiniMC {
 		  }
 		  
 		  if (term) {
-		    auto nb = term->getNumSuccessors ();
-		    for (unsigned i = 0; i < nb; i++) {
-		      std::vector<MiniMC::Model::Instruction> insts;
-		      auto succ = term->getSuccessor (i);
-		      auto succloc = locmap.at(succ);
-		      cfg->makeEdge (loc,succloc,insts,nullptr);
+		    insts.clear();
+		    if( term->getOpcode () == llvm::Instruction::Br) {
+		      
+		      auto brterm = llvm::dyn_cast<llvm::BranchInst> (term);
+		      if (brterm->isUnconditional ()) {
+			std::vector<MiniMC::Model::Instruction> insts;
+			auto succ = term->getSuccessor (0);
+			auto succloc = locmap.at(succ);
+			cfg->makeEdge (loc,succloc,insts,nullptr);
+		      }
+		      else {
+			auto cond = findValue (brterm->getCondition(),values,tt);
+			auto ttloc = locmap.at(term->getSuccessor (0));
+			auto ffloc = locmap.at(term->getSuccessor (1));
+			cfg->makeEdge (loc,ttloc,insts,cond);
+			cfg->makeEdge (loc,ffloc,insts,cond,true);
+		      }
 		    }
+		    
 		  }
 		}
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
@@ -265,10 +289,7 @@ namespace MiniMC {
 	  
 	  
 	  
-	  void addInstruction (llvm::Instruction* inst, std::vector<MiniMC::Model::Instruction>& insts) {
-	    Types tt;
-	    tt.tfac = tfactory;
-	    
+	  void addInstruction (llvm::Instruction* inst, std::vector<MiniMC::Model::Instruction>& insts,Types& tt) {
 	    switch (inst->getOpcode()) {
 #define X(TT)					\
 	      case llvm::Instruction::TT:	\

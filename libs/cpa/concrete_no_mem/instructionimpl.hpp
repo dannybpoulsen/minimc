@@ -7,12 +7,13 @@
 #include "register.hpp"
 #include "stack.hpp"
 #include "state.hpp"
+#include "compimpl.hpp"
 
 namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
       template<MiniMC::Model::InstructionCode i,class T>
-	  struct TACExec {
+      struct TACExec {
 	static OutRegister execute (const InRegister& left, const InRegister& right){
 	  assert(false && "Not Implemented");
 	}
@@ -27,124 +28,133 @@ namespace MiniMC {
 	}
       };
       
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::Sub,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  - right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::Sub,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  - right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
 
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::Mul,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  * right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::Mul,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  * right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+      
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::UDiv,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+      
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::SDiv,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+      
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::Shl,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () << right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+      
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::LShr,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+      
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::AShr,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
 
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::UDiv,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::And,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () & right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
 
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::SDiv,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-	 
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::Shl,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () << right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::LShr,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::AShr,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::And,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () & right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::Or,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () | right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::Or,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () | right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
 	  
-	  template<class T>
-	  struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
-	    static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () ^ right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
-	  };
-	  
-	  template<MiniMC::Model::InstructionCode opc>
-	  OutRegister TACRedirect (const InRegister& left, const InRegister& right, const MiniMC::Model::Type_ptr& t ) {
-		  switch (t->getTypeID ()) {
-		  case MiniMC::Model::TypeID::Integer: {
-			switch (t->getSize ()) {
-			case 1:
-			  return TACExec<opc,MiniMC::uint8_t>::execute (left,right);
-			case 2:
-			  return TACExec<opc,MiniMC::uint16_t>::execute (left,right);
-			case 4:
-			  return TACExec<opc,MiniMC::uint32_t>::execute (left,right);
-			case 8:
-			  return TACExec<opc,MiniMC::uint64_t>::execute (left,right);
-			}
-		  }
-		  case MiniMC::Model::TypeID::Bool:
-			return TACExec<opc,MiniMC::uint8_t>::execute (left,right);
-		  default:
-			assert(false && "Not Implemented");
-		  }
+      template<class T>
+      struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () ^ right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
+      };
+
+      template<MiniMC::Model::InstructionCode opc>
+      struct TACRedirect{
+	using i8 = TACExec<opc,MiniMC::uint8_t>;
+	using i16 = TACExec<opc,MiniMC::uint16_t>;
+	using i32 = TACExec<opc,MiniMC::uint32_t>;
+	using i64 = TACExec<opc,MiniMC::uint64_t>;
+	using boolean = TACExec<opc,MiniMC::uint8_t>;
+      };
+      
+      template<class T>
+      OutRegister TypeRedirect (const InRegister& left, const InRegister& right, const MiniMC::Model::Type_ptr& t ) {
+	switch (t->getTypeID ()) {
+	case MiniMC::Model::TypeID::Integer: {
+	  switch (t->getSize ()) {
+	  case 1:
+	    return T::i8::execute (left,right);
+	  case 2:
+	    return T::i16::execute (left,right);
+	  case 4:
+	    return T::i32::execute (left,right);
+	  case 8:
+	    return T::i64::execute (left,right);
 	  }
+	}
+	case MiniMC::Model::TypeID::Bool:
+	  return T::boolean::execute (left,right);
+	default:
+	  assert(false && "Not Implemented");
+	}
+      }
 	 	  
-	  template<MiniMC::Model::InstructionCode opc,class S = void>
-	  struct ExecuteInstruction {
-		static void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& )  {
-		  std::cerr << opc << std::endl;
-		}
-	  };
+      template<MiniMC::Model::InstructionCode opc,class S = void>
+      struct ExecuteInstruction {
+	static void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& )  {
+	  std::cerr << opc << std::endl;
+	}
+      };
 
       class RegisterLoader {
       public:
@@ -184,7 +194,7 @@ namespace MiniMC {
 	
 	const InRegister& getRegister () const {return reg->getReg ();}
 	
-	private:
+      private:
 	template<class T>
 	void setUpInteger (std::unique_ptr<MiniMC::uint8_t[]>& buffer, std::size_t& s, MiniMC::Model::IntegerConstant& constant) {
 	  buffer.reset(new MiniMC::uint8_t [sizeof(T)]);
@@ -219,11 +229,25 @@ namespace MiniMC {
 	  MiniMC::Model::InstHelper<opc> helper (inst);
 	  RegisterLoader l (s,helper.getLeftOp ());
 	  RegisterLoader r (s,helper.getRightOp ());
-	  auto res = TACRedirect<opc> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
+	  auto res = TypeRedirect<TACRedirect<opc>> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
 	  s.save (res,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()));
 	  
 	}
       };
+
+      template<MiniMC::Model::InstructionCode opc>
+      struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isComparison>::type> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<opc> helper (inst);
+	  RegisterLoader l (s,helper.getLeftOp ());
+	  RegisterLoader r (s,helper.getRightOp ());
+	  auto res = TypeRedirect<CMPRedirect<opc>> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
+	  s.save (res,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()));
+	  
+	}
+      };
+
+      
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assign,void> {
@@ -232,7 +256,6 @@ namespace MiniMC {
 	  RegisterLoader val (s,helper.getValue ());
 	  auto resultvar = helper.getResult ();
 	  s.save (val.getRegister(),std::static_pointer_cast<MiniMC::Model::Variable> (resultvar));
-	  std::cerr << "Assign" << std::endl;
 	}
       };
       

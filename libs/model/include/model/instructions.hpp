@@ -78,6 +78,7 @@ namespace MiniMC {
 	case InstructionCode::OP:		\
 	  return os << #OP;			
 	TACOPS
+	  COMPARISONS
 	  MEMORY
 	  CASTOPS
 	  INTERNAL
@@ -344,8 +345,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-		InstHelper<i> h (inst);
-		return os << *h.getResult () << " = " << i << h.getLeftOp () << " " << h.getRightOp ();
+	InstHelper<i> h (inst);
+	return os << *h.getResult () << " = " << i << *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 
@@ -697,7 +698,7 @@ namespace MiniMC {
     struct Formatter<InstructionCode::Load,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 	InstHelper<InstructionCode::Load> h (inst);
-	return os  <<h.getResult () << " = *" << *h.getAddress ();
+	return os  << *h.getResult () << " = *" << *h.getAddress ();
       } 
     };
     
@@ -726,6 +727,7 @@ namespace MiniMC {
 	  return Formatter<InstructionCode::OP>::output (os,*this);	\
 	  break;							
 	  TACOPS
+	  COMPARISONS
 	CASTOPS
 	  MEMORY
 	  INTERNAL

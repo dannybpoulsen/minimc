@@ -36,6 +36,15 @@ namespace MiniMC {
 	assert (id < state->nbProcs ());
 	auto nstate = state->lcopy ();
 	auto& stack = nstate->getStack (id);
+	if (e->getGuard ()) {
+	  RegisterLoader loader (stack, e->getGuard ());
+	  bool val = loader.getRegister().template get<MiniMC::uint8_t> ();
+	  if (e->negatedGuard ())
+	    val = !val;
+	  if (!val)
+	    return nullptr;
+	 
+	}
 	for (auto& inst : e->getInstructions ()) {
 	  switch (inst.getOpcode ()) {
 #define X(OP)								\
@@ -43,6 +52,7 @@ namespace MiniMC {
 	      ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (stack,inst); \
 	      break;									
 	    TACOPS
+	      COMPARISONS
 	      CASTOPS
 	      MEMORY
 	      INTERNAL
