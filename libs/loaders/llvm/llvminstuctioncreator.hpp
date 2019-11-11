@@ -8,6 +8,8 @@
 
 namespace MiniMC {
   namespace Loaders {
+
+    using Val2ValMap = std::unordered_map<const llvm::Value*, MiniMC::Model::Value_ptr>;
     
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
@@ -21,7 +23,7 @@ namespace MiniMC {
       }
     };
 
-    MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt );
+    MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt );
     
     
     MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt ) {
@@ -82,13 +84,13 @@ namespace MiniMC {
     
 	
 	template<unsigned>
-	void translateAndAddInstruction (llvm::Instruction*, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>&, Types& ) {
+	void translateAndAddInstruction (llvm::Instruction*, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>&, Types& ) {
 	  throw MiniMC::Support::Exception ("Error");
 	}
 
 #define X(LLVM,OUR)							\
     template<>								\
-	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
+	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
 	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
 	assert(inst->isBinaryOp ());										\
 	auto res = findValue (inst,values,tt);				\
@@ -106,7 +108,7 @@ namespace MiniMC {
  
   
   template<>								
-  void translateAndAddInstruction<llvm::Instruction::Alloca> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+  void translateAndAddInstruction<llvm::Instruction::Alloca> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
     MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder;
    
     auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
@@ -120,7 +122,7 @@ namespace MiniMC {
   }
 
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::Load> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+    void translateAndAddInstruction<llvm::Instruction::Load> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
       MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Load> builder; 
       auto res = findValue (inst,values,tt);		
       auto addr = findValue (inst->getOperand (0),values,tt);		
@@ -130,13 +132,27 @@ namespace MiniMC {
     }
     
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::Store> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+    void translateAndAddInstruction<llvm::Instruction::Store> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
       MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Store> builder; 
       auto value = findValue (inst->getOperand (0),values,tt);		
       auto addr = findValue (inst->getOperand (1),values,tt);		
       builder.setValue (value);						
       builder.setAddress (addr);						
       instr.push_back(builder.BuildInstruction ());			
+    }
+
+    template<>								\
+    void translateAndAddInstruction<llvm::Instruction::Call> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
+      auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
+      auto func = cinst->getCalledFunction ();
+      assert(func);
+      builder.setFunctionPtr (findValue(func,values,tt));
+      builder.setNbParamters (std::make_shared<MiniMC::Model::IntegerConstant> (cinst->arg_size ()));
+      for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
+	builder.addParam (findValue(*it,values,tt));
+      }
+      instr.push_back(builder.BuildInstruction ());
     }
 
     size_t calcSkip (llvm::Type* t, size_t index,Types& tt) {
@@ -158,7 +174,7 @@ namespace MiniMC {
     }
     
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::ExtractValue> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+    void translateAndAddInstruction<llvm::Instruction::ExtractValue> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
       llvm::ExtractValueInst* extractinst = llvm::dyn_cast<llvm::ExtractValueInst> (inst);
       auto extractfrom = extractinst->getAggregateOperand();
       if (llvm::Constant* cstextract = llvm::dyn_cast<llvm::Constant> (extractfrom)) {
@@ -196,7 +212,7 @@ namespace MiniMC {
     }
 
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::InsertValue> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+    void translateAndAddInstruction<llvm::Instruction::InsertValue> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
        llvm::InsertValueInst* insertinst = llvm::dyn_cast<llvm::InsertValueInst> (inst);
       auto insertfrom = insertinst->getAggregateOperand();
       auto insertval = insertinst->getInsertedValueOperand ();
@@ -233,7 +249,7 @@ namespace MiniMC {
     }
     
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::GetElementPtr> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+    void translateAndAddInstruction<llvm::Instruction::GetElementPtr> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
       auto gep = static_cast<llvm::GetElementPtrInst*> (inst);
       MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::PtrAdd> builder;
       auto source = gep->getSourceElementType ();
@@ -296,7 +312,7 @@ namespace MiniMC {
     
     
     template<>								\
-    void translateAndAddInstruction<llvm::Instruction::ICmp> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+    void translateAndAddInstruction<llvm::Instruction::ICmp> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
       auto ins = llvm::dyn_cast<llvm::ICmpInst> (inst);
       switch (ins->getPredicate ()) {
 #define X(LLVM,OUR)				\
@@ -329,7 +345,7 @@ namespace MiniMC {
     
     #define X(LLVM,OUR)							\
     template<>								\
-	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
+	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
     MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
 	auto res = findValue (inst,values,tt);				\
 	auto left = findValue (inst->getOperand (1),values,tt);		\

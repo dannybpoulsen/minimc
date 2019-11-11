@@ -152,7 +152,6 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
 	static void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& )  {
-	  std::cerr << opc << std::endl;
 	}
       };
 

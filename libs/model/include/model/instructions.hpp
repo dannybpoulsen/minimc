@@ -57,6 +57,7 @@ namespace MiniMC {
 
 #define INTERNAL				\
     X(Skip)					\
+    X(Call)					\
     X(Assign)					\
     
     enum class InstructionCode {
@@ -93,8 +94,8 @@ namespace MiniMC {
     template<InstructionCode>
     struct InstructionData{
       static const bool isTAC = false;
-	  static const bool isComparison = false;
-	  static const bool isMemory = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
@@ -136,8 +137,8 @@ namespace MiniMC {
     template<>							\
     struct InstructionData<InstructionCode::OP>{		\
       static const bool isTAC = false;				\
-	  static const bool isComparison = false;		\
-	  static const bool isMemory = false;			\
+      static const bool isComparison = false;			\
+      static const bool isMemory = false;			\
       static const bool isCast = true;				\
       static const bool isPointer = false;			\
       static const bool isAggregate = false;			\
@@ -445,6 +446,69 @@ namespace MiniMC {
 	return os <<  InstructionCode::Skip;
       } 
     };
+
+
+    template<>
+    class InstHelper<InstructionCode::Call,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {
+	nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (inst.getOp (1))->getValue();
+	
+      }
+      
+	  auto nbParams ()  const {return nbparams;}
+      auto getFunctionPtr () {return inst.getOp (0);}
+      auto getParam (std::size_t p) {return inst.getOp (2+p);}
+      
+      
+    private:
+      const Instruction& inst;
+      std::size_t nbparams;
+      
+    };
+    
+    template<>
+    class InstBuilder<InstructionCode::Call,void> {
+    public:
+      Instruction BuildInstruction () {
+	std::vector<Value_ptr> values;
+	values.push_back (func);
+	values.push_back (nbParameters);
+	std::copy(params.begin(),params.end(),std::back_inserter(values));
+	return Instruction (InstructionCode::Call,values);
+      }
+
+      void setFunctionPtr (const Value_ptr& func) {
+	this->func = func;
+      }
+
+      void setNbParamters (const Value_ptr& p) {
+	assert(p->isConstant ());
+	this->nbParameters = p;
+      }
+
+      void addParam (const Value_ptr& p) {
+	params.push_back (p);
+      }
+      
+      
+    private:
+      Value_ptr func;
+      Value_ptr nbParameters;
+      std::vector<Value_ptr> params;
+      
+    };
+    
+    template<> 
+    struct Formatter<InstructionCode::Call,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	//InstHelper<InstructionCode::Call> h (inst);
+	return os <<  InstructionCode::Call;
+      } 
+    };
+    
+    
     
     template<>
     class InstHelper<InstructionCode::PtrAdd,void> {

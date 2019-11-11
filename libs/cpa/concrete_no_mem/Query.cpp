@@ -32,7 +32,6 @@ namespace MiniMC {
       
       MiniMC::CPA::State_ptr Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
 	auto state = static_cast<const State*> (s.get ());
-	std::cerr << "ID " << id << " " << state->nbProcs ()<< std::endl; 
 	assert (id < state->nbProcs ());
 	auto nstate = state->lcopy ();
 	auto& stack = nstate->getStack (id);

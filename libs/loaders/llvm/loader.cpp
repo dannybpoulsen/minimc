@@ -39,10 +39,11 @@
 
 namespace MiniMC {
   namespace Loaders {
-    MiniMC::Model::Value_ptr findValue (llvm::Value* val, std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr>& values, Types& tt ) {
-      std::cerr << val->getName().str() << std::endl;
+
+    
+    MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt ) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
-      if (cst) 
+      if (cst && !llvm::isa<llvm::Function> (val)) 
 	return makeConstant (cst,tt);
       else {
 	return values.at(val); 
@@ -122,57 +123,122 @@ namespace MiniMC {
       }
     };
 
-        struct GetElementPtrSimplifier : public llvm::PassInfoMixin<InstructionNamer> {
-	  llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
-	    llvm::LLVMContext& context = F.getContext();
-	    auto i32Type = llvm::IntegerType::getInt32Ty(context);
-	    auto zero = llvm::ConstantInt::get (i32Type,0);
-	    for (llvm::BasicBlock &BB : F) {
-	      llvm::BasicBlock::iterator BI = BB.begin();
-	      llvm::BasicBlock::iterator BE =  BB.end();
-	      while (BI != BE) {
-		auto& I = *BI++;
-		//WOrking here
-		if (I.getOpcode () == llvm::Instruction::GetElementPtr) {
-		  llvm::GetElementPtrInst* inst = llvm::dyn_cast<llvm::GetElementPtrInst> (&I);
-		  llvm::Value* indexList[1] = {inst->getOperand(1)};
-		  auto prev = llvm::GetElementPtrInst::Create (nullptr,inst->getOperand(0),llvm::ArrayRef<llvm::Value*> (indexList,1),"_gep__",inst);
-		  
-		  auto type_iter = llvm::gep_type_begin(*inst);
-		  ++type_iter;
-		  const std::size_t E = inst->getNumOperands ();
-		  for (std::size_t oper = 2; oper < E; ++oper,++type_iter) {
-		    auto resType = type_iter.getIndexedType();
-		    llvm::Value* indexList[2] = {zero,inst->getOperand(oper)};
-		    prev = llvm::GetElementPtrInst::Create (nullptr,prev,llvm::ArrayRef<llvm::Value*> (indexList,2),"_gep__",inst);
-		  }
-		  I.replaceAllUsesWith (prev);
-		  I.eraseFromParent ();
+    struct ConstExprRemover : public llvm::PassInfoMixin<ConstExprRemover> {
+	llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
+	  
+	  for (llvm::BasicBlock &BB : F) {
+		for (llvm::Instruction &I : BB) {
+		  handle(&I);
 		}
-	      }
-	      
-	      
-	    }
-	    return llvm::PreservedAnalyses::none();
 	  }
-	};
+	  return llvm::PreservedAnalyses::none();
+	}
+	
+	void handle (llvm::Instruction* inst) {
+	  auto ops = inst->getNumOperands ();
+	  for (std::size_t i = 0; i < ops; i++) {
+		auto op = inst->getOperand (i);
+		llvm::ConstantExpr* oop = nullptr;
+		if (( oop = llvm::dyn_cast<llvm::ConstantExpr> (op))) {
+		  auto ninst = oop->getAsInstruction ();
+		  ninst->insertBefore (inst);
+		  inst->setOperand (i,ninst);
+		  handle (ninst);
+		}
+	  }
+	}
+  };
+
+  struct RemoveUnusedInstructions : public llvm::PassInfoMixin<RemoveUnusedInstructions> {
+	llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
+	  bool changed = true;
+	  do {
+		changed = false;
+		for (llvm::BasicBlock &BB : F) {
+		  for (auto I = BB.begin(), E = BB.end(); I != E;  ++I) {
+		    llvm::Instruction& inst = *I;
+		    if(!inst.getNumUses() &&
+		       deleteable (&inst)
+		       ) {
+		      I = inst.eraseFromParent();
+		      changed = true;
+			}
+		    
+		  }
+		  
+		  
+		}
+	  }while (changed);
+	  
+	  
+	  return llvm::PreservedAnalyses::none();
+	}
+
     
-	struct Constructor : public llvm::PassInfoMixin<InstructionNamer> {
-	 
-	  Constructor (MiniMC::Model::Program_ptr& prgm,
-				   MiniMC::Model::TypeFactory_ptr& tfac
-		       ) : prgm(prgm),tfactory(tfac) {
+    bool deleteable (llvm::Instruction* inst) {
+      switch (inst->getOpcode()) {
+      case llvm::Instruction::Store:
+      case llvm::Instruction::Call:
+      case llvm::Instruction::Unreachable:
+	return false;
+      default:
+	return !inst->isTerminator ();
+      }
+    }
+    
+  };
+    
+    struct GetElementPtrSimplifier : public llvm::PassInfoMixin<InstructionNamer> {
+      llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
+	llvm::LLVMContext& context = F.getContext();
+	auto i32Type = llvm::IntegerType::getInt32Ty(context);
+	auto zero = llvm::ConstantInt::get (i32Type,0);
+	for (llvm::BasicBlock &BB : F) {
+	  llvm::BasicBlock::iterator BI = BB.begin();
+	  llvm::BasicBlock::iterator BE =  BB.end();
+	  while (BI != BE) {
+	    auto& I = *BI++;
+	    //WOrking here
+	    if (I.getOpcode () == llvm::Instruction::GetElementPtr) {
+	      llvm::GetElementPtrInst* inst = llvm::dyn_cast<llvm::GetElementPtrInst> (&I);
+	      llvm::Value* indexList[1] = {inst->getOperand(1)};
+	      auto prev = llvm::GetElementPtrInst::Create (nullptr,inst->getOperand(0),llvm::ArrayRef<llvm::Value*> (indexList,1),"_gep__",inst);
+	      
+	      auto type_iter = llvm::gep_type_begin(*inst);
+	      ++type_iter;
+	      const std::size_t E = inst->getNumOperands ();
+	      for (std::size_t oper = 2; oper < E; ++oper,++type_iter) {
+		auto resType = type_iter.getIndexedType();
+		llvm::Value* indexList[2] = {zero,inst->getOperand(oper)};
+		prev = llvm::GetElementPtrInst::Create (nullptr,prev,llvm::ArrayRef<llvm::Value*> (indexList,2),"_gep__",inst);
+	      }
+	      I.replaceAllUsesWith (prev);
+	      I.eraseFromParent ();
+	    }
 	  }
+	  
+	  
+	}
+	return llvm::PreservedAnalyses::none();
+      }
+    };
+    
+    struct Constructor : public llvm::PassInfoMixin<InstructionNamer> {
+      
+      Constructor (MiniMC::Model::Program_ptr& prgm,
+		   MiniMC::Model::TypeFactory_ptr& tfac
+		   ) : prgm(prgm),tfactory(tfac) {
+      }
 	  llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
 		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
 		for (llvm::BasicBlock &BB : F) {
-			locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
+		  locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
 		}
 
 		Types tt;
 		tt.tfac = tfactory;
-	    
+		
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
 		pickVariables (F,variablestack);
@@ -190,7 +256,7 @@ namespace MiniMC {
 
 		  if (insts.size()) {
 		    auto mloc = cfg->makeLocation (loc->getName () + ":");
-		    cfg->makeEdge (loc,mloc,insts,nullptr);
+		    cfg->makeEdge (loc,mloc,insts,nullptr,prgm);
 		    loc = mloc;
 		  }
 		  
@@ -203,20 +269,26 @@ namespace MiniMC {
 			std::vector<MiniMC::Model::Instruction> insts;
 			auto succ = term->getSuccessor (0);
 			auto succloc = locmap.at(succ);
-			cfg->makeEdge (loc,succloc,insts,nullptr);
+			cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
 		      }
 		      else {
 			auto cond = findValue (brterm->getCondition(),values,tt);
 			auto ttloc = locmap.at(term->getSuccessor (0));
 			auto ffloc = locmap.at(term->getSuccessor (1));
-			cfg->makeEdge (loc,ttloc,insts,cond);
-			cfg->makeEdge (loc,ffloc,insts,cond,true);
+			cfg->makeEdge (loc,ttloc,insts,cond,prgm);
+			cfg->makeEdge (loc,ffloc,insts,cond,prgm,true);
 		      }
 		    }
 		    
 		  }
 		}
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
+
+		auto id = f->getID ();
+		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (id);
+		values.insert (std::make_pair(&F,ptr));
+		
+		prgm->addEntryPoint (f);
 		prgm->addEntryPoint (f);
 		return llvm::PreservedAnalyses::all();
 	  }
@@ -231,28 +303,33 @@ namespace MiniMC {
 		
 		for (const llvm::BasicBlock& bb : func) {
 		  for (auto& inst : bb) {
-			auto ops = inst.getNumOperands ();
-			for (std::size_t i = 0; i < ops; i++) {
-			  auto op = inst.getOperand (i);
-			  llvm::Constant* oop = llvm::dyn_cast<llvm::Constant> (op);
-			  auto lltype = op->getType();
-			  if (lltype->isLabelTy ())
-				continue;
-			  auto type = getType (op->getType(),tfactory);
-			  if (oop) {
-				continue;
-			  }
-			  else {
-				makeVariable (op,op->getName(),type,stack);
-			  }
-			}
-			
-
-			  
+		    makeVar (&inst,stack);
+		    auto ops = inst.getNumOperands ();
+		    for (std::size_t i = 0; i < ops; i++) {
+		      auto op = inst.getOperand (i);
+		      makeVar (op,stack);
+		    }
+		    
+		    
+		    
 		  }
 		}
 	  }
 
+	  void makeVar (const llvm::Value* op,MiniMC::Model::VariableStackDescr_ptr stack ) {
+	    const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant> (op);
+	    auto lltype = op->getType();
+	    if (lltype->isLabelTy ())
+	      return ;
+	    auto type = getType (op->getType(),tfactory);
+	    if (oop) {
+	      return ;
+	    }
+	    else {
+	      makeVariable (op,op->getName(),type,stack);
+	    }
+	  }
+	  
 	  void makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
 	    if (!values.count (val)) {
 	      auto newVar = stack->addVariable (name,type);
@@ -285,6 +362,7 @@ namespace MiniMC {
 	  X(GetElementPtr)			\
 	  X(InsertValue)			\
 	  X(ExtractValue)			\
+	  X(Call)				\
 	  
 	  
 	  
@@ -307,13 +385,13 @@ namespace MiniMC {
 	private:
 	  MiniMC::Model::Program_ptr& prgm;
 	  MiniMC::Model::TypeFactory_ptr& tfactory;
-	  std::unordered_map<const llvm::Value*,MiniMC::Model::Variable_ptr> values;
+	  Val2ValMap values;
 	  
 	};
 	
     class LLVMLoader : public Loader {
       virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac) {
-	auto prgm = std::make_unique<MiniMC::Model::Program> ();
+	auto prgm = std::make_shared<MiniMC::Model::Program> ();
 	std::fstream str;
 	str.open (file);
 	std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
@@ -340,10 +418,13 @@ namespace MiniMC {
 	PB.registerLoopAnalyses(lam);
 	PB.registerCGSCCAnalyses(cgam);
 	PB.crossRegisterProxies(lam, fam, cgam, mam);
-	
+
+	funcmanager.addPass (ConstExprRemover());
+	funcmanager.addPass (RemoveUnusedInstructions());
 	funcmanager.addPass (InstructionNamer());
 	funcmanager.addPass (GetElementPtrSimplifier());
 	funcmanager.addPass (Constructor(prgm,tfac));
+	
 	
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
 		

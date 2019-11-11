@@ -34,7 +34,7 @@ namespace MiniMC {
       virtual bool isAggregate () const {return false;}
   };
     
-    class IntegerConstant :public Value  {
+    class IntegerConstant :public Constant  {
 	public:
       IntegerConstant (uint64_t val) : value(val) {}
       auto getValue () const {return value;}
@@ -44,7 +44,7 @@ namespace MiniMC {
       uint64_t value;
     };
 
-    class AggregateConstant :public Value  {
+    class AggregateConstant :public Constant  {
     public:
       AggregateConstant (std::vector<Value_ptr>& vals, bool isarr) : values(vals),
 								     is_Array(isarr)

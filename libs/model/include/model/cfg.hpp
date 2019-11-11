@@ -28,8 +28,9 @@ namespace MiniMC {
       std::string name;
     };
 
+    class Program;
     using Location_ptr = std::shared_ptr<Location>;
-    
+    using Program_ptr = std::shared_ptr<Program>;
     class Instruction;
     class Edge {
     public:
@@ -39,12 +40,15 @@ namespace MiniMC {
       auto getTo () const {return to;}
       auto getGuard () const {return value;}
       auto negatedGuard () const {return  negGuard;}
+      auto& getProgram() const {return prgm;}
+      void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
       std::vector<Instruction> instructions;
       gsl::not_null<Location_ptr> from;
       gsl::not_null<Location_ptr> to;
       Value_ptr value;
       bool negGuard;
+      Program_ptr prgm;
     };
 
     
@@ -56,13 +60,14 @@ namespace MiniMC {
     public:
 	  
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-		locations.emplace_back (new Location (name));
-		return locations.back();
+	locations.emplace_back (new Location (name));
+	return locations.back();
       }
 	  
-      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard,bool neg = false) {
+      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard, Program_ptr& p, bool neg = false) {
 	edges.emplace_back (new Edge (from,to,inst,guard,neg));
 	from->addEdge (edges.back());
+	edges.back()->setProgram(p);
 	return edges.back();
       }
 
@@ -111,6 +116,7 @@ namespace MiniMC {
 
     class Program {
     public:
+      using func_t = std::size_t;
       Program ()  {
 	globals = makeVariableStack().get();
       }
@@ -127,7 +133,11 @@ namespace MiniMC {
       void addEntryPoint (gsl::not_null<Function_ptr>& func) {
 	entrypoints.push_back(func.get());
       }
-
+      
+      Function_ptr getFunction (func_t id) const {
+	return functions.at(id);
+      }
+      
       auto& getEntryPoints () const {return entrypoints;}
       
       gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
@@ -141,8 +151,6 @@ namespace MiniMC {
       std::size_t stacks = 0;
       
     };
-
-    using Program_ptr = std::unique_ptr<Program>;
     
   }
 }
