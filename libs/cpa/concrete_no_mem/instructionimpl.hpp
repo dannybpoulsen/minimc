@@ -151,13 +151,13 @@ namespace MiniMC {
 	 	  
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
-	static void execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& )  {
+	static void execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
 	}
       };
 
       class RegisterLoader {
       public:
-	RegisterLoader (Stack& stack, const MiniMC::Model::Value_ptr& ptr) {
+	RegisterLoader (State::StackDetails details, const MiniMC::Model::Value_ptr& ptr) {
 	  if(ptr->isConstant ()) {
 	    auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
 	    if (!constant->isAggregate ()) {
@@ -182,11 +182,12 @@ namespace MiniMC {
 	      reg = std::make_unique<InnerStateConst> (buffer,size);
 	      
 	    }
-
-	    throw MiniMC::Support::Exception ("Constants cannot be created right now");
+	    else {
+	      throw MiniMC::Support::Exception ("Constants cannot be created right now");
+	    }
 	  }
 	  else {
-	    auto regi = stack.load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));
+	    auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr), ptr->isGlobal() ? details.galloc : details.alloc);
 	    reg = std::make_unique<InnerStateIn> (regi);
 	  }
 	}
@@ -221,27 +222,41 @@ namespace MiniMC {
 	
 	std::unique_ptr<InnerState> reg;
       };
+
+      template<class Register> 
+      inline void doSave (State::StackDetails& st, MiniMC::Model::Variable_ptr var, Register& reg) {
+	if (var->isGlobal()) {
+	  st.gstack.save (reg,var,st.galloc);
+	}
+	else {
+	  st.stack.save (reg,var,st.alloc);
+	}
+      }
       
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isTAC>::type> {
-	void static execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& inst)  {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+			     const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<opc> helper (inst);
-	  RegisterLoader l (s,helper.getLeftOp ());
-	  RegisterLoader r (s,helper.getRightOp ());
+	  RegisterLoader l (st,helper.getLeftOp ());
+	  RegisterLoader r (st,helper.getRightOp ());
 	  auto res = TypeRedirect<TACRedirect<opc>> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
-	  s.save (res,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()));
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()),res);
 	  
 	}
       };
 
+      
+      
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isComparison>::type> {
-	void static execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& inst)  {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<opc> helper (inst);
-	  RegisterLoader l (s,helper.getLeftOp ());
-	  RegisterLoader r (s,helper.getRightOp ());
+	  RegisterLoader l (st,helper.getLeftOp ());
+	  RegisterLoader r (st,helper.getRightOp ());
 	  auto res = TypeRedirect<CMPRedirect<opc>> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
-	  s.save (res,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()));
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()),res);
+	  
 	  
 	}
       };
@@ -250,11 +265,12 @@ namespace MiniMC {
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assign,void> {
-	void static execute (MiniMC::CPA::ConcreteNoMem::Stack& s, const MiniMC::Model::Instruction& inst)  {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assign> helper (inst);
-	  RegisterLoader val (s,helper.getValue ());
+	  RegisterLoader val (st,helper.getValue ());
 	  auto resultvar = helper.getResult ();
-	  s.save (val.getRegister(),std::static_pointer_cast<MiniMC::Model::Variable> (resultvar));
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()),val.getRegister());
+	  
 	}
       };
       

@@ -252,6 +252,12 @@ namespace MiniMC {
 		    if (&inst!=term) {
 		      addInstruction (&inst,insts,tt);
 		    }
+		    if (llvm::isa<llvm::CallInst> (inst)) {
+		      auto mloc = cfg->makeLocation (loc->getName () + ":Call");
+		      cfg->makeEdge (loc,mloc,insts,nullptr,prgm);
+		      insts.clear();
+		      loc = mloc;
+		    }
 		  }
 
 		  if (insts.size()) {
@@ -279,6 +285,12 @@ namespace MiniMC {
 			cfg->makeEdge (loc,ffloc,insts,cond,prgm,true);
 		      }
 		    }
+
+		    if( term->getOpcode () == llvm::Instruction::Ret) {
+		      std::vector<MiniMC::Model::Instruction> insts;
+		      auto succloc = cfg->makeLocation ("Term");
+		      cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
+		    }
 		    
 		  }
 		}
@@ -287,8 +299,7 @@ namespace MiniMC {
 		auto id = f->getID ();
 		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (id);
 		values.insert (std::make_pair(&F,ptr));
-		
-		prgm->addEntryPoint (f);
+
 		prgm->addEntryPoint (f);
 		return llvm::PreservedAnalyses::all();
 	  }
@@ -363,6 +374,8 @@ namespace MiniMC {
 	  X(InsertValue)			\
 	  X(ExtractValue)			\
 	  X(Call)				\
+	  X(Ret)				\
+	  
 	  
 	  
 	  

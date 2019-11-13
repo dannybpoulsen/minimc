@@ -15,8 +15,7 @@ int main (int argc,char* argv[]) {
   auto prgm = loader->loadFromFile (argv[1],tfac);
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   using CPADef = MiniMC::CPA::Compounds::CPADef<0,
-						MiniMC::CPA::Location::CPADef,
-						MiniMC::CPA::ConcreteNoMem::CPADef			   	
+						MiniMC::CPA::Location::CPADef
 						>;
   MiniMC::Algorithms::PrintCPA<CPADef> algorithm (*mess);
   algorithm.run (*prgm);

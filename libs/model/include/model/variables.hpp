@@ -17,9 +17,13 @@ namespace MiniMC {
       void setType (const Type_ptr& t) {type = t;}
       virtual bool isVariable () const {return false;}
       virtual bool isConstant () const {return false;}
+      virtual bool isGlobal () const {return glob;}
+      virtual void setGlobal () {glob = true;}
+      
       virtual std::ostream& output (std::ostream& os) const = 0;
     private:
       Type_ptr type;
+      bool glob = false;
     };
 
     inline std::ostream& operator<< (std::ostream& os, const Value& v) {
