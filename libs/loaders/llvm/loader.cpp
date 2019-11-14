@@ -107,17 +107,24 @@ namespace MiniMC {
     
     struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
+	std::string fname = F.getName();
+	fname = fname+".";
 	for (auto &Arg : F.args())
-	  if (!Arg.hasName())
-	    Arg.setName("arg");
-	
+	  if (!Arg.hasName()) 
+	    Arg.setName(fname+"arg");
+	  else 
+	    Arg.setName(fname+Arg.getName());
 	for (llvm::BasicBlock &BB : F) {
 	  if (!BB.hasName())
-	    BB.setName("bb");
-	  
+	    BB.setName(fname+"bb");
+	  else {
+	    BB.setName(fname+BB.getName());
+	  }
 	  for (llvm::Instruction &I : BB)
-	    if (!I.hasName() && !I.getType()->isVoidTy())
-	      I.setName("tmp");
+	    if (!I.hasName())
+	      I.setName(fname+"tmp");
+	    else
+	      I.setName(fname+I.getName());
 	}
 	return llvm::PreservedAnalyses::all();
       }
@@ -230,7 +237,8 @@ namespace MiniMC {
 		   ) : prgm(prgm),tfactory(tfac) {
       }
 	  llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
-		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
+	    std::string fname =  F.getName();
+	    auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
 		for (llvm::BasicBlock &BB : F) {
 		  locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
@@ -261,7 +269,7 @@ namespace MiniMC {
 		  }
 
 		  if (insts.size()) {
-		    auto mloc = cfg->makeLocation (loc->getName () + ":");
+		    auto mloc = cfg->makeLocation (loc->getName () + ":Split");
 		    cfg->makeEdge (loc,mloc,insts,nullptr,prgm);
 		    loc = mloc;
 		  }
@@ -288,7 +296,7 @@ namespace MiniMC {
 
 		    if( term->getOpcode () == llvm::Instruction::Ret) {
 		      std::vector<MiniMC::Model::Instruction> insts;
-		      auto succloc = cfg->makeLocation ("Term");
+		      auto succloc = cfg->makeLocation (fname+"."+"Term");
 		      cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
 		    }
 		    
@@ -300,7 +308,6 @@ namespace MiniMC {
 		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (id);
 		values.insert (std::make_pair(&F,ptr));
 
-		prgm->addEntryPoint (f);
 		return llvm::PreservedAnalyses::all();
 	  }
 

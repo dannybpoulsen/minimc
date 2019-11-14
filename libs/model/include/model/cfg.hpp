@@ -130,7 +130,7 @@ namespace MiniMC {
       }
 
       auto& getFunctions  () const {return functions;}
-      void addEntryPoint (gsl::not_null<Function_ptr>& func) {
+      void addEntryPoint (const gsl::not_null<Function_ptr>& func) {
 	entrypoints.push_back(func.get());
       }
       
@@ -139,7 +139,8 @@ namespace MiniMC {
       }
       
       auto& getEntryPoints () const {return entrypoints;}
-      
+
+      bool hasEntryPoints () const {return entrypoints.size();}
       gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
 	return std::make_shared<VariableStackDescr> (stacks++); 
       }
