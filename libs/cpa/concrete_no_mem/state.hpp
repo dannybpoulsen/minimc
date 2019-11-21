@@ -52,13 +52,6 @@ namespace MiniMC {
 	
 	virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
 	virtual std::shared_ptr<MiniMC::CPA::ConcreteNoMem::State> lcopy () const {return std::make_shared<State> (*this);}
-	/*const Stack& getStack (size_t p) const  {return stacks[p];}
-	Stack& getStack (size_t p)  {return stacks[p];}
-	AllocState& getAlloc (size_t p)  {return allocs[p];}
-	const Stack& getGStack (size_t p) const  {return globalStack;}
-	Stack& getGStack (size_t p)  {return globalStack;}
-	AllocState& getGAlloc (size_t p)  {return globalAlloc;}
-	*/
 	StackDetails getStackDetails (size_t p) {
 	  return StackDetails (stacks[p],
 			       allocs[p],

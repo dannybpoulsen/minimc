@@ -16,6 +16,7 @@ namespace MiniMC {
       
       struct Transferer {
 	static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr&,proc_id);
+	
       };
       
       struct Joiner {  
