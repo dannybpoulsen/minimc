@@ -6,6 +6,7 @@
 
 #include "support/exceptions.hpp"
 
+
 namespace MiniMC {
   namespace Loaders {
 

@@ -35,7 +35,9 @@
 #include "support/exceptions.hpp"
 #include "loaders/loader.hpp"
 #include "model/cfg.hpp"
+#include "support/pointer.hpp"
 #include "llvminstuctioncreator.hpp"
+
 
 namespace MiniMC {
   namespace Loaders {
@@ -305,7 +307,9 @@ namespace MiniMC {
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
 
 		auto id = f->getID ();
-		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (id);
+		auto pptr = MiniMC::Support::makeFunctionPointer (id);
+		std::cerr << "Adding " << pptr << std::endl;
+		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr));
 		values.insert (std::make_pair(&F,ptr));
 
 		return llvm::PreservedAnalyses::all();

@@ -62,6 +62,8 @@ namespace MiniMC {
   struct TypeD<InternalTypes::int8> {
     using type = std::int8_t;
   };
+
+  
   
   using int8_t = TypeD<InternalTypes::int8>::type;
   using int16_t = TypeD<InternalTypes::int16>::type;
@@ -73,7 +75,38 @@ namespace MiniMC {
   using uint32_t = TypeD<InternalTypes::uint32>::type;
   using uint64_t = TypeD<InternalTypes::uint64>::type;
 
+  using seg_t = int8_t;
+  using base_t = int16_t;
+  using offset_t = int32_t;
+  using func_t = base_t;
 
+  
+
+  
+  struct __attribute__ ((packed)) pointer_struct {
+     //Used for identifying if the pointer is a 
+    // data pointer
+    // location pointer
+    // function pointer
+    seg_t segment; 
+    // pure padding
+    int8_t zero; //must be zero
+    //base pointer
+    //for function and location pointers base is the function_id 
+    base_t base;
+    // offset into base_object
+    //for function pointer offset must be zero
+    //for location pointer offset is the location inside the function jumped to
+    offset_t offset; 
+  };
+
+  template<class T>
+  T& operator<< (T& os, const pointer_struct& p) {
+    return  os << p.segment <<":"<< static_cast<int64_t> (p.base) << "+"<<p.offset;
+  }
+  
+  using pointer_t = pointer_struct;
+  
   template<typename T>
   struct EquivSigned {
 	using type = int8_t;

@@ -7,6 +7,7 @@
 
 #include "model/instructions.hpp"
 #include "model/variables.hpp"
+#include "support/types.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -90,7 +91,7 @@ namespace MiniMC {
 
     class Function {
     public:
-      Function (std::size_t id, 
+      Function (MiniMC::func_t id, 
 		const std::string& name,
 		const std::vector<gsl::not_null<Variable_ptr>>& params,
 		const VariableStackDescr_ptr& variableStackDescr,
@@ -109,14 +110,13 @@ namespace MiniMC {
       std::vector<gsl::not_null<Variable_ptr>> parameters;
       VariableStackDescr_ptr variableStackDescr;
       gsl::not_null<CFG_ptr> cfg;
-      std::size_t id;
+      MiniMC::func_t id;
     };
     
     using Function_ptr = std::shared_ptr<Function>;
 
     class Program {
     public:
-      using func_t = std::size_t;
       Program ()  {
 	globals = makeVariableStack().get();
       }
@@ -134,7 +134,7 @@ namespace MiniMC {
 	entrypoints.push_back(func.get());
       }
       
-      Function_ptr getFunction (func_t id) const {
+      Function_ptr getFunction (MiniMC::func_t id) const {
 	return functions.at(id);
       }
       

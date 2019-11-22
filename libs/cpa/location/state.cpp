@@ -2,6 +2,7 @@
 #include "hash/hashing.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/location.hpp"
+#include "support/pointer.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -73,7 +74,8 @@ namespace MiniMC {
 	      MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
 	      if (helper.getFunctionPtr ()->isConstant()) {
 		auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (helper.getFunctionPtr ());
-		auto func = edge->getProgram()->getFunction(constant->getValue ());
+		auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
+		auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId (ptr));
 		nstate->pushLocation (id,func->getCFG()->getInitialLocation().get().get());
 	      }
 	      else
