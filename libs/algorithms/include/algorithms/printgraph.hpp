@@ -19,7 +19,7 @@ namespace MiniMC {
       virtual Result run (const MiniMC::Model::Program& prgm) {
 	auto& messager = getMessager ();
 	messager.message ("Initiating PrintCPA");
-	MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA.dot");
+	MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 	CPADFSPassedWaiting<CPA> passed;
 	auto initstate = CPA::Query::makeInitialState (prgm);
 	
@@ -49,7 +49,7 @@ namespace MiniMC {
 	  }
 	}
 
-	graph->write ("CPA.dot");
+	graph->write ("CPA");
 	
 	messager.message ("Finished PrintCPA");
 	return Result::Success;

@@ -74,14 +74,10 @@ namespace MiniMC {
 	  
 	}
 
-	// THe stack parameter is currently not used.
-	// Added for future usage, as it is likely we want to reduce the size of the stack
-	// when popping a frame
-	virtual void pop_frame (std::size_t s, Stack& t) {
-	  assert(head >= s);
-	  head = head-s;
+	
+	virtual void pop_frame (std::size_t s, const MiniMC::Model::VariableStackDescr_ptr& nstack) {
 	  next = next-s;
-	  
+	  head = next-nstack->getTotalSize();
 	}
 	
       virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {

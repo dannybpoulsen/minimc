@@ -3,6 +3,7 @@
 #include "support/div.hpp"
 #include "support/rightshifts.hpp"
 #include "support/exceptions.hpp"
+#include "support/pointer.hpp"
 
 #include "register.hpp"
 #include "stack.hpp"
@@ -152,6 +153,7 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
 	static void execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
+	  
 	}
       };
 
@@ -273,7 +275,52 @@ namespace MiniMC {
 	  
 	}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::RetVoid,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  { 
+	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
+	  MiniMC::Model::VariableStackDescr_ptr nn = st.ret.template pop<MiniMC::Model::VariableStackDescr> ();
+	  assert(nn);
+	  st.pop_frame(variableStackDescr,nn);
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Call,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
+	  if (helper.getFunctionPtr ()->isConstant()) {
+	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (helper.getFunctionPtr ());
+	    auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
+	    
+	    auto func = inst.getFunction()->getPrgm()->getFunction(MiniMC::Support::getFunctionId (ptr));
+	    st.push_frame (func->getVariableStackDescr ());
+	    auto resVar = helper.getRes (); 
+	    if (resVar) {
+	      st.ret.push (resVar);
+	    }
+	    else {
+	      st.ret.push (func->getVariableStackDescr ());
+	    }
+	  }
+	  
+	  
+	}
+      };
       
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Ret,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Ret> helper (inst);
+	  RegisterLoader val (st,helper.getValue());
+	  MiniMC::Model::Variable_ptr storePlace = st.ret.template pop<MiniMC::Model::Variable> ();
+	  assert(storePlace);
+	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
+	  st.pop_frame(variableStackDescr,storePlace->getOwner ());
+	  st.stack.save (val.getRegister(),storePlace,st.alloc);
+	}
+      };
       
     }
   }

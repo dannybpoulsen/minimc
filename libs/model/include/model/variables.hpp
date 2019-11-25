@@ -87,39 +87,43 @@ namespace MiniMC {
       std::size_t id;
     };
 
+    class VariableStackDescr;
+    using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
     
     
     class Variable : public Value,
-		     public Placed<Variable> {
+		     public Placed<Variable>,
+		     public std::enable_shared_from_this<Variable> 
+    {
     public:
       Variable (const std::string& name) : name(name) {}
       const std::string& getName () const {return name;}
       virtual std::ostream& output (std::ostream& os) const  {return os << getName();}
       bool isVariable () const {return true;}
-      void setOwnerId (std::size_t s) {stackOwnerId = s;}
+      void setOwner (const VariableStackDescr_ptr& descr) {owner = descr;}
+      auto& getOwner () const  {return owner;}
+      
     private:
       std::string name;
       Type_ptr type;
-      std::size_t stackOwnerId = std::numeric_limits<std::size_t>::max ();
+      VariableStackDescr_ptr owner;
     };
 
     using Variable_ptr = std::shared_ptr<Variable>;
     
-    class VariableStackDescr {
+    class VariableStackDescr : public std::enable_shared_from_this<VariableStackDescr> {
     public:
-      VariableStackDescr (std::size_t id) : id(id) {}
+      VariableStackDescr ()  {}
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
       auto& getVariables () const {return variables;}
       auto getTotalSize () const {return totalSize;}
       auto getTotalVariables () const {return variables.size();}
     private:
       std::vector<Variable_ptr> variables;
-      std::size_t id;
       std::size_t totalSize = 0;
     
     };
 
-    using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
     
   }
 }

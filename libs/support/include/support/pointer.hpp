@@ -12,7 +12,7 @@ namespace MiniMC {
 			    Function = 'F'
     };
     
-    pointer_t makeDataPointer (base_t b,offset_t o) {
+    inline pointer_t makeDataPointer (base_t b,offset_t o) {
       pointer_t ptr;
       ptr.segment = static_cast<seg_t> (PointerType::Data);
       ptr.zero = 0;
@@ -21,7 +21,7 @@ namespace MiniMC {
       return ptr;
     }
 
-    pointer_t makeLocationPointer (func_t b,offset_t o) {
+    inline pointer_t makeLocationPointer (func_t b,offset_t o) {
       pointer_t ptr;
       ptr.segment = static_cast<seg_t> (PointerType::Location);
       ptr.zero = 0;
@@ -31,7 +31,7 @@ namespace MiniMC {
     }
 
 
-    pointer_t makeFunctionPointer (func_t b) {
+    inline pointer_t makeFunctionPointer (func_t b) {
       pointer_t ptr;
       ptr.segment = static_cast<seg_t> (PointerType::Function);
       ptr.zero = 0;
@@ -62,7 +62,7 @@ namespace MiniMC {
    
     
       
-    func_t getFunctionId (const pointer_t& p) {
+    inline func_t getFunctionId (const pointer_t& p) {
       assert((IsA<PointerType::Data,PointerType::Function>::check (p)));
       return p.base;
     }

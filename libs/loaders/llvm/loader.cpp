@@ -298,17 +298,18 @@ namespace MiniMC {
 
 		    if( term->getOpcode () == llvm::Instruction::Ret) {
 		      std::vector<MiniMC::Model::Instruction> insts;
+		      addInstruction (term,insts,tt);
 		      auto succloc = cfg->makeLocation (fname+"."+"Term");
 		      cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
 		    }
 		    
 		  }
 		}
+		
 		auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
 
 		auto id = f->getID ();
 		auto pptr = MiniMC::Support::makeFunctionPointer (id);
-		std::cerr << "Adding " << pptr << std::endl;
 		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr));
 		values.insert (std::make_pair(&F,ptr));
 

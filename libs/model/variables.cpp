@@ -5,7 +5,7 @@ namespace MiniMC {
     Variable_ptr VariableStackDescr::addVariable (const std::string& name, const Type_ptr& type) {
       variables.push_back (std::make_shared<Variable> (name));
       variables.back()->setType(type);
-      variables.back()->setOwnerId (id);
+      variables.back()->setOwner (this->shared_from_this());
       variables.back()->setPlace ( totalSize);
       variables.back()->setId (variables.size()-1);
       totalSize += type->getSize();

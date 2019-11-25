@@ -59,6 +59,8 @@ namespace MiniMC {
     X(Skip)					\
     X(Call)					\
     X(Assign)					\
+    X(Ret)					\
+    X(RetVoid)					\
     
     enum class InstructionCode {
 #define X(OP)					\
@@ -243,14 +245,20 @@ namespace MiniMC {
       static const std::size_t operands = 2;			
       static const bool hasResVar = false;			
     };
-    
+
+    class Function;
+    using Function_ptr = std::shared_ptr<Function>;
     
     struct Instruction {
     public:
       Instruction (InstructionCode code, std::initializer_list<Value_ptr> ops) : opcode(code),
-										    ops(ops) {}
+										 ops(ops),
+										 parent(nullptr)
+      {}
       Instruction (InstructionCode code, std::vector<Value_ptr> ops) : opcode(code),
-								       ops(ops) {}
+								       ops(ops),
+								        parent(nullptr)
+      {}
       
       auto getOpcode () const {return opcode;}
       auto& getOps () const {return ops;}
@@ -263,9 +271,12 @@ namespace MiniMC {
 	}
 	return os << ")";
       }*/
+      const Function_ptr& getFunction () const {return parent;}
+      void setFunction (const Function_ptr& par) {parent = par;}
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;
+      Function_ptr parent;
     };
 
     inline std::ostream& operator<< (std::ostream& os, const Instruction& inst) {
@@ -459,8 +470,10 @@ namespace MiniMC {
       
       auto nbParams ()  const {return nbparams;}
       auto getFunctionPtr () {return inst.getOp (0);}
-      auto getParam (std::size_t p) {return inst.getOp (2+p);}
-      
+      auto getParam (std::size_t p) {return inst.getOp (3+p);}
+      auto getRes () {
+	return inst.getOp (2);
+      }
       
     private:
       const Instruction& inst;
@@ -475,12 +488,17 @@ namespace MiniMC {
 	std::vector<Value_ptr> values;
 	values.push_back (func);
 	values.push_back (nbParameters);
+	values.push_back(res);
 	std::copy(params.begin(),params.end(),std::back_inserter(values));
 	return Instruction (InstructionCode::Call,values);
       }
 
       void setFunctionPtr (const Value_ptr& func) {
 	this->func = func;
+      }
+
+      void setRes (const Value_ptr& res) {
+	this->res = res;
       }
 
       void setNbParamters (const Value_ptr& p) {
@@ -496,6 +514,7 @@ namespace MiniMC {
     private:
       Value_ptr func;
       Value_ptr nbParameters;
+      Value_ptr res = nullptr;
       std::vector<Value_ptr> params;
       
     };
@@ -614,14 +633,69 @@ namespace MiniMC {
       Value_ptr res;
     };
 
-    template<> 
-    struct Formatter<InstructionCode::Assign,void> {
-      static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Assign> h (inst);
-	return os << *h.getResult () << " = " << *h.getValue ();
-      } 
+
+    template<>
+    class InstHelper<InstructionCode::RetVoid,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      
+    private:
+      const Instruction& inst;
     };
     
+    template<>
+    class InstBuilder<InstructionCode::RetVoid,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::RetVoid,{});
+      }
+    };
+    
+    template<> 
+    struct Formatter<InstructionCode::RetVoid,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::RetVoid> h (inst);
+	return os << "RetVoid";
+      } 
+    };
+
+    //
+    template<>
+    class InstHelper<InstructionCode::Ret,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getValue () const {return inst.getOp(0);}
+    private:
+      const Instruction& inst;
+    };
+    
+    template<>
+    class InstBuilder<InstructionCode::Ret,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::Ret,{value});
+      }
+
+      void setRetValue (const Value_ptr& value)  {
+	this->value = value;
+      }
+
+    private:
+      Value_ptr value;
+    };
+    
+    template<> 
+    struct Formatter<InstructionCode::Ret,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Ret> h (inst);
+	return os << "Ret " << *h.getValue ();
+      } 
+    };
+
+
+    //
     template<>
     class InstHelper<InstructionCode::InsertValue,void> {
     public:

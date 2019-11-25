@@ -121,6 +121,22 @@ namespace MiniMC {
     builder.setSize (size);						
     instr.push_back(builder.BuildInstruction ());			
   }
+    
+    template<>								
+    void translateAndAddInstruction<llvm::Instruction::Ret> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
+      auto retinst = llvm::dyn_cast<llvm::ReturnInst> (inst);
+      assert(retinst);
+      if (retinst->getReturnValue ()) {
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Ret> builder;
+	auto res = findValue (retinst->getReturnValue(),values,tt);		
+	builder.setRetValue (res);
+	instr.push_back(builder.BuildInstruction ());
+      }
+      else {
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::RetVoid> builder;
+	instr.push_back(builder.BuildInstruction ());
+      }			
+    }
 
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::Load> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
@@ -149,6 +165,7 @@ namespace MiniMC {
       auto func = cinst->getCalledFunction ();
       assert(func);
       builder.setFunctionPtr (findValue(func,values,tt));
+      builder.setRes (findValue(inst,values,tt));
       builder.setNbParamters (std::make_shared<MiniMC::Model::IntegerConstant> (cinst->arg_size ()));
       for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
 	builder.addParam (findValue(*it,values,tt));

@@ -37,6 +37,7 @@ namespace MiniMC {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val,bool neg = false) : instructions(inst),from(from),to(to),value(val),negGuard(neg) {}
       auto& getInstructions () const {return instructions;}
+      auto& getInstructions ()  {return instructions;}
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
       auto getGuard () const {return value;}
@@ -80,7 +81,10 @@ namespace MiniMC {
       void setInitial (gsl::not_null<Location_ptr> loc) {
 	initial = loc.get();
       }
-	  
+
+      auto& getLocations () const {return locations;}
+      auto& getLocations ()  {return locations;}
+      auto& getEdges () {return edges;}
     private:
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
@@ -89,7 +93,7 @@ namespace MiniMC {
 
     using CFG_ptr = std::shared_ptr<CFG>;
 
-    class Function {
+    class Function : public std::enable_shared_from_this<Function> {
     public:
       Function (MiniMC::func_t id, 
 		const std::string& name,
@@ -99,23 +103,32 @@ namespace MiniMC {
 						    parameters(params),
 						    variableStackDescr(variableStackDescr),
 						    cfg(cfg),
-						    id(id) {}
+						    id(id) {
+	for (auto& e : cfg->getEdges ()) {
+	  for (auto& l : e->getInstructions ())
+	    l.setFunction (std::shared_ptr<Function> (this));
+	}
+	
+      }
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
+      auto& getPrgm () const {return prgm;}
+      void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
       std::string name;
       std::vector<gsl::not_null<Variable_ptr>> parameters;
       VariableStackDescr_ptr variableStackDescr;
       gsl::not_null<CFG_ptr> cfg;
       MiniMC::func_t id;
+      Program_ptr prgm;
     };
     
     using Function_ptr = std::shared_ptr<Function>;
 
-    class Program {
+    class Program  : public std::enable_shared_from_this<Program>{
     public:
       Program ()  {
 	globals = makeVariableStack().get();
@@ -126,6 +139,7 @@ namespace MiniMC {
 			const VariableStackDescr_ptr& variableStackDescr,
 			const gsl::not_null<CFG_ptr> cfg) {
 	functions.push_back (std::make_shared<Function> (functions.size(),name,params,variableStackDescr,cfg));
+	functions.back()->setPrgm (this->shared_from_this ());
 	return functions.back();
       }
 
@@ -142,7 +156,7 @@ namespace MiniMC {
 
       bool hasEntryPoints () const {return entrypoints.size();}
       gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
-	return std::make_shared<VariableStackDescr> (stacks++); 
+	return std::make_shared<VariableStackDescr> (); 
       }
       
     private:
