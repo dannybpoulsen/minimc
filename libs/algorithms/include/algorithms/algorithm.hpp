@@ -41,6 +41,8 @@ namespace MiniMC {
       StopCriterion* stopper = nullptr;
       MiniMC::Support::Messager* messager;
     };
+
+    
     
   }
 }

@@ -1,7 +1,9 @@
 #include <boost/program_options.hpp>
 
 #include "support/feedback.hpp"
+#include "support/sequencer.hpp"
 #include "algorithms/printgraph.hpp"
+#include "algorithms/modifications/rremoveretsentry.hpp"
 #include "cpa/location.hpp"
 #include "cpa/concrete_no_mem.hpp"
 #include "cpa/compound.hpp"
@@ -18,6 +20,9 @@ auto createLoader (int val) {
 template<class CPADef>
 void runAlgorithm (MiniMC::Model::Program& prgm) {
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
+  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+  seq.template add<MiniMC::Algorithms::Modifications::RemoveRetEntryPoints> ();
+  seq.run (prgm);
   MiniMC::Algorithms::PrintCPA<CPADef> algorithm (*mess);
   algorithm.run (prgm);
 }

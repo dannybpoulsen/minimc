@@ -259,7 +259,10 @@ namespace MiniMC {
 								       ops(ops),
 								        parent(nullptr)
       {}
-      
+      void replace (const Instruction& i) {
+	opcode = i.opcode;
+	ops = i.ops;
+      }
       auto getOpcode () const {return opcode;}
       auto& getOps () const {return ops;}
       auto& getOp (std::size_t i) const {return ops.at(i);}
