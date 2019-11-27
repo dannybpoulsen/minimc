@@ -28,6 +28,14 @@ namespace MiniMC {
     private:
       std::vector<std::unique_ptr<Sink<T> > > sinks;
     };
+
+    template<class T,class W, class ... Args>
+    struct SequenceWrapper : public Sink<T> {
+      SequenceWrapper (Args... args) : wrapped (args...) {}
+      virtual void run (T& t) override {wrapped.run (t);};
+    private:
+      W wrapped;
+    };
     
   }
 }

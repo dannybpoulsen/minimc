@@ -61,7 +61,8 @@ namespace MiniMC {
     X(Assign)					\
     X(Ret)					\
     X(RetVoid)					\
-    
+    X(NonDet)					\
+  
     enum class InstructionCode {
 #define X(OP)					\
 				OP,
@@ -110,7 +111,7 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::OP>{		\
       static const bool isTAC = true;				\
       static const bool isMemory = false;			\
-	static const bool isComparison = false;			\
+      static const bool isComparison = false;			\
       static const bool isCast = false;				\
       static const bool isPointer = false;			\
       static const bool isAggregate = false;			\
@@ -125,8 +126,8 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::OP>{		\
       static const bool isTAC = false;					\
       static const bool isMemory = false;				\
-	  static const bool isComparison = true;			\
-	  static const bool isCast = false;					\
+      static const bool isComparison = true;				\
+      static const bool isCast = false;					\
       static const bool isPointer = false;				\
       static const bool isAggregate = false;			\
       static const std::size_t operands = 2;			\
@@ -221,6 +222,19 @@ namespace MiniMC {
       static const std::size_t operands = 0;			
       static const bool hasResVar = false;			
     };
+    
+    template<>						
+    struct InstructionData<InstructionCode::NonDet> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 0;			
+      static const bool hasResVar = true;			
+    };
+    
     
     template<>						
     struct InstructionData<InstructionCode::Load>{		
@@ -462,6 +476,39 @@ namespace MiniMC {
     };
 
 
+    //
+    template<>
+    class InstHelper<InstructionCode::NonDet,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::NonDet,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::NonDet,{res});
+      }
+     
+      void setResult (const Value_ptr& p) {res = p;}
+      
+    private:
+      Value_ptr res = nullptr;
+    
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::NonDet,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::NonDet> h (inst);
+	return os << *h.getResult() << "=" <<  InstructionCode::NonDet;
+      } 
+    };
+    //
     template<>
     class InstHelper<InstructionCode::Call,void> {
     public:

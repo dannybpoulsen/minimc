@@ -290,6 +290,7 @@ namespace MiniMC {
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Call,void> {
 	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
+	  //Missing evaluation of parameters
 	  if (helper.getFunctionPtr ()->isConstant()) {
 	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (helper.getFunctionPtr ());
 	    auto ptr = MiniMC::Support::CastToPtr (constant->getValue());

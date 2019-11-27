@@ -73,7 +73,7 @@ namespace MiniMC {
 	    
 	    if (proc < last_proc) {
 	      succ.proc = proc;
-	      succ.edge = iter->get();
+	      succ.edge = *iter;
 	      succ.state = Transfer::doTransfer (curState,succ.edge,succ.proc);
 	      if (succ.state) {
 		done = true;

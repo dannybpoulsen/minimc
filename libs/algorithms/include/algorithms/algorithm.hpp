@@ -4,6 +4,7 @@
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
 #include "support/exceptions.hpp"
+#include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Algorithms {
@@ -21,6 +22,7 @@ namespace MiniMC {
     class Algorithm {
     public:
       Algorithm (MiniMC::Support::Messager& m) : messager(&m) {}
+      Algorithm (const Algorithm& ) = default;
       void setStopper (StopCriterion* stopper) {this->stopper = stopper;}
       virtual Result run (const MiniMC::Model::Program&) {
 	messager->message ("Starting dummy algorithm");
@@ -42,8 +44,12 @@ namespace MiniMC {
       MiniMC::Support::Messager* messager;
     };
 
-    
-    
+
+    template<class W,class ...Args>
+    using BaseAWrapper = MiniMC::Support::SequenceWrapper<MiniMC::Model::Program,W,Args...>;
+
+    template<class W>
+    using AWrapper = BaseAWrapper<W,MiniMC::Support::Messager&>;
   }
 }
 

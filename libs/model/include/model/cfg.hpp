@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <algorithm>
 #include <gsl/pointers>
 
 #include "model/instructions.hpp"
@@ -15,27 +16,37 @@ namespace MiniMC {
     using Edge_ptr = std::shared_ptr<Edge>;
     class Location : public std::enable_shared_from_this<Location>{
     public:
-      using edge_iterator = std::vector<gsl::not_null<Edge_ptr>>::const_iterator;
+      using edge_iterator = std::vector<Edge_ptr>::const_iterator;
       
       Location (const std::string& n) : name(n) {}
       auto& getEdges () const {return edges;}
-      void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e);}
+      void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
       edge_iterator ebegin () const {return edges.begin();}
       edge_iterator eend () const {return edges.end();}
       auto& getName () const {return name;}
-      
+      void removeEdge (const Edge_ptr& e) {
+	auto it = std::find (edges.begin(),edges.end(),e);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
+      }
     private:
-      std::vector<gsl::not_null<Edge_ptr>> edges;
+      std::vector<Edge_ptr> edges;
       std::string name;
     };
 
+    
     class Program;
     using Location_ptr = std::shared_ptr<Location>;
     using Program_ptr = std::shared_ptr<Program>;
     class Instruction;
     class Edge {
     public:
-      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val,bool neg = false) : instructions(inst),from(from),to(to),value(val),negGuard(neg) {}
+      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val,bool neg = false) : instructions(inst),
+																			     from(from),
+																			     to(to),
+																			     value(val),
+																			     negGuard(neg) {}
       auto& getInstructions () const {return instructions;}
       auto& getInstructions ()  {return instructions;}
       auto getFrom () const {return from;}
@@ -80,6 +91,14 @@ namespace MiniMC {
 	  
       void setInitial (gsl::not_null<Location_ptr> loc) {
 	initial = loc.get();
+      }
+
+      void deleteEdge (const Edge_ptr& edge) {
+	auto it = std::find (edges.begin(),edges.end(),edge);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
+	edge->getTo ()->removeEdge (edge);
       }
 
       auto& getLocations () const {return locations;}

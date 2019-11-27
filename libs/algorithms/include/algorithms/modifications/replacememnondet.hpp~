@@ -1,0 +1,34 @@
+#ifndef _REPLACEMEM__
+#define _REPLACEMEM__
+
+#include "model/cfg.hpp"
+#include "support/sequencer.hpp"
+
+
+namespace MiniMC {
+  namespace Algorithms {
+    namespace Modifications {
+      struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+	virtual void run (MiniMC::Model::Program&  prgm) {
+	  for (auto& F : prgm.getEntryPoints ()) {
+	    for (auto& E : F->getCFG()->getEdges ()) {
+	      for (auto& I : E->getInstructions ()) {
+		if (I.getOpcode () == MiniMC::Model::InstructionCode::Load ) {
+		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load (I);	  
+		  nondet.setResult (load.getResult ());
+		  I.replace (nondet.BuildInstruction ());
+		}
+	      }
+	    }
+	  }
+	}
+
+      };
+      
+    }
+  }
+}
+
+
+#endif
