@@ -7,20 +7,30 @@ namespace MiniMC {
   namespace Support {
     
     enum class PointerType {
-			    Data = 'D',
+			    Stack = 'D',
+			    Heap = 'H',
 			    Location = 'L',
 			    Function = 'F'
     };
     
-    inline pointer_t makeDataPointer (base_t b,offset_t o) {
+    inline pointer_t makeStackPointer (proc_t b,offset_t o) {
       pointer_t ptr;
-      ptr.segment = static_cast<seg_t> (PointerType::Data);
+      ptr.segment = static_cast<seg_t> (PointerType::Stack);
       ptr.zero = 0;
       ptr.base = b;
       ptr.offset = o;
       return ptr;
     }
 
+    inline pointer_t makeHeapPointer (base_t b,offset_t o) {
+      pointer_t ptr;
+      ptr.segment = static_cast<seg_t> (PointerType::Heap);
+      ptr.zero = 0;
+      ptr.base = b;
+      ptr.offset = o;
+      return ptr;
+    }
+    
     inline pointer_t makeLocationPointer (func_t b,offset_t o) {
       pointer_t ptr;
       ptr.segment = static_cast<seg_t> (PointerType::Location);
@@ -63,7 +73,7 @@ namespace MiniMC {
     
       
     inline func_t getFunctionId (const pointer_t& p) {
-      assert((IsA<PointerType::Data,PointerType::Function>::check (p)));
+      assert((IsA<PointerType::Location,PointerType::Function>::check (p)));
       return p.base;
     }
     

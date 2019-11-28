@@ -77,6 +77,7 @@ namespace MiniMC {
 
   using seg_t = int8_t;
   using base_t = int16_t;
+  using proc_t = int16_t;
   using offset_t = int32_t;
   using func_t = base_t;
 

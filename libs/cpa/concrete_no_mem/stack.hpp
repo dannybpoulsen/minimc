@@ -55,8 +55,7 @@ namespace MiniMC {
 	
       private:
 	std::unique_ptr<MiniMC::uint8_t[]> buffer;
-	std::size_t size;
-       
+	std::size_t size;     
       };
       
       class AllocState {

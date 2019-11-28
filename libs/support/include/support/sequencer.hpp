@@ -40,4 +40,4 @@ namespace MiniMC {
   }
 }
 
-#endif _SEQUENCER__
+#endif 
