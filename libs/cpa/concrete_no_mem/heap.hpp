@@ -46,13 +46,13 @@ namespace MiniMC {
 	  if (entry.flags & Flags::Invalid) {
 	    throw MiniMC::Support::InvalidPointer ();
 	  }
-	  if (offset+reg.size > entry.size) {
+	  if (offset+reg.getSize() > entry.size) {
 	    throw MiniMC::Support::BufferOverflow ();
 	  }
 
 	  std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[entry.size]);
 	  std::copy (entry.data,entry.data+entry.size,ndata.get());
-	  auto start = reinterpret_cast<MiniMC::uint8_t*> (reg.getMem()); 
+	  auto start = reinterpret_cast<const MiniMC::uint8_t*> (reg.getMem()); 
 	  std::copy (start,start+reg.getSize(),ndata.get()+offset);
 	  entry.data = MiniMC::Storage::getStorage().store (ndata,entry.size);
 	  entry.flags = entry.flags | Flags::Initialised;
@@ -67,7 +67,7 @@ namespace MiniMC {
 	  entry.size = size;
 	  entry.data = MiniMC::Storage::getStorage().store (ndata,size);
 	  assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	  pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),size);
+	  pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
 	  entries.push_back (entry);
 	  return ptr;
 	}

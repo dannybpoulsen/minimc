@@ -824,12 +824,12 @@ namespace MiniMC {
     template<>
     class InstHelper<InstructionCode::Store,void> {
     public:
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getValue () const {return inst.getOp(0);}
       auto& getAddress () const {return inst.getOp(1);}
       
       private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<>

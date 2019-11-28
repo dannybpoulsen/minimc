@@ -322,6 +322,57 @@ namespace MiniMC {
 	  st.stack.save (val.getRegister(),storePlace,st.alloc);
 	}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Alloca,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Alloca> helper (inst);
+	  MiniMC::Model::Value_ptr size = helper.getSize();
+	  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
+	  assert(size->isConstant ());
+	  assert(storePlace);
+	  auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (size);
+	  auto pointer = st.heap.make_obj (constant->getValue());
+	  InRegister reg (&pointer,sizeof(pointer));
+	  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
+	  st.stack.save (reg,vvar,st.alloc);
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Load,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> helper (inst);
+	  MiniMC::Model::Value_ptr res = helper.getResult();
+	  auto size = res->getType()->getSize();
+	  MiniMC::Model::Value_ptr address = helper.getAddress ();
+	  RegisterLoader addrval (st,address);
+	  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
+	  std::cerr << "Load from " << pointer << std::endl;
+	  
+	  auto val = st.heap.read (pointer,size);
+	  st.stack.save (val,std::static_pointer_cast<MiniMC::Model::Variable> (res),st.alloc);
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Store,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Store> helper (inst);
+	  MiniMC::Model::Value_ptr value = helper.getValue();
+	  auto size = value->getType()->getSize();
+	  MiniMC::Model::Value_ptr address = helper.getAddress ();
+	  RegisterLoader addrval (st,address);
+	  RegisterLoader valueval (st,value);
+	  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
+	  std::cerr << "Store To  " << pointer << std::endl;
+	  
+	  st.heap.write (pointer,valueval.getRegister());
+	}
+      };
       
     }
   }

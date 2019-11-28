@@ -24,7 +24,6 @@ void runAlgorithm (MiniMC::Model::Program& prgm) {
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
   seq.template add<MiniMC::Algorithms::Modifications::RemoveRetEntryPoints> ();
-  seq.template add<MiniMC::Algorithms::Modifications::RemoveMemNondet> ();
   seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (*mess);
   seq.run (prgm);
 }

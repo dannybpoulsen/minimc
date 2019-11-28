@@ -78,10 +78,12 @@ namespace MiniMC {
 	  StackDetails (Stack& s,AllocState& st,
 			Stack& gs,AllocState& gst,
 			RetPoints& ret,
+			Heap& heap,
 			size_t proc
 			) : stack(s),alloc(st),
 			    gstack(gs),galloc(gst),
 			    ret(ret),
+			    heap(heap),
 			    proc(proc)
 	  {}
 
@@ -98,6 +100,7 @@ namespace MiniMC {
 	  Stack& gstack;
 	  AllocState& galloc;
 	  RetPoints& ret;
+	  Heap& heap;
 	  size_t proc;
 	};
 	
@@ -109,6 +112,7 @@ namespace MiniMC {
 			       globalStack,
 			       globalAlloc,
 			       rets[p],
+			       heap,
 			       p
 			       );
 	}
