@@ -76,6 +76,17 @@ namespace MiniMC {
       assert((IsA<PointerType::Location,PointerType::Function>::check (p)));
       return p.base;
     }
+
+    inline base_t getBase (const pointer_t& p) {
+      assert((IsA<PointerType::Heap>::check (p)));
+      return p.base;
+    }
+
+    inline base_t getOffset (const pointer_t& p) {
+      assert((IsA<PointerType::Heap>::check (p)));
+      return p.offset;
+    }
+    
     
     template<typename T>
     T CastPtr (const pointer_t& ptr) {

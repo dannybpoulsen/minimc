@@ -7,6 +7,7 @@
 #include "cpa/interface.hpp"
 #include "stack.hpp"
 #include "support/types.hpp"
+#include "heap.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -70,7 +71,7 @@ namespace MiniMC {
 	    s = i.hash (s);
 	  for (auto& i : rets)
 	    s = i.hash (s);
-	  return s; 
+	  return heap.hash(s); 
 	}
 
 	struct StackDetails {
@@ -125,6 +126,7 @@ namespace MiniMC {
 	std::vector<Stack> stacks;
 	std::vector<AllocState> allocs;
 	std::vector<RetPoints> rets;
+	Heap heap;
       };
     }
   }

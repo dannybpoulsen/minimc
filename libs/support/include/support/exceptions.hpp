@@ -10,6 +10,18 @@ namespace MiniMC {
     public:
       Exception (const std::string& mess) : std::runtime_error(mess) {}
     };
+
+    class BufferOverflow : Exception {
+    public:
+      BufferOverflow () : Exception ("BUffer Overflow") {}
+    };
+
+    class InvalidPointer : Exception {
+    public:
+      InvalidPointer () : Exception ("Invalid Pointer") {}
+    };
+
+    
     
   }
 }
