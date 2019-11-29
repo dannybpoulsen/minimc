@@ -1,5 +1,6 @@
 #include "cpa/concrete_no_mem.hpp"
 #include "stack.hpp"
+#include "heap.hpp"
 #include "state.hpp"
 #include "support/types.hpp"
 #include "support/exceptions.hpp"
@@ -9,24 +10,16 @@ namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
       MiniMC::CPA::State_ptr StateQuery::makeInitialState (const MiniMC::Model::Program& prgm)  {
-	
-	std::vector<Stack> stacks;
-	std::vector<AllocState> allocs;
+	Heap heap;
+	std::vector<pointer_t> stacks;
 	auto gsize = prgm.getGlobals()->getTotalSize();
 	std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[gsize]);
-	Stack globals (buffer,gsize);
-	AllocState galloc;
-	galloc.push_frame(prgm.getGlobals()->getTotalSize(),globals);
+	auto gstack = createStack (prgm.getGlobals().get(),heap);
 	for (auto& entry : prgm.getEntryPoints ()) {
 	  auto stackDescr = entry->getVariableStackDescr ();
-	  auto size = stackDescr->getTotalSize();
-	  std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);
-	  stacks.emplace_back (buffer,size);
-	  allocs.emplace_back();
-	  bool res = allocs.back ().push_frame(stackDescr->getTotalSize(),stacks.back());
-	  assert(res);
+	  stacks.push_back (createStack(stackDescr,heap));
 	}
-	return std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (globals,galloc,stacks,allocs);
+	return std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
       }
       
       size_t nbOfProcesses (const State_ptr& s) {
@@ -68,6 +61,7 @@ namespace MiniMC {
 	      AGGREGATEOPS
 	      }
 	}
+	det.commit ();
 	return nstate;
       }
       

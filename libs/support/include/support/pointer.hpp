@@ -97,6 +97,13 @@ namespace MiniMC {
     pointer_t CastToPtr (const T& val) {
       return MiniMC::bit_cast<T,pointer_t> (val);
     }
+
+    inline bool is_null (const pointer_t& t) {
+      return t.segment == 0 &&
+	t.zero == 0 &&
+	t.base == 0 &&
+	t.offset == 0;
+    }
     
   }
 }

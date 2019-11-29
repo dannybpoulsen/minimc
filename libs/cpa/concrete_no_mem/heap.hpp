@@ -82,13 +82,64 @@ namespace MiniMC {
 	    throw MiniMC::Support::InvalidPointer ();
 	  }
 	  
-
 	  entry.flags = Flags::Freed | Flags::Invalid;
 	  entry.size = 0;
 	  entry.data = nullptr;
 	  
 	}
 
+	pointer_t extend_obj (const MiniMC::pointer_t& pointer,MiniMC::offset_t add) {
+	  auto base = MiniMC::Support::getBase (pointer);
+	  auto offset = MiniMC::Support::getOffset (pointer);
+	  auto& entry = entries.at(base);
+	  assert(offset == 0);
+	  if (entry.flags & Flags::Invalid) {
+	    throw MiniMC::Support::InvalidPointer ();
+	  }
+
+	  std::unique_ptr<MiniMC::uint8_t[]> res (new MiniMC::uint8_t[entry.size+add]);
+	  std::copy(entry.data,entry.data+entry.size,res.get());
+	  std::fill(res.get()+entry.size,res.get()+entry.size+add,0);
+	  entry.data = MiniMC::Storage::getStorage().store (res,entry.size+add);
+	  MiniMC::pointer_t respointer = MiniMC::Support::makeHeapPointer (base,entry.size);
+	  entry.size+=add;
+	  return respointer;
+	  
+	}
+
+	std::unique_ptr<MiniMC::uint8_t[]> copy_out (const MiniMC::pointer_t& pointer) {
+	  assert(MiniMC::Support::IsA<MiniMC::Support::PointerType::Heap>::check(pointer));
+	  auto base = MiniMC::Support::getBase (pointer);
+	  auto offset = MiniMC::Support::getOffset (pointer);
+	  auto& entry = entries.at(base);
+	  assert(offset == 0);
+	  if (entry.flags & Flags::Invalid) {
+	    throw MiniMC::Support::InvalidPointer ();
+	    
+	  }
+
+	  std::unique_ptr<MiniMC::uint8_t[]> res (new MiniMC::uint8_t[entry.size]);
+	  std::copy(entry.data,entry.data+entry.size,res.get());
+	  return res;
+	  
+	}
+
+	
+	void writeRaw (const MiniMC::pointer_t& pointer, std::unique_ptr<MiniMC::uint8_t[]>& data) {
+	  assert(MiniMC::Support::IsA<MiniMC::Support::PointerType::Heap>::check(pointer));
+	  auto base = MiniMC::Support::getBase (pointer);
+	  auto offset = MiniMC::Support::getOffset (pointer);
+	  auto& entry = entries.at(base);
+	  assert(offset == 0);
+	  if (entry.flags & Flags::Invalid) {
+	    throw MiniMC::Support::InvalidPointer ();
+	    
+	  }
+	  entry.data  = MiniMC::Storage::getStorage().store (data,entry.size);
+	  entry.flags = entry.flags | Flags::Initialised;
+	}
+
+	
 	MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed) const {
 	  return MiniMC::Hash::Hash (entries.data(),entries.size(),seed);
 	}

@@ -159,7 +159,7 @@ namespace MiniMC {
 
       class RegisterLoader {
       public:
-	RegisterLoader (State::StackDetails details, const MiniMC::Model::Value_ptr& ptr) {
+	RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {
 	  if(ptr->isConstant ()) {
 	    auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
 	    if (!constant->isAggregate ()) {
@@ -189,7 +189,7 @@ namespace MiniMC {
 	    }
 	  }
 	  else {
-	    auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr), ptr->isGlobal() ? details.galloc : details.alloc);
+	    auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));
 	    reg = std::make_unique<InnerStateIn> (regi);
 	  }
 	}
@@ -228,10 +228,10 @@ namespace MiniMC {
       template<class Register> 
       inline void doSave (State::StackDetails& st, MiniMC::Model::Variable_ptr var, Register& reg) {
 	if (var->isGlobal()) {
-	  st.gstack.save (reg,var,st.galloc);
+	  st.gstack.save (reg,var);
 	}
 	else {
-	  st.stack.save (reg,var,st.alloc);
+	  st.stack.save (reg,var);
 	}
       }
       
@@ -282,6 +282,7 @@ namespace MiniMC {
 	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
 	  MiniMC::Model::VariableStackDescr_ptr nn = st.ret.template pop<MiniMC::Model::VariableStackDescr> ();
 	  assert(nn);
+	  assert(!st.stack.isModified());
 	  st.pop_frame(variableStackDescr,nn);
 	}
       };
@@ -318,8 +319,10 @@ namespace MiniMC {
 	  MiniMC::Model::Variable_ptr storePlace = st.ret.template pop<MiniMC::Model::Variable> ();
 	  assert(storePlace);
 	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
+	  assert(!st.stack.isModified());
 	  st.pop_frame(variableStackDescr,storePlace->getOwner ());
-	  st.stack.save (val.getRegister(),storePlace,st.alloc);
+	  st.stack.save (val.getRegister(),storePlace);
+	  
 	}
       };
 
@@ -333,10 +336,20 @@ namespace MiniMC {
 	  assert(size->isConstant ());
 	  assert(storePlace);
 	  auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (size);
-	  auto pointer = st.heap.make_obj (constant->getValue());
+	  pointer_t pointer;
+	  auto data = st.stack.getData ();
+	  if (MiniMC::Support::is_null(data.allocs)) {
+	    data.allocs = st.heap.make_obj (constant->getValue());
+	    pointer = data.allocs;
+	    st.stack.setData (data);
+	  }
+	  else {
+	    pointer = st.heap.extend_obj (data.allocs,constant->getValue());
+	  }
+	  
 	  InRegister reg (&pointer,sizeof(pointer));
 	  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
-	  st.stack.save (reg,vvar,st.alloc);
+	  st.stack.save (reg,vvar);
 	}
       };
 
@@ -353,7 +366,7 @@ namespace MiniMC {
 	  std::cerr << "Load from " << pointer << std::endl;
 	  
 	  auto val = st.heap.read (pointer,size);
-	  st.stack.save (val,std::static_pointer_cast<MiniMC::Model::Variable> (res),st.alloc);
+	  st.stack.save (val,std::static_pointer_cast<MiniMC::Model::Variable> (res));
 	}
       };
 
