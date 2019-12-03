@@ -248,10 +248,12 @@ namespace MiniMC {
 
 		Types tt;
 		tt.tfac = tfactory;
-		
+
+		using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
-		pickVariables (F,variablestack);
+		
+		pickVariables <inserter> (F,variablestack,std::back_inserter(params));
 		auto& entry = F.getEntryBlock ();
 		cfg->setInitial (locmap.at(&entry));
 		for (llvm::BasicBlock &BB : F) {
@@ -315,13 +317,13 @@ namespace MiniMC {
 
 		return llvm::PreservedAnalyses::all();
 	  }
-
-	  	  
-	  void pickVariables (const llvm::Function& func,MiniMC::Model::VariableStackDescr_ptr stack) {
+      
+      template<class Inserter>
+      void pickVariables (const llvm::Function& func,MiniMC::Model::VariableStackDescr_ptr stack, Inserter in ) {
 		for (auto itt = func.arg_begin();itt!=func.arg_end(); itt++) {
 		  auto lltype = itt->getType ();
 		  auto type = getType (lltype,tfactory);
-		  makeVariable (itt,itt->getName(),type,stack);
+		  in = makeVariable (itt,itt->getName(),type,stack);
 		}
 		
 		for (const llvm::BasicBlock& bb : func) {
@@ -342,7 +344,9 @@ namespace MiniMC {
 	  void makeVar (const llvm::Value* op,MiniMC::Model::VariableStackDescr_ptr stack ) {
 	    const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant> (op);
 	    auto lltype = op->getType();
-	    if (lltype->isLabelTy ())
+	    if (lltype->isLabelTy () ||
+		lltype->isVoidTy ()
+		)
 	      return ;
 	    auto type = getType (op->getType(),tfactory);
 	    if (oop) {
@@ -353,11 +357,12 @@ namespace MiniMC {
 	    }
 	  }
 	  
-	  void makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
+      MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
 	    if (!values.count (val)) {
 	      auto newVar = stack->addVariable (name,type);
 	      values[val] = newVar;
 	    }
+	    return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
 	  }
 
 #define SUPPORTEDLLVM				\

@@ -165,7 +165,9 @@ namespace MiniMC {
       auto func = cinst->getCalledFunction ();
       assert(func);
       builder.setFunctionPtr (findValue(func,values,tt));
-      builder.setRes (findValue(inst,values,tt));
+      if (!inst->getType ()->isVoidTy ()) {
+	builder.setRes (findValue(inst,values,tt));
+      }
       builder.setNbParamters (std::make_shared<MiniMC::Model::IntegerConstant> (cinst->arg_size ()));
       for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
 	builder.addParam (findValue(*it,values,tt));

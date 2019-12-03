@@ -12,6 +12,17 @@
 
 namespace MiniMC {
   namespace Model {
+
+    using line_loc = std::size_t;
+    
+    struct SourceLocation {
+      SourceLocation (const std::string& filename, line_loc loc) : filename(filename),loc(loc) {}
+      std::string filename;
+      line_loc loc;
+    };
+
+    using SourceLocation_ptr = std::shared_ptr<SourceLocation>;
+    
     class Edge;    
     using Edge_ptr = std::shared_ptr<Edge>;
     class Location : public std::enable_shared_from_this<Location>{
@@ -30,9 +41,14 @@ namespace MiniMC {
 	  edges.erase (it);
 	}
       }
+
+      bool hasSourceLocation  () const {return sourceloc.get();}
+      gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
+      void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
     private:
       std::vector<Edge_ptr> edges;
       std::string name;
+      SourceLocation_ptr sourceloc = nullptr;
     };
 
     
@@ -176,6 +192,10 @@ namespace MiniMC {
       bool hasEntryPoints () const {return entrypoints.size();}
       gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
 	return std::make_shared<VariableStackDescr> (); 
+      }
+
+      auto makeSourceLocation (const std::string& n, line_loc l) const {
+	return std::make_shared<SourceLocation> (n,l);
       }
       
     private:

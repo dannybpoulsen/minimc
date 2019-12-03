@@ -9,7 +9,7 @@ namespace MiniMC {
 	  IntegerType (size_t b) : Type(TypeID::Integer) ,
 							   bytes(b) {}
 	  virtual std::size_t getSize () const {return bytes;}
-	  virtual std::ostream& output (std::ostream& os) const {return os << "Int"<< bytes;}
+	  virtual std::ostream& output (std::ostream& os) const {return os << "Int"<< bytes*8;}
 	  
 	protected:
 	  virtual bool innerEq (const Type& t) {return bytes == static_cast<const IntegerType&> (t).bytes;
@@ -38,7 +38,7 @@ namespace MiniMC {
 	public:
 	  PointerType () : Type(TypeID::Pointer) {}
 	  virtual std::size_t getSize () const {return 8 ;}
-	  virtual std::ostream& output (std::ostream& os) const {return os << "Float";}
+	  virtual std::ostream& output (std::ostream& os) const {return os << "Pointer";}
 	  virtual bool innerEq (const Type& t) {return true;}
 	};
 

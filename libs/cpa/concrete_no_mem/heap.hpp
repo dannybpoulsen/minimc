@@ -72,6 +72,22 @@ namespace MiniMC {
 	  return ptr;
 	}
 
+	template<class T>
+	pointer_t make_obj_initialiser (MiniMC::offset_t size, const T& s) {
+	  assert(size>=sizeof(T));
+	  std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
+	  std::fill (ndata.get(),ndata.get()+size,0);
+	  std::copy (reinterpret_cast<const MiniMC::uint8_t*> (&s),reinterpret_cast<const MiniMC::uint8_t*> (&s)+sizeof(T),ndata.get());
+	  HeapEntry entry;
+	  entry.flags = 0;
+	  entry.size = size;
+	  entry.data = MiniMC::Storage::getStorage().store (ndata,size);
+	  assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
+	  pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
+	  entries.push_back (entry);
+	  return ptr;
+	}
+
 	void free_obj (const MiniMC::pointer_t& pointer) {
 	  assert(MiniMC::Support::IsA<MiniMC::Support::PointerType::Heap>::check(pointer));
 	  auto base = MiniMC::Support::getBase (pointer);
@@ -107,7 +123,7 @@ namespace MiniMC {
 	  
 	}
 
-	std::unique_ptr<MiniMC::uint8_t[]> copy_out (const MiniMC::pointer_t& pointer) {
+	std::unique_ptr<MiniMC::uint8_t[]> copy_out (const MiniMC::pointer_t& pointer) const  {
 	  assert(MiniMC::Support::IsA<MiniMC::Support::PointerType::Heap>::check(pointer));
 	  auto base = MiniMC::Support::getBase (pointer);
 	  auto offset = MiniMC::Support::getOffset (pointer);

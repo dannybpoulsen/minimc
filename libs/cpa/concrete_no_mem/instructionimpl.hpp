@@ -279,11 +279,9 @@ namespace MiniMC {
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::RetVoid,void> {
 	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  { 
-	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
-	  MiniMC::Model::VariableStackDescr_ptr nn = st.ret.template pop<MiniMC::Model::VariableStackDescr> ();
-	  assert(nn);
 	  assert(!st.stack.isModified());
-	  st.pop_frame(variableStackDescr,nn);
+	  assert(!st.stack.getData().ret);
+	  st.pop_frame();
 	}
       };
 
@@ -292,20 +290,29 @@ namespace MiniMC {
 	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
 	  //Missing evaluation of parameters
-	  if (helper.getFunctionPtr ()->isConstant()) {
-	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (helper.getFunctionPtr ());
-	    auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
+	  RegisterLoader loader (st,helper.getFunctionPtr());
+	  auto ptr = loader.getRegister(). template get<pointer_t> ();
 	    
-	    auto func = inst.getFunction()->getPrgm()->getFunction(MiniMC::Support::getFunctionId (ptr));
-	    st.push_frame (func->getVariableStackDescr ());
-	    auto resVar = helper.getRes (); 
-	    if (resVar) {
-	      st.ret.push (resVar);
-	    }
-	    else {
-	      st.ret.push (func->getVariableStackDescr ());
-	    }
+	  auto func = inst.getFunction()->getPrgm()->getFunction(MiniMC::Support::getFunctionId (ptr));
+	  assert(func->getParameters ().size () == helper.nbParams ());
+	  std::vector<InRegister> regs;
+	  for (size_t i = 0; i < helper.nbParams (); ++i) {
+	    regs.push_back (st.stack.load (std::static_pointer_cast<MiniMC::Model::Variable> (helper.getParam (i))));
 	  }
+	  
+	  st.push_frame (func->getVariableStackDescr ());
+	  auto it = regs.begin();
+	  for (auto& t : func->getParameters ()) {
+	    st.stack.save (*it,t);
+	    ++it;
+	  }
+	  auto resVar = helper.getRes ();
+	  if (resVar) {
+	    auto data = st.stack.getData();
+	    data.ret  = std::static_pointer_cast<MiniMC::Model::Variable> (resVar).get();
+	    st.stack.setData (data);
+	  }
+	  
 	  
 	  
 	}
@@ -316,11 +323,11 @@ namespace MiniMC {
 	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Ret> helper (inst);
 	  RegisterLoader val (st,helper.getValue());
-	  MiniMC::Model::Variable_ptr storePlace = st.ret.template pop<MiniMC::Model::Variable> ();
+	  MiniMC::Model::Variable_ptr storePlace = st.stack.getData().ret->shared_from_this();
 	  assert(storePlace);
 	  auto variableStackDescr = inst.getFunction()->getVariableStackDescr ();
 	  assert(!st.stack.isModified());
-	  st.pop_frame(variableStackDescr,storePlace->getOwner ());
+	  st.pop_frame();
 	  st.stack.save (val.getRegister(),storePlace);
 	  
 	}
@@ -363,7 +370,6 @@ namespace MiniMC {
 	  MiniMC::Model::Value_ptr address = helper.getAddress ();
 	  RegisterLoader addrval (st,address);
 	  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
-	  std::cerr << "Load from " << pointer << std::endl;
 	  
 	  auto val = st.heap.read (pointer,size);
 	  st.stack.save (val,std::static_pointer_cast<MiniMC::Model::Variable> (res));
@@ -381,7 +387,6 @@ namespace MiniMC {
 	  RegisterLoader addrval (st,address);
 	  RegisterLoader valueval (st,value);
 	  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
-	  std::cerr << "Store To  " << pointer << std::endl;
 	  
 	  st.heap.write (pointer,valueval.getRegister());
 	}

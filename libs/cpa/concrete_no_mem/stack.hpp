@@ -4,8 +4,9 @@
 #include "hash/hashing.hpp"
 #include "model/variables.hpp"
 #include "support/types.hpp"
-
+#include "support/pointer.hpp"
 #include "register.hpp"
+
 
 namespace MiniMC {
   namespace CPA {
@@ -15,11 +16,20 @@ namespace MiniMC {
 	pointer_t prev;
 	pointer_t allocs;
 	offset_t allocSize;
+	MiniMC::Model::Variable* ret;
+	MiniMC::Model::VariableStackDescr* descr;
       };
       
       template<class Heap>
       pointer_t createStack (const MiniMC::Model::VariableStackDescr_ptr& s, Heap& h) {
-	return h.make_obj (s->getTotalSize()+sizeof(StackData));
+	StackData data;
+	data.prev = MiniMC::Support::null_pointer();
+	data.allocs = MiniMC::Support::null_pointer();
+	data.allocSize = 0;
+	data.ret = nullptr;
+	data.descr = s.get ();
+	return h.make_obj_initialiser (s->getTotalSize()+sizeof(StackData),data);
+	
       }
       
       class Stack {
@@ -40,7 +50,7 @@ namespace MiniMC {
 	InRegister load (const MiniMC::Model::Variable_ptr& ptr) const {
 	  return InRegister (content+ptr->getPlace(),ptr->getType()->getSize());
 	}
-
+	
 	template <class RegClass>
 	void save (RegClass& reg,const MiniMC::Model::Variable_ptr& ptr) {
 	  assert(reg.getSize() == ptr->getType()->getSize());

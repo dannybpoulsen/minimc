@@ -104,6 +104,15 @@ namespace MiniMC {
 	t.base == 0 &&
 	t.offset == 0;
     }
+
+    inline pointer_t null_pointer () {
+      pointer_t t ;
+      t.segment = 0;
+      t.zero = 0;
+      t.base = 0;
+      t.offset = 0;
+      return t;
+    }
     
   }
 }

@@ -12,33 +12,34 @@
 namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
-      struct RetPoints {
-	template<class T>
-	std::shared_ptr<T> pop () {
-	  if(locs.size()) {
-	    auto res = locs.back();
-	    locs.pop_back();
-	    return reinterpret_cast<T*> (res)->shared_from_this();
-	  }
-	  return nullptr;
-	}
 
-	template<class T>
-	void push (const std::shared_ptr<T>& ptr) {
-	  locs.push_back(ptr.get());
-	}
-
-	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
-	  if (!locs.size()) {
-	    return seed;
+      template<class Register>
+      inline std::ostream& outputAs (std::ostream& os, Register& r, MiniMC::Model::Type_ptr& t) {
+	{
+	  switch (t->getTypeID ()) {
+	  case MiniMC::Model::TypeID::Integer: {
+	    switch (t->getSize ()) {
+	    case 1:
+	      return os << (int) r.template get<MiniMC::uint8_t> (); 
+	    case 2:
+	      return os <<  r.template get<MiniMC::uint16_t> ();
+	    case 4:
+	      return os <<  r.template get<MiniMC::uint32_t> ();
+	    case 8:
+	      return os <<  r.template get<MiniMC::uint16_t> ();
+	    }
 	  }
-	  else {
-	    return MiniMC::Hash::Hash (reinterpret_cast<const uint64_t*> (locs.data()),locs.size(),seed);
+	  case MiniMC::Model::TypeID::Pointer: {
+	    return os << r.template get<MiniMC::pointer_t> ();
+	  }
+	  case MiniMC::Model::TypeID::Bool:
+	    return os <<  (r.template get<MiniMC::uint8_t> () ? "T" : "F");
+	  default:
+	    return os << "??";
 	  }
 	}
-	
-	std::vector<void*> locs;
-      };
+      }
+      
       
       class State : public MiniMC::CPA::State
       {
@@ -52,29 +53,37 @@ namespace MiniMC {
 	  stacks(s),
 	  heap(h)
 	{
-	  for (size_t i = 0; i < stacks.size(); ++i) {
-	    rets.emplace_back();
-	  }
 	}
 	State (const State& ) = default;
-	virtual std::ostream& output (std::ostream& os) const {return os << hash(0);}
+
 	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
 	  auto s = MiniMC::Hash::Hash(&globalStack,1,seed);
 	  s = MiniMC::Hash::Hash(stacks.data(),stacks.size(),s);
-	  for (auto& r : rets)
-	    s = r.hash(s);
 	  return heap.hash (s);
 	}
 
+	virtual std::ostream& output (std::ostream& os) const  override {
+	  for (auto& s : stacks) {
+	    Stack stack (heap.copy_out (s));
+	    MiniMC::Model::VariableStackDescr* ptr = stack.getData().descr;
+	    for (auto& h : ptr->getVariables ()) {
+	      auto reg = stack.load (h);
+	      auto type = h->getType ();
+	      os << h->getName () << " " << *type <<" :" ;
+	      outputAs (os, reg, type);
+	      os << std::endl;
+	    }
+	  }
+	  return os;
+	}
+	
 	struct StackDetails {
 	  StackDetails (pointer_t& s,
 			pointer_t& gs,
-			RetPoints& ret,
 			Heap& heap,
 			size_t proc
 			) : stack(heap.copy_out(s)),
 			    gstack(heap.copy_out(gs)),
-			    ret(ret),
 			    heap(heap),
 			    proc(proc),
 			    stack_ptr(s),
@@ -94,7 +103,7 @@ namespace MiniMC {
 	    stack_ptr = nptr;
 	  }
 	  
-	  void pop_frame (const MiniMC::Model::VariableStackDescr_ptr& ptr, const MiniMC::Model::VariableStackDescr_ptr& nstack) {
+	  void pop_frame () {
 	    assert(!stack.isModified());
 	    auto data = stack.getData ();
 	    if (!MiniMC::Support::is_null (data.allocs))
@@ -121,7 +130,6 @@ namespace MiniMC {
 	  
 	  Stack stack;
 	  Stack gstack;
-	  RetPoints& ret;
 	  Heap& heap;
 	  size_t proc;
 	  pointer_t& stack_ptr;
@@ -133,7 +141,6 @@ namespace MiniMC {
 	StackDetails getStackDetails (size_t p) {
 	  return StackDetails (stacks[p],
 			       globalStack,
-			       rets[p],
 			       heap,
 			       p
 			       );
@@ -149,7 +156,6 @@ namespace MiniMC {
       private:
 	pointer_t globalStack;
 	std::vector<MiniMC::pointer_t> stacks;
-	std::vector<RetPoints> rets;
 	Heap heap;
       };
     }

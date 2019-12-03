@@ -24,6 +24,7 @@ namespace MiniMC {
 	size_t size;
       };
 
+      
       class ConstRegister : public  InRegister {
       public:
 	ConstRegister (std::unique_ptr<uint8_t[]>& mem, size_t s) : InRegister(mem.get(),s),
