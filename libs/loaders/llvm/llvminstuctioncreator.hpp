@@ -160,19 +160,27 @@ namespace MiniMC {
 
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::Call> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
-      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
       auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
       auto func = cinst->getCalledFunction ();
       assert(func);
-      builder.setFunctionPtr (findValue(func,values,tt));
-      if (!inst->getType ()->isVoidTy ()) {
-	builder.setRes (findValue(inst,values,tt));
+      if (func->getName () == "assert") {
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> builder;
+	assert(cinst->arg_size () == 1);
+	builder.setAssert (findValue(*cinst->arg_begin(),values,tt));
+	instr.push_back(builder.BuildInstruction ());
       }
-      builder.setNbParamters (std::make_shared<MiniMC::Model::IntegerConstant> (cinst->arg_size ()));
-      for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
-	builder.addParam (findValue(*it,values,tt));
+      else {
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
+	builder.setFunctionPtr (findValue(func,values,tt));
+	if (!inst->getType ()->isVoidTy ()) {
+	  builder.setRes (findValue(inst,values,tt));
+	}
+	builder.setNbParamters (std::make_shared<MiniMC::Model::IntegerConstant> (cinst->arg_size ()));
+	for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
+	  builder.addParam (findValue(*it,values,tt));
+	}
+	instr.push_back(builder.BuildInstruction ());
       }
-      instr.push_back(builder.BuildInstruction ());
     }
 
     size_t calcSkip (llvm::Type* t, size_t index,Types& tt) {
@@ -368,7 +376,7 @@ namespace MiniMC {
 	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
     MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
 	auto res = findValue (inst,values,tt);				\
-	auto left = findValue (inst->getOperand (1),values,tt);		\
+	auto left = findValue (inst->getOperand (0),values,tt);		\
 	builder.setRes (res);						\
 	builder.setCastee (left);					\
 	instr.push_back(builder.BuildInstruction ());			\

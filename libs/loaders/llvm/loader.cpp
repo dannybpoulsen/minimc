@@ -313,6 +313,7 @@ namespace MiniMC {
 		auto id = f->getID ();
 		auto pptr = MiniMC::Support::makeFunctionPointer (id);
 		auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr));
+		ptr->setType (tfactory->makeIntegerType (64));
 		values.insert (std::make_pair(&F,ptr));
 
 		return llvm::PreservedAnalyses::all();

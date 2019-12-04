@@ -20,7 +20,11 @@ namespace MiniMC {
     public:
       InvalidPointer () : Exception ("Invalid Pointer") {}
     };
-
+    
+    class AssertViolated: Exception {
+    public:
+      AssertViolated () : Exception ("Assert Violation") {}
+    };
     
     
   }

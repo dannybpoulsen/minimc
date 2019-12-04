@@ -62,6 +62,7 @@ namespace MiniMC {
     X(Ret)					\
     X(RetVoid)					\
     X(NonDet)					\
+    X(Assert)					\
   
     enum class InstructionCode {
 #define X(OP)					\
@@ -232,6 +233,18 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const std::size_t operands = 0;			
+      static const bool hasResVar = true;			
+    };
+
+    template<>						
+    struct InstructionData<InstructionCode::Assert> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
     
@@ -509,6 +522,42 @@ namespace MiniMC {
       } 
     };
     //
+
+    //
+    //
+    template<>
+    class InstHelper<InstructionCode::Assert,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getAssert () const {return inst.getOp(0);}
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::Assert,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::Assert,{ass});
+      }
+     
+      void setAssert (const Value_ptr& p) {ass = p;}
+      
+    private:
+      Value_ptr ass = nullptr;
+    
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::Assert,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Assert> h (inst);
+	return os << InstructionCode::Assert << "(" << *h.getAssert() << ")"  ;
+      } 
+    };
+    //
+    
     template<>
     class InstHelper<InstructionCode::Call,void> {
     public:
