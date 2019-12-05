@@ -9,6 +9,7 @@
 #include "stack.hpp"
 #include "state.hpp"
 #include "compimpl.hpp"
+#include "castimpl.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -20,7 +21,7 @@ namespace MiniMC {
 	}
       };
       
-      template<class T>
+      ptemplate<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Add,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
@@ -265,6 +266,8 @@ namespace MiniMC {
       };
 
       
+
+
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assign,void> {
