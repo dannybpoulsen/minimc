@@ -25,12 +25,12 @@ public:
 #define MINIMC_TESTS				\
   X(AddUI8,Add,MiniMC::uint8_t)			\
   X(AddUI16,Add,MiniMC::uint16_t)			\
-  X(AddI32,Add,MiniMC::uint32_t)			\
-  X(AddI64,Add,MiniMC::uint64_t)			\
+  X(AddUI32,Add,MiniMC::uint32_t)			\
+  X(AddUI64,Add,MiniMC::uint64_t)			\
   X(SubUI8,Sub,MiniMC::uint8_t)				\
   X(SubUI16,Sub,MiniMC::uint16_t)			\
-  X(SubI32,Sub,MiniMC::uint32_t)			\
-  X(SubI64,Sub,MiniMC::uint64_t)			\
+  X(SubUI32,Sub,MiniMC::uint32_t)			\
+  X(SubUI64,Sub,MiniMC::uint64_t)			\
   X(UDivUI8,UDiv,MiniMC::uint8_t)			\
   X(UDivUI16,UDiv,MiniMC::uint16_t)			\
   X(UDivUI32,UDiv,MiniMC::uint32_t)			\

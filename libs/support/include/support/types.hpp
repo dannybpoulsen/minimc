@@ -110,9 +110,10 @@ namespace MiniMC {
   
   template<typename T>
   struct EquivSigned {
-	using type = int8_t;
+	using type = T;
   };
 
+  
   template<>
   struct EquivSigned<uint8_t> {
 	using type = int8_t;
@@ -131,6 +132,32 @@ namespace MiniMC {
   template<>
   struct EquivSigned<uint64_t> {
 	using type = int64_t;
+  };
+  
+
+  template<typename T>
+  struct EquivUnsigned {
+    using type = T;
+  };
+
+  template<>
+  struct EquivUnsigned<int8_t> {
+	using type = uint8_t;
+  };
+
+  template<>
+  struct EquivUnsigned<int16_t> {
+	using type = uint16_t;
+  };
+
+  template<>
+  struct EquivUnsigned<int32_t> {
+	using type = uint32_t;
+  };
+
+  template<>
+  struct EquivUnsigned<int64_t> {
+    using type = uint64_t;
   };
   
   
