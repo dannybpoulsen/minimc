@@ -46,6 +46,16 @@ namespace MiniMC {
 	}
       };
 
+      template<class F,class T>
+      struct CastExec<MiniMC::Model::InstructionCode::BitCast,F,T,typename std::enable_if<sizeof(F) == sizeof(T)>::type> {
+	static OutRegister execute  (const InRegister& left){
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  auto buf = reinterpret_cast<const MiniMC::uint8_t*> (left.getMem());
+	  std::copy (buf,buf+sizeof(T),hh.get());
+	  return OutRegister (hh,sizeof(T));
+	}
+      };
+      
       template<MiniMC::Model::InstructionCode i, class F>
       OutRegister RedirectTo (const InRegister& left, const MiniMC::Model::Type_ptr& t) {
 	switch (t->getTypeID ()) {

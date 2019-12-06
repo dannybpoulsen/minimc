@@ -4,14 +4,21 @@
 #include <gsl/pointers>
 #include "cpa/interface.hpp"
 #include "support/exceptions.hpp"
+#include "support/types.hpp"
 
 namespace MiniMC {
   namespace Algorithms {
+    enum class ErrorFlags {
+			   AssertViolated = 1,
+    };
+    
     struct Successor {
       MiniMC::CPA::State_ptr state;
       MiniMC::Model::Edge_ptr edge;
-      MiniMC::CPA::proc_id proc;
-      };
+      MiniMC::CPA::proc_id proc;      
+      MiniMC::uint8_t eflags;
+      bool hasErrors () const {return eflags;}
+    };
     
     template<class StateQuery,class Transfer>
     class Generator {
@@ -68,14 +75,22 @@ namespace MiniMC {
 	      assert(proc <= last_proc);
 	      auto loc = StateQuery::getLocation (curState,proc);
 	      iter = loc->ebegin();
-	    end  = loc->eend ();
+	      end  = loc->eend ();
 	    }
 	    
 	    if (proc < last_proc) {
 	      succ.proc = proc;
 	      succ.edge = *iter;
-	      succ.state = Transfer::doTransfer (curState,succ.edge,succ.proc);
-	      if (succ.state) {
+	      succ.eflags = 0;
+	      try {
+		succ.state = Transfer::doTransfer (curState,succ.edge,succ.proc);
+	      }
+	      catch (MiniMC::Support::AssertViolated& e) {
+		succ.state = nullptr;
+		succ.eflags = static_cast<MiniMC::uint8_t> (ErrorFlags::AssertViolated); 
+	      }
+	      
+	      if (succ.state || succ.eflags) {
 		done = true;
 	      }
 	      else {
@@ -108,7 +123,7 @@ namespace MiniMC {
       auto end() {return Iterator::makeEnd(state);}
 		 
     private:
-    MiniMC::CPA::State_ptr state;
+      MiniMC::CPA::State_ptr state;
     
 
     };

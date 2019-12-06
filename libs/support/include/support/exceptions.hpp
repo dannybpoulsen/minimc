@@ -11,19 +11,24 @@ namespace MiniMC {
       Exception (const std::string& mess) : std::runtime_error(mess) {}
     };
 
-    class BufferOverflow : Exception {
+    class VerificationException : public Exception {
     public:
-      BufferOverflow () : Exception ("BUffer Overflow") {}
-    };
-
-    class InvalidPointer : Exception {
-    public:
-      InvalidPointer () : Exception ("Invalid Pointer") {}
+      VerificationException (const std::string& mess) : Exception(mess) {}
     };
     
-    class AssertViolated: Exception {
+    class BufferOverflow : public VerificationException {
     public:
-      AssertViolated () : Exception ("Assert Violation") {}
+      BufferOverflow () : VerificationException ("BUffer Overflow") {}
+    };
+
+    class InvalidPointer : public  VerificationException {
+    public:
+      InvalidPointer () : VerificationException ("Invalid Pointer") {}
+    };
+    
+    class AssertViolated: public  VerificationException {
+    public:
+      AssertViolated () : VerificationException ("Assert Violation") {}
     };
     
     

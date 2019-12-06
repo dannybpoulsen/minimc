@@ -337,6 +337,7 @@ namespace MiniMC {
     X(ICMP_SLE,ICMP_SLE)				\
     X(ICMP_ULE,ICMP_ULE)				\
     X(ICMP_EQ,ICMP_EQ)					\
+    X(ICMP_NE,ICMP_NEQ)					\
     
     
     template<>								\
@@ -345,7 +346,7 @@ namespace MiniMC {
       switch (ins->getPredicate ()) {
 #define X(LLVM,OUR)				\
 	case llvm::CmpInst::LLVM:	{				\
-	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::LLVM> builder; \
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
 	  auto res = findValue (inst,values,tt);			\
 	  auto left = findValue (inst->getOperand (0),values,tt);	\
 	  auto right = findValue (inst->getOperand (1),values,tt);	\

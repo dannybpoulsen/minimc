@@ -265,6 +265,52 @@ namespace MiniMC {
 	  
 	}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::IntToPtr,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+			     const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::IntToPtr> helper (inst);
+	  auto& castee = helper.getCastee ();
+	  auto& res =  helper.getResult ();
+	  assert(castee->getType ()->getSize() == res->getType ()->getSize());
+	  std::size_t size =  castee->getType ()->getSize();
+	    
+	  RegisterLoader l (st,castee);
+	  auto& casteeval =  l.getRegister ();
+
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[size]);
+	  auto buf = reinterpret_cast<const MiniMC::uint8_t*> (casteeval.getMem());
+	  std::copy (buf,buf+size,hh.get());
+	  OutRegister resval (hh,size);
+	  
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
+	  
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::PtrToInt,void> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+			     const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::PtrToInt> helper (inst);
+	  auto& castee = helper.getCastee ();
+	  auto& res =  helper.getResult ();
+	  assert(castee->getType ()->getSize() == res->getType ()->getSize());
+	  std::size_t size =  castee->getType ()->getSize();
+	    
+	  RegisterLoader l (st,castee);
+	  auto& casteeval =  l.getRegister ();
+
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[size]);
+	  auto buf = reinterpret_cast<const MiniMC::uint8_t*> (casteeval.getMem());
+	  std::copy (buf,buf+size,hh.get());
+	  OutRegister resval (hh,size);
+	  
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
+	  
+	}
+      };
       
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isComparison>::type> {
