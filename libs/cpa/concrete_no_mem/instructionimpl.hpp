@@ -21,7 +21,7 @@ namespace MiniMC {
 	}
       };
       
-      ptemplate<class T>
+      template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Add,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
@@ -250,7 +250,21 @@ namespace MiniMC {
 	}
       };
 
-      
+      template<MiniMC::Model::InstructionCode opc>
+      struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isCast>::type> {
+	void static execute (MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+			     const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<opc> helper (inst);
+	  auto& castee = helper.getCastee ();
+	  auto& res =  helper.getResult ();
+	  RegisterLoader l (st,castee);
+	  auto& casteeval =  l.getRegister ();
+	  
+	  auto resval = RedirectFrom<opc> (l.getRegister (), castee->getType(), res->getType ());
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
+	  
+	}
+      };
       
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isComparison>::type> {
