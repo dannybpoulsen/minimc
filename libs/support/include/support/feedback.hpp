@@ -10,6 +10,7 @@ namespace MiniMC {
     
     class Progresser {
     public:
+      virtual ~Progresser () {}
       virtual void progressMessage (const std::string& ) = 0; 
     };
 

@@ -24,6 +24,9 @@ namespace MiniMC {
 	thestack.pop ();
 	return res;
       }
+
+      auto size () const {return thestack.size();}
+      
       
     private:
       std::stack<MiniMC::CPA::State_ptr> thestack;
@@ -45,6 +48,8 @@ namespace MiniMC {
 	thequeue.pop ();
 	return res;
       }
+
+      auto size () const {return thequeue.size();}
       
     private:
       std::queue<MiniMC::CPA::State_ptr> thequeue;
@@ -67,6 +72,8 @@ namespace MiniMC {
       bool hasWaiting () const {
 	return !waiting.empty();
       }
+
+      std::size_t getWSize () const {return waiting.size();}
       
     private:
       StateStorage store;

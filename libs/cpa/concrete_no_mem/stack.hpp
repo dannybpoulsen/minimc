@@ -15,7 +15,6 @@ namespace MiniMC {
       struct __attribute__((packed)) StackData {
 	pointer_t prev;
 	pointer_t allocs;
-	offset_t allocSize;
 	MiniMC::Model::Variable* ret;
 	MiniMC::Model::VariableStackDescr* descr;
       };
@@ -24,8 +23,7 @@ namespace MiniMC {
       pointer_t createStack (const MiniMC::Model::VariableStackDescr_ptr& s, Heap& h) {
 	StackData data;
 	data.prev = MiniMC::Support::null_pointer();
-	data.allocs = MiniMC::Support::null_pointer();
-	data.allocSize = 0;
+	data.allocs = h.make_obj (0);
 	data.ret = nullptr;
 	data.descr = s.get ();
 	return h.make_obj_initialiser (s->getTotalSize()+sizeof(StackData),data);

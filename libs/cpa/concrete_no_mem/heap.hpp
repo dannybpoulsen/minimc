@@ -60,16 +60,28 @@ namespace MiniMC {
 	}
 
 	pointer_t make_obj (MiniMC::offset_t size) {
-	  std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
-	  std::fill (ndata.get(),ndata.get()+size,0);
-	  HeapEntry entry;
-	  entry.flags = 0;
-	  entry.size = size;
-	  entry.data = MiniMC::Storage::getStorage().store (ndata,size);
-	  assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	  pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
-	  entries.push_back (entry);
-	  return ptr;
+	  if (size) {
+	    std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
+	    std::fill (ndata.get(),ndata.get()+size,0);
+	    HeapEntry entry;
+	    entry.flags = 0;
+	    entry.size = size;
+	    entry.data = MiniMC::Storage::getStorage().store (ndata,size);
+	    assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
+	    pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
+	    entries.push_back (entry);
+	    return ptr;
+	  }
+	  else {
+	    HeapEntry entry;
+	    entry.flags = 0;
+	    entry.size = 0;
+	    entry.data = nullptr;
+	    pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
+	    entries.push_back (entry);
+	    return ptr;
+	  }
+	  
 	}
 
 	template<class T>

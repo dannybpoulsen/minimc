@@ -7,12 +7,20 @@ namespace MiniMC {
     class LinuxProgresser : public Progresser  {
     public:
       LinuxProgresser () {
+      }
+
+      ~LinuxProgresser () {
 	std::cout << "\n";
       }
 
       virtual void progressMessage (const std::string& s) {
-	std::cout << "\x1b[2K\r" << s;
+	std::cout << "\x1b[2K\r" << arr[next] << ' ' << s << std::flush;
+	next = (next +1)% 4;
       }
+
+    private:
+      char arr[4] = {'\\', '|','/','-'};
+      int next = 0;
     };
     
 

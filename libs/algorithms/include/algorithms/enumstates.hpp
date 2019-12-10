@@ -4,7 +4,7 @@
 #include <sstream>
 #include "support/feedback.hpp"
 #include "support/exceptions.hpp"
-#include "support/graph.hpp"
+#include "support/localisation.hpp"
 #include "algorithms/algorithm.hpp"
 #include "algorithms/passedwaiting.hpp"
 #include "algorithms/successorgen.hpp"
@@ -13,45 +13,29 @@
 namespace MiniMC {
   namespace Algorithms {
     template<class CPA>
-    class PrintCPA : public MiniMC::Algorithms::Algorithm {
+    class EnumStates : public MiniMC::Algorithms::Algorithm {
     public:
-      PrintCPA (MiniMC::Support::Messager& m) : MiniMC::Algorithms::Algorithm (m)  {}
+      EnumStates (MiniMC::Support::Messager& m) : MiniMC::Algorithms::Algorithm (m)  {}
       virtual Result run (const MiniMC::Model::Program& prgm) {
 	auto& messager = getMessager ();
-	messager.message ("Initiating PrintCPA");
-	MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
-	auto error = graph->getNode ("Error");
+	messager.message ("Initiating EnumStates");
+	std::size_t states = 0;
+	  
 	CPADFSPassedWaiting<CPA> passed;
 	auto initstate = CPA::Query::makeInitialState (prgm);
 	try {
 	  passed.insert(initstate);
 	  auto progresser = messager.makeProgresser ();
 	  while (passed.hasWaiting()) {
-	    progresser->progressMessage("H");
+	    states++;
 	    auto cur = passed.pull ();
-	    std::stringstream str;
-	    str << cur->hash ();
-	    auto curnode = graph->getNode (str.str());
 	    MiniMC::Algorithms::Generator<typename CPA::Query,typename CPA::Transfer> generator (cur);
 	    auto it = generator.begin();
 	    auto end = generator.end();
 	    for (;it != end; ++it) {
-	      std::stringstream edgestr;
-	      edgestr<< it->proc <<":" << *it->edge;
-	      if (it->hasErrors ()) {
-		curnode->connect (*error,edgestr.str());
-	      }
-	      else {
+	      if (!it->hasErrors ()) {
 		auto nstate = it->state;
-		std::stringstream nstr;
-		nstr << nstate->hash ();
-		auto ncurnode = graph->getNode (nstr.str());
-		std::stringstream labelstr;
-		labelstr<< *nstate;
-		ncurnode->setLabel (labelstr.str());
-		
-		curnode->connect (*ncurnode,edgestr.str());
-		
+		assert(nstate);
 		passed.insert(nstate);
 	      }
 	    }
@@ -60,11 +44,8 @@ namespace MiniMC {
 	catch(MiniMC::Support::VerificationException& exc) {
 	  messager.error (exc.what());
 	}
-	messager.message ("Finished PrintCPA");
-	messager.message ("Writing Graph");
-	graph->write ("CPA");
-	messager.message ("Wrote Graph");
-	
+	messager.message ("Finished EnumStates");
+	messager.message ((MiniMC::Support::Localiser ("Total Number of States %1%") % states).str()); 
 	return Result::Success;
       }
     };
