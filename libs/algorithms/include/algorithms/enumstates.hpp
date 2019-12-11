@@ -23,11 +23,12 @@ namespace MiniMC {
 	  
 	CPADFSPassedWaiting<CPA> passed;
 	auto initstate = CPA::Query::makeInitialState (prgm);
+	MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 	try {
 	  passed.insert(initstate);
 	  auto progresser = messager.makeProgresser ();
 	  while (passed.hasWaiting()) {
-	    states++;
+	    progresser->progressMessage (waitmess.format(passed.getWSize(),passed.getPSize()));
 	    auto cur = passed.pull ();
 	    MiniMC::Algorithms::Generator<typename CPA::Query,typename CPA::Transfer> generator (cur);
 	    auto it = generator.begin();
@@ -45,7 +46,7 @@ namespace MiniMC {
 	  messager.error (exc.what());
 	}
 	messager.message ("Finished EnumStates");
-	messager.message ((MiniMC::Support::Localiser ("Total Number of States %1%") % states).str()); 
+	messager.message (MiniMC::Support::Localiser ("Total Number of States %1%").format(passed.getPSize())); 
 	return Result::Success;
       }
     };

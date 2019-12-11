@@ -409,7 +409,7 @@ namespace MiniMC {
 	  auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (size);
 	  pointer_t pointer;
 	  auto data = st.stack.getData ();
-	  assert(!MiniMC::Support::is_null (data.pointer));
+	  assert(!MiniMC::Support::is_null (data.allocs));
 	  pointer = st.heap.extend_obj (data.allocs,constant->getValue());
 	  
 	  InRegister reg (&pointer,sizeof(pointer));

@@ -60,6 +60,7 @@ namespace MiniMC {
     public:
       void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
 	if (store.saveState (ptr.get(),nullptr)) {
+	  passed++;
 	  waiting.insert (ptr.get());
 	}
       }
@@ -74,10 +75,12 @@ namespace MiniMC {
       }
 
       std::size_t getWSize () const {return waiting.size();}
+      std::size_t getPSize () const {return passed;}
       
     private:
       StateStorage store;
       Waiting waiting;
+      std::size_t passed = 0;
     };
 
     template<class StateStorage>

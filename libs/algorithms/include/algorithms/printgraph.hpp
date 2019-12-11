@@ -5,6 +5,7 @@
 #include "support/feedback.hpp"
 #include "support/exceptions.hpp"
 #include "support/graph.hpp"
+#include "support/localisation.hpp"
 #include "algorithms/algorithm.hpp"
 #include "algorithms/passedwaiting.hpp"
 #include "algorithms/successorgen.hpp"
@@ -23,11 +24,12 @@ namespace MiniMC {
 	auto error = graph->getNode ("Error");
 	CPADFSPassedWaiting<CPA> passed;
 	auto initstate = CPA::Query::makeInitialState (prgm);
+	MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 	try {
 	  passed.insert(initstate);
 	  auto progresser = messager.makeProgresser ();
 	  while (passed.hasWaiting()) {
-	    progresser->progressMessage("H");
+	    progresser->progressMessage (waitmess.format(passed.getWSize(),passed.getPSize()));
 	    auto cur = passed.pull ();
 	    std::stringstream str;
 	    str << cur->hash ();

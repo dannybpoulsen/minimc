@@ -9,13 +9,12 @@ namespace MiniMC {
     public:
       Localiser (const std::string& str) : formatter(str) {}
 
-      template<typename T> 
-      Localiser& operator% (const T& t) {
-	formatter % t;
-	return *this;
+      template<typename ...Args>
+      std::string format (Args... args) {
+	formatter.clear ();
+	(formatter.operator%(std::forward<Args>(args)),...);
+	return formatter.str();
       }
-      
-      const std::string str () {return formatter.str();}
       
     private:
       boost::format formatter;
