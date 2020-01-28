@@ -266,7 +266,8 @@ namespace MiniMC {
 		    }
 		    if (llvm::isa<llvm::CallInst> (inst)) {
 		      auto mloc = cfg->makeLocation (loc->getName () + ":Call");
-		      cfg->makeEdge (loc,mloc,insts,nullptr,prgm);
+		      auto edge = cfg->makeEdge (loc,mloc,prgm);
+		      edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		      insts.clear();
 		      loc = mloc;
 		    }
@@ -274,7 +275,8 @@ namespace MiniMC {
 
 		  if (insts.size()) {
 		    auto mloc = cfg->makeLocation (loc->getName () + ":Split");
-		    cfg->makeEdge (loc,mloc,insts,nullptr,prgm);
+		    auto edge = cfg->makeEdge (loc,mloc,prgm);
+		    edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		    loc = mloc;
 		  }
 		  
@@ -287,14 +289,17 @@ namespace MiniMC {
 			std::vector<MiniMC::Model::Instruction> insts;
 			auto succ = term->getSuccessor (0);
 			auto succloc = locmap.at(succ);
-			cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
+			auto edge = cfg->makeEdge (loc,succloc,prgm);
+			edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		      }
 		      else {
 			auto cond = findValue (brterm->getCondition(),values,tt);
 			auto ttloc = locmap.at(term->getSuccessor (0));
 			auto ffloc = locmap.at(term->getSuccessor (1));
-			cfg->makeEdge (loc,ttloc,insts,cond,prgm);
-			cfg->makeEdge (loc,ffloc,insts,cond,prgm,true);
+			auto edge = cfg->makeEdge (loc,ttloc,prgm);
+			edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
+			edge = cfg->makeEdge (loc,ffloc,prgm);
+			edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,true));
 		      }
 		    }
 
@@ -302,7 +307,8 @@ namespace MiniMC {
 		      std::vector<MiniMC::Model::Instruction> insts;
 		      addInstruction (term,insts,tt);
 		      auto succloc = cfg->makeLocation (fname+"."+"Term");
-		      cfg->makeEdge (loc,succloc,insts,nullptr,prgm);
+		      auto edge = cfg->makeEdge (loc,succloc,prgm);
+		      edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		    }
 		    
 		  }

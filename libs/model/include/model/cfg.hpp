@@ -56,23 +56,112 @@ namespace MiniMC {
     using Location_ptr = std::shared_ptr<Location>;
     using Program_ptr = std::shared_ptr<Program>;
     class Instruction;
-    class Edge {
+
+    enum class AttributeType {
+			      Instructions,
+			      Guard
+    };
+
+    template<AttributeType>
+    struct AttributeValueType {
+      using ValType = bool;
+    };
+
+    struct Guard {
+      Guard () {}
+      Guard (const Value_ptr& g, bool negate) : guard(g),negate(negate) {}
+      Value_ptr guard = nullptr;
+      bool negate = false;
+    };
+    
+    template<>
+    struct AttributeValueType<AttributeType::Instructions> {
+      using ValType = std::vector<Instruction>;
+    };
+
+    template<>
+    struct AttributeValueType<AttributeType::Guard> {
+      using ValType = Guard;
+    };
+    
+    
+    class IEdgeAttributes {
     public:
-      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& val,bool neg = false) : instructions(inst),
+      virtual AttributeType getType () = 0;
+      virtual bool is (AttributeType i) const = 0;
+    };
+
+    template<AttributeType k>
+    class EdgeAttributesMixin {
+    public:
+      using ValType = typename AttributeValueType<k>::ValType;
+      void setValue (const ValType& v) {
+	assert(!isSet());
+	val = v;
+	is_set = true;
+      }
+
+      auto& getValue () const {return val;}
+      auto& getValue () {return val;}
+      
+
+      bool isSet () const {
+	return is_set;
+      }
+    private:
+      ValType val;
+      bool is_set = false;
+    };
+
+    
+    
+    
+
+    class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
+		 private EdgeAttributesMixin<AttributeType::Guard>
+    {
+    public:
+      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
 																			     from(from),
-																			     to(to),
-																			     value(val),
-																			     negGuard(neg) {}
-      auto& getInstructions () const {return instructions;}
-      auto& getInstructions ()  {return instructions;}
+																			     to(to)
+																			     //value(val),
+																			     //negGuard(neg) {
+      {
+	//if(val)
+	//  this->template setAttribute<AttributeType::Guard> (Guard(val,neg));
+      }
+
+      template<AttributeType k>
+      void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
+	static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
+      }
+      
+      template<AttributeType k>
+      auto& getAttribute () {
+	return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
+      }
+
+      template<AttributeType k>
+      auto& getAttribute () const {
+	return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
+      }
+      
+      template<AttributeType k>
+      auto hasAttribute () const {
+	return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
+      }
+      
+      
+      
+      //auto& getInstructions () const {return this->template getAttribute<AttributeType::Instructions> ();}
+      //auto& getInstructions ()  {return  this->template getAttribute<AttributeType::Instructions> ();}
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
-      auto getGuard () const {return value;}
-      auto negatedGuard () const {return  negGuard;}
+      //auto getGuard () const {return this->template getAttribute<AttributeType::Guard> ().guard;}
+      //auto negatedGuard () const {return this->template getAttribute<AttributeType::Guard> ().negate ;}
       auto& getProgram() const {return prgm;}
       void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
-      std::vector<Instruction> instructions;
       gsl::not_null<Location_ptr> from;
       gsl::not_null<Location_ptr> to;
       Value_ptr value;
@@ -82,7 +171,8 @@ namespace MiniMC {
 
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
-      return os << e.getInstructions ();
+      //return os << e.getInstructions ();
+      return os;
     }
 	
     class CFG {
@@ -93,8 +183,8 @@ namespace MiniMC {
 	return locations.back();
       }
 	  
-      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const std::vector<Instruction>& inst, const Value_ptr& guard, Program_ptr& p, bool neg = false) {
-	edges.emplace_back (new Edge (from,to,inst,guard,neg));
+      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, Program_ptr& p) {
+	edges.emplace_back (new Edge (from,to));
 	from->addEdge (edges.back());
 	edges.back()->setProgram(p);
 	return edges.back();
@@ -140,8 +230,9 @@ namespace MiniMC {
 						    cfg(cfg),
 						    id(id) {
 	for (auto& e : cfg->getEdges ()) {
-	  for (auto& l : e->getInstructions ())
-	    l.setFunction (std::shared_ptr<Function> (this));
+	  if (e->hasAttribute<AttributeType::Instructions> ()) 
+	    for (auto& l : e->getAttribute<AttributeType::Instructions> ())
+	      l.setFunction (std::shared_ptr<Function> (this));
 	}
 	
       }

@@ -37,35 +37,36 @@ namespace MiniMC {
 	assert (id < state->nbProcs ());
 	auto nstate = state->lcopy ();
 	auto det = nstate->getStackDetails (id);
-	if (e->getGuard ()) {
-	  RegisterLoader loader (det, e->getGuard ());
+	if (e->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
+	  auto& guard = e->getAttribute<MiniMC::Model::AttributeType::Guard> ();
+	  RegisterLoader loader (det, guard.guard);
 	  bool val = loader.getRegister().template get<MiniMC::uint8_t> ();
-	  if (e->negatedGuard ())
+	  if (guard.negate)
 	    val = !val;
 	  if (!val)
 	    return nullptr;
 	  
 	}
-	for (auto& inst : e->getInstructions ()) {
-	  switch (inst.getOpcode ()) {
+	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	  for (auto& inst : e->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	    switch (inst.getOpcode ()) {
 #define X(OP)								\
-	    case MiniMC::Model::InstructionCode::OP:			\
-	      ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (det,inst); \
-	      break;									
-	    TACOPS
-	      COMPARISONS
-	      CASTOPS
-	      MEMORY
-	      INTERNAL
-	      POINTEROPS
-	      AGGREGATEOPS
-	      }
+	      case MiniMC::Model::InstructionCode::OP:			\
+		ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (det,inst); \
+		break;									
+	      TACOPS
+		COMPARISONS
+		CASTOPS
+		MEMORY
+		INTERNAL
+		POINTEROPS
+		AGGREGATEOPS
+		}
+	  }
 	}
 	det.commit ();
 	return nstate;
       }
-      
-      
     }
   }
 }
