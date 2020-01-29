@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(minimc)
+project(minimc)	
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
 set (CMAKE_CXX_STANDARD 17)
 
@@ -17,7 +17,7 @@ SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/")
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-
+add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)
 enable_testing()
