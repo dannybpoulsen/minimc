@@ -14,6 +14,6 @@
  	set_property(TARGET murmur PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/lib/libmurmurhash.so.2.0.0)
 	
 
-	SET(MURMUR_LIBS  murmur)
-	SET(MURMUR_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/include)
+	SET(MURMUR_LIBS ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/lib/libmurmurhash.so.2.0.0 PARENT_SCOPE)
+	SET(MURMUR_INCLUDES ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/include PARENT_SCOPE)
 	install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/lib DESTINATION .)
