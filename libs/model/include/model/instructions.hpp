@@ -82,7 +82,7 @@ namespace MiniMC {
 #define X(OP)					\
 	case InstructionCode::OP:		\
 	  return os << #OP;			
-	TACOPS
+		TACOPS
 	  COMPARISONS
 	  MEMORY
 	  CASTOPS
@@ -354,6 +354,14 @@ namespace MiniMC {
       Value_ptr right;
     };
 
+	template<InstructionCode i> 
+    struct Formatter<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
+      } 
+    };
+	
 	template<InstructionCode i>
     class InstBuilder<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
     public:
@@ -388,7 +396,7 @@ namespace MiniMC {
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << *h.getLeftOp () << " " << *h.getRightOp ();
+	return os << *h.getResult () << " = " << i << " " <<  *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 

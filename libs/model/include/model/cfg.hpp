@@ -185,7 +185,10 @@ namespace MiniMC {
 
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
-      //return os << e.getInstructions ();
+	  if (e.hasAttribute<AttributeType::Instructions> ()) {
+		os <<e.getAttribute<AttributeType::Instructions> ().instr;
+	  }
+	  //return os << e.getInstructions ();
       return os;
     }
 	
