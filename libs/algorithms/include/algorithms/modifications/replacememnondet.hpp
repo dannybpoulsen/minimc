@@ -15,10 +15,10 @@ namespace MiniMC {
 			  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 			    for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 			      if (I.getOpcode () == MiniMC::Model::InstructionCode::Load ) {
-				MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
-				MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load (I);	  
-				  nondet.setResult (load.getResult ());
-				  I.replace (nondet.BuildInstruction ());
+					MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
+					MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load (I);	  
+					nondet.setResult (load.getResult ());
+					I.replace (nondet.BuildInstruction ());
 			      }
 			    }
 			  }
@@ -39,16 +39,15 @@ namespace MiniMC {
 			  todel.clear();
 			  for (auto& E : F->getCFG()->getEdges ()) {
 			    if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-			      std::vector<MiniMC::Model::Instruction>& instr = E->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
-				for (auto& I : instr) {
-				  
-				  if (I.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
-					auto from = E->getFrom();
-					auto to = E->getTo ();
-					MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet (I);	  
+				  for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 					
+					if (I.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
+					  auto from = E->getFrom();
+					  auto to = E->getTo ();
+					  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet (I);	  
+					  
+					}
 				  }
-				}
 			    }
 			  }
 			  
@@ -56,10 +55,6 @@ namespace MiniMC {
 		  }
 		  
 		}
- 
-		
-      
-		
 	  };
 	}
   }

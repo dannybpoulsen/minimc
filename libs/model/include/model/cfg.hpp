@@ -36,10 +36,10 @@ namespace MiniMC {
       edge_iterator eend () const {return edges.end();}
       auto& getName () const {return name;}
       void removeEdge (const Edge_ptr& e) {
-	auto it = std::find (edges.begin(),edges.end(),e);
-	if (it != edges.end()) {
-	  edges.erase (it);
-	}
+		auto it = std::find (edges.begin(),edges.end(),e);
+		if (it != edges.end()) {
+		  edges.erase (it);
+		}
       }
 
       bool hasSourceLocation  () const {return sourceloc.get();}
@@ -73,10 +73,26 @@ namespace MiniMC {
       Value_ptr guard = nullptr;
       bool negate = false;
     };
+	
+	struct InstructionStream {
+	  InstructionStream () : isPhi(false) {}
+	  InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
+																				  isPhi(isPhi) {
+		assert(instr.size());
+	  }
+	  InstructionStream (const InstructionStream& str) : instr(str.instr),isPhi(str.isPhi) {}
+	  auto begin () const {return instr.begin();}
+	  auto end () const {return instr.end();}
+	  auto begin ()  {return instr.begin();}
+	  auto end ()  {return instr.end();}
+	  auto& last () {assert(instr.size());return instr.back();}
+	  std::vector<Instruction> instr;
+	  bool isPhi = false;;
+	};
     
     template<>
     struct AttributeValueType<AttributeType::Instructions> {
-      using ValType = std::vector<Instruction>;
+      using ValType = InstructionStream;
     };
 
     template<>
@@ -96,62 +112,60 @@ namespace MiniMC {
     public:
       using ValType = typename AttributeValueType<k>::ValType;
       void setValue (const ValType& v) {
-	assert(!isSet());
-	val = v;
-	is_set = true;
+		assert(!isSet());
+		val = v;
+		is_set = true;
       }
-
+	  
       auto& getValue () const {return val;}
       auto& getValue () {return val;}
       
-
+	  
       bool isSet () const {
-	return is_set;
+		return is_set;
       }
     private:
       ValType val;
       bool is_set = false;
     };
-
+	
     
     
     
 
     class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
-		 private EdgeAttributesMixin<AttributeType::Guard>
+				 private EdgeAttributesMixin<AttributeType::Guard>
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
-																			     from(from),
-																			     to(to)
-																			     //value(val),
-																			     //negGuard(neg) {
+		from(from),
+		to(to)
+		//value(val),
+		//negGuard(neg) {
       {
-	//if(val)
-	//  this->template setAttribute<AttributeType::Guard> (Guard(val,neg));
+		//if(val)
+		//  this->template setAttribute<AttributeType::Guard> (Guard(val,neg));
       }
-
+	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
-	static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
+		static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
       }
       
       template<AttributeType k>
       auto& getAttribute () {
-	return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
+		return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
-
+	  
       template<AttributeType k>
       auto& getAttribute () const {
-	return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
+		return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
       
       template<AttributeType k>
       auto hasAttribute () const {
-	return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
+		return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
       }
-      
-      
       
       //auto& getInstructions () const {return this->template getAttribute<AttributeType::Instructions> ();}
       //auto& getInstructions ()  {return  this->template getAttribute<AttributeType::Instructions> ();}

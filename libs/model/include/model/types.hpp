@@ -68,7 +68,7 @@ namespace MiniMC {
 	  virtual const Type_ptr makeArrayType (size_t) = 0;
 	  virtual const Type_ptr makeStructType (size_t) = 0;
 	};
-
+	
 	using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
 	
 	class TypeFactory64 : public TypeFactory {

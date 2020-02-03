@@ -69,7 +69,7 @@ namespace MiniMC {
 	  nstate->setLocation (id,edge->getTo().get().get());
 
 	  if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-	    auto& inst =  edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ().back(); 
+	    auto& inst =  edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ().last(); 
 	    if (inst.getOpcode () == MiniMC::Model::InstructionCode::Call) {
 	      MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
 	      if (helper.getFunctionPtr ()->isConstant()) {

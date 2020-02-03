@@ -92,20 +92,20 @@ namespace MiniMC {
 #define X(LLVM,OUR)							\
     template<>								\
 	void translateAndAddInstruction<llvm::Instruction::LLVM> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { \
-	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
-	assert(inst->isBinaryOp ());										\
-	auto res = findValue (inst,values,tt);				\
-	auto left = findValue (inst->getOperand (1),values,tt);		\
-	auto right = findValue (inst->getOperand (2),values,tt);	\
-	builder.setRes (res);						\
-	builder.setLeft (left);						\
-	builder.setRight (right);					\
-	instr.push_back(builder.BuildInstruction ());						\
-  }
-  LLVMTAC
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::OUR> builder; \
+	  assert(inst->isBinaryOp ());										\
+	  auto res = findValue (inst,values,tt);							\
+	  auto left = findValue (inst->getOperand (0),values,tt);			\
+	  auto right = findValue (inst->getOperand (1),values,tt);			\
+	  builder.setRes (res);												\
+	  builder.setLeft (left);											\
+	  builder.setRight (right);											\
+	  instr.push_back(builder.BuildInstruction ());						\
+	}
+	LLVMTAC
 #undef LLVMTAC
 #undef X
-
+	
  
   
   template<>								

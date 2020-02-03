@@ -52,7 +52,7 @@ namespace MiniMC {
 	    switch (inst.getOpcode ()) {
 #define X(OP)								\
 	      case MiniMC::Model::InstructionCode::OP:			\
-		ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (det,inst); \
+			ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (det,det,inst); \
 		break;									
 	      TACOPS
 		COMPARISONS

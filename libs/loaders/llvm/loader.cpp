@@ -55,51 +55,51 @@ namespace MiniMC {
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (ty -> isArrayTy ()) {
-	return ty->getArrayNumElements ()*computeSizeInBytes(ty->getArrayElementType (),tfactory);
+		return ty->getArrayNumElements ()*computeSizeInBytes(ty->getArrayElementType (),tfactory);
       }
       
       else if (ty->isStructTy ()) {
-	auto it = static_cast<llvm::StructType*> (ty);
-	std::size_t size = 0;
-	for (std::size_t i = 0;i < it->getNumElements ();++i) {
-	  size += computeSizeInBytes (it->getElementType (i),tfactory);
-	}
-	return size;
+		auto it = static_cast<llvm::StructType*> (ty);
+		std::size_t size = 0;
+		for (std::size_t i = 0;i < it->getNumElements ();++i) {
+		  size += computeSizeInBytes (it->getElementType (i),tfactory);
+		}
+		return size;
       }
       else {
-	return getType (ty,tfactory)->getSize();
+		return getType (ty,tfactory)->getSize();
       }
       throw MiniMC::Support::Exception ("Can't calculate size of type");
     }
     
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (type->isVoidTy ()) {
-	return tfactory->makeVoidType();
+		return tfactory->makeVoidType();
       }
       else if (type->isPointerTy ()) {
-	return tfactory->makePointerType();
+		return tfactory->makePointerType();
       }
       
       else if (type->isIntegerTy ()) {
-	unsigned  bits = type->getIntegerBitWidth ();
-	if (bits == 1) {
-	  return tfactory->makeBoolType();
-	}
-	else if (bits <= 8)
-	  return tfactory->makeIntegerType(8);
-	else if (bits <=16)
-	  return tfactory->makeIntegerType(16);
-	else if (bits <=32)
-	  return tfactory->makeIntegerType(32);
-	else if (bits <=64)
-	  return tfactory->makeIntegerType(64);
+		unsigned  bits = type->getIntegerBitWidth ();
+		if (bits == 1) {
+		  return tfactory->makeBoolType();
+		}
+		else if (bits <= 8)
+		  return tfactory->makeIntegerType(8);
+		else if (bits <=16)
+		  return tfactory->makeIntegerType(16);
+		else if (bits <=32)
+		  return tfactory->makeIntegerType(32);
+		else if (bits <=64)
+		  return tfactory->makeIntegerType(64);
       }
       else if (type->isStructTy()) {
-	return tfactory->makeStructType (computeSizeInBytes(type,tfactory));
+		return tfactory->makeStructType (computeSizeInBytes(type,tfactory));
       }
       
       else if (type->isArrayTy()) {
-	return tfactory->makeArrayType (computeSizeInBytes(type,tfactory));
+		return tfactory->makeArrayType (computeSizeInBytes(type,tfactory));
       }
       
       
@@ -109,26 +109,26 @@ namespace MiniMC {
     
     struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
-	std::string fname = F.getName();
-	fname = fname+".";
-	for (auto &Arg : F.args())
-	  if (!Arg.hasName()) 
-	    Arg.setName(fname+"arg");
-	  else 
-	    Arg.setName(fname+Arg.getName());
-	for (llvm::BasicBlock &BB : F) {
-	  if (!BB.hasName())
-	    BB.setName(fname+"bb");
-	  else {
-	    BB.setName(fname+BB.getName());
-	  }
-	  for (llvm::Instruction &I : BB)
-	    if (!I.hasName())
-	      I.setName(fname+"tmp");
-	    else
-	      I.setName(fname+I.getName());
-	}
-	return llvm::PreservedAnalyses::all();
+		std::string fname = F.getName();
+		fname = fname+".";
+		for (auto &Arg : F.args())
+		  if (!Arg.hasName()) 
+			Arg.setName(fname+"arg");
+		  else 
+			Arg.setName(fname+Arg.getName());
+		for (llvm::BasicBlock &BB : F) {
+		  if (!BB.hasName())
+			BB.setName(fname+"bb");
+		  else {
+			BB.setName(fname+BB.getName());
+		  }
+		  for (llvm::Instruction &I : BB)
+			if (!I.hasName())
+			  I.setName(fname+"tmp");
+			else
+			  I.setName(fname+I.getName());
+		}
+		return llvm::PreservedAnalyses::all();
       }
     };
 
@@ -158,7 +158,8 @@ namespace MiniMC {
 	}
   };
 
-  struct RemoveUnusedInstructions : public llvm::PassInfoMixin<RemoveUnusedInstructions> {
+	struct RemoveUnusedInstructions : public llvm::PassInfoMixin<RemoveUnusedInstructions>
+	{
 	llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
 	  bool changed = true;
 	  do {
@@ -267,7 +268,8 @@ namespace MiniMC {
 		    if (llvm::isa<llvm::CallInst> (inst)) {
 		      auto mloc = cfg->makeLocation (loc->getName () + ":Call");
 		      auto edge = cfg->makeEdge (loc,mloc,prgm);
-		      edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+			  if (insts.size())
+				edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		      insts.clear();
 		      loc = mloc;
 		    }
@@ -286,20 +288,21 @@ namespace MiniMC {
 		      
 		      auto brterm = llvm::dyn_cast<llvm::BranchInst> (term);
 		      if (brterm->isUnconditional ()) {
-			std::vector<MiniMC::Model::Instruction> insts;
-			auto succ = term->getSuccessor (0);
-			auto succloc = locmap.at(succ);
-			auto edge = cfg->makeEdge (loc,succloc,prgm);
-			edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+				std::vector<MiniMC::Model::Instruction> insts;
+				auto succ = term->getSuccessor (0);
+				auto succloc = locmap.at(succ);
+				auto edge = cfg->makeEdge (loc,succloc,prgm);
+				if (insts.size())
+				  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		      }
 		      else {
-			auto cond = findValue (brterm->getCondition(),values,tt);
-			auto ttloc = locmap.at(term->getSuccessor (0));
-			auto ffloc = locmap.at(term->getSuccessor (1));
-			auto edge = cfg->makeEdge (loc,ttloc,prgm);
-			edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
-			edge = cfg->makeEdge (loc,ffloc,prgm);
-			edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,true));
+				auto cond = findValue (brterm->getCondition(),values,tt);
+				auto ttloc = locmap.at(term->getSuccessor (0));
+				auto ffloc = locmap.at(term->getSuccessor (1));
+				auto edge = cfg->makeEdge (loc,ttloc,prgm);
+				edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
+				edge = cfg->makeEdge (loc,ffloc,prgm);
+				edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,true));
 		      }
 		    }
 
@@ -308,7 +311,7 @@ namespace MiniMC {
 		      addInstruction (term,insts,tt);
 		      auto succloc = cfg->makeLocation (fname+"."+"Term");
 		      auto edge = cfg->makeEdge (loc,succloc,prgm);
-		      edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 		    }
 		    
 		  }

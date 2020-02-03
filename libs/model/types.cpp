@@ -142,9 +142,10 @@ namespace MiniMC {
       }
       return impl->arrays.at(t);
     }
+	
     const Type_ptr TypeFactory64::makeStructType (size_t t) {
       if (!impl->structs.count(t)) {
-	impl->structs.insert(std::make_pair (t,std::make_shared<ArrayType> (t)));
+		impl->structs.insert(std::make_pair (t,std::make_shared<ArrayType> (t)));
       }
       return impl->structs.at(t);
     }
