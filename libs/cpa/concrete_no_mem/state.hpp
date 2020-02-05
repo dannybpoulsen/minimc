@@ -146,6 +146,13 @@ namespace MiniMC {
 			       );
 	}
 
+	const StackDetails getStackDetails (size_t p) const {
+	  return StackDetails (const_cast<pointer_t&>(stacks[p]),
+			       const_cast<pointer_t&> (globalStack),
+			       const_cast<Heap&> (heap),
+			       p
+			       );
+	}
 
  	std::size_t nbProcs () const {return stacks.size();}
 

@@ -1,3 +1,5 @@
+#include <gsl/pointers>
+
 #include "cpa/concrete_no_mem.hpp"
 #include "stack.hpp"
 #include "heap.hpp"
@@ -36,10 +38,11 @@ namespace MiniMC {
 	auto state = static_cast<const State*> (s.get ());
 	assert (id < state->nbProcs ());
 	auto nstate = state->lcopy ();
+	auto cdet = state->getStackDetails (id);
 	auto det = nstate->getStackDetails (id);
 	if (e->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 	  auto& guard = e->getAttribute<MiniMC::Model::AttributeType::Guard> ();
-	  RegisterLoader loader (det, guard.guard);
+	  RegisterLoader loader (cdet, guard.guard);
 	  bool val = loader.getRegister().template get<MiniMC::uint8_t> ();
 	  if (guard.negate)
 	    val = !val;
@@ -48,11 +51,13 @@ namespace MiniMC {
 	  
 	}
 	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-	  for (auto& inst : e->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+	  gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
+	  for (auto& inst : instr) {
 	    switch (inst.getOpcode ()) {
 #define X(OP)								\
 	      case MiniMC::Model::InstructionCode::OP:			\
-			ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (det,det,inst); \
+			ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,inst); \
 		break;									
 	      TACOPS
 		COMPARISONS
