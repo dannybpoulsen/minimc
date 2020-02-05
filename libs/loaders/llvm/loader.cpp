@@ -291,12 +291,13 @@ namespace MiniMC {
 		      
 	      auto brterm = llvm::dyn_cast<llvm::BranchInst> (term);
 	      if (brterm->isUnconditional ()) {
-		std::vector<MiniMC::Model::Instruction> insts;
-		auto succ = term->getSuccessor (0);
-		auto succloc = locmap.at(succ);
-		auto edge = cfg->makeEdge (loc,succloc,prgm);
-		if (insts.size())
-		  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+			std::vector<MiniMC::Model::Instruction> insts;
+			auto succ = term->getSuccessor (0);
+			auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
+			//locmap.at(succ);
+			auto edge = cfg->makeEdge (loc,succloc,prgm);
+			if (insts.size())
+			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	      }
 	      else {
 		auto cond = findValue (brterm->getCondition(),values,tt);
@@ -337,8 +338,8 @@ namespace MiniMC {
 	  auto ass = findValue (&phi,values,tt);
 	  auto incoming = findValue (phi.getIncomingValueForBlock(from),values,tt);
 	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-	  builder.setValue(ass);
-	  builder.setResult (incoming);
+	  builder.setValue(incoming);
+	  builder.setResult (ass);
 	  insts.push_back (builder.BuildInstruction());
 	}
 	auto loc = locmap.at(to);
