@@ -726,6 +726,14 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
+    template<> 
+    struct Formatter<InstructionCode::Assign,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Assign> h (inst);
+	return os << *h.getResult () << " = " << *h.getValue ();
+      } 
+    };
+    
     template<>
     class InstBuilder<InstructionCode::Assign,void> {
     public:
