@@ -63,7 +63,9 @@ namespace MiniMC {
     X(RetVoid)					\
     X(NonDet)					\
     X(Assert)					\
-  
+    X(StackRestore)				\
+    X(StackSave)				\
+    
     enum class InstructionCode {
 #define X(OP)					\
 				OP,
@@ -247,7 +249,30 @@ namespace MiniMC {
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
-    
+
+    template<>						
+    struct InstructionData<InstructionCode::StackSave> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 0;			
+      static const bool hasResVar = true;			
+    };
+
+    template<>						
+    struct InstructionData<InstructionCode::StackRestore> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 1;			
+      static const bool hasResVar = false;			
+    };
     
     template<>						
     struct InstructionData<InstructionCode::Load>{		
@@ -323,6 +348,8 @@ namespace MiniMC {
     struct Formatter {
       static std::ostream& output (std::ostream& os, const Instruction&) { return os << "??";} 
     };
+
+    
     
     template<InstructionCode i>
     class InstHelper<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
@@ -531,7 +558,74 @@ namespace MiniMC {
     };
     //
 
+    template<>
+    class InstHelper<InstructionCode::StackSave,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::StackSave,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::StackSave,{res});
+      }
+     
+      void setResult (const Value_ptr& p) {res = p;}
+      
+    private:
+      Value_ptr res = nullptr;
+    
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::StackSave,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::StackSave> h (inst);
+	return os << *h.getResult() << "=" <<  InstructionCode::StackSave;
+      } 
+    };
+    
     //
+
+    template<>
+    class InstHelper<InstructionCode::StackRestore,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getValue () const {return inst.getOp(0);}
+    private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::StackRestore,void> {
+    public:
+      Instruction BuildInstruction () {
+	return Instruction (InstructionCode::StackRestore,{res});
+      }
+      
+      void setValue (const Value_ptr& p) {res = p;}
+      
+    private:
+      Value_ptr res = nullptr;
+    
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::StackRestore,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::StackRestore> h (inst);
+	return os <<  InstructionCode::StackRestore << "( " << *h.getValue() << " )";
+      } 
+    };
+    
+
+
     //
     template<>
     class InstHelper<InstructionCode::Assert,void> {
