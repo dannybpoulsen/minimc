@@ -157,12 +157,50 @@ namespace MiniMC {
       builder.setAddress (addr);						
       instr.push_back(builder.BuildInstruction ());			
     }
+    
+    template<unsigned>
+    void translateIntrinsicCall (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+      throw MiniMC::Support::Exception ("Unsupported Intrinsic");
+    }
 
+    template<>
+    void translateIntrinsicCall<llvm::Intrinsic::stackrestore> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::StackRestore> builder; 
+      auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
+      assert(cinst->arg_size()==1);
+      builder.setValue (findValue(*cinst->arg_begin(),values,tt));
+      instr.push_back(builder.BuildInstruction ());
+    }
+
+    template<>
+    void translateIntrinsicCall<llvm::Intrinsic::stacksave> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) {
+      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::StackSave> builder; 
+      assert(inst->getType ()->isPointerTy ());
+      builder.setResult (findValue(inst,values,tt));
+      instr.push_back(builder.BuildInstruction ());
+    }
+
+#define SUPPORTEDINTRIN				\
+    X(llvm::Intrinsic::stackrestore)		\
+    X(llvm::Intrinsic::stacksave)		\
+    
+    
     template<>								\
     void translateAndAddInstruction<llvm::Instruction::Call> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt) { 
       auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
       auto func = cinst->getCalledFunction ();
       assert(func);
+      if (func->isIntrinsic()) {
+	switch (func->getIntrinsicID ()) {
+#define X(H)							\
+	  case H:						\
+	    translateIntrinsicCall<H> (inst,values,instr,tt);	\
+	    return ;
+	  
+	  SUPPORTEDINTRIN
+#undef X
+	}
+      }
       if (func->getName () == "assert") {
 	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> builder;
 	assert(cinst->arg_size () == 1);
