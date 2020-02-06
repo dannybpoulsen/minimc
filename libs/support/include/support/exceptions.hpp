@@ -10,7 +10,7 @@ namespace MiniMC {
     public:
       Exception (const std::string& mess) : std::runtime_error(mess) {}
     };
-
+    
     class VerificationException : public Exception {
     public:
       VerificationException (const std::string& mess) : Exception(mess) {}

@@ -391,6 +391,34 @@ namespace MiniMC {
 		  
 	}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::StackSave,void> {
+		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackSave> helper (inst);
+		  auto data = st.stack.getData();
+		  auto resVar = helper.getResult ();
+		  InRegister reg (&data.allocs,sizeof(pointer_t));
+		  st.stack.save (reg,std::static_pointer_cast<MiniMC::Model::Variable> (resVar));
+		  data.allocs = st.heap.make_obj (0);
+		  st.stack.setData (data);
+		}
+      };
+      
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::StackRestore,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackRestore> helper (inst);
+	  RegisterLoader loader (readFrom,helper.getValue());
+	  auto data = st.stack.getData();
+	  st.heap.free_obj (data.allocs);
+	  data.allocs = loader.getRegister(). template get<pointer_t> ();
+	  data.allocs = st.heap.make_obj (0);
+	  st.stack.setData (data);
+	}
+      };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Ret,void> {
