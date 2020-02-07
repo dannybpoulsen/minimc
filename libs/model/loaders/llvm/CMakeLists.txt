@@ -4,5 +4,6 @@ find_package(LLVM REQUIRED CONFIG)
  llvm_map_components_to_libnames(llvm_libs  core irreader transformutils passes)
 
 add_library (llvmloader OBJECT loader.cpp)
-target_include_directories (llvmloader  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include PRIVATE ${LLVM_INCLUDE_DIRS} )
-target_link_libraries (llvmloader PUBLIC  model support  ${llvm_libs} )
+target_include_directories (llvmloader  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include PRIVATE ${LLVM_INCLUDE_DIRS})
+target_link_libraries (llvmloader  PUBLIC support  ${llvm_libs} )
+target_include_directories(llvmloader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
