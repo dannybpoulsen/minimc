@@ -69,7 +69,8 @@ int main (int argc,char* argv[]) {
   
   auto loader = createLoader (0);
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
-  auto prgm = loader->loadFromFile (input,tfac);
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
+  auto prgm = loader->loadFromFile (input,tfac,cfac);
 
   if (vm.count ("task")) {
     std::vector< std::string > entries = vm["task"].as< std::vector< std::string > >();

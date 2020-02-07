@@ -7,6 +7,7 @@
 #include <vector>
 #include <ostream>
 #include "model/types.hpp"
+#include "support/types.hpp"
 namespace MiniMC {
   namespace Model {
 
@@ -37,10 +38,15 @@ namespace MiniMC {
       bool isConstant () const {return true;}
       virtual bool isAggregate () const {return false;}
   };
+
+    class ConstantFactory64;
     
     class IntegerConstant :public Constant  {
-	public:
+    protected:
       IntegerConstant (uint64_t val) : value(val) {}
+    public:
+      friend class ConstantFactory64;
+      
       auto getValue () const {return value;}
   
       virtual std::ostream& output (std::ostream& os) const {return os << value;}
@@ -50,9 +56,13 @@ namespace MiniMC {
 
     class AggregateConstant :public Constant  {
     public:
-      AggregateConstant (std::vector<Value_ptr>& vals, bool isarr) : values(vals),
+      friend class ConstantFactory64;
+      
+    protected:
+      AggregateConstant (const std::vector<Value_ptr>& vals, bool isarr) : values(vals),
 								     is_Array(isarr)
       {}
+    public:
       auto& getValues () const {return values;}
       bool isArray () const {return is_Array;}
       bool isAggregate () const {return true;}
@@ -124,6 +134,31 @@ namespace MiniMC {
     
     };
 
+
+    class ConstantFactory {
+    public:
+      ConstantFactory () {}
+      using aggr_input = std::vector<Value_ptr>;
+      virtual ~ConstantFactory () {}
+      virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool) = 0;
+      virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t) = 0;
+      virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;
+      virtual const Value_ptr makeFunctionPointer (MiniMC::func_t) = 0;
+    };
+
+    class ConstantFactory64 : public ConstantFactory {
+    public:
+      
+      ConstantFactory64 () {}
+      virtual ~ConstantFactory64 () {}
+      virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t);
+      virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool);
+      virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t);
+      virtual const Value_ptr makeFunctionPointer (MiniMC::func_t);
+      
+    };
+
+    using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
     
   }
 }

@@ -43,10 +43,10 @@ namespace MiniMC {
   namespace Loaders {
 
     
-    MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt ) {
+    MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
       if (cst && !llvm::isa<llvm::Function> (val)) 
-	return makeConstant (cst,tt);
+	return makeConstant (cst,tt,cfac);
       else {
 	return values.at(val); 
       }
@@ -236,8 +236,9 @@ namespace MiniMC {
     struct Constructor : public llvm::PassInfoMixin<InstructionNamer> {
       
       Constructor (MiniMC::Model::Program_ptr& prgm,
-		   MiniMC::Model::TypeFactory_ptr& tfac
-		   ) : prgm(prgm),tfactory(tfac) {
+		   MiniMC::Model::TypeFactory_ptr& tfac,
+		   MiniMC::Model::ConstantFactory_ptr& cfac
+		   ) : prgm(prgm),cfactory(cfac),tfactory(tfac) {
       }
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
 	std::string fname =  F.getName();
@@ -300,7 +301,7 @@ namespace MiniMC {
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	      }
 	      else {
-		auto cond = findValue (brterm->getCondition(),values,tt);
+		auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
 		auto ttloc = buildPhiEdge (&BB,term->getSuccessor (0),*cfg,tt,locmap);
 		auto ffloc = buildPhiEdge (&BB,term->getSuccessor (1),*cfg,tt,locmap);
 		auto edge = cfg->makeEdge (loc,ttloc,prgm);
@@ -324,8 +325,8 @@ namespace MiniMC {
 	auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
 
 	auto id = f->getID ();
-	auto pptr = MiniMC::Support::makeFunctionPointer (id);
-	auto ptr = std::make_shared<MiniMC::Model::IntegerConstant> (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr));
+	//auto pptr = MiniMC::Support::makeFunctionPointer (id);
+	auto ptr = cfactory->makeFunctionPointer  (id);
 	ptr->setType (tfactory->makeIntegerType (64));
 	values.insert (std::make_pair(&F,ptr));
 
@@ -335,8 +336,8 @@ namespace MiniMC {
       MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap) {
 	std::vector<MiniMC::Model::Instruction> insts;  
 	for (auto& phi : to->phis ()) {
-	  auto ass = findValue (&phi,values,tt);
-	  auto incoming = findValue (phi.getIncomingValueForBlock(from),values,tt);
+	  auto ass = findValue (&phi,values,tt,cfactory);
+	  auto incoming = findValue (phi.getIncomingValueForBlock(from),values,tt,cfactory);
 	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
 	  builder.setValue(incoming);
 	  builder.setResult (ass);
@@ -437,7 +438,7 @@ namespace MiniMC {
 	switch (inst->getOpcode()) {
 #define X(TT)								\
 	  case llvm::Instruction::TT:					\
-	    translateAndAddInstruction<llvm::Instruction::TT> (inst,values,insts,tt); \
+	    translateAndAddInstruction<llvm::Instruction::TT> (inst,values,insts,tt,cfactory); \
 	    break;
 	  SUPPORTEDLLVM
 	default:
@@ -451,12 +452,13 @@ namespace MiniMC {
     private:
       MiniMC::Model::Program_ptr& prgm;
       MiniMC::Model::TypeFactory_ptr& tfactory;
+      MiniMC::Model::ConstantFactory_ptr& cfactory;
       Val2ValMap values;
 	  
     };
 	
     class LLVMLoader : public Loader {
-      virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac) {
+      virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
 	auto prgm = std::make_shared<MiniMC::Model::Program> ();
 	std::fstream str;
 	str.open (file);
@@ -490,7 +492,7 @@ namespace MiniMC {
 	//funcmanager.addPass (llvm::PromotePass());
 	funcmanager.addPass (InstructionNamer());
 	funcmanager.addPass (GetElementPtrSimplifier());
-	funcmanager.addPass (Constructor(prgm,tfac));
+	funcmanager.addPass (Constructor(prgm,tfac,cfac));
 	
 	
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));

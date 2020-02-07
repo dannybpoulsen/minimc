@@ -1,5 +1,6 @@
 #ifndef _POINTER__
 #define _POINTER__
+#include <cassert>
 
 #include "support/types.hpp"
 

@@ -13,7 +13,7 @@ namespace MiniMC {
 
 	class Loader {
 	public:
-	  virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr&) = 0;
+	  virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr&, MiniMC::Model::ConstantFactory_ptr&) = 0;
 	};
 
 	template<Type>

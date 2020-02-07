@@ -11,7 +11,8 @@
 int main (int argc,char* argv[]) {
   auto loader = MiniMC::Loaders::makeLoader<MiniMC::Loaders::Type::LLVM> ();
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
-  auto prgm = loader->loadFromFile (argv[1],tfac);
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
+  auto prgm = loader->loadFromFile (argv[1],tfac,cfac);
   
   auto initialState =  MiniMC::CPA::Location::CPADef::Query::makeInitialState (*prgm);
   std::cerr << *initialState << std::endl;
