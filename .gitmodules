@@ -1,3 +1,0 @@
-[submodule "external/murmur"]
-	path = external/murmur
-	url = https://github.com/kloetzl/libmurmurhash.git
