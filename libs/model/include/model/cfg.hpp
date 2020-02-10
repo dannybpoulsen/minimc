@@ -36,12 +36,20 @@ namespace MiniMC {
       edge_iterator eend () const {return edges.end();}
       auto& getName () const {return name;}
       void removeEdge (const Edge_ptr& e) {
-		auto it = std::find (edges.begin(),edges.end(),e);
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
+	auto it = std::find (edges.begin(),edges.end(),e);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
       }
 
+      bool isErrorLocation () const {
+	return isError;
+      }
+
+      void setError ()  {
+	isError = true;
+      }
+      
       bool hasSourceLocation  () const {return sourceloc.get();}
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
       void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
@@ -49,6 +57,7 @@ namespace MiniMC {
       std::vector<Edge_ptr> edges;
       std::string name;
       SourceLocation_ptr sourceloc = nullptr;
+      bool isError = false;
     };
 
     
@@ -74,27 +83,27 @@ namespace MiniMC {
       bool negate = false;
     };
 	
-	struct InstructionStream {
-	  InstructionStream () : isPhi(false) {}
-	  InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
-																				  isPhi(isPhi) {
-		assert(instr.size());
-	  }
-	  InstructionStream (const InstructionStream& str) : instr(str.instr),isPhi(str.isPhi) {}
-	  auto begin () const {return instr.begin();}
-	  auto end () const {return instr.end();}
-	  auto begin ()  {return instr.begin();}
-	  auto end ()  {return instr.end();}
-	  auto& last () {assert(instr.size());return instr.back();}
-	  std::vector<Instruction> instr;
-	  bool isPhi = false;;
-	};
+    struct InstructionStream {
+      InstructionStream () : isPhi(false) {}
+      InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
+										  isPhi(isPhi) {
+	assert(instr.size());
+      }
+      InstructionStream (const InstructionStream& str) : instr(str.instr),isPhi(str.isPhi) {}
+      auto begin () const {return instr.begin();}
+      auto end () const {return instr.end();}
+      auto begin ()  {return instr.begin();}
+      auto end ()  {return instr.end();}
+      auto& last () {assert(instr.size());return instr.back();}
+      std::vector<Instruction> instr;
+      bool isPhi = false;;
+    };
     
     template<>
     struct AttributeValueType<AttributeType::Instructions> {
       using ValType = InstructionStream;
     };
-
+    
     template<>
     struct AttributeValueType<AttributeType::Guard> {
       using ValType = Guard;
@@ -149,37 +158,33 @@ namespace MiniMC {
 	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
-		static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
+	static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
       }
       
       template<AttributeType k>
       auto& getAttribute () {
-		return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
+	return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
 	  
       template<AttributeType k>
       auto& getAttribute () const {
-		return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
+	return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
       
       template<AttributeType k>
       auto hasAttribute () const {
-		return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
+	return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
       }
       
-      //auto& getInstructions () const {return this->template getAttribute<AttributeType::Instructions> ();}
-      //auto& getInstructions ()  {return  this->template getAttribute<AttributeType::Instructions> ();}
+      
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
-      //auto getGuard () const {return this->template getAttribute<AttributeType::Guard> ().guard;}
-      //auto negatedGuard () const {return this->template getAttribute<AttributeType::Guard> ().negate ;}
       auto& getProgram() const {return prgm;}
       void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
       gsl::not_null<Location_ptr> from;
       gsl::not_null<Location_ptr> to;
       Value_ptr value;
-      bool negGuard;
       Program_ptr prgm;
     };
 

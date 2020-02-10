@@ -8,7 +8,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
       struct RemoveRetEntryPoints : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-	virtual void run (MiniMC::Model::Program&  prgm) {
+	virtual bool run (MiniMC::Model::Program&  prgm) {
 	  for (auto& F : prgm.getEntryPoints ()) {
 	    for (auto& E : F->getCFG()->getEdges ()) {
 	      if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
@@ -22,6 +22,7 @@ namespace MiniMC {
 	      }
 	    }
 	  }
+	  return true;
 	}
 
       };

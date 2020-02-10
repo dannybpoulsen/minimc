@@ -8,7 +8,7 @@ namespace MiniMC {
   namespace Support {
     template<class T>
     struct Sink {
-      virtual void run (T& ) {};
+      virtual bool run (T& ) {return true;};
     };
     
     template<class T>
@@ -22,7 +22,9 @@ namespace MiniMC {
       
       void run (T& t) {
 	for (auto& s : sinks) {
-	  s->run (t);
+	  if (!s->run (t)) {
+	    break;
+	  }
 	}
       }
     private:
@@ -32,7 +34,7 @@ namespace MiniMC {
     template<class T,class W, class ... Args>
     struct SequenceWrapper : public Sink<T> {
       SequenceWrapper (Args... args) : wrapped (args...) {}
-      virtual void run (T& t) override {wrapped.run (t);};
+      virtual bool run (T& t) override {wrapped.run (t); return true;};
     private:
       W wrapped;
     };
