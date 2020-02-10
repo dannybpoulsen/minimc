@@ -5,7 +5,7 @@
 #include "support/sequencer.hpp"
 
 namespace MiniMC {
-  namespace Algorithms {
+  namespace Model {
     namespace Modifications {
       struct RemoveRetEntryPoints : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 	virtual void run (MiniMC::Model::Program&  prgm) {

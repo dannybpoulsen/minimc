@@ -6,7 +6,7 @@
 
 
 namespace MiniMC {
-  namespace Algorithms {
+  namespace Model {
     namespace Modifications {
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual void run (MiniMC::Model::Program&  prgm) {
