@@ -299,6 +299,10 @@ namespace MiniMC {
       Function_ptr getFunction (MiniMC::func_t id) const {
 	return functions.at(id);
       }
+
+      bool  functionExists (MiniMC::func_t id) const {
+	return id < functions.size();
+      }
       
       auto& getEntryPoints () const {return entrypoints;}
 

@@ -4,7 +4,7 @@
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
 #include "support/localisation.hpp"
-
+#include "support/pointer.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -224,13 +224,46 @@ namespace MiniMC {
       {
 	static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess) {
+	  auto prgm = inst.getFunction()->getPrgm ();
 	  InstHelper<OpCode> h (inst);
 	  auto func = h.getFunctionPtr ();
 	  if (!func->isConstant ()) {
 	    MiniMC::Support::Localiser must_be_constant ("'%1%' can only use constant function pointers. "); 
-	    
 	    mess.error (must_be_constant.format (OpCode)); 
+	    return false;
 	  }
+	  
+	  else {
+	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (func);
+	    auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
+	    bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId (ptr));
+	    MiniMC::Support::Localiser  function_not_exists("Call references unexisting function: '%1%'");
+	    if (!is_func) {
+	      mess.error (function_not_exists.format(MiniMC::Support::getFunctionId (ptr)));
+	      return false;
+	    }
+
+	    auto func = prgm->getFunction (MiniMC::Support::getFunctionId (ptr));
+	    if (func->getParameters().size () != h.nbParams()) {
+	      mess.error ("Inconsistent number of parameters between call and function prototype");
+	      return false;
+	    }
+
+	    auto nbParams = h.nbParams();
+	    auto it = func->getParameters().begin();
+	    
+	    for (size_t i= 0; i< nbParams; i++,++it) {
+	      auto form_type = (*it)->getType ();
+	      auto act_type = h.getParam (i)->getType ();
+	      if (form_type != act_type) {
+		mess.error ("Formal and actual parameters do not match typewise");
+		return false;
+	      }
+					   
+	    }
+	    
+	  }
+	  
 	  mess.warning ("Type check of calls not properly implemented");
 	  return true;
 	}
@@ -308,6 +341,13 @@ namespace MiniMC {
       {
 	static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackRestore;
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess) {
+	  InstHelper<OpCode> h (inst);
+	  MiniMC::Support::Localiser must_be_pointer ("'%1%' must take pointer as inputs. "); 
+	  auto type = h.getValue()->getType();
+	  if (type->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+	    mess.error (must_be_pointer.format(OpCode));
+	    return false;
+	  }
 	  return true;
 	}
 	  
@@ -318,6 +358,13 @@ namespace MiniMC {
       {
 	static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackSave;
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess) {
+	   InstHelper<OpCode> h (inst);
+	  MiniMC::Support::Localiser must_be_pointer ("'%1%' must take pointer as result. "); 
+	  auto type = h.getResult ()->getType();
+	  if (type->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+	    mess.error (must_be_pointer.format(OpCode));
+	    return false;
+	  }
 	  return true;
 	}
 	  
