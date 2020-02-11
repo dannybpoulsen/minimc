@@ -244,13 +244,16 @@ namespace MiniMC {
     public:
       Function (MiniMC::func_t id, 
 		const std::string& name,
-		const std::vector<gsl::not_null<Variable_ptr>>& params,
-		const VariableStackDescr_ptr& variableStackDescr,
-		const gsl::not_null<CFG_ptr> cfg) : name(name),
-						    parameters(params),
-						    variableStackDescr(variableStackDescr),
-						    cfg(cfg),
-						    id(id) {
+				const std::vector<gsl::not_null<Variable_ptr>>& params,
+				const gsl::not_null<Type_ptr> rtype,
+				const VariableStackDescr_ptr& variableStackDescr,
+				const gsl::not_null<CFG_ptr> cfg) : name(name),
+													parameters(params),
+													variableStackDescr(variableStackDescr),
+													cfg(cfg),
+													id(id),
+													retType(rtype)
+	  {
 	for (auto& e : cfg->getEdges ()) {
 	  if (e->hasAttribute<AttributeType::Instructions> ()) 
 	    for (auto& l : e->getAttribute<AttributeType::Instructions> ())
@@ -263,6 +266,7 @@ namespace MiniMC {
       auto& getVariableStackDescr () const {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
+	  auto& getReturnType () {return retType;}
       auto& getPrgm () const {return prgm;}
       void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
@@ -272,6 +276,7 @@ namespace MiniMC {
       gsl::not_null<CFG_ptr> cfg;
       MiniMC::func_t id;
       Program_ptr prgm;
+	  Type_ptr retType;
     };
     
     using Function_ptr = std::shared_ptr<Function>;
@@ -283,12 +288,13 @@ namespace MiniMC {
       }
       gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
       gsl::not_null<Function_ptr>  addFunction (const std::string& name,
-			const std::vector<gsl::not_null<Variable_ptr>>& params,
-			const VariableStackDescr_ptr& variableStackDescr,
-			const gsl::not_null<CFG_ptr> cfg) {
-	functions.push_back (std::make_shared<Function> (functions.size(),name,params,variableStackDescr,cfg));
-	functions.back()->setPrgm (this->shared_from_this ());
-	return functions.back();
+												const std::vector<gsl::not_null<Variable_ptr>>& params,
+												const gsl::not_null<Type_ptr> retType,
+												const VariableStackDescr_ptr& variableStackDescr,
+												const gsl::not_null<CFG_ptr> cfg) {
+		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
+		functions.back()->setPrgm (this->shared_from_this ());
+		return functions.back();
       }
 
       auto& getFunctions  () const {return functions;}

@@ -322,7 +322,7 @@ namespace MiniMC {
 	  }
 	}
 		
-	auto f = prgm->addFunction (F.getName(),params,variablestack,cfg);
+	auto f = prgm->addFunction (F.getName(),params,tt.getType(F.getReturnType ()),variablestack,cfg);
 
 	auto id = f->getID ();
 	//auto pptr = MiniMC::Support::makeFunctionPointer (id);
