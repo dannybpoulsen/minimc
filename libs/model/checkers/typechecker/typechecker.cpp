@@ -371,10 +371,11 @@ namespace MiniMC {
 	static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assert;
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
 	  InstHelper<OpCode> h (inst);
-	  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean as inputs. "); 
+	  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
 	  
 	  auto type = h.getAssert ()->getType ();
-	  if (type->getTypeID () != MiniMC::Model::TypeID::Bool) {
+	  if (type->getTypeID () != MiniMC::Model::TypeID::Bool &&
+	      type->getTypeID () != MiniMC::Model::TypeID::Integer) {
 	    mess.error (must_be_bool.format (OpCode));
 	    return false;
 	  }
