@@ -35,6 +35,7 @@ namespace MiniMC {
 	  return true;
 	}
       };
+      
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isComparison>::type > {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
@@ -81,7 +82,7 @@ namespace MiniMC {
 	  return true;
 	}
       };
-	  
+      
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<
 			   i == MiniMC::Model::InstructionCode::SExt ||
@@ -99,7 +100,33 @@ namespace MiniMC {
 	    mess.error (must_be_integer.format (i));
 	    return false;
 	  }
-	  else if (ftype->getSize() <= ttype->getSize()) {
+	  else if (ftype->getSize() > ttype->getSize()) {
+	    mess.error (must_be_smaller.format (i));
+	    return false;
+	  }
+
+	  return true;
+	}
+      };
+
+      template<MiniMC::Model::InstructionCode i>
+      struct TypeCheck<i,typename std::enable_if<
+			   i == MiniMC::Model::InstructionCode::BoolSExt ||
+			   i == MiniMC::Model::InstructionCode::BoolZExt>::type>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied from boolean types to  integer types. "); 
+	  MiniMC::Support::Localiser must_be_smaller ("From type must be smaller that to type for '%1%'"); 
+		  
+	  InstHelper<i> h (inst);
+	  auto ftype = h.getCastee ()->getType();
+	  auto ttype = h.getResult ()->getType();
+	  if (ftype->getTypeID () != MiniMC::Model::TypeID::Bool ||
+	      ttype->getTypeID () != MiniMC::Model::TypeID::Integer) {
+	    mess.error (must_be_integer.format (i));
+	    return false;
+	  }
+	  else if (ftype->getSize() > ttype->getSize()) {
 	    mess.error (must_be_smaller.format (i));
 	    return false;
 	  }
@@ -262,20 +289,19 @@ namespace MiniMC {
 					   
 	    }
 		
-		auto resType = h.getRes ()->getType();
-		if (resType == func->getReturnType ()) {
-		  mess.error ("Result and return type of functions must match.");
-		  return false;
-		}
-		
+	    if (h.getRes ()) {
+	      auto resType = h.getRes ()->getType();
+	      if (resType != func->getReturnType ()) {
+		mess.error ("Result and return type of functions must match.");
+		return false;
+	      }
+	      
+	    }
 	  }
-
 	  
-	  
-	  mess.warning ("Type check of calls not properly implemented");
 	  return true;
 	}
-	  
+	
       };
 
       template<>
@@ -320,14 +346,13 @@ namespace MiniMC {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
 		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt) {
 		  if (tt->getTypeID () != MiniMC::Model::TypeID::Void) {
-			MiniMC::Support::Localiser must_be_same_type ("Return type of function with '%1%' must be void  "); 
-	  
-			mess.error (must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
-			return false;
+		    MiniMC::Support::Localiser must_be_same_type ("Return type of function with '%1%' must be void  "); 
+		    mess.error (must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
+		    return false;
 		  }
 		  return true;
 		}
-	  
+	
       };
 
       template<>

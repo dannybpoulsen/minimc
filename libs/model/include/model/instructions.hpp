@@ -48,6 +48,8 @@ namespace MiniMC {
     X(PtrToInt)					\
     X(IntToPtr)					\
     X(BitCast)					\
+    X(BoolZExt)				\
+    X(BoolSExt)
     
 
 #define MEMORY					\
@@ -333,7 +335,7 @@ namespace MiniMC {
       std::vector<Value_ptr> ops;
       Function_ptr parent;
     };
-
+    
     inline std::ostream& operator<< (std::ostream& os, const Instruction& inst) {
       return inst.output(os);
     }

@@ -31,6 +31,8 @@ namespace MiniMC {
       std::vector<std::unique_ptr<Sink<T> > > sinks;
     };
 
+    
+    
     template<class T,class W, class ... Args>
     struct SequenceWrapper : public Sink<T> {
       SequenceWrapper (Args... args) : wrapped (args...) {}

@@ -52,7 +52,7 @@ namespace MiniMC {
 
 	class VoidType : public Type {
 	public:
-	  VoidType () : Type(TypeID::Pointer) {}
+	  VoidType () : Type(TypeID::Void) {}
 	  virtual std::size_t getSize () const {return 0;}
 	  virtual std::ostream& output (std::ostream& os) const {return os << "Void";}
 	  virtual bool innerEq (const Type& t) {return true;}

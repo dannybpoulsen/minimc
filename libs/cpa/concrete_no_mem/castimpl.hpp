@@ -38,6 +38,24 @@ namespace MiniMC {
       };
 
       template<class F,class T>
+      struct CastExec<MiniMC::Model::InstructionCode::BoolZExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
+	static OutRegister execute  (const InRegister& left){
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::zext<F,T> (left.template get<F> ());
+	  return OutRegister (hh,sizeof(T));
+	}
+      };
+
+      template<class F,class T>
+      struct CastExec<MiniMC::Model::InstructionCode::BoolSExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
+	static OutRegister execute  (const InRegister& left){
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::sext<F,T> (left.template get<F> ());
+	  return OutRegister (hh,sizeof(T));
+	}
+      };
+
+      template<class F,class T>
       struct CastExec<MiniMC::Model::InstructionCode::Trunc,F,T,typename std::enable_if<sizeof(F) >= sizeof(T)>::type> {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);

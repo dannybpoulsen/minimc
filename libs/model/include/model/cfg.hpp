@@ -94,6 +94,12 @@ namespace MiniMC {
       auto end () const {return instr.end();}
       auto begin ()  {return instr.begin();}
       auto end ()  {return instr.end();}
+
+      auto rbegin () const {return instr.rbegin();}
+      auto rend () const {return instr.rend();}
+      auto rbegin ()  {return instr.rbegin();}
+      auto rend ()  {return instr.rend();}
+      
       auto& last () {assert(instr.size());return instr.back();}
       std::vector<Instruction> instr;
       bool isPhi = false;;
