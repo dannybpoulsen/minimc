@@ -108,14 +108,21 @@ namespace MiniMC {
     public:
       Variable (const std::string& name) : name(name) {}
       const std::string& getName () const {return name;}
-      virtual std::ostream& output (std::ostream& os) const  {return os << getName();}
+      virtual std::ostream& output (std::ostream& os) const  {
+		os << " < " << getName() << " ";
+		if (getType()) 
+		  os  << *getType() ;
+		else {
+		  os << " ___ ";
+		}
+		return os << " >";
+	  }
       bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr;}
       auto& getOwner () const  {return owner;}
       
     private:
       std::string name;
-      Type_ptr type;
       VariableStackDescr_ptr owner;
     };
 

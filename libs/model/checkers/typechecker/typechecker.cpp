@@ -82,7 +82,26 @@ namespace MiniMC {
 	  return true;
 	}
       };
-      
+
+	  template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::IntToBool>
+      {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied to integer types. "); 
+		  MiniMC::Support::Localiser must_be_smaller ("From type must be smaller that to type for '%1%'"); 
+		  
+		  InstHelper<MiniMC::Model::InstructionCode::IntToBool> h (inst);
+		  auto ftype = h.getCastee ()->getType();
+		  auto ttype = h.getResult ()->getType();
+		  if (ftype->getTypeID () != MiniMC::Model::TypeID::Integer ||
+			  ttype->getTypeID () != MiniMC::Model::TypeID::Bool) {
+			mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::IntToBool));
+			return false;
+		  }
+		  return true;
+		}
+      };
+	  
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<
 			   i == MiniMC::Model::InstructionCode::SExt ||

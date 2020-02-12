@@ -46,9 +46,9 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
       if (cst && !llvm::isa<llvm::Function> (val)) 
-	return makeConstant (cst,tt,cfac);
+		return makeConstant (cst,tt,cfac);
       else {
-	return values.at(val); 
+		return values.at(val); 
       }
     }
     
@@ -250,11 +250,12 @@ namespace MiniMC {
 
 	Types tt;
 	tt.tfac = tfactory;
-
+	
+	
 	using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
 	std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 	auto variablestack =  prgm->makeVariableStack ();
-		
+	tt.stack = variablestack;	
 	pickVariables <inserter> (F,variablestack,std::back_inserter(params));
 	auto& entry = F.getEntryBlock ();
 	cfg->setInitial (locmap.at(&entry));
@@ -395,11 +396,11 @@ namespace MiniMC {
       }
 	  
       MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack) {
-	if (!values.count (val)) {
-	  auto newVar = stack->addVariable (name,type);
-	  values[val] = newVar;
-	}
-	return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
+		if (!values.count (val)) {
+		  auto newVar = stack->addVariable (name,type);
+		  values[val] = newVar;
+		}
+		return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
       }
 
 #define SUPPORTEDLLVM				\

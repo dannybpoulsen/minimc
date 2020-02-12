@@ -43,14 +43,15 @@ namespace MiniMC {
     
 #define CASTOPS					\
     X(Trunc)					\
-    X(ZExt)					\
-    X(SExt)					\
+    X(ZExt)						\
+    X(SExt)						\
     X(PtrToInt)					\
     X(IntToPtr)					\
     X(BitCast)					\
-    X(BoolZExt)				\
-    X(BoolSExt)
-    
+    X(BoolZExt)					\
+    X(BoolSExt)					\
+	X(IntToBool)				\
+	
 
 #define MEMORY					\
     X(Alloca)					\
