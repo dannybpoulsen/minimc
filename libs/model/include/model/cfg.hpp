@@ -99,9 +99,19 @@ namespace MiniMC {
       auto rend () const {return instr.rend();}
       auto rbegin ()  {return instr.rbegin();}
       auto rend ()  {return instr.rend();}
-      
-      auto& last () {assert(instr.size());return instr.back();}
-      std::vector<Instruction> instr;
+	  
+      auto& last () {assert(instr.size()); return instr.back();}
+	  
+	  template<class Iterator>
+	  auto erase (Iterator& iter) {
+		return instr.erase (iter);
+	  }
+
+	  auto back_inserter  () {
+		return std::back_inserter(instr);
+	  }
+	  
+	  std::vector<Instruction> instr;
       bool isPhi = false;;
     };
     
@@ -185,7 +195,9 @@ namespace MiniMC {
       
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
-      auto& getProgram() const {return prgm;}
+	  void setTo (gsl::not_null<Location_ptr> t) { to = t;}
+	  
+	  auto& getProgram() const {return prgm;}
       void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
       gsl::not_null<Location_ptr> from;
@@ -205,21 +217,29 @@ namespace MiniMC {
 	
     class CFG {
     public:
+	  CFG () {
+		locations.emplace_back (new Location ("Error"));
+		error = locations.back();
+	  }
+
+	  gsl::not_null<Location_ptr> getErrorLocation () {
+		return error;
+	  }
 	  
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-	locations.emplace_back (new Location (name));
-	return locations.back();
+		locations.emplace_back (new Location (name));
+		return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, Program_ptr& p) {
-	edges.emplace_back (new Edge (from,to));
-	from->addEdge (edges.back());
-	edges.back()->setProgram(p);
-	return edges.back();
+		edges.emplace_back (new Edge (from,to));
+		from->addEdge (edges.back());
+		edges.back()->setProgram(p);
+		return edges.back();
       }
-
+	  
       gsl::not_null<Location_ptr> getInitialLocation () {
-	assert(initial);
+		assert(initial);
 	return initial;
       }
 	  
@@ -242,6 +262,7 @@ namespace MiniMC {
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;;
+	  Location_ptr error = nullptr;
     };
 
     using CFG_ptr = std::shared_ptr<CFG>;
