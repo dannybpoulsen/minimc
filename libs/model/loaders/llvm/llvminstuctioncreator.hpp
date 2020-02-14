@@ -203,37 +203,37 @@ namespace MiniMC {
 	}
       }
       if (func->getName () == "assert") {
-		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> builder;
-		assert(cinst->arg_size () == 1);
-		auto val = findValue(*cinst->arg_begin(),values,tt,cfac);
-		if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Bool) {
-		  builder.setAssert (val);
-		  instr.push_back(builder.BuildInstruction ());
-		}
-		else if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer) {
-		  auto ntype = tt.tfac->makeBoolType ();
-		  auto nvar = tt.stack->addVariable ("BVar",ntype);
-		   MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::IntToBool> intbboolbuilder;
-		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> assbuilder;
-		  intbboolbuilder.setRes (nvar);
-		  intbboolbuilder.setCastee (val);
-		  assbuilder.setAssert (nvar);
-		  instr.push_back (intbboolbuilder.BuildInstruction ());
-		  instr.push_back (assbuilder.BuildInstruction ());
-		  
-		}
-	  }
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> builder;
+	assert(cinst->arg_size () == 1);
+	auto val = findValue(*cinst->arg_begin(),values,tt,cfac);
+	if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	  builder.setAssert (val);
+	  instr.push_back(builder.BuildInstruction ());
+	}
+	else if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer) {
+	  auto ntype = tt.tfac->makeBoolType ();
+	  auto nvar = tt.stack->addVariable ("BVar",ntype);
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::IntToBool> intbboolbuilder;
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assert> assbuilder;
+	  intbboolbuilder.setRes (nvar);
+	  intbboolbuilder.setCastee (val);
+	  assbuilder.setAssert (nvar);
+	  instr.push_back (intbboolbuilder.BuildInstruction ());
+	  instr.push_back (assbuilder.BuildInstruction ());
+	  
+	}
+      }
       else {
-		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
-		builder.setFunctionPtr (findValue(func,values,tt,cfac));
-		if (!inst->getType ()->isVoidTy ()) {
-		  builder.setRes (findValue(inst,values,tt,cfac));
-		}
-		builder.setNbParamters (cfac->makeIntegerConstant (cinst->arg_size ()));
-		for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
-		  builder.addParam (findValue(*it,values,tt,cfac));
-		}
-		instr.push_back(builder.BuildInstruction ());
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
+	builder.setFunctionPtr (findValue(func,values,tt,cfac));
+	if (!inst->getType ()->isVoidTy ()) {
+	  builder.setRes (findValue(inst,values,tt,cfac));
+	}
+	builder.setNbParamters (cfac->makeIntegerConstant (cinst->arg_size ()));
+	for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
+	  builder.addParam (findValue(*it,values,tt,cfac));
+	}
+	instr.push_back(builder.BuildInstruction ());
       }
     }
 	

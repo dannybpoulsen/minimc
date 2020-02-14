@@ -102,16 +102,11 @@ namespace MiniMC {
 	  
       auto& last () {assert(instr.size()); return instr.back();}
 	  
-	  template<class Iterator>
-	  auto erase (Iterator& iter) {
-		return instr.erase (iter);
-	  }
-
-	  auto back_inserter  () {
-		return std::back_inserter(instr);
-	  }
-	  
-	  std::vector<Instruction> instr;
+      template<class Iterator>
+      auto erase( Iterator iter) {
+	return instr.erase (iter);
+      }
+      std::vector<Instruction> instr;
       bool isPhi = false;;
     };
     
@@ -197,7 +192,7 @@ namespace MiniMC {
       auto getTo () const {return to;}
 	  void setTo (gsl::not_null<Location_ptr> t) { to = t;}
 	  
-	  auto& getProgram() const {return prgm;}
+      auto& getProgram() const {return prgm;}
       void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
       gsl::not_null<Location_ptr> from;
@@ -231,7 +226,7 @@ namespace MiniMC {
 		return locations.back();
       }
 	  
-      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, Program_ptr& p) {
+      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
 		edges.emplace_back (new Edge (from,to));
 		from->addEdge (edges.back());
 		edges.back()->setProgram(p);
@@ -280,14 +275,17 @@ namespace MiniMC {
 													cfg(cfg),
 													id(id),
 													retType(rtype)
-	  {
+      {
+	auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
+
 	for (auto& e : cfg->getEdges ()) {
 	  if (e->hasAttribute<AttributeType::Instructions> ()) 
 	    for (auto& l : e->getAttribute<AttributeType::Instructions> ())
-	      l.setFunction (std::shared_ptr<Function> (this));
+	      l.setFunction (shared_from_this());
 	}
 	
       }
+      
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
@@ -319,9 +317,9 @@ namespace MiniMC {
 												const gsl::not_null<Type_ptr> retType,
 												const VariableStackDescr_ptr& variableStackDescr,
 												const gsl::not_null<CFG_ptr> cfg) {
-		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
-		functions.back()->setPrgm (this->shared_from_this ());
-		return functions.back();
+	functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
+	functions.back()->setPrgm (this->shared_from_this ());
+	return functions.back();
       }
 
       auto& getFunctions  () const {return functions;}
