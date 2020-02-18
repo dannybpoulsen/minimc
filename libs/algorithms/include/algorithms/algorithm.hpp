@@ -2,10 +2,11 @@
 #define _ALGORITHMS__
 
 #include "model/cfg.hpp"
-#include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/replacememnondet.hpp"
 #include "model/modifications/insertboolcasts.hpp"
 #include "model/modifications/splitasserts.hpp"
+#include "model/modifications/rremoveretsentry.hpp"
+
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
 #include "support/feedback.hpp"
@@ -32,18 +33,21 @@ namespace MiniMC {
       Algorithm (const Algorithm& ) = default;
       void setStopper (StopCriterion* stopper) {this->stopper = stopper;}
       virtual Result run (const MiniMC::Model::Program&) {
-	messager->message ("Starting dummy algorithm");
-	messager->message ("Finisheddummy algorithm");
-	return Result::Success;
+		messager->message ("Starting dummy algorithm");
+		messager->message ("Finisheddummy algorithm");
+		return Result::Success;
       }
-    protected:
+
+	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
+	  
+	  protected:
       bool stopEarly () const {
-	if (stopper) {
-	  return stopper->shouldStop ();
-	}
-	else {
-	  return false;
-	}
+		if (stopper) {
+		  return stopper->shouldStop ();
+		}
+		else {
+		  return false;
+		}
       }
       MiniMC::Support::Messager& getMessager () const {return *messager;}
     private:
@@ -60,13 +64,14 @@ namespace MiniMC {
 
     template<class algorithm>
     void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-        seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-	seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
-	seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (mess);
-	seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (mess);  
-	seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
-	seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (mess);
-    }
+		seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
+		seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (mess);
+		seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (mess);  
+		seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
+		algorithm::presetups (seq,mess);
+		seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (mess);
+		
+	}
   }
 }
 

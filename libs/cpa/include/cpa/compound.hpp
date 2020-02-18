@@ -60,11 +60,11 @@ namespace MiniMC {
       
       template<size_t ask, class ... args>
       struct StateQuery {
-	static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
-	  std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
-	  return std::make_shared<State<sizeof... (args)>> (init);
-	}						       
-
+		static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
+		  std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
+		  return std::make_shared<State<sizeof... (args)>> (init);
+		}						       
+		
 	static size_t nbOfProcesses (const State_ptr& a) {
 	  auto s = static_cast<State<sizeof... (args)>&> (*a);
 	  return GetNthTemplateArgument<ask,args...>::Temp::Query::nbOfProcesses (s.template get<ask> ());
@@ -135,24 +135,24 @@ namespace MiniMC {
       template<class... args>
       class Storer : public MiniMC::CPA::Storer {
       public:
-	using StorageTag = StoreTag<args...>;
+		using StorageTag = StoreTag<args...>;
+		
+		template<size_t statenb,class A, class ... As>
+		struct Saver {
+		  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
+			auto& ss = static_cast<State<sizeof... (args)>& > (*state);
+			store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
+			Saver<statenb,As...>::doSave (state,t,store);
+		  }
+		};
 	
-	template<size_t statenb,class A, class ... As>
-	struct Saver {
-	  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
-	    auto& ss = static_cast<State<sizeof... (args)>& > (*state);
-	    store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
-	    Saver<statenb,As...>::doSave (state,t,store);
-	  }
-	};
-	
-	template<size_t statenb,class A>
-	struct Saver<statenb,A> {
-	  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
-	    auto& ss = static_cast<State<sizeof... (args)>& > (*state);
-	    store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
-	  }
-	};
+		template<size_t statenb,class A>
+		struct Saver<statenb,A> {
+		  static void doSave (const State_ptr& state, StorageTag& t, Storing<args...> store) {
+			auto& ss = static_cast<State<sizeof... (args)>& > (*state);
+			store.template getSubStore<A> ().saveState (ss.template get<statenb> (),&t.template getSubTag<A> ());
+		  }
+		};
 	
 	
 	bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
@@ -194,15 +194,38 @@ namespace MiniMC {
 	std::set<MiniMC::Hash::hash_t> stored;
 	Storing<args...> store;
       };
-      
-      
+
+	  template<class A, class... CPAs>
+	  struct PreValidateSetup {
+		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::setup (seq,mess);
+		  PreValidateSetup<CPAs...>::setup (seq,mess);
+		}
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::validate (seq,mess);
+		  PreValidateSetup<CPAs...>::validate (seq,mess);
+		}
+	  };
+
+	  template<class A>
+	  struct PreValidateSetup<A> {
+		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::setup (seq,mess);
+		}
+		
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::validate (seq,mess);
+		}
+	  };
+	  
       template<size_t ask,class... CPAs>
       struct CPADef {
-	using Query = StateQuery<ask,CPAs...>;
-	using Transfer = Transferer<CPAs...>;
-	using Join = MiniMC::CPA::Joiner;
-	using Storage = Storer<CPAs...>;
-      };
+		using Query = StateQuery<ask,CPAs...>;
+		using Transfer = Transferer<CPAs...>;
+		using Join = MiniMC::CPA::Joiner;
+		using Storage = Storer<CPAs...>;
+		using PreValidate = PreValidateSetup<CPAs...>;
+	  };
     }
   }
 }

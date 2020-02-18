@@ -4,6 +4,8 @@
 #include <ostream>
 #include <memory>
 #include <unordered_map>
+#include "support/sequencer.hpp"
+#include "support/feedback.hpp"
 #include "model/cfg.hpp"
 #include "hash/hashing.hpp"
 
@@ -37,7 +39,12 @@ namespace MiniMC {
     struct Joiner {  
       static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
     };
-    
+
+	struct PrevalidateSetup {
+	  static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
+	  static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
+	};
+	
     class Storer {
     public:
       using StorageTag = MiniMC::Hash::hash_t;
@@ -47,13 +54,14 @@ namespace MiniMC {
     private:
       std::unordered_map<MiniMC::Hash::hash_t, State_ptr> actualStore;;
     };
-
+	
     struct CPADef {
       using Query = StateQuery;
       using Transfer = Transferer;
       using Join = Joiner;
       using Storage = Storer; 
-    };
+	  using PreValidate = PrevalidateSetup;
+	};
     
   }
 }

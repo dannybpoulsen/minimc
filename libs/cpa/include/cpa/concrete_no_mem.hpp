@@ -1,8 +1,10 @@
 #ifndef _CONCRETE_NOMEM__
 #define _CONCRETE_NOMEM__
 
+#include "support/localisation.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
+#include "model/modifications/rremoveretsentry.hpp"
 
 
 namespace MiniMC {
@@ -22,13 +24,48 @@ namespace MiniMC {
       struct Joiner {  
 	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
       };
-      
+
+
+	  struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+		ValidateInstructions (MiniMC::Support::Messager& ptr) : mess (ptr) {}
+		virtual bool run (MiniMC::Model::Program&  prgm) {
+		  for (auto& F : prgm.getEntryPoints ()) {
+			for (auto& E : F->getCFG()->getEdges ()) {
+			  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+				for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+				  if (I.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
+					MiniMC::Support::Localiser error_mess ("This CPA does not support '%1%' instruction"); 
+					mess.error (error_mess.format (I.getOpcode ()));
+					return false;
+				  }
+				}
+			  }
+			}
+		  }
+		  return true;
+		}
+	private:
+	  MiniMC::Support::Messager& mess;
+	};
+	  
+	struct PrevalidateSetup {
+	  static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
+	  }
+	  
+	  static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
+	  }
+	};
+	
+	  
       struct CPADef {
-	using Query = StateQuery;
-	using Transfer = Transferer;
-	using Joing = Joiner;
-	using Storage = MiniMC::CPA::Storer; 
-    };
+		using Query = StateQuery;
+		using Transfer = Transferer;
+		using Joing = Joiner;
+		using Storage = MiniMC::CPA::Storer; 
+		using PreValidate = PrevalidateSetup;
+	  };
     }
   }
 }

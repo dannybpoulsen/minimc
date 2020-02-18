@@ -123,11 +123,11 @@ namespace MiniMC {
 
       template<MiniMC::Model::InstructionCode opc>
       struct TACRedirect{
-	using i8 = TACExec<opc,MiniMC::uint8_t>;
-	using i16 = TACExec<opc,MiniMC::uint16_t>;
-	using i32 = TACExec<opc,MiniMC::uint32_t>;
-	using i64 = TACExec<opc,MiniMC::uint64_t>;
-	using boolean = TACExec<opc,MiniMC::uint8_t>;
+		using i8 = TACExec<opc,MiniMC::uint8_t>;
+		using i16 = TACExec<opc,MiniMC::uint16_t>;
+		using i32 = TACExec<opc,MiniMC::uint32_t>;
+		using i64 = TACExec<opc,MiniMC::uint64_t>;
+		using boolean = TACExec<opc,MiniMC::uint8_t>;
       };
       
       template<class T>
@@ -167,6 +167,15 @@ namespace MiniMC {
 		}
       };
 
+	  template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Skip,void> {
+		static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
+		  
+		  
+		}
+      };
+	  
       class RegisterLoader {
       public:
 	RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {

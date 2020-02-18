@@ -20,13 +20,14 @@ namespace MiniMC {
       struct Joiner {  
 	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
       };
-      
+	  
       struct CPADef {
-	using Query = StateQuery;
-	using Transfer = Transferer;
-	using Joing = Joiner;
-	using Storage = MiniMC::CPA::Storer; 
-    };
+		using Query = StateQuery;
+		using Transfer = Transferer;
+		using Joing = Joiner;
+		using Storage = MiniMC::CPA::Storer; 
+		using PreValidate = MiniMC::CPA::PrevalidateSetup;
+	  };
     }
   }
 }
