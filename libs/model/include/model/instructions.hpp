@@ -50,7 +50,7 @@ namespace MiniMC {
     X(BitCast)					\
     X(BoolZExt)					\
     X(BoolSExt)					\
-	X(IntToBool)				\
+    X(IntToBool)				\
 	
 
 #define MEMORY					\
@@ -68,6 +68,7 @@ namespace MiniMC {
     X(Assert)					\
     X(StackRestore)				\
     X(StackSave)				\
+    X(Uniform)					\
     
     enum class InstructionCode {
 #define X(OP)					\
@@ -299,6 +300,18 @@ namespace MiniMC {
       static const bool isAggregate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = false;			
+    };
+
+    template<>						
+    struct InstructionData<InstructionCode::Uniform>{		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 2;			
+      static const bool hasResVar = true;			
     };
 
     class Function;
@@ -982,7 +995,40 @@ namespace MiniMC {
 	return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
       } 
     };
-    
+
+
+    //
+    template<>
+    class InstHelper<InstructionCode::Uniform,void> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+      auto& getMin () const {return inst.getOp(1);}
+      auto& getMax () const {return inst.getOp(2);}
+      
+      private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::Uniform,void> {
+    public:
+      void setResult (const Value_ptr& ptr) {res = ptr;}
+      void setMin (const Value_ptr& ptr) {min = ptr;}
+      void setMax (const Value_ptr& ptr) {max = ptr;}
+      Instruction BuildInstruction () {
+	assert(min);
+	assert(max);
+	assert(res);
+	return Instruction (InstructionCode::Uniform,{res,min,max});
+      }
+    private:
+      Value_ptr res;
+      Value_ptr min;
+      Value_ptr max;
+    };
+
+    //
     template<>
     class InstHelper<InstructionCode::Store,void> {
     public:

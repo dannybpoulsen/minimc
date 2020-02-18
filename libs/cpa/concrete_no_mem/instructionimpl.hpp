@@ -3,6 +3,7 @@
 #include "support/div.hpp"
 #include "support/rightshifts.hpp"
 #include "support/exceptions.hpp"
+#include "support/localisation.hpp"
 #include "support/pointer.hpp"
 
 #include "register.hpp"
@@ -150,13 +151,20 @@ namespace MiniMC {
 	  assert(false && "Not Implemented");
 	}
       }
+
+      template<MiniMC::Model::InstructionCode c>
+      class NotImplemented : public MiniMC::Support::Exception {
+      public:
+	NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
+      };
 	 	  
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
 		static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
 						 MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
-	  
-	}
+		  
+		  throw NotImplemented<opc> ();
+		}
       };
 
       class RegisterLoader {

@@ -7,6 +7,8 @@
 #include <limits>
 #include <random>
 
+#include "support/types.hpp"
+
 namespace MiniMC {
   namespace Support {
     template<class Engine = std::mt19937_64>
@@ -53,6 +55,8 @@ namespace MiniMC {
       
     };
 
+    
+    
     
   }
 }

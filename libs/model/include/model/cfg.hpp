@@ -82,6 +82,10 @@ namespace MiniMC {
       Value_ptr guard = nullptr;
       bool negate = false;
     };
+
+    inline std::ostream& operator<< (std::ostream& os, const Guard& g) {
+      return os << "<< " <<(g.negate ? "!" : "") << *g.guard << " >>";
+    }
 	
     struct InstructionStream {
       InstructionStream () : isPhi(false) {}
@@ -203,10 +207,12 @@ namespace MiniMC {
 
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
-	  if (e.hasAttribute<AttributeType::Instructions> ()) {
-		os <<e.getAttribute<AttributeType::Instructions> ().instr;
-	  }
-	  //return os << e.getInstructions ();
+      if (e.hasAttribute<AttributeType::Guard> ()) {
+	os <<e.getAttribute<AttributeType::Guard> ();
+      }
+      else if (e.hasAttribute<AttributeType::Instructions> ()) {
+	os <<e.getAttribute<AttributeType::Instructions> ().instr;
+      }
       return os;
     }
 	

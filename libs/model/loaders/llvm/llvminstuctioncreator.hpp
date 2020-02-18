@@ -223,6 +223,14 @@ namespace MiniMC {
 	  
 	}
       }
+      else if (func->isDeclaration ()) {
+	//We don't know what to do for this function
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> builder;
+	if (!inst->getType ()->isVoidTy ()) {
+	  builder.setResult (findValue(inst,values,tt,cfac));
+	  instr.push_back(builder.BuildInstruction ());
+	}
+      }
       else {
 	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Call> builder; 
 	builder.setFunctionPtr (findValue(func,values,tt,cfac));
