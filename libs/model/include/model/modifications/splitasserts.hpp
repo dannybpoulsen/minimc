@@ -26,8 +26,9 @@ namespace MiniMC {
 		  auto val = MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert> (instrs.last ()).getAssert ();
 		  instrs.erase ((instrs.rbegin()+1).base());
 		   
-		  auto eloc = cfg->getErrorLocation ();
-		  auto nloc = cfg->makeLocation ("PAssert");
+		  auto eloc = cfg->makeLocation ("AssertViolation");
+		  eloc->setError ();
+		  auto nloc = cfg->makeLocation ("");
 		  auto ttloc = E->getTo ();
 		  E->setTo (nloc);
 		  auto ff_edge = cfg->makeEdge (nloc,eloc,prgm.shared_from_this());
@@ -40,7 +41,6 @@ namespace MiniMC {
 	      }
 	    }
 	  }
-	  std::cerr << "Done" << std::endl;
 	  return true;
 	}
 	

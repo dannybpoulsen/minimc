@@ -3,13 +3,8 @@
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include "algorithms/printgraph.hpp"
-#include "model/modifications/rremoveretsentry.hpp"
-#include "model/modifications/replacememnondet.hpp"
-#include "model/modifications/insertboolcasts.hpp"
-#include "model/modifications/splitasserts.hpp"
 
-#include "model/checkers/typechecker.hpp"
-#include "model/checkers/structure.hpp"
+
 #include "cpa/location.hpp"
 #include "cpa/concrete_no_mem.hpp"
 #include "cpa/compound.hpp"
@@ -28,12 +23,7 @@ void runAlgorithm (MiniMC::Model::Program& prgm) {
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
-  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*mess);
-  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*mess);  
-  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
-  seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (*mess);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess);
   
   seq.run (prgm);
 }

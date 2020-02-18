@@ -213,14 +213,10 @@ namespace MiniMC {
     class CFG {
     public:
 	  CFG () {
-		locations.emplace_back (new Location ("Error"));
-		error = locations.back();
 	  }
 
-	  gsl::not_null<Location_ptr> getErrorLocation () {
-		return error;
-	  }
-	  
+      
+      
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
 		locations.emplace_back (new Location (name));
 		return locations.back();
@@ -257,7 +253,6 @@ namespace MiniMC {
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;;
-	  Location_ptr error = nullptr;
     };
 
     using CFG_ptr = std::shared_ptr<CFG>;

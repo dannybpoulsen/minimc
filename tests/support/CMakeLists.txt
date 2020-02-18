@@ -7,11 +7,13 @@ add_executable (rshifts shifts.cpp)
 add_executable (seq sequencer.cpp)
 add_executable (gen generate.cpp)
 add_executable (ext ext_casts.cpp)
+add_executable (random random.cpp)
 
 
 target_link_libraries (gen minimclib)
 target_link_libraries (seq minimclib)
 target_link_libraries (output minimclib)
+target_link_libraries (random minimclib)
 target_link_libraries (divisions minimclib  ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (sdivisions  minimclib ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (rshifts  minimclib ${GTEST_BOTH_LIBRARIES})
