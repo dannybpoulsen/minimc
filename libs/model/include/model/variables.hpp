@@ -49,7 +49,14 @@ namespace MiniMC {
       
       auto getValue () const {return value;}
   
-      virtual std::ostream& output (std::ostream& os) const {return os << value;}
+      virtual std::ostream& output (std::ostream& os) const {
+	os << "< " << value << " ";
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
+      }
     private:
       uint64_t value;
     };

@@ -9,10 +9,6 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
       struct SplitAsserts : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-	
-
-		
-		
 	virtual bool run (MiniMC::Model::Program&  prgm) {
 	  for (auto& F : prgm.getFunctions ()) {
 	    auto cfg = F->getCFG ();
@@ -27,7 +23,7 @@ namespace MiniMC {
 		  instrs.erase ((instrs.rbegin()+1).base());
 		   
 		  auto eloc = cfg->makeLocation ("AssertViolation");
-		  eloc->set<MiniMC::Model::Location::Attributes::Error> ();
+		  eloc->set<MiniMC::Model::Location::Attributes::AssertViolated> ();
 		  auto nloc = cfg->makeLocation ("");
 		  auto ttloc = E->getTo ();
 		  E->setTo (nloc);

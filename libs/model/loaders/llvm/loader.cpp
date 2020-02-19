@@ -460,7 +460,7 @@ namespace MiniMC {
 	
     class LLVMLoader : public Loader {
       virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
-	auto prgm = std::make_shared<MiniMC::Model::Program> ();
+	auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
 	std::fstream str;
 	str.open (file);
 	std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));

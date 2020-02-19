@@ -5,6 +5,7 @@
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "support/pointer.hpp"
+#include "support/random.hpp"
 
 #include "register.hpp"
 #include "stack.hpp"
@@ -523,6 +524,49 @@ namespace MiniMC {
 		  st.heap.write (pointer,valueval.getRegister());
 		}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Uniform,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Uniform> helper (inst);
+	  MiniMC::Model::Value_ptr value = helper.getResult();
+	  MiniMC::Model::Value_ptr min = helper.getMin();
+	  MiniMC::Model::Value_ptr max = helper.getMax();
+	  auto size = value->getType()->getSize();
+	  RegisterLoader minreg (readFrom,min);
+	  RegisterLoader maxreg (readFrom,max);
+	  assert(value->getType () ->getTypeID () == MiniMC::Model::TypeID::Integer);
+	  MiniMC::Support::RandomNumber rand;
+	  auto functor = [&]<typename T> () {
+					     auto val = rand.template uniform<T> (minreg.getRegister ().template get<T> (),
+										  maxreg.getRegister ().template get<T> ());
+					     auto nreg = InRegister (&val,sizeof(T));
+					     st.stack.save (nreg,std::static_pointer_cast<MiniMC::Model::Variable> (value));
+	  };
+
+
+	  switch (size) {
+	  case 1: 
+	    functor.operator()<MiniMC::uint8_t>  ();
+	    break;
+	  case 2: 
+	    functor.operator()<MiniMC::uint16_t> ();
+	    break;
+	  case 4: 
+	    functor.operator()<MiniMC::uint32_t> ();
+	    break;
+	  case 8: 
+	    functor.operator()<MiniMC::uint64_t> ();
+	    break;
+	    
+	 
+	    
+	  }
+	}
+      };
+
       
     }
   }

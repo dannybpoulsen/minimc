@@ -15,7 +15,7 @@ namespace MiniMC {
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
     struct Types {
-	  MiniMC::Model::VariableStackDescr_ptr stack;
+      MiniMC::Model::VariableStackDescr_ptr stack;
       MiniMC::Model::TypeFactory_ptr tfac;
       MiniMC::Model::Type_ptr getType (llvm::Type* type) {
 	return  MiniMC::Loaders::getType (type,tfac);
@@ -117,7 +117,8 @@ namespace MiniMC {
     auto llalltype = alinst->getAllocatedType ();
     auto outalltype = tt.getType (llalltype);
     auto res = findValue (inst,values,tt,cfac);		
-    auto size = cfac->makeIntegerConstant(outalltype->getSize());		
+    auto size = cfac->makeIntegerConstant(outalltype->getSize());
+    size->setType (tt.tfac->makeIntegerType (64));
     builder.setRes (res);						
     builder.setSize (size);						
     instr.push_back(builder.BuildInstruction ());			

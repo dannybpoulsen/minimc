@@ -30,7 +30,7 @@ namespace MiniMC {
     public:
       using AttrType = char;
       enum class Attributes  : AttrType {
-			     Error = 1,
+			     AssertViolated = 1,
 			     LoopEntry = 2
       };
       
@@ -319,7 +319,9 @@ namespace MiniMC {
 
     class Program  : public std::enable_shared_from_this<Program>{
     public:
-      Program ()  {
+      Program (const MiniMC::Model::TypeFactory_ptr& tfact,
+	       const MiniMC::Model::ConstantFactory_ptr& cfact
+	       ) : cfact(cfact), tfact(tfact)  {
 	globals = makeVariableStack().get();
       }
       gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
@@ -356,13 +358,18 @@ namespace MiniMC {
       auto makeSourceLocation (const std::string& n, line_loc l) const {
 	return std::make_shared<SourceLocation> (n,l);
       }
+
+      auto& getConstantFactory () {return cfact;}
+      auto& getTypeFactory () {return tfact;}
+      
       
     private:
       std::vector<Function_ptr> functions;
       VariableStackDescr_ptr globals;
       std::vector<Function_ptr> entrypoints;
       std::size_t stacks = 0;
-      
+      MiniMC::Model::ConstantFactory_ptr cfact;
+      MiniMC::Model::TypeFactory_ptr tfact;
     };
     
   }

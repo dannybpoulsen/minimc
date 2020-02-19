@@ -1028,6 +1028,15 @@ namespace MiniMC {
       Value_ptr max;
     };
 
+    template<>
+    struct Formatter<InstructionCode::Uniform,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Uniform> h (inst);
+	return os  << *h.getResult () << " = " << InstructionCode::Uniform << " ( " << *h.getMin() << ", " << *h.getMax() << ")"; 
+	
+      } 
+    };
+
     //
     template<>
     class InstHelper<InstructionCode::Store,void> {
