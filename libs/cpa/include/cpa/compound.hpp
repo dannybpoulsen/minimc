@@ -31,6 +31,10 @@ namespace MiniMC {
 	  return hash;
 	}
 
+	bool isPotentialLoop () const {
+	  return states[0]->isPotentialLoop ();
+	}
+
 	virtual std::ostream& output (std::ostream& os) const  {
 	  for (auto& state : states) {
 	    state->output (os);

@@ -107,10 +107,10 @@ namespace MiniMC {
 	    assert(!stack.isModified());
 	    auto data = stack.getData ();
 	    if (!MiniMC::Support::is_null (data.allocs))
-	      heap.free_obj (data.allocs);
+	      heap.free_obj (data.allocs,true);
 	    auto nptr = data.prev;
 	    assert(!MiniMC::Support::is_null (nptr));
-	    heap.free_obj (stack_ptr);
+	    heap.free_obj (stack_ptr,true);
 	    auto buf = heap.copy_out (nptr);
 	    stack = buf;
 	    stack_ptr = nptr;

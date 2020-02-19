@@ -14,7 +14,8 @@ namespace MiniMC {
       enum  Flags {
 		   Initialised = 1,
 		   Freed = 2,
-		   Invalid = 4
+		   Invalid = 4,
+		   Reusable = 8
       };
       struct __attribute__ ((packed)) HeapEntry {
 	MiniMC::uint8_t flags = Flags::Invalid;
@@ -60,25 +61,24 @@ namespace MiniMC {
 	}
 
 	pointer_t make_obj (MiniMC::offset_t size) {
+	  auto data = searchForReusable ();
 	  if (size) {
 	    std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
 	    std::fill (ndata.get(),ndata.get()+size,0);
-	    HeapEntry entry;
+	    HeapEntry& entry = *data.entry;
 	    entry.flags = 0;
 	    entry.size = size;
 	    entry.data = MiniMC::Storage::getStorage().store (ndata,size);
 	    assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	    pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
-	    entries.push_back (entry);
+	    pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0);
 	    return ptr;
 	  }
 	  else {
-	    HeapEntry entry;
+	    HeapEntry& entry = *data.entry;
 	    entry.flags = 0;
 	    entry.size = 0;
 	    entry.data = nullptr;
-	    pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
-	    entries.push_back (entry);
+	    pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0); 
 	    return ptr;
 	  }
 	  
@@ -86,21 +86,21 @@ namespace MiniMC {
 
 	template<class T>
 	pointer_t make_obj_initialiser (MiniMC::offset_t size, const T& s) {
+	  auto data = searchForReusable ();
 	  assert(size>=sizeof(T));
 	  std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
 	  std::fill (ndata.get(),ndata.get()+size,0);
 	  std::copy (reinterpret_cast<const MiniMC::uint8_t*> (&s),reinterpret_cast<const MiniMC::uint8_t*> (&s)+sizeof(T),ndata.get());
-	  HeapEntry entry;
+	  HeapEntry& entry = *data.entry;
 	  entry.flags = 0;
 	  entry.size = size;
 	  entry.data = MiniMC::Storage::getStorage().store (ndata,size);
 	  assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	  pointer_t ptr = MiniMC::Support::makeHeapPointer (entries.size(),0);
-	  entries.push_back (entry);
+	  pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0);
 	  return ptr;
 	}
 
-	void free_obj (const MiniMC::pointer_t& pointer) {
+	void free_obj (const MiniMC::pointer_t& pointer,bool reusable = false) {
 	  assert(MiniMC::Support::IsA<MiniMC::Support::PointerType::Heap>::check(pointer));
 	  auto base = MiniMC::Support::getBase (pointer);
 	  auto offset = MiniMC::Support::getOffset (pointer);
@@ -109,13 +109,36 @@ namespace MiniMC {
 	  if (entry.flags & Flags::Invalid) {
 	    throw MiniMC::Support::InvalidPointer ();
 	  }
-	  
-	  entry.flags = Flags::Freed | Flags::Invalid;
+	  if (!reusable) {
+	    entry.flags = Flags::Freed | Flags::Invalid;
+	    
+	  }
+	  else {
+	    entry.flags = Flags::Reusable | Flags::Freed | Flags::Invalid;
+	  }
 	  entry.size = 0;
 	  entry.data = nullptr;
-	  
 	}
 
+	struct SearchData {
+	  SearchData (HeapEntry* e, size_t index ) :entry(e),index(index) {}
+	  HeapEntry* entry;
+	  size_t index;
+	};
+
+	SearchData searchForReusable () {
+	  size_t i = 0;
+	  for (auto& e : entries) {
+	    if (e.flags & Flags::Reusable) {
+	      return SearchData (&e,i);
+	    }
+	    i++;
+	  }
+	  HeapEntry e;
+	  entries.push_back (e);
+	  return SearchData (&entries.back(),i);
+	}
+	
 	pointer_t extend_obj (const MiniMC::pointer_t& pointer,MiniMC::offset_t add) {
 	  auto base = MiniMC::Support::getBase (pointer);
 	  auto offset = MiniMC::Support::getOffset (pointer);

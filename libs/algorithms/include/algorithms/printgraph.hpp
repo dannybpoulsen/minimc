@@ -22,7 +22,7 @@ namespace MiniMC {
 		messager.message ("Initiating PrintCPA");
 		MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		auto error = graph->getNode ("Error");
-		CPADFSPassedWaiting<CPA> passed;
+		CPADFSPassedWaitingAll<CPA> passed;
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 		try {
@@ -34,6 +34,8 @@ namespace MiniMC {
 			std::stringstream str;
 			str << cur->hash ();
 			auto curnode = graph->getNode (str.str());
+			if (cur->isPotentialLoop ())
+			  curnode->color ();
 			MiniMC::Algorithms::Generator<typename CPA::Query,typename CPA::Transfer> generator (cur);
 			auto it = generator.begin();
 			auto end = generator.end();

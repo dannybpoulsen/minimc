@@ -431,7 +431,7 @@ namespace MiniMC {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackRestore> helper (inst);
 	  RegisterLoader loader (readFrom,helper.getValue());
 	  auto data = st.stack.getData();
-	  st.heap.free_obj (data.allocs);
+	  st.heap.free_obj (data.allocs,true);
 	  data.allocs = loader.getRegister(). template get<pointer_t> ();
 	  data.allocs = st.heap.make_obj (0);
 	  st.stack.setData (data);

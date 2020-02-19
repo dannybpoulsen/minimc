@@ -240,7 +240,7 @@ namespace MiniMC {
 		   MiniMC::Model::ConstantFactory_ptr& cfac
 		   ) : prgm(prgm),cfactory(cfac),tfactory(tfac) {
       }
-      llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
+      llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager& AM) {
 	std::string fname =  F.getName();
 	auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
 	std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
@@ -331,6 +331,16 @@ namespace MiniMC {
 	ptr->setType (tfactory->makeIntegerType (64));
 	values.insert (std::make_pair(&F,ptr));
 
+
+	//Find the loops now
+	auto &LI = AM.getResult<llvm::LoopAnalysis>(F);
+	for (auto loop : LI) {
+	  auto header = loop->getHeader ();
+	  auto loc = locmap.at (header);
+	  loc->template set<MiniMC::Model::Location::Attributes::LoopEntry> ();
+	}
+	
+	
 	return llvm::PreservedAnalyses::all();
       }
 

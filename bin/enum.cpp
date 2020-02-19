@@ -23,8 +23,8 @@ void runAlgorithm (MiniMC::Model::Program& prgm) {
   using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-  seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (*mess);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess);
+  
   seq.run (prgm);
 }
 

@@ -21,7 +21,7 @@ namespace MiniMC {
 		messager.message ("Initiating EnumStates");
 		std::size_t states = 0;
 		
-		CPADFSPassedWaiting<CPA> passed;
+		CPADFSPassedWaitingAll<CPA> passed;
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 		try {

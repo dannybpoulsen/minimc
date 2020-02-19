@@ -18,6 +18,7 @@ namespace MiniMC {
       virtual std::ostream& output (std::ostream& os) const {return os << "_";}
       virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return 0;}
       virtual std::shared_ptr<State> copy () const {return std::make_shared<State> ();}
+      virtual bool isPotentialLoop () const {return false;}
     };
     
     using State_ptr = std::shared_ptr<State>;
@@ -40,9 +41,9 @@ namespace MiniMC {
       static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
     };
 
-	struct PrevalidateSetup {
-	  static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
-	  static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
+    struct PrevalidateSetup {
+      static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
+      static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
 	};
 	
     class Storer {

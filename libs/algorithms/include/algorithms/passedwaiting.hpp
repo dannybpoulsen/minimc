@@ -59,8 +59,13 @@ namespace MiniMC {
     class PassedWaiting {
     public:
       void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
-	if (store.saveState (ptr.get(),nullptr)) {
-	  passed++;
+	if (ptr->isPotentialLoop ()) {
+	  if (store.saveState (ptr.get(),nullptr)) {
+	    passed++;
+	    waiting.insert (ptr.get());
+	  }
+	}
+	else {
 	  waiting.insert (ptr.get());
 	}
       }
@@ -83,17 +88,57 @@ namespace MiniMC {
       std::size_t passed = 0;
     };
 
+    template<class StateStorage, class Waiting>
+    class PassedWaitingStoreAll {
+    public:
+      void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
+	if (store.saveState (ptr.get(),nullptr)) {
+	  passed++;
+	  waiting.insert (ptr.get());
+	}
+      }
+
+      MiniMC::CPA::State_ptr pull () {
+	assert(hasWaiting());
+	return waiting.pull ();
+      }
+      
+      bool hasWaiting () const {
+	return !waiting.empty();
+      }
+      
+      std::size_t getWSize () const {return waiting.size();}
+      std::size_t getPSize () const {return passed;}
+      
+    private:
+      StateStorage store;
+      Waiting waiting;
+      std::size_t passed = 0;
+    };
+
     template<class StateStorage>
     using DFSBaseWaiting = PassedWaiting<StateStorage,Stack>;
 
     template<class StateStorage>
     using BFSBaseWaiting = PassedWaiting<StateStorage,Queue>;
 
+    template<class StateStorage>
+    using DFSBaseWaitingAll = PassedWaitingStoreAll<StateStorage,Stack>;
+
+    template<class StateStorage>
+    using BFSBaseWaitingAll = PassedWaitingStoreAll<StateStorage,Queue>;
+
     template<class CPA>
     using CPADFSPassedWaiting = DFSBaseWaiting<typename CPA::Storage>;
 
     template<class CPA>
     using CPABFSPassedWaiting = BFSBaseWaiting<typename CPA::Storage>;
+
+  template<class CPA>
+    using CPADFSPassedWaitingAll = DFSBaseWaitingAll<typename CPA::Storage>;
+
+    template<class CPA>
+    using CPABFSPassedWaitingAll = BFSBaseWaitingAll<typename CPA::Storage>;
 
   }
 }

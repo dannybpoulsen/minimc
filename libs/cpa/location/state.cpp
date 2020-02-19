@@ -22,6 +22,8 @@ namespace MiniMC {
 	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
 	  return MiniMC::Hash::Hash<MiniMC::Model::Location*> (stack.data(),stack.size(),seed);
 	}
+
+	
 	std::vector<MiniMC::Model::Location*> stack;
 	
       };
@@ -57,6 +59,13 @@ namespace MiniMC {
 	}
 	void pushLocation (size_t i, MiniMC::Model::Location* l) {locations[i].push (l);}
 	void popLocation (size_t i) {locations[i].pop ();}
+	bool isPotentialLoop () const {
+	  for (auto& locState : locations) {
+	    if (locState.cur()->template is<MiniMC::Model::Location::Attributes::LoopEntry> ())
+	      return true;
+	  }
+	  return false;
+	}
       private:
 	std::vector<LocationState> locations;
       };
