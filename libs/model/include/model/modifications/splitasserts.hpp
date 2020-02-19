@@ -27,7 +27,7 @@ namespace MiniMC {
 		  instrs.erase ((instrs.rbegin()+1).base());
 		   
 		  auto eloc = cfg->makeLocation ("AssertViolation");
-		  eloc->setError ();
+		  eloc->set<MiniMC::Model::Location::Attributes::Error> ();
 		  auto nloc = cfg->makeLocation ("");
 		  auto ttloc = E->getTo ();
 		  E->setTo (nloc);

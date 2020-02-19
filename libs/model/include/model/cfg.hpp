@@ -25,8 +25,15 @@ namespace MiniMC {
     
     class Edge;    
     using Edge_ptr = std::shared_ptr<Edge>;
+
     class Location : public std::enable_shared_from_this<Location>{
     public:
+      using AttrType = char;
+      enum class Attributes  : AttrType {
+			     Error = 1,
+			     LoopEntry = 2
+      };
+      
       using edge_iterator = std::vector<Edge_ptr>::const_iterator;
       
       Location (const std::string& n) : name(n) {}
@@ -41,13 +48,15 @@ namespace MiniMC {
 	  edges.erase (it);
 	}
       }
-
-      bool isErrorLocation () const {
-	return isError;
+      
+      template<Attributes i>
+      bool is () {
+	return static_cast<AttrType> (i) & flags;
       }
 
-      void setError ()  {
-	isError = true;
+      template<Attributes i>
+      void set () {
+	flags |= static_cast<AttrType> (i);
       }
       
       bool hasSourceLocation  () const {return sourceloc.get();}
@@ -58,6 +67,7 @@ namespace MiniMC {
       std::string name;
       SourceLocation_ptr sourceloc = nullptr;
       bool isError = false;
+      AttrType flags = 0;
     };
 
     
