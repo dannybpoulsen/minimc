@@ -14,11 +14,11 @@ auto createLoader (int val) {
 }
 
 
-void runAlgorithm (MiniMC::Model::Program& prgm) {
+void runAlgorithm (MiniMC::Model::Program& prgm,std::size_t samples, std::size_t length) {
   using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t> (seq,*mess,795,795);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t> (seq,*mess,samples,length);
   
   seq.run (prgm);
 }
@@ -30,10 +30,16 @@ int main (int argc,char* argv[]) {
   po::options_description desc("General Options");
   std::string input;
   bool help;
+  std::size_t length = 100;
+  std::size_t samples = 100;
+  
   desc.add_options()
     ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
     ("inputfile",po::value<std::string> (&input),"Input file")
-    ("help,h",po::bool_switch(&help), "Help message.")
+	("samples",po::value<std::size_t> (&samples),"Samples")
+	("length",po::value<std::size_t> (&length),"Length")
+	
+	("help,h",po::bool_switch(&help), "Help message.")
     ;
   
   po::positional_options_description positionalOptions; 
@@ -78,6 +84,6 @@ int main (int argc,char* argv[]) {
     std::cerr << "Please specify entry points functions with --task\n";
     return 0;
   }
-  runAlgorithm (*prgm);
+  runAlgorithm (*prgm,samples,length);
     
 }
