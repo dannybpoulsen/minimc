@@ -17,7 +17,7 @@ namespace MiniMC {
     template<class SMC>
     class ProbaChecker : public MiniMC::Algorithms::Algorithm {
     public:
-      ProbaChecker (MiniMC::Support::Messager& m ) : MiniMC::Algorithms::Algorithm (m), smc (100),length(100) {}
+      ProbaChecker (MiniMC::Support::Messager& m, std::size_t samples, std::size_t len ) : MiniMC::Algorithms::Algorithm (m), smc (samples),length(len) {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 						       MiniMC::CPA::Location::CPADef,
 						       MiniMC::CPA::ConcreteNoMem::CPADef

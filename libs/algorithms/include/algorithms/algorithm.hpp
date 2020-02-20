@@ -59,17 +59,17 @@ namespace MiniMC {
     template<class W,class ...Args>
     using BaseAWrapper = MiniMC::Support::SequenceWrapper<MiniMC::Model::Program,W,Args...>;
 
-    template<class W>
-    using AWrapper = BaseAWrapper<W,MiniMC::Support::Messager&>;
+    template<class W,class ...Args>
+    using AWrapper = BaseAWrapper<W,MiniMC::Support::Messager&,Args...>;
 
-    template<class algorithm>
-    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+    template<class algorithm,class ...Args>
+    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess, Args... args) {
 		seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 		seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (mess);
 		seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (mess);  
 		seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
 		algorithm::presetups (seq,mess);
-		seq.template add<MiniMC::Algorithms::AWrapper<algorithm>, MiniMC::Support::Messager&> (mess);
+		seq.template add<MiniMC::Algorithms::AWrapper<algorithm,Args...>, MiniMC::Support::Messager&,Args...> (mess, args...);
 		
 	}
   }

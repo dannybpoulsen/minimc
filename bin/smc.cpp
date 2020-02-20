@@ -18,7 +18,7 @@ void runAlgorithm (MiniMC::Model::Program& prgm) {
   using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t> (seq,*mess,795,795);
   
   seq.run (prgm);
 }
