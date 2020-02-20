@@ -22,7 +22,7 @@ namespace MiniMC {
 		messager.message ("Initiating PrintCPA");
 		MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		auto error = graph->getNode ("Error");
-		CPADFSPassedWaitingAll<CPA> passed;
+		CPADFSPassedWaiting<CPA> passed;
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 		try {
@@ -43,20 +43,20 @@ namespace MiniMC {
 			  std::stringstream edgestr;
 			  edgestr<< it->proc <<":" << *it->edge;
 			  if (it->hasErrors ()) {
-				curnode->connect (*error,edgestr.str());
+			    curnode->connect (*error,edgestr.str());
 			  }
 			  else {
-				auto nstate = it->state;
-				std::stringstream nstr;
-				nstr << nstate->hash ();
-				auto ncurnode = graph->getNode (nstr.str());
-				std::stringstream labelstr;
-				labelstr<< *nstate;
-				ncurnode->setLabel (labelstr.str());
-		
-				curnode->connect (*ncurnode,edgestr.str());
-		
-				passed.insert(nstate);
+			    auto nstate = it->state;
+			    std::stringstream nstr;
+			    nstr << nstate->hash ();
+			    auto ncurnode = graph->getNode (nstr.str());
+			    std::stringstream labelstr;
+			    labelstr<< *nstate;
+			    ncurnode->setLabel (labelstr.str());
+			    
+			    curnode->connect (*ncurnode,edgestr.str());
+			    
+			    passed.insert(nstate);
 			  }
 			}
 		  }
@@ -71,12 +71,12 @@ namespace MiniMC {
 	
 		return Result::Success;
       }
-	  
-	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
-		CPA::PreValidate::validate (seq,mess);
-		CPA::PreValidate::setup (seq,mess);
-	  }
-	  
+      
+      static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
+	CPA::PreValidate::validate (seq,mess);
+	CPA::PreValidate::setup (seq,mess);
+      }
+      
     };
     
    

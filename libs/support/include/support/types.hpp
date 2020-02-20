@@ -13,7 +13,7 @@ namespace MiniMC {
 	      int8,
 	      int16,
 	      int32,
-	      int64,
+	      int64
   };
 
   
@@ -74,7 +74,8 @@ namespace MiniMC {
   using uint16_t = TypeD<InternalTypes::uint16>::type;
   using uint32_t = TypeD<InternalTypes::uint32>::type;
   using uint64_t = TypeD<InternalTypes::uint64>::type;
-
+  using proba_t  = double;
+  
   using seg_t = int8_t;
   using base_t = int16_t;
   using proc_t = int16_t;
@@ -166,6 +167,7 @@ namespace MiniMC {
     static_assert(sizeof(From) == sizeof(To));
     return reinterpret_cast<const To&> (f);
   }
+
   
 }
 

@@ -14,11 +14,13 @@ namespace MiniMC {
   namespace Model {
 
     using line_loc = std::size_t;
+    using col_loc = std::size_t;
     
     struct SourceLocation {
-      SourceLocation (const std::string& filename, line_loc loc) : filename(filename),loc(loc) {}
+      SourceLocation (const std::string& filename, line_loc loc,col_loc col) : filename(filename),loc(loc),col(col) {}
       std::string filename;
       line_loc loc;
+      col_loc col;
     };
 
     using SourceLocation_ptr = std::shared_ptr<SourceLocation>;
@@ -173,12 +175,7 @@ namespace MiniMC {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
 		from(from),
-		to(to)
-		//value(val),
-		//negGuard(neg) {
-      {
-		//if(val)
-		//  this->template setAttribute<AttributeType::Guard> (Guard(val,neg));
+		to(to) {
       }
 	  
       template<AttributeType k>
@@ -204,7 +201,7 @@ namespace MiniMC {
       
       auto getFrom () const {return from;}
       auto getTo () const {return to;}
-	  void setTo (gsl::not_null<Location_ptr> t) { to = t;}
+      void setTo (gsl::not_null<Location_ptr> t) { to = t;}
 	  
       auto& getProgram() const {return prgm;}
       void setProgram (const Program_ptr& p) {prgm = p;} 
@@ -228,8 +225,8 @@ namespace MiniMC {
 	
     class CFG {
     public:
-	  CFG () {
-	  }
+      CFG () {
+      }
 
       
       
@@ -302,7 +299,7 @@ namespace MiniMC {
       auto& getVariableStackDescr () const {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
-	  auto& getReturnType () {return retType;}
+      auto& getReturnType () {return retType;}
       auto& getPrgm () const {return prgm;}
       void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
@@ -355,8 +352,8 @@ namespace MiniMC {
 	return std::make_shared<VariableStackDescr> (); 
       }
 
-      auto makeSourceLocation (const std::string& n, line_loc l) const {
-	return std::make_shared<SourceLocation> (n,l);
+      auto makeSourceLocation (const std::string& n, line_loc l, col_loc c) const {
+	return std::make_shared<SourceLocation> (n,l,c);
       }
 
       auto& getConstantFactory () {return cfact;}

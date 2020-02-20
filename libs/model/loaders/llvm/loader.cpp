@@ -271,7 +271,7 @@ namespace MiniMC {
 	      addInstruction (&inst,insts,tt);
 	    }
 	    if (llvm::isa<llvm::CallInst> (inst)) {
-	      auto mloc = cfg->makeLocation (loc->getName () + ":Call");
+	      auto mloc = cfg->makeLocation (loc->getName () + ":AC");
 	      auto edge = cfg->makeEdge (loc,mloc,prgm);
 	      if (insts.size())
 		edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
@@ -281,7 +281,7 @@ namespace MiniMC {
 	  }
 
 	  if (insts.size()) {
-	    auto mloc = cfg->makeLocation (loc->getName () + ":Split");
+	    auto mloc = cfg->makeLocation (loc->getName () + ":S");
 	    auto edge = cfg->makeEdge (loc,mloc,prgm);
 	    edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	    loc = mloc;
@@ -293,13 +293,13 @@ namespace MiniMC {
 		      
 	      auto brterm = llvm::dyn_cast<llvm::BranchInst> (term);
 	      if (brterm->isUnconditional ()) {
-			std::vector<MiniMC::Model::Instruction> insts;
-			auto succ = term->getSuccessor (0);
-			auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
-			//locmap.at(succ);
-			auto edge = cfg->makeEdge (loc,succloc,prgm);
-			if (insts.size())
-			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+		std::vector<MiniMC::Model::Instruction> insts;
+		auto succ = term->getSuccessor (0);
+		auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
+		//locmap.at(succ);
+		auto edge = cfg->makeEdge (loc,succloc,prgm);
+		if (insts.size())
+		  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	      }
 	      else {
 		auto cond = findValue (brterm->getCondition(),values,tt,cfactory);

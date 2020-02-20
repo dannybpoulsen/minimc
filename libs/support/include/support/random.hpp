@@ -45,7 +45,10 @@ namespace MiniMC {
       }
       
       template<typename T, typename Container = std::vector<T> >
-      const T& selectUniform (const Container& );
+      const T& selectUniform (const Container& c) {
+	assert(c.size());
+	  return c.at (this->uniform<std::size_t> (0,c.size()-1));
+      }
       
     private:
       auto& getEngine () {

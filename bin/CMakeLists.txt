@@ -10,3 +10,6 @@ target_link_libraries  (pgraph minimclib ${Boost_LIBRARIES})
 
 add_executable (enum enum.cpp)
 target_link_libraries  (enum minimclib ${Boost_LIBRARIES})
+
+add_executable (smc smc.cpp)
+target_link_libraries  (smc minimclib ${Boost_LIBRARIES})

@@ -560,9 +560,8 @@ namespace MiniMC {
 	  case 8: 
 	    functor.operator()<MiniMC::uint64_t> ();
 	    break;
-	    
-	 
-	    
+	  default:
+	    assert(false);
 	  }
 	}
       };

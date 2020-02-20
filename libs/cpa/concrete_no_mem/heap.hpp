@@ -32,7 +32,7 @@ namespace MiniMC {
 	  if (entry.flags & Flags::Invalid) {
 	    throw MiniMC::Support::InvalidPointer ();
 	  }
-	  if (offset+size > size) {
+	  if (offset+size > entry.size) {
 	    throw MiniMC::Support::BufferOverflow ();
 	  }
 	  return InRegister (entry.data+offset,size);
