@@ -11,6 +11,7 @@ namespace MiniMC {
       class InRegister {
       public:
 	InRegister (const void* m, size_t s) : mem (m), size(s) {}
+	virtual ~InRegister () {}
 	const void* getMem () const {return mem;}
 	auto getSize () const {return size;}
 	template<class T>

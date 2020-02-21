@@ -36,15 +36,15 @@ namespace MiniMC {
 			     LoopEntry = 2
       };
       
-      using edge_iterator = std::vector<Edge_ptr>::const_iterator;
+      using edge_iterator = std::vector<Edge*>::const_iterator;
       
       Location (const std::string& n) : name(n) {}
       auto& getEdges () const {return edges;}
-      void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
+      void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get().get());}
       edge_iterator ebegin () const {return edges.begin();}
       edge_iterator eend () const {return edges.end();}
       auto& getName () const {return name;}
-      void removeEdge (const Edge_ptr& e) {
+      void removeEdge (const Edge* e) {
 	auto it = std::find (edges.begin(),edges.end(),e);
 	if (it != edges.end()) {
 	  edges.erase (it);
@@ -65,7 +65,7 @@ namespace MiniMC {
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
       void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
     private:
-      std::vector<Edge_ptr> edges;
+      std::vector<Edge*> edges;
       std::string name;
       SourceLocation_ptr sourceloc = nullptr;
       bool isError = false;
@@ -170,7 +170,8 @@ namespace MiniMC {
     
 
     class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
-				 private EdgeAttributesMixin<AttributeType::Guard>
+		 private EdgeAttributesMixin<AttributeType::Guard>,
+		 public std::enable_shared_from_this<Edge> 
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
@@ -203,13 +204,13 @@ namespace MiniMC {
       auto getTo () const {return to;}
       void setTo (gsl::not_null<Location_ptr> t) { to = t;}
 	  
-      auto& getProgram() const {return prgm;}
-      void setProgram (const Program_ptr& p) {prgm = p;} 
+      auto getProgram() const {return prgm;}
+      void setProgram (const Program_ptr& p) {prgm = p.get();} 
     private:
       gsl::not_null<Location_ptr> from;
       gsl::not_null<Location_ptr> to;
       Value_ptr value;
-      Program_ptr prgm;
+      Program* prgm = nullptr;;
     };
 
     
@@ -231,19 +232,19 @@ namespace MiniMC {
       
       
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-		locations.emplace_back (new Location (name));
-		return locations.back();
+	locations.emplace_back (new Location (name));
+	return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
-		edges.emplace_back (new Edge (from,to));
-		from->addEdge (edges.back());
-		edges.back()->setProgram(p);
-		return edges.back();
+	edges.emplace_back (new Edge (from,to));
+	from->addEdge (edges.back());
+	edges.back()->setProgram(p);
+	return edges.back();
       }
 	  
       gsl::not_null<Location_ptr> getInitialLocation () {
-		assert(initial);
+	assert(initial);
 	return initial;
       }
 	  
@@ -256,7 +257,7 @@ namespace MiniMC {
 	if (it != edges.end()) {
 	  edges.erase (it);
 	}
-	edge->getTo ()->removeEdge (edge);
+	edge->getFrom ()->removeEdge (edge.get());
       }
 
       auto& getLocations () const {return locations;}
@@ -300,16 +301,16 @@ namespace MiniMC {
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
       auto& getReturnType () {return retType;}
-      auto& getPrgm () const {return prgm;}
-      void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
+      auto getPrgm () const {return prgm;}
+      void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm.get();}
     private:
       std::string name;
       std::vector<gsl::not_null<Variable_ptr>> parameters;
       VariableStackDescr_ptr variableStackDescr;
       gsl::not_null<CFG_ptr> cfg;
       MiniMC::func_t id;
-      Program_ptr prgm;
-	  Type_ptr retType;
+      Program* prgm;
+      Type_ptr retType;
     };
     
     using Function_ptr = std::shared_ptr<Function>;

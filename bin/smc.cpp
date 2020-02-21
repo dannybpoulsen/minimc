@@ -14,7 +14,8 @@ auto createLoader (int val) {
 }
 
 
-void runAlgorithm (MiniMC::Model::Program& prgm,std::size_t samples, std::size_t length,MiniMC::proba_t alpha) {
+
+void runFixedAlgorithm (MiniMC::Model::Program& prgm, std::size_t length, std::size_t samples,MiniMC::proba_t alpha) {
   using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort,std::size_t,MiniMC::proba_t>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
@@ -23,40 +24,68 @@ void runAlgorithm (MiniMC::Model::Program& prgm,std::size_t samples, std::size_t
   seq.run (prgm);
 }
 
+void runClopperAlgorithm (MiniMC::Model::Program& prgm,std::size_t length, MiniMC::proba_t width, MiniMC::proba_t alpha) {
+  using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson,MiniMC::proba_t,MiniMC::proba_t>;
+  auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
+  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+  MiniMC::Algorithms::setupForAlgorithm<algorithm,MiniMC::proba_t,MiniMC::proba_t> (seq,*mess, length, width,alpha);
+  
+  seq.run (prgm);
+}
+
 int main (int argc,char* argv[]) {
   
-
-  int cpaSelected = 0;
-  po::options_description desc("General Options");
+  
+  int algoSelected = 0;
   std::string input;
   bool help;
   std::size_t length = 100;
   std::size_t samples = 100;
   MiniMC::proba_t sign = 0.05;
+  MiniMC::proba_t width = 0.05;
+  
+  
+  po::options_description desc("General Options");
   
   desc.add_options()
     ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
     ("inputfile",po::value<std::string> (&input),"Input file")
-	("samples",po::value<std::size_t> (&samples),"Samples")
-	("length",po::value<std::size_t> (&length),"Length")
-	("alpha",po::value<MiniMC::proba_t> (&sign),"Significance")
-	
-	("help,h",po::bool_switch(&help), "Help message.")
+    ("algorithm",po::value<int> (&algoSelected),"Algorithm\n"
+    "\t 1 Fixed Effort\n"
+    "\t 1 Clopper Pearson\n"
+     )
+    ("length",po::value<std::size_t> (&length),"Length")
+    ("alpha",po::value<MiniMC::proba_t> (&sign),"Significance")
     ;
+    
+  
+  po::options_description fixed ("Fixed Effort Options");
+  fixed.add_options ()
+    ("samples",po::value<std::size_t> (&samples),"Samples") ;
+
+  po::options_description clopper ("Clopper Options");
+  clopper.add_options ()
+    ("width",po::value<MiniMC::proba_t> (&width),"Desired Width")
+    ;
+  
+  po::options_description cmdline;
+  cmdline.add(desc).
+    add(clopper).
+    add(fixed);
   
   po::positional_options_description positionalOptions; 
   positionalOptions.add("inputfile", 1); 
   po::variables_map vm; 
   
   try {
-    po::store(po::command_line_parser(argc, argv).options(desc) 
+    po::store(po::command_line_parser(argc, argv).options(cmdline) 
 	      .positional(positionalOptions).run(), vm);
     po::notify (vm);
     
   }
   catch(po::error& e) {
     if (help) {
-      std::cerr << desc;
+      std::cerr << cmdline;
       return 0;
     }
     std::cerr << e.what () << std::endl;
@@ -64,7 +93,7 @@ int main (int argc,char* argv[]) {
   }
 
   if (help)
-    std::cerr << desc;
+    std::cerr << cmdline;
   
   auto loader = createLoader (0);
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
@@ -86,6 +115,15 @@ int main (int argc,char* argv[]) {
     std::cerr << "Please specify entry points functions with --task\n";
     return 0;
   }
-  runAlgorithm (*prgm,samples,length,sign);
-    
+
+  switch (algoSelected) {
+  case 1:
+    runFixedAlgorithm (*prgm,length,samples,sign);
+    break;
+  case 2:
+    runClopperAlgorithm (*prgm,length,width,sign);
+    break;
+  default:
+    std::cerr << "No Algorithm selected." << std::endl;
+  }
 }

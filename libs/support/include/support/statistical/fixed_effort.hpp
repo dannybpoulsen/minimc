@@ -12,20 +12,22 @@ namespace MiniMC {
   namespace Support {
     namespace Statistical {
       enum class Result {
-		  Satis,
-		  NSatis,
-		  Maybe
+			 Satis,
+			 NSatis,
+			 Maybe
       };
       
       class FixedEffort {
       public:
-		FixedEffort (std::size_t e,MiniMC::proba_t p) : effort (e),alpha(p) {}
-		auto lProbability () const {return binomial_distribution<MiniMC::proba_t>::find_lower_bound_on_p(total,satis,satis < total ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);;}
-		auto hProbability () const {return binomial_distribution<MiniMC::proba_t>::find_upper_bound_on_p(total,satis,satis > 0 ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);}
+	FixedEffort (std::size_t e,MiniMC::proba_t p) : effort (e),alpha(p) {}
+	auto lProbability () const {return binomial_distribution<MiniMC::proba_t>::find_lower_bound_on_p(total,satis,satis < total ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);;}
+	auto hProbability () const {return binomial_distribution<MiniMC::proba_t>::find_upper_bound_on_p(total,satis,satis > 0 ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);}
 	bool continueSampling () const {
 	  return total < effort;
 	}
 
+	
+	
 	void sample (Result res) {
 	  switch (res) {
 	  case Result::Satis:
@@ -42,13 +44,56 @@ namespace MiniMC {
 	}
 		
       private:
-		const std::size_t effort;
-		std::size_t total = 0;
-		std::size_t satis = 0;
-		std::size_t nsatis = 0;
-		std::size_t maybe = 0;
-		MiniMC::proba_t alpha = 0;
+	const std::size_t effort;
+	std::size_t total = 0;
+	std::size_t satis = 0;
+	std::size_t nsatis = 0;
+	std::size_t maybe = 0;
+	MiniMC::proba_t alpha = 0;
       };
+
+      class ClopperPearson {
+      public:
+	ClopperPearson (MiniMC::proba_t e,MiniMC::proba_t p) : width (e), alpha(p) {
+	  update ();
+	}
+	auto lProbability () const {return lower;}
+	auto hProbability () const {return upper;}
+	bool continueSampling () const {
+	  return upper-lower > width;
+	}
+	
+	void sample (Result res) {
+	  switch (res) {
+	  case Result::Satis:
+	    satis++;
+	    break;
+	  case Result::NSatis:
+	    nsatis++;
+	    break;
+	  case Result::Maybe:
+	    maybe++;
+	    break;
+	  }
+	  total++;
+	  update ();
+	}
+		
+      private:
+	void update () {
+	  lower =  binomial_distribution<MiniMC::proba_t>::find_lower_bound_on_p(total,satis,satis < total ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);
+	  upper =  binomial_distribution<MiniMC::proba_t>::find_upper_bound_on_p(total,satis,satis > 0 ? alpha/2 : alpha,binomial_distribution<MiniMC::proba_t>::clopper_pearson_exact_interval);
+	}
+	std::size_t total = 0;
+	std::size_t satis = 0;
+	std::size_t nsatis = 0;
+	std::size_t maybe = 0;
+	MiniMC::proba_t alpha = 0;
+	MiniMC::proba_t width = 1;
+	MiniMC::proba_t  lower;
+	MiniMC::proba_t  upper;
+      };
+      
     }
   }
 }

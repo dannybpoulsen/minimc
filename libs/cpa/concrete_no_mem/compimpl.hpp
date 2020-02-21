@@ -14,7 +14,7 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode,class T>
       struct CompExec {
 	static OutRegister execute (const InRegister& left, const InRegister& right){
-	  assert(false && "Not Implemented");
+	  throw MiniMC::Support::Exception ("Bug");
 	}
       };
 

@@ -1,3 +1,4 @@
+#include "support/exceptions.hpp"
 #include "model/instructions.hpp"
 #include "model/variables.hpp"
 #include "support/casts.hpp"
@@ -15,7 +16,7 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode i,class F,class T,typename C = void>
       struct CastExec {
 	static OutRegister execute (const InRegister& left){
-	  assert(false && "Invalid Cast");
+	  throw MiniMC::Support::Exception ("Bug");
 	}
       };
       
@@ -106,7 +107,8 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Bool:
 	  return CastExec<i,F,MiniMC::uint8_t>::execute (left);
 	default:
-	  assert(false && "Not Implemented");
+	  throw MiniMC::Support::Exception ("Bug");
+	  
 	}
       }
 
@@ -128,7 +130,7 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Bool:
 	  return RedirectTo<i,MiniMC::uint8_t> (left,to);
 	default:
-	  assert(false && "Not Implemented");
+	   throw MiniMC::Support::Exception ("Bug");
 	}
       }
 

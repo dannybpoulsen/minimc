@@ -13,7 +13,7 @@ namespace MiniMC {
 
     class Value {
     public:
-      ~Value () {}
+      virtual ~Value () {}
       const Type_ptr& getType  () const  {return type;}
       void setType (const Type_ptr& t) {type = t;}
       virtual bool isVariable () const {return false;}
@@ -35,6 +35,7 @@ namespace MiniMC {
 
     class Constant : public Value {
     public:
+      virtual ~Constant () {}
       bool isConstant () const {return true;}
       virtual bool isAggregate () const {return false;}
   };
@@ -125,12 +126,12 @@ namespace MiniMC {
 		return os << " >";
 	  }
       bool isVariable () const {return true;}
-      void setOwner (const VariableStackDescr_ptr& descr) {owner = descr;}
+      void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
       
     private:
       std::string name;
-      VariableStackDescr_ptr owner;
+      VariableStackDescr* owner;
     };
 
     using Variable_ptr = std::shared_ptr<Variable>;
@@ -152,8 +153,9 @@ namespace MiniMC {
     class ConstantFactory {
     public:
       ConstantFactory () {}
-      using aggr_input = std::vector<Value_ptr>;
       virtual ~ConstantFactory () {}
+      
+      using aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool) = 0;
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t) = 0;
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;

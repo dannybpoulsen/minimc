@@ -16,10 +16,27 @@
 namespace MiniMC {
   namespace CPA {
     namespace ConcreteNoMem {
+      template<MiniMC::Model::InstructionCode c>
+      class NotImplemented : public MiniMC::Support::Exception {
+      public:
+	NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
+      };
+      
+      template<MiniMC::Model::InstructionCode opc,class S = void>
+      struct ExecuteInstruction {
+	static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
+	  
+	  throw NotImplemented<opc> ();
+	}
+      };
+      
       template<MiniMC::Model::InstructionCode i,class T>
       struct TACExec {
 	static OutRegister execute (const InRegister& left, const InRegister& right){
-	  assert(false && "Not Implemented");
+	  throw NotImplemented<i> ();
+	
+	  
 	}
       };
       
@@ -149,25 +166,10 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Bool:
 	  return T::boolean::execute (left,right);
 	default:
-	  assert(false && "Not Implemented");
+	  throw MiniMC::Support::Exception ("Bug");
 	}
       }
-
-      template<MiniMC::Model::InstructionCode c>
-      class NotImplemented : public MiniMC::Support::Exception {
-      public:
-	NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
-      };
-	 	  
-      template<MiniMC::Model::InstructionCode opc,class S = void>
-      struct ExecuteInstruction {
-		static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
-						 MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
-		  
-		  throw NotImplemented<opc> ();
-		}
-      };
-
+      
 	  template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Skip,void> {
 		static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
@@ -226,6 +228,7 @@ namespace MiniMC {
 	}
 	
 	struct InnerState {
+	  virtual ~InnerState () {}
 	  virtual const InRegister& getReg () const = 0;
 	};
 

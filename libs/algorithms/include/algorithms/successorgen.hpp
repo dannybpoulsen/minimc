@@ -80,7 +80,7 @@ namespace MiniMC {
 	    
 	    if (proc < last_proc) {
 	      succ.proc = proc;
-	      succ.edge = *iter;
+	      succ.edge = (*iter)->shared_from_this();
 	      succ.eflags = 0;
 	      try {
 		succ.state = Transfer::doTransfer (curState,succ.edge,succ.proc);
