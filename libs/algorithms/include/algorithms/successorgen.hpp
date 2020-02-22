@@ -80,7 +80,7 @@ namespace MiniMC {
 	    
 	    if (proc < last_proc) {
 	      succ.proc = proc;
-	      succ.edge = (*iter).lock();
+	      succ.edge = (*iter);
 	      succ.eflags = 0;
 	      try {
 		succ.state = Transfer::doTransfer (curState,succ.edge,succ.proc);
@@ -94,7 +94,7 @@ namespace MiniMC {
 		done = true;
 	      }
 	      else {
-		iter++;
+		++iter;
 	      }
 	    }
 	    else {

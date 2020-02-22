@@ -28,6 +28,34 @@ namespace MiniMC {
     class Edge;    
 	using Edge_ptr = std::shared_ptr<Edge>;
 	using Edge_wptr = std::weak_ptr<Edge>;
+
+	template<class Obj, class BaseIterator>
+	class SmartIterator {
+	public:
+	  SmartIterator (BaseIterator iter) : iter(iter) {}
+	  bool operator== (const SmartIterator<Obj,BaseIterator>& oth) const  {
+		return oth.iter == iter;
+	  }
+
+	  bool operator!= (const SmartIterator<Obj,BaseIterator>& oth) const {
+		return oth.iter != iter;
+	  }
+
+	  Obj operator-> () {
+		return (*iter).lock();
+	  }
+
+	  Obj operator* () {
+		return (*iter).lock();
+	  }
+
+	  void operator++ () {
+		++iter;
+	  }
+	  
+	private:
+	  BaseIterator iter;
+	};
 	
     class Location : public std::enable_shared_from_this<Location>{
     public:
@@ -37,13 +65,13 @@ namespace MiniMC {
 			     LoopEntry = 2
       };
       
-      using edge_iterator = std::vector<Edge_wptr>::const_iterator;
+      using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
       Location (const std::string& n) : name(n) {}
       auto& getEdges () const {return edges;}
       void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
-      edge_iterator ebegin () const {return edges.begin();}
-      edge_iterator eend () const {return edges.end();}
+      edge_iterator ebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.begin());}
+      edge_iterator eend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.end());}
       auto& getName () const {return name;}
       void removeEdge (const Edge_wptr e) {
 		auto it = std::find_if (edges.begin(),edges.end(),
@@ -207,8 +235,8 @@ namespace MiniMC {
       }
       
       
-      auto getFrom () const {return from.lock();}
-      auto getTo () const {return to.lock();}
+      auto getFrom () const {return gsl::not_null<Location_ptr> (from.lock());}
+      auto getTo () const {return gsl::not_null<Location_ptr> (to.lock());}
       void setTo (gsl::not_null<Location_ptr> t) { to = t.get();}
 	  
       auto getProgram() const {return prgm.lock();}
@@ -239,8 +267,8 @@ namespace MiniMC {
       
       
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-	locations.emplace_back (new Location (name));
-	return locations.back();
+		locations.emplace_back (new Location (name));
+		return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
