@@ -54,7 +54,7 @@ namespace MiniMC {
 			  MiniMC::Support::RandomNumber random;
 			  succ.proc = random.selectUniform<MiniMC::proc_t> (procs);
 			  for (auto& e : StateQuery::getLocation(curState,succ.proc)->getEdges ()) {
-			    auto edge = e->shared_from_this();
+			    auto edge = e.lock();
 			    succ.state = Transfer::doTransfer (curState,edge,succ.proc);
 				if (succ.state) {
 				  succ.edge = edge;
