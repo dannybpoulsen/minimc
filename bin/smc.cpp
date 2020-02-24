@@ -38,7 +38,7 @@ int main (int argc,char* argv[]) {
   
   int algoSelected = 0;
   std::string input;
-  bool help;
+  bool help = false;
   std::size_t length = 100;
   std::size_t samples = 100;
   MiniMC::proba_t sign = 0.05;

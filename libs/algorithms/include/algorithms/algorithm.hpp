@@ -6,6 +6,7 @@
 #include "model/modifications/insertboolcasts.hpp"
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
+#include "model/modifications/lower_guards.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -68,6 +69,8 @@ namespace MiniMC {
 		seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (mess);
 		seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (mess);  
 		seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
+		seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
+		
 		algorithm::presetups (seq,mess);
 		seq.template add<MiniMC::Algorithms::AWrapper<algorithm,Args...>, MiniMC::Support::Messager&,Args...> (mess, args...);
 		

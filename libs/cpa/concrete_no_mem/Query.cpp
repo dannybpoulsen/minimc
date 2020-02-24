@@ -50,28 +50,34 @@ namespace MiniMC {
 	    return nullptr;
 	  
 	}
-	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-	  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
-	  gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
-	  for (auto& inst : instr) {
-	    switch (inst.getOpcode ()) {
+	try {
+	  if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	    auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+	    gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
+	    for (auto& inst : instr) {
+	      switch (inst.getOpcode ()) {
 #define X(OP)								\
-	      case MiniMC::Model::InstructionCode::OP:			\
-			ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,inst); \
-		break;									
-	      TACOPS
-		COMPARISONS
-		CASTOPS
-		MEMORY
-		INTERNAL
-		POINTEROPS
+		case MiniMC::Model::InstructionCode::OP:		\
+		  ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,inst); \
+		  break;									
+		TACOPS
+		  COMPARISONS
+		  CASTOPS
+		  MEMORY
+		  INTERNAL
+		  POINTEROPS
 		AGGREGATEOPS
-		}
+		  }
+	    }
 	  }
+	  det.commit ();
+	  return nstate;
 	}
-	det.commit ();
-	return nstate;
+	catch  (MiniMC::Support::AssumeViolated) {
+	  return nullptr;
+	}
       }
+      
     }
   }
 }

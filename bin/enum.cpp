@@ -34,7 +34,7 @@ int main (int argc,char* argv[]) {
   int cpaSelected = 0;
   po::options_description desc("General Options");
   std::string input;
-  bool help;
+  bool help = false;
   desc.add_options()
     ("cpa,c",po::value<int>(&cpaSelected), "CPA\n"
      "\t 1: Location\n"

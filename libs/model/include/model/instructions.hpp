@@ -66,6 +66,8 @@ namespace MiniMC {
     X(RetVoid)					\
     X(NonDet)					\
     X(Assert)					\
+    X(Assume)					\
+    X(NegAssume)				\
     X(StackRestore)				\
     X(StackSave)				\
     X(Uniform)					\
@@ -254,6 +256,30 @@ namespace MiniMC {
       static const bool hasResVar = true;			
     };
 
+    template<>						
+    struct InstructionData<InstructionCode::Assume> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 1;			
+      static const bool hasResVar = true;			
+    };
+
+    template<>						
+    struct InstructionData<InstructionCode::NegAssume> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 1;			
+      static const bool hasResVar = true;			
+    };
+    
     template<>						
     struct InstructionData<InstructionCode::StackSave> {		
       static const bool isTAC = false;
@@ -643,8 +669,11 @@ namespace MiniMC {
 
 
     //
-    template<>
-    class InstHelper<InstructionCode::Assert,void> {
+    template<InstructionCode i>
+    class InstHelper<i,std::enable_if_t<i == InstructionCode::Assert ||
+					i == InstructionCode::Assume ||
+					i == InstructionCode::NegAssume
+					>> {
     public:
       
       InstHelper (const Instruction& inst) : inst(inst) {}
@@ -653,11 +682,14 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template<>
-    class InstBuilder<InstructionCode::Assert,void> {
+    template<InstructionCode i>
+    class InstBuilder<i,std::enable_if_t<i == InstructionCode::Assert ||
+					i == InstructionCode::Assume ||
+					i == InstructionCode::NegAssume
+					 >> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::Assert,{ass});
+	return Instruction (i,{ass});
       }
      
       void setAssert (const Value_ptr& p) {ass = p;}
@@ -667,11 +699,14 @@ namespace MiniMC {
     
     };
 
-    template<> 
-    struct Formatter<InstructionCode::Assert,void> {
+    template<InstructionCode i> 
+    struct Formatter<i,std::enable_if_t<i == InstructionCode::Assert ||
+					i == InstructionCode::Assume ||
+					i == InstructionCode::NegAssume
+					>> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 	InstHelper<InstructionCode::Assert> h (inst);
-	return os << InstructionCode::Assert << "(" << *h.getAssert() << ")"  ;
+	return os << i << "(" << *h.getAssert() << ")"  ;
       } 
     };
     //

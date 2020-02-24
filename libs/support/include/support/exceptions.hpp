@@ -30,6 +30,11 @@ namespace MiniMC {
     public:
       AssertViolated () : VerificationException ("Assert Violation") {}
     };
+
+    class AssumeViolated: public  VerificationException {
+    public:
+      AssumeViolated () : VerificationException ("Assume Violated") {}
+    };
     
     
   }

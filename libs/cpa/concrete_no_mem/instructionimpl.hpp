@@ -510,6 +510,36 @@ namespace MiniMC {
 		  
 		}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assume,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assume> helper (inst);
+	  RegisterLoader ass (readFrom,helper.getAssert());
+	  assert(ass.getRegister().getSize () == 1);
+	  if (!ass.getRegister().template get <MiniMC::uint8_t> ()) {
+	    throw MiniMC::Support::AssumeViolated ();
+		  }
+	  
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::NegAssume,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assume> helper (inst);
+	  RegisterLoader ass (readFrom,helper.getAssert());
+	  assert(ass.getRegister().getSize () == 1);
+	  if (ass.getRegister().template get <MiniMC::uint8_t> ()) {
+	    throw MiniMC::Support::AssumeViolated ();
+		  }
+	  
+	}
+      };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Store,void> {

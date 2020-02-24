@@ -152,7 +152,9 @@ namespace MiniMC {
       auto rend ()  {return instr.rend();}
 	  
       auto& last () {assert(instr.size()); return instr.back();}
-	  
+
+      auto back_inserter () {return std::back_inserter(instr);}
+      
       template<class Iterator>
       auto erase( Iterator iter) {
 	return instr.erase (iter);
@@ -193,7 +195,11 @@ namespace MiniMC {
       
 	  
       bool isSet () const {
-		return is_set;
+	return is_set;
+      }
+      
+      void unSet ()  {
+	is_set = false;
       }
     private:
       ValType val;
@@ -217,6 +223,11 @@ namespace MiniMC {
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
 	static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
+      }
+
+      template<AttributeType k>
+      void delAttribute () {
+	static_cast<EdgeAttributesMixin<k>*>(this) ->unSet ();
       }
       
       template<AttributeType k>
