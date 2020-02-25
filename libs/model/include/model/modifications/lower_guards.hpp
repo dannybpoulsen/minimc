@@ -32,8 +32,11 @@ namespace MiniMC {
 
 		else
 		  add<MiniMC::Model::InstructionCode::Assume> (guard,inserter);
+		E->delAttribute<MiniMC::Model::AttributeType::Guard> ();
+		E->getFrom ()->template set<MiniMC::Model::Location::Attributes::AssumptionPlace> ();
+	      
 	      }
-	      E->delAttribute<MiniMC::Model::AttributeType::Guard> ();
+	      
 	    }
 	  }
 	  return true;

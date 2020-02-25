@@ -94,7 +94,7 @@ namespace MiniMC {
 	    
 	  }
 	  
-	  if (!nstate->getLocation (id)->getEdges().size()) {
+	  if (!nstate->getLocation (id)->hasOutgoingEdge()) {
 	    nstate->popLocation (id);
 	  }
 	 

@@ -271,6 +271,7 @@ namespace MiniMC {
 	      addInstruction (&inst,insts,tt);
 	    }
 	    if (llvm::isa<llvm::CallInst> (inst)) {
+	      loc->set<MiniMC::Model::Location::Attributes::CallPlace> ();
 	      auto mloc = cfg->makeLocation (loc->getName () + ":AC");
 	      auto edge = cfg->makeEdge (loc,mloc,prgm);
 	      if (insts.size())

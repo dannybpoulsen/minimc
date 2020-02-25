@@ -62,25 +62,51 @@ namespace MiniMC {
       using AttrType = char;
       enum class Attributes  : AttrType {
 			     AssertViolated = 1,
-			     LoopEntry = 2
+			     LoopEntry = 2,
+			     CallPlace = 4,
+			     AssumptionPlace = 8
       };
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
       Location (const std::string& n) : name(n) {}
-      auto& getEdges () const {return edges;}
+      //auto& getEdges () const {return edges;}
       void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
+      void addIncomingEdge (gsl::not_null<Edge_ptr> e) {incomingEdges.push_back(e.get());}
+      
       edge_iterator ebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.begin());}
       edge_iterator eend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.end());}
+
+      edge_iterator iebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.begin());}
+      edge_iterator ieend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.end());}
+      
+      bool hasOutgoingEdge () const {
+	return edges.size();
+      }
+      
       auto& getName () const {return name;}
-      void removeEdge (const Edge_wptr e) {
-		auto it = std::find_if (edges.begin(),edges.end(),
-								[&e](const Edge_wptr& ptr1) {
-								  return ptr1.lock() == e.lock();
-								});
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
+
+      void removeEdge (const Edge_ptr e) {
+	auto it = std::find_if (edges.begin(),edges.end(),
+				[&e](const Edge_wptr& ptr1) {
+				  return ptr1.lock() == e;
+				});
+	assert(it != edges.end());
+	edges.erase (it);
+      }
+
+      void removeIncomingEdge (const Edge_ptr e) {
+	auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
+				[&e](const Edge_wptr& ptr1) {
+				  return ptr1.lock() == e;
+				});
+	assert (it != incomingEdges.end());
+	incomingEdges.erase (it);
+    
+      }
+
+      auto nbIncomingEdges () const  {
+	return incomingEdges.size();
       }
       
       template<Attributes i>
@@ -92,12 +118,18 @@ namespace MiniMC {
       void set () {
 	flags |= static_cast<AttrType> (i);
       }
+
+      template<Attributes i>
+      void unset () {
+	flags &= ~static_cast<AttrType> (i);
+      }
       
       bool hasSourceLocation  () const {return sourceloc.get();}
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
       void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
     private:
       std::vector<Edge_wptr> edges;
+      std::vector<Edge_wptr> incomingEdges;
       std::string name;
       SourceLocation_ptr sourceloc = nullptr;
       bool isError = false;
@@ -172,7 +204,7 @@ namespace MiniMC {
     struct AttributeValueType<AttributeType::Guard> {
       using ValType = Guard;
     };
-    
+
     
     class IEdgeAttributes {
     public:
@@ -248,7 +280,11 @@ namespace MiniMC {
       
       auto getFrom () const {return gsl::not_null<Location_ptr> (from.lock());}
       auto getTo () const {return gsl::not_null<Location_ptr> (to.lock());}
-      void setTo (gsl::not_null<Location_ptr> t) { to = t.get();}
+      void setTo (gsl::not_null<Location_ptr> t) {
+	to.lock()->removeIncomingEdge (this->shared_from_this());
+	to = t.get();
+	t->addIncomingEdge (this->shared_from_this());
+      }
 	  
       auto getProgram() const {return prgm.lock();}
       void setProgram (const Program_ptr& p) {prgm = p;} 
@@ -283,10 +319,11 @@ namespace MiniMC {
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
-		edges.emplace_back (new Edge (from,to));
-		from->addEdge (edges.back());
-		edges.back()->setProgram(p);
-		return edges.back();
+	edges.emplace_back (new Edge (from,to));
+	to->addIncomingEdge (edges.back ());
+	from->addEdge (edges.back());
+	edges.back()->setProgram(p);
+	return edges.back();
       }
 	  
       gsl::not_null<Location_ptr> getInitialLocation () {
@@ -298,14 +335,15 @@ namespace MiniMC {
 		initial = loc.get();
       }
 	  
-      void deleteEdge (const Edge_wptr& edge) {
-		auto e = edge.lock ();
-		auto it = std::find (edges.begin(),edges.end(),e);
-		
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
-		edge.lock()->getFrom ()->removeEdge (edge);
+      void deleteEdge (const Edge_ptr& edge) {
+	edge->getFrom ()->removeEdge (edge);
+	edge->getTo ()->removeIncomingEdge (edge);
+
+	
+	auto it = std::find (edges.begin(),edges.end(),edge);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
       }
 	  
       auto& getLocations () const {return locations;}
