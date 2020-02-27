@@ -1,3 +1,6 @@
 [submodule "external/murmur"]
 	path = external/murmur
 	url = https://github.com/kloetzl/libmurmurhash.git
+[submodule "external/smtlib"]
+	path = external/smtlib
+	url = git@gitlab.com:dannybpoulsen/smtlib.git
