@@ -108,6 +108,13 @@ namespace MiniMC {
   }
   
   using pointer_t = pointer_struct;
+
+  inline bool operator== (const pointer_t& l, const pointer_t& r) {
+    return l.segment == r.segment &&
+      l.zero == r.zero &&
+      l.base == r.base &&
+      l.offset == r.offset;
+  }
   
   template<typename T>
   struct EquivSigned {

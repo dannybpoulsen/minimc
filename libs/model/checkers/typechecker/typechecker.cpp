@@ -221,6 +221,24 @@ namespace MiniMC {
       };
 
       template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::FindSpace>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
+	  
+	  InstHelper<MiniMC::Model::InstructionCode::Alloca> h (inst);
+	  auto restype = h.getResult ()->getType();
+	  auto alloc =   h.getResult ();
+	  if (restype->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
+	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Alloca));
+	    return false;
+	  }
+		
+	  return true;
+	}
+      };
+      
+      template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Store>
       {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {

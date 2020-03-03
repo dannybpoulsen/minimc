@@ -55,6 +55,7 @@ namespace MiniMC {
 
 #define MEMORY					\
     X(Alloca)					\
+    X(FindSpace)				\
     X(Store)					\
     X(Load)					\
 
@@ -216,10 +217,20 @@ namespace MiniMC {
 	  static const bool isComparison = false;
       static const bool isMemory = true;			
       static const bool isCast = false;			
-      static const std::size_t operands = 1;			
+      static const std::size_t operands = 2;			
       static const bool hasResVar = true;			
     };
 
+    template<>						
+    struct InstructionData<InstructionCode::FindSpace> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;			
+      static const bool isCast = false;			
+      static const std::size_t operands = 1;			
+      static const bool hasResVar = true;			
+    };
+    
     template<>						
     struct InstructionData<InstructionCode::Skip> {		
       static const bool isTAC = false;
@@ -510,6 +521,7 @@ namespace MiniMC {
       InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
       auto& getSize () const {return inst.getOp(1);}
+      auto& getPointer () const {return inst.getOp(2);}
       
       private:
       const Instruction& inst;
@@ -521,21 +533,59 @@ namespace MiniMC {
     public:
       void setRes (const Value_ptr& ptr) {res = ptr;}
       void setSize (const Value_ptr& ptr) {size = ptr;}
+      void setPointer (const Value_ptr& ptr) {pointer = ptr;}
+      
       Instruction BuildInstruction () {
 	assert(res);
 	assert(size);
-	return Instruction (InstructionCode::Alloca,{res,size});
+	return Instruction (InstructionCode::Alloca,{res,size,pointer});
+      }
+    private:
+      Value_ptr res;
+      Value_ptr size;
+      Value_ptr pointer;
+    };
+
+    template<>
+    class InstHelper<InstructionCode::FindSpace,void> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+      auto& getSize () const {return inst.getOp(1);}
+      
+      private:
+      const Instruction& inst;
+    };
+
+
+    template<>
+    class InstBuilder<InstructionCode::FindSpace,void> {
+    public:
+      void setRes (const Value_ptr& ptr) {res = ptr;}
+      void setSize (const Value_ptr& ptr) {size = ptr;}
+      Instruction BuildInstruction () {
+	assert(res);
+	assert(size);
+	return Instruction (InstructionCode::FindSpace,{res,size});
       }
     private:
       Value_ptr res;
       Value_ptr size;
     };
-
+    
     template<> 
     struct Formatter<InstructionCode::Alloca,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 	InstHelper<InstructionCode::Alloca> h (inst);
-	return os << *h.getResult () << " = " << InstructionCode::Alloca << *h.getSize ();
+	return os << InstructionCode::Alloca << " (" << *h.getResult () << ", "  << *h.getSize () <<" )";
+      } 
+    };
+
+    template<> 
+    struct Formatter<InstructionCode::FindSpace,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Alloca> h (inst);
+	return os << *h.getResult () << " = " << InstructionCode::FindSpace << *h.getSize ();
       } 
     };
     

@@ -111,18 +111,23 @@ namespace MiniMC {
   
   template<>								
   void translateAndAddInstruction<llvm::Instruction::Alloca> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) { 
-    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder;
-   
-    auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
-    auto llalltype = alinst->getAllocatedType ();
-    auto outalltype = tt.getType (llalltype);
-    auto res = findValue (inst,values,tt,cfac);		
-    auto size = cfac->makeIntegerConstant(outalltype->getSize());
-    size->setType (tt.tfac->makeIntegerType (64));
-    builder.setRes (res);						
-    builder.setSize (size);						
-    instr.push_back(builder.BuildInstruction ());			
-  }
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spacebuilder;
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder;
+	  
+	  auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
+	  auto llalltype = alinst->getAllocatedType ();
+	  auto outalltype = tt.getType (llalltype);
+	  auto res = findValue (inst,values,tt,cfac);		
+	  auto size = cfac->makeIntegerConstant(outalltype->getSize());
+	  size->setType (tt.tfac->makeIntegerType (64));
+	  builder.setRes (res);						
+	  builder.setSize (size);
+	  builder.setPointer (res);
+	  spacebuilder.setRes(res);
+	  spacebuilder.setSize(size);
+	  instr.push_back (spacebuilder.BuildInstruction ());
+	  instr.push_back(builder.BuildInstruction ());			
+	}
     
     template<>								
     void translateAndAddInstruction<llvm::Instruction::Ret> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) { 

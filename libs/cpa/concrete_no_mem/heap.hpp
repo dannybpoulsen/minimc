@@ -60,44 +60,52 @@ namespace MiniMC {
 	  
 	}
 
-	pointer_t make_obj (MiniMC::offset_t size) {
+	pointer_t findSpace (MiniMC::offset_t size) {
 	  auto data = searchForReusable ();
+	  return MiniMC::Support::makeHeapPointer (data.index,0);
+	}
+	
+	pointer_t make_obj (MiniMC::offset_t size,pointer_t place) {
+	  //auto data = searchForReusable ();
+	  auto base = MiniMC::Support::getBase (place);
+	  auto offset = MiniMC::Support::getOffset (place);
+	  auto& entry = entries.at(base);
+	  assert(offset == 0);
+	  assert(entry.flags & Flags::Reusable);
+	  entry.flags = 0;
+	  entry.size = size;
+	  entry.data = nullptr;
+	  
 	  if (size) {
+	    assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
 	    std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
 	    std::fill (ndata.get(),ndata.get()+size,0);
-	    HeapEntry& entry = *data.entry;
-	    entry.flags = 0;
-	    entry.size = size;
 	    entry.data = MiniMC::Storage::getStorage().store (ndata,size);
-	    assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	    pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0);
-	    return ptr;
 	  }
-	  else {
-	    HeapEntry& entry = *data.entry;
-	    entry.flags = 0;
-	    entry.size = 0;
-	    entry.data = nullptr;
-	    pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0); 
-	    return ptr;
-	  }
-	  
+	  return place;
 	}
 
+	
+	
 	template<class T>
-	pointer_t make_obj_initialiser (MiniMC::offset_t size, const T& s) {
-	  auto data = searchForReusable ();
+	pointer_t make_obj_initialiser (MiniMC::offset_t size, const T& s, pointer_t place) {
 	  assert(size>=sizeof(T));
+	  auto base = MiniMC::Support::getBase (place);
+	  auto offset = MiniMC::Support::getOffset (place);
+	  auto& entry = entries.at(base);
+	  assert(offset == 0);
+	  assert(entry.flags & Flags::Reusable);
+	  entry.flags = 0;
+	  entry.size = size;
+	  entry.data = nullptr;
+	  
 	  std::unique_ptr<MiniMC::uint8_t[]> ndata (new MiniMC::uint8_t[size]);
 	  std::fill (ndata.get(),ndata.get()+size,0);
 	  std::copy (reinterpret_cast<const MiniMC::uint8_t*> (&s),reinterpret_cast<const MiniMC::uint8_t*> (&s)+sizeof(T),ndata.get());
-	  HeapEntry& entry = *data.entry;
-	  entry.flags = 0;
-	  entry.size = size;
+	  
 	  entry.data = MiniMC::Storage::getStorage().store (ndata,size);
 	  assert (entries.size() <= std::numeric_limits<MiniMC::base_t>::max());
-	  pointer_t ptr = MiniMC::Support::makeHeapPointer (data.index,0);
-	  return ptr;
+	  return place;
 	}
 
 	void free_obj (const MiniMC::pointer_t& pointer,bool reusable = false) {
@@ -135,6 +143,7 @@ namespace MiniMC {
 	    i++;
 	  }
 	  HeapEntry e;
+	  e.flags = Flags::Reusable;
 	  entries.push_back (e);
 	  return SearchData (&entries.back(),i);
 	}
@@ -147,14 +156,18 @@ namespace MiniMC {
 	  if (entry.flags & Flags::Invalid) {
 	    throw MiniMC::Support::InvalidPointer ();
 	  }
-
-	  std::unique_ptr<MiniMC::uint8_t[]> res (new MiniMC::uint8_t[entry.size+add]);
-	  std::copy(entry.data,entry.data+entry.size,res.get());
-	  std::fill(res.get()+entry.size,res.get()+entry.size+add,0);
-	  entry.data = MiniMC::Storage::getStorage().store (res,entry.size+add);
-	  MiniMC::pointer_t respointer = MiniMC::Support::makeHeapPointer (base,entry.size);
-	  entry.size+=add;
-	  return respointer;
+	  if (add) {
+	    std::unique_ptr<MiniMC::uint8_t[]> res (new MiniMC::uint8_t[entry.size+add]);
+	    std::copy(entry.data,entry.data+entry.size,res.get());
+	    std::fill(res.get()+entry.size,res.get()+entry.size+add,0);
+	    entry.data = MiniMC::Storage::getStorage().store (res,entry.size+add);
+	    MiniMC::pointer_t respointer = MiniMC::Support::makeHeapPointer (base,entry.size);
+	    entry.size+=add;
+	    return respointer;
+	  }
+	  else {
+	    return MiniMC::Support::makeHeapPointer (base,entry.size);
+	  }
 	  
 	}
 

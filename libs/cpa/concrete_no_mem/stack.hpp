@@ -22,11 +22,15 @@ namespace MiniMC {
       template<class Heap>
       pointer_t createStack (const MiniMC::Model::VariableStackDescr_ptr& s, Heap& h) {
 	StackData data;
+	
 	data.prev = MiniMC::Support::null_pointer();
-	data.allocs = h.make_obj (0);
+	auto ptr = h.findSpace (0);
+	data.allocs = h.make_obj (0,ptr);
 	data.ret = nullptr;
 	data.descr = s.get ();
-	return h.make_obj_initialiser (s->getTotalSize()+sizeof(StackData),data);
+	auto size = s->getTotalSize()+sizeof(StackData);
+	auto stptr = h.findSpace (size);
+	return h.make_obj_initialiser (size,data,stptr);
 	
       }
       

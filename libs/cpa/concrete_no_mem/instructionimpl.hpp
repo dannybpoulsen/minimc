@@ -422,7 +422,8 @@ namespace MiniMC {
 		  auto resVar = helper.getResult ();
 		  InRegister reg (&data.allocs,sizeof(pointer_t));
 		  st.stack.save (reg,std::static_pointer_cast<MiniMC::Model::Variable> (resVar));
-		  data.allocs = st.heap.make_obj (0);
+		  auto ptr = st.heap.findSpace (0);
+		  data.allocs = st.heap.make_obj (0,ptr);
 		  st.stack.setData (data);
 		}
       };
@@ -436,7 +437,8 @@ namespace MiniMC {
 	  auto data = st.stack.getData();
 	  st.heap.free_obj (data.allocs,true);
 	  data.allocs = loader.getRegister(). template get<pointer_t> ();
-	  data.allocs = st.heap.make_obj (0);
+	  auto ptr = st.heap.findSpace (0);
+	  data.allocs = st.heap.make_obj (0,ptr);
 	  st.stack.setData (data);
 	}
       };
@@ -462,7 +464,16 @@ namespace MiniMC {
 		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  
-		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Alloca> helper (inst);
+		  //This is a no op
+		}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::FindSpace,void> {
+		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::FindSpace> helper (inst);
 		  MiniMC::Model::Value_ptr size = helper.getSize();
 		  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
 		  assert(size->isConstant ());
