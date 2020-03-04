@@ -111,7 +111,6 @@ namespace MiniMC {
   
   template<>								
   void translateAndAddInstruction<llvm::Instruction::Alloca> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) { 
-	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spacebuilder;
 	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Alloca> builder;
 	  
 	  auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
@@ -122,10 +121,6 @@ namespace MiniMC {
 	  size->setType (tt.tfac->makeIntegerType (64));
 	  builder.setRes (res);						
 	  builder.setSize (size);
-	  builder.setPointer (res);
-	  spacebuilder.setRes(res);
-	  spacebuilder.setSize(size);
-	  instr.push_back (spacebuilder.BuildInstruction ());
 	  instr.push_back(builder.BuildInstruction ());			
 	}
     
@@ -216,6 +211,7 @@ namespace MiniMC {
 	  builder.setAssert (val);
 	  instr.push_back(builder.BuildInstruction ());
 	}
+	
 	else if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer) {
 	  auto ntype = tt.tfac->makeBoolType ();
 	  auto nvar = tt.stack->addVariable ("BVar",ntype);
@@ -228,6 +224,23 @@ namespace MiniMC {
 	  instr.push_back (assbuilder.BuildInstruction ());
 	  
 	}
+      }
+      if (func->getName () == "malloc") {
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> builder;
+	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> sbuilder;
+	
+	assert(cinst->arg_size () == 1);
+	auto val = findValue(*cinst->arg_begin(),values,tt,cfac);
+	if (val->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer) {
+	  builder.setSize (val);
+	  sbuilder.setSize (val);
+	  assert(inst->getType ()->isPointerTy ());
+	  builder.setPointer (findValue(inst,values,tt,cfac));
+	  sbuilder.setResult (findValue(inst,values,tt,cfac));
+	  
+	}
+	instr.push_back(sbuilder.BuildInstruction ());
+	instr.push_back(builder.BuildInstruction ());
       }
       else if (func->isDeclaration ()) {
 	//We don't know what to do for this function

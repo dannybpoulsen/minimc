@@ -16,7 +16,7 @@ namespace MiniMC {
 	auto getSize () const {return size;}
 	template<class T>
 	const T& get () const {
-	  assert(sizeof(T) == size);
+	  assert(sizeof(T) <= size);
 	  return *reinterpret_cast<const T*> (mem); 
 	}
 	

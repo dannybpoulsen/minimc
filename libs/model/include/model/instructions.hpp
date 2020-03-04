@@ -56,6 +56,8 @@ namespace MiniMC {
 #define MEMORY					\
     X(Alloca)					\
     X(FindSpace)				\
+    X(Malloc)					\
+    X(Free)					\
     X(Store)					\
     X(Load)					\
 
@@ -214,13 +216,33 @@ namespace MiniMC {
     template<>						
     struct InstructionData<InstructionCode::Alloca> {		
       static const bool isTAC = false;
-	  static const bool isComparison = false;
+      static const bool isComparison = false;
       static const bool isMemory = true;			
       static const bool isCast = false;			
-      static const std::size_t operands = 2;			
+      static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
 
+    template<>						
+    struct InstructionData<InstructionCode::Malloc> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;			
+      static const bool isCast = false;			
+      static const std::size_t operands = 2;			
+      static const bool hasResVar = false;			
+    };
+
+    template<>						
+    struct InstructionData<InstructionCode::Free> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;			
+      static const bool isCast = false;			
+      static const std::size_t operands = 1;			
+      static const bool hasResVar = false;			
+    };
+    
     template<>						
     struct InstructionData<InstructionCode::FindSpace> {		
       static const bool isTAC = false;
@@ -521,7 +543,6 @@ namespace MiniMC {
       InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
       auto& getSize () const {return inst.getOp(1);}
-      auto& getPointer () const {return inst.getOp(2);}
       
       private:
       const Instruction& inst;
@@ -533,19 +554,69 @@ namespace MiniMC {
     public:
       void setRes (const Value_ptr& ptr) {res = ptr;}
       void setSize (const Value_ptr& ptr) {size = ptr;}
-      void setPointer (const Value_ptr& ptr) {pointer = ptr;}
       
       Instruction BuildInstruction () {
 	assert(res);
 	assert(size);
-	return Instruction (InstructionCode::Alloca,{res,size,pointer});
+	return Instruction (InstructionCode::Alloca,{res,size});
       }
     private:
       Value_ptr res;
       Value_ptr size;
-      Value_ptr pointer;
     };
 
+    template<>
+    class InstHelper<InstructionCode::Malloc,void> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getPointer () const {return inst.getOp(0);}
+      auto& getSize () const {return inst.getOp(1);}
+      
+      private:
+      const Instruction& inst;
+    };
+
+
+    template<>
+    class InstBuilder<InstructionCode::Malloc,void> {
+    public:
+      void setPointer (const Value_ptr& ptr) {pointer = ptr;}
+      void setSize (const Value_ptr& ptr) {size = ptr;}
+      
+      Instruction BuildInstruction () {
+	assert(pointer);
+	assert(size);
+	return Instruction (InstructionCode::Malloc,{pointer,size});
+      }
+    private:
+      Value_ptr pointer;
+      Value_ptr size;
+    };
+
+
+    template<>
+    class InstHelper<InstructionCode::Free,void> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getPointer () const {return inst.getOp(0);}	  
+      private:
+      const Instruction& inst;
+    };
+
+
+    template<>
+    class InstBuilder<InstructionCode::Free,void> {
+    public:
+      void setPointer (const Value_ptr& ptr) {pointer = ptr;}
+      
+      Instruction BuildInstruction () {
+	assert(pointer);
+	return Instruction (InstructionCode::Free,{pointer});
+      }
+    private:
+      Value_ptr pointer;
+    };
+    
     template<>
     class InstHelper<InstructionCode::FindSpace,void> {
     public:
@@ -561,7 +632,7 @@ namespace MiniMC {
     template<>
     class InstBuilder<InstructionCode::FindSpace,void> {
     public:
-      void setRes (const Value_ptr& ptr) {res = ptr;}
+      void setResult (const Value_ptr& ptr) {res = ptr;}
       void setSize (const Value_ptr& ptr) {size = ptr;}
       Instruction BuildInstruction () {
 	assert(res);
@@ -581,6 +652,22 @@ namespace MiniMC {
       } 
     };
 
+    template<> 
+    struct Formatter<InstructionCode::Malloc,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Malloc> h (inst);
+	return os << InstructionCode::Malloc << " (" << *h.getPointer () << ", "  << *h.getSize () <<" )";
+      } 
+    };
+    
+    template<> 
+    struct Formatter<InstructionCode::Free,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<InstructionCode::Free> h (inst);
+	return os << InstructionCode::Free << " (" << *h.getPointer () <<" )";
+      } 
+    };
+    
     template<> 
     struct Formatter<InstructionCode::FindSpace,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {

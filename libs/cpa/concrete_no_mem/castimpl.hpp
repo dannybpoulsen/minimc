@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include "support/exceptions.hpp"
 #include "model/instructions.hpp"
 #include "model/variables.hpp"
@@ -21,30 +23,35 @@ namespace MiniMC {
       };
       
       template<class F,class T>
-      struct CastExec<MiniMC::Model::InstructionCode::ZExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
-		static OutRegister execute  (const InRegister& left){
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::zext<F,T> (left.template get<F> ());
-		  return OutRegister (hh,sizeof(T));
-		}
+      struct CastExec<MiniMC::Model::InstructionCode::ZExt,F,T,std::enable_if_t<sizeof(F) <= sizeof(T) &&
+												      std::is_integral<F>::value &&
+												      std::is_integral<T>::value
+												      >> {
+	static OutRegister execute  (const InRegister& left){
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::zext<F,T> (left.template get<F> ());
+	  return OutRegister (hh,sizeof(T));
+	}
       };
 
-	  template<class F>
-      struct CastExec<MiniMC::Model::InstructionCode::IntToBool,F,MiniMC::uint8_t,void> {
-		static OutRegister execute  (const InRegister& left){
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(MiniMC::uint8_t)]);
-		  if (left.template get<F> ()) {
-			*reinterpret_cast<MiniMC::uint8_t*> (hh.get ()) = 1;
-		  }
-		  else {
-			*reinterpret_cast<MiniMC::uint8_t*> (hh.get ()) = 0;
-		  }
-		  return OutRegister (hh,sizeof(MiniMC::uint8_t));
-		}
+      template<class F>
+      struct CastExec<MiniMC::Model::InstructionCode::IntToBool,F,MiniMC::uint8_t,std::enable_if_t<std::is_integral<F>::value> > {
+	static OutRegister execute  (const InRegister& left){
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(MiniMC::uint8_t)]);
+	  if (left.template get<F> ()) {
+	    *reinterpret_cast<MiniMC::uint8_t*> (hh.get ()) = 1;
+	  }
+	  else {
+	    *reinterpret_cast<MiniMC::uint8_t*> (hh.get ()) = 0;
+	  }
+	  return OutRegister (hh,sizeof(MiniMC::uint8_t));
+	}
       };
 	  
       template<class F,class T>
-      struct CastExec<MiniMC::Model::InstructionCode::SExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
+      struct CastExec<MiniMC::Model::InstructionCode::SExt,F,T,typename std::enable_if_t<sizeof(F) <= sizeof(T) &&
+												      std::is_integral<F>::value &&
+												      std::is_integral<T>::value> > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
 	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::sext<F,T> (left.template get<F> ());
@@ -53,7 +60,9 @@ namespace MiniMC {
       };
 
       template<class F,class T>
-      struct CastExec<MiniMC::Model::InstructionCode::BoolZExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
+      struct CastExec<MiniMC::Model::InstructionCode::BoolZExt,F,T,typename std::enable_if_t<sizeof(F) <= sizeof(T) &&
+													  std::is_integral<T>::value &&
+													  std::is_integral<F>::value >> {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
 	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::zext<F,T> (left.template get<F> ());
@@ -62,7 +71,9 @@ namespace MiniMC {
       };
 
       template<class F,class T>
-      struct CastExec<MiniMC::Model::InstructionCode::BoolSExt,F,T,typename std::enable_if<sizeof(F) <= sizeof(T)>::type> {
+      struct CastExec<MiniMC::Model::InstructionCode::BoolSExt,F,T,typename std::enable_if_t<sizeof(F) <= sizeof(T)&&
+											     std::is_integral<T>::value &&
+													  std::is_integral<F>::value> > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
 	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::sext<F,T> (left.template get<F> ());
@@ -71,7 +82,12 @@ namespace MiniMC {
       };
 
       template<class F,class T>
-      struct CastExec<MiniMC::Model::InstructionCode::Trunc,F,T,typename std::enable_if<sizeof(F) >= sizeof(T)>::type> {
+      struct CastExec<MiniMC::Model::InstructionCode::Trunc,F,T,std::enable_if_t<
+								  sizeof(F) >= sizeof(T) &&
+		      std::is_integral<F>::value &&
+		      std::is_integral<T>::value
+		      >
+		      > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
 	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::trunc<F,T> (left.template get<F> ());
@@ -103,7 +119,11 @@ namespace MiniMC {
 	  case 8:
 	    return CastExec<i,F,MiniMC::uint64_t>::execute (left);
 	  }
+	  
 	}
+	case MiniMC::Model::TypeID::Pointer:
+	  return CastExec<i,F,MiniMC::pointer_t>::execute (left);
+	  
 	case MiniMC::Model::TypeID::Bool:
 	  return CastExec<i,F,MiniMC::uint8_t>::execute (left);
 	default:
@@ -127,10 +147,12 @@ namespace MiniMC {
 	    return RedirectTo<i,MiniMC::uint64_t> (left,to);
 	  }
 	}
+	case MiniMC::Model::TypeID::Pointer:
+	  return RedirectTo<i,MiniMC::pointer_t> (left,to);
 	case MiniMC::Model::TypeID::Bool:
 	  return RedirectTo<i,MiniMC::uint8_t> (left,to);
 	default:
-	   throw MiniMC::Support::Exception ("Bug");
+	  throw MiniMC::Support::Exception ("Bug");
 	}
       }
 

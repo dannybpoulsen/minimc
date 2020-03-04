@@ -221,18 +221,78 @@ namespace MiniMC {
       };
 
       template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::BitCast>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser warning ("TypeCheck not fully implemented for '%1%'"); 
+	  mess.warning (warning.format (MiniMC::Model::InstructionCode::BitCast));
+	  return true;
+	}
+      };
+      
+      template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::Malloc>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only accept pointer types. "); 
+	  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer. "); 
+	  
+	  InstHelper<MiniMC::Model::InstructionCode::Malloc> h (inst);
+	  auto ptrtype = h.getPointer ()->getType();
+	  auto sizetype =   h.getSize ()->getType ();
+	  if (ptrtype->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
+	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Malloc));
+	    return false;
+	  }
+
+	  if (sizetype->getTypeID () != MiniMC::Model::TypeID::Integer ) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::Malloc));
+	    return false;
+	  }
+	  
+	  return true;
+	}
+      };
+
+      template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::Free>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only accept pointer types. "); 
+	  
+	  InstHelper<MiniMC::Model::InstructionCode::Free> h (inst);
+	  auto ptrtype = h.getPointer ()->getType();
+	 
+	  if (ptrtype->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
+	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Malloc));
+	    return false;
+	  }
+
+	  return true;
+	}
+      };
+      
+      template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::FindSpace>
       {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
 	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
+	  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer. ");
 	  
-	  InstHelper<MiniMC::Model::InstructionCode::Alloca> h (inst);
+	  InstHelper<MiniMC::Model::InstructionCode::FindSpace> h (inst);
 	  auto restype = h.getResult ()->getType();
-	  auto alloc =   h.getResult ();
+	  auto sizetype =   h.getSize ()->getType ();
 	  if (restype->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
-	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Alloca));
+	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::FindSpace));
 	    return false;
 	  }
+
+	  if (sizetype->getTypeID () != MiniMC::Model::TypeID::Integer ) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::FindSpace));
+	    return false;
+	  }
+
+	  
 		
 	  return true;
 	}

@@ -275,10 +275,10 @@ namespace MiniMC {
 	  
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isCast>::type> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
-							 const MiniMC::Model::Instruction& inst)  {
-		  MiniMC::Model::InstHelper<opc> helper (inst);
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+			     const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<opc> helper (inst);
 	  auto& castee = helper.getCastee ();
 	  auto& res =  helper.getResult ();
 	  RegisterLoader l (readFrom,castee);
@@ -463,17 +463,7 @@ namespace MiniMC {
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Alloca,void> {
 		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-		  
-		  //This is a no op
-		}
-      };
-
-      template<>
-      struct ExecuteInstruction<MiniMC::Model::InstructionCode::FindSpace,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-		  
-		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::FindSpace> helper (inst);
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Alloca> helper (inst);
 		  MiniMC::Model::Value_ptr size = helper.getSize();
 		  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
 		  assert(size->isConstant ());
@@ -488,6 +478,46 @@ namespace MiniMC {
 		  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
 		  st.stack.save (reg,vvar);
 		}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::FindSpace,void> {
+		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::FindSpace> helper (inst);
+		  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
+		  assert(storePlace);
+		  auto ptr = st.heap.findSpace (0);
+		  InRegister reg (&ptr,sizeof(ptr));
+		  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
+		  st.stack.save (reg,vvar);
+		}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Malloc,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Malloc> helper (inst);
+	  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
+	  MiniMC::Model::Value_ptr size = helper.getSize ();
+	  assert(size->getType()->getTypeID () == MiniMC::Model::TypeID::Integer);
+	  assert(pointer->getType()->getTypeID () == MiniMC::Model::TypeID::Pointer);
+	  RegisterLoader regPointer (readFrom,pointer);
+	  RegisterLoader regSize (readFrom,size);
+	  st.heap.make_obj (regSize.getRegister().template get<MiniMC::offset_t> (),regPointer.getRegister().template get<MiniMC::pointer_t> ());
+	}
+      };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Free,void> {
+	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Free> helper (inst);
+	  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
+	  RegisterLoader regPointer (readFrom,pointer);
+	  st.heap.free_obj (regPointer.getRegister().template get<MiniMC::pointer_t> ());
+	}
       };
       
       template<>
