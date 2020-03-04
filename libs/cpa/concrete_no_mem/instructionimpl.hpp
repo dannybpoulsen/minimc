@@ -19,124 +19,124 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode c>
       class NotImplemented : public MiniMC::Support::Exception {
       public:
-	NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
+		NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
       };
       
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
-	static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
 	  
-	  throw NotImplemented<opc> ();
-	}
+		  throw NotImplemented<opc> ();
+		}
       };
       
       template<MiniMC::Model::InstructionCode i,class T>
       struct TACExec {
-	static OutRegister execute (const InRegister& left, const InRegister& right){
-	  throw NotImplemented<i> ();
+		static OutRegister execute (const InRegister& left, const InRegister& right){
+		  throw NotImplemented<i> ();
 	
 	  
-	}
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Add,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () + right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () + right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Sub,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  - right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  - right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
 
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Mul,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  * right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> ()  * right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::UDiv,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::SDiv,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Shl,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () << right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () << right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::LShr,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
       
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::AShr,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
 
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::And,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () & right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () & right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
 
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Or,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () | right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () | right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
 	  
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
-	static OutRegister execute (const InRegister& left, const InRegister& right) {
-	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () ^ right.template get<T> ();
-	  return OutRegister(hh,sizeof(T)); 
-	}
+		static OutRegister execute (const InRegister& left, const InRegister& right) {
+		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+		  *reinterpret_cast<T*> (hh.get ()) = left.template get<T> () ^ right.template get<T> ();
+		  return OutRegister(hh,sizeof(T)); 
+		}
       };
 
       template<MiniMC::Model::InstructionCode opc>
@@ -150,29 +150,29 @@ namespace MiniMC {
       
       template<class T>
       OutRegister TypeRedirect (const InRegister& left, const InRegister& right, const MiniMC::Model::Type_ptr& t ) {
-	switch (t->getTypeID ()) {
-	case MiniMC::Model::TypeID::Integer: {
-	  switch (t->getSize ()) {
-	  case 1:
-	    return T::i8::execute (left,right);
-	  case 2:
-	    return T::i16::execute (left,right);
-	  case 4:
-	    return T::i32::execute (left,right);
-	  case 8:
-	    return T::i64::execute (left,right);
-	  }
-	}
-	case MiniMC::Model::TypeID::Bool:
-	  return T::boolean::execute (left,right);
-	default:
-	  throw MiniMC::Support::Exception ("Bug");
-	}
+		switch (t->getTypeID ()) {
+		case MiniMC::Model::TypeID::Integer: {
+		  switch (t->getSize ()) {
+		  case 1:
+			return T::i8::execute (left,right);
+		  case 2:
+			return T::i16::execute (left,right);
+		  case 4:
+			return T::i32::execute (left,right);
+		  case 8:
+			return T::i64::execute (left,right);
+		  }
+		}
+		case MiniMC::Model::TypeID::Bool:
+		  return T::boolean::execute (left,right);
+		default:
+		  throw MiniMC::Support::Exception ("Bug");
+		}
       }
       
 	  template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Skip,void> {
-		static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
 		  
 		  
@@ -181,87 +181,87 @@ namespace MiniMC {
 	  
       class RegisterLoader {
       public:
-	RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {
-	  if(ptr->isConstant ()) {
-	    auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
-	    if (!constant->isAggregate ()) {
+		RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {
+		  if(ptr->isConstant ()) {
+			auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
+			if (!constant->isAggregate ()) {
 	      
-	      auto iconstant = std::dynamic_pointer_cast<MiniMC::Model::IntegerConstant> (ptr);
-	      std::unique_ptr<MiniMC::uint8_t[]> buffer  =  nullptr;
-	      std::size_t size;
+			  auto iconstant = std::dynamic_pointer_cast<MiniMC::Model::IntegerConstant> (ptr);
+			  std::unique_ptr<MiniMC::uint8_t[]> buffer  =  nullptr;
+			  std::size_t size;
 	      
-	      switch (ptr->getType()->getSize()) {
-	      case 1:
-		setUpInteger<MiniMC::uint8_t> (buffer,size,*iconstant);
-		break;
-	      case 2:
-		setUpInteger<MiniMC::uint16_t> (buffer,size,*iconstant);
-		break;
-	      case 4:
-		setUpInteger<MiniMC::uint32_t> (buffer,size,*iconstant);
-		break;
-	      case 8:
-		setUpInteger<MiniMC::uint64_t> (buffer,size,*iconstant);
-		break;
-	      }
-	      reg = std::make_unique<InnerStateConst> (buffer,size);
+			  switch (ptr->getType()->getSize()) {
+			  case 1:
+				setUpInteger<MiniMC::uint8_t> (buffer,size,*iconstant);
+				break;
+			  case 2:
+				setUpInteger<MiniMC::uint16_t> (buffer,size,*iconstant);
+				break;
+			  case 4:
+				setUpInteger<MiniMC::uint32_t> (buffer,size,*iconstant);
+				break;
+			  case 8:
+				setUpInteger<MiniMC::uint64_t> (buffer,size,*iconstant);
+				break;
+			  }
+			  reg = std::make_unique<InnerStateConst> (buffer,size);
 	      
-	    }
-	    else {
-	      throw MiniMC::Support::Exception ("Constants cannot be created right now");
-	    }
-	  }
-	  else {
-	    auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));
-	    reg = std::make_unique<InnerStateIn> (regi);
-	  }
-	}
+			}
+			else {
+			  throw MiniMC::Support::Exception ("Constants cannot be created right now");
+			}
+		  }
+		  else {
+			auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));
+			reg = std::make_unique<InnerStateIn> (regi);
+		  }
+		}
 	
-	const InRegister& getRegister () const {return reg->getReg ();}
+		const InRegister& getRegister () const {return reg->getReg ();}
 	
       private:
-	template<class T>
-	void setUpInteger (std::unique_ptr<MiniMC::uint8_t[]>& buffer, std::size_t& s, MiniMC::Model::IntegerConstant& constant) {
-	  buffer.reset(new MiniMC::uint8_t [sizeof(T)]);
-	  s = sizeof(T);
-	  reinterpret_cast<T&> (*buffer.get()) =  static_cast<T> (constant.getValue ());
-	}
+		template<class T>
+		void setUpInteger (std::unique_ptr<MiniMC::uint8_t[]>& buffer, std::size_t& s, MiniMC::Model::IntegerConstant& constant) {
+		  buffer.reset(new MiniMC::uint8_t [sizeof(T)]);
+		  s = sizeof(T);
+		  reinterpret_cast<T&> (*buffer.get()) =  static_cast<T> (constant.getValue ());
+		}
 	
-	struct InnerState {
-	  virtual ~InnerState () {}
-	  virtual const InRegister& getReg () const = 0;
-	};
+		struct InnerState {
+		  virtual ~InnerState () {}
+		  virtual const InRegister& getReg () const = 0;
+		};
 
-	struct InnerStateIn : public InnerState {
-	  InnerStateIn (InRegister &reg ) : reg(reg) {}
-	  virtual const InRegister& getReg () const {return reg;}
-	  InRegister reg;
-	};
+		struct InnerStateIn : public InnerState {
+		  InnerStateIn (InRegister &reg ) : reg(reg) {}
+		  virtual const InRegister& getReg () const {return reg;}
+		  InRegister reg;
+		};
 
-	struct InnerStateConst : public InnerState {
-	  InnerStateConst ( std::unique_ptr<MiniMC::uint8_t[]>& buffer, std::size_t size) : reg(buffer,size) {
+		struct InnerStateConst : public InnerState {
+		  InnerStateConst ( std::unique_ptr<MiniMC::uint8_t[]>& buffer, std::size_t size) : reg(buffer,size) {
 	    
-	  }
-	  virtual const InRegister& getReg () const {return reg;}
-	  ConstRegister reg;
-	};
+		  }
+		  virtual const InRegister& getReg () const {return reg;}
+		  ConstRegister reg;
+		};
 	
-	std::unique_ptr<InnerState> reg;
+		std::unique_ptr<InnerState> reg;
       };
 
       template<class Register> 
       inline void doSave (State::StackDetails& st, MiniMC::Model::Variable_ptr var, Register& reg) {
-	if (var->isGlobal()) {
-	  st.gstack.save (reg,var);
-	}
-	else {
-	  st.stack.save (reg,var);
-	}
+		if (var->isGlobal()) {
+		  st.gstack.save (reg,var);
+		}
+		else {
+		  st.stack.save (reg,var);
+		}
       }
       
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isTAC>::type> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 							 const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<opc> helper (inst);
@@ -275,24 +275,24 @@ namespace MiniMC {
 	  
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isCast>::type> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
-			     const MiniMC::Model::Instruction& inst)  {
-	  MiniMC::Model::InstHelper<opc> helper (inst);
-	  auto& castee = helper.getCastee ();
-	  auto& res =  helper.getResult ();
-	  RegisterLoader l (readFrom,castee);
-	  auto& casteeval =  l.getRegister ();
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+							 const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<opc> helper (inst);
+		  auto& castee = helper.getCastee ();
+		  auto& res =  helper.getResult ();
+		  RegisterLoader l (readFrom,castee);
+		  auto& casteeval =  l.getRegister ();
 	  
-	  auto resval = RedirectFrom<opc> (l.getRegister (), castee->getType(), res->getType ());
-	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
+		  auto resval = RedirectFrom<opc> (l.getRegister (), castee->getType(), res->getType ());
+		  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
 	  
-	}
+		}
       };
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::IntToPtr,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 							 const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::IntToPtr> helper (inst);
@@ -316,7 +316,7 @@ namespace MiniMC {
 	  
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::PtrToInt,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 							 const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::PtrToInt> helper (inst);
@@ -340,7 +340,7 @@ namespace MiniMC {
       
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isComparison>::type> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 							 const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<opc> helper (inst);
@@ -359,7 +359,7 @@ namespace MiniMC {
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assign,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 							 const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assign> helper (inst);
@@ -372,16 +372,16 @@ namespace MiniMC {
 	  
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::RetVoid,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  { 
-	  assert(!st.stack.isModified());
-	  assert(!st.stack.getData().ret);
-	  st.pop_frame();
-	}
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  { 
+		  assert(!st.stack.isModified());
+		  assert(!st.stack.getData().ret);
+		  st.pop_frame();
+		}
       };
 	  
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Call,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
 		  //Missing evaluation of parameters
@@ -410,12 +410,12 @@ namespace MiniMC {
 		  
 		  
 		  
-	}
+		}
       };
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::StackSave,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackSave> helper (inst);
 		  auto data = st.stack.getData();
@@ -430,22 +430,22 @@ namespace MiniMC {
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::StackRestore,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackRestore> helper (inst);
-	  RegisterLoader loader (readFrom,helper.getValue());
-	  auto data = st.stack.getData();
-	  st.heap.free_obj (data.allocs,true);
-	  data.allocs = loader.getRegister(). template get<pointer_t> ();
-	  auto ptr = st.heap.findSpace (0);
-	  data.allocs = st.heap.make_obj (0,ptr);
-	  st.stack.setData (data);
-	}
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::StackRestore> helper (inst);
+		  RegisterLoader loader (readFrom,helper.getValue());
+		  auto data = st.stack.getData();
+		  st.heap.free_obj (data.allocs,true);
+		  data.allocs = loader.getRegister(). template get<pointer_t> ();
+		  auto ptr = st.heap.findSpace (0);
+		  data.allocs = st.heap.make_obj (0,ptr);
+		  st.stack.setData (data);
+		}
       };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Ret,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Ret> helper (inst);
 		  RegisterLoader val (st,helper.getValue());
@@ -461,7 +461,7 @@ namespace MiniMC {
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Alloca,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Alloca> helper (inst);
 		  MiniMC::Model::Value_ptr size = helper.getSize();
@@ -482,7 +482,7 @@ namespace MiniMC {
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::FindSpace,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::FindSpace> helper (inst);
 		  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
@@ -496,33 +496,33 @@ namespace MiniMC {
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Malloc,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Malloc> helper (inst);
-	  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
-	  MiniMC::Model::Value_ptr size = helper.getSize ();
-	  assert(size->getType()->getTypeID () == MiniMC::Model::TypeID::Integer);
-	  assert(pointer->getType()->getTypeID () == MiniMC::Model::TypeID::Pointer);
-	  RegisterLoader regPointer (readFrom,pointer);
-	  RegisterLoader regSize (readFrom,size);
-	  st.heap.make_obj (regSize.getRegister().template get<MiniMC::offset_t> (),regPointer.getRegister().template get<MiniMC::pointer_t> ());
-	}
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Malloc> helper (inst);
+		  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
+		  MiniMC::Model::Value_ptr size = helper.getSize ();
+		  assert(size->getType()->getTypeID () == MiniMC::Model::TypeID::Integer);
+		  assert(pointer->getType()->getTypeID () == MiniMC::Model::TypeID::Pointer);
+		  RegisterLoader regPointer (readFrom,pointer);
+		  RegisterLoader regSize (readFrom,size);
+		  st.heap.make_obj (regSize.getRegister().template get<MiniMC::offset_t> (),regPointer.getRegister().template get<MiniMC::pointer_t> ());
+		}
       };
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Free,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Free> helper (inst);
-	  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
-	  RegisterLoader regPointer (readFrom,pointer);
-	  st.heap.free_obj (regPointer.getRegister().template get<MiniMC::pointer_t> ());
-	}
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Free> helper (inst);
+		  MiniMC::Model::Value_ptr pointer = helper.getPointer ();
+		  RegisterLoader regPointer (readFrom,pointer);
+		  st.heap.free_obj (regPointer.getRegister().template get<MiniMC::pointer_t> ());
+		}
       };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Load,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> helper (inst);
@@ -539,7 +539,7 @@ namespace MiniMC {
 	  
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assert,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert> helper (inst);
@@ -554,37 +554,37 @@ namespace MiniMC {
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Assume,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assume> helper (inst);
-	  RegisterLoader ass (readFrom,helper.getAssert());
-	  assert(ass.getRegister().getSize () == 1);
-	  if (!ass.getRegister().template get <MiniMC::uint8_t> ()) {
-	    throw MiniMC::Support::AssumeViolated ();
-	  }
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assume> helper (inst);
+		  RegisterLoader ass (readFrom,helper.getAssert());
+		  assert(ass.getRegister().getSize () == 1);
+		  if (!ass.getRegister().template get <MiniMC::uint8_t> ()) {
+			throw MiniMC::Support::AssumeViolated ();
+		  }
 	  
-	}
+		}
       };
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::NegAssume,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NegAssume> helper (inst);
-	  RegisterLoader ass (readFrom,helper.getAssert());
-	  assert(ass.getRegister().getSize () == 1);
-	  if (ass.getRegister().template get <MiniMC::uint8_t> ()) {
-	    throw MiniMC::Support::AssumeViolated ();
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NegAssume> helper (inst);
+		  RegisterLoader ass (readFrom,helper.getAssert());
+		  assert(ass.getRegister().getSize () == 1);
+		  if (ass.getRegister().template get <MiniMC::uint8_t> ()) {
+			throw MiniMC::Support::AssumeViolated ();
 		  }
 	  
-	}
+		}
       };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Store,void> {
-		void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 		  
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Store> helper (inst);
@@ -601,43 +601,43 @@ namespace MiniMC {
 
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Uniform,void> {
-	void static execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-			     MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+							 MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
 	  
-	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Uniform> helper (inst);
-	  MiniMC::Model::Value_ptr value = helper.getResult();
-	  MiniMC::Model::Value_ptr min = helper.getMin();
-	  MiniMC::Model::Value_ptr max = helper.getMax();
-	  auto size = value->getType()->getSize();
-	  RegisterLoader minreg (readFrom,min);
-	  RegisterLoader maxreg (readFrom,max);
-	  assert(value->getType () ->getTypeID () == MiniMC::Model::TypeID::Integer);
-	  MiniMC::Support::RandomNumber rand;
-	  auto functor = [&]<typename T> () {
-					     auto val = rand.template uniform<T> (minreg.getRegister ().template get<T> (),
-										  maxreg.getRegister ().template get<T> ());
-					     auto nreg = InRegister (&val,sizeof(T));
-					     st.stack.save (nreg,std::static_pointer_cast<MiniMC::Model::Variable> (value));
-	  };
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Uniform> helper (inst);
+		  MiniMC::Model::Value_ptr value = helper.getResult();
+		  MiniMC::Model::Value_ptr min = helper.getMin();
+		  MiniMC::Model::Value_ptr max = helper.getMax();
+		  auto size = value->getType()->getSize();
+		  RegisterLoader minreg (readFrom,min);
+		  RegisterLoader maxreg (readFrom,max);
+		  assert(value->getType () ->getTypeID () == MiniMC::Model::TypeID::Integer);
+		  MiniMC::Support::RandomNumber rand;
+		  auto functor = [&]<typename T> () {
+											 auto val = rand.template uniform<T> (minreg.getRegister ().template get<T> (),
+																				  maxreg.getRegister ().template get<T> ());
+											 auto nreg = InRegister (&val,sizeof(T));
+											 st.stack.save (nreg,std::static_pointer_cast<MiniMC::Model::Variable> (value));
+		  };
 
 
-	  switch (size) {
-	  case 1: 
-	    functor.operator()<MiniMC::uint8_t>  ();
-	    break;
-	  case 2: 
-	    functor.operator()<MiniMC::uint16_t> ();
-	    break;
-	  case 4: 
-	    functor.operator()<MiniMC::uint32_t> ();
-	    break;
-	  case 8: 
-	    functor.operator()<MiniMC::uint64_t> ();
-	    break;
-	  default:
-	    assert(false);
-	  }
-	}
+		  switch (size) {
+		  case 1: 
+			functor.operator()<MiniMC::uint8_t>  ();
+			break;
+		  case 2: 
+			functor.operator()<MiniMC::uint16_t> ();
+			break;
+		  case 4: 
+			functor.operator()<MiniMC::uint32_t> ();
+			break;
+		  case 8: 
+			functor.operator()<MiniMC::uint64_t> ();
+			break;
+		  default:
+			assert(false);
+		  }
+		}
       };
 
       
