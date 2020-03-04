@@ -50,34 +50,54 @@ namespace MiniMC {
 	    return nullptr;
 	  
 	}
-	try {
-	  if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	
+	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 	    auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
-	    gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
-	    for (auto& inst : instr) {
-	      switch (inst.getOpcode ()) {
-#define X(OP)								\
-		case MiniMC::Model::InstructionCode::OP:		\
-		  ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,inst); \
-		  break;									
-		TACOPS
-		  COMPARISONS
-		  CASTOPS
-		  MEMORY
-		  INTERNAL
-		  POINTEROPS
-		AGGREGATEOPS
-		  }
-	    }
+		try {
+		  gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
+		  
+#define X(OP)									\
+		  &&OP,
+		  
+		  void* arr[] = {
+						 OPERATIONS
+		  };
+#undef X
+		  
+#define DISPATCH(INST,END)						\
+		  if (INST == END)					  {	\
+			det.commit();											\
+			return nstate;											\
+		  }															\
+		  else															\
+			goto *arr[static_cast<std::size_t> (INST->getOpcode ())];	\
+		  
+		  
+		
+		  auto it = instr.begin();
+		  auto end = instr.end ();
+		  DISPATCH(it,end);
+		  
+		
+#define X(OP)															\
+		  OP:															\
+			ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,*it); \
+		  ++it;															\
+		  DISPATCH(it,end);
+		  
+		  OPERATIONS
+#undef X
+			
+			
+			}
+		catch  (MiniMC::Support::AssumeViolated) {
+		  return nullptr;
+		}
+		
+	}
+	
+	return nstate;
 	  }
-	  det.commit ();
-	  return nstate;
 	}
-	catch  (MiniMC::Support::AssumeViolated) {
-	  return nullptr;
-	}
-      }
-      
-    }
   }
 }

@@ -74,17 +74,21 @@ namespace MiniMC {
     X(StackRestore)				\
     X(StackSave)				\
     X(Uniform)					\
-    
+
+#define OPERATIONS								\
+	TACOPS										\
+	COMPARISONS									\
+	CASTOPS										\
+	MEMORY										\
+	INTERNAL									\
+	POINTEROPS									\
+	AGGREGATEOPS								\
+	
+	
     enum class InstructionCode {
-#define X(OP)					\
-				OP,
-				TACOPS
-				COMPARISONS
-				CASTOPS
-				MEMORY
-				INTERNAL
-				POINTEROPS
-				AGGREGATEOPS
+#define X(OP)									\
+								OP,
+								OPERATIONS
 #undef X
     };
 
