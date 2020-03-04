@@ -251,15 +251,31 @@ namespace MiniMC {
       }
 	public:
 	  llvm::PreservedAnalyses run(llvm::Module &F, llvm::ModuleAnalysisManager& AM) {
+		std::vector<MiniMC::Model::Instruction> instr;
 		Types tt;
 		tt.tfac = tfactory;
 		auto gstack = prgm->getGlobals ().get();
 		for (auto& g : F.getGlobalList()) {
 		  auto lltype = g.getType ();
 		  auto type = getType (lltype,tfactory);
-		  auto in = makeVariable (&g,g.getName(),type,gstack,values);
-		  std::cerr << *in << std::endl;
+		  auto gvar = makeVariable (&g,g.getName(),type,gstack,values);
+		  gvar->setGlobal ();
+		  auto pointTy = getType (g.getValueType(),tfactory);
+		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
+		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> mallocb;
+		  auto size = cfactory->makeIntegerConstant(pointTy->getSize());
+		  size->setType (tt.tfac->makeIntegerType (64));
+		  spaceb.setResult (gvar);
+		  spaceb.setSize (size);
+		  mallocb.setPointer (gvar);
+		  mallocb.setSize (size);
+		  instr.push_back (spaceb.BuildInstruction ());
+		  instr.push_back (mallocb.BuildInstruction ());
+		  
+
 		}
+		MiniMC::Model::InstructionStream str (instr);
+		prgm->setInitialiser (str);
 		return llvm::PreservedAnalyses::all();
 	  }
 	private:

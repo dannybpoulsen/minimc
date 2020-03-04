@@ -490,7 +490,7 @@ namespace MiniMC {
 		  auto ptr = st.heap.findSpace (0);
 		  InRegister reg (&ptr,sizeof(ptr));
 		  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
-		  st.stack.save (reg,vvar);
+		  doSave (st,vvar,reg);
 		}
       };
 

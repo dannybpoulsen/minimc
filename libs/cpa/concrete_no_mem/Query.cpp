@@ -59,7 +59,16 @@ namespace MiniMC {
 		  auto stackDescr = entry->getVariableStackDescr ();
 		  stacks.push_back (createStack(stackDescr,heap));
 		}
-		return std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
+		
+		
+		auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
+		assert(nstate->nbProcs());
+		auto st = nstate->getStackDetails (0);
+		auto& instr = prgm.getInitialisation ();
+		auto it = instr.begin ();
+		auto end = instr.end ();
+		runVM (it,end,&st,st);
+		return nstate;
       }
       
       size_t nbOfProcesses (const State_ptr& s) {
