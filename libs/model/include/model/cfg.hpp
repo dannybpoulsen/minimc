@@ -405,8 +405,8 @@ namespace MiniMC {
     public:
       Program (const MiniMC::Model::TypeFactory_ptr& tfact,
 	       const MiniMC::Model::ConstantFactory_ptr& cfact
-	       ) : cfact(cfact), tfact(tfact)  {
-	globals = makeVariableStack().get();
+			   ) : cfact(cfact), tfact(tfact)  {
+		globals = makeVariableStack().get();
       }
       gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
       gsl::not_null<Function_ptr>  addFunction (const std::string& name,
@@ -418,7 +418,7 @@ namespace MiniMC {
 	functions.back()->setPrgm (this->shared_from_this ());
 	return functions.back();
       }
-
+	  
       auto& getFunctions  () const {return functions;}
       void addEntryPoint (const gsl::not_null<Function_ptr>& func) {
 	entrypoints.push_back(func.get());
@@ -445,7 +445,9 @@ namespace MiniMC {
 
       auto& getConstantFactory () {return cfact;}
       auto& getTypeFactory () {return tfact;}
-      
+
+	  auto& getInitialisation () const {return initialiser;}
+	  void setInitialiser (const InstructionStream& instr) {initialiser = instr;}
       
     private:
       std::vector<Function_ptr> functions;
@@ -454,7 +456,8 @@ namespace MiniMC {
       std::size_t stacks = 0;
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
-    };
+	  InstructionStream initialiser;
+	};
     
   }
 }

@@ -18,7 +18,7 @@ namespace MiniMC {
 #define X(OP)									\
 		&&OP,
 		
-		void* arr[] = {
+		static void* arr[] = {
 					   OPERATIONS
 		};
 #undef X
