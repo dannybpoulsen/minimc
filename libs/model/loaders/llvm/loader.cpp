@@ -46,20 +46,20 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
       if (cst && !llvm::isa<llvm::Function> (val) && !llvm::isa<llvm::GlobalVariable> (val)) 
-		return makeConstant (cst,tt,cfac);
+	return makeConstant (cst,tt,cfac);
       else {
-		return values.at(val); 
+	return values.at(val); 
       }
     }
-	
-	MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack,Val2ValMap& values) {
-	  if (!values.count (val)) {
-		auto newVar = stack->addVariable (name,type);
-		values[val] = newVar;
-	  }
-	  return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
-	}
-	
+    
+    MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack,Val2ValMap& values) {
+      if (!values.count (val)) {
+	auto newVar = stack->addVariable (name,type);
+	values[val] = newVar;
+      }
+      return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
+    }
+    
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (ty -> isArrayTy ()) {
@@ -242,16 +242,16 @@ namespace MiniMC {
     };
 
 	struct GlobalConstructor : public llvm::PassInfoMixin<GlobalConstructor> {
-      
-      GlobalConstructor (MiniMC::Model::Program_ptr& prgm,
-		   MiniMC::Model::TypeFactory_ptr& tfac,
-						 MiniMC::Model::ConstantFactory_ptr& cfac,
-						 Val2ValMap& values
-						 ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(values) {
-      }
+	  
+	  GlobalConstructor (MiniMC::Model::Program_ptr& prgm,
+			     MiniMC::Model::TypeFactory_ptr& tfac,
+			     MiniMC::Model::ConstantFactory_ptr& cfac,
+			     Val2ValMap& values
+			     ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(values) {
+	  }
 	public:
 	  llvm::PreservedAnalyses run(llvm::Module &F, llvm::ModuleAnalysisManager& AM) {
-		std::vector<MiniMC::Model::Instruction> instr;
+	    std::vector<MiniMC::Model::Instruction> instr;
 		Types tt;
 		tt.tfac = tfactory;
 		auto gstack = prgm->getGlobals ().get();
@@ -271,20 +271,29 @@ namespace MiniMC {
 		  mallocb.setSize (size);
 		  instr.push_back (spaceb.BuildInstruction ());
 		  instr.push_back (mallocb.BuildInstruction ());
+		  if (g.hasInitializer ()) {
+		    auto val = findValue (g.getInitializer (),values,tt,cfactory);
+		    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Store> store;
+		    store.setValue (val);
+		    store.setAddress (gvar);
+		    instr.push_back (store.BuildInstruction ());
+		  }
 		  
-
 		}
-		MiniMC::Model::InstructionStream str (instr);
-		prgm->setInitialiser (str);
+		if (instr.size()) {
+		  MiniMC::Model::InstructionStream str (instr);
+		  prgm->setInitialiser (str);
+		}
 		return llvm::PreservedAnalyses::all();
 	  }
 	private:
 	  MiniMC::Model::Program_ptr& prgm;
-      MiniMC::Model::TypeFactory_ptr& tfactory;
-      MiniMC::Model::ConstantFactory_ptr& cfactory;
-      Val2ValMap& values;
+	  MiniMC::Model::TypeFactory_ptr& tfactory;
+	  MiniMC::Model::ConstantFactory_ptr& cfactory;
+	  Val2ValMap& values;
 	  
 	};
+    
     struct Constructor : public llvm::PassInfoMixin<Constructor> {
       
       Constructor (MiniMC::Model::Program_ptr& prgm,
@@ -445,19 +454,19 @@ namespace MiniMC {
       }
 
       void makeVar (const llvm::Value* op,MiniMC::Model::VariableStackDescr_ptr stack ) {
-		const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant> (op);
-		auto lltype = op->getType();
-		if (lltype->isLabelTy () ||
-			lltype->isVoidTy ()
+	const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant> (op);
+	auto lltype = op->getType();
+	if (lltype->isLabelTy () ||
+	    lltype->isVoidTy ()
 			)
-		  return ;
-		auto type = getType (op->getType(),tfactory);
-		if (oop) {
-		  return ;
-		}
-		else {
-		  makeVariable (op,op->getName(),type,stack,values);
-		}
+	  return ;
+	auto type = getType (op->getType(),tfactory);
+	if (oop) {
+	  return ;
+	}
+	else {
+	  makeVariable (op,op->getName(),type,stack,values);
+	}
       }
 	  
 #define SUPPORTEDLLVM				\

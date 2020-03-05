@@ -67,7 +67,6 @@ namespace MiniMC {
 	
 	pointer_t make_obj (MiniMC::offset_t size,pointer_t place) {
 	  //auto data = searchForReusable ();
-	  std::cerr << place << std::endl;
 	  auto base = MiniMC::Support::getBase (place);
 	  auto offset = MiniMC::Support::getOffset (place);
 	  auto& entry = entries.at(base);

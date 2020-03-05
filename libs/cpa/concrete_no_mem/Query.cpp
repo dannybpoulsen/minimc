@@ -48,27 +48,27 @@ namespace MiniMC {
 		  
 		  }
 									
-
-	  MiniMC::CPA::State_ptr StateQuery::makeInitialState (const MiniMC::Model::Program& prgm)  {
-		Heap heap;
-		std::vector<pointer_t> stacks;
-		auto gsize = prgm.getGlobals()->getTotalSize();
-		std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[gsize]);
-		auto gstack = createStack (prgm.getGlobals().get(),heap);
-		for (auto& entry : prgm.getEntryPoints ()) {
-		  auto stackDescr = entry->getVariableStackDescr ();
-		  stacks.push_back (createStack(stackDescr,heap));
-		}
+      
+      MiniMC::CPA::State_ptr StateQuery::makeInitialState (const MiniMC::Model::Program& prgm)  {
+	Heap heap;
+	std::vector<pointer_t> stacks;
+	auto gsize = prgm.getGlobals()->getTotalSize();
+	std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[gsize]);
+	auto gstack = createStack (prgm.getGlobals().get(),heap);
+	for (auto& entry : prgm.getEntryPoints ()) {
+	  auto stackDescr = entry->getVariableStackDescr ();
+	  stacks.push_back (createStack(stackDescr,heap));
+	}
+	
 		
-		
-		auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
-		assert(nstate->nbProcs());
-		auto st = nstate->getStackDetails (0);
-		auto& instr = prgm.getInitialisation ();
-		auto it = instr.begin ();
-		auto end = instr.end ();
-		runVM (it,end,&st,st);
-		return nstate;
+	auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
+	assert(nstate->nbProcs());
+	auto st = nstate->getStackDetails (0);
+	auto& instr = prgm.getInitialisation ();
+	auto it = instr.begin ();
+	auto end = instr.end ();
+	runVM (it,end,&st,st);
+	return nstate;
       }
       
       size_t nbOfProcesses (const State_ptr& s) {
