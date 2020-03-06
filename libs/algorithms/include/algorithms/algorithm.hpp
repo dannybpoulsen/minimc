@@ -35,28 +35,28 @@ namespace MiniMC {
       Algorithm (const Algorithm& ) = default;
       void setStopper (StopCriterion* stopper) {this->stopper = stopper;}
       virtual Result run (const MiniMC::Model::Program&) {
-		messager->message ("Starting dummy algorithm");
-		messager->message ("Finisheddummy algorithm");
-		return Result::Success;
+	messager->message ("Starting dummy algorithm");
+	messager->message ("Finisheddummy algorithm");
+	return Result::Success;
       }
-
-	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
-	  
-	  protected:
+      
+      static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
+      
+    protected:
       bool stopEarly () const {
-		if (stopper) {
-		  return stopper->shouldStop ();
-		}
-		else {
-		  return false;
-		}
+	if (stopper) {
+	  return stopper->shouldStop ();
+	}
+	else {
+	  return false;
+	}
       }
       MiniMC::Support::Messager& getMessager () const {return *messager;}
     private:
       StopCriterion* stopper = nullptr;
       MiniMC::Support::Messager* messager;
     };
-
+    
 
     template<class W,class ...Args>
     using BaseAWrapper = MiniMC::Support::SequenceWrapper<MiniMC::Model::Program,W,Args...>;
