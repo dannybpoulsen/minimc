@@ -31,7 +31,7 @@ namespace MiniMC {
 										  str << state->hash ();
 										  auto node = graph->getNode (str.str());
 										  std::stringstream labelstr;
-										  labelstr<< *initstate;
+										  labelstr<< *state;
 										  node->setLabel (labelstr.str());
 										  return node;
 	};

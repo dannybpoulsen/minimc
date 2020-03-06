@@ -102,13 +102,27 @@ namespace MiniMC {
     offset_t offset; 
   };
 
-  template<class T>
-  T& operator<< (T& os, const pointer_struct& p) {
-    return  os << p.segment <<":"<< static_cast<int64_t> (p.base) << "+"<<p.offset;
+  using pointer_t = pointer_struct;
+  
+  
+  inline bool is_null (const pointer_t& t) {
+    return t.segment == 0 &&
+      t.zero == 0 &&
+      t.base == 0 &&
+      t.offset == 0;
   }
   
-  using pointer_t = pointer_struct;
+  template<class T>
+  T& operator<< (T& os, const pointer_t& p) {
+    if (is_null(p)) {
+      os << "nullptr";
+    }
+    return  os << p.segment <<":"<< static_cast<int64_t> (p.base) << "+"<<p.offset;
+  }
 
+  
+  
+  
   inline bool operator== (const pointer_t& l, const pointer_t& r) {
     return l.segment == r.segment &&
       l.zero == r.zero &&

@@ -99,13 +99,7 @@ namespace MiniMC {
       return MiniMC::bit_cast<T,pointer_t> (val);
     }
 
-    inline bool is_null (const pointer_t& t) {
-      return t.segment == 0 &&
-	t.zero == 0 &&
-	t.base == 0 &&
-	t.offset == 0;
-    }
-
+    
     inline pointer_t null_pointer () {
       pointer_t t ;
       t.segment = 0;
@@ -113,6 +107,10 @@ namespace MiniMC {
       t.base = 0;
       t.offset = 0;
       return t;
+    }
+
+    inline bool is_null (const pointer_t& t) {
+      return ::MiniMC::is_null(t);
     }
     
   }
