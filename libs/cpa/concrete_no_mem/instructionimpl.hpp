@@ -182,34 +182,48 @@ namespace MiniMC {
       class RegisterLoader {
       public:
 		RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {
+		  auto populate = [](MiniMC::uint8_t* buf,std::size_t s, const MiniMC::uint8_t* copy) {
+				    std::copy (copy,copy+s,buf);
+				    return buf+s;
+				  };
+		  
+		  auto createValueAt  = [&](MiniMC::uint8_t* buf, MiniMC::Model::Constant& c) {
+					  if (!c.isAggregate ()) {
+					    
+					    auto& iconstant = dynamic_cast<MiniMC::Model::IntegerConstant&> (c);
+					    std::size_t size = iconstant.getType()->getSize();
+					    
+					    
+					    return populate (buf,size,reinterpret_cast<const MiniMC::uint8_t*> (&iconstant.getValue ()));
+					    
+					  }
+					  else {
+					    throw MiniMC::Support::Exception ("Aggregate constants cannot be nested");
+					  }
+					};
 		  if(ptr->isConstant ()) {
-			auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
-			if (!constant->isAggregate ()) {
-	      
-			  auto iconstant = std::dynamic_pointer_cast<MiniMC::Model::IntegerConstant> (ptr);
-			  std::unique_ptr<MiniMC::uint8_t[]> buffer  =  nullptr;
-			  std::size_t size;
-	      
-			  switch (ptr->getType()->getSize()) {
-			  case 1:
-				setUpInteger<MiniMC::uint8_t> (buffer,size,*iconstant);
-				break;
-			  case 2:
-				setUpInteger<MiniMC::uint16_t> (buffer,size,*iconstant);
-				break;
-			  case 4:
-				setUpInteger<MiniMC::uint32_t> (buffer,size,*iconstant);
-				break;
-			  case 8:
-				setUpInteger<MiniMC::uint64_t> (buffer,size,*iconstant);
-				break;
-			  }
-			  reg = std::make_unique<InnerStateConst> (buffer,size);
-	      
-			}
-			else {
-			  throw MiniMC::Support::Exception ("Constants cannot be created right now");
-			}
+		    auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
+		    std::size_t size = ptr->getType()->getSize();
+		    
+		    std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);;
+		      
+		    if (!constant->isAggregate ()) {
+		      
+		      createValueAt (buffer.get(),*constant);		      
+		    }
+		    else {
+		      auto cur = buffer.get();
+		      auto aconstant = std::dynamic_pointer_cast<MiniMC::Model::AggregateConstant> (ptr);
+		      for (auto& v : aconstant->getValues ()) {
+			auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (v);
+			cur = createValueAt (cur,*constant);
+			assert(cur-buffer.get() <= size);
+		      }
+		      //throw MiniMC::Support::Exception ("Aggregate constants cannot be created right now");
+		    }
+
+		    reg = std::make_unique<InnerStateConst> (buffer,size);
+		      
 		  }
 		  else {
 			auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));

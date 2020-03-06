@@ -97,12 +97,7 @@ namespace MiniMC {
 #define X(OP)					\
 	case InstructionCode::OP:		\
 	  return os << #OP;			
-		TACOPS
-	  COMPARISONS
-	  MEMORY
-	  CASTOPS
-	  INTERNAL
-	  AGGREGATEOPS
+	  OPERATIONS
 #undef X
       default:
 	return os << "Unknown";

@@ -48,7 +48,7 @@ namespace MiniMC {
     public:
       friend class ConstantFactory64;
       
-      auto getValue () const {return value;}
+      auto& getValue () const {return value;}
   
       virtual std::ostream& output (std::ostream& os) const {
 	os << "< " << value << " ";

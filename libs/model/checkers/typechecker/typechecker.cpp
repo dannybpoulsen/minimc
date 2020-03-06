@@ -177,6 +177,43 @@ namespace MiniMC {
 	  return true;
 	}
       };
+
+      template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::PtrAdd,void>
+      {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser must_be_integer ("'%2%' has to be an integer for '%1%'. "); 
+	  MiniMC::Support::Localiser must_be_pointer ("Return type has to be pointer for '%1%'"); 
+	  MiniMC::Support::Localiser base_must_be_pointer ("Base  has to be pointer for '%1%'"); 
+	  
+	  InstHelper<MiniMC::Model::InstructionCode::PtrAdd> h (inst);
+	  auto ptr = h.getAddress ()->getType();
+	  auto skip = h.getSkipSize ()->getType();
+	  auto value = h.getValue ()->getType();
+	  auto result = h.getResult ()->getType();
+
+
+	  if (result->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd));
+	    return false;
+	  }
+	  else if (skip->getTypeID () != MiniMC::Model::TypeID::Integer) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd,"SkipSize"));
+	    return false;
+	  }
+	  else if (value->getTypeID () != MiniMC::Model::TypeID::Integer) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd,"Value"));
+	    return false;
+	  }
+	  
+	  else if (ptr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
+	    mess.error (base_must_be_pointer.format (MiniMC::Model::InstructionCode::PtrAdd));
+	    return false;
+	  }
+		  
+	  return true;
+	}
+      };
 		
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::PtrToInt>
