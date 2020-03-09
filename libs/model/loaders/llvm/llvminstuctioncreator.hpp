@@ -39,28 +39,17 @@ namespace MiniMC {
 	    cst->setType (tt.getType(csti->getType()));
 	    return cst;
 	  }
-	  else if (ltype->isStructTy()) {
+	  else if (ltype->isStructTy() || ltype->isArrayTy () ) {
+	    auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
+	    assert(cstAggr);
 	    std::vector<MiniMC::Model::Value_ptr> vals;
-	    const size_t oper = constant->getNumOperands ();
+	    const size_t oper = cstAggr->getNumElements ();
 	    for (size_t i = 0; i < oper;++i) {
-	      auto elem = constant->getOperand(i);
+	      auto elem = cstAggr->getElementAsConstant(i);
 	      vals.push_back(makeConstant(elem,tt,fac));
 	    }
 	    auto type = tt.getType (constant->getType ());
-	    auto cst = fac->makeAggregateConstant (vals,false);
-	    cst->setType (type);
-	    return cst;
-	  }
-
-	  else if (ltype->isArrayTy()) {
-	    std::vector<MiniMC::Model::Value_ptr> vals;
-	    const size_t oper = constant->getNumOperands ();
-	    for (size_t i = 0; i < oper;++i) {
-	      auto elem = constant->getOperand(i);
-	      vals.push_back(makeConstant(elem,tt,fac));
-	    }
-	    auto type = tt.getType (constant->getType());
-	    auto cst = fac->makeAggregateConstant (vals,true);
+	    auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
 	    cst->setType (type);
 	    return cst;
 	  }

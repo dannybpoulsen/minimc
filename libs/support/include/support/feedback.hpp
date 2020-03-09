@@ -7,6 +7,8 @@
 
 namespace MiniMC {
   namespace Support {
+
+    
     
     class Progresser {
     public:

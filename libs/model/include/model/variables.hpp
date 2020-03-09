@@ -37,6 +37,7 @@ namespace MiniMC {
     public:
       virtual ~Constant () {}
       bool isConstant () const {return true;}
+      virtual const MiniMC::uint8_t* getData () const = 0; 
       virtual bool isAggregate () const {return false;}
   };
 
@@ -49,7 +50,7 @@ namespace MiniMC {
       friend class ConstantFactory64;
       
       auto& getValue () const {return value;}
-  
+      virtual const MiniMC::uint8_t* getData () const {return reinterpret_cast<const MiniMC::uint8_t*> (&value);}
       virtual std::ostream& output (std::ostream& os) const {
 	os << "< " << value << " ";
 	if (getType ())
@@ -62,14 +63,48 @@ namespace MiniMC {
       uint64_t value;
     };
 
-    class AggregateConstant :public Constant  {
+    class BinaryBlobConstant :public Constant  {
+      protected:
+      BinaryBlobConstant (MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]),size(s) {
+	std::copy(data,data+s,value.get());
+      }
+    public:
+      friend class ConstantFactory64;
+
+      template<class T>
+      auto& getValue () const {
+	assert(sizeof(T) == size);
+	return *reinterpret_cast<T*> (value.get());;
+      }
+
+      virtual const MiniMC::uint8_t* getData () const {return value.get();}
+  
+      virtual std::ostream& output (std::ostream& os) const {
+	os << "< " << "BINARY(" << " ";
+	for (size_t i = 0; i < size; i++) {
+	  os <<  static_cast<int> (*(value.get()+i)) <<", ";
+	}
+	os << ") ";
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
+      }
+    private:
+      std::unique_ptr<MiniMC::uint8_t[]> value;
+      std::size_t size;
+      };
+
+    /*class AggregateConstant :public Constant  {
     public:
       friend class ConstantFactory64;
       
     protected:
       AggregateConstant (const std::vector<Value_ptr>& vals, bool isarr) : values(vals),
-								     is_Array(isarr)
-      {}
+									   is_Array(isarr)
+      {
+      }
     public:
       auto& getValues () const {return values;}
       bool isArray () const {return is_Array;}
@@ -86,7 +121,7 @@ namespace MiniMC {
     private:
       std::vector<Value_ptr> values;
       bool is_Array = false;
-    };
+      };*/
 
     
     template<class T>
@@ -158,6 +193,8 @@ namespace MiniMC {
       using aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool) = 0;
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t) = 0;
+      virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t) = 0;
+      
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t) = 0;
     };
@@ -168,6 +205,7 @@ namespace MiniMC {
       ConstantFactory64 () {}
       virtual ~ConstantFactory64 () {}
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t);
+      virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t);
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool);
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t);

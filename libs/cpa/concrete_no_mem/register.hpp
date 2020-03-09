@@ -17,7 +17,7 @@ namespace MiniMC {
 	template<class T>
 	const T& get () const {
 	  assert(sizeof(T) <= size);
-	  return *reinterpret_cast<const T*> (mem); 
+	  return MiniMC::endian_safe_cast<T> (mem,size); 
 	}
 	
       private:

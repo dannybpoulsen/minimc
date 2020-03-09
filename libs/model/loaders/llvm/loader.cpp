@@ -366,7 +366,7 @@ namespace MiniMC {
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	      }
 	      else {
-			auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
+		auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
 		auto ttloc = buildPhiEdge (&BB,term->getSuccessor (0),*cfg,tt,locmap);
 		auto ffloc = buildPhiEdge (&BB,term->getSuccessor (1),*cfg,tt,locmap);
 		auto edge = cfg->makeEdge (loc,ttloc,prgm);
@@ -545,7 +545,6 @@ namespace MiniMC {
 		
 	llvm::LoopPassManager loopmanager;
 	llvm::FunctionPassManager funcmanager;
-	llvm::FunctionPassManager funcmanagerafterinit;
 	llvm::ModulePassManager mpm;
 	Val2ValMap values;
 	
@@ -558,8 +557,8 @@ namespace MiniMC {
 	funcmanager.addPass (ConstExprRemover());
 	funcmanager.addPass (RemoveUnusedInstructions());
 	//funcmanager.addPass (llvm::PromotePass());
-	funcmanager.addPass (InstructionNamer());
 	funcmanager.addPass (GetElementPtrSimplifier());
+	funcmanager.addPass (InstructionNamer());
 	funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
 	
 	mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));

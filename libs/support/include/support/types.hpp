@@ -2,6 +2,7 @@
 #define _TYPES__
 
 #include <cstdint>
+#include <string>
 
 namespace MiniMC {
 
@@ -101,7 +102,7 @@ namespace MiniMC {
     //for location pointer offset is the location inside the function jumped to
     offset_t offset; 
   };
-
+  
   using pointer_t = pointer_struct;
   
   
@@ -115,7 +116,7 @@ namespace MiniMC {
   template<class T>
   T& operator<< (T& os, const pointer_t& p) {
     if (is_null(p)) {
-      os << "nullptr";
+      return os << std::string("nullptr",7);
     }
     return  os << p.segment <<":"<< static_cast<int64_t> (p.base) << "+"<<p.offset;
   }
@@ -189,6 +190,23 @@ namespace MiniMC {
     return reinterpret_cast<const To&> (f);
   }
 
+  template<class To>
+  const To& endian_safe_cast (const void* f,std::size_t size) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return *reinterpret_cast<const To*> (f);
+#else
+    return *reinterpret_cast<const To*> (f+size-sizeof(To));
+#endif
+  }
+
+  template<class To>
+  To& endian_safe_cast (void* f,std::size_t size) {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return *reinterpret_cast<To*> (f);
+#else
+    static_assert(false && "Big ENDIAN CONVERSION NOT IMPLEMENTED");
+#endif
+  }
   
 }
 

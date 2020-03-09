@@ -66,11 +66,6 @@ namespace MiniMC {
 	return p.segment == static_cast<seg_t> (T);
       }
     };
-
-      
-      
-    
-   
     
       
     inline func_t getFunctionId (const pointer_t& p) {
@@ -86,6 +81,15 @@ namespace MiniMC {
     inline base_t getOffset (const pointer_t& p) {
       assert((IsA<PointerType::Heap>::check (p)));
       return p.offset;
+    }
+
+    inline pointer_t ptradd (const pointer_t& ptr, offset_t off) {
+      return pointer_t {.segment = ptr.segment,
+			  .zero = ptr.zero,
+			  .base = ptr.base,
+			  .offset = ptr.offset+off};
+      
+			  
     }
     
     

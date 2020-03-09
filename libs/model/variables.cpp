@@ -1,4 +1,5 @@
 #include "support/pointer.hpp"
+#include "support/pointerinserter.hpp"
 #include "model/variables.hpp"
 
 namespace MiniMC {
@@ -16,20 +17,39 @@ namespace MiniMC {
     const Value_ptr ConstantFactory64::makeIntegerConstant (MiniMC::uint64_t val) {
       return Value_ptr(new MiniMC::Model::IntegerConstant (val));
     }
+
+    const Value_ptr ConstantFactory64::makeBinaryBlobConstant (MiniMC::uint8_t* val, std::size_t s) {
+      return Value_ptr(new MiniMC::Model::BinaryBlobConstant (val,s));
+    }
     
     const Value_ptr ConstantFactory64::makeLocationPointer (MiniMC::func_t id, MiniMC::offset_t block) {
       auto pptr = MiniMC::Support::makeLocationPointer (id,block);
-      return Value_ptr(new MiniMC::Model::IntegerConstant (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr)));
+      return Value_ptr(new MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (&pptr),sizeof(pptr)));
     }
 
 
     const Value_ptr ConstantFactory64::makeFunctionPointer (MiniMC::func_t id) {
       	auto pptr = MiniMC::Support::makeFunctionPointer (id);
-	return Value_ptr(new  MiniMC::Model::IntegerConstant (MiniMC::Support::CastPtr<MiniMC::uint64_t> (pptr)));
+	return Value_ptr(new  MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (&pptr),sizeof(pptr)));
     }
     
     const Value_ptr ConstantFactory64::makeAggregateConstant (const ConstantFactory::aggr_input& inp,bool isArr) {
-      return Value_ptr(new MiniMC::Model::AggregateConstant (inp,isArr));
+      std::size_t size = 0;
+      for (auto& v : inp) {
+	size+=v->getType ()->getSize();
+      }
+      assert(size);
+      std::unique_ptr<MiniMC::uint8_t[]> data ( new MiniMC::uint8_t[size]); 
+      auto out = data.get();
+      for (auto& v : inp) {
+	auto c = std::static_pointer_cast<MiniMC::Model::Constant> (v);
+	out = std::copy(c->getData(),c->getData()+c->getType()->getSize(),out);
+	
+      }
+
+     
+      
+      return Value_ptr (new MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (data.get()),size));
     }
      
     

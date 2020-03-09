@@ -36,7 +36,7 @@ namespace MiniMC {
       struct CompExec<MiniMC::Model::InstructionCode::OPC,T> {		\
 	static OutRegister execute (const InRegister& left, const InRegister& right) { \
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[1]); \
-	  *reinterpret_cast<uint8_t*> (hh.get ()) = MiniMC::Support::func(left.template get<T> (),right.template get<T> ()); \
+	  MiniMC::endian_safe_cast<uint8_t> (hh.get (),1) = MiniMC::Support::func(left.template get<T> (),right.template get<T> ()); \
 	  return OutRegister(hh,1);				\
 	}								\
       };								\
