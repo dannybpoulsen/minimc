@@ -89,7 +89,7 @@ namespace MiniMC {
 			  .base = ptr.base,
 			  .offset = ptr.offset+off};
       
-			  
+      
     }
     
     

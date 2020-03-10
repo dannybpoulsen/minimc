@@ -190,23 +190,6 @@ namespace MiniMC {
     return reinterpret_cast<const To&> (f);
   }
 
-  template<class To>
-  const To& endian_safe_cast (const void* f,std::size_t size) {
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    return *reinterpret_cast<const To*> (f);
-#else
-    return *reinterpret_cast<const To*> (f+size-sizeof(To));
-#endif
-  }
-
-  template<class To>
-  To& endian_safe_cast (void* f,std::size_t size) {
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    return *reinterpret_cast<To*> (f);
-#else
-    static_assert(false && "Big ENDIAN CONVERSION NOT IMPLEMENTED");
-#endif
-  }
   
 }
 

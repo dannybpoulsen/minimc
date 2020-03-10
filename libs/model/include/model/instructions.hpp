@@ -852,7 +852,7 @@ namespace MiniMC {
     public:
       
       InstHelper (const Instruction& inst) : inst(inst) {
-	nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (inst.getOp (1))->getValue();
+	nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (inst.getOp (1))->getValue();
 	
       }
       

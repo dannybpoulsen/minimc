@@ -29,8 +29,8 @@ namespace MiniMC {
 
 
     const Value_ptr ConstantFactory64::makeFunctionPointer (MiniMC::func_t id) {
-      	auto pptr = MiniMC::Support::makeFunctionPointer (id);
-	return Value_ptr(new  MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (&pptr),sizeof(pptr)));
+      auto pptr = MiniMC::Support::makeFunctionPointer (id);
+      return Value_ptr(new  MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (&pptr),sizeof(pptr)));
     }
     
     const Value_ptr ConstantFactory64::makeAggregateConstant (const ConstantFactory::aggr_input& inp,bool isArr) {

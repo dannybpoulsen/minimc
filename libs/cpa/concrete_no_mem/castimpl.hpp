@@ -29,7 +29,7 @@ namespace MiniMC {
 												      >> {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::zext<F,T> (left.template get<F> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::zext<F,T> (left.template get<F> ());
 	  return OutRegister (hh,sizeof(T));
 	}
       };
@@ -54,7 +54,7 @@ namespace MiniMC {
 												      std::is_integral<T>::value> > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::sext<F,T> (left.template get<F> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::sext<F,T> (left.template get<F> ());
 	  return OutRegister (hh,sizeof(T));
 	}
       };
@@ -65,7 +65,7 @@ namespace MiniMC {
 													  std::is_integral<F>::value >> {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::zext<F,T> (left.template get<F> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::zext<F,T> (left.template get<F> ());
 	  return OutRegister (hh,sizeof(T));
 	}
       };
@@ -76,7 +76,7 @@ namespace MiniMC {
 													  std::is_integral<F>::value> > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::sext<F,T> (left.template get<F> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::sext<F,T> (left.template get<F> ());
 	  return OutRegister (hh,sizeof(T));
 	}
       };
@@ -90,7 +90,7 @@ namespace MiniMC {
 		      > {
 	static OutRegister execute  (const InRegister& left){
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::trunc<F,T> (left.template get<F> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::trunc<F,T> (left.template get<F> ());
 	  return OutRegister (hh,sizeof(T));
 	}
       };

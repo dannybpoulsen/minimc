@@ -28,7 +28,8 @@ namespace MiniMC {
 		  det.commit();												\
 		  return;														\
 		}																\
-		else															\
+		else\
+		  std::cerr << *INST << std::endl;			\
 		  goto *arr[static_cast<std::size_t> (INST->getOpcode ())];		\
 		
 		
@@ -65,6 +66,7 @@ namespace MiniMC {
 	assert(nstate->nbProcs());
 	auto st = nstate->getStackDetails (0);
 	auto& instr = prgm.getInitialisation ();
+	std::cerr << instr.instr << std::endl;
 	auto it = instr.begin ();
 	auto end = instr.end ();
 	runVM (it,end,&st,st);

@@ -395,7 +395,7 @@ namespace MiniMC {
 	  }
 	  
 	  else {
-	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (func);
+	    auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t> > (func);
 	    auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
 	    bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId (ptr));
 	    MiniMC::Support::Localiser  function_not_exists("Call references unexisting function: '%1%'");

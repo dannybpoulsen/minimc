@@ -7,6 +7,7 @@
 #include <vector>
 #include <ostream>
 #include "model/types.hpp"
+#include "support/storehelp.hpp"
 #include "support/types.hpp"
 namespace MiniMC {
   namespace Model {
@@ -42,17 +43,27 @@ namespace MiniMC {
   };
 
     class ConstantFactory64;
-    
+
+    template<typename T>
     class IntegerConstant :public Constant  {
     protected:
-      IntegerConstant (uint64_t val) : value(val) {}
+      IntegerConstant (T val) : value(0) {
+	MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value),sizeof(value)) = val;
+      }
     public:
       friend class ConstantFactory64;
       
-      auto& getValue () const {return value;}
-      virtual const MiniMC::uint8_t* getData () const {return reinterpret_cast<const MiniMC::uint8_t*> (&value);}
+      auto getValue () const {
+	auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
+	return val;
+      }
+
+      virtual const MiniMC::uint8_t* getData () const {
+	return reinterpret_cast<const MiniMC::uint8_t*> (&value);
+      }
+
       virtual std::ostream& output (std::ostream& os) const {
-	os << "< " << value << " ";
+	os << "< " << getValue() << " ";
 	if (getType ())
 	  os << *getType();
 	else
@@ -60,9 +71,9 @@ namespace MiniMC {
 	return os << " >";
       }
     private:
-      uint64_t value;
+      T value;
     };
-
+    
     class BinaryBlobConstant :public Constant  {
       protected:
       BinaryBlobConstant (MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]),size(s) {
@@ -76,8 +87,10 @@ namespace MiniMC {
 	assert(sizeof(T) == size);
 	return *reinterpret_cast<T*> (value.get());;
       }
-
-      virtual const MiniMC::uint8_t* getData () const {return value.get();}
+      
+      virtual const MiniMC::uint8_t* getData () const {
+	return value.get();
+      }
   
       virtual std::ostream& output (std::ostream& os) const {
 	os << "< " << "BINARY(" << " ";
@@ -95,34 +108,6 @@ namespace MiniMC {
       std::unique_ptr<MiniMC::uint8_t[]> value;
       std::size_t size;
       };
-
-    /*class AggregateConstant :public Constant  {
-    public:
-      friend class ConstantFactory64;
-      
-    protected:
-      AggregateConstant (const std::vector<Value_ptr>& vals, bool isarr) : values(vals),
-									   is_Array(isarr)
-      {
-      }
-    public:
-      auto& getValues () const {return values;}
-      bool isArray () const {return is_Array;}
-      bool isAggregate () const {return true;}
-  
-      virtual std::ostream& output (std::ostream& os) const {
-	const std::string start = is_Array ? "[ " : "{ ";
-	const std::string stop = is_Array ? "]" : "}";
-	os << start;
-	for (auto& v : values)
-	  os << *v << " " ;
-	return os << stop;
-      }
-    private:
-      std::vector<Value_ptr> values;
-      bool is_Array = false;
-      };*/
-
     
     template<class T>
     class Placed  {

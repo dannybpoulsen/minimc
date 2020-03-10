@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <cassert>
-#include "support/types.hpp"
+#include "support/storehelp.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -15,9 +15,9 @@ namespace MiniMC {
 	const void* getMem () const {return mem;}
 	auto getSize () const {return size;}
 	template<class T>
-	const T& get () const {
+	const T get () const {
 	  assert(sizeof(T) <= size);
-	  return MiniMC::endian_safe_cast<T> (mem,size); 
+	  return MiniMC::loadHelper<T> (reinterpret_cast<const MiniMC::uint8_t*> (mem),size); 
 	}
 	
       private:

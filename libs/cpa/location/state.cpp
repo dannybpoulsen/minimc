@@ -82,9 +82,10 @@ namespace MiniMC {
 	    if (inst.getOpcode () == MiniMC::Model::InstructionCode::Call) {
 	      MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper (inst);
 	      if (helper.getFunctionPtr ()->isConstant()) {
-		auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (helper.getFunctionPtr ());
-		auto ptr = MiniMC::Support::CastToPtr (constant->getValue());
-		auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId (ptr));
+		auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant > (helper.getFunctionPtr ());
+		MiniMC::loadHelper<MiniMC::pointer_t> loadPtr(constant->getData (),sizeof(MiniMC::pointer_t));
+		
+		auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId (loadPtr));
 		nstate->pushLocation (id,func->getCFG()->getInitialLocation().get().get());
 	      }
 	      else

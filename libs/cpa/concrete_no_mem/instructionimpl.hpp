@@ -6,6 +6,7 @@
 #include "support/localisation.hpp"
 #include "support/pointer.hpp"
 #include "support/random.hpp"
+#include "support/storehelp.hpp"
 
 #include "register.hpp"
 #include "stack.hpp"
@@ -44,7 +45,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Add,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> () + right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () + right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -53,7 +54,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Sub,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> ()  - right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> ()  - right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -62,7 +63,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Mul,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> ()  * right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> ()  * right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -71,7 +72,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::UDiv,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::div(left.template get<T> (),right.template get<T> ());
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -80,7 +81,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::SDiv,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::idiv(left.template get<T> (),right.template get<T> ());
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -89,7 +90,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Shl,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> () << right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () << right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -98,7 +99,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::LShr,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::lshr(left.template get<T> (),right.template get<T> ());
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -107,7 +108,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::AShr,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = MiniMC::Support::ashr(left.template get<T> (), right.template get<T> ());
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -116,7 +117,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::And,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> () & right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () & right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -125,7 +126,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Or,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> () | right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () | right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -134,7 +135,7 @@ namespace MiniMC {
       struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
 	static OutRegister execute (const InRegister& left, const InRegister& right) {
 	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-	  MiniMC::endian_safe_cast<T> (hh.get (),sizeof(T)) = left.template get<T> () ^ right.template get<T> ();
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () ^ right.template get<T> ();
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
@@ -303,11 +304,8 @@ namespace MiniMC {
 	  RegisterLoader addrR (readFrom,addr);
 	  RegisterLoader skipSizeR (readFrom,skipSize);
 	  
-	  auto ptr = addrR.getRegister().template get<MiniMC::pointer_t> ();
+	  MiniMC::pointer_t ptr = addrR.getRegister().template get<MiniMC::pointer_t> ();
 	  auto skipCalc = skipSizeR.getRegister ().template get<MiniMC::offset_t>()*valueR.getRegister ().template get<MiniMC::offset_t>();
-	  
-
-
 	  auto nptr = MiniMC::Support::ptradd (ptr,skipCalc);
 	  
 	  InRegister resval (&nptr,sizeof(nptr));
@@ -471,11 +469,12 @@ namespace MiniMC {
 	  MiniMC::Model::Value_ptr storePlace = helper.getResult ();
 	  assert(size->isConstant ());
 	  assert(storePlace);
-	  auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant> (size);
+	  auto constant = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (size);
+	  MiniMC::loadHelper<MiniMC::uint64_t> sizeLoad (constant->getData(),sizeof(MiniMC::uint64_t));
 	  pointer_t pointer;
 	  auto data = readFrom.stack.getData ();
 	  assert(!MiniMC::Support::is_null (data.allocs));
-	  pointer = st.heap.extend_obj (data.allocs,constant->getValue());
+	  pointer = st.heap.extend_obj (data.allocs,sizeLoad);
 		  
 	  InRegister reg (&pointer,sizeof(pointer));
 	  auto vvar = std::static_pointer_cast<MiniMC::Model::Variable> (storePlace);
@@ -597,7 +596,6 @@ namespace MiniMC {
 	  RegisterLoader addrval (readFrom,address);
 	  RegisterLoader valueval (readFrom,value);
 	  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
-		  
 	  st.heap.write (pointer,valueval.getRegister());
 	}
       };
