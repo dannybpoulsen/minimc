@@ -69,7 +69,7 @@ namespace MiniMC {
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
-      Location (const std::string& n) : name(n) {}
+      Location (const std::string& n, MiniMC::offset_t id) : name(n),id(id) {}
       //auto& getEdges () const {return edges;}
       void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
       void addIncomingEdge (gsl::not_null<Edge_ptr> e) {incomingEdges.push_back(e.get());}
@@ -123,6 +123,8 @@ namespace MiniMC {
       void unset () {
 	flags &= ~static_cast<AttrType> (i);
       }
+
+      auto getID () const {return id;}
       
       bool hasSourceLocation  () const {return sourceloc.get();}
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
@@ -134,6 +136,7 @@ namespace MiniMC {
       SourceLocation_ptr sourceloc = nullptr;
       bool isError = false;
       AttrType flags = 0;
+      MiniMC::offset_t id;
     };
 
     
@@ -314,8 +317,8 @@ namespace MiniMC {
       
       
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-		locations.emplace_back (new Location (name));
-		return locations.back();
+	locations.emplace_back (new Location (name,locations.size()));
+	return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
@@ -361,9 +364,9 @@ namespace MiniMC {
     public:
       Function (MiniMC::func_t id, 
 		const std::string& name,
-				const std::vector<gsl::not_null<Variable_ptr>>& params,
-				const gsl::not_null<Type_ptr> rtype,
-				const VariableStackDescr_ptr& variableStackDescr,
+		const std::vector<gsl::not_null<Variable_ptr>>& params,
+		const gsl::not_null<Type_ptr> rtype,
+		const VariableStackDescr_ptr& variableStackDescr,
 				const gsl::not_null<CFG_ptr> cfg) : name(name),
 													parameters(params),
 													variableStackDescr(variableStackDescr),

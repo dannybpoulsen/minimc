@@ -314,6 +314,23 @@ namespace MiniMC {
 		  
 	}
       };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::PtrEq> {
+	inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+				    MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+				    const MiniMC::Model::Instruction& inst)  {
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::PtrEq> helper (inst);
+	  RegisterLoader l (readFrom,helper.getLeftOp ());
+	  RegisterLoader r (readFrom,helper.getRightOp ());
+	  MiniMC::uint8_t res = l.getRegister ().template get<pointer_t> () == r.getRegister ().template get<pointer_t> (); 
+	  InRegister resval (&res,sizeof(MiniMC::uint8_t));
+	  
+	  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ()),resval);
+	  
+		  
+	}
+      };
       
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::PtrToInt,void> {

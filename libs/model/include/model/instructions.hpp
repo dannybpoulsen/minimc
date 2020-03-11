@@ -34,7 +34,8 @@ namespace MiniMC {
     
 #define POINTEROPS				\
     X(PtrAdd)					\
-
+    X(PtrEq)					\
+    
 #define AGGREGATEOPS				\
     X(ExtractValue)				\
     X(InsertValue)				\
@@ -210,7 +211,17 @@ namespace MiniMC {
       static const bool hasResVar = true;			
     };
 
-
+    template<>							
+    struct InstructionData<InstructionCode::PtrEq>{		
+      static const bool isTAC = false;
+      static const bool isComparison = true;
+      static const bool isMemory = false;			
+      static const bool isCast = false;				
+      static const bool isPointer = true;			
+      static const bool isAggregate = false;			
+      static const std::size_t operands = 2;			
+      static const bool hasResVar = true;			
+    };
     
     template<>						
     struct InstructionData<InstructionCode::Alloca> {		

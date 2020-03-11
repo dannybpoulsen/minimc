@@ -26,37 +26,6 @@ namespace MiniMC {
     };
 
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& );
-    
-    
-    MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt, MiniMC::Model::ConstantFactory_ptr& fac) {
-	  auto constant = llvm::dyn_cast<llvm::Constant> (val);
-	  assert(constant);
-	  auto ltype = constant->getType ();
-	  if (ltype->isIntegerTy ()) {
-	    llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
-	    assert(csti);
-	    auto type = tt.getType(csti->getType());
-	    auto cst = fac->makeIntegerConstant(csti->getZExtValue (),type);
-	    return cst;
-	  }
-	  else if (ltype->isStructTy() || ltype->isArrayTy () ) {
-	    auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
-	    assert(cstAggr);
-	    std::vector<MiniMC::Model::Value_ptr> vals;
-	    const size_t oper = cstAggr->getNumElements ();
-	    for (size_t i = 0; i < oper;++i) {
-	      auto elem = cstAggr->getElementAsConstant(i);
-	      vals.push_back(makeConstant(elem,tt,fac));
-	    }
-	    auto type = tt.getType (constant->getType ());
-	    auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
-	    cst->setType (type);
-	    return cst;
-	  }
-	  
-	  throw MiniMC::Support::Exception ("Error");
-	}
-    
 
 	
 	

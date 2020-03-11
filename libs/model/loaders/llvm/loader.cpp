@@ -13,6 +13,7 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/IR/AssemblyAnnotationWriter.h>
 #include <llvm/IR/PassManager.h>
+#include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/SimplifyCFG.h>
 #include <llvm/Transforms/Scalar/LoopUnrollPass.h>
@@ -42,16 +43,74 @@
 namespace MiniMC {
   namespace Loaders {
 
+    MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt, MiniMC::Model::ConstantFactory_ptr& fac, Val2ValMap& map) {
+      auto constant = llvm::dyn_cast<llvm::Constant> (val);
+      assert(constant);
+      auto ltype = constant->getType ();
+      if (ltype->isIntegerTy ()) {
+	llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
+	assert(csti);
+	auto type = tt.getType(csti->getType());
+	auto cst = fac->makeIntegerConstant(csti->getZExtValue (),type);
+	return cst;
+      }
+      else if (ltype->isStructTy() || ltype->isArrayTy () ) {
+	    
+	auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
+	if (cstAggr) {
+	  std::vector<MiniMC::Model::Value_ptr> vals;
+	  const size_t oper = cstAggr->getNumElements ();
+	  for (size_t i = 0; i < oper;++i) {
+	    auto elem = cstAggr->getElementAsConstant(i);
+	    vals.push_back(makeConstant(elem,tt,fac,map));
+	  }
+	  auto type = tt.getType (constant->getType ());
+	  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
+	  cst->setType (type);
+	  return cst;
+	}
+	  
+	auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate> (val);
+	if (cstAggr2) {
+	  std::vector<MiniMC::Model::Value_ptr> vals;
+	  const size_t oper = cstAggr2->getNumOperands ();
+	  for (size_t i = 0; i < oper;++i) {
+	    auto elem = cstAggr2->getOperand(i);
+	    vals.push_back(makeConstant(elem,tt,fac,map));
+	  }
+	  auto type = tt.getType (constant->getType ());
+	  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
+	  cst->setType (type);
+	  return cst;
+	}
+      }
+      else if (llvm::isa<llvm::Function> (val) ||
+	       llvm::isa<llvm::GlobalVariable> (val)
+	       ) {
+	return map.at (val);
+      }
+      else if (llvm::BlockAddress* block = llvm::dyn_cast<llvm::BlockAddress> (val)) {
+	return map.at (block->getBasicBlock ());
+      }
+      else if (ltype->isPointerTy ()) {
+	llvm::errs () << *val;
+	throw MiniMC::Support::Exception ("Pointer Not Quite there");
+      }
+      throw MiniMC::Support::Exception ("Error");
+    }
+    
+
     
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
-      if (cst && !llvm::isa<llvm::Function> (val) && !llvm::isa<llvm::GlobalVariable> (val)) 
-	return makeConstant (cst,tt,cfac);
+      if (cst) 
+	return makeConstant (cst,tt,cfac,values);
       else {
 	return values.at(val); 
       }
     }
     
+        
     MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack,Val2ValMap& values) {
       if (!values.count (val)) {
 	auto newVar = stack->addVariable (name,type);
@@ -75,7 +134,7 @@ namespace MiniMC {
 	return size;
       }
       else {
-		return getType (ty,tfactory)->getSize();
+	return getType (ty,tfactory)->getSize();
       }
       throw MiniMC::Support::Exception ("Can't calculate size of type");
     }
@@ -241,130 +300,150 @@ namespace MiniMC {
       }
     };
 
-	struct GlobalConstructor : public llvm::PassInfoMixin<GlobalConstructor> {
+    struct GlobalConstructor : public llvm::PassInfoMixin<GlobalConstructor> {
 	  
-	  GlobalConstructor (MiniMC::Model::Program_ptr& prgm,
-			     MiniMC::Model::TypeFactory_ptr& tfac,
-			     MiniMC::Model::ConstantFactory_ptr& cfac,
-			     Val2ValMap& values
-			     ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(values) {
+      GlobalConstructor (MiniMC::Model::Program_ptr& prgm,
+			 MiniMC::Model::TypeFactory_ptr& tfac,
+			 MiniMC::Model::ConstantFactory_ptr& cfac,
+			 Val2ValMap& values
+			 ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(values) {
+      }
+    public:
+      llvm::PreservedAnalyses run(llvm::Module &F, llvm::ModuleAnalysisManager& AM) {
+	std::vector<MiniMC::Model::Instruction> instr;
+	Types tt;
+	tt.tfac = tfactory;
+
+	MiniMC::func_t fid = 0;
+	for (auto& Func : F) {
+	  auto ptr = cfactory->makeFunctionPointer  (fid);
+	  ptr->setType (tfactory->makePointerType ());
+	  
+	  MiniMC::offset_t lid = 0;
+	  for (auto& BB : Func) {
+	    auto ptr = cfactory->makeLocationPointer  (fid,lid);
+	    ptr->setType (tfactory->makePointerType ());
+	    values.insert (std::make_pair(&BB,ptr));
+	    lid++;
 	  }
-	public:
-	  llvm::PreservedAnalyses run(llvm::Module &F, llvm::ModuleAnalysisManager& AM) {
-	    std::vector<MiniMC::Model::Instruction> instr;
-		Types tt;
-		tt.tfac = tfactory;
-		auto gstack = prgm->getGlobals ().get();
-		for (auto& g : F.getGlobalList()) {
-		  auto lltype = g.getType ();
-		  auto type = getType (lltype,tfactory);
-		  auto gvar = makeVariable (&g,g.getName(),type,gstack,values);
-		  gvar->setGlobal ();
-		  auto pointTy = getType (g.getValueType(),tfactory);
-		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
-		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> mallocb;
-		  auto sizeType = tt.tfac->makeIntegerType (64); 
-		  auto size = cfactory->makeIntegerConstant(pointTy->getSize(),sizeType);
-		  size->setType (sizeType);
-		  spaceb.setResult (gvar);
-		  spaceb.setSize (size);
-		  mallocb.setPointer (gvar);
-		  mallocb.setSize (size);
-		  instr.push_back (spaceb.BuildInstruction ());
-		  instr.push_back (mallocb.BuildInstruction ());
-		  if (g.hasInitializer ()) {
-		    auto val = findValue (g.getInitializer (),values,tt,cfactory);
-		    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Store> store;
-		    store.setValue (val);
-		    store.setAddress (gvar);
-		    instr.push_back (store.BuildInstruction ());
-		  }
+	  fid++;
+	}
+
+	auto gstack = prgm->getGlobals ().get();
+	for (auto& g : F.getGlobalList()) {
+	  auto lltype = g.getType ();
+	  auto type = getType (lltype,tfactory);
+	  auto gvar = makeVariable (&g,g.getName(),type,gstack,values);
+	  gvar->setGlobal ();
+	  auto pointTy = getType (g.getValueType(),tfactory);
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
+	  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> mallocb;
+	  auto sizeType = tt.tfac->makeIntegerType (64); 
+	  auto size = cfactory->makeIntegerConstant(pointTy->getSize(),sizeType);
+	  size->setType (sizeType);
+	  spaceb.setResult (gvar);
+	  spaceb.setSize (size);
+	  mallocb.setPointer (gvar);
+	  mallocb.setSize (size);
+	  instr.push_back (spaceb.BuildInstruction ());
+	  instr.push_back (mallocb.BuildInstruction ());
+	  if (g.hasInitializer ()) {
+	    auto val = findValue (g.getInitializer (),values,tt,cfactory);
+	    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Store> store;
+	    store.setValue (val);
+	    store.setAddress (gvar);
+	    instr.push_back (store.BuildInstruction ());
+	  }
 		  
-		}
-		if (instr.size()) {
-		  MiniMC::Model::InstructionStream str (instr);
-		  prgm->setInitialiser (str);
-		}
-		return llvm::PreservedAnalyses::all();
-	  }
-	private:
-	  MiniMC::Model::Program_ptr& prgm;
-	  MiniMC::Model::TypeFactory_ptr& tfactory;
-	  MiniMC::Model::ConstantFactory_ptr& cfactory;
-	  Val2ValMap& values;
+	}
+	if (instr.size()) {
+	  MiniMC::Model::InstructionStream str (instr);
+	  prgm->setInitialiser (str);
+	}
+	
+	return llvm::PreservedAnalyses::all();
+      }
+    private:
+      MiniMC::Model::Program_ptr& prgm;
+      MiniMC::Model::TypeFactory_ptr& tfactory;
+      MiniMC::Model::ConstantFactory_ptr& cfactory;
+      Val2ValMap& values;
 	  
-	};
+    };
     
     struct Constructor : public llvm::PassInfoMixin<Constructor> {
       
       Constructor (MiniMC::Model::Program_ptr& prgm,
-				   MiniMC::Model::TypeFactory_ptr& tfac,
-				   MiniMC::Model::ConstantFactory_ptr& cfac,
-				   Val2ValMap& val
-				   ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(val) {
+		   MiniMC::Model::TypeFactory_ptr& tfac,
+		   MiniMC::Model::ConstantFactory_ptr& cfac,
+		   Val2ValMap& val
+		   ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(val) {
       }
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager& AM) {
-		std::string fname =  F.getName();
-		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
-		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
-		for (llvm::BasicBlock &BB : F) {
-		  locmap.insert (std::make_pair(&BB,cfg->makeLocation(BB.getName())));
-		}
+	Types tt;
+	tt.tfac = tfactory;
+	std::string fname =  F.getName();
+	auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
+	std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
+	auto variablestack =  prgm->makeVariableStack ();
+	tt.stack = variablestack;
+	using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
+	pickVariables <inserter> (F,variablestack,std::back_inserter(params));
+	auto f = prgm->addFunction (F.getName(),params,tt.getType(F.getReturnType ()),variablestack,cfg);
+	std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
+	
+	for (llvm::BasicBlock &BB : F) {
+	  auto loc = cfg->makeLocation(BB.getName());
+	  locmap.insert (std::make_pair(&BB,loc)); 
+	}
+	
+	
 		
-		Types tt;
-		tt.tfac = tfactory;
-
-	
-	
-		using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
-		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
-		auto variablestack =  prgm->makeVariableStack ();
-		tt.stack = variablestack;	
-		pickVariables <inserter> (F,variablestack,std::back_inserter(params));
-		auto& entry = F.getEntryBlock ();
-		cfg->setInitial (locmap.at(&entry));
-		for (llvm::BasicBlock &BB : F) {
-		  auto loc = locmap.at(&BB);
-		  auto term = BB.getTerminator ();
-		  std::vector<MiniMC::Model::Instruction> insts;
-		  for (llvm::Instruction& inst : BB) {
-			if (llvm::isa<llvm::PHINode> (inst)) {
-			  continue;
-			}
-			if (&inst!=term) {
-			  addInstruction (&inst,insts,tt);
-			}
-			if (llvm::isa<llvm::CallInst> (inst)) {
-			  loc->set<MiniMC::Model::Location::Attributes::CallPlace> ();
-			  auto mloc = cfg->makeLocation (loc->getName () + ":AC");
-			  auto edge = cfg->makeEdge (loc,mloc,prgm);
-			  if (insts.size())
-				edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
-			  insts.clear();
-			  loc = mloc;
-			}
-		  }
+	auto& entry = F.getEntryBlock ();
+	cfg->setInitial (locmap.at(&entry));
+	for (llvm::BasicBlock &BB : F) {
+	  auto loc = locmap.at(&BB);
+	  auto term = BB.getTerminator ();
+	  std::vector<MiniMC::Model::Instruction> insts;
+	  for (llvm::Instruction& inst : BB) {
+	    if (llvm::isa<llvm::PHINode> (inst)) {
+	      continue;
+	    }
+	    if (&inst!=term) {
+	      addInstruction (&inst,insts,tt);
+	    }
+	    if (llvm::isa<llvm::CallInst> (inst)) {
+	      loc->set<MiniMC::Model::Location::Attributes::CallPlace> ();
+	      auto mloc = cfg->makeLocation (loc->getName () + ":AC");
+	      auto edge = cfg->makeEdge (loc,mloc,prgm);
+	      if (insts.size())
+		edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+	      insts.clear();
+	      loc = mloc;
+	    }
+	  }
 		  
-		  if (insts.size()) {
-			auto mloc = cfg->makeLocation (loc->getName () + ":S");
-			auto edge = cfg->makeEdge (loc,mloc,prgm);
-			edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
-			loc = mloc;
-		  }
+	  if (insts.size()) {
+	    auto mloc = cfg->makeLocation (loc->getName () + ":S");
+	    auto edge = cfg->makeEdge (loc,mloc,prgm);
+	    edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+	    loc = mloc;
+	    insts.clear();
+	  }
 		  
-		  if (term) {
-			insts.clear();
+	  if (term) {
+	    assert(!insts.size ());
 	    if( term->getOpcode () == llvm::Instruction::Br) {
 		  
 	      auto brterm = llvm::dyn_cast<llvm::BranchInst> (term);
 	      if (brterm->isUnconditional ()) {
-			std::vector<MiniMC::Model::Instruction> insts;
-			auto succ = term->getSuccessor (0);
-			auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
-			//locmap.at(succ);
-			auto edge = cfg->makeEdge (loc,succloc,prgm);
-			if (insts.size())
-			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
+		std::vector<MiniMC::Model::Instruction> insts;
+		auto succ = term->getSuccessor (0);
+		auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
+		//locmap.at(succ);
+		auto edge = cfg->makeEdge (loc,succloc,prgm);
+		if (insts.size())
+		  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 	      }
 	      else {
 		auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
@@ -376,8 +455,30 @@ namespace MiniMC {
 		edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,true));
 	      }
 	    }
-
-	    if( term->getOpcode () == llvm::Instruction::Ret) {
+	    else if ( term->getOpcode () == llvm::Instruction::IndirectBr) {
+	      auto brterm = llvm::dyn_cast<llvm::IndirectBrInst> (term);
+	      auto splitloc = cfg->makeLocation ("Indirect");
+	      std::size_t dests = brterm->getNumDestinations ();
+	      auto value = findValue (brterm->getAddress(),values,tt,cfactory);
+	      for (std::size_t i = 0; i < dests;++i) {
+		auto valComp = findValue (brterm->getDestination (i),values,tt,cfactory);
+		auto btype = tfactory->makeBoolType ();
+		auto cond = variablestack->addVariable ("",btype);
+		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::PtrEq> builder;
+		builder.setLeft (value);
+		builder.setRight (valComp);
+		builder.setRes (cond);
+		auto ttloc = buildPhiEdge (&BB,brterm->getDestination (i),*cfg,tt,locmap);
+		auto edge = cfg->makeEdge (splitloc,ttloc,prgm);
+		edge->setAttribute <MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
+		insts.push_back (builder.BuildInstruction ());
+	      }
+	      splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
+	      auto nedge = cfg->makeEdge (loc,splitloc,prgm);
+	      nedge->setAttribute <MiniMC::Model::AttributeType::Instructions> (insts);
+	    }
+		    
+	    else if( term->getOpcode () == llvm::Instruction::Ret) {
 	      std::vector<MiniMC::Model::Instruction> insts;
 	      addInstruction (term,insts,tt);
 	      auto succloc = cfg->makeLocation (fname+"."+"Term");
@@ -388,15 +489,9 @@ namespace MiniMC {
 	  }
 	}
 		
-	auto f = prgm->addFunction (F.getName(),params,tt.getType(F.getReturnType ()),variablestack,cfg);
-
-	auto id = f->getID ();
-	//auto pptr = MiniMC::Support::makeFunctionPointer (id);
-	auto ptr = cfactory->makeFunctionPointer  (id);
-	ptr->setType (tfactory->makeIntegerType (64));
-	values.insert (std::make_pair(&F,ptr));
-
-
+		
+		
+		
 	//Find the loops now
 	auto &LI = AM.getResult<llvm::LoopAnalysis>(F);
 	for (auto loop : LI) {
@@ -404,8 +499,8 @@ namespace MiniMC {
 	  auto loc = locmap.at (header);
 	  loc->template set<MiniMC::Model::Location::Attributes::LoopEntry> ();
 	}
-	
-	
+		
+		
 	return llvm::PreservedAnalyses::all();
       }
 
@@ -433,25 +528,25 @@ namespace MiniMC {
       
       template<class Inserter>
       void pickVariables (const llvm::Function& func,MiniMC::Model::VariableStackDescr_ptr stack, Inserter in ) {
-		for (auto itt = func.arg_begin();itt!=func.arg_end(); itt++) {
-		  auto lltype = itt->getType ();
-		  auto type = getType (lltype,tfactory);
-		  in = makeVariable (itt,itt->getName(),type,stack,values);
-		}
+	for (auto itt = func.arg_begin();itt!=func.arg_end(); itt++) {
+	  auto lltype = itt->getType ();
+	  auto type = getType (lltype,tfactory);
+	  in = makeVariable (itt,itt->getName(),type,stack,values);
+	}
 		
-		for (const llvm::BasicBlock& bb : func) {
-		  for (auto& inst : bb) {
-			makeVar (&inst,stack);
-			auto ops = inst.getNumOperands ();
-			for (std::size_t i = 0; i < ops; i++) {
-			  auto op = inst.getOperand (i);
-			  makeVar (op,stack);
-			}
+	for (const llvm::BasicBlock& bb : func) {
+	  for (auto& inst : bb) {
+	    makeVar (&inst,stack);
+	    auto ops = inst.getNumOperands ();
+	    for (std::size_t i = 0; i < ops; i++) {
+	      auto op = inst.getOperand (i);
+	      makeVar (op,stack);
+	    }
 		    
 		    
 		    
-		  }
-		}
+	  }
+	}
       }
 
       void makeVar (const llvm::Value* op,MiniMC::Model::VariableStackDescr_ptr stack ) {
@@ -459,7 +554,7 @@ namespace MiniMC {
 	auto lltype = op->getType();
 	if (lltype->isLabelTy () ||
 	    lltype->isVoidTy ()
-			)
+	    )
 	  return ;
 	auto type = getType (op->getType(),tfactory);
 	if (oop) {
@@ -494,8 +589,8 @@ namespace MiniMC {
       X(Alloca)					\
       X(GetElementPtr)				\
       X(InsertValue)				\
-      X(ExtractValue)				\
-	X(Call)					\
+	X(ExtractValue)				\
+      X(Call)					\
       X(Ret)					\
 	  
 	  
@@ -545,6 +640,7 @@ namespace MiniMC {
 	llvm::ModuleAnalysisManager mam;
 		
 	llvm::LoopPassManager loopmanager;
+	llvm::FunctionPassManager funcmanagerllvm;
 	llvm::FunctionPassManager funcmanager;
 	llvm::ModulePassManager mpm;
 	Val2ValMap values;
@@ -555,15 +651,20 @@ namespace MiniMC {
 	PB.registerCGSCCAnalyses(cgam);
 	PB.crossRegisterProxies(lam, fam, cgam, mam);
 
-	funcmanager.addPass (ConstExprRemover());
-	funcmanager.addPass (RemoveUnusedInstructions());
+	funcmanagerllvm.addPass (ConstExprRemover());
+	funcmanagerllvm.addPass (RemoveUnusedInstructions());
 	//funcmanager.addPass (llvm::PromotePass());
-	funcmanager.addPass (GetElementPtrSimplifier());
-	funcmanager.addPass (InstructionNamer());
-	funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
+	funcmanagerllvm.addPass (GetElementPtrSimplifier());
+	funcmanagerllvm.addPass (InstructionNamer());
+	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));	
+	//mpm.addPass (llvm::PrintModulePass (llvm::errs()));
 	
-	mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));
+	mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));	
+
+	funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
+	
+	
 	mpm.run (*module,mam);
 	
 	return prgm;

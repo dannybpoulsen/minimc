@@ -26,7 +26,7 @@ namespace MiniMC {
 	    case 4:
 	      return os <<  r.template get<MiniMC::uint32_t> ();
 	    case 8:
-	      return os <<  r.template get<MiniMC::uint16_t> ();
+	      return os <<  r.template get<MiniMC::uint64_t> ();
 	    }
 	  }
 	  case MiniMC::Model::TypeID::Pointer: {
