@@ -1,5 +1,6 @@
 #include "support/pointer.hpp"
 #include "support/pointerinserter.hpp"
+#include "support/exceptions.hpp"
 #include "model/variables.hpp"
 
 namespace MiniMC {
@@ -14,8 +15,34 @@ namespace MiniMC {
       return variables.back ();
     }
 
-    const Value_ptr ConstantFactory64::makeIntegerConstant (MiniMC::uint64_t val) {
-      return Value_ptr(new MiniMC::Model::IntegerConstant (val));
+    const Value_ptr ConstantFactory64::makeIntegerConstant (MiniMC::uint64_t val, const Type_ptr& ty) {
+      assert(ty->getTypeID () == MiniMC::Model::TypeID::Integer ||
+	     ty->getTypeID () == MiniMC::Model::TypeID::Bool
+	     );
+      Value_ptr retval;
+
+#define ALLOWEDTYPES			\
+      X(MiniMC::uint8_t)		\
+	X(MiniMC::uint16_t)		\
+	X(MiniMC::uint32_t)		\
+	X(MiniMC::uint64_t)		\
+	
+      
+      
+      switch (ty->getSize()) {
+#define X(TY)								\
+	case sizeof(TY):						\
+	retval.reset (new MiniMC::Model::IntegerConstant<TY> (static_cast<TY> (val))); \
+	break;								
+	ALLOWEDTYPES
+#undef X
+#undef ALLOWEDTYPESS
+      default:
+	throw MiniMC::Support::Exception ("HAHAH");
+      }
+      
+      retval->setType (ty);
+      return retval;
     }
 
     const Value_ptr ConstantFactory64::makeBinaryBlobConstant (MiniMC::uint8_t* val, std::size_t s) {

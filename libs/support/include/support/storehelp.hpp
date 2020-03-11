@@ -7,7 +7,7 @@
 #include "support/types.hpp"
 
 namespace MiniMC {
-
+  
   template<typename T>
   struct saveHelper {
     saveHelper (MiniMC::uint8_t* ptr, size_t size) : mem(ptr),size(size) {
@@ -17,8 +17,12 @@ namespace MiniMC {
     saveHelper& operator= (const T& t) {
       T buf = t;
       if constexpr (std::is_fundamental<T>::value) {
-	boost::endian::native_to_little_inplace(buf);
-      }
+#ifndef MINIMC_USE_BIG_ENDIAN
+	  boost::endian::native_to_little_inplace(buf);
+#else
+	  boost::endian::native_to_big_inplace(buf);
+#endif
+	}
       std::copy (reinterpret_cast<const MiniMC::uint8_t*> (&buf),reinterpret_cast<const MiniMC::uint8_t*> (&buf)+sizeof(T),mem);
       return *this;
     }
@@ -33,7 +37,11 @@ namespace MiniMC {
       assert(sizeof(T) <= size);
       std::copy (ptr,ptr+sizeof(T),reinterpret_cast<MiniMC::uint8_t*> (&res));  
       if constexpr (std::is_fundamental<T>::value) {
+#ifndef MINIMC_USE_BIG_ENDIAN
 	  boost::endian::little_to_native_inplace(res);
+#else
+	  boost::endian::big_to_native_inplace(res);
+#endif
 	}
     }
     operator T () {

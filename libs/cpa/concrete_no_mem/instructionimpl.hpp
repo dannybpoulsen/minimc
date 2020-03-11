@@ -305,7 +305,7 @@ namespace MiniMC {
 	  RegisterLoader skipSizeR (readFrom,skipSize);
 	  
 	  MiniMC::pointer_t ptr = addrR.getRegister().template get<MiniMC::pointer_t> ();
-	  auto skipCalc = skipSizeR.getRegister ().template get<MiniMC::offset_t>()*valueR.getRegister ().template get<MiniMC::offset_t>();
+	  auto skipCalc = skipSizeR.getRegister ().template get<MiniMC::uint64_t>()*valueR.getRegister ().template get<MiniMC::uint64_t>();
 	  auto nptr = MiniMC::Support::ptradd (ptr,skipCalc);
 	  
 	  InRegister resval (&nptr,sizeof(nptr));
@@ -507,7 +507,7 @@ namespace MiniMC {
 	  assert(pointer->getType()->getTypeID () == MiniMC::Model::TypeID::Pointer);
 	  RegisterLoader regPointer (readFrom,pointer);
 	  RegisterLoader regSize (readFrom,size);
-	  st.heap.make_obj (regSize.getRegister().template get<MiniMC::offset_t> (),regPointer.getRegister().template get<MiniMC::pointer_t> ());
+	  st.heap.make_obj (regSize.getRegister().template get<MiniMC::uint64_t> (),regPointer.getRegister().template get<MiniMC::pointer_t> ());
 	}
       };
 

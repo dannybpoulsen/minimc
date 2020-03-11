@@ -182,7 +182,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::PtrAdd,void>
       {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
-	  MiniMC::Support::Localiser must_be_integer ("'%2%' has to be an integer for '%1%'. "); 
+	  MiniMC::Support::Localiser must_be_integer ("'%2%' has to be an integer for and 8 bytes long '%1%'. "); 
 	  MiniMC::Support::Localiser must_be_pointer ("Return type has to be pointer for '%1%'"); 
 	  MiniMC::Support::Localiser base_must_be_pointer ("Base  has to be pointer for '%1%'"); 
 	  
@@ -197,11 +197,15 @@ namespace MiniMC {
 	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd));
 	    return false;
 	  }
-	  else if (skip->getTypeID () != MiniMC::Model::TypeID::Integer) {
+	  else if (skip->getTypeID () != MiniMC::Model::TypeID::Integer ||
+		   skip->getSize() != 8
+		   ) {
 	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd,"SkipSize"));
 	    return false;
 	  }
-	  else if (value->getTypeID () != MiniMC::Model::TypeID::Integer) {
+	  else if (value->getTypeID () != MiniMC::Model::TypeID::Integer ||
+		   value->getSize() != 8
+		   ) {
 	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd,"Value"));
 	    return false;
 	  }
@@ -244,15 +248,24 @@ namespace MiniMC {
       {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
 	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
+	  	  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer and 8 bytes long. "); 
 	  
 	  InstHelper<MiniMC::Model::InstructionCode::Alloca> h (inst);
 	  auto restype = h.getResult ()->getType();
 	  auto alloc =   h.getResult ();
+	  auto sizetype =   h.getSize ()->getType ();
+	  
 	  if (restype->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
 	    mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Alloca));
 	    return false;
 	  }
-		
+
+	  if (sizetype->getTypeID () != MiniMC::Model::TypeID::Integer ||
+	      sizetype->getSize()!=8 ) {
+	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::Malloc));
+	    return false;
+	  }
+	  
 	  return true;
 	}
       };
@@ -272,7 +285,7 @@ namespace MiniMC {
       {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
 	  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only accept pointer types. "); 
-	  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer. "); 
+	  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer and 8 bytes long. "); 
 	  
 	  InstHelper<MiniMC::Model::InstructionCode::Malloc> h (inst);
 	  auto ptrtype = h.getPointer ()->getType();
@@ -282,10 +295,13 @@ namespace MiniMC {
 	    return false;
 	  }
 
-	  if (sizetype->getTypeID () != MiniMC::Model::TypeID::Integer ) {
+	  if (sizetype->getTypeID () != MiniMC::Model::TypeID::Integer ||
+	      sizetype->getSize()!=8 ) {
 	    mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::Malloc));
 	    return false;
 	  }
+
+	  
 	  
 	  return true;
 	}

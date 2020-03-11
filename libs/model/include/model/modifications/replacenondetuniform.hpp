@@ -51,8 +51,8 @@ namespace MiniMC {
 			assert(false);
 		      }
 		    }
-		    auto minC = fact->makeIntegerConstant (min);
-		    auto maxC = fact->makeIntegerConstant (max);
+		    auto minC = fact->makeIntegerConstant (min,type);
+		    auto maxC = fact->makeIntegerConstant (max,type);
 		    minC->setType (type);
 		    maxC->setType (type);
 		    uniform.setResult (nondet.getResult ());

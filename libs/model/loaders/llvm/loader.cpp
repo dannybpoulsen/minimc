@@ -263,8 +263,9 @@ namespace MiniMC {
 		  auto pointTy = getType (g.getValueType(),tfactory);
 		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
 		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> mallocb;
-		  auto size = cfactory->makeIntegerConstant(pointTy->getSize());
-		  size->setType (tt.tfac->makeIntegerType (64));
+		  auto sizeType = tt.tfac->makeIntegerType (64); 
+		  auto size = cfactory->makeIntegerConstant(pointTy->getSize(),sizeType);
+		  size->setType (sizeType);
 		  spaceb.setResult (gvar);
 		  spaceb.setSize (size);
 		  mallocb.setPointer (gvar);

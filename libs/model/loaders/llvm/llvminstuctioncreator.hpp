@@ -35,8 +35,8 @@ namespace MiniMC {
 	  if (ltype->isIntegerTy ()) {
 	    llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
 	    assert(csti);
-	    auto cst = fac->makeIntegerConstant(csti->getZExtValue ());
-	    cst->setType (tt.getType(csti->getType()));
+	    auto type = tt.getType(csti->getType());
+	    auto cst = fac->makeIntegerConstant(csti->getZExtValue (),type);
 	    return cst;
 	  }
 	  else if (ltype->isStructTy() || ltype->isArrayTy () ) {
@@ -105,9 +105,9 @@ namespace MiniMC {
 	  auto alinst = llvm::dyn_cast<llvm::AllocaInst> (inst);
 	  auto llalltype = alinst->getAllocatedType ();
 	  auto outalltype = tt.getType (llalltype);
-	  auto res = findValue (inst,values,tt,cfac);		
-	  auto size = cfac->makeIntegerConstant(outalltype->getSize());
-	  size->setType (tt.tfac->makeIntegerType (64));
+	  auto res = findValue (inst,values,tt,cfac);
+	  auto type = tt.tfac->makeIntegerType (64);
+	  auto size = cfac->makeIntegerConstant(outalltype->getSize(),type);
 	  builder.setRes (res);						
 	  builder.setSize (size);
 	  instr.push_back(builder.BuildInstruction ());			
@@ -245,7 +245,8 @@ namespace MiniMC {
 	if (!inst->getType ()->isVoidTy ()) {
 	  builder.setRes (findValue(inst,values,tt,cfac));
 	}
-	builder.setNbParamters (cfac->makeIntegerConstant (cinst->arg_size ()));
+	auto type = tt.tfac->makeIntegerType(64);
+	builder.setNbParamters (cfac->makeIntegerConstant (cinst->arg_size (),type));
 	for (auto it = cinst->arg_begin(); it!=cinst->arg_end(); ++it) {
 	  builder.addParam (findValue(*it,values,tt,cfac));
 	}
@@ -296,9 +297,8 @@ namespace MiniMC {
 	for (auto i : extractinst->getIndices ()) {
 	  skip+=calcSkip (cur,i,tt);
 	}
-	auto skipee = cfac->makeIntegerConstant (skip);
 	auto type = tt.tfac->makeIntegerType(32);
-	skipee->setType (type);
+	auto skipee = cfac->makeIntegerConstant (skip,type);
 	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::ExtractValue> builder; 
 	builder.setResult (findValue(inst,values,tt,cfac));
 	builder.setOffset (skipee);
@@ -332,9 +332,8 @@ namespace MiniMC {
 	for (auto i : insertinst->getIndices ()) {
 	  skip+=calcSkip (cur,i,tt);
 	}
-	auto skipee = cfac->makeIntegerConstant (skip);
 	auto type = tt.tfac->makeIntegerType(32);
-	skipee->setType (type);
+	auto skipee = cfac->makeIntegerConstant (skip,type);
 	MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::InsertValue> builder; 
 	builder.setResult (findValue(inst,values,tt,cfac));
 	builder.setOffset (skipee);
@@ -352,23 +351,23 @@ namespace MiniMC {
       MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::PtrAdd> builder;
       auto source = gep->getSourceElementType ();
       if (gep->getNumIndices () == 1) {
-	auto size = tt.getSizeInBytes(source);
-	auto sizec = cfac->makeIntegerConstant (size);
 	auto val = findValue (gep->getOperand (1),values,tt,cfac);
+	auto size = tt.getSizeInBytes(source);
+	auto sizec = cfac->makeIntegerConstant (size,val->getType());
 	auto ptr = findValue (gep->getOperand (0),values,tt,cfac);
-	sizec->setType (val->getType ());
 	builder.setSkipSize (sizec);
 	builder.setValue (val);
 	builder.setAddress (ptr);
       }
       else {
 	auto i64 = tt.tfac->makeIntegerType (64);
-	auto one = cfac->makeIntegerConstant (1);
+	auto one = cfac->makeIntegerConstant (1,i64);
 	
 	if (source->isArrayTy () ) {
 	  auto elemType = tt.getType ( static_cast<llvm::ArrayType*> (source)->getElementType());
-	  auto sizec = cfac->makeIntegerConstant (elemType->getSize());
 	  auto val = findValue (gep->getOperand (2),values,tt,cfac);
+	  auto sizec = cfac->makeIntegerConstant (elemType->getSize(),val->getType());
+	  
 	  auto ptr = findValue (gep->getOperand (0),values,tt,cfac);
 	  sizec->setType (val->getType ());
 	  builder.setSkipSize (sizec);
@@ -385,8 +384,7 @@ namespace MiniMC {
 	  for (size_t i = 0; i < t; ++i) {
 	    size+=tt.getSizeInBytes (strucTy->getElementType(i));
 	  }
-	  auto sizec = cfac->makeIntegerConstant (size);
-	  sizec->setType (i64);
+	  auto sizec = cfac->makeIntegerConstant (size,i64);
 	  builder.setValue (one);
 	  builder.setAddress (ptr);
 	  builder.setSkipSize (sizec);
