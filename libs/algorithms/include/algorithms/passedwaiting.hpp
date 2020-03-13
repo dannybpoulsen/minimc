@@ -59,7 +59,7 @@ namespace MiniMC {
     class PassedWaiting {
     public:
       void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
-	if (ptr->isPotentialLoop ()) {
+	if (ptr->need2Store ()) {
 	  if (store.saveState (ptr.get(),nullptr)) {
 	    passed++;
 	    waiting.insert (ptr.get());

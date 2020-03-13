@@ -1,5 +1,4 @@
 #include "support/pointer.hpp"
-#include "support/pointerinserter.hpp"
 #include "support/exceptions.hpp"
 #include "model/variables.hpp"
 

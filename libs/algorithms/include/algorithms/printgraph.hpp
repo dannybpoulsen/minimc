@@ -45,7 +45,7 @@ namespace MiniMC {
 	    std::stringstream str;
 	    str << cur->hash ();
 	    auto curnode = graph->getNode (str.str());
-	    if (cur->isPotentialLoop ())
+	    if (cur->need2Store ())
 	      curnode->color ();
 			
 	    MiniMC::Algorithms::Generator<typename CPA::Query,typename CPA::Transfer> generator (cur);

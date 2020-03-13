@@ -473,7 +473,7 @@ namespace MiniMC {
 		edge->setAttribute <MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
 		insts.push_back (builder.BuildInstruction ());
 	      }
-	      splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
+	      //splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
 	      auto nedge = cfg->makeEdge (loc,splitloc,prgm);
 	      nedge->setAttribute <MiniMC::Model::AttributeType::Instructions> (insts);
 	    }
@@ -487,19 +487,7 @@ namespace MiniMC {
 	    }
 		    
 	  }
-	}
-		
-		
-		
-		
-	//Find the loops now
-	auto &LI = AM.getResult<llvm::LoopAnalysis>(F);
-	for (auto loop : LI) {
-	  auto header = loop->getHeader ();
-	  auto loc = locmap.at (header);
-	  loc->template set<MiniMC::Model::Location::Attributes::LoopEntry> ();
-	}
-		
+	}		
 		
 	return llvm::PreservedAnalyses::all();
       }

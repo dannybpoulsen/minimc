@@ -8,6 +8,7 @@
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/lower_guards.hpp"
 #include "model/modifications/simplify_cfg.hpp"
+#include "model/modifications/markinglooplocations.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -74,6 +75,8 @@ namespace MiniMC {
 		seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
 		seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 		algorithm::presetups (seq,mess);
+		seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 
+		
 		seq.template add<MiniMC::Algorithms::AWrapper<algorithm,Args...>, MiniMC::Support::Messager&,Args...> (mess, args...);
 		
 	}

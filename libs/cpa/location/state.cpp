@@ -59,9 +59,9 @@ namespace MiniMC {
 	}
 	void pushLocation (size_t i, MiniMC::Model::Location* l) {locations[i].push (l);}
 	void popLocation (size_t i) {locations[i].pop ();}
-	bool isPotentialLoop () const {
+	bool need2Store () const {
 	  for (auto& locState : locations) {
-	    if (locState.cur()->template is<MiniMC::Model::Location::Attributes::LoopEntry> ())
+	    if (locState.cur()->template is<MiniMC::Model::Location::Attributes::NeededStore> ())
 	      return true;
 	  }
 	  return false;

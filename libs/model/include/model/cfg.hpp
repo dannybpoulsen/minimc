@@ -62,7 +62,7 @@ namespace MiniMC {
       using AttrType = char;
       enum class Attributes  : AttrType {
 			     AssertViolated = 1,
-			     LoopEntry = 2,
+			     NeededStore = 2,
 			     CallPlace = 4,
 			     AssumptionPlace = 8
       };

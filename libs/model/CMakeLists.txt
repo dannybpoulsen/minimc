@@ -4,9 +4,10 @@ target_link_libraries (model support)
 
 add_subdirectory(loaders)
 add_subdirectory (checkers)
+add_subdirectory (modifications)
 
 
-target_link_libraries (model checkers loader )
+target_link_libraries (model checkers loader modifications)
 
 	
 	
