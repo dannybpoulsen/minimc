@@ -19,11 +19,11 @@ auto createLoader (int val) {
 }
 
 template<class CPADef>
-void runAlgorithm (MiniMC::Model::Program& prgm) {
+void runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SpaceReduction reduct) {
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess,reduct);
   
   seq.run (prgm);
 }
@@ -32,6 +32,7 @@ int main (int argc,char* argv[]) {
   
 
   int cpaSelected = 0;
+  int SpaceReduction = 0;
   po::options_description desc("General Options");
   std::string input;
   bool help = false;
@@ -40,6 +41,10 @@ int main (int argc,char* argv[]) {
      "\t 1: Location\n"
      "\t 2: Location and explicit stack-variable\n"
      )
+	("spacereduction",po::value<int> (&SpaceReduction), "Space Reduction"
+	 "\t 1: None\n"
+	 "\t 2: Conservative\n"
+	 )
     ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
     ("inputfile",po::value<std::string> (&input),"Input file")
     ("help,h",po::bool_switch(&help), "Help message.")
@@ -66,6 +71,18 @@ int main (int argc,char* argv[]) {
 
   if (help)
     std::cerr << desc;
+  
+  MiniMC::Algorithms::SpaceReduction reduction;
+  switch (SpaceReduction) {
+  case 1:
+	reduction =MiniMC::Algorithms::SpaceReduction::None;
+	break;
+  case 2:
+  default:
+	reduction =MiniMC::Algorithms::SpaceReduction::Conservative;
+	break;
+	
+  }
   
   auto loader = createLoader (0);
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
@@ -95,11 +112,11 @@ int main (int argc,char* argv[]) {
   switch (cpaSelected) {
   
   case 2:
-    runAlgorithm<LocExpliStack> (*prgm);
+    runAlgorithm<LocExpliStack> (*prgm,reduction);
     break;
   case 1:
   default:
-    runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm);
+    runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,reduction);
     break;
   }
 }

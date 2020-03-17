@@ -19,7 +19,7 @@ void runFixedAlgorithm (MiniMC::Model::Program& prgm, std::size_t length, std::s
   using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort,std::size_t,MiniMC::proba_t>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t,MiniMC::proba_t> (seq,*mess,length,samples,alpha);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t,MiniMC::proba_t> (seq,*mess,MiniMC::Algorithms::SpaceReduction::None,length,samples,alpha);
   
   seq.run (prgm);
 }
@@ -28,7 +28,7 @@ void runClopperAlgorithm (MiniMC::Model::Program& prgm,std::size_t length, MiniM
   using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson,MiniMC::proba_t,MiniMC::proba_t>;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm,MiniMC::proba_t,MiniMC::proba_t> (seq,*mess, length, width,alpha);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm,MiniMC::proba_t,MiniMC::proba_t> (seq,*mess, MiniMC::Algorithms::SpaceReduction::None, length, width,alpha);
   
   seq.run (prgm);
 }

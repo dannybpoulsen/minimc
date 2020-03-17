@@ -15,12 +15,11 @@ auto createLoader (int val) {
 
 
 
-void runAlgorithm (MiniMC::Model::Program& prgm) {
+void runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SpaceReduction reduct) {
   using algorithm = MiniMC::Algorithms::ExplicitReachability;;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess);
-  
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,*mess,reduct);
   seq.run (prgm);
 }
 
@@ -30,16 +29,21 @@ int main (int argc,char* argv[]) {
   
   std::string input;
   bool help = false;
-   
+  int SpaceReduction = 0;
+  
   
   po::options_description desc("General Options");
   
   desc.add_options()
     ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
     ("inputfile",po::value<std::string> (&input),"Input file")
-    
+	("spacereduction",po::value<int> (&SpaceReduction), "Space Reduction"
+	 "\t 1: None\n"
+	 "\t 2: Conservative\n"
+	 )
     ;
-    
+
+  
  
   po::options_description cmdline;
   cmdline.add(desc);
@@ -65,6 +69,19 @@ int main (int argc,char* argv[]) {
 
   if (help)
     std::cerr << cmdline;
+
+    MiniMC::Algorithms::SpaceReduction reduction;
+  switch (SpaceReduction) {
+  case 1:
+	reduction =MiniMC::Algorithms::SpaceReduction::None;
+	break;
+  case 2:
+  default:
+	reduction =MiniMC::Algorithms::SpaceReduction::Conservative;
+	break;
+	
+  }
+  
   
   auto loader = createLoader (0);
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
@@ -87,5 +104,5 @@ int main (int argc,char* argv[]) {
     return 0;
   }
 
-  runAlgorithm (*prgm);
+  runAlgorithm (*prgm,reduction);
 }
