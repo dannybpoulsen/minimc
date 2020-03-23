@@ -7,6 +7,7 @@
 
 #include "cpa/location.hpp"
 #include "cpa/concrete_no_mem.hpp"
+#include "cpa/pathformula.hpp"
 #include "cpa/compound.hpp"
 
 
@@ -40,6 +41,7 @@ int main (int argc,char* argv[]) {
     ("cpa,c",po::value<int>(&cpaSelected), "CPA\n"
      "\t 1: Location\n"
      "\t 2: Location and explicit stack-variable\n"
+	 "\t 3: PathFormula With CVC4\n"
      )
 	("spacereduction",po::value<int> (&SpaceReduction), "Space Reduction"
 	 "\t 1: None\n"
@@ -106,11 +108,17 @@ int main (int argc,char* argv[]) {
   }
   
   using LocExpliStack = MiniMC::CPA::Compounds::CPADef<0,
-						       MiniMC::CPA::Location::CPADef,
-						       MiniMC::CPA::ConcreteNoMem::CPADef
-						       >;
+													   MiniMC::CPA::Location::CPADef,
+													   MiniMC::CPA::ConcreteNoMem::CPADef
+													   >;
+  using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
+												  MiniMC::CPA::Location::CPADef,
+												  MiniMC::CPA::PathFormula::CVC4CPA
+												  >;
   switch (cpaSelected) {
-  
+  case 3:
+	runAlgorithm<CVC4Path> (*prgm,reduction);
+	break;
   case 2:
     runAlgorithm<LocExpliStack> (*prgm,reduction);
     break;

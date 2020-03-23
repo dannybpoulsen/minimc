@@ -12,9 +12,9 @@ namespace MiniMC {
     namespace ConcreteNoMem {
     struct StateQuery {
       static State_ptr makeInitialState (const MiniMC::Model::Program&);
-	static size_t nbOfProcesses (const State_ptr& );
-	static MiniMC::Model::Location_ptr getLocation (const State_ptr&, proc_id);
-      };
+	  static size_t nbOfProcesses (const State_ptr& );
+	  static MiniMC::Model::Location_ptr getLocation (const State_ptr&, proc_id);
+	};
       
       struct Transferer {
 	static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr&,proc_id);

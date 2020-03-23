@@ -6,59 +6,24 @@
 #include "state.hpp"
 #include "support/types.hpp"
 #include "support/exceptions.hpp"
+#include "util/vm.hpp"
 #include "instructionimpl.hpp"
+
 
 namespace MiniMC {
   namespace CPA {
-    namespace ConcreteNoMem {
-	  template<class Iterator>
-	  void runVM (Iterator it, Iterator end,
-									const MiniMC::CPA::ConcreteNoMem::State::StackDetails* datFrom,
-									MiniMC::CPA::ConcreteNoMem::State::StackDetails& det) {
-#define X(OP)									\
-		&&OP,
-		
-		static void* arr[] = {
-					   OPERATIONS
-		};
-#undef X
-		
-#define DISPATCH(INST,END)											\
-		if (INST == END)					  {						\
-		  det.commit();												\
-		  return;														\
-		}																\
-		else\
-		  goto *arr[static_cast<std::size_t> (INST->getOpcode ())];		\
-		
-		
-			
-		DISPATCH(it,end);
-		
-			
-#define X(OP)															\
-		OP:																\
-		  ExecuteInstruction<MiniMC::Model::InstructionCode::OP>::execute (*datFrom,det,*it); \
-		++it;															\
-		DISPATCH(it,end);
-		
-		OPERATIONS
-#undef X
-		  
-		  
-		  }
-									
+    namespace ConcreteNoMem {								
       
       MiniMC::CPA::State_ptr StateQuery::makeInitialState (const MiniMC::Model::Program& prgm)  {
-	Heap heap;
-	std::vector<pointer_t> stacks;
-	auto gsize = prgm.getGlobals()->getTotalSize();
-	std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[gsize]);
-	auto gstack = createStack (prgm.getGlobals().get(),heap);
-	for (auto& entry : prgm.getEntryPoints ()) {
-	  auto stackDescr = entry->getVariableStackDescr ();
-	  stacks.push_back (createStack(stackDescr,heap));
-	}
+		Heap heap;
+		std::vector<pointer_t> stacks;
+		auto gsize = prgm.getGlobals()->getTotalSize();
+		std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[gsize]);
+		auto gstack = createStack (prgm.getGlobals().get(),heap);
+		for (auto& entry : prgm.getEntryPoints ()) {
+		  auto stackDescr = entry->getVariableStackDescr ();
+		  stacks.push_back (createStack(stackDescr,heap));
+		}
 	
 		
 	auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
@@ -67,7 +32,12 @@ namespace MiniMC {
 	auto& instr = prgm.getInitialisation ();
 	auto it = instr.begin ();
 	auto end = instr.end ();
-	runVM (it,end,&st,st);
+	VMData data {
+				 .readFrom = &st,
+				 .st = &st
+	};
+
+	MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
 	return nstate;
       }
       
@@ -101,10 +71,16 @@ namespace MiniMC {
 		if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 		  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
 		  try {
-			gsl::not_null<const MiniMC::CPA::ConcreteNoMem::State::StackDetails*> datFrom = instr.isPhi ? &cdet : &det;
+			VMData data {
+						 .readFrom = &det,
+						 .st = &det
+			};
+			if (instr.isPhi)
+			  data.readFrom = &cdet;
+			
 			auto it = instr.begin();
 			auto end = instr.end ();
-			runVM (it,end,datFrom,det);
+			MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
 			  }
 		  catch  (MiniMC::Support::AssumeViolated) {
 			return nullptr;

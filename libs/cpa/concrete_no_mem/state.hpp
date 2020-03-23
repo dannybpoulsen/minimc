@@ -44,15 +44,15 @@ namespace MiniMC {
       class State : public MiniMC::CPA::State
       {
       public:
-	State (
-	       MiniMC::pointer_t globalstack,
-	       std::vector<MiniMC::pointer_t>& s,
-	       Heap& h
-	       ) :
-	  globalStack(globalstack),
-	  stacks(s),
-	  heap(h)
-	{
+		State (
+			   MiniMC::pointer_t globalstack,
+			   std::vector<MiniMC::pointer_t>& s,
+			   Heap& h
+			   ) :
+		  globalStack(globalstack),
+		  stacks(s),
+		  heap(h)
+		{
 	}
 	State (const State& ) = default;
 
@@ -161,9 +161,9 @@ namespace MiniMC {
 	
 	
       private:
-	pointer_t globalStack;
-	std::vector<MiniMC::pointer_t> stacks;
-	Heap heap;
+		pointer_t globalStack;
+		std::vector<MiniMC::pointer_t> stacks;
+		Heap heap;
       };
     }
   }

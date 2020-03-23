@@ -1,3 +1,4 @@
+#include <functional>
 #include "model/cfg.hpp"
 #include "hash/hashing.hpp"
 #include "cpa/interface.hpp"
@@ -6,7 +7,8 @@
 namespace MiniMC {
   namespace CPA {
     bool MiniMC::CPA::Storer::saveState (const State_ptr& state, MiniMC::CPA::Storer::StorageTag* tag) {
-      auto hash = state->hash ();
+	  std::hash<MiniMC::CPA::State> hasher; 
+      auto hash = hasher (*state);
       if (tag)
 		*tag = hash;
       if (!actualStore.count(hash)) {

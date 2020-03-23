@@ -641,7 +641,7 @@ namespace MiniMC {
 
 	funcmanagerllvm.addPass (ConstExprRemover());
 	funcmanagerllvm.addPass (RemoveUnusedInstructions());
-	//funcmanager.addPass (llvm::PromotePass());
+	funcmanager.addPass (llvm::PromotePass());
 	funcmanagerllvm.addPass (GetElementPtrSimplifier());
 	funcmanagerllvm.addPass (InstructionNamer());
 	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));	

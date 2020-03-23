@@ -25,8 +25,8 @@ namespace MiniMC {
       
       template<MiniMC::Model::InstructionCode opc,class S = void>
       struct ExecuteInstruction {
-	inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
-				    MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails&,
+								MiniMC::CPA::ConcreteNoMem::State::StackDetails&, const MiniMC::Model::Instruction& )  {
 	  
 	  throw NotImplemented<opc> ();
 	}
@@ -293,7 +293,7 @@ namespace MiniMC {
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::PtrAdd,void> {
 	inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-				    MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+								MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 				    const MiniMC::Model::Instruction& inst)  {
 	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::PtrAdd> helper (inst);
 	  auto& value = helper.getValue ();
@@ -658,6 +658,20 @@ namespace MiniMC {
 	}
       };
 
+	  struct VMData {
+		const MiniMC::CPA::ConcreteNoMem::State::StackDetails* readFrom;
+		MiniMC::CPA::ConcreteNoMem::State::StackDetails* st;
+		void finalise () {
+		  st->commit ();
+		}
+	  };
+	  
+	  struct ExecuteMap {
+		template<MiniMC::Model::InstructionCode i>
+		static void execute (VMData& data, const MiniMC::Model::Instruction& inst) {
+		  ExecuteInstruction<i>::execute (*data.readFrom,*data.st,inst);
+		}
+	  };
       
     }
   }

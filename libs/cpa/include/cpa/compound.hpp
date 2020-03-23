@@ -25,8 +25,9 @@ namespace MiniMC {
 
 	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const  {
 	  MiniMC::Hash::hash_t hash = seed;
+	  
 	  for (auto& state : states) {
-	    hash = state->hash(hash);
+		MiniMC::Hash::hash_combine (hash,state);
 	  }
 	  return hash;
 	}

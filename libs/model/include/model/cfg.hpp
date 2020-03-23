@@ -1,6 +1,7 @@
 #ifndef _CFG__
 #define _CFG__
 
+#include <functional>
 #include <memory>
 #include <vector>
 #include <algorithm>
@@ -61,10 +62,10 @@ namespace MiniMC {
     public:
       using AttrType = char;
       enum class Attributes  : AttrType {
-			     AssertViolated = 1,
-			     NeededStore = 2,
-			     CallPlace = 4,
-			     AssumptionPlace = 8
+										 AssertViolated = 1,
+										 NeededStore = 2,
+										 CallPlace = 4,
+										 AssumptionPlace = 8
       };
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
@@ -81,49 +82,49 @@ namespace MiniMC {
       edge_iterator ieend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.end());}
       
       bool hasOutgoingEdge () const {
-	return edges.size();
+		return edges.size();
       }
       
       auto& getName () const {return name;}
 
       void removeEdge (const Edge_ptr e) {
-	auto it = std::find_if (edges.begin(),edges.end(),
-				[&e](const Edge_wptr& ptr1) {
-				  return ptr1.lock() == e;
-				});
-	assert(it != edges.end());
-	edges.erase (it);
+		auto it = std::find_if (edges.begin(),edges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		assert(it != edges.end());
+		edges.erase (it);
       }
 
       void removeIncomingEdge (const Edge_ptr e) {
-	auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
-				[&e](const Edge_wptr& ptr1) {
-				  return ptr1.lock() == e;
-				});
-	assert (it != incomingEdges.end());
-	incomingEdges.erase (it);
-    
+		auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		assert (it != incomingEdges.end());
+		incomingEdges.erase (it);
+		
       }
-
+	  
       auto nbIncomingEdges () const  {
-	return incomingEdges.size();
+		return incomingEdges.size();
       }
       
       template<Attributes i>
       bool is () {
-	return static_cast<AttrType> (i) & flags;
+		return static_cast<AttrType> (i) & flags;
       }
-
+	  
       template<Attributes i>
       void set () {
-	flags |= static_cast<AttrType> (i);
+		flags |= static_cast<AttrType> (i);
       }
-
+	  
       template<Attributes i>
       void unset () {
-	flags &= ~static_cast<AttrType> (i);
+		flags &= ~static_cast<AttrType> (i);
       }
-
+	  
       auto getID () const {return id;}
       
       bool hasSourceLocation  () const {return sourceloc.get();}
@@ -149,8 +150,8 @@ namespace MiniMC {
 	class Instruction;
 
     enum class AttributeType {
-			      Instructions,
-			      Guard
+							  Instructions,
+							  Guard
     };
 
     template<AttributeType>
@@ -172,8 +173,8 @@ namespace MiniMC {
     struct InstructionStream {
       InstructionStream () : isPhi(false) {}
       InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
-										  isPhi(isPhi) {
-	assert(instr.size());
+																				  isPhi(isPhi) {
+		assert(instr.size());
       }
       InstructionStream (const InstructionStream& str) : instr(str.instr),isPhi(str.isPhi) {}
       auto begin () const {return instr.begin();}
@@ -192,7 +193,7 @@ namespace MiniMC {
       
       template<class Iterator>
       auto erase( Iterator iter) {
-	return instr.erase (iter);
+		return instr.erase (iter);
       }
       std::vector<Instruction> instr;
       bool isPhi = false;;
@@ -230,11 +231,11 @@ namespace MiniMC {
       
 	  
       bool isSet () const {
-	return is_set;
+		return is_set;
       }
       
       void unSet ()  {
-	is_set = false;
+		is_set = false;
       }
     private:
       ValType val;
@@ -246,8 +247,8 @@ namespace MiniMC {
     
 
     class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
-		 private EdgeAttributesMixin<AttributeType::Guard>,
-		 public std::enable_shared_from_this<Edge> 
+				 private EdgeAttributesMixin<AttributeType::Guard>,
+				 public std::enable_shared_from_this<Edge> 
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
@@ -257,36 +258,36 @@ namespace MiniMC {
 	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
-	static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
+		static_cast<EdgeAttributesMixin<k>*>(this) ->setValue (inp);
       }
 
       template<AttributeType k>
       void delAttribute () {
-	static_cast<EdgeAttributesMixin<k>*>(this) ->unSet ();
+		static_cast<EdgeAttributesMixin<k>*>(this) ->unSet ();
       }
       
       template<AttributeType k>
       auto& getAttribute () {
-	return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
+		return static_cast<EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
 	  
       template<AttributeType k>
       auto& getAttribute () const {
-	return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
+		return static_cast<const EdgeAttributesMixin<k>*>(this) ->getValue ();
       }
       
       template<AttributeType k>
       auto hasAttribute () const {
-	return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
+		return static_cast<const EdgeAttributesMixin<k>*>(this) ->isSet ();
       }
       
       
       auto getFrom () const {return gsl::not_null<Location_ptr> (from.lock());}
       auto getTo () const {return gsl::not_null<Location_ptr> (to.lock());}
       void setTo (gsl::not_null<Location_ptr> t) {
-	to.lock()->removeIncomingEdge (this->shared_from_this());
-	to = t.get();
-	t->addIncomingEdge (this->shared_from_this());
+		to.lock()->removeIncomingEdge (this->shared_from_this());
+		to = t.get();
+		t->addIncomingEdge (this->shared_from_this());
       }
 	  
       auto getProgram() const {return prgm.lock();}
@@ -301,32 +302,29 @@ namespace MiniMC {
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
       if (e.hasAttribute<AttributeType::Guard> ()) {
-	os <<e.getAttribute<AttributeType::Guard> ();
+		os <<e.getAttribute<AttributeType::Guard> ();
       }
       else if (e.hasAttribute<AttributeType::Instructions> ()) {
-	os <<e.getAttribute<AttributeType::Instructions> ().instr;
+		os <<e.getAttribute<AttributeType::Instructions> ().instr;
       }
       return os;
     }
 	
     class CFG {
     public:
-      CFG () {
-      }
-
-      
+      CFG () {}
       
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-	locations.emplace_back (new Location (name,locations.size()));
-	return locations.back();
+		locations.emplace_back (new Location (name,locations.size()));
+		return locations.back();
       }
 	  
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
-	edges.emplace_back (new Edge (from,to));
-	to->addIncomingEdge (edges.back ());
-	from->addEdge (edges.back());
-	edges.back()->setProgram(p);
-	return edges.back();
+		edges.emplace_back (new Edge (from,to));
+		to->addIncomingEdge (edges.back ());
+		from->addEdge (edges.back());
+		edges.back()->setProgram(p);
+		return edges.back();
       }
 	  
       gsl::not_null<Location_ptr> getInitialLocation () {
@@ -339,14 +337,14 @@ namespace MiniMC {
       }
 	  
       void deleteEdge (const Edge_ptr& edge) {
-	edge->getFrom ()->removeEdge (edge);
-	edge->getTo ()->removeIncomingEdge (edge);
+		edge->getFrom ()->removeEdge (edge);
+		edge->getTo ()->removeIncomingEdge (edge);
 
 	
-	auto it = std::find (edges.begin(),edges.end(),edge);
-	if (it != edges.end()) {
-	  edges.erase (it);
-	}
+		auto it = std::find (edges.begin(),edges.end(),edge);
+		if (it != edges.end()) {
+		  edges.erase (it);
+		}
       }
 	  
       auto& getLocations () const {return locations;}
@@ -363,10 +361,10 @@ namespace MiniMC {
     class Function : public std::enable_shared_from_this<Function> {
     public:
       Function (MiniMC::func_t id, 
-		const std::string& name,
-		const std::vector<gsl::not_null<Variable_ptr>>& params,
-		const gsl::not_null<Type_ptr> rtype,
-		const VariableStackDescr_ptr& variableStackDescr,
+				const std::string& name,
+				const std::vector<gsl::not_null<Variable_ptr>>& params,
+				const gsl::not_null<Type_ptr> rtype,
+				const VariableStackDescr_ptr& variableStackDescr,
 				const gsl::not_null<CFG_ptr> cfg) : name(name),
 													parameters(params),
 													variableStackDescr(variableStackDescr),
@@ -374,13 +372,13 @@ namespace MiniMC {
 													id(id),
 													retType(rtype)
       {
-	auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
+		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
 
-	for (auto& e : cfg->getEdges ()) {
-	  if (e->hasAttribute<AttributeType::Instructions> ()) 
-	    for (auto& l : e->getAttribute<AttributeType::Instructions> ())
-	      l.setFunction (shared_from_this());
-	}
+		for (auto& e : cfg->getEdges ()) {
+		  if (e->hasAttribute<AttributeType::Instructions> ()) 
+			for (auto& l : e->getAttribute<AttributeType::Instructions> ())
+			  l.setFunction (shared_from_this());
+		}
 	
       }
       
@@ -407,7 +405,7 @@ namespace MiniMC {
     class Program  : public std::enable_shared_from_this<Program>{
     public:
       Program (const MiniMC::Model::TypeFactory_ptr& tfact,
-	       const MiniMC::Model::ConstantFactory_ptr& cfact
+			   const MiniMC::Model::ConstantFactory_ptr& cfact
 			   ) : cfact(cfact), tfact(tfact)  {
 		globals = makeVariableStack().get();
       }
@@ -417,33 +415,33 @@ namespace MiniMC {
 												const gsl::not_null<Type_ptr> retType,
 												const VariableStackDescr_ptr& variableStackDescr,
 												const gsl::not_null<CFG_ptr> cfg) {
-	functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
-	functions.back()->setPrgm (this->shared_from_this ());
-	return functions.back();
+		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
+		functions.back()->setPrgm (this->shared_from_this ());
+		return functions.back();
       }
 	  
       auto& getFunctions  () const {return functions;}
       void addEntryPoint (const gsl::not_null<Function_ptr>& func) {
-	entrypoints.push_back(func.get());
+		entrypoints.push_back(func.get());
       }
       
       Function_ptr getFunction (MiniMC::func_t id) const {
-	return functions.at(id);
+		return functions.at(id);
       }
 
       bool  functionExists (MiniMC::func_t id) const {
-	return id < functions.size();
+		return id < functions.size();
       }
       
       auto& getEntryPoints () const {return entrypoints;}
 
       bool hasEntryPoints () const {return entrypoints.size();}
       gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
-	return std::make_shared<VariableStackDescr> (); 
+		return std::make_shared<VariableStackDescr> (); 
       }
 
       auto makeSourceLocation (const std::string& n, line_loc l, col_loc c) const {
-	return std::make_shared<SourceLocation> (n,l,c);
+		return std::make_shared<SourceLocation> (n,l,c);
       }
 
       auto& getConstantFactory () {return cfact;}
@@ -463,6 +461,13 @@ namespace MiniMC {
 	};
     
   }
+}
+
+namespace std {
+  template<>
+  struct hash<MiniMC::Model::Location> {
+	std::size_t operator() (const MiniMC::Model::Location& loc) {return reinterpret_cast<size_t> (&loc);}
+  };
 }
 
 #endif

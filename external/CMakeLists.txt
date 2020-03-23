@@ -21,3 +21,6 @@
 	
 	target_include_directories(murmur INTERFACE ${source_dir}) 
 	install (DIRECTORY ${install_dir}/lib DESTINATION .)
+
+
+add_subdirectory (smtlib)

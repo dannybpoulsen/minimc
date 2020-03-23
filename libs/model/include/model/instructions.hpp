@@ -404,13 +404,7 @@ namespace MiniMC {
       auto& getOps () const {return ops;}
       auto& getOp (std::size_t i) const {return ops.at(i);}
       auto getNbOps () const {return ops.size();}
-      std::ostream& output (std::ostream& os) const; /*{
-	os << "(" << opcode;
-	for (auto& op : ops) {
-	  os << " " << *op; 
-	}
-	return os << ")";
-      }*/
+      std::ostream& output (std::ostream& os) const; 
       const Function_ptr& getFunction () const {return parent;}
       void setFunction (const Function_ptr& par) {parent = par;}
     private:
@@ -441,8 +435,8 @@ namespace MiniMC {
     public:
       InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
-      auto getLeftOp () const {return inst.getOp(1);}
-      auto getRightOp () const {return inst.getOp(2);}
+      auto& getLeftOp () const {return inst.getOp(1);}
+      auto& getRightOp () const {return inst.getOp(2);}
       
       private:
       const Instruction& inst;
@@ -497,8 +491,8 @@ namespace MiniMC {
     public:
       InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
-      auto getLeftOp () const {return inst.getOp(1);}
-      auto getRightOp () const {return inst.getOp(2);}
+      auto& getLeftOp () const {return inst.getOp(1);}
+      auto& getRightOp () const {return inst.getOp(2);}
       
       private:
       const Instruction& inst;

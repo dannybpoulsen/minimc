@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <ostream>
+#include <sstream>
 #include "model/types.hpp"
 #include "support/storehelp.hpp"
 #include "support/types.hpp"
@@ -23,6 +24,16 @@ namespace MiniMC {
       virtual void setGlobal () {glob = true;}
       
       virtual std::ostream& output (std::ostream& os) const = 0;
+	  const std::string string_repr () const {
+		std::stringstream str;
+		this->output (str);
+		return str.str();
+	  }
+
+	  operator std::string () const {
+	  return this->string_repr ();
+	}
+	  
     private:
       Type_ptr type;
       bool glob = false;
@@ -40,6 +51,7 @@ namespace MiniMC {
       bool isConstant () const {return true;}
       virtual const MiniMC::uint8_t* getData () const = 0; 
       virtual bool isAggregate () const {return false;}
+	  virtual bool isInteger () const {return false;}
   };
 
     class ConstantFactory64;
@@ -54,21 +66,23 @@ namespace MiniMC {
       friend class ConstantFactory64;
       
       auto getValue () const {
-	auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
-	return val;
+		auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
+		return val;
       }
 
       virtual const MiniMC::uint8_t* getData () const {
-	return reinterpret_cast<const MiniMC::uint8_t*> (&value);
+		return reinterpret_cast<const MiniMC::uint8_t*> (&value);
       }
 
+	  virtual bool isInteger () const {return true;}
+	  
       virtual std::ostream& output (std::ostream& os) const {
-	os << "< " << getValue() << " ";
-	if (getType ())
-	  os << *getType();
-	else
-	  os << "??";
-	return os << " >";
+		os << "< " << getValue() << " ";
+		if (getType ())
+		  os << *getType();
+		else
+		  os << "??";
+		return os << " >";
       }
     private:
       T value;
@@ -93,21 +107,21 @@ namespace MiniMC {
       }
   
       virtual std::ostream& output (std::ostream& os) const {
-	os << "< " << "BINARY(" << " ";
-	for (size_t i = 0; i < size; i++) {
-	  os <<  static_cast<int> (*(value.get()+i)) <<", ";
-	}
-	os << ") ";
-	if (getType ())
-	  os << *getType();
-	else
-	  os << "??";
-	return os << " >";
+		os << "< " << "BINARY(" << " ";
+		for (size_t i = 0; i < size; i++) {
+		  os <<  static_cast<int> (*(value.get()+i)) <<", ";
+		}
+		os << ") ";
+		if (getType ())
+		  os << *getType();
+		else
+		  os << "??";
+		return os << " >";
       }
     private:
       std::unique_ptr<MiniMC::uint8_t[]> value;
       std::size_t size;
-      };
+	};
     
     template<class T>
     class Placed  {
