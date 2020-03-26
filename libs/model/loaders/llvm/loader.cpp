@@ -609,60 +609,63 @@ namespace MiniMC {
     };
 	
     class LLVMLoader : public Loader {
+	public:
       virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
-	auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
-	std::fstream str;
-	str.open (file);
-	std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
-	std::unique_ptr<llvm::MemoryBuffer> buffer= llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
- 
-	llvm::SMDiagnostic diag;
-	std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext> ();
-	std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag,*context);
-	
-	llvm::PassBuilder PB;
-	
-	llvm::LoopAnalysisManager lam;
-	llvm::FunctionAnalysisManager fam;
-	llvm::CGSCCAnalysisManager cgam;
-	llvm::ModuleAnalysisManager mam;
+		auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
+		std::fstream str;
+		str.open (file);
+		std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
+		std::unique_ptr<llvm::MemoryBuffer> buffer= llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
 		
-	llvm::LoopPassManager loopmanager;
-	llvm::FunctionPassManager funcmanagerllvm;
-	llvm::FunctionPassManager funcmanager;
-	llvm::ModulePassManager mpm;
-	Val2ValMap values;
-	
-	PB.registerFunctionAnalyses (fam);
-	PB.registerModuleAnalyses (mam);
-	PB.registerLoopAnalyses(lam);
-	PB.registerCGSCCAnalyses(cgam);
-	PB.crossRegisterProxies(lam, fam, cgam, mam);
-
-	funcmanagerllvm.addPass (ConstExprRemover());
-	funcmanagerllvm.addPass (RemoveUnusedInstructions());
-	funcmanager.addPass (llvm::PromotePass());
-	funcmanagerllvm.addPass (GetElementPtrSimplifier());
-	funcmanagerllvm.addPass (InstructionNamer());
-	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));	
-	//mpm.addPass (llvm::PrintModulePass (llvm::errs()));
-	
-	mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));	
-
-	funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
-	mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
-	
-	
-	mpm.run (*module,mam);
-	
-	return prgm;
+		llvm::SMDiagnostic diag;
+		std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext> ();
+		std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag,*context);
+		
+		llvm::PassBuilder PB;
+		
+		llvm::LoopAnalysisManager lam;
+		llvm::FunctionAnalysisManager fam;
+		llvm::CGSCCAnalysisManager cgam;
+		llvm::ModuleAnalysisManager mam;
+		
+		llvm::LoopPassManager loopmanager;
+		llvm::FunctionPassManager funcmanagerllvm;
+		llvm::FunctionPassManager funcmanager;
+		llvm::ModulePassManager mpm;
+		Val2ValMap values;
+		
+		PB.registerFunctionAnalyses (fam);
+		PB.registerModuleAnalyses (mam);
+		PB.registerLoopAnalyses(lam);
+		PB.registerCGSCCAnalyses(cgam);
+		PB.crossRegisterProxies(lam, fam, cgam, mam);
+		
+		funcmanagerllvm.addPass (ConstExprRemover());
+		funcmanagerllvm.addPass (RemoveUnusedInstructions());
+		funcmanager.addPass (llvm::PromotePass());
+		funcmanagerllvm.addPass (GetElementPtrSimplifier());
+		funcmanagerllvm.addPass (InstructionNamer());
+		mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));	
+		//mpm.addPass (llvm::PrintModulePass (llvm::errs()));
+		
+		mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));	
+		
+		funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
+		mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
+		
+		
+		mpm.run (*module,mam);
+		
+		return prgm;
       }
     };
     
-    template<>
-    std::unique_ptr<Loader> makeLoader<Type::LLVM> () {
-      return std::make_unique<LLVMLoader> ();
-    }
+    
+	template<>
+	MiniMC::Model::Program_ptr loadFromFile<Type::LLVM,BaseLoadOptions > (const std::string& file, BaseLoadOptions loadOptions) {
+	  return LLVMLoader{}.loadFromFile (file,loadOptions.tfactory,loadOptions.cfactory);
+	}
+	
     
   }
 }

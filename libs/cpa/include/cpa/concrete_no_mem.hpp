@@ -22,11 +22,15 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
-      };
-
-
-      struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
+		
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
+		}
+	  };
+		
+		
+		struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 	ValidateInstructions (MiniMC::Support::Messager& ptr) : mess (ptr) {}
 	virtual bool run (MiniMC::Model::Program&  prgm) {
 	  for (auto& F : prgm.getEntryPoints ()) {
@@ -48,22 +52,22 @@ namespace MiniMC {
       };
       
       struct PrevalidateSetup {
-	static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-	  seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();
-	}
+		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
+		  seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();
+		}
 	  
-	static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
-	}
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
+		}
       };
       
 	  
       struct CPADef {
 		using Query = StateQuery;
 		using Transfer = Transferer;
-		using Joing = Joiner;
-		using Storage = MiniMC::CPA::Storer; 
+		using Join = Joiner;
+		using Storage = MiniMC::CPA::Storer<Join>; 
 		using PreValidate = PrevalidateSetup;
 	  };
     }

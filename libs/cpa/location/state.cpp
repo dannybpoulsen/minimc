@@ -23,7 +23,7 @@ namespace MiniMC {
 		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
 		  MiniMC::Hash::hash_t s = seed;
 		  for (auto& t: stack)
-			MiniMC::Hash::hash_combine(seed,*t);
+			MiniMC::Hash::hash_combine(s,*t);
 		  return s;
 		  
 		}
@@ -63,7 +63,7 @@ namespace MiniMC {
 		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
 		  MiniMC::Hash::hash_t s = seed;
 		  for (auto& t: locations)
-			MiniMC::Hash::hash_combine(seed,t);
+			MiniMC::Hash::hash_combine(s,t);
 		  return s;
 		}
 		virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy () const {return std::make_shared<State> (locations);}

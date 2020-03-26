@@ -7,66 +7,66 @@
 
 #include "loaders/loader.hpp"
 
+#include "plugin.hpp"
+
 namespace po = boost::program_options;
 
-auto createLoader (int val) {
-  return MiniMC::Loaders::makeLoader<MiniMC::Loaders::Type::LLVM> ();
+namespace {
+  template<class F>
+  auto runAlgorithm (MiniMC::Model::Program& prgm,  MiniMC::Algorithms::SetupOptions sopt, const  typename MiniMC::Algorithms::ProbaChecker<F>::Options& opt) {
+	using algorithm = MiniMC::Algorithms::ProbaChecker<F>;
+	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+	MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);	
+	algorithm algo(typename algorithm::Options {opt});
+	return MiniMC::Algorithms::runSetup (seq,algo,prgm);
+  }
+
+  enum class Algo {
+				   Fixed,
+				   Clopper
+  };
 }
+  
+int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions& sopt) {
+  MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson>::Options clopperOpt {.messager = sopt.messager};
+	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>::Options fixedOpt {.messager = sopt.messager};
+	std::size_t length;
+	Algo algo = Algo::Fixed;
+	std::string input; 
+	po::options_description desc("Basic SMC Options");
 
-
-
-void runFixedAlgorithm (MiniMC::Model::Program& prgm, std::size_t length, std::size_t samples,MiniMC::proba_t alpha) {
-  using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort,std::size_t,MiniMC::proba_t>;
-  auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
-  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm,std::size_t,std::size_t,MiniMC::proba_t> (seq,*mess,MiniMC::Algorithms::SpaceReduction::None,length,samples,alpha);
-  
-  seq.run (prgm);
-}
-
-void runClopperAlgorithm (MiniMC::Model::Program& prgm,std::size_t length, MiniMC::proba_t width, MiniMC::proba_t alpha) {
-  using algorithm = MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson,MiniMC::proba_t,MiniMC::proba_t>;
-  auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
-  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm,MiniMC::proba_t,MiniMC::proba_t> (seq,*mess, MiniMC::Algorithms::SpaceReduction::None, length, width,alpha);
-  
-  seq.run (prgm);
-}
-
-int main (int argc,char* argv[]) {
-  
-  
-  int algoSelected = 0;
-  std::string input;
-  bool help = false;
-  std::size_t length = 100;
-  std::size_t samples = 100;
-  MiniMC::proba_t sign = 0.05;
-  MiniMC::proba_t width = 0.05;
-  
-  
-  po::options_description desc("General Options");
+  auto setAlgo = [&] (int val) {
+				   switch (val) {
+				   case 1:
+					 algo = Algo::Fixed;
+					 break;
+				   case 2:
+					 algo = Algo::Clopper;
+					 break;
+				   }
+				 };
   
   desc.add_options()
-    ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
-    ("inputfile",po::value<std::string> (&input),"Input file")
-    ("algorithm",po::value<int> (&algoSelected),"Algorithm\n"
+    ("algorithm",po::value<int> ()->default_value (1)->notifier (setAlgo),"Algorithm\n"
     "\t 1 Fixed Effort\n"
     "\t 1 Clopper Pearson\n"
      )
     ("length",po::value<std::size_t> (&length),"Length")
-    ("alpha",po::value<MiniMC::proba_t> (&sign),"Significance")
     ;
     
   
   po::options_description fixed ("Fixed Effort Options");
   fixed.add_options ()
-    ("samples",po::value<std::size_t> (&samples),"Samples") ;
-
+    ("samples",po::value<std::size_t> (&fixedOpt.smcoptions.effort),"Samples")
+	("falpha",po::value<MiniMC::proba_t> (&fixedOpt.smcoptions.alpha),"Significance");
+	
+  
   po::options_description clopper ("Clopper Options");
   clopper.add_options ()
-    ("width",po::value<MiniMC::proba_t> (&width),"Desired Width")
-    ;
+    ("width",po::value<MiniMC::proba_t> (&clopperOpt.smcoptions.width),"Desired Width")
+	("calpha",po::value<MiniMC::proba_t> (&clopperOpt.smcoptions.alpha),"Significance")
+	
+	;
   
   po::options_description cmdline;
   cmdline.add(desc).
@@ -78,52 +78,29 @@ int main (int argc,char* argv[]) {
   po::variables_map vm; 
   
   try {
-    po::store(po::command_line_parser(argc, argv).options(cmdline) 
-	      .positional(positionalOptions).run(), vm);
+    po::store(po::command_line_parser(parameters).options(cmdline) 
+			  .run(), vm);
     po::notify (vm);
     
   }
   catch(po::error& e) {
-    if (help) {
-      std::cerr << cmdline;
-      return 0;
-    }
     std::cerr << e.what () << std::endl;
     return -1;
-  }
+  }  
 
-  if (help)
-    std::cerr << cmdline;
-  
-  auto loader = createLoader (0);
-  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
-  auto prgm = loader->loadFromFile (input,tfac,cfac);
-
-  if (vm.count ("task")) {
-    std::vector< std::string > entries = vm["task"].as< std::vector< std::string > >();
-    std::unordered_map<std::string,MiniMC::Model::Function_ptr> fmap;
-    for (auto f: prgm->getFunctions ()) {
-      fmap.insert (std::make_pair(f->getName(),f));
-    }
-    for (std::string& s : entries) {
-      prgm->addEntryPoint (fmap.at(s));
-    }
-  }
-
-  if (!prgm->hasEntryPoints ()) {
-    std::cerr << "Please specify entry points functions with --task\n";
-    return 0;
-  }
-
-  switch (algoSelected) {
-  case 1:
-    runFixedAlgorithm (*prgm,length,samples,sign);
+  clopperOpt.len = length;
+  fixedOpt.len = length;
+  MiniMC::Algorithms::Result res;
+  switch (algo) {
+  case Algo::Fixed:
+    res = runAlgorithm<MiniMC::Support::Statistical::FixedEffort> (*prgm,sopt,fixedOpt);
     break;
-  case 2:
-    runClopperAlgorithm (*prgm,length,width,sign);
+  case Algo::Clopper:
+    res = runAlgorithm<MiniMC::Support::Statistical::ClopperPearson> (*prgm,sopt,clopperOpt);
     break;
-  default:
-    std::cerr << "No Algorithm selected." << std::endl;
   }
+  return static_cast<int> (res);
 }
+
+
+static CommandRegistrar smc_reg ("smc",smc_main,"Determine the probability of reaching an assert violation. Non-deterministic choices is converted to uniform choices.");

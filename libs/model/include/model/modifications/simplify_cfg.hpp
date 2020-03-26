@@ -8,7 +8,7 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
-      void  copyInstrStream (const MiniMC::Model::Edge_ptr& to, const MiniMC::Model::Edge_ptr& copyee) {
+      inline void  copyInstrStream (const MiniMC::Model::Edge_ptr& to, const MiniMC::Model::Edge_ptr& copyee) {
 	if (copyee->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 	  if (!to->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 	    MiniMC::Model::InstructionStream str;

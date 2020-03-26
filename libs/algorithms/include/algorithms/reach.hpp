@@ -17,19 +17,20 @@ namespace MiniMC {
   namespace Algorithms {
     class ExplicitReachability : public MiniMC::Algorithms::Algorithm {
     public:
-      ExplicitReachability (MiniMC::Support::Messager& m) : MiniMC::Algorithms::Algorithm (m)  {}
+	  struct Options {
+		gsl::not_null<MiniMC::Support::Messager*> messager;
+	  };
+      ExplicitReachability (const Options& opt) : messager(*opt.messager)  {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 						 MiniMC::CPA::Location::CPADef,
 						 MiniMC::CPA::ConcreteNoMem::CPADef
-						 >;
+												 >;
       
       virtual Result run (const MiniMC::Model::Program& prgm) {
-	
-	auto& messager = getMessager ();
-	messager.message ("Initiating Reachability");
-	std::size_t states = 0;
-	
-	CPADFSPassedWaitingAll<CPA> passed;
+		messager.message ("Initiating Reachability");
+		std::size_t states = 0;
+		
+	CPADFSPassedWaiting<CPA> passed;
 	auto initstate = CPA::Query::makeInitialState (prgm);
 	MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 	MiniMC::CPA::State_ptr foundState = nullptr;
@@ -70,11 +71,13 @@ namespace MiniMC {
       }
       
       static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
-	CPA::PreValidate::validate (seq,mess);
-	CPA::PreValidate::setup (seq,mess);
+		CPA::PreValidate::validate (seq,mess);
+		CPA::PreValidate::setup (seq,mess);
       }
-      
-      
+
+	private:
+	  MiniMC::Support::Messager& messager;
+	  
     };
   }
 }

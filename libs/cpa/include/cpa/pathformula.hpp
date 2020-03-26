@@ -24,7 +24,12 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
+		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
+
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  return true;
+		}
+		
       };
 	  
 
@@ -63,8 +68,8 @@ namespace MiniMC {
       struct CPADef {
 		using Query = StateQuery<b>;
 		using Transfer = Transferer;
-		using Joing = Joiner;
-		using Storage = MiniMC::CPA::Storer; 
+		using Join = Joiner;
+		using Storage = MiniMC::CPA::Storer<Join>; 
 		using PreValidate = PrevalidateSetup;
 	  };
 

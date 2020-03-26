@@ -9,5 +9,4 @@ INSTALL (TARGETS algorithms DESTINATION lib)
 
 
 
-INSTALL (TARGETS pgraph DESTINATION bin)
 include(CPack)	

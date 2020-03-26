@@ -1,0 +1,33 @@
+#ifndef _PLUGIN__
+#define _PLUGIN__
+
+#include <string>
+#include <functional>
+#include "loaders/loader.hpp"
+#include "algorithms/algorithm.hpp"
+
+
+using subcommandfunc= std::function<int(MiniMC::Model::Program_ptr&,std::vector<std::string>&, const MiniMC::Algorithms::SetupOptions&)>;
+
+
+struct CommandRegistrar;
+void registerCommand (const std::string&, CommandRegistrar&);
+bool isCommand (const std::string&);
+subcommandfunc getCommand (const std::string&);
+
+
+struct CommandRegistrar {
+  CommandRegistrar (const std::string& s,subcommandfunc func, const std::string& desc) : s(s),func(func),desc(desc) {
+	registerCommand (s,*this);
+  }
+  std::string getName () const {return s;}
+  std::string getDescritpion () const { return desc;}
+  subcommandfunc getFunction () const {return func;}
+  
+private:
+  std::string s;
+  subcommandfunc func;
+  std::string desc;
+};
+
+#endif

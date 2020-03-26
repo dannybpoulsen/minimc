@@ -22,9 +22,11 @@ namespace MiniMC {
     struct Transferer {
       static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr&,proc_id) {return nullptr;}
     };
-
+	
     struct Joiner {  
-      static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return r;}
+	  static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
+	  //Returns true if l covers r
+	  static bool covers (const State_ptr& l, const State_ptr& r) { return false;}
     };
 
     struct PrevalidateSetup {
@@ -32,22 +34,53 @@ namespace MiniMC {
       static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
 	};
 
-	
+	template<class JoinOperation>
     class Storer {
     public:
       using StorageTag = MiniMC::Hash::hash_t;
-      virtual ~Storer () {}
-      bool saveState (const State_ptr& state,StorageTag* tag = nullptr);
-      State_ptr loadState (StorageTag);
+	  virtual ~Storer () {}
+      bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
+		if (tag)
+		  *tag = actualStore.size();
+		actualStore.emplace_back(state);		     
+		 
+		return true;
+	  }
+	  
+      State_ptr loadState (StorageTag st) {
+		return actualStore.at(st);
+	  }
+	  
+	  std::size_t joinState (const State_ptr& state) {
+		std::size_t merged = 0;
+		for (auto& it : actualStore) {
+		  auto res = JoinOperation::doJoin (it,state);
+		  if (res) {
+			it = res;
+			merged++;
+		  }
+		  
+		}
+		return merged;
+	  }
+
+	  bool isCoveredByStore (const State_ptr& state) {
+		for (auto& it : actualStore) {
+		  if (JoinOperation::covers (it,state))
+			return true;
+		}
+		return false;
+	  }
+	  
     private:
-      std::unordered_map<MiniMC::Hash::hash_t, State_ptr> actualStore;
+      std::vector<State_ptr> actualStore;
     };
 	
     struct CPADef {
       using Query = StateQuery;
       using Transfer = Transferer;
       using Join = Joiner;
-      using Storage = Storer; 
+      using Storage = Storer<Join>; 
 	  using PreValidate = PrevalidateSetup;
 	};
     

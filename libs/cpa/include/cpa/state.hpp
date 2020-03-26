@@ -13,7 +13,7 @@ namespace MiniMC {
     public:
       ~State () {}
       virtual std::ostream& output (std::ostream& os) const {return os << "_";}
-      virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return 0;}
+      virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return reinterpret_cast<MiniMC::Hash::hash_t> (this);}
       virtual std::shared_ptr<State> copy () const {return std::make_shared<State> ();}
       virtual bool need2Store () const {return false;}
     };

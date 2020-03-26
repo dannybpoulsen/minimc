@@ -52,7 +52,7 @@ namespace MiniMC {
 			MiniMC::Util::runVM<decltype(it),VMData,ExecuteInstruction> (it,end,data);
 			nState.getPathFormula () = data.path;
 
-			auto solver = nState.getContext()->makeSolver ();
+			/*auto solver = nState.getContext()->makeSolver ();
 			solver->assert_formula (data.path);
 			auto res = solver->check_sat (); 
 			if  ( res == SMTLib::Result::NSatis ) {
@@ -60,7 +60,7 @@ namespace MiniMC {
 			  }
 			else
 			  return resstate;
-			
+			*/
 		  }
 		  catch  (MiniMC::Support::AssumeViolated) {
 			return nullptr;

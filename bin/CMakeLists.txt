@@ -2,17 +2,5 @@ SET(Boost_USE_STATIC_LIBS ON)
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 
 
-add_executable (succ succegenerator.cpp)
-target_link_libraries  (succ minimclib)
-
-add_executable (pgraph pgraph.cpp)
-target_link_libraries  (pgraph minimclib ${Boost_LIBRARIES})
-
-add_executable (enum enum.cpp)
-target_link_libraries  (enum minimclib ${Boost_LIBRARIES})
-
-add_executable (smc smc.cpp)
-target_link_libraries  (smc minimclib ${Boost_LIBRARIES})
-
-add_executable (mc mc.cpp)
-target_link_libraries  (mc minimclib ${Boost_LIBRARIES})
+add_executable (minimc minimc.cpp pgraph.cpp mc.cpp enum.cpp smc.cpp plugin.cpp)
+target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})

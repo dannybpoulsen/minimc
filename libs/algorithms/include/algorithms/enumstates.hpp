@@ -15,13 +15,16 @@ namespace MiniMC {
     template<class CPA>
     class EnumStates : public MiniMC::Algorithms::Algorithm {
     public:
-      EnumStates (MiniMC::Support::Messager& m) : MiniMC::Algorithms::Algorithm (m)  {}
+	  struct Options {
+		gsl::not_null<MiniMC::Support::Messager*> messager;
+	  };
+	  
+      EnumStates (const Options& opt) : messager(*opt.messager)  {}
       virtual Result run (const MiniMC::Model::Program& prgm) {
-		auto& messager = getMessager ();
 		messager.message ("Initiating EnumStates");
 		std::size_t states = 0;
 		
-		CPADFSPassedWaitingAll<CPA> passed;
+		CPADFSPassedWaiting<CPA> passed;
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
 		try {
@@ -54,7 +57,8 @@ namespace MiniMC {
 		CPA::PreValidate::validate (seq,mess);
 		CPA::PreValidate::setup (seq,mess);
 	  }
-	  
+	private:
+	  MiniMC::Support::Messager& messager;
 	  
     };
   }

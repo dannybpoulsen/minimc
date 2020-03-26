@@ -16,16 +16,17 @@ namespace MiniMC {
     public:
       template<class P,class ...Args >
       Sequencer<T>& add (Args... args) {
-	sinks.push_back (std::make_unique<P> (args...));
-	return *this;
+		sinks.push_back (std::make_unique<P> (args...));
+		return *this;
       }
       
-      void run (T& t) {
-	for (auto& s : sinks) {
-	  if (!s->run (t)) {
-	    break;
-	  }
-	}
+      bool run (T& t) {
+		for (auto& s : sinks) {
+		  if (!s->run (t)) {
+			return false;
+		  }
+		}
+		return true;
       }
     private:
       std::vector<std::unique_ptr<Sink<T> > > sinks;
