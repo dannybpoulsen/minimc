@@ -30,7 +30,10 @@ namespace MiniMC {
 	};
 	
 	template<Type t,class Arg = typename OptionsLoad<t>::Opt>
-	MiniMC::Model::Program_ptr loadFromFile (const std::string& file, Arg loadOptions);	
+	MiniMC::Model::Program_ptr loadFromFile (const std::string& file, Arg loadOptions);
+
+	template<Type t,class Arg = typename OptionsLoad<t>::Opt>
+	MiniMC::Model::Program_ptr loadFromString (const std::string& str, Arg loadOptions);	
   }
 }
 

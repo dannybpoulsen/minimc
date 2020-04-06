@@ -1,5 +1,6 @@
 
 #include <fstream>
+#include <sstream>
 #include <unordered_map>
 
 #include <llvm/Support/CommandLine.h>
@@ -611,11 +612,23 @@ namespace MiniMC {
     class LLVMLoader : public Loader {
 	public:
       virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
-		auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
 		std::fstream str;
 		str.open (file);
 		std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
 		std::unique_ptr<llvm::MemoryBuffer> buffer= llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
+		return readFromBuffer (buffer,tfac,cfac);
+	  }
+
+	  virtual MiniMC::Model::Program_ptr loadFromString (const std::string& inp, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+		std::stringstream str;
+		str.str(inp);
+		std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
+		std::unique_ptr<llvm::MemoryBuffer> buffer= llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
+		return readFromBuffer (buffer,tfac,cfac);
+	  }
+	  
+	  virtual MiniMC::Model::Program_ptr readFromBuffer (std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {	
+		auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
 		
 		llvm::SMDiagnostic diag;
 		std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext> ();
@@ -664,6 +677,11 @@ namespace MiniMC {
 	template<>
 	MiniMC::Model::Program_ptr loadFromFile<Type::LLVM,BaseLoadOptions > (const std::string& file, BaseLoadOptions loadOptions) {
 	  return LLVMLoader{}.loadFromFile (file,loadOptions.tfactory,loadOptions.cfactory);
+	}
+
+	template<>
+	MiniMC::Model::Program_ptr loadFromString<Type::LLVM,BaseLoadOptions > (const std::string& inp, BaseLoadOptions loadOptions) {
+	  return LLVMLoader{}.loadFromString (inp,loadOptions.tfactory,loadOptions.cfactory);
 	}
 	
     
