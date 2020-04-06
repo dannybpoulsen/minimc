@@ -3,6 +3,8 @@
 
 #include <string>
 #include <functional>
+#include <boost/program_options.hpp>
+
 #include "loaders/loader.hpp"
 #include "algorithms/algorithm.hpp"
 
@@ -29,5 +31,8 @@ private:
   subcommandfunc func;
   std::string desc;
 };
+
+
+bool parseOptionsAddHelp (boost::program_options::variables_map& map, boost::program_options::options_description& opt, std::vector<std::string>& params);
 
 #endif

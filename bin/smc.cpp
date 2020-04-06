@@ -35,7 +35,7 @@ int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parame
 	std::string input; 
 	po::options_description desc("Basic SMC Options");
 
-  auto setAlgo = [&] (int val) {
+	auto setAlgo = [&] (int val) {
 				   switch (val) {
 				   case 1:
 					 algo = Algo::Fixed;
@@ -73,20 +73,13 @@ int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parame
     add(clopper).
     add(fixed);
   
-  po::positional_options_description positionalOptions; 
-  positionalOptions.add("inputfile", 1); 
-  po::variables_map vm; 
   
-  try {
-    po::store(po::command_line_parser(parameters).options(cmdline) 
-			  .run(), vm);
-    po::notify (vm);
-    
+  po::variables_map vm; 
+
+  if (!parseOptionsAddHelp (vm,cmdline,parameters)) {
+	return -1;
   }
-  catch(po::error& e) {
-    std::cerr << e.what () << std::endl;
-    return -1;
-  }  
+ 
 
   clopperOpt.len = length;
   fixedOpt.len = length;

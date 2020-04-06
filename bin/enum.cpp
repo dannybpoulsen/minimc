@@ -66,19 +66,10 @@ int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& param
     
   
   po::variables_map vm; 
-  
-  try {
-    po::store(po::command_line_parser(parameters).
-			  options(desc) 
-			  .run(), vm);
-    po::notify (vm);
-	
+    if (!parseOptionsAddHelp (vm,desc,parameters)) {
+	return -1;
   }
-  catch(po::error& e) {
-	std::cerr << e.what () << std::endl;
-    return -1;
-  }
-  
+	  
   using LocExpliStack = MiniMC::CPA::Compounds::CPADef<0,
 													   MiniMC::CPA::Location::CPADef,
 													   MiniMC::CPA::ConcreteNoMem::CPADef

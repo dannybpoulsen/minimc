@@ -35,6 +35,8 @@ enum class CPAUsage {
 					 CVC4PathFormula
 };
 
+
+
 int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions& sopt) {
   CPAUsage CPA = CPAUsage::Location;
   po::options_description desc("Print Graph Options");
@@ -66,16 +68,8 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   
   po::variables_map vm; 
   
-  try {
-    po::store(po::command_line_parser(parameters).
-			  options(desc) 
-			  .run(), vm);
-    po::notify (vm);
-	
-  }
-  catch(po::error& e) {
-	std::cerr << e.what () << std::endl;
-    return -1;
+  if (!parseOptionsAddHelp (vm,desc,parameters)) {
+	return -1;
   }
   
   using LocExpliStack = MiniMC::CPA::Compounds::CPADef<0,
