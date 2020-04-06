@@ -2,7 +2,7 @@ Find_Package (CGraph)
 
 option (BIG_ENDIAN "Use Big endian encoding")
 
-add_library (support SHARED jsongraph.cpp dotgraph.cpp)
+add_library (support STATIC jsongraph.cpp dotgraph.cpp)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_subdirectory (linux)
 	target_link_libraries (support PUBLIC linuxsupport)

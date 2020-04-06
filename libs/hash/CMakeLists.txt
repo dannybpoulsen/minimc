@@ -1,4 +1,4 @@
-add_library (hash SHARED)
+add_library (hash STATIC)
 target_sources (hash PRIVATE hash.cpp)
 target_include_directories(hash PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries (hash PUBLIC murmur)
