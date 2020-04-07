@@ -16,3 +16,12 @@ target_link_libraries (minimclib PUBLIC algorithms)
 target_link_libraries (minimclib PUBLIC storage)
 target_link_libraries (minimclib PUBLIC util)
 
+
+add_library (minimcstatlib STATIC)
+target_link_libraries (minimcstatlib PUBLIC model)
+target_link_libraries (minimcstatlib PUBLIC support)
+target_link_libraries (minimcstatlib PUBLIC hash)
+target_link_libraries (minimcstatlib PUBLIC cpa)
+target_link_libraries (minimcstatlib PUBLIC algorithms)
+target_link_libraries (minimcstatlib PUBLIC storage)
+target_link_libraries (minimcstatlib PUBLIC util)

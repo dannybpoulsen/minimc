@@ -84,7 +84,11 @@ namespace MiniMC {
       bool hasOutgoingEdge () const {
 		return edges.size();
       }
-      
+
+	  auto&  getOutgoingEdges () const {
+		return edges;
+      }
+	  
       auto& getName () const {return name;}
 
       void removeEdge (const Edge_ptr e) {
