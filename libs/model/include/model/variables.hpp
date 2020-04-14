@@ -98,14 +98,14 @@ namespace MiniMC {
 
       template<class T>
       auto& getValue () const {
-	assert(sizeof(T) == size);
-	return *reinterpret_cast<T*> (value.get());;
+		assert(sizeof(T) == size);
+		return *reinterpret_cast<T*> (value.get());;
       }
       
       virtual const MiniMC::uint8_t* getData () const {
-	return value.get();
+		return value.get();
       }
-  
+	  
       virtual std::ostream& output (std::ostream& os) const {
 		os << "< " << "BINARY(" << " ";
 		for (size_t i = 0; i < size; i++) {

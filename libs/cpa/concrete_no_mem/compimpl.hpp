@@ -28,7 +28,7 @@ namespace MiniMC {
       X(ICMP_ULT,ult)		\
       X(ICMP_SLE,sleq)		\
       X(ICMP_ULE,uleq)		\
-      X(ICMP_EQ,eq)		\
+      X(ICMP_EQ,eq)			\
       X(ICMP_NEQ,neq)		\
       
 

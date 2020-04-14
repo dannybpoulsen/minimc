@@ -7,7 +7,7 @@ namespace MiniMC {
   namespace Util {
 		  template<class Iterator,class Data,class Exec>
 	  void runVM (Iterator it, Iterator end,
-									Data& data) {
+				Data& data) {
 #define X(OP)									\
 		&&OP,
 		

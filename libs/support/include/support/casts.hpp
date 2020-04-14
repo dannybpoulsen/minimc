@@ -8,7 +8,7 @@ namespace MiniMC {
     template<class T, class P>
     P zext (const T& t) {
       static_assert(sizeof(P) >= sizeof(T));
-      using uns_from = typename EquivUnsigned<T>::type;
+      using uns_from = typename MiniMC::EquivUnsigned<T>::type;
       using uns_to = typename EquivUnsigned<P>::type;
       
       uns_from casted = bit_cast<T,uns_from> (t);

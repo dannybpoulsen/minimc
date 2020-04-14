@@ -139,14 +139,14 @@ namespace MiniMC {
 	  return OutRegister(hh,sizeof(T)); 
 	}
       };
-
+	  
       template<MiniMC::Model::InstructionCode opc>
       struct TACRedirect{
-	using i8 = TACExec<opc,MiniMC::uint8_t>;
-	using i16 = TACExec<opc,MiniMC::uint16_t>;
-	using i32 = TACExec<opc,MiniMC::uint32_t>;
-	using i64 = TACExec<opc,MiniMC::uint64_t>;
-	using boolean = TACExec<opc,MiniMC::uint8_t>;
+		using i8 = TACExec<opc,MiniMC::uint8_t>;
+		using i16 = TACExec<opc,MiniMC::uint16_t>;
+		using i32 = TACExec<opc,MiniMC::uint32_t>;
+		using i64 = TACExec<opc,MiniMC::uint64_t>;
+		using boolean = TACExec<opc,MiniMC::uint8_t>;
       };
       
       template<class T>

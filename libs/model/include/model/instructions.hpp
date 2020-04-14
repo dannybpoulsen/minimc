@@ -58,15 +58,15 @@ namespace MiniMC {
     X(Alloca)					\
     X(FindSpace)				\
     X(Malloc)					\
-    X(Free)					\
+    X(Free)						\
     X(Store)					\
-    X(Load)					\
+    X(Load)						\
 
 #define INTERNAL				\
-    X(Skip)					\
-    X(Call)					\
+    X(Skip)						\
+    X(Call)						\
     X(Assign)					\
-    X(Ret)					\
+    X(Ret)						\
     X(RetVoid)					\
     X(NonDet)					\
     X(Assert)					\
@@ -667,8 +667,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Free,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Free> h (inst);
-	return os << InstructionCode::Free << " (" << *h.getPointer () <<" )";
+		InstHelper<InstructionCode::Free> h (inst);
+		return os << InstructionCode::Free << " (" << *h.getPointer () <<" )";
       } 
     };
     
@@ -684,9 +684,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Skip,void> {
     public:
       
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
     private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<>
