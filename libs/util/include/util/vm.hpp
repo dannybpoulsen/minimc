@@ -1,11 +1,15 @@
 #ifndef _VM__
 #define _VM__
-
+#include <type_traits>
 #include "model/instructions.hpp"
 
 namespace MiniMC {
   namespace Util {
-		  template<class Iterator,class Data,class Exec>
+	
+	template <typename T, typename S = decltype(std::declval<T>().finalise(std::declval<void>))> static constexpr bool hasFinalise(void) {return true;}
+	template <typename T> static constexpr bool hasFinalise(...) {return false;}
+	
+	template<class Iterator,class Data,class Exec>
 	  void runVM (Iterator it, Iterator end,
 				Data& data) {
 #define X(OP)									\
@@ -16,9 +20,11 @@ namespace MiniMC {
 		};
 #undef X
 		
-#define DISPATCH(INST,END)											\
+#define DISPATCH(INST,END)												\
 		if (INST == END){												\
-		  data.finalise();												\
+		  if constexpr (hasFinalise<Exec> ()) {							\
+			  data.finalise();											\
+			}															\
 		  return;														\
 		}																\
 		else															\
