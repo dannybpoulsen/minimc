@@ -24,4 +24,5 @@ enable_testing()
 add_subdirectory(tests)
 	
 add_subdirectory(package)	
+add_subdirectory(docs)	
 	
