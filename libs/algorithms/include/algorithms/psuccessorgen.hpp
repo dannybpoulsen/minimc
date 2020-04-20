@@ -1,3 +1,11 @@
+/**
+ * @file   psuccessorgen.hpp
+ * @date   Mon Apr 20 17:00:06 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _PSUCCESSOR_GEN__
 #define _PSUCCESSOR_GEN__
 
@@ -15,7 +23,10 @@ namespace MiniMC {
 		MiniMC::Model::Edge_ptr edge;
 		MiniMC::CPA::proc_id proc;      
 	  };
-    
+
+	  /**
+	   * Works similar to \ref MiniMC::Algorithms::Generator with the execption, that it only generates one State and that state is randomly selected when the Generator is created.
+	   */
 	  template<class StateQuery,class Transfer>
 	  class Generator {
 		class Iterator {
@@ -75,8 +86,10 @@ namespace MiniMC {
 		using iterator = Iterator;
 		Generator (MiniMC::CPA::State_ptr& state) :state(state) {
 		}
+
 		auto begin() {
 		  return Iterator (state);}
+
 		auto end() {return Iterator (state);}
 		 
 	  private:

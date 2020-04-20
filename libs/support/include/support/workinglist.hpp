@@ -5,7 +5,12 @@
 
 namespace MiniMC {
   namespace Support {
-    template<class Element,class Container = std::vector<Element>>
+	/**
+	 * Temporary working list object, which is useful when you have to
+	 * iterate over a collection that may change during the iteration.  
+	 *
+	 */ 
+	template<class Element,class Container = std::vector<Element>>
     class WorkingList {
     public:
       auto inserter () {return std::back_inserter (container);}

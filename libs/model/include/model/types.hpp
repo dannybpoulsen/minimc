@@ -1,6 +1,5 @@
 /**
  * @file   types.hpp
- * @author Danny Bøgsted Poulsen <caramon@homemachine>
  * @date   Sun Apr 19 11:31:42 2020
  * 
  * @brief  File containing the overall definitions of types in MiniMC
@@ -106,7 +105,7 @@ namespace MiniMC {
 	   * 
 	   * @return  The created array type
 	   */
-	  virtual const Type_ptr makeArrayType (size_t) = 0;
+	  virtual const Type_ptr makeArrayType (size_t t) = 0;
 
 	  /** 
 	   * Create a struct type exactly \p t bytes long.  
@@ -116,7 +115,7 @@ namespace MiniMC {
 	   * @return  The created struct type
 	   */
 	  
-	  virtual const Type_ptr makeStructType (size_t) = 0;
+	  virtual const Type_ptr makeStructType (size_t t) = 0;
 	};
 	
     using TypeFactory_ptr = std::shared_ptr<TypeFactory>;

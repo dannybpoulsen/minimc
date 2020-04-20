@@ -1,3 +1,11 @@
+/**
+ * @file   insertboolcasts.hpp
+ * @date   Mon Apr 20 17:03:54 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _INSERTBOOLCASTS__
 #define _INSERTBOOLCASTS__
 

@@ -1,3 +1,11 @@
+/**
+ * @file   splitasserts.hpp
+ * @date   Mon Apr 20 17:09:39 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _SPLITASSERTS__
 #define _SPLITASSERT__
 

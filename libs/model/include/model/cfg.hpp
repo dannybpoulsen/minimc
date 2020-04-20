@@ -1,6 +1,5 @@
 /**
  * @file   cfg.hpp
- * @author Danny Bøgsted Poulsen <caramon@homemachine>
  * @date   Sun Apr 19 20:16:17 2020
  * 
  * 

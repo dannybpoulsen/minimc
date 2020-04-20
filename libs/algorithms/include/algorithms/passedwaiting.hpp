@@ -1,3 +1,11 @@
+/**
+ * @file   passedwaiting.hpp
+ * @date   Mon Apr 20 17:00:12 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _PASSED__
 #define _PASSED__
 
@@ -11,7 +19,7 @@ namespace MiniMC {
     class Stack {
     public:
       bool empty () const {
-	return thestack.empty();
+		return thestack.empty();
       }
 
       void insert (const MiniMC::CPA::State_ptr& state) {
@@ -74,11 +82,26 @@ namespace MiniMC {
 	  }
 	  return merged;
 	}
+
 	
+	/** 
+	 * PassedWaiting list implemented using the \p StateStorage operations and \p Joiner operations.
+	 * The SearchStrategy is given by \p Waiting  which shoukd be either Stack or Queue. 
+	 *  
+	 */
     template<class StateStorage, class Joiner, class Waiting>
     class PassedWaiting {
     public:
-      void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
+	  /** 
+	   * Insert a state into the passed waiting list.  If it covered
+	   * by a State already stored, then it is discarded otherwise it
+	   * is inserted into the waiting and merged with whichever state
+	   * it can merged with in the StateStorage.   
+	   *
+	   *
+	   * @param ptr State to insert
+	   */
+	  void insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
 		auto insert = [&](auto& inst)->void {
 						auto it = waiting.begin();
 						auto end = waiting.end ();
@@ -86,26 +109,31 @@ namespace MiniMC {
 						if (!mergeIn<decltype(it),Joiner> (it,end,state))  { 
 						  waiting.insert(inst.get());
 						  passed++;
-						  }
+						}
 					  } ;
-		  if (ptr->need2Store ()) {
-			if (!store.isCoveredByStore (ptr.get())) {
-			  if (!store.joinState (ptr)) 
-				store.saveState (ptr.get(),nullptr);
-			  
-			  insert(ptr);
-			}
+		if (ptr->need2Store ()) {
+		  if (!store.isCoveredByStore (ptr.get())) {
+			if (!store.joinState (ptr)) 
+			  store.saveState (ptr.get(),nullptr);
+			
+			insert(ptr);
 		  }
-		  else {
-			insert (ptr);
-		  }
+		}
+		else {
+		  insert (ptr);
+		}
       }
-	  
+
+	  /** Extract the first State*/ 
       MiniMC::CPA::State_ptr pull () {
 		assert(hasWaiting());
 		return waiting.pull ();
       }
-	  
+
+	  /** 
+	   
+	   * @return true if it has states waiting, false otherwise
+	   */
       bool hasWaiting () const {
 		return !waiting.empty();
       }

@@ -1,3 +1,11 @@
+/**
+ * @file   typechecker.hpp
+ * @date   Mon Apr 20 17:02:30 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _TYPECHECK__
 #define _TYPECHECK__
 

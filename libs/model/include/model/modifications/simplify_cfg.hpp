@@ -1,3 +1,11 @@
+/**
+ * @file   simplify_cfg.hpp
+ * @date   Mon Apr 20 17:09:28 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _SIMPLIFYCFG__
 #define _SIMPLIFYCFG__
 

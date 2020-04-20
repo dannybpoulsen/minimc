@@ -17,10 +17,18 @@ namespace MiniMC {
     };
 
     using Progresser_ptr = std::unique_ptr<Progresser>;
-    
+
+	/**
+	 *
+	 * Messager objects is MiniMCs primary way of relaying messages
+	 * from  algorithms to the user interface. If an algorithms wishes
+	 * to do ProgressMessages then a Progresser object should be made
+	 * by the Messager.  
+	 * 
+	 */
     class Messager {
     public:
-      virtual Progresser_ptr makeProgresser () = 0;
+      virtual Progresser_ptr makeProgresser () = 0; 
       virtual void error (const std::string&) = 0;
       virtual void warning (const std::string&) = 0;
       virtual void message (const std::string&) = 0;
