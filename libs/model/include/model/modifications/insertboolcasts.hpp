@@ -8,8 +8,15 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
+	  /**
+	   * Transform ZExt (SEx) Instructions into BoolZExt (BoolSExt) when the castee is a boolean type. 
+	   * This is useful since the LLVM Loader will not distinguish between integers and booleans thus ZExt/SExt 
+	   * is inserted irrespective of the type when an extension is needed.
+	   * The analysis algorithms may distinguish however, so to avoid
+	   * a runtime switch we want to convert them before analysis
+	   * starts. 
+	   */
       struct InsertBoolCasts : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-
 		template<MiniMC::Model::InstructionCode From,MiniMC::Model::InstructionCode To>
 		void modifyExt (MiniMC::Model::Instruction& I) {
 		  if (I.getOpcode () == From) {

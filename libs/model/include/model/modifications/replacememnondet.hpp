@@ -8,6 +8,10 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
+	  /**
+	   * Translates all memory  \ref MiniMC::Model::InstructionCode::Load instructions to  \ref MiniMC::Model::InstructionCode::NonDet instrucitons.
+	   * This is useful when an analysis engine does not model, but only works on registers. 
+	   **/
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {

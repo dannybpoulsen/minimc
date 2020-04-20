@@ -1,3 +1,13 @@
+/**
+ * @file   instructions.hpp
+ * @author Danny Bøgsted Poulsen <caramon@homemachine>
+ * @date   Sun Apr 19 11:30:31 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
+
 #ifndef _INSTRUCTIONS__
 #define _INSTRUCTIONS__
 #include <cassert>
@@ -105,8 +115,9 @@ namespace MiniMC {
 	
       }	
     }
-    
-    template<InstructionCode>
+
+	
+    template<InstructionCode i>
     struct InstructionData{
       static const bool isTAC = false;
       static const bool isComparison = false;
@@ -118,17 +129,17 @@ namespace MiniMC {
       static const bool hasResVar = false;
     };
 
-#define X(OP)							\
-    template<>							\
-    struct InstructionData<InstructionCode::OP>{		\
-      static const bool isTAC = true;				\
-      static const bool isMemory = false;			\
-      static const bool isComparison = false;			\
-      static const bool isCast = false;				\
-      static const bool isPointer = false;			\
-      static const bool isAggregate = false;			\
-      static const std::size_t operands = 2;			\
-      static const bool hasResVar = true;			\
+#define X(OP)													\
+	template<>													\
+    struct InstructionData<InstructionCode::OP>{				\
+	static const bool isTAC = true;								\
+	static const bool isMemory = false;							\
+	static const bool isComparison = false;						\
+	static const bool isCast = false;							\
+	static const bool isPointer = false;						\
+	static const bool isAggregate = false;						\
+	static const std::size_t operands = 2;						\
+	static const bool hasResVar = true;							\
     };
     TACOPS
 #undef X
@@ -385,7 +396,15 @@ namespace MiniMC {
 
     class Function;
     using Function_ptr = std::shared_ptr<Function>;
-    
+
+	/**
+	 *  \brief Container for instruction codes and their paramaters
+	 * 
+	 * The Instruction class holds its operands internally in  a vector. 
+	 * The operands are accesible through the getOp function. 
+	 * Since the order of the operands are important in the rest of MiniMC, you should never 
+	 * instantiate Instruction objects yourself but rather use the InstBuilder classes. Furthermore access to operand should be done using the the InstHelper structs.
+	 */											
     struct Instruction {
     public:
       Instruction (InstructionCode code, std::initializer_list<Value_ptr> ops) : opcode(code),
@@ -393,20 +412,51 @@ namespace MiniMC {
 										 parent(nullptr)
       {}
       Instruction (InstructionCode code, std::vector<Value_ptr> ops) : opcode(code),
-								       ops(ops),
-								        parent(nullptr)
+																	   ops(ops),
+																	   parent(nullptr)
       {}
+
+	  /**
+	   * Replace this instruction with contents of \p i.
+	   */
       void replace (const Instruction& i) {
-	opcode = i.opcode;
-	ops = i.ops;
+		opcode = i.opcode;
+		ops = i.ops;
       }
+
+	  /**
+	   * \returns InstructionCode of this Instruction
+	   */
       auto getOpcode () const {return opcode;}
-      auto& getOps () const {return ops;}
-      auto& getOp (std::size_t i) const {return ops.at(i);}
-      auto getNbOps () const {return ops.size();}
-      std::ostream& output (std::ostream& os) const; 
-      const Function_ptr& getFunction () const {return parent;}
-      void setFunction (const Function_ptr& par) {parent = par;}
+
+	  /**
+	   * \returns std::vector<Value_ptr>& with all operands op this Instruction. 
+	   */
+	  auto& getOps () const {return ops;}
+
+	  auto& getOp (std::size_t i) const {return ops.at(i);}
+
+	  auto getNbOps () const {return ops.size();}
+
+	  /** 
+	   * Write a textual representation to \p os
+	   *
+	   * @param os The stream to output the representation to
+	   *
+	   * @return Reference to \p os, to allowing chaining outputs.
+	   */
+	  std::ostream& output (std::ostream& os) const;
+	  /**
+	   * Get the parent function of this instruction.
+	   * \returns The Function_ptr to the parent or nullptr if not set.
+	   */
+	  const Function_ptr& getFunction () const {return parent;}
+
+	  /**
+	   * Set the parent function of this instruction. 
+	   * \param par Function_ptr to the parent. 
+	   */
+	  void setFunction (const Function_ptr& par) {parent = par;}
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;
@@ -1307,13 +1357,13 @@ namespace MiniMC {
 	case InstructionCode::OP:					\
 	  return Formatter<InstructionCode::OP>::output (os,*this);	\
 	  break;							
-	  TACOPS
-	  COMPARISONS
-	CASTOPS
-	  MEMORY
-	  INTERNAL
-	  POINTEROPS
-	  AGGREGATEOPS
+		TACOPS
+		  COMPARISONS
+		  CASTOPS
+		  MEMORY
+		  INTERNAL
+		  POINTEROPS
+		  AGGREGATEOPS
 #undef X
 	    }
       return os << "??";

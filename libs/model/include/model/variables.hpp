@@ -13,6 +13,12 @@
 namespace MiniMC {
   namespace Model {
 
+	/**
+	 * 
+	 * Abstract representation of values in MiniMC. 
+	 * A Value is associated to Type, and be either Variables or Constants.
+	 * Values can also be local or global to a given function. 
+	 */
     class Value {
     public:
       virtual ~Value () {}
@@ -44,7 +50,7 @@ namespace MiniMC {
     }
     
     using Value_ptr = std::shared_ptr<Value>;
-
+	
     class Constant : public Value {
     public:
       virtual ~Constant () {}
@@ -87,23 +93,27 @@ namespace MiniMC {
     private:
       T value;
     };
-    
+
+	/**
+	 * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
+	 *
+	 */ 
     class BinaryBlobConstant :public Constant  {
       protected:
       BinaryBlobConstant (MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]),size(s) {
-	std::copy(data,data+s,value.get());
+		std::copy(data,data+s,value.get());
       }
     public:
       friend class ConstantFactory64;
-
+	  
       template<class T>
       auto& getValue () const {
-	assert(sizeof(T) == size);
-	return *reinterpret_cast<T*> (value.get());;
+		assert(sizeof(T) == size);
+		return *reinterpret_cast<T*> (value.get());;
       }
       
       virtual const MiniMC::uint8_t* getData () const {
-	return value.get();
+		return value.get();
       }
   
       virtual std::ostream& output (std::ostream& os) const {
@@ -141,8 +151,12 @@ namespace MiniMC {
 
     class VariableStackDescr;
     using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
-    
-    
+
+
+	/**
+	 * Representation of Variable in MiniMC. 
+	 * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution  
+	 */
     class Variable : public Value,
 		     public Placed<Variable>,
 		     public std::enable_shared_from_this<Variable> 
@@ -159,7 +173,8 @@ namespace MiniMC {
 		}
 		return os << " >";
 	  }
-      bool isVariable () const {return true;}
+
+	  bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
       
@@ -169,12 +184,22 @@ namespace MiniMC {
     };
 
     using Variable_ptr = std::shared_ptr<Variable>;
-    
+
+	/**
+	 * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not 
+	 * stack allocations). 
+	 *
+	 */
     class VariableStackDescr : public std::enable_shared_from_this<VariableStackDescr> {
     public:
       VariableStackDescr ()  {}
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
       auto& getVariables () const {return variables;}
+
+	  /** 
+	   *
+	   * @return Total size in bytes of an activation record
+	   */
       auto getTotalSize () const {return totalSize;}
       auto getTotalVariables () const {return variables.size();}
     private:
