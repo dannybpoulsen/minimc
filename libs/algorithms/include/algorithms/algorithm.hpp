@@ -1,3 +1,11 @@
+/**
+ * @file   algorithm.hpp
+ * @date   Mon Apr 20 15:46:57 2020
+ * 
+ * @brief  
+ * 
+ * 
+ */
 #ifndef _ALGORITHMS__
 #define _ALGORITHMS__
 
@@ -21,31 +29,44 @@
 
 namespace MiniMC {
   namespace Algorithms {
-    enum class Result {
+	enum class Result {
 					   Success = 0,
 					   Error = 1
     };
 
-
 	
+	/**
+	   Algorithm 
+	 */
     class Algorithm {
     public:
       Algorithm ()  {}
       Algorithm (const Algorithm& ) = default;
-      virtual Result run (const MiniMC::Model::Program&) {
+
+	  /** Run the algorithm on \p program 
+	   */
+	  virtual Result run (const MiniMC::Model::Program&) {
 		
 		return Result::Success;
       }
-      
+
+	  /** 
+	   * Algorithms can have modification they need to be run  before the algorithm can be run. The presetups function add these to the sequencer. 
+	   */
       static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
     };
 
-	enum class SpaceReduction {
-							   None,
-							   Conservative,
-							   Extreme
+	/**  
+	 *	Possible State space reductions. MiniMC can reduce the stored
+	 *  state space by storing states that are in locations marked as
+	 *  important. 	 
+	 */  
+	enum class SpaceReduction  {
+							   None, /**< Mark all states as important*/
+							   Conservative, /**< Mark states that are part of a loop*/ 
+							   Extreme /**< Mark no states - effectively meaning we store absolutely no states. */
 	};
-
+	
 	struct SetupOptions {
 	  gsl::not_null<MiniMC::Support::Messager*> messager;
 	  SpaceReduction reduction;
@@ -57,27 +78,33 @@ namespace MiniMC {
     template<class W, class ...Args>
     using AWrapper = BaseAWrapper<W,Args...>;
 
+	/** 
+	 * Add the typechecking, structural checks and modifications needed by \tparam algorithm to the MiniMC::Support::Sequencer<MiniMC::Model::Program> \p seq
+	 */
     template<class algorithm>
     void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
-		seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
-		seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
-		seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
-		seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
-		seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
-		seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
-		seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
-		
-		algorithm::presetups (seq,*options.messager);
-
-		if  (options.reduction == SpaceReduction::Conservative) {
-		  seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 
-		}
-		else if (options.reduction == SpaceReduction::None) {
-		  seq.template add<MiniMC::Model::Modifications::MarkAllStates> ();
-		}
-		
+	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
+	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
+	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
+	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
+	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
+	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
+	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	  
+	  algorithm::presetups (seq,*options.messager);
+	  
+	  if  (options.reduction == SpaceReduction::Conservative) {
+		seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 
+	  }
+	  else if (options.reduction == SpaceReduction::None) {
+		seq.template add<MiniMC::Model::Modifications::MarkAllStates> ();
+	  }
+	  
 	}
 
+	/** First run the modications of \p seq on \p prgm and then run \p algo.
+		\returns Result::Error if running \p seq failed, other the result of algo.run (prgm)
+	*/ 
 	template<class Seq, class Algo>
 	auto runSetup (Seq& seq, Algo& algo, MiniMC::Model::Program& prgm) {
 	  if (seq.run (prgm)) {

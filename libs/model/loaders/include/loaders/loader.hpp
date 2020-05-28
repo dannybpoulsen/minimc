@@ -7,20 +7,22 @@
 
 namespace MiniMC {
   namespace Loaders {
+	/**
+	 * The possible model loaders. 
+	 **/
 	enum class Type {
-					 LLVM
+					 LLVM /**< LLVM Model */
 	};
 
-	class Loader {
-	public:
-	  virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr&, MiniMC::Model::ConstantFactory_ptr&) = 0;
-	};
-	
-	template<Type>
-	std::unique_ptr<Loader> makeLoader ();
-
+	/** 
+	 *
+	 * Basic LoaderOptions. 
+	 * Different Type of loaders may need different options, but can
+	 * use the BaseLoadOptions as part of their load options struct.  
+	 *
+	 */
 	struct BaseLoadOptions {
-	  MiniMC::Model::TypeFactory_ptr tfactory;
+	  MiniMC::Model::TypeFactory_ptr tfactory; 
 	  MiniMC::Model::ConstantFactory_ptr cfactory;
 	};
 
@@ -28,6 +30,7 @@ namespace MiniMC {
 	struct OptionsLoad {
 	  using Opt = BaseLoadOptions;
 	};
+
 	
 	template<Type t,class Arg = typename OptionsLoad<t>::Opt>
 	MiniMC::Model::Program_ptr loadFromFile (const std::string& file, Arg loadOptions);

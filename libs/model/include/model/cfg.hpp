@@ -1,3 +1,9 @@
+/**
+ * @file   cfg.hpp
+ * @date   Sun Apr 19 20:16:17 2020
+ * 
+ * 
+ */
 #ifndef _CFG__
 #define _CFG__
 
@@ -57,30 +63,63 @@ namespace MiniMC {
 	private:
 	  BaseIterator iter;
 	};
-	
+
+	/** 
+	 * Location in a functions CFG
+	 * Locations can be assigned different attributes which can affect exploration algorithms, or the modification algorihtms on the CFG. 
+	 */
     class Location : public std::enable_shared_from_this<Location>{
     public:
+	  friend class CFG;
+	  friend class Edge;
       using AttrType = char;
+
+	  /**
+	   * The possible attributes that can be assigned locations
+	   *
+	   */
       enum class Attributes  : AttrType {
-										 AssertViolated = 1,
-										 NeededStore = 2,
-										 CallPlace = 4,
-										 AssumptionPlace = 8
+										 AssertViolated = 1, /**< Indicates an assert was violated */
+										 NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
+										 CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
+										 AssumptionPlace = 8 /**< Indicates an assumption is made on an edge leaving this location  */
       };
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
       Location (const std::string& n, MiniMC::offset_t id) : name(n),id(id) {}
-      //auto& getEdges () const {return edges;}
+      
       void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
       void addIncomingEdge (gsl::not_null<Edge_ptr> e) {incomingEdges.push_back(e.get());}
-      
+      /** 
+	   *
+	   * @return begin iterator for outgoing edges
+	   */
       edge_iterator ebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.begin());}
-      edge_iterator eend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.end());}
 
-      edge_iterator iebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.begin());}
-      edge_iterator ieend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.end());}
-      
+	  /** 
+	   *
+	   * @return end iterator for outgoing edges
+	   */
+	  edge_iterator eend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (edges.end());}
+
+	  /** 
+	   *
+	   * @return begin iterator for incoming edges
+	   */
+	  edge_iterator iebegin () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.begin());}
+
+	  /** 
+	   *
+	   * @return end iterator for incoming edges
+	   */
+	  edge_iterator ieend () {return SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator> (incomingEdges.end());}
+
+	  /** 
+	   * Check if this location has outoing edges
+	   *
+	   * @return true if it has outgoing edges, false if not
+	   */
       bool hasOutgoingEdge () const {
 		return edges.size();
       }
@@ -91,39 +130,42 @@ namespace MiniMC {
 	  
       auto& getName () const {return name;}
 
-      void removeEdge (const Edge_ptr e) {
-		auto it = std::find_if (edges.begin(),edges.end(),
-								[&e](const Edge_wptr& ptr1) {
-								  return ptr1.lock() == e;
-								});
-		assert(it != edges.end());
-		edges.erase (it);
-      }
-
-      void removeIncomingEdge (const Edge_ptr e) {
-		auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
-								[&e](const Edge_wptr& ptr1) {
-								  return ptr1.lock() == e;
-								});
-		assert (it != incomingEdges.end());
-		incomingEdges.erase (it);
-		
-      }
 	  
+
+	  /** 
+	   * Count the number of incoming edges
+	   *
+	   *
+	   * @return number of incoming edges
+	   */
       auto nbIncomingEdges () const  {
 		return incomingEdges.size();
       }
-      
+
+	  /** 
+	   * Check  if this location has Attributes \p i set 
+	   *
+	   *
+	   * @return true if \p i  is set false otherwise
+	   */
       template<Attributes i>
       bool is () {
 		return static_cast<AttrType> (i) & flags;
       }
-	  
+
+	  /** 
+	   * Set attribute \p i.
+	   *
+	   */
       template<Attributes i>
       void set () {
 		flags |= static_cast<AttrType> (i);
       }
-	  
+
+	  /** 
+	   * Remove attribute \p i from this Location.
+	   *
+	   */
       template<Attributes i>
       void unset () {
 		flags &= ~static_cast<AttrType> (i);
@@ -134,7 +176,41 @@ namespace MiniMC {
       bool hasSourceLocation  () const {return sourceloc.get();}
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
       void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
-    private:
+
+	protected:
+	  
+	  /** 
+	   * Search for an edge \p e. If found delete it from the outgoing edges.
+	   * Notice \p e is searched for using pointer equality.  
+	   *
+	   * @param e The edge to search for
+	   */
+      void removeEdge (const Edge_ptr e) {
+		auto it = std::find_if (edges.begin(),edges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		assert(it != edges.end());
+		edges.erase (it);
+      }
+
+	  /** 
+	   * Search for an edge \p e. If found delete it from the incoming  edges.
+	   * Notice \p e is searched for using pointer equality.  
+	   *
+	   * @param e The edge to search for
+	   */
+      void removeIncomingEdge (const Edge_ptr e) {
+		auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		assert (it != incomingEdges.end());
+		incomingEdges.erase (it);
+		
+      }
+	  
+	private:
       std::vector<Edge_wptr> edges;
       std::vector<Edge_wptr> incomingEdges;
       std::string name;
@@ -153,27 +229,41 @@ namespace MiniMC {
 	
 	class Instruction;
 
+	/** 
+	 * Possible attributes that can be set on edges
+	 *
+	 */
     enum class AttributeType {
-							  Instructions,
-							  Guard
+							  Instructions, /**<  A stream of instruction*/
+							  Guard  /**<  A  guarding Value that has to be true when moving along the edge*/
     };
-
+	
     template<AttributeType>
     struct AttributeValueType {
       using ValType = bool;
     };
 
+	/**
+	 * Structure for representing guards. 
+	 */
     struct Guard {
       Guard () {}
       Guard (const Value_ptr& g, bool negate) : guard(g),negate(negate) {}
-      Value_ptr guard = nullptr;
-      bool negate = false;
+	  
+	  Value_ptr guard = nullptr; ///< The guarding Value
+	  bool negate = false; ///< whether the guarding value should be negated when evaluating if the guard is true 
     };
 
     inline std::ostream& operator<< (std::ostream& os, const Guard& g) {
       return os << "<< " <<(g.negate ? "!" : "") << *g.guard << " >>";
     }
 	
+	/**
+	 * Structure representing InstructionStream on  edges.
+	 * An InstructionStream is a sequence of instruction to be performed uninterrupted.
+	 * If the isPhi is true, then the InstructionStream must be performed without the instructions affecting eachother (this is to 
+	 * to reflect that some operations are atomic even within a single process - such as phi-nodes in SSA form).
+	 */
     struct InstructionStream {
       InstructionStream () : isPhi(false) {}
       InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
@@ -181,6 +271,7 @@ namespace MiniMC {
 		assert(instr.size());
       }
       InstructionStream (const InstructionStream& str) : instr(str.instr),isPhi(str.isPhi) {}
+
       auto begin () const {return instr.begin();}
       auto end () const {return instr.end();}
       auto begin ()  {return instr.begin();}
@@ -199,6 +290,7 @@ namespace MiniMC {
       auto erase( Iterator iter) {
 		return instr.erase (iter);
       }
+	  
       std::vector<Instruction> instr;
       bool isPhi = false;;
     };
@@ -213,7 +305,7 @@ namespace MiniMC {
       using ValType = Guard;
     };
 
-    
+	
     class IEdgeAttributes {
     public:
       virtual AttributeType getType () = 0;
@@ -248,8 +340,8 @@ namespace MiniMC {
 	
     
     
-    
-
+	
+	
     class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
 				 private EdgeAttributesMixin<AttributeType::Guard>,
 				 public std::enable_shared_from_this<Edge> 
@@ -288,14 +380,22 @@ namespace MiniMC {
       
       auto getFrom () const {return gsl::not_null<Location_ptr> (from.lock());}
       auto getTo () const {return gsl::not_null<Location_ptr> (to.lock());}
-      void setTo (gsl::not_null<Location_ptr> t) {
+
+	  /** 
+	   *  Set the to Location of this Edge. Also remove the edge
+	   *  itself from the current to.
+	   *
+	   * @param t New target of the edge 
+	   */
+	  void setTo (gsl::not_null<Location_ptr> t) {
 		to.lock()->removeIncomingEdge (this->shared_from_this());
 		to = t.get();
 		t->addIncomingEdge (this->shared_from_this());
       }
 	  
       auto getProgram() const {return prgm.lock();}
-      void setProgram (const Program_ptr& p) {prgm = p;} 
+
+	  void setProgram (const Program_ptr& p) {prgm = p;} 
     private:
       Location_wptr from;
       Location_wptr to;
@@ -313,16 +413,34 @@ namespace MiniMC {
       }
       return os;
     }
-	
+
+	/**
+	 *
+	 * Representation of an Control Flow Automaton (despite the misleading name CFG). 
+	 * The CFG is responsible for creating( and deleting) edges and
+	 * locations of a function. It will also make sure that  the
+	 * incoming/outgoing edges of locations are properly update when
+	 * deleting edges. This 
+	 *
+	 */
     class CFG {
     public:
       CFG () {}
-      
+	  
       gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
 		locations.emplace_back (new Location (name,locations.size()));
 		return locations.back();
       }
-	  
+
+	  /** 
+	   * Make a new edge 
+	   *
+	   * @param from source of the edge
+	   * @param to target of the edge
+	   * @param p the program that the edge is associated to.
+	   *
+	   * @return 
+	   */
       gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
 		edges.emplace_back (new Edge (from,to));
 		to->addIncomingEdge (edges.back ());
@@ -339,11 +457,17 @@ namespace MiniMC {
       void setInitial (gsl::not_null<Location_ptr> loc) {
 		initial = loc.get();
       }
-	  
+
+	  /** 
+	   * Delete \p edge from this CFG. Update also the
+	   * incoming/outgoing edges of the target/source of \p edge. 
+	   *
+	   * @param edge The edge to delete
+	   */
       void deleteEdge (const Edge_ptr& edge) {
 		edge->getFrom ()->removeEdge (edge);
 		edge->getTo ()->removeIncomingEdge (edge);
-
+		
 	
 		auto it = std::find (edges.begin(),edges.end(),edge);
 		if (it != edges.end()) {
@@ -362,6 +486,7 @@ namespace MiniMC {
 
     using CFG_ptr = std::shared_ptr<CFG>;
 
+	
     class Function : public std::enable_shared_from_this<Function> {
     public:
       Function (MiniMC::func_t id, 
@@ -406,6 +531,7 @@ namespace MiniMC {
     
     using Function_ptr = std::shared_ptr<Function>;
 
+	
     class Program  : public std::enable_shared_from_this<Program>{
     public:
       Program (const MiniMC::Model::TypeFactory_ptr& tfact,

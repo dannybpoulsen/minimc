@@ -610,7 +610,7 @@ namespace MiniMC {
 	  
     };
 	
-    class LLVMLoader : public Loader {
+    class LLVMLoader  {
 	public:
       virtual MiniMC::Model::Program_ptr loadFromFile (const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
 		std::fstream str;
