@@ -1,3 +1,11 @@
+/**
+ * @file   location.hpp
+ * @date   Mon Apr 20 18:20:00 2020
+ * 
+ *  This file contains the definition of a Location tracking CPA
+ * 
+ * 
+ */
 #ifndef _LOCATION__
 #define _LOCATION__
 
@@ -14,14 +22,24 @@ namespace MiniMC {
 	};
       
       struct Transferer {
-	static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr&,proc_id);
+		static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr&,proc_id);
       };
       
       struct Joiner {  
+		/** 
+		 * The Location tracking CPA can only join if the two states has equal hash value.  
+		 *
+		 * @return 
+		 */
 		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
+		  if (std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r))
+			return l;
 		  return nullptr;
 		}
-		
+
+		/** 
+		 *  \p l covers \p r if their hash values are the same 
+		 */
 		static bool covers (const State_ptr& l, const State_ptr& r) {
 		  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
 		}

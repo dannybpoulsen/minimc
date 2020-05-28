@@ -121,7 +121,7 @@ namespace MiniMC {
 	   * @return 
 	   */
       bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
-		assert(!isCoveredByStore (state))
+		assert(!isCoveredByStore (state));
 		if (tag)
 		  *tag = actualStore.size();
 		actualStore.emplace_back(state);		     

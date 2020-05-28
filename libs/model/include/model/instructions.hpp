@@ -73,10 +73,10 @@ namespace MiniMC {
     X(Load)					\
 
 #define INTERNAL				\
-    X(Skip)					\
-    X(Call)					\
+    X(Skip)						\
+    X(Call)						\
     X(Assign)					\
-    X(Ret)					\
+    X(Ret)						\
     X(RetVoid)					\
     X(NonDet)					\
     X(Assert)					\
@@ -907,7 +907,7 @@ namespace MiniMC {
     public:
       
       InstHelper (const Instruction& inst) : inst(inst) {
-	nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (inst.getOp (1))->getValue();
+		nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (inst.getOp (1))->getValue();
 	
       }
       
@@ -915,7 +915,7 @@ namespace MiniMC {
       auto getFunctionPtr () {return inst.getOp (0);}
       auto getParam (std::size_t p) {return inst.getOp (3+p);}
       auto getRes () {
-	return inst.getOp (2);
+		return inst.getOp (2);
       }
       
     private:
@@ -928,22 +928,22 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Call,void> {
     public:
       Instruction BuildInstruction () {
-	std::vector<Value_ptr> values;
-	values.push_back (func);
-	values.push_back (nbParameters);
-	values.push_back(res);
-	std::copy(params.begin(),params.end(),std::back_inserter(values));
-	return Instruction (InstructionCode::Call,values);
+		std::vector<Value_ptr> values;
+		values.push_back (func);
+		values.push_back (nbParameters);
+		values.push_back(res);
+		std::copy(params.begin(),params.end(),std::back_inserter(values));
+		return Instruction (InstructionCode::Call,values);
       }
-
+	  
       void setFunctionPtr (const Value_ptr& func) {
-	this->func = func;
+		this->func = func;
       }
-
+	  
       void setRes (const Value_ptr& res) {
-	this->res = res;
+		this->res = res;
       }
-
+	  
       void setNbParamters (const Value_ptr& p) {
 	assert(p->isConstant ());
 	this->nbParameters = p;
@@ -1202,9 +1202,9 @@ namespace MiniMC {
       void setResult (const Value_ptr& ptr) {res = res;}
       void setInsertee (const Value_ptr& ptr)  {insertee = ptr;}
       Instruction BuildInstruction () {
-	std::vector<Value_ptr> vals ({aggregate,res,insertee});
-	std::copy (consts.begin(),consts.end(),std::back_inserter (vals));
-	return Instruction (InstructionCode::InsertValueFromConst,vals);
+		std::vector<Value_ptr> vals ({aggregate,res,insertee});
+		std::copy (consts.begin(),consts.end(),std::back_inserter (vals));
+		return Instruction (InstructionCode::InsertValueFromConst,vals);
       }
       
     private:
@@ -1217,8 +1217,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::InsertValue,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::InsertValue> h (inst);
-	return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
+		InstHelper<InstructionCode::InsertValue> h (inst);
+		return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
       } 
     };
 
@@ -1281,9 +1281,9 @@ namespace MiniMC {
       void setValue (const Value_ptr& ptr) {value = ptr;}
       void setAddress (const Value_ptr& ptr) {address = ptr;}
       Instruction BuildInstruction () {
-	assert(value);
-	assert(address);
-	return Instruction (InstructionCode::Store,{value,address});
+		assert(value);
+		assert(address);
+		return Instruction (InstructionCode::Store,{value,address});
       }
     private:
       Value_ptr value;
