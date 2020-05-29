@@ -62,15 +62,17 @@ namespace MiniMC {
     const Value_ptr ConstantFactory64::makeAggregateConstant (const ConstantFactory::aggr_input& inp,bool isArr) {
       std::size_t size = 0;
       for (auto& v : inp) {
-	size+=v->getType ()->getSize();
+		size+=v->getType ()->getSize();
       }
       assert(size);
       std::unique_ptr<MiniMC::uint8_t[]> data ( new MiniMC::uint8_t[size]); 
       auto out = data.get();
       for (auto& v : inp) {
-	auto c = std::static_pointer_cast<MiniMC::Model::Constant> (v);
-	out = std::copy(c->getData(),c->getData()+c->getType()->getSize(),out);
-	
+		assert (v->isConstant());
+		auto c = std::static_pointer_cast<MiniMC::Model::Constant> (v);
+		assert(c);
+		out = std::copy(c->getData(),c->getData()+c->getType()->getSize(),out);
+		
       }
 
      

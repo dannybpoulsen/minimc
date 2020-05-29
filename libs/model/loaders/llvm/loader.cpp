@@ -56,34 +56,34 @@ namespace MiniMC {
 	return cst;
       }
       else if (ltype->isStructTy() || ltype->isArrayTy () ) {
-	    
-	auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
-	if (cstAggr) {
-	  std::vector<MiniMC::Model::Value_ptr> vals;
-	  const size_t oper = cstAggr->getNumElements ();
-	  for (size_t i = 0; i < oper;++i) {
-	    auto elem = cstAggr->getElementAsConstant(i);
-	    vals.push_back(makeConstant(elem,tt,fac,map));
-	  }
-	  auto type = tt.getType (constant->getType ());
-	  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
-	  cst->setType (type);
-	  return cst;
-	}
-	  
-	auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate> (val);
-	if (cstAggr2) {
-	  std::vector<MiniMC::Model::Value_ptr> vals;
-	  const size_t oper = cstAggr2->getNumOperands ();
-	  for (size_t i = 0; i < oper;++i) {
-	    auto elem = cstAggr2->getOperand(i);
-	    vals.push_back(makeConstant(elem,tt,fac,map));
-	  }
-	  auto type = tt.getType (constant->getType ());
-	  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
-	  cst->setType (type);
-	  return cst;
-	}
+		
+		auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
+		if (cstAggr) {
+		  std::vector<MiniMC::Model::Value_ptr> vals;
+		  const size_t oper = cstAggr->getNumElements ();
+		  for (size_t i = 0; i < oper;++i) {
+			auto elem = cstAggr->getElementAsConstant(i);
+			vals.push_back(makeConstant(elem,tt,fac,map));
+		  }
+		  auto type = tt.getType (constant->getType ());
+		  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
+		  cst->setType (type);
+		  return cst;
+		}
+		
+		auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate> (val);
+		if (cstAggr2) {
+		  std::vector<MiniMC::Model::Value_ptr> vals;
+		  const size_t oper = cstAggr2->getNumOperands ();
+		  for (size_t i = 0; i < oper;++i) {
+			auto elem = cstAggr2->getOperand(i);
+			vals.push_back(makeConstant(elem,tt,fac,map));
+		  }
+		  auto type = tt.getType (constant->getType ());
+		  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
+		  cst->setType (type);
+		  return cst;
+		}
       }
       else if (llvm::isa<llvm::Function> (val) ||
 	       llvm::isa<llvm::GlobalVariable> (val)
