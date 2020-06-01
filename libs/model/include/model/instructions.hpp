@@ -551,8 +551,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << " " <<  *h.getLeftOp () << " " << *h.getRightOp ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << " " <<  *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 
