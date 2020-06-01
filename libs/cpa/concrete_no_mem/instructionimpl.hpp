@@ -206,8 +206,6 @@ namespace MiniMC {
 							   reinterpret_cast<const uint8_t*> (rl.getRegister ().getMem ())+rl.getRegister().getSize (),
 							   out);
 			}
-			//std::cerr << *constant << std::endl;
-			//assert(false ); //Working here
 			reg = std::make_unique<InnerStateConst> (buffer,size);
 		    
 		  }
@@ -314,7 +312,6 @@ namespace MiniMC {
 		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 									MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
 									const MiniMC::Model::Instruction& inst)  {
-		  std::cerr << inst << std::endl;
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::PtrAdd> helper (inst);
 		  auto& value = helper.getValue ();
 		  auto& addr =  helper.getAddress ();
@@ -344,9 +341,7 @@ namespace MiniMC {
 			throw MiniMC::Support::Exception (MiniMC::Support::Localiser("Weird size of skip  %1%").format (skipSizeR.getRegister().getSize ()));
 		  }
 		  auto nptr = MiniMC::Support::ptradd (ptr,skipCalc);
-		  std::cerr << "Calc Ptr " << nptr << std::endl;
 		  InRegister resval (&nptr,sizeof(nptr));
-	  
 		  doSave (st,std::static_pointer_cast<MiniMC::Model::Variable> (res),resval);
 		  
 		}
@@ -497,7 +492,39 @@ namespace MiniMC {
 		  st.stack.setData (data);
 		}
       };
-      
+
+	  template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::MemCpy,void> {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+									MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::MemCpy> helper (inst);
+		  RegisterLoader source (readFrom,helper.getSource());
+		  RegisterLoader target (readFrom,helper.getTarget());
+		  RegisterLoader size (readFrom,helper.getSize());
+		  
+		  auto source_ptr = source.getRegister().template get<MiniMC::pointer_t> ();
+		  auto target_ptr = target.getRegister().template get<MiniMC::pointer_t> ();
+		  MiniMC::offset_t size_int = 0;
+		  switch (size.getRegister ().getSize ()) {
+		  case 1:
+			size_int = size.getRegister ().template get<MiniMC::uint8_t> ();
+			break;
+		  case 2:
+			size_int = size.getRegister ().template get<MiniMC::uint16_t> ();
+			break;
+		  case 4:
+			size_int = size.getRegister ().template get<MiniMC::uint32_t> ();
+			break;
+		  case 8:
+			size_int = size.getRegister ().template get<MiniMC::uint64_t> ();
+			break;
+		  }
+		  
+		  auto loaded = readFrom.heap.read (source_ptr,size_int);
+		  st.heap.write (target_ptr,loaded);
+		}
+      };
+	  
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Ret,void> {
 		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
@@ -586,8 +613,7 @@ namespace MiniMC {
 		  MiniMC::Model::Value_ptr address = helper.getAddress ();
 		  RegisterLoader addrval (readFrom,address);
 		  auto pointer = addrval.getRegister ().template get<MiniMC::pointer_t> ();
-		  
-		  auto val = st.heap.read (pointer,size);
+		  auto val = readFrom.heap.read (pointer,size);
 		  st.stack.save (val,std::static_pointer_cast<MiniMC::Model::Variable> (res));
 		}
       };
@@ -641,7 +667,6 @@ namespace MiniMC {
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Store,void> {
 		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
 									MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
-		  std::cerr << inst << std::endl;
 		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Store> helper (inst);
 		  MiniMC::Model::Value_ptr value = helper.getValue();
 		  auto size = value->getType()->getSize();

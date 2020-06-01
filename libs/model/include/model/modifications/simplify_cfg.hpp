@@ -80,7 +80,8 @@ namespace MiniMC {
 				  auto to = E->getTo ();		  
 				  if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> ()) {
 					if (to->nbIncomingEdges () <= 1 &&
-						!to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> ()
+						!to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () 
+
 						)
 					  {
 			
@@ -94,6 +95,8 @@ namespace MiniMC {
 			
 						for (auto cwedge : inner_wlist) {
 						  if (auto cedge = cwedge.lock ()) {
+							if (to->template is<MiniMC::Model::Location::Attributes::CallPlace> ())
+							  from->template set<MiniMC::Model::Location::Attributes::CallPlace> ();
 							inner_mod = true;
 							auto nedge = cfg->makeEdge (from,cedge->getTo (),prgm.shared_from_this());
 							copyInstrStream (nedge,E);

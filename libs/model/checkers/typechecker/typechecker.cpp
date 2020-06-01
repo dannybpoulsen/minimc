@@ -200,7 +200,6 @@ namespace MiniMC {
 			return false;
 		  }
 		  else if (skip->getTypeID () != MiniMC::Model::TypeID::Integer ) {
-			std::cerr << *skip  << std::endl;
 			mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::PtrAdd,"SkipSize"));
 			return false;
 		  }
@@ -416,7 +415,6 @@ namespace MiniMC {
 		  else {
 			auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant> (func);;
 			auto ptr = (*constant).template getValue<MiniMC::pointer_t> ();//MiniMC::Support::CastToPtr (constant->getValue());
-			std::cerr << ptr << std::endl;
 			bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId (ptr));
 			MiniMC::Support::Localiser  function_not_exists("Call references unexisting function: '%1%'");
 			if (!is_func) {
@@ -547,6 +545,44 @@ namespace MiniMC {
 	  
       };
 
+	   template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::Assume>
+      {
+		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assume;
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		  InstHelper<OpCode> h (inst);
+		  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
+	  
+		  auto type = h.getAssert ()->getType ();
+		  if (type->getTypeID () != MiniMC::Model::TypeID::Bool &&
+			  type->getTypeID () != MiniMC::Model::TypeID::Integer) {
+			mess.error (must_be_bool.format (OpCode));
+			return false;
+		  }
+		  return true;
+		}
+	  
+      };
+
+	   template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::NegAssume>
+      {
+		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::NegAssume;
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		  InstHelper<OpCode> h (inst);
+		  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
+	  
+		  auto type = h.getAssert ()->getType ();
+		  if (type->getTypeID () != MiniMC::Model::TypeID::Bool &&
+			  type->getTypeID () != MiniMC::Model::TypeID::Integer) {
+			mess.error (must_be_bool.format (OpCode));
+			return false;
+		  }
+		  return true;
+		}
+	  
+      };
+
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::StackRestore>
       {
@@ -563,6 +599,36 @@ namespace MiniMC {
 		}
 	  
       };
+
+	   template<>
+      struct TypeCheck<MiniMC::Model::InstructionCode::MemCpy>
+      {
+		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::MemCpy;
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		  InstHelper<OpCode> h (inst);
+		  MiniMC::Support::Localiser must_be_pointer_source ("'%1%' must take pointer as source inputs. ");
+		  MiniMC::Support::Localiser must_be_pointer_target ("'%1%' must take pointer as target inputs. ");
+		  MiniMC::Support::Localiser must_be_integer ("'%1%' must take integer as size inputs. ");
+
+		  if (h.getSource () ->getType()->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+			mess.error (must_be_pointer_source.format(OpCode));
+			return false;
+		  }
+
+		  if (h.getTarget () ->getType()->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+			mess.error (must_be_pointer_target.format(OpCode));
+			return false;
+		  }
+
+		  if (h.getSize () ->getType()->getTypeID () != MiniMC::Model::TypeID::Integer) {
+			mess.error (must_be_integer.format(OpCode));
+			return false;
+		  }
+		  
+		  return true;
+		}
+	  
+	   };
 
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::StackSave>

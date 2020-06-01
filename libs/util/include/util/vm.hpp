@@ -1,6 +1,7 @@
 #ifndef _VM__
 #define _VM__
 
+#define DEBUGVM
 #include "model/instructions.hpp"
 
 namespace MiniMC {
@@ -28,9 +29,10 @@ namespace MiniMC {
 			
 		DISPATCH(it,end);
 		
-			
+		
 #define X(OP)															\
 		OP:																\
+																		\
 		  Exec::template execute<MiniMC::Model::InstructionCode::OP> (data,*it); \
 		++it;															\
 		DISPATCH(it,end);
@@ -45,5 +47,6 @@ namespace MiniMC {
 
   }
 }
+#undef DEBUGVM
 #endif
 

@@ -36,9 +36,7 @@ namespace MiniMC {
 					 .readFrom = &st,
 					 .st = &st
 		};
-		std::cerr << "Init" << std::endl;
 		MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
-		std::cerr << "Init done " << std::endl;
 		return nstate;
       }
       

@@ -90,6 +90,8 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
 	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
+	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  
 	  algorithm::presetups (seq,*options.messager);
 	  

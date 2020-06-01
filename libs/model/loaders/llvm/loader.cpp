@@ -95,14 +95,12 @@ namespace MiniMC {
       else if (llvm::isa<llvm::Function> (val) ||
 			   llvm::isa<llvm::GlobalVariable> (val)
 			   ) {
-		llvm::errs () << *val;
 		return map.at (val);
       }
       else if (llvm::BlockAddress* block = llvm::dyn_cast<llvm::BlockAddress> (val)) {
 		return map.at (block->getBasicBlock ());
       }
       else if (ltype->isPointerTy ()) {
-		llvm::errs () << *val;
 		throw MiniMC::Support::Exception ("Pointer Not Quite there");
       }
       throw MiniMC::Support::Exception ("Error");

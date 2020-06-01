@@ -140,12 +140,27 @@ namespace MiniMC {
       instr.push_back(builder.BuildInstruction ());
     }
 
+	template<>
+    void translateIntrinsicCall<llvm::Intrinsic::memcpy> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
+      MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::MemCpy> builder; 
+      auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
+      assert(cinst->arg_size()==4);
+	  auto arg = cinst->arg_begin();
+      builder.setTarget (findValue((*arg++),values,tt,cfac));
+	  builder.setSource (findValue((*arg++),values,tt,cfac));
+	  builder.setSize (findValue((*arg++),values,tt,cfac));
+	  
+	  
+      instr.push_back(builder.BuildInstruction ());
+    }
+
 #define SUPPORTEDINTRIN							\
     X(llvm::Intrinsic::stackrestore)			\
     X(llvm::Intrinsic::stacksave)				\
-    
-    
-    template<>								\
+    X(llvm::Intrinsic::memcpy)				\
+	
+	
+    template<>															
     void translateAndAddInstruction<llvm::Instruction::Call> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) { 
       auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
       auto func = cinst->getCalledFunction ();
