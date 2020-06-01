@@ -456,7 +456,9 @@ namespace MiniMC {
 	   * Set the parent function of this instruction. 
 	   * \param par Function_ptr to the parent. 
 	   */
-	  void setFunction (const Function_ptr& par) {parent = par;}
+	  void setFunction (const Function_ptr& par) {
+		parent = par;
+	  }
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;

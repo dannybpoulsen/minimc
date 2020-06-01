@@ -26,19 +26,20 @@ namespace MiniMC {
 		}
 	
 		
-	auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
-	assert(nstate->nbProcs());
-	auto st = nstate->getStackDetails (0);
-	auto& instr = prgm.getInitialisation ();
-	auto it = instr.begin ();
-	auto end = instr.end ();
-	VMData data {
-				 .readFrom = &st,
-				 .st = &st
-	};
-
-	MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
-	return nstate;
+		auto nstate = std::make_shared<MiniMC::CPA::ConcreteNoMem::State> (gstack,stacks,heap);
+		assert(nstate->nbProcs());
+		auto st = nstate->getStackDetails (0);
+		auto& instr = prgm.getInitialisation ();
+		auto it = instr.begin ();
+		auto end = instr.end ();
+		VMData data {
+					 .readFrom = &st,
+					 .st = &st
+		};
+		std::cerr << "Init" << std::endl;
+		MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
+		std::cerr << "Init done " << std::endl;
+		return nstate;
       }
       
       size_t nbOfProcesses (const State_ptr& s) {
@@ -81,7 +82,7 @@ namespace MiniMC {
 			auto it = instr.begin();
 			auto end = instr.end ();
 			MiniMC::Util::runVM<decltype(it),VMData,ExecuteMap> (it,end,data);
-			  }
+		  }
 		  catch  (MiniMC::Support::AssumeViolated) {
 			return nullptr;
 		  }

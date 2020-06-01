@@ -74,12 +74,13 @@ namespace MiniMC {
 		out = std::copy(c->getData(),c->getData()+c->getType()->getSize(),out);
 		
       }
-
-     
-      
       return Value_ptr (new MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (data.get()),size));
     }
-     
-    
+	
+	const Value_ptr ConstantFactory64::makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool) {
+      return Value_ptr(new MiniMC::Model::AggregateNonCompileConstant (inp));
+	}
+	
+	
   }
 }

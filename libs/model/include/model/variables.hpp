@@ -7,6 +7,7 @@
 #include <vector>
 #include <ostream>
 #include <sstream>
+#include <algorithm>
 #include "model/types.hpp"
 #include "support/storehelp.hpp"
 #include "support/types.hpp"
@@ -26,6 +27,7 @@ namespace MiniMC {
       void setType (const Type_ptr& t) {type = t;}
       virtual bool isVariable () const {return false;}
       virtual bool isConstant () const {return false;}
+	  virtual bool isNonCompileConstant () const {return false;}
       virtual bool isGlobal () const {return glob;}
       virtual void setGlobal () {glob = true;}
       
@@ -54,12 +56,37 @@ namespace MiniMC {
     class Constant : public Value {
     public:
       virtual ~Constant () {}
-      bool isConstant () const {return true;}
-      virtual const MiniMC::uint8_t* getData () const = 0; 
+      bool isConstant () const {return true;}  
+	  virtual const MiniMC::uint8_t* getData () const = 0; 
       virtual bool isAggregate () const {return false;}
 	  virtual bool isInteger () const {return false;}
-  };
+	};
 
+	class NonCompileConstant : public Value {
+    public:
+      virtual ~NonCompileConstant () {}
+      bool isNonCompileConstant () const {return true;}  
+      virtual bool isAggregate () const {return true;}
+	};
+
+	class AggregateNonCompileConstant : public NonCompileConstant {
+	public:
+	  AggregateNonCompileConstant (const std::vector<Value_ptr>& val) : ops(val) {}
+	  auto begin () const {return ops.begin();}
+	  auto end () const {return ops.end();}
+
+	  virtual std::ostream& output (std::ostream& os) const  {
+		os << "[";
+		std::for_each (ops.begin(),ops.end(),[&](const Value_ptr& v){os << *v << ",";});
+		return os << "]";
+	  }
+	private:
+	  std::vector<Value_ptr> ops;
+	};
+	
+	using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
+	using Constant_ptr = std::shared_ptr<Constant>;
+	
     class ConstantFactory64;
 
     template<typename T>
@@ -158,8 +185,8 @@ namespace MiniMC {
 	 * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution  
 	 */
     class Variable : public Value,
-		     public Placed<Variable>,
-		     public std::enable_shared_from_this<Variable> 
+					 public Placed<Variable>,
+					 public std::enable_shared_from_this<Variable> 
     {
     public:
       Variable (const std::string& name) : name(name) {}
@@ -173,7 +200,7 @@ namespace MiniMC {
 		}
 		return os << " >";
 	  }
-
+	  
 	  bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
@@ -182,7 +209,7 @@ namespace MiniMC {
       std::string name;
       VariableStackDescr* owner;
     };
-
+	
     using Variable_ptr = std::shared_ptr<Variable>;
 
 	/**
@@ -214,9 +241,11 @@ namespace MiniMC {
       ConstantFactory () {}
       virtual ~ConstantFactory () {}
       
-      using aggr_input = std::vector<Value_ptr>;
+      using aggr_input = std::vector<Constant_ptr>;
+	  using noncompile_aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool) = 0;
-      virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&) = 0;
+	  virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool) = 0;
+	  virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&) = 0;
       virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t) = 0;
       
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;
@@ -230,6 +259,7 @@ namespace MiniMC {
       virtual ~ConstantFactory64 () {}
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&);
       virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t);
+	  virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool);
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool);
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t);
