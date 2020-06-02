@@ -501,23 +501,26 @@ namespace MiniMC {
 													id(id),
 													retType(rtype)
       {
-		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
+		
+      }
 
+	  void takeOwnsership () {
+		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
 		for (auto& e : cfg->getEdges ()) {
 		  if (e->hasAttribute<AttributeType::Instructions> ()) 
-			for (auto& l : e->getAttribute<AttributeType::Instructions> ())
+			for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
 			  l.setFunction (shared_from_this());
+			}
 		}
-	
-      }
-      
+	  }
+	  
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
       auto& getReturnType () {return retType;}
-      auto getPrgm () const {return prgm.lock();}
+	  gsl::not_null<Program_ptr> getPrgm () const {return prgm.lock();}
       void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
       std::string name;

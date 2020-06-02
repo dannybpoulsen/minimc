@@ -55,7 +55,7 @@ int main (int argc,char* argv[]) {
   pos.add("inputfile", 1).
 	add("command", 1).
     add("subargs", -1);
-
+  
   try {
 	po::variables_map vm; 
 	po::parsed_options parsed = po::command_line_parser(argc, argv)
@@ -85,7 +85,8 @@ int main (int argc,char* argv[]) {
       prgm->addEntryPoint (fmap.at(s));
     }
   }
-  
+  if (prgm->getEntryPoints ().size () > 1)
+	soptions.isConcurrent = true;
   std::vector<std::string> subargs = po::collect_unrecognized(parsed.options, po::include_positional);
   subargs.erase(subargs.begin(),subargs.begin()+2);
   

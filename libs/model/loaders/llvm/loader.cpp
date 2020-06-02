@@ -56,34 +56,41 @@ namespace MiniMC {
 		return cst;
       }
       else if (ltype->isStructTy() || ltype->isArrayTy () ) {
-	    
+		
 		auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential> (val);
 		if (cstAggr) {
-		  std::vector<MiniMC::Model::Value_ptr> vals;
+		  MiniMC::Model::ConstantFactory::aggr_input vals;
 		  const size_t oper = cstAggr->getNumElements ();
 		  for (size_t i = 0; i < oper;++i) {
 			auto elem = cstAggr->getElementAsConstant(i);
-			vals.push_back(makeConstant(elem,tt,fac,map));
+			auto nconstant = makeConstant(elem,tt,fac,map);
+			assert(nconstant->isConstant ());
+			vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant> (nconstant));
 		  }
 		  auto type = tt.getType (constant->getType ());
 		  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
 		  cst->setType (type);
 		  return cst;
 		}
-	  
+		
 		auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate> (val);
 		if (cstAggr2) {
-		  std::vector<MiniMC::Model::Value_ptr> vals;
+		  MiniMC::Model::ConstantFactory::noncompile_aggr_input vals;
 		  const size_t oper = cstAggr2->getNumOperands ();
 		  for (size_t i = 0; i < oper;++i) {
 			auto elem = cstAggr2->getOperand(i);
 			vals.push_back(makeConstant(elem,tt,fac,map));
 		  }
 		  auto type = tt.getType (constant->getType ());
-		  auto cst = fac->makeAggregateConstant (vals,ltype->isArrayTy ());
+		  auto cst = fac->makeAggregateConstantNonCompile (vals,ltype->isArrayTy ());
 		  cst->setType (type);
 		  return cst;
+		  
+		  
+		  //assert(false && "FAil");
 		}
+		
+		  
       }
       else if (llvm::isa<llvm::Function> (val) ||
 			   llvm::isa<llvm::GlobalVariable> (val)
@@ -94,7 +101,6 @@ namespace MiniMC {
 		return map.at (block->getBasicBlock ());
       }
       else if (ltype->isPointerTy ()) {
-		llvm::errs () << *val;
 		throw MiniMC::Support::Exception ("Pointer Not Quite there");
       }
       throw MiniMC::Support::Exception ("Error");
@@ -319,7 +325,8 @@ namespace MiniMC {
 		for (auto& Func : F) {
 		  auto ptr = cfactory->makeFunctionPointer  (fid);
 		  ptr->setType (tfactory->makePointerType ());
-	  
+		  values.insert(std::make_pair (&Func,ptr));
+		  
 		  MiniMC::offset_t lid = 0;
 		  for (auto& BB : Func) {
 			auto ptr = cfactory->makeLocationPointer  (fid,lid);
@@ -489,12 +496,11 @@ namespace MiniMC {
 		    
 		  }
 		}		
-		
+		f->takeOwnsership ();
 		return llvm::PreservedAnalyses::all();
       }
-	  
+
       MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap) {
-		static std::unordered_map<llvm::BasicBlock*, std::size_t> count_map;
 		std::vector<MiniMC::Model::Instruction> insts;  
 		for (auto& phi : to->phis ()) {
 		  auto ass = findValue (&phi,values,tt,cfactory);
@@ -506,7 +512,7 @@ namespace MiniMC {
 		}
 		auto loc = locmap.at(to);
 		if (insts.size()) {
-		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI"+std::to_string(count_map[to]++));
+		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI");
 		  auto edge = cfg.makeEdge (nloc,loc,prgm);
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (MiniMC::Model::InstructionStream (insts,true));
 		  return nloc;
@@ -538,7 +544,7 @@ namespace MiniMC {
 		  }
 		}
       }
-	  
+
       void makeVar (const llvm::Value* op,MiniMC::Model::VariableStackDescr_ptr stack ) {
 		const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant> (op);
 		auto lltype = op->getType();

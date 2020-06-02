@@ -84,6 +84,7 @@ namespace MiniMC {
     X(NegAssume)				\
     X(StackRestore)				\
     X(StackSave)				\
+	X(MemCpy)					\
     X(Uniform)					\
 
 #define OPERATIONS								\
@@ -357,6 +358,18 @@ namespace MiniMC {
       static const std::size_t operands = 1;			
       static const bool hasResVar = false;			
     };
+
+	template<>						
+    struct InstructionData<InstructionCode::MemCpy> {		
+      static const bool isTAC = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;			
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const std::size_t operands = 3;			
+      static const bool hasResVar = false;			
+    };
     
     template<>						
     struct InstructionData<InstructionCode::Load>{		
@@ -456,7 +469,9 @@ namespace MiniMC {
 	   * Set the parent function of this instruction. 
 	   * \param par Function_ptr to the parent. 
 	   */
-	  void setFunction (const Function_ptr& par) {parent = par;}
+	  void setFunction (const Function_ptr& par) {
+		parent = par;
+	  }
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;
@@ -839,7 +854,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::StackRestore,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::StackRestore,{res});
+		return Instruction (InstructionCode::StackRestore,{res});
       }
       
       void setValue (const Value_ptr& p) {res = p;}
@@ -856,9 +871,49 @@ namespace MiniMC {
 	return os <<  InstructionCode::StackRestore << "( " << *h.getValue() << " )";
       } 
     };
+	
+	//
+
+	template<>
+    class InstHelper<InstructionCode::MemCpy,void> {
+    public:
+      
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getSource () const {return inst.getOp(0);}
+	  auto& getTarget () const {return inst.getOp(1);}
+	  auto& getSize () const {return inst.getOp(2);}
+	private:
+      const Instruction& inst;
+    };
+
+    template<>
+    class InstBuilder<InstructionCode::MemCpy,void> {
+    public:
     
+      void setSource (const Value_ptr& p) {src = p;}
+	  void setTarget (const Value_ptr& p) {target = p;}
+	  void setSize (const Value_ptr& p) {size = p;}
+	  
+	  
+	  Instruction BuildInstruction () {
+		return Instruction (InstructionCode::MemCpy,{src,target,size});
+      }
+    private:
+      Value_ptr src = nullptr;
+	  Value_ptr target = nullptr;
+	  Value_ptr size = nullptr;
+	  
+    };
 
-
+    template<> 
+    struct Formatter<InstructionCode::MemCpy,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+		InstHelper<InstructionCode::MemCpy> h (inst);
+		return os <<  InstructionCode::MemCpy;;
+      } 
+    };
+	
+	
     //
     template<InstructionCode i>
     class InstHelper<i,std::enable_if_t<i == InstructionCode::Assert ||
@@ -1368,7 +1423,7 @@ namespace MiniMC {
 	    }
       return os << "??";
     }
-    
+	
   }
 }
 

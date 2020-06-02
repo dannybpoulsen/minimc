@@ -1,6 +1,7 @@
 #ifndef _VM__
 #define _VM__
-#include <type_traits>
+
+#define DEBUGVM
 #include "model/instructions.hpp"
 
 namespace MiniMC {
@@ -51,5 +52,6 @@ namespace MiniMC {
 
   }
 }
+#undef DEBUGVM
 #endif
 

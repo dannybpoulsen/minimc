@@ -44,8 +44,9 @@ namespace MiniMC {
 		  auto guard = e.getAttribute<MiniMC::Model::AttributeType::Guard> ();
 		  if (guard.guard->getType ()->getTypeID () != MiniMC::Model::TypeID::Bool) {
 			mess.error ("Edge guard must be booleans");
+			return false;
 		  }
-		  return false;
+		  
 		}
 		return true;
       }
@@ -116,12 +117,12 @@ namespace MiniMC {
       }
 	  
       
-      bool checkEdge (const MiniMC::Model::Edge& e,MiniMC::Support::Messager&) {
+      bool checkEdge (const MiniMC::Model::Edge& e,MiniMC::Support::Messager& mess) {
 		return
-		  checkNoGuardAndInstructionStream &&
-		  checkGuardIsBoolean &&
-		  checkCallIsLast &&
-		  checkPhiIsOnlyAssign;
+		  checkNoGuardAndInstructionStream (e,mess) &&
+		  checkGuardIsBoolean (e,mess)&&
+		  checkCallIsLast (e,mess)&&
+		  checkPhiIsOnlyAssign (e,mess);
       }
       
       bool checkFunction (const MiniMC::Model::Function& F, MiniMC::Support::Messager& messager) {
