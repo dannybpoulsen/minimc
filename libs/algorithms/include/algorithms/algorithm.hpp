@@ -70,6 +70,7 @@ namespace MiniMC {
 	struct SetupOptions {
 	  gsl::not_null<MiniMC::Support::Messager*> messager;
 	  SpaceReduction reduction;
+	  bool isConcurrent = false;
 	};
 	
     template<class W, class ...Args>
@@ -90,6 +91,10 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
 	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	  if (options.isConcurrent) {
+		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
+	  
+	  }
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  

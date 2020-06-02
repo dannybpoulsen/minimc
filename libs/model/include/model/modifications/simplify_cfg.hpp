@@ -118,6 +118,60 @@ namespace MiniMC {
 		  return true;
 		}
       };
+
+
+      struct EnsureEdgesOnlyHasOneMemAccess : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+		virtual bool run (MiniMC::Model::Program&  prgm) {
+		  for (auto& F : prgm.getFunctions ()) {
+			MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
+			auto inserter =wlist.inserter ();
+			auto cfg = F->getCFG ();
+			std::for_each (cfg->getEdges().begin(),
+						   cfg->getEdges().end (),
+						   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
+						   );
+			for (auto& cwedge :  wlist) {
+			  auto edge = cwedge.lock ();
+			  assert(edge);
+			  std::vector<MiniMC::Model::Edge_ptr> newedges;
+			  if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {		
+				MiniMC::Model::InstructionStream str;
+				auto backInsert = str.back_inserter ();
+				
+				auto from = edge->getFrom ();
+				auto makeEdge = [&]  (MiniMC::Model::InstructionStream& str) {
+								  auto nloc = cfg->makeLocation ("");
+								  auto nedge = cfg->makeEdge (from,nloc,edge->getProgram());
+								  nedge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
+								  newedges.push_back (nedge);
+								  from = nloc;
+								};
+				
+				for (auto instr : edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+				  backInsert = instr;
+				  if (instr.getOpcode () == MiniMC::Model::InstructionCode::Store ||
+					  instr.getOpcode () == MiniMC::Model::InstructionCode::Load) {				 
+					makeEdge (str);
+					str.instr.clear();
+					backInsert = str.back_inserter ();
+				  }
+				  
+				}
+				
+				if (str.instr.size()) {
+				  makeEdge (str);
+				}
+				newedges.back ()->setTo (edge->getTo ());
+				cfg->deleteEdge (edge);
+			  }
+		  }
+			
+			
+		}
+		  return true;
+		}
+      };
+	  
     }
   }
 }
