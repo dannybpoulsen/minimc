@@ -501,7 +501,8 @@ namespace MiniMC {
       }
 
       MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap) {
-		std::vector<MiniMC::Model::Instruction> insts;  
+		std::vector<MiniMC::Model::Instruction> insts;
+		static std::unordered_map<llvm::BasicBlock*,int> phiNum;
 		for (auto& phi : to->phis ()) {
 		  auto ass = findValue (&phi,values,tt,cfactory);
 		  auto incoming = findValue (phi.getIncomingValueForBlock(from),values,tt,cfactory);
@@ -512,7 +513,7 @@ namespace MiniMC {
 		}
 		auto loc = locmap.at(to);
 		if (insts.size()) {
-		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI");
+		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI:"+std::to_string (phiNum[to]++));
 		  auto edge = cfg.makeEdge (nloc,loc,prgm);
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (MiniMC::Model::InstructionStream (insts,true));
 		  return nloc;

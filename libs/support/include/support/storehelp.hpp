@@ -41,7 +41,7 @@ namespace MiniMC {
 	 */
     saveHelper& operator= (const T& t) {
       T buf = t;
-      if constexpr (std::is_fundamental<T>::value) {
+	  if constexpr (std::is_fundamental<T>::value) {
 #ifndef MINIMC_USE_BIG_ENDIAN
 		  boost::endian::native_to_little_inplace(buf);
 #else
