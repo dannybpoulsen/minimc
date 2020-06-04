@@ -10,13 +10,13 @@
 
 namespace po = boost::program_options;
 
-int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions&);
+int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
 
-int mc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,const MiniMC::Algorithms::SetupOptions&);
+int mc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,MiniMC::Algorithms::SetupOptions&);
 
-int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions&);
+int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
 
-int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions&);
+int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
 
 
 
@@ -48,7 +48,7 @@ int main (int argc,char* argv[]) {
 	 "\t 1: None\n"
 	 "\t 2: Conservative\n"
 	 )
-    ("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
+	("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers");
 
   po::positional_options_description pos;

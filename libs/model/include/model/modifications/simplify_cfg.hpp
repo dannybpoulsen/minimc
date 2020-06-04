@@ -119,8 +119,9 @@ namespace MiniMC {
 		}
       };
 
-
-      struct EnsureEdgesOnlyHasOneMemAccess : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+	  
+	  template<MiniMC::Model::InstructionCode... pos>
+	  struct EnsureEdgesOnlyHasOne : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
 			MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
@@ -149,8 +150,7 @@ namespace MiniMC {
 				
 				for (auto instr : edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 				  backInsert = instr;
-				  if (instr.getOpcode () == MiniMC::Model::InstructionCode::Store ||
-					  instr.getOpcode () == MiniMC::Model::InstructionCode::Load) {				 
+				  if (MiniMC::Model::isOneOf<pos...> (instr))  {				 
 					makeEdge (str);
 					str.instr.clear();
 					backInsert = str.back_inserter ();
@@ -171,6 +171,9 @@ namespace MiniMC {
 		  return true;
 		}
       };
+
+	  using EnsureEdgesOnlyHasOneMemAccess = EnsureEdgesOnlyHasOne<MiniMC::Model::InstructionCode::Store,
+																   MiniMC::Model::InstructionCode::Load>;
 	  
     }
   }

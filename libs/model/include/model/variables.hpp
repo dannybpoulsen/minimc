@@ -110,7 +110,7 @@ namespace MiniMC {
 	  virtual bool isInteger () const {return true;}
 	  
       virtual std::ostream& output (std::ostream& os) const {
-		os << "< " << getValue() << " ";
+		os << "< " << static_cast<MiniMC::uint64_t> (getValue()) << " ";
 		if (getType ())
 		  os << *getType();
 		else

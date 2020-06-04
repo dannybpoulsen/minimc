@@ -18,6 +18,7 @@
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/lower_guards.hpp"
 #include "model/modifications/simplify_cfg.hpp"
+#include "model/modifications/replacenondetuniform.hpp"
 #include "model/modifications/markinglooplocations.hpp"
 
 #include "model/checkers/typechecker.hpp"
@@ -71,6 +72,8 @@ namespace MiniMC {
 	  gsl::not_null<MiniMC::Support::Messager*> messager;
 	  SpaceReduction reduction;
 	  bool isConcurrent = false;
+	  bool expandNonDet = false;
+	  bool replaceNonDetUniform = false;
 	};
 	
     template<class W, class ...Args>
@@ -89,7 +92,13 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
-	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> (); 
+	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
+	  if (options.expandNonDet) {
+		seq.template add<MiniMC::Model::Modifications::ExpandNondet> ();  
+	  }
+	   if (options.replaceNonDetUniform) {
+		seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
+	  }
 	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 	  if (options.isConcurrent) {
 		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  

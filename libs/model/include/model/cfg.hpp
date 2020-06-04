@@ -351,6 +351,8 @@ namespace MiniMC {
 		from(from.get()),
 		to(to.get()) {
       }
+
+	  Edge (const Edge& ) = default;
 	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {

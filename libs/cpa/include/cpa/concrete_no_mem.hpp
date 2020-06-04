@@ -33,18 +33,6 @@ namespace MiniMC {
 	  struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		ValidateInstructions (MiniMC::Support::Messager& ptr) : mess (ptr) {}
 		virtual bool run (MiniMC::Model::Program&  prgm) {
-		  for (auto& F : prgm.getEntryPoints ()) {
-			for (auto& E : F->getCFG()->getEdges ()) {
-			  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-				for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-				  if (I.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
-					MiniMC::Support::Localiser error_mess ("This CPA will replace '%1%' instruction by '%2%"); 
-					mess.warning (error_mess.format (I.getOpcode (), MiniMC::Model::InstructionCode::Uniform));
-				  }
-				}
-			  }
-			}
-		  }
 		  return true;
 		}
       private:
@@ -54,7 +42,6 @@ namespace MiniMC {
       struct PrevalidateSetup {
 		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
 		  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-		  seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();
 		}
 	  
 		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {

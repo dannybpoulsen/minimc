@@ -1424,6 +1424,18 @@ namespace MiniMC {
       return os << "??";
     }
 	
+	
+	template<InstructionCode op, InstructionCode... tail>
+	inline static bool isOneOf (MiniMC::Model::Instruction& instr) {
+	  if constexpr (sizeof...(tail) == 0) 
+					 return instr.getOpcode() ==op;
+	  else {
+		if (instr.getOpcode () == op)
+		  return true;
+		else return isOneOf<tail...> (instr);
+	  }
+	}
+	
   }
 }
 
