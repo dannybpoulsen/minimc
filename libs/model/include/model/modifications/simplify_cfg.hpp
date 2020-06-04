@@ -162,6 +162,7 @@ namespace MiniMC {
 				  makeEdge (str);
 				}
 				newedges.back ()->setTo (edge->getTo ());
+				cfg->deleteLocation (from);
 				cfg->deleteEdge (edge);
 			  }
 		  }

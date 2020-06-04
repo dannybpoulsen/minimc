@@ -476,6 +476,13 @@ namespace MiniMC {
 		  edges.erase (it);
 		}
       }
+
+	  void deleteLocation (const Location_ptr& loc) {
+		auto it = std::find (locations.begin(),locations.end(),loc);
+		if (it != locations.end()) {
+		  locations.erase (it);
+		}
+	  }
 	  
       auto& getLocations () const {return locations;}
       auto& getLocations ()  {return locations;}
