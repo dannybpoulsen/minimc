@@ -37,7 +37,7 @@ enum class CPAUsage {
 
 
 
-int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions& sopt) {
+int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
   CPAUsage CPA = CPAUsage::Location;
   po::options_description desc("Print Graph Options");
   std::string input;
@@ -63,7 +63,9 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
      "\t 1: Location\n"
      "\t 2: Location and explicit stack-variable\n"
 	 "\t 3: PathFormula With CVC4\n"
-     );
+     )
+	("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
+	;
     
   
   po::variables_map vm; 

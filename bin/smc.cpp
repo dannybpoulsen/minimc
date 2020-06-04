@@ -27,14 +27,15 @@ namespace {
   };
 }
   
-int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, const MiniMC::Algorithms::SetupOptions& sopt) {
+int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  MiniMC::Algorithms::SetupOptions& sopt) {
   MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson>::Options clopperOpt {.messager = sopt.messager};
 	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>::Options fixedOpt {.messager = sopt.messager};
+	sopt.replaceNonDetUniform = true;
 	std::size_t length;
 	Algo algo = Algo::Fixed;
 	std::string input; 
 	po::options_description desc("Basic SMC Options");
-
+	
 	auto setAlgo = [&] (int val) {
 				   switch (val) {
 				   case 1:

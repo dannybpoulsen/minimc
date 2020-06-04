@@ -21,7 +21,8 @@ auto runAlgorithm (MiniMC::Model::Program& prgm,  const MiniMC::Algorithms::Setu
 }
 
 
-int mc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  const MiniMC::Algorithms::SetupOptions& sopt) {
+int mc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  MiniMC::Algorithms::SetupOptions& sopt) {
+  sopt.expandNonDet = true;
   runAlgorithm (*prgm,sopt);
   return 0;
 }

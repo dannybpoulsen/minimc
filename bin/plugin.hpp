@@ -9,7 +9,7 @@
 #include "algorithms/algorithm.hpp"
 
 
-using subcommandfunc= std::function<int(MiniMC::Model::Program_ptr&,std::vector<std::string>&, const MiniMC::Algorithms::SetupOptions&)>;
+using subcommandfunc= std::function<int(MiniMC::Model::Program_ptr&,std::vector<std::string>&, MiniMC::Algorithms::SetupOptions&)>;
 
 
 struct CommandRegistrar;
