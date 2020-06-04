@@ -44,7 +44,9 @@ namespace MiniMC {
 						   cfg->getEdges().end (),
 						   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
 						   );
-	    
+			auto eloc = cfg->makeLocation ("AssertViolation");
+			eloc->set<MiniMC::Model::Location::Attributes::AssertViolated> ();
+			
 			for (auto E : wlist) {
 			  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 				auto& instrs = E->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
@@ -53,9 +55,7 @@ namespace MiniMC {
 				  assert(!E->getFrom ()->is<MiniMC::Model::Location::Attributes::CallPlace> ());
 				  auto val = MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert> (instrs.last ()).getAssert ();
 				  instrs.erase ((instrs.rbegin()+1).base());
-		   
-				  auto eloc = cfg->makeLocation ("AssertViolation");
-				  eloc->set<MiniMC::Model::Location::Attributes::AssertViolated> ();
+				  
 				  auto nloc = cfg->makeLocation ("");
 				  auto ttloc = E->getTo ();
 				  E->setTo (nloc);
