@@ -170,6 +170,10 @@ namespace MiniMC {
       void unset () {
 		flags &= ~static_cast<AttrType> (i);
       }
+
+	  AttrType getAttributesFlags () const {return flags;}
+	  void setAttributesFlags (AttrType t)  {flags = t;}
+	  
 	  
       auto getID () const {return id;}
       
@@ -526,6 +530,7 @@ namespace MiniMC {
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
+	  auto& getVariableStackDescr ()  {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
       auto& getReturnType () {return retType;}

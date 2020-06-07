@@ -20,6 +20,7 @@
 #include "model/modifications/simplify_cfg.hpp"
 #include "model/modifications/replacenondetuniform.hpp"
 #include "model/modifications/markinglooplocations.hpp"
+#include "model/modifications/func_inliner.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -74,6 +75,7 @@ namespace MiniMC {
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
 	  bool replaceNonDetUniform = false;
+	  std::size_t inlinefunctions = 0;
 	};
 	
     template<class W, class ...Args>
@@ -90,9 +92,13 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
+	  if (options.inlinefunctions) {
+		seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
+	  }
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
+	  
 	  if (options.expandNonDet) {
 		seq.template add<MiniMC::Model::Modifications::ExpandNondet> ();  
 	  }

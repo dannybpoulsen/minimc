@@ -451,6 +451,10 @@ namespace MiniMC {
 
 	  auto getNbOps () const {return ops.size();}
 
+	  auto begin () const {return ops.begin();}
+	  auto end () const {return ops.end();}
+	  
+	  
 	  /** 
 	   * Write a textual representation to \p os
 	   *
