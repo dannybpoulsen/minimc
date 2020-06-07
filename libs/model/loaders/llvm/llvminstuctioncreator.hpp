@@ -164,7 +164,7 @@ namespace MiniMC {
     void translateAndAddInstruction<llvm::Instruction::Call> (llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) { 
       auto cinst = llvm::dyn_cast<llvm::CallInst> (inst);
       auto func = cinst->getCalledFunction ();
-      assert(func);
+	  assert(func);
       if (func->isIntrinsic()) {
 		switch (func->getIntrinsicID ()) {
 #define X(H)														\
