@@ -1,0 +1,17 @@
+name: C/C++ CI
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: palanthal/minimc-build
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        args: git submodule update --init --recursive
+    - name: Setup
+      run: mkdir build && cd build && cmake 
+    - name: build
+      run: cd build && make
