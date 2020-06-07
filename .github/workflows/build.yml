@@ -12,6 +12,6 @@ jobs:
       with:
         submodules: recursive
     - name: Setup
-      run: mkdir build && cd build && cmake 
+      run: mkdir build && cd build && cmake ..
     - name: build
       run: cd build && make
