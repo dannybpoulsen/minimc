@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        args: git submodule update --init --recursive
+        submodules: recursive
     - name: Setup
       run: mkdir build && cd build && cmake 
     - name: build
