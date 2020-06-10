@@ -23,6 +23,14 @@ subcommandfunc getCommand (const std::string& s) {
   return getMap().at(s)->getFunction ();
 }
 
+std::unordered_map<std::string,std::string> getCommandNameAndDescr () {
+  std::unordered_map<std::string,std::string>res;
+  for (auto& it : getMap ()) {
+	res.insert (std::make_pair(it.first,it.second->getDescritpion ()));
+  }
+  return res;
+}
+
 bool parseOptionsAddHelp (boost::program_options::variables_map& vm, boost::program_options::options_description& desc, std::vector<std::string>& params) {
   bool help;
   desc.add_options()
