@@ -3,6 +3,16 @@ project(minimc)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
 set (CMAKE_CXX_STANDARD 17)
 
+SET (ToolName minimc)
+SET (VERSION_MAJOR 0)
+SET (VERSION_MINOR "1")
+
+execute_process(COMMAND
+  git describe --always --dirty
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  OUTPUT_VARIABLE GIT_HASH
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 # use, i.e. don't skip the full RPATH for the build tree
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 

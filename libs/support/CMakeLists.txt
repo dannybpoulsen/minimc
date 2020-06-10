@@ -13,8 +13,13 @@ if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 	target_link_libraries (support PUBLIC x86_64support)
 endif()
 
+configure_file (
+ "${CMAKE_CURRENT_SOURCE_DIR}/include/support/config.h.in"
+ "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+)
 
-target_include_directories (support PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
+target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
+
 target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES})
 if(BIG_ENDIAN)
     target_compile_options (support PUBLIC -DMINIMC_USE_BIG_ENDIAN)
