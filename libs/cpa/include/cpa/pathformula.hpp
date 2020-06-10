@@ -24,10 +24,10 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
+		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r);
 
 		static bool covers (const State_ptr& l, const State_ptr& r) {
-		  return true;
+		  return false;
 		}
 		
       };
@@ -43,7 +43,8 @@ namespace MiniMC {
 				  if (I.getOpcode () == MiniMC::Model::InstructionCode::Call) {
 					MiniMC::Support::Localiser error_mess ("This CPA does not support '%1%' instructions."); 
 					mess.error (error_mess.format (I.getOpcode ()));
-					}
+					return false;
+				  }
 				}
 			  }
 			}

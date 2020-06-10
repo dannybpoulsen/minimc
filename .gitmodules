@@ -3,4 +3,4 @@
 	url = https://github.com/kloetzl/libmurmurhash.git
 [submodule "external/smtlib"]
 	path = external/smtlib
-	url = https://gitlab.com/dannybpoulsen/smtlib.git
+	url = git@gitlab.com:dannybpoulsen/smtlib.git

@@ -19,7 +19,7 @@ namespace MiniMC {
 	  struct Entry {
 		To to;
 		Index index;
-		bool operator== (const Entry& oth) {
+		bool operator== (const Entry& oth) const  {
 		  return to == oth.to &&
 			index == oth.index;
 		}
@@ -64,12 +64,12 @@ namespace MiniMC {
 		  assert (it != r.entries.end ());
 		  auto& cur_r = *it;
 		  if (cur_l.second == cur_r.second) {
-			nmap.insert (std::make_pair (cur_l.first,cur_l.second));
+			nmap.entries.insert (std::make_pair (cur_l.first,cur_l.second));
 		  }
 		  else {
 			Index nindex  = std::max (cur_l.second.index,cur_r.second.index)+1;
 			To nval = breakConflict (cur_l.second.to,cur_r.second.to);
-			nmap.entries.insert (std::make_pair (cur_l.first,Entry {.index = nindex, .to = nval}));
+			nmap.entries.insert (std::make_pair (cur_l.first,Entry {.to = nval, .index = nindex}));
 		  }
 			
 		}
@@ -83,6 +83,8 @@ namespace MiniMC {
 		}
 		return os;
 	  }
+
+	  auto size () const {return entries.size();}
 	  
 	private:
 	  std::unordered_map<From,Entry> entries;

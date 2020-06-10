@@ -146,25 +146,27 @@ namespace MiniMC {
 	  struct Joiner {
 		template<size_t i, class Inserter>
 		static bool buildVector (Inserter& ins, const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
-		static_assert(i <= sizeof... (Args));
-		if constexpr (i == sizeof... (Args)) {
-			return true; //We are done
+		  static_assert(i <= sizeof... (Args));
+		  if constexpr (i == sizeof... (Args)) {
+			  return true; //We are done
+			}
+		  else {
+			using A = typename GetNthTemplateArgument<i,Args...>::Temp;
+			auto left = l.template get<i> ();
+			auto right = r.template get<i> ();
+			auto res = A::Join::doJoin (left,right);
+			
+			if (res) {
+
+			  ins = res;
+			  return buildVector<i+1,Inserter> (ins,l,r);
+			}
+			else
+			  return false;
 		  }
-		else {
-		  using A = typename GetNthTemplateArgument<i,Args...>::Temp;
-		  auto left = l.template get<i> ();
-		  auto right = r.template get<i> ();
 		  
-		  auto res = A::Join::doJoin (left,right);
-		  if (res) {
-			ins = res;
-			return buildVector<i+1,Inserter> (ins,l,r);
-		  }
-		  else
-			return false;
 		}
 		
-		}
 		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
 		  auto left = static_cast<State<sizeof... (Args)>&> (*l);
 		  auto right = static_cast<State<sizeof... (Args)>&> (*r);
