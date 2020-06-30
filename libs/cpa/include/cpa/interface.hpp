@@ -90,8 +90,6 @@ namespace MiniMC {
       static bool covers (const State_ptr& l, const State_ptr& r) { return false;
       }
       
-      static void coverCopy (const State_ptr& from, State_ptr& to) {
-      }
       
       
       
@@ -179,7 +177,6 @@ namespace MiniMC {
       State_ptr isCoveredByStore (const State_ptr& state) {
 	for (auto& it : actualStore) {
 	  if (JoinOperation::covers (it,state)) {
-	    JoinOperation::coverCopy (state,it);
 	    return it;
 	  }
 	}

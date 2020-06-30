@@ -88,17 +88,6 @@ namespace MiniMC {
 	  auto nr = std::static_pointer_cast<State> (r);
 	  return WrappedJoiner::covers (nl,nr);
 	}
-
-	
-	static void coverCopy (const State_ptr& from, State_ptr& to) {
-	  auto nfrom = std::static_pointer_cast<State> (from);
-	  auto nto = std::static_pointer_cast<State> (to);
-	  auto insert = nto->parent_inserter ();
-	  WrappedJoiner::coverCopy (nfrom->getWrapped (),nto->getWrapped());
-	  std::for_each (nfrom->begin(),nfrom->end(),[&](auto it) {insert = it;});
-	  
-	}
-	
 	
       };
       

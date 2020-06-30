@@ -27,7 +27,7 @@ namespace MiniMC {
 	  }
 
 	  MiniMC::CPA::State_ptr Joiner::doJoin (const State_ptr& l, const State_ptr& r) {
-		auto& left = static_cast<const MiniMC::CPA::PathFormula::State&> (*l);
+		/*auto& left = static_cast<const MiniMC::CPA::PathFormula::State&> (*l);
 		auto& right = static_cast<const MiniMC::CPA::PathFormula::State&> (*r);
 		if (left.getContext() != right.getContext ()) {
 		  return nullptr;
@@ -42,7 +42,8 @@ namespace MiniMC {
 		MiniMC::Util::SSAMap nmap = MiniMC::Util::SSAMap::merge (left.getSSAMap (),right.getSSAMap(), mergeOp);
 		
 		return std::make_shared<MiniMC::CPA::PathFormula::State> (nmap,left.getContext(),mergeOp (left.getPathFormula(),right.getPathFormula ())); 
-
+		*/
+		return nullptr;
 	  }
 	  
 	  MiniMC::CPA::State_ptr Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
@@ -71,15 +72,7 @@ namespace MiniMC {
 			MiniMC::Util::runVM<decltype(it),VMData,ExecuteInstruction> (it,end,data);
 			nState.getPathFormula () = data.path;
 
-			/*auto solver = nState.getContext()->makeSolver ();
-			solver->assert_formula (data.path);
-			auto res = solver->check_sat (); 
-			if  ( res == SMTLib::Result::NSatis ) {
-				return nullptr;
-			  }
-			else
-			  return resstate;
-			*/
+			
 		  }
 		  catch  (MiniMC::Support::AssumeViolated) {
 			return nullptr;
