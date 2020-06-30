@@ -9,27 +9,28 @@ namespace MiniMC {
     namespace Location {
 
       struct LocationState {
-	void push (gsl::not_null<MiniMC::Model::Location*> l) {
+	void push (gsl::not_null<MiniMC::Model::Location*> l) {  
+	  stack.push_back(l.get());
+	}
+
+	void pop () {
+	  if(stack.size()>1)
+	    stack.pop_back();
+	  assert(stack.back());
+	}
+		
+	auto& cur () {assert (stack.size()); return stack.back();}
+	auto& cur () const {assert (stack.size()); return stack.back();}
+	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+	  MiniMC::Hash::hash_t s = seed;
+	  for (auto& t: stack)
+	    MiniMC::Hash::hash_combine(s,*t);
+	  return s;
 	  
-	  stack.push_back(l.get());}
-		void pop () {
-		  if(stack.size()>1)
-			stack.pop_back();
-		  assert(stack.back());
-		}
-		
-		auto& cur () {assert (stack.size()); return stack.back();}
-		auto& cur () const {assert (stack.size()); return stack.back();}
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
-		  MiniMC::Hash::hash_t s = seed;
-		  for (auto& t: stack)
-			MiniMC::Hash::hash_combine(s,*t);
-		  return s;
-		  
-		}
-		
-		
-		std::vector<MiniMC::Model::Location*> stack;
+	}
+	
+	
+	std::vector<MiniMC::Model::Location*> stack;
 		
       };
 	}
