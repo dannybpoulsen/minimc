@@ -18,7 +18,7 @@ jobs:
     - name: test
       run: cd build && make test
     - name: package
-      run: cd build && package
+      run: cd build && make package
     - uses: actions/upload-artifact@v2
       with:
         name: build 
