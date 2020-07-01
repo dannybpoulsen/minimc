@@ -22,16 +22,18 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
+		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
 		
-	static bool covers (const State_ptr& l, const State_ptr& r) {
-	  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
-	}
-
-	static void coverCopy (const State_ptr& from, State_ptr& to) {
-	}
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  assert(l);
+		  assert(r);
+		  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
+		}
+		
+		static void coverCopy (const State_ptr& from, State_ptr& to) {
+		}
       };
-		
+	  
 		
       struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 	ValidateInstructions (MiniMC::Support::Messager& ptr) : mess (ptr) {}

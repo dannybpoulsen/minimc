@@ -65,39 +65,39 @@ namespace MiniMC {
 
       template<class WrappedJoiner>
       struct Joiner {
-	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
-	  auto nl = std::static_pointer_cast<State> (l);
-	  auto nr = std::static_pointer_cast<State> (r);
-
-	  auto wres = WrappedJoiner::doJoin (nl->getWrapped(),nr->getWrapped());
-	  if (wres) {
-	    auto res = std::make_shared<State> (wres);
-	    
-	    auto inserter = res->parent_inserter ();
-	    auto insertFunction = [&] (auto it) {inserter = it;};
-	    std::for_each (nl->begin(),nl->end(),insertFunction);
-	    std::for_each (nr->begin(),nr->end(),insertFunction);
-	    return res;
-	  }
-	  return nullptr;
-	}
-	
-	
-	static bool covers (const State_ptr& l, const State_ptr& r) {
-	  auto nl = std::static_pointer_cast<State> (l);
-	  auto nr = std::static_pointer_cast<State> (r);
-	  return WrappedJoiner::covers (nl,nr);
-	}
-	
+		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
+		  auto nl = std::static_pointer_cast<State> (l);
+		  auto nr = std::static_pointer_cast<State> (r);
+		  
+		  auto wres = WrappedJoiner::doJoin (nl->getWrapped(),nr->getWrapped());
+		  if (wres) {
+			auto res = std::make_shared<State> (wres);
+			
+			auto inserter = res->parent_inserter ();
+			auto insertFunction = [&] (auto it) {inserter = it;};
+			std::for_each (nl->begin(),nl->end(),insertFunction);
+			std::for_each (nr->begin(),nr->end(),insertFunction);
+			return res;
+		  }
+		  return nullptr;
+		}
+		
+		
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  auto nl = std::static_pointer_cast<State> (l);
+		  auto nr = std::static_pointer_cast<State> (r);
+		  return WrappedJoiner::covers (nl->getWrapped(),nr->getWrapped());
+		}
+		
       };
       
       template<class WCPA>
       struct CPADef {
-	using Query = StateQuery<typename WCPA::Query>; /**< Class acting a the Query operator*/
-	using Transfer = Transferer<typename WCPA::Transfer>; /**< Class acting as the Transfer relation*/
-	using Join = Joiner<typename WCPA::Join>; /**< Class acting as Join operation*/
-	using Storage = Storer<Join>; /**< This CPAs Storage mechanism*/
-	using PreValidate = typename WCPA::PreValidate; /**< The setup needed on Programs to use the CPA*/ 
+		using Query = StateQuery<typename WCPA::Query>; /**< Class acting a the Query operator*/
+		using Transfer = Transferer<typename WCPA::Transfer>; /**< Class acting as the Transfer relation*/
+		using Join = Joiner<typename WCPA::Join>; /**< Class acting as Join operation*/
+		using Storage = Storer<Join>; /**< This CPAs Storage mechanism*/
+		using PreValidate = typename WCPA::PreValidate; /**< The setup needed on Programs to use the CPA*/ 
       };
       
 
