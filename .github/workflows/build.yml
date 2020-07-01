@@ -12,7 +12,7 @@ jobs:
       with:
         submodules: recursive
     - name: Setup
-      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release..
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
     - name: build
       run: cd build && make
     - name: test
