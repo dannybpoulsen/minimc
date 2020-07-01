@@ -12,8 +12,14 @@ jobs:
       with:
         submodules: recursive
     - name: Setup
-      run: mkdir build && cd build && cmake ..
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release..
     - name: build
       run: cd build && make
     - name: test
       run: cd build && make test
+    - name: package
+      cd build && package
+    - uses: actions/upload-artifact@v2
+      path: build/*.zip
+	
+   
