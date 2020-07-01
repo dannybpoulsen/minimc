@@ -81,10 +81,10 @@ namespace MiniMC {
 				  if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> ()) {
 					if (to->nbIncomingEdges () <= 1 &&
 						!to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () 
-
+						
 						)
 					  {
-			
+						
 						MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
 						auto inserter =inner_wlist.inserter ();
 						std::for_each (to->ebegin(),
@@ -92,11 +92,12 @@ namespace MiniMC {
 									   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
 									   );
 						bool inner_mod = false;
-			
+						
 						for (auto cwedge : inner_wlist) {
 						  if (auto cedge = cwedge.lock ()) {
 							if (to->template is<MiniMC::Model::Location::Attributes::CallPlace> ())
-							  from->template set<MiniMC::Model::Location::Attributes::CallPlace> ();
+							  continue;
+							//from->template set<MiniMC::Model::Location::Attributes::CallPlace> ();
 							inner_mod = true;
 							auto nedge = cfg->makeEdge (from,cedge->getTo (),prgm.shared_from_this());
 							copyInstrStream (nedge,E);
