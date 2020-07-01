@@ -18,8 +18,8 @@ jobs:
     - name: test
       run: cd build && make test
     - name: package
-      cd build && package
+      run: cd build && package
     - uses: actions/upload-artifact@v2
-      path: build/*.zip
-	
-   
+      with:
+      	name: build 
+      	path: build/*.zip
