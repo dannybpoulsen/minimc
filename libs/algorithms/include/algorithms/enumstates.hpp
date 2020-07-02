@@ -44,8 +44,7 @@ namespace MiniMC {
 
 	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
 		CPA::PreValidate::validate (seq,mess);
-		CPA::PreValidate::setup (seq,mess);
-	  }
+	}
 	private:
 	  MiniMC::Support::Messager& messager;
 	  

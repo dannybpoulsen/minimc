@@ -75,6 +75,7 @@ namespace MiniMC {
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
 	  bool replaceNonDetUniform = false;
+	  bool simplifyCFG = false;
 	  std::size_t inlinefunctions = 0;
 	};
 	
@@ -105,11 +106,13 @@ namespace MiniMC {
 	   if (options.replaceNonDetUniform) {
 		seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
 	  }
-	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
+	  if (options.simplifyCFG)
+		seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 	  if (options.isConcurrent) {
 		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
-	  
 	  }
+	  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  

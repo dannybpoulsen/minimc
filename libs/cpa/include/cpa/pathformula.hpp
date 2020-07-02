@@ -4,8 +4,7 @@
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "support/localisation.hpp"
-#include "model/modifications/rremoveretsentry.hpp"
-#include "model/modifications/replacenondetuniform.hpp"
+#include "model/checkers/HasInstruction.hpp"
 
 
 namespace MiniMC {
@@ -56,14 +55,12 @@ namespace MiniMC {
       private:
 		MiniMC::Support::Messager& mess;
       };
-      
+	  
       struct PrevalidateSetup {
-		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-		}
-		
 		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
+		  seq.template add<MiniMC::Model::Checkers::HasNoInstruction<
+			MiniMC::Model::InstructionCode::Call>
+						   ,MiniMC::Support::Messager&,const std::string&> (mess,"This CPA does not support '%1%' instructions.");
 		}
       };
       

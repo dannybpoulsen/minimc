@@ -98,11 +98,6 @@ namespace MiniMC {
 
     struct PrevalidateSetup {
       /** 
-       * Add modification needed to use the associated  CPA to \p seq 
-       *
-       */
-      static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
-      /** 
        * Add checks to \p seq  that guarantees this CPA can be run
        * without encountering runtime errors. 
        */

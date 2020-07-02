@@ -212,25 +212,18 @@ namespace MiniMC {
 	  
       template<class A, class... CPAs>
       struct PreValidateSetup {
-	static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  A::PreValidate::setup (seq,mess);
-	  PreValidateSetup<CPAs...>::setup (seq,mess);
-	}
-	static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  A::PreValidate::validate (seq,mess);
-	  PreValidateSetup<CPAs...>::validate (seq,mess);
-	}
+		
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::validate (seq,mess);
+		  PreValidateSetup<CPAs...>::validate (seq,mess);
+		}
       };
 
       template<class A>
       struct PreValidateSetup<A> {
-	static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  A::PreValidate::setup (seq,mess);
-	}
-		
-	static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  A::PreValidate::validate (seq,mess);
-	}
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::validate (seq,mess);
+		}
       };
 	  
       template<size_t ask,class... CPAs>

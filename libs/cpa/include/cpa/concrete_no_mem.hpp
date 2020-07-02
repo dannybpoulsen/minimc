@@ -4,8 +4,10 @@
 #include "support/localisation.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
+#include "model/checkers/HasInstruction.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/replacenondetuniform.hpp"
+
 
 namespace MiniMC {
   namespace CPA {
@@ -33,34 +35,22 @@ namespace MiniMC {
 		static void coverCopy (const State_ptr& from, State_ptr& to) {
 		}
       };
-	  
-		
-      struct ValidateInstructions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-	ValidateInstructions (MiniMC::Support::Messager& ptr) : mess (ptr) {}
-	virtual bool run (MiniMC::Model::Program&  prgm) {
-	  return true;
-	}
-      private:
-	MiniMC::Support::Messager& mess;
-      };
       
       struct PrevalidateSetup {
-	static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-	}
-	  
-	static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-	  seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
-	}
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  seq.template add<MiniMC::Model::Checkers::HasNoInstruction<
+			MiniMC::Model::InstructionCode::NonDet>
+						   ,MiniMC::Support::Messager&,const std::string&> (mess,"This CPA does not support '%1%' instructions.");
+		}
       };
       
 	  
       struct CPADef {
-	using Query = StateQuery;
-	using Transfer = Transferer;
-	using Join = Joiner;
-	using Storage = MiniMC::CPA::Storer<Join>; 
-	using PreValidate = PrevalidateSetup;
+		using Query = StateQuery;
+		using Transfer = Transferer;
+		using Join = Joiner;
+		using Storage = MiniMC::CPA::Storer<Join>; 
+		using PreValidate = PrevalidateSetup;
       };
     }
   }

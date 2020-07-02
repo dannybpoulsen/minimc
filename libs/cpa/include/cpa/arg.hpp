@@ -13,54 +13,59 @@ namespace MiniMC {
     namespace ARG {
       class State :public MiniMC::CPA::State {
       public:
-	State (MiniMC::CPA::State_ptr wrapped) : wrappedState(wrapped) {}
-	State (const State& s) :wrappedState(s.wrappedState), parents(s.parents) {}  
+		struct Parent {
+		  std::weak_ptr<State> from;
+		  proc_id who;
+		  MiniMC::Model::Edge_ptr edge;
+		};
+		State (MiniMC::CPA::State_ptr wrapped) : wrappedState(wrapped) {}
+		State (const State& s) :wrappedState(s.wrappedState), parents(s.parents) {}  
 	
-	virtual std::ostream& output (std::ostream& os) const {return wrappedState->output (os);}
-	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return wrappedState->hash (seed);}
-	virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
-	virtual bool need2Store () const {return wrappedState->need2Store();}
-	auto parent_inserter () {return std::back_inserter(parents);}
-	auto begin() {return parents.begin();}
-	auto end () {return parents.end ();}
-	auto& getWrapped () {return wrappedState;}
+		virtual std::ostream& output (std::ostream& os) const {return wrappedState->output (os);}
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return wrappedState->hash (seed);}
+		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
+		virtual bool need2Store () const {return wrappedState->need2Store();}
+		auto parent_inserter () {return std::back_inserter(parents);}
+		auto begin() {return parents.begin();}
+		auto end () {return parents.end ();}
+		auto& getWrapped () {return wrappedState;}
       private:
-	MiniMC::CPA::State_ptr wrappedState;
-	std::vector<std::weak_ptr<State>> parents;
+		MiniMC::CPA::State_ptr wrappedState;
+		std::vector<Parent> parents;
       };
 
       template<class WrappedQuery>
       struct StateQuery {
-	static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
-	  return std::make_shared<State> (WrappedQuery::makeInitialState (prgm));
-	}
+		static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
+		  return std::make_shared<State> (WrappedQuery::makeInitialState (prgm));
+		}
 
-	static size_t nbOfProcesses (const State_ptr&  s) {
-	  auto ns = std::static_pointer_cast<State> (s);
-	  return WrappedQuery::nbOfProcesses(ns->getWrapped ());
-	}
+		static size_t nbOfProcesses (const State_ptr&  s) {
+		  auto ns = std::static_pointer_cast<State> (s);
+		  return WrappedQuery::nbOfProcesses(ns->getWrapped ());
+		}
 	
-	static MiniMC::Model::Location_ptr getLocation (const State_ptr& s, proc_id id) {
-	  auto ns = std::static_pointer_cast<State> (s);
-	  return WrappedQuery::getLocation (ns->getWrapped (),id);
-	}
+		static MiniMC::Model::Location_ptr getLocation (const State_ptr& s, proc_id id) {
+		  auto ns = std::static_pointer_cast<State> (s);
+		  return WrappedQuery::getLocation (ns->getWrapped (),id);
+		}
       };
 
       template<class WrappedTransferer>
       struct Transferer {
 	
-	static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
+		static State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
 	  
-	  auto ns = std::static_pointer_cast<State> (s);
-	  auto wrapped = ns->getWrapped();
-	  auto wres = WrappedTransferer::doTransfer (wrapped,e,id);
-	  if (wres) {
-	    auto  res = std::make_shared<State> (wres);
-	    res->parent_inserter () = ns;
-	    return res;
-	  }
-	  return nullptr;
-	}
+		  auto ns = std::static_pointer_cast<State> (s);
+		  auto wrapped = ns->getWrapped();
+		  auto wres = WrappedTransferer::doTransfer (wrapped,e,id);
+		  if (wres) {
+			auto  res = std::make_shared<State> (wres);
+			res->parent_inserter () = {.from = ns, .who = id, .edge = e};
+			return res;
+		  }
+		  return nullptr;
+		}
       };
 
       template<class WrappedJoiner>

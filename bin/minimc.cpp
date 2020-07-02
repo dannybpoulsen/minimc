@@ -54,7 +54,9 @@ int main (int argc,char* argv[]) {
 	("spacereduction",po::value<int> ()->default_value(1)->notifier(updateSpace), "Space Reduction\n"
 	 "\t 1: None\n"
 	 "\t 2: Conservative\n"
-	 );
+	 )
+	("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
+	;
   hidden.add_options()
 	("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")

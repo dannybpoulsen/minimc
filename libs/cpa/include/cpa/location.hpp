@@ -48,11 +48,11 @@ namespace MiniMC {
       };
 	  
       struct CPADef {
-	using Query = StateQuery;
-	using Transfer = Transferer;
-	using Join = Joiner;
-	using Storage = MiniMC::CPA::Storer<Join>; 
-	using PreValidate = MiniMC::CPA::PrevalidateSetup;
+		using Query = StateQuery;
+		using Transfer = Transferer;
+		using Join = Joiner;
+		using Storage = MiniMC::CPA::Storer<Join>; 
+		using PreValidate = MiniMC::CPA::PrevalidateSetup;
       };
     }
   }

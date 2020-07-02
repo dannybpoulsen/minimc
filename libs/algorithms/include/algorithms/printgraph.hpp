@@ -66,11 +66,13 @@ namespace MiniMC {
 
 			auto argcur = std::static_pointer_cast<MiniMC::CPA::ARG::State> (current);
 			for (auto& wpar : *argcur) {
-			  auto  par = wpar.lock ();
-			  if (par) {
-				auto pnode = insert(par);
-				pnode->connect(*curnode,"");
-				addState (par);
+			  auto  state = wpar.from.lock ();
+			  if (state) {
+				auto pnode = insert(state);
+				std::stringstream edgetext;
+				edgetext << wpar.who << ": " << *wpar.edge;
+				pnode->connect(*curnode,edgetext.str());
+				addState (state);
 			  }
 			}
 	    
@@ -91,7 +93,6 @@ namespace MiniMC {
       
       static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
 		CPA::PreValidate::validate (seq,mess);
-		CPA::PreValidate::setup (seq,mess);
       }
 
 
