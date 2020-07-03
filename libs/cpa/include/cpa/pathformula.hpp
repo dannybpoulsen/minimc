@@ -23,13 +23,14 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-	static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r);
+		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r);
 	
-	static bool covers (const State_ptr& l, const State_ptr& r) {
-	  return false;
-	}
-	
-	
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  return false;
+		}
+		
+		static void coverCopy (const State_ptr& from, State_ptr& to) {}
+      
 
       };
 	  

@@ -90,6 +90,7 @@ namespace MiniMC {
       static bool covers (const State_ptr& l, const State_ptr& r) { return false;
       }
       
+      static void coverCopy (const State_ptr& from, State_ptr& to) {}
       
       
       

@@ -84,7 +84,6 @@ namespace MiniMC {
     }
     */
     
-
 	
     /** 
      * PassedWaiting list implemented using the \p StateStorage operations and \p Joiner operations.
@@ -133,7 +132,7 @@ namespace MiniMC {
 	if (ptr->need2Store ()) {
 	  auto cover = store.isCoveredByStore (ptr.get());
 	  if (cover) {
-	    
+		Joiner::coverCopy (ptr.get(),cover);
 	    return cover;
 	  }
 	  auto join = store.joinState (ptr.get()); 
@@ -144,19 +143,19 @@ namespace MiniMC {
 	}
 	return insert (ptr);
       }
-
+	  
       /** Extract the first State*/ 
       MiniMC::CPA::State_ptr pull () {
-	assert(hasWaiting());
-	return waiting.pull ();
+		assert(hasWaiting());
+		return waiting.pull ();
       }
-
+	  
       /** 
 	   
        * @return true if it has states waiting, false otherwise
        */
       bool hasWaiting () const {
-	return !waiting.empty();
+		return !waiting.empty();
       }
 	  
       std::size_t getWSize () const {return waiting.size();}

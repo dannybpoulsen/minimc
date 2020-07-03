@@ -144,69 +144,75 @@ namespace MiniMC {
 	  
       template<class... Args>
       struct Joiner {
-	template<size_t i, class Inserter>
-	static bool buildVector (Inserter& ins, const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
-	  static_assert(i <= sizeof... (Args));
-	  if constexpr (i == sizeof... (Args)) {
-	      return true; //We are done
-	    }
-	  else {
-	    using A = typename GetNthTemplateArgument<i,Args...>::Temp;
-	    auto left = l.template get<i> ();
-	    auto right = r.template get<i> ();
-	    auto res = A::Join::doJoin (left,right);
+		template<size_t i, class Inserter>
+		static bool buildVector (Inserter& ins, const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
+		  static_assert(i <= sizeof... (Args));
+		  if constexpr (i == sizeof... (Args)) {
+			  return true; //We are done
+			}
+		  else {
+			using A = typename GetNthTemplateArgument<i,Args...>::Temp;
+			auto left = l.template get<i> ();
+			auto right = r.template get<i> ();
+			auto res = A::Join::doJoin (left,right);
 		    
-	    if (res) {
-	      ins = res;
-	      return buildVector<i+1,Inserter> (ins,l,r);
-	    }
-	    else
-	      return false;
-	  }
+			if (res) {
+			  ins = res;
+			  return buildVector<i+1,Inserter> (ins,l,r);
+			}
+			else
+			  return false;
+		  }
 		  
-	}
+		}
 	    
-	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
-
-	  auto& left = static_cast<State<sizeof... (Args)>&> (*l);
-	  auto& right = static_cast<State<sizeof... (Args)>&> (*r);
+		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
+		  
+		  auto& left = static_cast<State<sizeof... (Args)>&> (*l);
+		  auto& right = static_cast<State<sizeof... (Args)>&> (*r);
 
 	  
-	  std::vector<MiniMC::CPA::State_ptr> vec;
-	  auto ins = std::back_inserter(vec);
-	  if (buildVector<0,decltype(ins)> (ins,left,right)) {
-	    return std::make_shared<State<sizeof... (Args)>> (vec);	
-	  }
-	  return nullptr;
+		  std::vector<MiniMC::CPA::State_ptr> vec;
+		  auto ins = std::back_inserter(vec);
+		  if (buildVector<0,decltype(ins)> (ins,left,right)) {
+			return std::make_shared<State<sizeof... (Args)>> (vec);	
+		  }
+		  return nullptr;
 	      
 	}
 	    
-	template<size_t i>
-	static bool checkCovers (const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
-	  static_assert(i <= sizeof... (Args));
-	  if constexpr (i == sizeof... (Args)) {
-	      return true; //We are done
-	    }
-	  else {
-	    using A = typename GetNthTemplateArgument<i,Args...>::Temp;
-	    auto left = l.template get<i> ();
-	    auto right = r.template get<i> ();
-		  
-		  
-	    if (A::Join::covers (left,right)) {
-	      return checkCovers<i+1> (l,r);
-	    }
-	    else {
-	      return false;
-	    }
-	  }
-	}
+		template<size_t i>
+		static bool checkCovers (const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
+		  static_assert(i <= sizeof... (Args));
+		  if constexpr (i == sizeof... (Args)) {
+			  return true; //We are done
+			}
+		  else {
+			using A = typename GetNthTemplateArgument<i,Args...>::Temp;
+			auto left = l.template get<i> ();
+			auto right = r.template get<i> ();
+			
+			
+			if (A::Join::covers (left,right)) {
+			  return checkCovers<i+1> (l,r);
+			}
+			else {
+			  return false;
+			}
+		  }
+		}
 	    
-	static bool covers (const State_ptr& l, const State_ptr& r) {
-	  auto left = static_cast<State<sizeof... (Args)>&> (*l);
-	  auto right = static_cast<State<sizeof... (Args)>&> (*r);
-	  return checkCovers<0> (left,right);
-	}
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  auto left = static_cast<State<sizeof... (Args)>&> (*l);
+		  auto right = static_cast<State<sizeof... (Args)>&> (*r);
+		  return checkCovers<0> (left,right);
+		}
+
+
+		
+		
+		static void coverCopy (const State_ptr& from, State_ptr& to) {
+		}
 
       };
 	  

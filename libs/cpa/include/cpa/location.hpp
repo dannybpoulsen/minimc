@@ -40,10 +40,12 @@ namespace MiniMC {
 	/** 
 	 *  \p l covers \p r if their hash values are the same 
 	 */
-	static bool covers (const State_ptr& l, const State_ptr& r) {
-	  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
-	}
-	
+		static bool covers (const State_ptr& l, const State_ptr& r) {
+		  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
+		}
+		
+		static void coverCopy (const State_ptr& from, State_ptr& to) {}
+		
 		
       };
 	  

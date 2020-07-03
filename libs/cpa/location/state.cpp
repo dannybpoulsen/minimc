@@ -110,23 +110,25 @@ namespace MiniMC {
 			  else
 				return nullptr;
 			}
+
+			else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
+					 MiniMC::Model::InstructionCode::RetVoid> (inst)) {
+			  nstate->popLocation (id);
+			}
 			
 			
 		  }
-		  
-		  if (!nstate->getLocation (id)->hasOutgoingEdge()) {
-			nstate->popLocation (id);
-		  }
-		  
-		  
 		  return nstate;
+			
 		}
+		
+		return nullptr;
+		
+	  }
 		
 	
 		
-	return nullptr;
-      }
-      
+	  
       State_ptr MiniMC::CPA::Location::StateQuery::makeInitialState (const MiniMC::Model::Program& p) {
 		std::vector<LocationState> locs;
 		for (auto& f : p.getEntryPoints()) {
