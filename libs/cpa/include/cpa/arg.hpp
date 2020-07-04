@@ -1,9 +1,13 @@
 
 #include <vector>
+#include <sstream>
+
 
 #include "cpa/state.hpp"
 #include "support/sequencer.hpp"
 #include "support/feedback.hpp"
+#include "support/graph.hpp"
+#include "support/queue_stack.hpp"
 #include "model/cfg.hpp"
 #include "hash/hashing.hpp"
 
@@ -11,7 +15,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace ARG {
-      class State :public MiniMC::CPA::State {
+      class State : public MiniMC::CPA::State {
       public:
 		struct Parent {
 		  std::weak_ptr<State> from;
@@ -104,7 +108,51 @@ namespace MiniMC {
 		
 		
       };
-      
+	  
+	  template<class Iterator>
+	  void generateARGGraph (MiniMC::Support::Graph_ptr& graph,Iterator begin, Iterator end) {
+		std::set<MiniMC::CPA::State_ptr> visited;
+		MiniMC::Support::Stack<MiniMC::CPA::State> working;
+		auto addState = [&] (std::weak_ptr<MiniMC::CPA::State> winp) {
+						  auto inp = winp.lock();
+						  if (inp) {
+							if (visited.count(inp) == 0) {
+							  working.insert(inp);
+							  visited.insert(inp);
+							}
+						  }
+						};
+		
+		auto insert = [&](auto& state) -> std::unique_ptr<MiniMC::Support::Node> {
+																				  std::stringstream str;
+																				  str << std::hash<MiniMC::CPA::State>{} (*state);
+																				  auto node = graph->getNode (str.str());
+																				  std::stringstream labelstr;
+																				  labelstr<< *state;
+																				  node->setLabel (labelstr.str());
+ 																				  return node;
+		};
+		
+		std::for_each (begin,end,addState);
+		while (!working.empty ()) {
+		  auto current = working.pull ();
+		  auto curnode = insert ( current );
+		  
+		  auto argcur = std::static_pointer_cast<MiniMC::CPA::ARG::State> (current);
+		  for (auto& wpar : *argcur) {
+			auto  state = wpar.from.lock ();
+			if (state) {
+			  auto pnode = insert(state);
+			  std::stringstream edgetext;
+			  edgetext << wpar.who << ": " << *wpar.edge;
+			  pnode->connect(*curnode,edgetext.str());
+			  addState (state);
+			}
+		  }
+		  
+		}
+	  }
+	  
       template<class WCPA>
       struct CPADef {
 		using Query = StateQuery<typename WCPA::Query>; /**< Class acting a the Query operator*/

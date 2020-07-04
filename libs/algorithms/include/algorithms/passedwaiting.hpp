@@ -9,67 +9,15 @@
 #ifndef _PASSED__
 #define _PASSED__
 
-#include <vector>
-#include <deque>
 #include <gsl/pointers>
 #include "cpa/interface.hpp"
+#include "support/queue_stack.hpp"
 
 namespace MiniMC {
   namespace Algorithms {
-    class Stack {
-    public:
-      bool empty () const {
-	return thestack.empty();
-      }
-
-      void insert (const MiniMC::CPA::State_ptr& state) {
-	thestack.push_back (state);
-      }
-      
-      MiniMC::CPA::State_ptr pull () {
-	assert(!empty());
-	auto  res = thestack.back();
-	thestack.pop_back ();
-	return res;
-      }
-
-      auto begin () {return thestack.begin();}
-      auto end () {return thestack.begin();}
-	  
-      auto size () const {return thestack.size();}
-      
-      
-    private:
-      std::vector<MiniMC::CPA::State_ptr> thestack;
-    };
-
-    class Queue {
-    public:
-      bool empty () const {
-	return !thequeue.size();
-      }
-
-      void insert (const MiniMC::CPA::State_ptr& state) {
-	thequeue.push_front (state);
-      }
-	  
-      MiniMC::CPA::State_ptr pull () {
-	assert(!empty());
-	auto  res = thequeue.front();
-	thequeue.pop_front ();
-	return res;
-      }
-
-      auto begin () {return thequeue.begin();}
-      auto end () {return thequeue.begin();}
-	  
-	  
-      auto size () const {return thequeue.size();}
-	  
-    private:
-      std::deque<MiniMC::CPA::State_ptr> thequeue;
-    };
-
+	using Stack = MiniMC::Support::Stack<MiniMC::CPA::State>;
+	using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;
+	
     /*template<class Iterator, class Joiner>
     State_ptr mergeIn (Iterator beg, Iterator end, MiniMC::CPA::State_ptr& state) {
       bool merged = false;
