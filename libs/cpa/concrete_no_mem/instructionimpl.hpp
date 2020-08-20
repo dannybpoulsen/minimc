@@ -133,13 +133,14 @@ namespace MiniMC {
 	  
       template<class T>
       struct TACExec<MiniMC::Model::InstructionCode::Xor,T> {
-		static OutRegister execute (const InRegister& left, const InRegister& right) {
-		  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
-		  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () ^ right.template get<T> ();
-		  return OutRegister(hh,sizeof(T)); 
-		}
+	static OutRegister execute (const InRegister& left, const InRegister& right) {
+	  std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+	  MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = left.template get<T> () ^ right.template get<T> ();
+	  return OutRegister(hh,sizeof(T)); 
+	}
       };
 
+      
       template<MiniMC::Model::InstructionCode opc>
       struct TACRedirect{
 		using i8 = TACExec<opc,MiniMC::uint8_t>;
@@ -269,8 +270,8 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode opc>
       struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isCast>::type> {
 		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
-									MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
-									const MiniMC::Model::Instruction& inst)  {
+					    MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+					    const MiniMC::Model::Instruction& inst)  {
 		  MiniMC::Model::InstHelper<opc> helper (inst);
 		  auto& castee = helper.getCastee ();
 		  auto& res =  helper.getResult ();
@@ -677,7 +678,7 @@ namespace MiniMC {
 		  st.heap.write (pointer,valueval.getRegister());
 		}
       };
-
+      
       template<>
       struct ExecuteInstruction<MiniMC::Model::InstructionCode::Uniform,void> {
 		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
@@ -702,7 +703,7 @@ namespace MiniMC {
 
 		  switch (size) {
 		  case 1: 
-			functor.operator()<MiniMC::uint8_t>  ();
+		        functor.operator()<MiniMC::uint8_t>  ();
 			break;
 		  case 2: 
 			functor.operator()<MiniMC::uint16_t> ();
@@ -733,6 +734,48 @@ namespace MiniMC {
 		  ExecuteInstruction<i>::execute (*data.readFrom,*data.st,inst);
 		}
 	  };
+
+      template<>
+      struct ExecuteInstruction<MiniMC::Model::InstructionCode::Not,void> {
+	inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+				    MiniMC::CPA::ConcreteNoMem::State::StackDetails& st, const MiniMC::Model::Instruction& inst)  {
+	  
+
+	  
+	  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Not> helper (inst);
+	  auto type = helper.getOp ()->getType();
+	  assert(type->getTypeID () == MiniMC::Model::TypeID::Integer);
+	  
+	  auto doNot =  [&]<typename T> () {
+					    RegisterLoader op (readFrom,helper.getOp ());
+					    std::unique_ptr<MiniMC::uint8_t[]>  hh (new MiniMC::uint8_t[sizeof(T)]);
+					    MiniMC::saveHelper<T> (hh.get (),sizeof(T)) = ~(op.getRegister().template get<T> ());
+					    OutRegister reg (hh,sizeof(T));
+					    auto res = std::static_pointer_cast<MiniMC::Model::Variable> (helper.getResult ());
+					    doSave (st,res,reg);
+			    
+			  };
+	  
+	  switch (type->getSize()) {
+	  case 1:
+	    doNot.operator()<MiniMC::uint8_t>  ();
+	    break;
+	  case 2:
+	    doNot.operator()<MiniMC::uint16_t>  ();
+	    break;
+	  case 4:
+	    doNot.operator()<MiniMC::uint32_t>  ();
+	    break;
+	  case 8:
+	    doNot.operator()<MiniMC::uint64_t>  ();
+	    break;
+	  default:
+	    throw MiniMC::Support::Exception ("Error");
+	  }
+	  
+	}
+      };
+      
       
     }
   }

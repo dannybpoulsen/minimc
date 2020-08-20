@@ -223,11 +223,11 @@ namespace MiniMC {
     
     class Program;
     using Location_ptr = std::shared_ptr<Location>;
-	using Location_wptr = std::weak_ptr<Location>;
+    using Location_wptr = std::weak_ptr<Location>;
     using Program_ptr = std::shared_ptr<Program>;
-	using Program_wptr = std::weak_ptr<Program>;
-	
-	class Instruction;
+    using Program_wptr = std::weak_ptr<Program>;
+    
+    class Instruction;
 
 	/** 
 	 * Possible attributes that can be set on edges
@@ -265,6 +265,7 @@ namespace MiniMC {
 	 * to reflect that some operations are atomic even within a single process - such as phi-nodes in SSA form).
 	 */
     struct InstructionStream {
+      using iterator = std::vector<Instruction>::iterator;
       InstructionStream () : isPhi(false) {}
       InstructionStream (const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
 																				  isPhi(isPhi) {
@@ -281,14 +282,19 @@ namespace MiniMC {
       auto rend () const {return instr.rend();}
       auto rbegin ()  {return instr.rbegin();}
       auto rend ()  {return instr.rend();}
-	  
+
+      template<class Iterator>
+      auto replaceInstructionBySeq (iterator repl, Iterator beg, Iterator end) {
+	return instr.insert(erase (repl),beg,end);
+      }
+      
       auto& last () {assert(instr.size()); return instr.back();}
 
       auto back_inserter () {return std::back_inserter(instr);}
       
       template<class Iterator>
       auto erase( Iterator iter) {
-		return instr.erase (iter);
+	return instr.erase (iter);
       }
 	  
       std::vector<Instruction> instr;
@@ -506,24 +512,24 @@ namespace MiniMC {
 		
       }
 
-	  void takeOwnsership () {
-		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
-		for (auto& e : cfg->getEdges ()) {
-		  if (e->hasAttribute<AttributeType::Instructions> ()) 
-			for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
-			  l.setFunction (shared_from_this());
-			}
-		}
-	  }
+      void takeOwnsership () {
+	auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
+	for (auto& e : cfg->getEdges ()) {
+	  if (e->hasAttribute<AttributeType::Instructions> ()) 
+	    for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
+	      l.setFunction (shared_from_this());
+	    }
+	}
+      }
 	  
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
-	  auto& getVariableStackDescr ()  {return variableStackDescr;}
+      auto& getVariableStackDescr ()  {return variableStackDescr;}
       auto& getCFG () const {return cfg;}
       auto& getID () const {return id;}
       auto& getReturnType () {return retType;}
-	  gsl::not_null<Program_ptr> getPrgm () const {return prgm.lock();}
+      gsl::not_null<Program_ptr> getPrgm () const {return prgm.lock();}
       void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
       std::string name;
@@ -583,8 +589,8 @@ namespace MiniMC {
       auto& getConstantFactory () {return cfact;}
       auto& getTypeFactory () {return tfact;}
 
-	  auto& getInitialisation () const {return initialiser;}
-	  void setInitialiser (const InstructionStream& instr) {initialiser = instr;}
+      auto& getInitialisation () const {return initialiser;}
+      void setInitialiser (const InstructionStream& instr) {initialiser = instr;}
       
     private:
       std::vector<Function_ptr> functions;
@@ -593,8 +599,8 @@ namespace MiniMC {
       std::size_t stacks = 0;
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
-	  InstructionStream initialiser;
-	};
+      InstructionStream initialiser;
+    };
     
   }
 }
