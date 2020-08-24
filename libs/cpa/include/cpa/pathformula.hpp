@@ -4,8 +4,7 @@
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "support/localisation.hpp"
-#include "model/modifications/rremoveretsentry.hpp"
-#include "model/modifications/replacenondetuniform.hpp"
+#include "model/checkers/HasInstruction.hpp"
 
 
 namespace MiniMC {
@@ -24,12 +23,15 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
-
+		static MiniMC::CPA::State_ptr doJoin (const State_ptr& l, const State_ptr& r);
+	
 		static bool covers (const State_ptr& l, const State_ptr& r) {
-		  return true;
+		  return false;
 		}
 		
+		static void coverCopy (const State_ptr& from, State_ptr& to) {}
+      
+
       };
 	  
 
@@ -43,7 +45,8 @@ namespace MiniMC {
 				  if (I.getOpcode () == MiniMC::Model::InstructionCode::Call) {
 					MiniMC::Support::Localiser error_mess ("This CPA does not support '%1%' instructions."); 
 					mess.error (error_mess.format (I.getOpcode ()));
-					}
+					return false;
+				  }
 				}
 			  }
 			}
@@ -53,14 +56,12 @@ namespace MiniMC {
       private:
 		MiniMC::Support::Messager& mess;
       };
-      
+	  
       struct PrevalidateSetup {
-		static void setup (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-		}
-		
 		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  seq.template add<ValidateInstructions,MiniMC::Support::Messager&> (mess);
+		  seq.template add<MiniMC::Model::Checkers::HasNoInstruction<
+			MiniMC::Model::InstructionCode::Call>
+						   ,MiniMC::Support::Messager&,const std::string&> (mess,"This CPA does not support '%1%' instructions.");
 		}
       };
       

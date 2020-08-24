@@ -63,8 +63,63 @@ namespace MiniMC {
 	   */
       struct SimplifyCFG : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
+		  auto addToWorkingList = [](MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr>& wlist, auto beg, auto end) {
+										   auto inserter = wlist.inserter ();
+										   std::for_each (beg,
+														  end,
+														  [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
+														  );
+										 };
+
+		  auto canSkipLocation =  [](const MiniMC::Model::Location_ptr& loc) {
+										return loc->nbIncomingEdges () <= 1 &&
+										  !loc->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () &&
+										  !loc->template is<MiniMC::Model::Location::Attributes::CallPlace> ();
+										
+										  };
+		  
 		  for (auto& F : prgm.getFunctions ()) {
 			bool modified = false;
+			do {
+			  modified = false;
+			  auto cfg = F->getCFG ();
+			  MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
+			  addToWorkingList (wlist,cfg->getEdges ().begin(),cfg->getEdges().end ());
+			  bool inner_mod = false;
+			  for (auto& EW : wlist) {
+				inner_mod = false;
+				auto edge = EW.lock ();
+				if (edge) {
+				  auto from = edge->getFrom ();
+				  auto to = edge->getTo ();
+				  if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> () &&
+					  canSkipLocation (to)) {
+					MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
+					addToWorkingList (inner_wlist,to->ebegin (),to->eend ());
+					
+					for (auto rwedge : inner_wlist) {
+					  if (auto remove_edge = rwedge.lock ()) {
+						inner_mod = true;
+						auto nedge = cfg->makeEdge (from,remove_edge->getTo (),prgm.shared_from_this());
+						copyInstrStream (nedge,edge);
+						copyInstrStream (nedge,remove_edge);
+						cfg->deleteEdge (remove_edge);
+					  }
+					}
+				  }
+				  
+				}
+				modified |=inner_mod;
+				if (inner_mod)
+				  cfg->deleteEdge (edge);
+			  }
+			  
+			}while (modified);
+			
+		  }
+		  return true;
+
+		  /*bool modified = false;
 			do {
 			  modified = false;
 			  MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
@@ -80,11 +135,12 @@ namespace MiniMC {
 				  auto to = E->getTo ();		  
 				  if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> ()) {
 					if (to->nbIncomingEdges () <= 1 &&
-						!to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () 
-
+						!to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () &&
+						!to->template is<MiniMC::Model::Location::Attributes::CallPlace> ()
+						
 						)
 					  {
-			
+						
 						MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
 						auto inserter =inner_wlist.inserter ();
 						std::for_each (to->ebegin(),
@@ -92,11 +148,9 @@ namespace MiniMC {
 									   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
 									   );
 						bool inner_mod = false;
-			
+						
 						for (auto cwedge : inner_wlist) {
 						  if (auto cedge = cwedge.lock ()) {
-							if (to->template is<MiniMC::Model::Location::Attributes::CallPlace> ())
-							  from->template set<MiniMC::Model::Location::Attributes::CallPlace> ();
 							inner_mod = true;
 							auto nedge = cfg->makeEdge (from,cedge->getTo (),prgm.shared_from_this());
 							copyInstrStream (nedge,E);
@@ -114,8 +168,8 @@ namespace MiniMC {
 			  }
 			}while (modified);
 	    
-		  }
-		  return true;
+			}*/
+		 
 		}
       };
 

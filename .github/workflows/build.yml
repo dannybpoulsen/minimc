@@ -1,0 +1,25 @@
+name: C/C++ CI
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: palanthal/minimc-build
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: Setup
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+    - name: build
+      run: cd build && make
+    - name: test
+      run: cd build && make test
+    - name: package
+      run: cd build && make package
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build 
+        path: build/*.zip 

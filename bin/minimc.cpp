@@ -4,11 +4,19 @@
 #include <functional>
 #include <boost/program_options.hpp>
 #include "support/localisation.hpp"
+#include "config.h"
 #include "loaders/loader.hpp"
 #include "algorithms/algorithm.hpp"
 #include "plugin.hpp"
 
 namespace po = boost::program_options;
+
+void printBanner (std::ostream& os) {
+  os << MiniMC::Support::Version::TOOLNAME << " "<<  MiniMC::Support::Version::VERSION_MAJOR << "." << MiniMC::Support::Version::VERSION_MINOR << " (" << __DATE__  << ")" <<std::endl;
+  os << "Revision: " << MiniMC::Support::Version::GIT_HASH << std::endl;
+  os << std::endl;
+}
+
 
 int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
 
@@ -21,7 +29,7 @@ int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parame
 
 
 int main (int argc,char* argv[]) {
-  po::options_description desc("General Options");
+
   std::string input;
   std::string subcommand;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
@@ -39,18 +47,25 @@ int main (int argc,char* argv[]) {
 						 
 					   }
 					 };
-  
-  
-  desc.add_options()
+  po::options_description hidden("Hidden");
+  po::options_description general("General Options");
+  general.add_options()
     ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
-    ("inputfile",po::value<std::string> (&input)->required(),"Input file")
 	("spacereduction",po::value<int> ()->default_value(1)->notifier(updateSpace), "Space Reduction\n"
 	 "\t 1: None\n"
 	 "\t 2: Conservative\n"
 	 )
+	("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
+	;
+  hidden.add_options()
 	("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
-	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers");
+	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")
+	("inputfile",po::value<std::string> (&input)->required(),"Input file")
+	;
 
+  po::options_description desc;
+  desc.add (general).add(hidden);
+  
   po::positional_options_description pos;
   pos.add("inputfile", 1).
 	add("command", 1).
@@ -59,7 +74,7 @@ int main (int argc,char* argv[]) {
   try {
 	po::variables_map vm; 
 	po::parsed_options parsed = po::command_line_parser(argc, argv)
-	  .options(desc) 
+	  .options(desc)
 	  .positional(pos)
 	  .allow_unregistered ()
 	  .run();
@@ -96,12 +111,19 @@ int main (int argc,char* argv[]) {
   
   else {
 	std::cerr << MiniMC::Support::Localiser{"Unknown subcommand '%1%"}.format (subcommand) << std::endl;
+	
   }
   
   }
   catch(po::error& e) {
-    std::cerr << e.what () << std::endl;
-	std::cerr << desc << std::endl;
+	printBanner (std::cerr);
+	std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
+	std::cerr << general << std::endl;
+	std::cerr << "Subcommands" << std::endl;
+	auto comms = getCommandNameAndDescr ();
+	for (auto& it :  comms) {
+	  std::cerr << it.first <<"\t" << it.second << std::endl;
+	}
 	return -1;
   }
   

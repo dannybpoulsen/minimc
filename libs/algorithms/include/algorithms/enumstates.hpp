@@ -8,6 +8,8 @@
 #include "algorithms/algorithm.hpp"
 #include "algorithms/passedwaiting.hpp"
 #include "algorithms/successorgen.hpp"
+#include "algorithms/reachability.hpp"
+
 
 
 namespace MiniMC {
@@ -25,25 +27,12 @@ namespace MiniMC {
 		std::size_t states = 0;
 		
 		CPADFSPassedWaiting<CPA> passed;
+		auto progresser = messager.makeProgresser ();
+		auto predicate = [] (auto& b) {return false;};
 		auto initstate = CPA::Query::makeInitialState (prgm);
-		MiniMC::Support::Localiser waitmess ("Waiting: %1%, Passed: %2%");
+		PassedInsert inserter (*progresser,passed);
 		try {
-		  passed.insert(initstate);
-		  auto progresser = messager.makeProgresser ();
-		  while (passed.hasWaiting()) {
-			progresser->progressMessage (waitmess.format(passed.getWSize(),passed.getPSize()));
-			auto cur = passed.pull ();
-			MiniMC::Algorithms::Generator<typename CPA::Query,typename CPA::Transfer> generator (cur);
-			auto it = generator.begin();
-			auto end = generator.end();
-			for (;it != end; ++it) {
-			  if (!it->hasErrors ()) {
-				auto nstate = it->state;
-				assert(nstate);
-				passed.insert(nstate);
-			  }
-			}
-		  }
+		  reachabilitySearch<CPA> (passed,inserter,initstate,predicate);
 		}
 		catch(MiniMC::Support::VerificationException& exc) {
 		  messager.error (exc.what());
@@ -55,8 +44,7 @@ namespace MiniMC {
 
 	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
 		CPA::PreValidate::validate (seq,mess);
-		CPA::PreValidate::setup (seq,mess);
-	  }
+	}
 	private:
 	  MiniMC::Support::Messager& messager;
 	  
