@@ -56,7 +56,11 @@ int main (int argc,char* argv[]) {
 	 "\t 2: Conservative\n"
 	 )
 	("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
+        ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
 	;
+
+    ;
+        
   hidden.add_options()
 	("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")

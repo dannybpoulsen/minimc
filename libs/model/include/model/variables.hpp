@@ -223,10 +223,10 @@ namespace MiniMC {
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
       auto& getVariables () const {return variables;}
 
-	  /** 
-	   *
-	   * @return Total size in bytes of an activation record
-	   */
+      /** 
+       *
+       * @return Total size in bytes of an activation record
+       */
       auto getTotalSize () const {return totalSize;}
       auto getTotalVariables () const {return variables.size();}
     private:
@@ -242,10 +242,10 @@ namespace MiniMC {
       virtual ~ConstantFactory () {}
       
       using aggr_input = std::vector<Constant_ptr>;
-	  using noncompile_aggr_input = std::vector<Value_ptr>;
+      using noncompile_aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool) = 0;
-	  virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool) = 0;
-	  virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&) = 0;
+      virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool) = 0;
+      virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&) = 0;
       virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t) = 0;
       
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;
