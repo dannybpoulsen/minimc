@@ -201,7 +201,7 @@ namespace MiniMC {
 		return os << " >";
 	  }
 	  
-	  bool isVariable () const {return true;}
+      bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
       
