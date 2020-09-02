@@ -4,12 +4,11 @@
 
 #include "plugin.hpp"
 
-namespace {
+
   auto& getMap () {
 	static std::unordered_map<std::string,CommandRegistrar*> map;
 	return map;
   }
-}
 
 void registerCommand (const std::string& s,CommandRegistrar& r) {
   getMap().insert(std::make_pair(s,&r));
