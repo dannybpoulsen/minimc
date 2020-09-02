@@ -90,6 +90,18 @@ namespace MiniMC {
     X(MemCpy)					\
     X(Uniform)					\
 
+#define PREDICATES					\
+    X(PRED_ICMP_SGT)					\
+    X(PRED_ICMP_UGT)					\
+    X(PRED_ICMP_SGE)					\
+    X(PRED_ICMP_UGE)					\
+    X(PRED_ICMP_SLT)					\
+    X(PRED_ICMP_ULT)					\
+    X(PRED_ICMP_SLE)					\
+    X(PRED_ICMP_ULE)					\
+    X(PRED_ICMP_EQ)					\
+    X(PRED_ICMP_NEQ)					\
+
 #define OPERATIONS				\
     TACOPS					\
     UNARYOPS					\
@@ -99,6 +111,7 @@ namespace MiniMC {
     INTERNAL					\
     POINTEROPS					\
     AGGREGATEOPS				\
+    PREDICATES					\
     
 	
     enum class InstructionCode {
@@ -130,6 +143,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
     };
@@ -150,6 +164,8 @@ namespace MiniMC {
     TACOPS
 #undef X
 
+
+
 #define X(OP)						\
     template<>						\
     struct InstructionData<InstructionCode::OP>{	\
@@ -160,12 +176,32 @@ namespace MiniMC {
     static const bool isCast = false;			\
     static const bool isPointer = false;		\
     static const bool isAggregate = false;		\
+    static const bool isPredicate = false;		\
     static const std::size_t operands = 1;		\
     static const bool hasResVar = true;			\
     };
     UNARYOPS
 #undef X
 
+
+#define X(OP)						\
+    template<>						\
+    struct InstructionData<InstructionCode::OP>{	\
+    static const bool isTAC = false;			\
+    static const bool isUnary = false;			\
+    static const bool isMemory = false;			\
+    static const bool isComparison = false;		\
+    static const bool isCast = false;			\
+    static const bool isPointer = false;		\
+    static const bool isAggregate = false;		\
+    static const bool isPredicate = true;		\
+    static const std::size_t operands = 2;		\
+    static const bool hasResVar = false;		\
+    };
+    PREDICATES
+#undef X
+
+    
 #define X(OP)						\
     template<>						\
     struct InstructionData<InstructionCode::OP>{	\
@@ -176,6 +212,7 @@ namespace MiniMC {
       static const bool isCast = false;			\
       static const bool isPointer = false;		\
       static const bool isAggregate = false;		\
+      static const bool isPredicate = false;		\
       static const std::size_t operands = 2;		\
       static const bool hasResVar = true;		\
     };
@@ -207,6 +244,7 @@ namespace MiniMC {
       static const bool isCast = false;				
       static const bool isPointer = false;			
       static const bool isAggregate = true;
+      static const bool isPredicate = false;
       static const std::size_t operands = 3;			
       static const bool hasResVar = true;			
     };
@@ -220,6 +258,7 @@ namespace MiniMC {
       static const bool isCast = false;				
       static const bool isPointer = false;			
       static const bool isAggregate = true;
+      static const bool isPredicate = false;
       static const std::size_t operands = 3;			
       static const bool hasResVar = true;			
     };
@@ -233,6 +272,7 @@ namespace MiniMC {
       static const bool isCast = false;				
       static const bool isPointer = false;			
       static const bool isAggregate = true;
+      static const bool isPredicate = false;
       static const std::size_t operands = 0;			
       static const bool hasResVar = true;			
     };
@@ -245,7 +285,8 @@ namespace MiniMC {
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = true;			
-      static const bool isAggregate = false;			
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 4;			
       static const bool hasResVar = true;			
     };
@@ -258,7 +299,8 @@ namespace MiniMC {
       static const bool isMemory = false;			
       static const bool isCast = false;				
       static const bool isPointer = true;			
-      static const bool isAggregate = false;			
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = true;			
     };
@@ -269,7 +311,8 @@ namespace MiniMC {
       static const bool isUnary =false;			\
       static const bool isComparison = false;
       static const bool isMemory = true;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -280,7 +323,8 @@ namespace MiniMC {
       static const bool isUnary =false;			\
       static const bool isComparison = false;
       static const bool isMemory = true;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = false;			
     };
@@ -302,7 +346,8 @@ namespace MiniMC {
       static const bool isUnary =false;			\
       static const bool isComparison = false;
       static const bool isMemory = true;			
-      static const bool isCast = false;			
+      static const bool isCast = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -316,6 +361,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 0;			
       static const bool hasResVar = false;			
     };
@@ -329,6 +375,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 0;			
       static const bool hasResVar = true;			
     };
@@ -342,6 +389,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -355,6 +403,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -381,6 +430,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 0;			
       static const bool hasResVar = true;			
     };
@@ -394,6 +444,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = false;			
     };
@@ -407,6 +458,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 3;			
       static const bool hasResVar = false;			
     };
@@ -420,6 +472,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 1;			
       static const bool hasResVar = true;			
     };
@@ -433,6 +486,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = false;			
     };
@@ -446,6 +500,7 @@ namespace MiniMC {
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
+      static const bool isPredicate = false;
       static const std::size_t operands = 2;			
       static const bool hasResVar = true;			
     };
@@ -577,6 +632,40 @@ namespace MiniMC {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 	InstHelper<i> h (inst);
 	return os << *h.getResult () << " = " << i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
+      } 
+    };
+    
+     template<InstructionCode i>
+    class InstHelper<i,typename std::enable_if<InstructionData<i>::isPredicate>::type> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getLeftOp () const {return inst.getOp(0);}
+      auto& getRightOp () const {return inst.getOp(1);}
+      
+    private:
+      const Instruction& inst;
+    };
+
+    template<InstructionCode i>
+    class InstBuilder<i,typename std::enable_if<InstructionData<i>::isPredicate>::type> {
+    public:
+      auto& setLeft (const Value_ptr& ptr) {left = ptr; return *this;}
+      auto& setRight (const Value_ptr& ptr) {right = ptr;return *this;}
+      Instruction BuildInstruction () {
+	assert(left);
+	assert(right);
+	return Instruction (i,{left,right});
+      }
+    private:
+      Value_ptr left;
+      Value_ptr right;
+    };
+
+    template<InstructionCode i> 
+    struct Formatter<i,typename std::enable_if<InstructionData<i>::isPredicate>::type> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+	InstHelper<i> h (inst);
+	return os <<  i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 
@@ -1505,6 +1594,7 @@ namespace MiniMC {
 	  POINTEROPS
 	  AGGREGATEOPS
 	  UNARYOPS
+	  PREDICATES
 #undef X
 	  }
       return os << "??";
@@ -1521,6 +1611,8 @@ namespace MiniMC {
 	else return isOneOf<tail...> (instr);
       }
     }
+
+   		   
 	
   }
 }

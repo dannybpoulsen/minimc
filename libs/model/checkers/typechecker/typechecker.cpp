@@ -37,6 +37,22 @@ namespace MiniMC {
       };
 
       template<MiniMC::Model::InstructionCode i>
+      struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isPredicate>::type > {
+	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+	  MiniMC::Support::Localiser loc ("All operands to '%1%' must be same type."); 
+	  InstHelper<i> h (inst);
+	  auto lType = h.getLeftOp ()->getType ();
+	  auto rType = h.getRightOp ()->getType ();
+	  if (lType != rType 
+	      ) {
+	    mess.error (loc.format (i));
+	    return false;
+	  }
+	  return true;
+	}
+      };
+
+      template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isUnary>::type > {
 	static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
 	  if constexpr (i == MiniMC::Model::InstructionCode::Not) {
@@ -713,6 +729,7 @@ namespace MiniMC {
 		    INTERNAL
 		    POINTEROPS
 		    AGGREGATEOPS
+		    PREDICATES
 		    }
 	      }
 	    }

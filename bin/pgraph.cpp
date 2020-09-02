@@ -64,8 +64,10 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
      "\t 2: Location and explicit stack-variable\n"
 	 "\t 3: PathFormula With CVC4\n"
      )
-	("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
-	("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
+    ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
+    ("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
+    
+    ("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
 	;
   
   

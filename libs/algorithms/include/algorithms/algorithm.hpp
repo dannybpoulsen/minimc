@@ -22,6 +22,7 @@
 #include "model/modifications/markinglooplocations.hpp"
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/replacesub.hpp"
+#include "model/modifications/splitcmps.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -78,6 +79,7 @@ namespace MiniMC {
 	  bool replaceNonDetUniform = false;
 	  bool simplifyCFG = false;
 	  bool replaceSub = false;
+	  bool splitCMPS = false;
 	  std::size_t inlinefunctions = 0;
 	};
 	
@@ -111,8 +113,12 @@ namespace MiniMC {
 	     seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
 	  }
 	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
+	  if (options.splitCMPS) {
+	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();
+	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
+	  }
 	  if (options.simplifyCFG)
-		seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	    seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 	  if (options.isConcurrent) {
 		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
 	  }

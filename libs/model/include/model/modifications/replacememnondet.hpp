@@ -24,22 +24,22 @@ namespace MiniMC {
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
-			for (auto& E : F->getCFG()->getEdges ()) {
-			  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-				for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-				  if (I.getOpcode () == MiniMC::Model::InstructionCode::Load ) {
-					MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
-					MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load (I);	  
-					nondet.setResult (load.getResult ());
-					I.replace (nondet.BuildInstruction ());
-				  }
-				}
+		    for (auto& E : F->getCFG()->getEdges ()) {
+		      if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+			for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+			  if (I.getOpcode () == MiniMC::Model::InstructionCode::Load ) {
+			    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
+			    MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load (I);	  
+			    nondet.setResult (load.getResult ());
+			    I.replace (nondet.BuildInstruction ());
 			  }
 			}
+		      }
+		    }
 		  }
 		  return true;
 		}
-		
+	
       };
 	  
 	  

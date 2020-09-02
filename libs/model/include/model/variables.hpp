@@ -247,7 +247,6 @@ namespace MiniMC {
       virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool) = 0;
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&) = 0;
       virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t) = 0;
-      
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t) = 0;
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t) = 0;
     };
@@ -259,7 +258,7 @@ namespace MiniMC {
       virtual ~ConstantFactory64 () {}
       virtual const Value_ptr makeIntegerConstant (MiniMC::uint64_t, const Type_ptr&);
       virtual const Value_ptr makeBinaryBlobConstant (MiniMC::uint8_t*, std::size_t);
-	  virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool);
+      virtual const Value_ptr makeAggregateConstantNonCompile (const noncompile_aggr_input& inp,bool);
       virtual const Value_ptr makeAggregateConstant (const aggr_input& inp,bool);
       virtual const Value_ptr makeLocationPointer (MiniMC::func_t,MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t);
