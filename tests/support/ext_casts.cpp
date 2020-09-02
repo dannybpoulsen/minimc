@@ -45,8 +45,9 @@ public:
   using Inp = std::tuple<From,To>;
   void test () {
     From left = std::get<0> (this->GetParam());
+    
     To expected = std::get<1> (this->GetParam());
-    To res = MiniMC::Support::sext<From,To> (left);
+    To res = MiniMC::Support::sext<From,To> (left); 
     EXPECT_EQ(res, expected);
   }
 };
@@ -69,10 +70,13 @@ MINIMC_TESTS
 INSTANTIATE_TEST_CASE_P(SExt8_16,
 			SExt8_16,
 			::testing::Values(
-					  SExt8_16::Inp (-1,-1)
+					  SExt8_16::Inp (-1,-1),
+					  SExt8_16::Inp (127,127)
 					  
 					  )
 			);
+
+
 
 
 template<typename From,typename To>
