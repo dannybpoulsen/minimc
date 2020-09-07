@@ -73,7 +73,7 @@ namespace MiniMC {
 			else if (ninstr.last().getOpcode () == MiniMC::Model::InstructionCode::Ret) {
 			  InstHelper<MiniMC::Model::InstructionCode::Ret> nehelper (ninstr.last());
 			  InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-			  builder.setResult (helper.getRes ());
+			  builder.setResult (helper.getResult ());
 			  builder.setValue (nehelper.getValue ());
 			  ne->setTo (edge->getTo ());
 			  ninstr.last().replace(builder.BuildInstruction ());

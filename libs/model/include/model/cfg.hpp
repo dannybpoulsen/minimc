@@ -221,6 +221,7 @@ namespace MiniMC {
     };
 
     
+    
     class Program;
     using Location_ptr = std::shared_ptr<Location>;
     using Location_wptr = std::weak_ptr<Location>;
@@ -354,11 +355,11 @@ namespace MiniMC {
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
-		from(from.get()),
-		to(to.get()) {
+	from(from.get()),
+	to(to.get()) {
       }
-
-	  Edge (const Edge& ) = default;
+      
+      Edge (const Edge& ) = default;
 	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
@@ -402,8 +403,19 @@ namespace MiniMC {
       }
 	  
       auto getProgram() const {return prgm.lock();}
+      
+      void setProgram (const Program_ptr& p) {prgm = p;} 
+      
+      void copyAttributesFrom (const Edge& e) {
+	if (e.hasAttribute<AttributeType::Guard> ()){
+	  this->setAttribute<AttributeType::Guard> (e.getAttribute<AttributeType::Guard> ());
+	}
 
-	  void setProgram (const Program_ptr& p) {prgm = p;} 
+	if (e.hasAttribute<AttributeType::Instructions> ()){
+	  this->setAttribute<AttributeType::Instructions> (e.getAttribute<AttributeType::Instructions> ());
+	}
+	
+      }
     private:
       Location_wptr from;
       Location_wptr to;
@@ -411,6 +423,7 @@ namespace MiniMC {
       Program_wptr prgm;
     };
 
+    
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
       if (e.hasAttribute<AttributeType::Guard> ()) {

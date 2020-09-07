@@ -21,7 +21,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
       struct SplitCompares : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-
+	
 	
 	
 	
@@ -57,18 +57,32 @@ namespace MiniMC {
 		auto& instrs = E->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
 		if (isCMP (instrs.last())) {
 		  auto buildEdge = [&] <MiniMC::Model::InstructionCode inst,
-					 MiniMC::Model::InstructionCode left
-					 > (auto& v) {
-					       MiniMC::Model::InstHelper<inst> helper (instrs.last());
- 					       std::vector<MiniMC::Model::Instruction> instr;
-					       std::copy (instrs.begin(),instrs.end(),std::back_inserter(instr));
-					       auto tt = cfg->makeEdge(E->getFrom (),E->getTo (),prgm.shared_from_this());
-					       tt->setAttribute<MiniMC::Model::AttributeType::Instructions> (instr);
-					       std::vector<MiniMC::Model::Instruction> ttI {MiniMC::Model::InstBuilder<left> ().setLeft (helper.getLeftOp()).setRight(helper.getRightOp ()).BuildInstruction (),
-											    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> ().setResult (helper.getResult()).setValue (v).BuildInstruction ()
-					       };
-					       auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions> (); 
-					       llnew.replaceInstructionBySeq (llnew.end()-1,ttI.begin (), ttI.end ());
+					MiniMC::Model::InstructionCode left
+					> (auto& v) {
+						     
+						     MiniMC::Model::InstHelper<inst> helper (instrs.last());
+						     auto loc = cfg->makeLocation (E->getTo()->getName());
+
+						     auto it = E->getTo ()->ebegin();
+						     auto end = E->getTo ()->eend();
+
+						     for (; it != end; ++it) {
+						       auto nedge = cfg->makeEdge (loc,it->getTo (),prgm.shared_from_this());
+						       nedge->copyAttributesFrom (**it);
+						       
+						     }
+						     
+						       
+						     
+						     std::vector<MiniMC::Model::Instruction> instr;
+						     std::copy (instrs.begin(),instrs.end(),std::back_inserter(instr));
+						     auto tt = cfg->makeEdge(E->getFrom (),loc,prgm.shared_from_this());
+						     tt->setAttribute<MiniMC::Model::AttributeType::Instructions> (instr);
+						     std::vector<MiniMC::Model::Instruction> ttI {MiniMC::Model::InstBuilder<left> ().setLeft (helper.getLeftOp()).setRight(helper.getRightOp ()).BuildInstruction (),
+												  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> ().setResult (helper.getResult()).setValue (v).BuildInstruction ()
+						     };
+						     auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions> (); 
+						     llnew.replaceInstructionBySeq (llnew.end()-1,ttI.begin (), ttI.end ());
 					       
 		  };
 		  auto cfac = prgm.getConstantFactory ();

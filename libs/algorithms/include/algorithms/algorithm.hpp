@@ -98,29 +98,29 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  if (options.inlinefunctions) {
-		seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
+	    seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
 	  }
-	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
+	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
+	  if (options.splitCMPS) {
+	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();
+	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
+	  }
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
 	  if (options.replaceSub) {
 	    seq.template add<MiniMC::Model::Modifications::ReplaceSub> ();  
 	  }
 	  if (options.expandNonDet) {
-		seq.template add<MiniMC::Model::Modifications::ExpandNondet> ();  
+	    seq.template add<MiniMC::Model::Modifications::ExpandNondet> ();  
 	  }
-	   if (options.replaceNonDetUniform) {
-	     seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
+	  if (options.replaceNonDetUniform) {
+	    seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
 	  }
 	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
-	  if (options.splitCMPS) {
-	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();
-	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
-	  }
 	  if (options.simplifyCFG)
 	    seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 	  if (options.isConcurrent) {
-		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
+	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
 	  }
 	  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
@@ -129,10 +129,10 @@ namespace MiniMC {
 	  algorithm::presetups (seq,*options.messager);
 	  
 	  if  (options.reduction == SpaceReduction::Conservative) {
-		seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 
+	    seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 
 	  }
 	  else if (options.reduction == SpaceReduction::None) {
-		seq.template add<MiniMC::Model::Modifications::MarkAllStates> ();
+	    seq.template add<MiniMC::Model::Modifications::MarkAllStates> ();
 	  }
 	  
 	}

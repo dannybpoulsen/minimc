@@ -1139,7 +1139,7 @@ namespace MiniMC {
       auto nbParams ()  const {return nbparams;}
       auto getFunctionPtr () {return inst.getOp (0);}
       auto getParam (std::size_t p) {return inst.getOp (3+p);}
-      auto getRes () {
+      auto getResult () {
 	return inst.getOp (2);
       }
       

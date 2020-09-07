@@ -57,12 +57,12 @@ namespace MiniMC {
     public:
       virtual ~Constant () {}
       bool isConstant () const {return true;}  
-	  virtual const MiniMC::uint8_t* getData () const = 0; 
+      virtual const MiniMC::uint8_t* getData () const = 0; 
       virtual bool isAggregate () const {return false;}
-	  virtual bool isInteger () const {return false;}
-	};
-
-	class NonCompileConstant : public Value {
+      virtual bool isInteger () const {return false;}
+    };
+    
+    class NonCompileConstant : public Value {
     public:
       virtual ~NonCompileConstant () {}
       bool isNonCompileConstant () const {return true;}  
@@ -102,20 +102,20 @@ namespace MiniMC {
 		auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
 		return val;
       }
-
+      
       virtual const MiniMC::uint8_t* getData () const {
-		return reinterpret_cast<const MiniMC::uint8_t*> (&value);
+	return reinterpret_cast<const MiniMC::uint8_t*> (&value);
       }
-
-	  virtual bool isInteger () const {return true;}
-	  
+      
+      virtual bool isInteger () const {return true;}
+      
       virtual std::ostream& output (std::ostream& os) const {
-		os << "< " << static_cast<MiniMC::uint64_t> (getValue()) << " ";
-		if (getType ())
-		  os << *getType();
-		else
-		  os << "??";
-		return os << " >";
+	os << "< " << static_cast<MiniMC::uint64_t> (getValue()) << " ";
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
       }
     private:
       T value;
