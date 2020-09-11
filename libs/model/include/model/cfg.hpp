@@ -16,6 +16,7 @@
 #include "model/instructions.hpp"
 #include "model/variables.hpp"
 #include "support/types.hpp"
+#include "support/workinglist.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -123,6 +124,10 @@ namespace MiniMC {
       bool hasOutgoingEdge () const {
 		return edges.size();
       }
+
+      auto nbOutgoingEdges () const {
+	return edges.size();
+      }
       
       auto& getName () const {return name;}
 
@@ -164,7 +169,7 @@ namespace MiniMC {
 	   */
       template<Attributes i>
       void unset () {
-		flags &= ~static_cast<AttrType> (i);
+	flags &= ~static_cast<AttrType> (i);
       }
 
 	  AttrType getAttributesFlags () const {return flags;}
@@ -486,16 +491,37 @@ namespace MiniMC {
 	   * @param edge The edge to delete
 	   */
       void deleteEdge (const Edge_ptr& edge) {
-		edge->getFrom ()->removeEdge (edge);
-		edge->getTo ()->removeIncomingEdge (edge);
-		
+	edge->getFrom ()->removeEdge (edge);
+	edge->getTo ()->removeIncomingEdge (edge);
 	
-		auto it = std::find (edges.begin(),edges.end(),edge);
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
+	
+	auto it = std::find (edges.begin(),edges.end(),edge);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
       }
-	  
+
+      void deleteLocation (const Location_ptr& location) {
+	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
+	auto insert = wlist.inserter();
+	std::for_each (location->ebegin(),location->eend(),[&](const auto& e) {insert = e;});
+	std::for_each (location->iebegin(),location->ieend(),[&](const auto& e) {insert = e;});
+	
+	
+	
+	std::for_each (wlist.begin(),wlist.end(), [&](const auto& e) {this->deleteEdge (e);});
+	
+
+	//edge->getFrom ()->removeEdge (edge);
+	//edge->getTo ()->removeIncomingEdge (edge);
+	
+	
+	auto it = std::find (locations.begin(),locations.end(),location);
+	if (it != locations.end()) {
+	  locations.erase (it);
+	}
+      }
+      
       auto& getLocations () const {return locations;}
       auto& getLocations ()  {return locations;}
       auto& getEdges () {return edges;}

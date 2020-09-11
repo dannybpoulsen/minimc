@@ -27,7 +27,7 @@ namespace MiniMC {
       void setType (const Type_ptr& t) {type = t;}
       virtual bool isVariable () const {return false;}
       virtual bool isConstant () const {return false;}
-	  virtual bool isNonCompileConstant () const {return false;}
+      virtual bool isNonCompileConstant () const {return false;}
       virtual bool isGlobal () const {return glob;}
       virtual void setGlobal () {glob = true;}
       
@@ -56,8 +56,8 @@ namespace MiniMC {
     class Constant : public Value {
     public:
       virtual ~Constant () {}
-      bool isConstant () const {return true;}  
-      virtual const MiniMC::uint8_t* getData () const = 0; 
+      bool isConstant () const override {return true;}  
+      virtual const MiniMC::uint8_t* getData () const = 0;
       virtual bool isAggregate () const {return false;}
       virtual bool isInteger () const {return false;}
     };

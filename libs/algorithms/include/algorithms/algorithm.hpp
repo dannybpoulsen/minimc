@@ -105,6 +105,7 @@ namespace MiniMC {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();
 	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
 	  }
+	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> ();
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
 	  if (options.replaceSub) {
@@ -122,7 +123,7 @@ namespace MiniMC {
 	  if (options.isConcurrent) {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
 	  }
-	  
+
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  

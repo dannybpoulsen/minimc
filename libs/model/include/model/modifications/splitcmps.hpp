@@ -6,8 +6,8 @@
  * 
  * 
  */
-#ifndef _SPLITASSERTS__
-#define _SPLITASSERT__
+#ifndef _SPLITCMPS__
+#define _SPLITCMPS__
 
 #include <vector>
 #include <algorithm>
@@ -21,12 +21,6 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
       struct SplitCompares : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-	
-	
-	
-	
-
-
 	virtual bool run (MiniMC::Model::Program&  prgm) {
 
 	  auto isCMP = [] (auto& inst) {return MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::ICMP_SGT,
@@ -70,10 +64,7 @@ namespace MiniMC {
 						       auto nedge = cfg->makeEdge (loc,it->getTo (),prgm.shared_from_this());
 						       nedge->copyAttributesFrom (**it);
 						       
-						     }
-						     
-						       
-						     
+						     }				     
 						     std::vector<MiniMC::Model::Instruction> instr;
 						     std::copy (instrs.begin(),instrs.end(),std::back_inserter(instr));
 						     auto tt = cfg->makeEdge(E->getFrom (),loc,prgm.shared_from_this());
@@ -142,7 +133,12 @@ namespace MiniMC {
 		    
 		    break;
 		  };
-		  cfg->deleteEdge (E);
+		  if (E->getTo ()->nbIncomingEdges () <=1) {
+		    cfg->deleteLocation (E->getTo ());
+		  }
+		  else {
+		    cfg->deleteEdge (E);
+		  }
 		}
 	      }
 	    }
@@ -152,6 +148,11 @@ namespace MiniMC {
 	}
 	
       };
+
+      struct KillUnneededBranching : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+	virtual bool run (MiniMC::Model::Program&  prgm);
+      };
+      
     }
   }	
 }
