@@ -2,6 +2,7 @@
 #define _WORKING_LIST__
 
 #include <vector>
+#include <functional>
 
 namespace MiniMC {
   namespace Support {
@@ -10,7 +11,7 @@ namespace MiniMC {
 	 * iterate over a collection that may change during the iteration.  
 	 *
 	 */ 
-	template<class Element,class Container = std::vector<Element>>
+    template<class Element,class Container = std::vector<Element>>
     class WorkingList {
     public:
       auto inserter () {return std::back_inserter (container);}
@@ -20,7 +21,7 @@ namespace MiniMC {
     private:
       Container container;
     };
-    
+
     
   }
 }

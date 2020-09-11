@@ -16,6 +16,7 @@
 #include "model/instructions.hpp"
 #include "model/variables.hpp"
 #include "support/types.hpp"
+#include "support/workinglist.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -123,6 +124,10 @@ namespace MiniMC {
       bool hasOutgoingEdge () const {
 		return edges.size();
       }
+
+      auto nbOutgoingEdges () const {
+	return edges.size();
+      }
       
       auto& getName () const {return name;}
 
@@ -164,7 +169,7 @@ namespace MiniMC {
 	   */
       template<Attributes i>
       void unset () {
-		flags &= ~static_cast<AttrType> (i);
+	flags &= ~static_cast<AttrType> (i);
       }
 
 	  AttrType getAttributesFlags () const {return flags;}
@@ -220,6 +225,7 @@ namespace MiniMC {
       MiniMC::offset_t id;
     };
 
+    
     
     class Program;
     using Location_ptr = std::shared_ptr<Location>;
@@ -354,11 +360,11 @@ namespace MiniMC {
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
-		from(from.get()),
-		to(to.get()) {
+	from(from.get()),
+	to(to.get()) {
       }
-
-	  Edge (const Edge& ) = default;
+      
+      Edge (const Edge& ) = default;
 	  
       template<AttributeType k>
       void setAttribute (const typename AttributeValueType<k>::ValType& inp) {
@@ -402,8 +408,19 @@ namespace MiniMC {
       }
 	  
       auto getProgram() const {return prgm.lock();}
+      
+      void setProgram (const Program_ptr& p) {prgm = p;} 
+      
+      void copyAttributesFrom (const Edge& e) {
+	if (e.hasAttribute<AttributeType::Guard> ()){
+	  this->setAttribute<AttributeType::Guard> (e.getAttribute<AttributeType::Guard> ());
+	}
 
-	  void setProgram (const Program_ptr& p) {prgm = p;} 
+	if (e.hasAttribute<AttributeType::Instructions> ()){
+	  this->setAttribute<AttributeType::Instructions> (e.getAttribute<AttributeType::Instructions> ());
+	}
+	
+      }
     private:
       Location_wptr from;
       Location_wptr to;
@@ -411,6 +428,7 @@ namespace MiniMC {
       Program_wptr prgm;
     };
 
+    
     
     inline std::ostream& operator<< (std::ostream& os, const Edge& e) {
       if (e.hasAttribute<AttributeType::Guard> ()) {
@@ -473,16 +491,37 @@ namespace MiniMC {
 	   * @param edge The edge to delete
 	   */
       void deleteEdge (const Edge_ptr& edge) {
-		edge->getFrom ()->removeEdge (edge);
-		edge->getTo ()->removeIncomingEdge (edge);
-		
+	edge->getFrom ()->removeEdge (edge);
+	edge->getTo ()->removeIncomingEdge (edge);
 	
-		auto it = std::find (edges.begin(),edges.end(),edge);
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
+	
+	auto it = std::find (edges.begin(),edges.end(),edge);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
       }
-	  
+
+      void deleteLocation (const Location_ptr& location) {
+	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
+	auto insert = wlist.inserter();
+	std::for_each (location->ebegin(),location->eend(),[&](const auto& e) {insert = e;});
+	std::for_each (location->iebegin(),location->ieend(),[&](const auto& e) {insert = e;});
+	
+	
+	
+	std::for_each (wlist.begin(),wlist.end(), [&](const auto& e) {this->deleteEdge (e);});
+	
+
+	//edge->getFrom ()->removeEdge (edge);
+	//edge->getTo ()->removeIncomingEdge (edge);
+	
+	
+	auto it = std::find (locations.begin(),locations.end(),location);
+	if (it != locations.end()) {
+	  locations.erase (it);
+	}
+      }
+      
       auto& getLocations () const {return locations;}
       auto& getLocations ()  {return locations;}
       auto& getEdges () {return edges;}

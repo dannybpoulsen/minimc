@@ -475,8 +475,8 @@ namespace MiniMC {
 					   
 	    }
 		
-	    if (h.getRes ()) {
-	      auto resType = h.getRes ()->getType();
+	    if (h.getResult ()) {
+	      auto resType = h.getResult ()->getType();
 	      if (resType != func->getReturnType ()) {
 		mess.error ("Result and return type of functions must match.");
 		return false;

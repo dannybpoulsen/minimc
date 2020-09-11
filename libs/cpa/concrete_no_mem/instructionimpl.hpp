@@ -452,7 +452,7 @@ namespace MiniMC {
 			st.stack.save (*it,t);
 			++it;
 		  }
-		  auto resVar = helper.getRes ();
+		  auto resVar = helper.getResult ();
 		  if (resVar) {
 			auto data = st.stack.getData();
 			data.ret  = std::static_pointer_cast<MiniMC::Model::Variable> (resVar).get();
