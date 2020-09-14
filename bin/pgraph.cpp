@@ -66,7 +66,10 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
      )
     ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
     ("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
-    ("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
+	("foldconstants",po::bool_switch (&sopt.foldConstants),"Fold constants.")
+    
+	("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
+	
 	;
   
   

@@ -30,7 +30,7 @@ namespace MiniMC {
 		}
 		
 		virtual bool run (MiniMC::Model::Program&  prgm) {
-		  for (auto& F : prgm.getEntryPoints ()) {
+		  for (auto& F : prgm.getFunctions ()) {
 			for (auto& E : F->getCFG()->getEdges ()) {
 			  if (E->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 				auto& guard = E->getAttribute<MiniMC::Model::AttributeType::Guard> ();

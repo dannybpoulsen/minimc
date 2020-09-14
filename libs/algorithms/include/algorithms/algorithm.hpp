@@ -23,6 +23,7 @@
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/replacesub.hpp"
 #include "model/modifications/splitcmps.hpp"
+#include "model/modifications/constantfolding.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -80,6 +81,7 @@ namespace MiniMC {
 	  bool simplifyCFG = false;
 	  bool replaceSub = false;
 	  bool splitCMPS = false;
+	  bool foldConstants = false;
 	  std::size_t inlinefunctions = 0;
 	};
 	
@@ -96,15 +98,21 @@ namespace MiniMC {
     void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
-	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
+	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
+	  
+	  
 	  if (options.inlinefunctions) {
 	    seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
 	  }
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
+	  if (options.foldConstants) {
+		seq.template add<MiniMC::Model::Modifications::FoldConstants> ();
+	  }
 	  if (options.splitCMPS) {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();
 	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
 	  }
+	  
 	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> ();
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
