@@ -55,9 +55,10 @@ int main (int argc,char* argv[]) {
 	 "\t 1: None\n"
 	 "\t 2: Conservative\n"
 	 )
-	("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
-        ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
-	;
+    ("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
+    ("constfold",boost::program_options::bool_switch(&soptions.foldConstants),"Constant Folding")
+    ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
+    ;
 
     ;
         

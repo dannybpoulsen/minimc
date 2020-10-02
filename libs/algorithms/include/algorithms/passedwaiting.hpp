@@ -15,8 +15,8 @@
 
 namespace MiniMC {
   namespace Algorithms {
-	using Stack = MiniMC::Support::Stack<MiniMC::CPA::State>;
-	using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;
+    using Stack = MiniMC::Support::Stack<MiniMC::CPA::State>;
+    using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;
 	
     /*template<class Iterator, class Joiner>
     State_ptr mergeIn (Iterator beg, Iterator end, MiniMC::CPA::State_ptr& state) {

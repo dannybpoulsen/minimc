@@ -13,8 +13,8 @@ namespace MiniMC  {
 	  struct FoldConstants : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
-			foldConstants (*F);
-			
+		    foldConstants (*F);
+		    
 		  }
 		  return true;
 		}

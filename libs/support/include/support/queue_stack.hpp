@@ -1,6 +1,7 @@
 #ifndef _QUEUE_STACK__
 #define _QUEUE_STACK__
 
+#include <cassert>
 #include <memory>
 #include <vector>
 #include <deque>

@@ -106,7 +106,7 @@ namespace MiniMC {
 	  }
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
 	  if (options.foldConstants) {
-		seq.template add<MiniMC::Model::Modifications::FoldConstants> ();
+	    seq.template add<MiniMC::Model::Modifications::FoldConstants> ();
 	  }
 	  if (options.splitCMPS) {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar> ();

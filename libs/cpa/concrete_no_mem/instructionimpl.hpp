@@ -12,6 +12,7 @@
 #include "stack.hpp"
 #include "state.hpp"
 #include "compimpl.hpp"
+#include "predimpl.hpp"
 #include "castimpl.hpp"
 
 namespace MiniMC {
@@ -151,7 +152,7 @@ namespace MiniMC {
       };
       
       template<class T>
-      OutRegister TypeRedirect (const InRegister& left, const InRegister& right, const MiniMC::Model::Type_ptr& t ) {
+      auto TypeRedirect (const InRegister& left, const InRegister& right, const MiniMC::Model::Type_ptr& t ) {
 		switch (t->getTypeID ()) {
 		case MiniMC::Model::TypeID::Integer: {
 		  switch (t->getSize ()) {
@@ -404,7 +405,20 @@ namespace MiniMC {
 		}
       };
 	  
-      
+
+      template<MiniMC::Model::InstructionCode opc>
+      struct ExecuteInstruction<opc,typename std::enable_if<MiniMC::Model::InstructionData<opc>::isPredicate>::type> {
+		inline static void execute (const MiniMC::CPA::ConcreteNoMem::State::StackDetails& readFrom,
+									MiniMC::CPA::ConcreteNoMem::State::StackDetails& st,
+									const MiniMC::Model::Instruction& inst)  {
+		  MiniMC::Model::InstHelper<opc> helper (inst);
+		  RegisterLoader l (readFrom,helper.getLeftOp ());
+		  RegisterLoader r (readFrom,helper.getRightOp ());
+		  TypeRedirect<PredRedirect<opc>> (l.getRegister(),r.getRegister(),helper.getLeftOp ()->getType ());
+		  
+		  
+		}
+      };
 
 
       
