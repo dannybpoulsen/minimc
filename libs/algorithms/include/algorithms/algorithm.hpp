@@ -76,6 +76,7 @@ namespace MiniMC {
 	
 	struct SetupOptions {
 	  gsl::not_null<MiniMC::Support::Messager*> messager;
+	  MiniMC::Model::Analysis::Manager_ptr amanager;
 	  SpaceReduction reduction;
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
@@ -97,7 +98,7 @@ namespace MiniMC {
 	 * Add the typechecking, structural checks and modifications needed by \tparam algorithm to the MiniMC::Support::Sequencer<MiniMC::Model::Program> \p seq
 	 */
     template<class algorithm>
-    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options, MiniMC::Model::Analysis::Manager_ptr& manager) {
+    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
@@ -115,7 +116,7 @@ namespace MiniMC {
 	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
 	  }
 	  
-	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> (manager);
+	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> (options.amanager);
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
 	  if (options.replaceSub) {
@@ -154,7 +155,7 @@ namespace MiniMC {
 	template<class Seq, class Algo>
 	auto runSetup (Seq& seq, Algo& algo, MiniMC::Model::Program& prgm) {
 	  if (seq.run (prgm)) {
-		return algo.run (prgm);
+	    return algo.run (prgm);
 	  }
 	  return Result::Error;
 	}

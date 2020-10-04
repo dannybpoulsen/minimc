@@ -87,13 +87,14 @@ int main (int argc,char* argv[]) {
 	po::notify (vm);
 
 	//Load Program
-  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
+	MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
   MiniMC::Model::Program_ptr prgm = MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM> (input, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac,
 																																												  .cfactory =cfac}
 	);
   
   assert(prgm);
+  soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (vm.count ("task")) {
     std::vector< std::string > entries = vm["task"].as< std::vector< std::string > >();

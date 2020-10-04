@@ -96,7 +96,7 @@ namespace MiniMC {
 		      canSkipLocation (to)) {
 		    MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
 		    addToWorkingList (inner_wlist,to->ebegin (),to->eend ());
-					
+		    
 		    for (auto rwedge : inner_wlist) {
 		      if (auto remove_edge = rwedge.lock ()) {
 			inner_mod = true;
@@ -107,69 +107,18 @@ namespace MiniMC {
 		      }
 		    }
 		  }
-				  
+		  modified |=inner_mod;
+		  
 		}
-		modified |=inner_mod;
 		if (inner_mod)
 		  cfg->deleteEdge (edge);
 	      }
-			  
+	      
 	    }while (modified);
 			
 	  }
 	  return true;
-
-	  /*bool modified = false;
-	    do {
-	    modified = false;
-	    MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
-	    auto inserter =wlist.inserter ();
-	    auto cfg = F->getCFG ();
-	    std::for_each (cfg->getEdges().begin(),
-	    cfg->getEdges().end (),
-	    [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
-	    );
-	    for (auto& EW : wlist) {
-	    if (auto E = EW.lock ()) {
-	    auto from = E->getFrom ();
-	    auto to = E->getTo ();		  
-	    if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> ()) {
-	    if (to->nbIncomingEdges () <= 1 &&
-	    !to->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () &&
-	    !to->template is<MiniMC::Model::Location::Attributes::CallPlace> ()
-						
-	    )
-	    {
-						
-	    MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
-	    auto inserter =inner_wlist.inserter ();
-	    std::for_each (to->ebegin(),
-	    to->eend (),
-	    [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
-	    );
-	    bool inner_mod = false;
-						
-	    for (auto cwedge : inner_wlist) {
-	    if (auto cedge = cwedge.lock ()) {
-	    inner_mod = true;
-	    auto nedge = cfg->makeEdge (from,cedge->getTo (),prgm.shared_from_this());
-	    copyInstrStream (nedge,E);
-	    copyInstrStream (nedge,cedge);
-	    cfg->deleteEdge (cedge);
-	    }
-	    }
-	    modified |= inner_mod;;
-	    if (inner_mod)
-	    cfg->deleteEdge (E);
-	    }
-	    }
-	    }
-		
-	    }
-	    }while (modified);
-	    
-	    }*/
-		 
+	 
 	}
       };
 

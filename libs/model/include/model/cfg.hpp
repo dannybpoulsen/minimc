@@ -492,14 +492,14 @@ namespace MiniMC {
 	   * @param edge The edge to delete
 	   */
       void deleteEdge (const Edge_ptr& edge) {
-		edge->getFrom ()->removeEdge (edge);
-		edge->getTo ()->removeIncomingEdge (edge);
+	edge->getFrom ()->removeEdge (edge);
+	edge->getTo ()->removeIncomingEdge (edge);
 	
 	
-		auto it = std::find (edges.begin(),edges.end(),edge);
-		if (it != edges.end()) {
-		  edges.erase (it);
-		}
+	auto it = std::find (edges.begin(),edges.end(),edge);
+	if (it != edges.end()) {
+	  edges.erase (it);
+	}
       }
 
       void deleteLocation (const Location_ptr& location) {

@@ -17,7 +17,7 @@ namespace {
 	using algorithm = MiniMC::Algorithms::ProbaChecker<F>;
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Model::Analysis::Manager_ptr amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm.shared_from_this ());
-	MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt,amanager);	
+	MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);	
 	algorithm algo(typename algorithm::Options {opt});
 	return MiniMC::Algorithms::runSetup (seq,algo,prgm);
   }
