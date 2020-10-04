@@ -25,6 +25,8 @@
 #include "model/modifications/splitcmps.hpp"
 #include "model/modifications/constantfolding.hpp"
 
+#include "model/analysis/manager.hpp"
+
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
 #include "support/feedback.hpp"
@@ -95,7 +97,7 @@ namespace MiniMC {
 	 * Add the typechecking, structural checks and modifications needed by \tparam algorithm to the MiniMC::Support::Sequencer<MiniMC::Model::Program> \p seq
 	 */
     template<class algorithm>
-    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
+    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options, MiniMC::Model::Analysis::Manager_ptr& manager) {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
@@ -113,7 +115,7 @@ namespace MiniMC {
 	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
 	  }
 	  
-	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> ();
+	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> (manager);
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
 	  if (options.replaceSub) {

@@ -13,8 +13,10 @@
 #include <algorithm>
 
 #include "model/cfg.hpp"
+#include "model/analysis/manager.hpp"
 #include "support/sequencer.hpp"
 #include "support/workinglist.hpp"
+
 
 
 namespace MiniMC {
@@ -150,8 +152,11 @@ namespace MiniMC {
       };
 
       struct KillUnneededBranching : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-	virtual bool run (MiniMC::Model::Program&  prgm);
-      };
+		KillUnneededBranching (MiniMC::Model::Analysis::Manager_ptr& manager) : amanager(manager) {}
+		virtual bool run (MiniMC::Model::Program&  prgm);
+	  private:
+		MiniMC::Model::Analysis::Manager_ptr amanager;
+	  };
       
     }
   }	

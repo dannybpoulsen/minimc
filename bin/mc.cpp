@@ -15,7 +15,8 @@ auto runAlgorithm (MiniMC::Model::Program& prgm,  const MiniMC::Algorithms::Setu
   using algorithm = MiniMC::Algorithms::ExplicitReachability;;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);
+  MiniMC::Model::Analysis::Manager_ptr amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm.shared_from_this ());
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt,amanager);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
   return MiniMC::Algorithms::runSetup (seq,algo,prgm);
 }

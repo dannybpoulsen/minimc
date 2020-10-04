@@ -23,8 +23,9 @@ namespace {
 template<class CPADef>
 auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
+  MiniMC::Model::Analysis::Manager_ptr amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm.shared_from_this ());
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);
+  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt,amanager);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
   return MiniMC::Algorithms::runSetup (seq,algo,prgm);
 }

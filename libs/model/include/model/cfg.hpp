@@ -81,10 +81,10 @@ namespace MiniMC {
 	   *
 	   */
       enum class Attributes  : AttrType {
-										 AssertViolated = 1, /**< Indicates an assert was violated */
-										 NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
-										 CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
-										 AssumptionPlace = 8 /**< Indicates an assumption is made on an edge leaving this location  */
+		AssertViolated = 1, /**< Indicates an assert was violated */
+		NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
+		CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
+		AssumptionPlace = 8 /**< Indicates an assumption is made on an edge leaving this location  */
       };
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
@@ -127,7 +127,7 @@ namespace MiniMC {
       }
 
       auto nbOutgoingEdges () const {
-	return edges.size();
+		return edges.size();
       }
       
       auto& getName () const {return name;}
@@ -170,7 +170,7 @@ namespace MiniMC {
 	   */
       template<Attributes i>
       void unset () {
-	flags &= ~static_cast<AttrType> (i);
+		flags &= ~static_cast<AttrType> (i);
       }
 
 	  AttrType getAttributesFlags () const {return flags;}
@@ -241,8 +241,8 @@ namespace MiniMC {
 	 *
 	 */
     enum class AttributeType {
-							  Instructions, /**<  A stream of instruction*/
-							  Guard  /**<  A  guarding Value that has to be true when moving along the edge*/
+	  Instructions, /**<  A stream of instruction*/
+	  Guard  /**<  A  guarding Value that has to be true when moving along the edge*/
     };
 	
     template<AttributeType>
@@ -292,7 +292,7 @@ namespace MiniMC {
 
       template<class Iterator>
       auto replaceInstructionBySeq (iterator repl, Iterator beg, Iterator end) {
-	return instr.insert(erase (repl),beg,end);
+		return instr.insert(erase (repl),beg,end);
       }
       
       auto& last () {assert(instr.size()); return instr.back();}
@@ -301,7 +301,7 @@ namespace MiniMC {
       
       template<class Iterator>
       auto erase( Iterator iter) {
-	return instr.erase (iter);
+		return instr.erase (iter);
       }
 	  
       std::vector<Instruction> instr;
@@ -361,8 +361,8 @@ namespace MiniMC {
     {
     public:
       Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
-	from(from.get()),
-	to(to.get()) {
+		from(from.get()),
+		to(to.get()) {
       }
       
       Edge (const Edge& ) = default;
@@ -413,13 +413,13 @@ namespace MiniMC {
       void setProgram (const Program_ptr& p) {prgm = p;} 
       
       void copyAttributesFrom (const Edge& e) {
-	if (e.hasAttribute<AttributeType::Guard> ()){
-	  this->setAttribute<AttributeType::Guard> (e.getAttribute<AttributeType::Guard> ());
-	}
+		if (e.hasAttribute<AttributeType::Guard> ()){
+		  this->setAttribute<AttributeType::Guard> (e.getAttribute<AttributeType::Guard> ());
+		}
 
-	if (e.hasAttribute<AttributeType::Instructions> ()){
-	  this->setAttribute<AttributeType::Instructions> (e.getAttribute<AttributeType::Instructions> ());
-	}
+		if (e.hasAttribute<AttributeType::Instructions> ()){
+		  this->setAttribute<AttributeType::Instructions> (e.getAttribute<AttributeType::Instructions> ());
+		}
 	
       }
     private:
@@ -492,35 +492,35 @@ namespace MiniMC {
 	   * @param edge The edge to delete
 	   */
       void deleteEdge (const Edge_ptr& edge) {
-	edge->getFrom ()->removeEdge (edge);
-	edge->getTo ()->removeIncomingEdge (edge);
+		edge->getFrom ()->removeEdge (edge);
+		edge->getTo ()->removeIncomingEdge (edge);
 	
 	
-	auto it = std::find (edges.begin(),edges.end(),edge);
-	if (it != edges.end()) {
-	  edges.erase (it);
-	}
+		auto it = std::find (edges.begin(),edges.end(),edge);
+		if (it != edges.end()) {
+		  edges.erase (it);
+		}
       }
 
       void deleteLocation (const Location_ptr& location) {
-	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
-	auto insert = wlist.inserter();
-	std::for_each (location->ebegin(),location->eend(),[&](const auto& e) {insert = e;});
-	std::for_each (location->iebegin(),location->ieend(),[&](const auto& e) {insert = e;});
+		MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
+		auto insert = wlist.inserter();
+		std::for_each (location->ebegin(),location->eend(),[&](const auto& e) {insert = e;});
+		std::for_each (location->iebegin(),location->ieend(),[&](const auto& e) {insert = e;});
 	
 	
 	
-	std::for_each (wlist.begin(),wlist.end(), [&](const auto& e) {this->deleteEdge (e);});
+		std::for_each (wlist.begin(),wlist.end(), [&](const auto& e) {this->deleteEdge (e);});
 	
 
-	//edge->getFrom ()->removeEdge (edge);
-	//edge->getTo ()->removeIncomingEdge (edge);
+		//edge->getFrom ()->removeEdge (edge);
+		//edge->getTo ()->removeIncomingEdge (edge);
 	
 	
-	auto it = std::find (locations.begin(),locations.end(),location);
-	if (it != locations.end()) {
-	  locations.erase (it);
-	}
+		auto it = std::find (locations.begin(),locations.end(),location);
+		if (it != locations.end()) {
+		  locations.erase (it);
+		}
       }
       
       auto& getLocations () const {return locations;}
@@ -553,13 +553,13 @@ namespace MiniMC {
       }
 
       void takeOwnsership () {
-	auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
-	for (auto& e : cfg->getEdges ()) {
-	  if (e->hasAttribute<AttributeType::Instructions> ()) 
-	    for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
-	      l.setFunction (shared_from_this());
-	    }
-	}
+		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
+		for (auto& e : cfg->getEdges ()) {
+		  if (e->hasAttribute<AttributeType::Instructions> ()) 
+			for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
+			  l.setFunction (shared_from_this());
+			}
+		}
       }
 	  
       auto& getName() const {return name;}
