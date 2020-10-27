@@ -103,11 +103,20 @@ int main (int argc,char* argv[]) {
       fmap.insert (std::make_pair(f->getName(),f));
     }
     for (std::string& s : entries) {
-      prgm->addEntryPoint (fmap.at(s));
+      if (fmap.count (s)) 
+	prgm->addEntryPoint (fmap.at(s));
+      else {
+	std::cerr << MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format (s) << std::endl;
+	return -1;
+      }
     }
   }
   if (prgm->getEntryPoints ().size () > 1)
-	soptions.isConcurrent = true;
+    soptions.isConcurrent = true;
+  if (prgm->getEntryPoints().size() == 0) {
+    std::cerr << MiniMC::Support::Localiser{"At least one entry point must be specified. "}.format() << std::endl;
+    return -1;
+  }
   std::vector<std::string> subargs = po::collect_unrecognized(parsed.options, po::include_positional);
   subargs.erase(subargs.begin(),subargs.begin()+2);
   
@@ -116,21 +125,21 @@ int main (int argc,char* argv[]) {
   }
   
   else {
-	std::cerr << MiniMC::Support::Localiser{"Unknown subcommand '%1%"}.format (subcommand) << std::endl;
+    std::cerr << MiniMC::Support::Localiser{"Unknown subcommand '%1%"}.format (subcommand) << std::endl;
 	
   }
   
   }
   catch(po::error& e) {
-	printBanner (std::cerr);
-	std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
-	std::cerr << general << std::endl;
-	std::cerr << "Subcommands" << std::endl;
-	auto comms = getCommandNameAndDescr ();
-	for (auto& it :  comms) {
-	  std::cerr << it.first <<"\t" << it.second << std::endl;
-	}
-	return -1;
+    printBanner (std::cerr);
+    std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
+    std::cerr << general << std::endl;
+    std::cerr << "Subcommands" << std::endl;
+    auto comms = getCommandNameAndDescr ();
+    for (auto& it :  comms) {
+      std::cerr << it.first <<"\t" << it.second << std::endl;
+    }
+    return -1;
   }
   
     

@@ -152,11 +152,11 @@ namespace MiniMC {
       };
 
       struct KillUnneededBranching : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-		KillUnneededBranching (MiniMC::Model::Analysis::Manager_ptr& manager) : amanager(manager) {}
-		virtual bool run (MiniMC::Model::Program&  prgm);
-	  private:
-		MiniMC::Model::Analysis::Manager_ptr amanager;
-	  };
+	KillUnneededBranching (MiniMC::Model::Analysis::Manager_ptr& manager) : amanager(manager) {}
+	virtual bool run (MiniMC::Model::Program&  prgm);
+      private:
+	MiniMC::Model::Analysis::Manager_ptr amanager;
+      };
       
     }
   }	
