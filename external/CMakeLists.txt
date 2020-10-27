@@ -9,7 +9,6 @@
 	INSTALL_COMMAND make install
 	INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/murmurhash/install/
 )
-
 	ExternalProject_Get_Property(murmurhash install_dir)
 	ExternalProject_Get_Property(murmurhash source_dir)
 	
@@ -19,7 +18,11 @@
 	
 	
 	
-	target_include_directories(murmur INTERFACE ${source_dir}) 
-	
+	target_include_directories(murmur INTERFACE ${source_dir})
+
+
+add_library (base64 STATIC ${CMAKE_CURRENT_SOURCE_DIR}/base64/base64.cpp)
+target_include_directories(base64 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/base64/)
+
 
 add_subdirectory (smtlib)

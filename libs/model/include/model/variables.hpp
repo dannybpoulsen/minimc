@@ -11,6 +11,7 @@
 #include "model/types.hpp"
 #include "support/storehelp.hpp"
 #include "support/types.hpp"
+#include "support/binary_encode.hpp"
 namespace MiniMC {
   namespace Model {
 
@@ -99,8 +100,8 @@ namespace MiniMC {
       friend class ConstantFactory64;
       
       auto getValue () const {
-		auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
-		return val;
+	auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
+	return val;
       }
       
       virtual const MiniMC::uint8_t* getData () const {
@@ -110,7 +111,8 @@ namespace MiniMC {
       virtual bool isInteger () const {return true;}
       
       virtual std::ostream& output (std::ostream& os) const {
-	os << "< " << static_cast<MiniMC::uint64_t> (getValue()) << " ";
+	MiniMC::Support::Base64Encode encoder;
+	os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
 	if (getType ())
 	  os << *getType();
 	else
@@ -135,25 +137,22 @@ namespace MiniMC {
 	  
       template<class T>
       auto& getValue () const {
-		assert(sizeof(T) == size);
-		return *reinterpret_cast<T*> (value.get());;
+	assert(sizeof(T) == size);
+	return *reinterpret_cast<T*> (value.get());;
       }
       
       virtual const MiniMC::uint8_t* getData () const {
-		return value.get();
+	return value.get();
       }
   
       virtual std::ostream& output (std::ostream& os) const {
-		os << "< " << "BINARY(" << " ";
-		for (size_t i = 0; i < size; i++) {
-		  os <<  static_cast<int> (*(value.get()+i)) <<", ";
-		}
-		os << ") ";
-		if (getType ())
-		  os << *getType();
-		else
-		  os << "??";
-		return os << " >";
+	MiniMC::Support::Base64Encode encoder;
+	os << encoder.encode (reinterpret_cast<const char*> (value.get()),size);
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
       }
     private:
       std::unique_ptr<MiniMC::uint8_t[]> value;
@@ -201,7 +200,7 @@ namespace MiniMC {
 		return os << " >";
 	  }
 	  
-	  bool isVariable () const {return true;}
+      bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
       

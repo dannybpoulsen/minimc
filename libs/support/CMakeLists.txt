@@ -2,7 +2,7 @@ Find_Package (CGraph)
 
 option (BIG_ENDIAN "Use Big endian encoding")
 
-add_library (support STATIC  dotgraph.cpp)
+add_library (support STATIC  dotgraph.cpp base64encode.cpp)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_subdirectory (linux)
 	target_link_libraries (support PUBLIC linuxsupport)
@@ -20,7 +20,7 @@ configure_file (
 
 target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
 
-target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES})
+target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} base64)
 if(BIG_ENDIAN)
     target_compile_options (support PUBLIC -DMINIMC_USE_BIG_ENDIAN)
 endif(BIG_ENDIAN)

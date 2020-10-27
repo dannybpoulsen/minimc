@@ -1,0 +1,22 @@
+#include "support/binary_encode.hpp"
+#include "base64.h"
+
+
+namespace MiniMC {
+  namespace Support {
+    std::string Base64Encode::encode (const char* buf, std::size_t len) {
+      return base64_encode (reinterpret_cast<unsigned char const*> (buf),len,false);
+    }
+
+    DecodeResult Base64Encode::decode (const std::string& str) {
+      std::string dec = base64_decode (str);
+      DecodeResult res;
+      res.size =dec.length ();
+      res.buffer.reset (new MiniMC::uint8_t[dec.length()]);
+      std::copy (dec.c_str(),dec.c_str()+dec.length (),res.buffer.get());
+      return res;
+    }
+    
+  }
+}
+
