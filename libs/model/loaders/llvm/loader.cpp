@@ -183,7 +183,7 @@ namespace MiniMC {
     
     struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
-		std::string fname = F.getName();
+		std::string fname = F.getName().str();
 		fname = fname+".";
 		for (auto &Arg : F.args())
 		  if (!Arg.hasName()) 
@@ -341,7 +341,7 @@ namespace MiniMC {
 		for (auto& g : F.getGlobalList()) {
 		  auto lltype = g.getType ();
 		  auto type = getType (lltype,tfactory);
-		  auto gvar = makeVariable (&g,g.getName(),type,gstack,values);
+		  auto gvar = makeVariable (&g,g.getName().str(),type,gstack,values);
 		  gvar->setGlobal ();
 		  auto pointTy = getType (g.getValueType(),tfactory);
 		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
@@ -390,18 +390,18 @@ namespace MiniMC {
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager& AM) {
 		Types tt;
 		tt.tfac = tfactory;
-		std::string fname =  F.getName();
+		std::string fname =  F.getName().str();
 		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
 		tt.stack = variablestack;
 		using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
 		pickVariables <inserter> (F,variablestack,std::back_inserter(params));
-		auto f = prgm->addFunction (F.getName(),params,tt.getType(F.getReturnType ()),variablestack,cfg);
+		auto f = prgm->addFunction (F.getName().str(),params,tt.getType(F.getReturnType ()),variablestack,cfg);
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
 	
 		for (llvm::BasicBlock &BB : F) {
-		  auto loc = cfg->makeLocation(BB.getName());
+		  auto loc = cfg->makeLocation(BB.getName().str());
 		  locmap.insert (std::make_pair(&BB,loc)); 
 		}
 	
@@ -526,7 +526,7 @@ namespace MiniMC {
 		for (auto itt = func.arg_begin();itt!=func.arg_end(); itt++) {
 		  auto lltype = itt->getType ();
 		  auto type = getType (lltype,tfactory);
-		  in = makeVariable (itt,itt->getName(),type,stack,values);
+		  in = makeVariable (itt,itt->getName().str(),type,stack,values);
 		}
 		
 		for (const llvm::BasicBlock& bb : func) {
@@ -556,7 +556,7 @@ namespace MiniMC {
 		  return ;
 		}
 		else {
-		  makeVariable (op,op->getName(),type,stack,values);
+		  makeVariable (op,op->getName().str(),type,stack,values);
 		}
       }
 	  
