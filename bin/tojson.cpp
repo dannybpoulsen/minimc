@@ -6,29 +6,28 @@
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include "algorithms/printgraph.hpp"
-
+#include "savers/savers.hpp"
 
 #include "cpa/location.hpp"
 #include "cpa/concrete_no_mem.hpp"
 #include "cpa/pathformula.hpp"
 #include "cpa/compound.hpp"
 
-
-#include "loaders/loader.hpp"
-
 #include "plugin.hpp"
 
 namespace po = boost::program_options;
 namespace {
 template<class CPADef>
-auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
+void runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
   MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
-  return MiniMC::Algorithms::runSetup (seq,algo,prgm);
+  MiniMC::Savers::OptionsSave<MiniMC::Savers::Type::JSON>::Opt saveOpt {.writeTo = &std::cout};
+  MiniMC::Savers::saveModel<MiniMC::Savers::Type::JSON> (prgm.shared_from_this (),saveOpt);
+  
 }
-
+  
 enum class CPAUsage {
 					 Location,
 					 LocationExplicit,
@@ -37,9 +36,9 @@ enum class CPAUsage {
 
 }
 
-int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
+int tojson_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
   CPAUsage CPA = CPAUsage::Location;
-  po::options_description desc("Print Graph Options");
+  po::options_description desc("Conversion Options");
   std::string input;
   auto updateCPA = [&CPA] (int val) {
 					 switch (val) {
@@ -85,22 +84,21 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 												  MiniMC::CPA::Location::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
 												  >;
-  MiniMC::Algorithms::Result res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
-	res = runAlgorithm<CVC4Path> (*prgm,sopt);
+	runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
   case CPAUsage::LocationExplicit:
-    res = runAlgorithm<LocExpliStack> (*prgm,sopt);
+    runAlgorithm<LocExpliStack> (*prgm,sopt);
     break;
   case CPAUsage::Location:
   default:
-    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);
+	runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);
     break;
   }
 
-  return static_cast<int> (res);
+  return static_cast<int> (0);
 }
 
 
-static CommandRegistrar pgraph_reg ("pgraph",pgraph_main,"Generate the state graph for given CPA");
+static CommandRegistrar tojson_reg ("convert",tojson_main,"Convert input to JSON format");

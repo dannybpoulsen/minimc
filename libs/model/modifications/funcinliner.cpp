@@ -37,20 +37,13 @@ namespace MiniMC {
 		MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
 		auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) { 
 						 for (auto& v : stack->getVariables ()) {
-						   if (v->isConstant () ) {
-							 valmap.insert(std::make_pair (v.get(),v));
-						   }
-						   
-						   else if (! v->isNonCompileConstant ()) {
-							 valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (cfunc->getName()+v->getName(),v->getType ())));
-						   }
-
-						   else {
-							 throw MiniMC::Support::Exception ("Can't unrolls functions with non-compile constants");
-						   }
-						   
+						   valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (cfunc->getName()+v->getName(),v->getType ())));
 						 }
-					   };
+
+						   
+						   
+		};
+		
 		copyVar (cfunc->getVariableStackDescr ());
 
 		ReplaceMap<MiniMC::Model::Location> locmap;

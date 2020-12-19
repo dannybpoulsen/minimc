@@ -187,29 +187,31 @@ namespace MiniMC {
 		RegisterLoader (const State::StackDetails& details, const MiniMC::Model::Value_ptr& ptr) {
 		  if(ptr->isConstant ()) {
 			auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
-			std::size_t size = ptr->getType()->getSize();
-			
-			std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);;
-			std::copy(constant->getData (),constant->getData ()+size,buffer.get());
-	    
-			reg = std::make_unique<InnerStateConst> (buffer,size);
-		    
-		  }
-		  else if (ptr->isNonCompileConstant ()) {
-			auto constant = std::static_pointer_cast<MiniMC::Model::AggregateNonCompileConstant> (ptr);
-			std::size_t size = ptr->getType()->getSize();
-			
-			std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);;
-			auto out = buffer.get();
-			auto end = constant->end();
-			for (auto it = constant->begin(); it != end; ++it) {
-			  RegisterLoader rl (details,*it);
-			  out = std::copy (reinterpret_cast<const uint8_t*> (rl.getRegister ().getMem ()),
-							   reinterpret_cast<const uint8_t*> (rl.getRegister ().getMem ())+rl.getRegister().getSize (),
+
+			if (constant->isNonCompileConstant ()) {
+			  auto ncconstant = std::static_pointer_cast<MiniMC::Model::AggregateNonCompileConstant> (constant);
+			  std::size_t size = ptr->getType()->getSize();
+			  
+			  std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);;
+			  auto out = buffer.get();
+			  auto end = ncconstant->end();
+			  for (auto it = ncconstant->begin(); it != end; ++it) {
+				RegisterLoader rl (details,*it);
+				out = std::copy (reinterpret_cast<const uint8_t*> (rl.getRegister ().getMem ()),
+								 reinterpret_cast<const uint8_t*> (rl.getRegister ().getMem ())+rl.getRegister().getSize (),
 							   out);
+			  }
+			  reg = std::make_unique<InnerStateConst> (buffer,size);
+			  
 			}
-			reg = std::make_unique<InnerStateConst> (buffer,size);
-		    
+			else {
+			  std::size_t size = ptr->getType()->getSize();
+			  
+			  std::unique_ptr<MiniMC::uint8_t[]> buffer (new MiniMC::uint8_t[size]);;
+			  std::copy(constant->getData (),constant->getData ()+size,buffer.get());
+			  
+			  reg = std::make_unique<InnerStateConst> (buffer,size);
+			}
 		  }
 		  else {
 			auto regi = (ptr->isGlobal() ? details.gstack : details.stack).load (std::static_pointer_cast<MiniMC::Model::Variable> (ptr));

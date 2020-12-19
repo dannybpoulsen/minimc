@@ -492,16 +492,16 @@ namespace MiniMC {
 	   * @param edge The edge to delete
 	   */
       void deleteEdge (const Edge_ptr& edge) {
-	edge->getFrom ()->removeEdge (edge);
-	edge->getTo ()->removeIncomingEdge (edge);
-	
-	
-	auto it = std::find (edges.begin(),edges.end(),edge);
-	if (it != edges.end()) {
-	  edges.erase (it);
-	}
+		edge->getFrom ()->removeEdge (edge);
+		edge->getTo ()->removeIncomingEdge (edge);
+		
+		
+		auto it = std::find (edges.begin(),edges.end(),edge);
+		if (it != edges.end()) {
+		  edges.erase (it);
+		}
       }
-
+	  
       void deleteLocation (const Location_ptr& location) {
 		MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 		auto insert = wlist.inserter();
@@ -629,7 +629,7 @@ namespace MiniMC {
       auto& getConstantFactory () {return cfact;}
       auto& getTypeFactory () {return tfact;}
 
-      auto& getInitialisation () const {return initialiser;}
+      const auto& getInitialisation () const {return initialiser;}
       void setInitialiser (const InstructionStream& instr) {initialiser = instr;}
       
     private:

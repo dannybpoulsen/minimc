@@ -9,6 +9,7 @@
 #include <sstream>
 #include <algorithm>
 #include "model/types.hpp"
+#include "support/exceptions.hpp"
 #include "support/storehelp.hpp"
 #include "support/types.hpp"
 #include "support/binary_encode.hpp"
@@ -28,7 +29,7 @@ namespace MiniMC {
       void setType (const Type_ptr& t) {type = t;}
       virtual bool isVariable () const {return false;}
       virtual bool isConstant () const {return false;}
-      virtual bool isNonCompileConstant () const {return false;}
+	
       virtual bool isGlobal () const {return glob;}
       virtual void setGlobal () {glob = true;}
       
@@ -40,8 +41,8 @@ namespace MiniMC {
 	  }
 
 	  operator std::string () const {
-	  return this->string_repr ();
-	}
+		return this->string_repr ();
+	  }
 	  
     private:
       Type_ptr type;
@@ -58,12 +59,15 @@ namespace MiniMC {
     public:
       virtual ~Constant () {}
       bool isConstant () const override {return true;}  
-      virtual const MiniMC::uint8_t* getData () const = 0;
+	  virtual const MiniMC::uint8_t* getData () const = 0;
+	  virtual std::size_t getSize () {return 0;}
       virtual bool isAggregate () const {return false;}
       virtual bool isInteger () const {return false;}
+	  virtual bool isBinaryBlobConstant () const {return false;}
+	  virtual bool isNonCompileConstant () const {return false;}
     };
     
-    class NonCompileConstant : public Value {
+    class NonCompileConstant : public Constant {
     public:
       virtual ~NonCompileConstant () {}
       bool isNonCompileConstant () const {return true;}  
@@ -81,6 +85,11 @@ namespace MiniMC {
 		std::for_each (ops.begin(),ops.end(),[&](const Value_ptr& v){os << *v << ",";});
 		return os << "]";
 	  }
+
+	  virtual const MiniMC::uint8_t* getData () const {
+		throw MiniMC::Support::Exception ("GetData should not be called on NonCompileConstants");
+      }
+	  
 	private:
 	  std::vector<Value_ptr> ops;
 	};
@@ -94,30 +103,33 @@ namespace MiniMC {
     class IntegerConstant :public Constant  {
     protected:
       IntegerConstant (T val) : value(0) {
-	MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value),sizeof(value)) = val;
+		MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value),sizeof(value)) = val;
       }
     public:
       friend class ConstantFactory64;
       
       auto getValue () const {
-	auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
-	return val;
+		auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
+		return val;
       }
+
+	  virtual std::size_t getSize () override {return sizeof(T);}
       
+	  
       virtual const MiniMC::uint8_t* getData () const {
-	return reinterpret_cast<const MiniMC::uint8_t*> (&value);
+		return reinterpret_cast<const MiniMC::uint8_t*> (&value);
       }
       
       virtual bool isInteger () const {return true;}
       
       virtual std::ostream& output (std::ostream& os) const {
-	MiniMC::Support::Base64Encode encoder;
-	os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
-	if (getType ())
-	  os << *getType();
-	else
-	  os << "??";
-	return os << " >";
+		MiniMC::Support::Base64Encode encoder;
+		os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
+		if (getType ())
+		  os << *getType();
+		else
+		  os << "??";
+		return os << " >";
       }
     private:
       T value;
@@ -128,7 +140,7 @@ namespace MiniMC {
 	 *
 	 */ 
     class BinaryBlobConstant :public Constant  {
-      protected:
+	protected:
       BinaryBlobConstant (MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]),size(s) {
 		std::copy(data,data+s,value.get());
       }
@@ -137,22 +149,26 @@ namespace MiniMC {
 	  
       template<class T>
       auto& getValue () const {
-	assert(sizeof(T) == size);
-	return *reinterpret_cast<T*> (value.get());;
+		assert(sizeof(T) == size);
+		return *reinterpret_cast<T*> (value.get());;
       }
       
       virtual const MiniMC::uint8_t* getData () const {
-	return value.get();
+		return value.get();
       }
-  
+
+	  virtual bool isBinaryBlobConstant () const {return true;}
+	  
+	  std::size_t getSize () override {return size;}
+	  
       virtual std::ostream& output (std::ostream& os) const {
-	MiniMC::Support::Base64Encode encoder;
-	os << encoder.encode (reinterpret_cast<const char*> (value.get()),size);
-	if (getType ())
-	  os << *getType();
-	else
-	  os << "??";
-	return os << " >";
+		MiniMC::Support::Base64Encode encoder;
+		os << encoder.encode (reinterpret_cast<const char*> (value.get()),size);
+		if (getType ())
+		  os << *getType();
+		else
+		  os << "??";
+		return os << " >";
       }
     private:
       std::unique_ptr<MiniMC::uint8_t[]> value;

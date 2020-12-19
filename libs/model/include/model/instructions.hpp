@@ -126,7 +126,7 @@ namespace MiniMC {
 #define X(OP)					\
 	case InstructionCode::OP:		\
 	  return os << #OP;			
-	OPERATIONS
+		OPERATIONS
 #undef X
       default:
 	return os << "Unknown";
@@ -549,8 +549,8 @@ namespace MiniMC {
        * Replace this instruction with contents of \p i.
        */
       void replace (const Instruction& i) {
-	opcode = i.opcode;
-	ops = i.ops;
+		opcode = i.opcode;
+		ops = i.ops;
       }
 
       /**
@@ -682,8 +682,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isPredicate>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os <<  i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
+		InstHelper<i> h (inst);
+		return os <<  i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 
@@ -716,8 +716,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isUnary>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << " " << *h.getOp ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << " " << *h.getOp ();
       } 
     };
     
@@ -1590,12 +1590,10 @@ namespace MiniMC {
     using instructionstream = std::vector<Instruction>;
 
     inline std::ostream& operator<< (std::ostream& os, const instructionstream& str) {
-      os << "{";
       for (auto& i : str) {
-	os << i << std::endl;
+		os << i << std::endl;
       }
-      return os <<"}";
-      
+	  return os;
     }
 
     inline std::ostream& Instruction::output (std::ostream& os) const {

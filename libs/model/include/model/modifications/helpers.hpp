@@ -19,15 +19,14 @@ namespace MiniMC {
 		auto inserter = std::back_inserter (vals);
 		std::for_each (inst.begin(),inst.end(),[&](const MiniMC::Model::Value_ptr& op) {
 												 if (op->isConstant()) {
+												   if (std::static_pointer_cast<Constant> (op)->isNonCompileConstant ()) {
+													 throw MiniMC::Support::Exception ("Can't copy non-compile constants");}
 												   inserter = op;
 												 }
-												 else if (!op->isNonCompileConstant ())  {
+												 else   {
 												   inserter = val.at(op.get());
-												 }
-												 else {
-												   throw MiniMC::Support::Exception ("Can't copy non-compile constants");
-												 }
-											   }											   
+												   }
+		}										   
 		  );
 		  
 		assert(vals.size() == inst.getNbOps ());
