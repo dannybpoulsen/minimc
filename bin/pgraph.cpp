@@ -67,6 +67,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
     ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
     ("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
+	("unrollloops",po::value<std::size_t> (&sopt.unrollLoops),"Unroll Loops")
 	
 	;
   

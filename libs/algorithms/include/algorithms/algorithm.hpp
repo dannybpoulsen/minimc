@@ -24,6 +24,7 @@
 #include "model/modifications/replacesub.hpp"
 #include "model/modifications/splitcmps.hpp"
 #include "model/modifications/constantfolding.hpp"
+#include "model/modifications/loops.hpp"
 
 #include "model/analysis/manager.hpp"
 
@@ -86,6 +87,8 @@ namespace MiniMC {
 	  bool splitCMPS = false;
 	  bool foldConstants = false;
 	  std::size_t inlinefunctions = 0;
+	  std::size_t unrollLoops = 0;
+	  
 	};
 	
     template<class W, class ...Args>
@@ -107,7 +110,11 @@ namespace MiniMC {
 	  if (options.inlinefunctions) {
 	    seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
 	  }
+	  if (options.unrollLoops) 
+		seq.template add<MiniMC::Model::Modifications::UnrollLoops> ( options.unrollLoops);
+	  
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
+	  
 	  if (options.foldConstants) {
 	    seq.template add<MiniMC::Model::Modifications::FoldConstants> ();
 	  }

@@ -32,8 +32,8 @@ namespace MiniMC {
     using Graph_ptr = std::unique_ptr<Graph>;
     
     enum class GraphType {
-			  DOT,
-			  JSON
+	  DOT,
+	  JSON
     };
     
     template<GraphType>

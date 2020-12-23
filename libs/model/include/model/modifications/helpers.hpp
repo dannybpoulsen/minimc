@@ -18,14 +18,14 @@ namespace MiniMC {
 		std::vector<MiniMC::Model::Value_ptr> vals;
 		auto inserter = std::back_inserter (vals);
 		std::for_each (inst.begin(),inst.end(),[&](const MiniMC::Model::Value_ptr& op) {
-												 if (op->isConstant()) {
-												   if (std::static_pointer_cast<Constant> (op)->isNonCompileConstant ()) {
-													 throw MiniMC::Support::Exception ("Can't copy non-compile constants");}
-												   inserter = op;
-												 }
-												 else   {
-												   inserter = val.at(op.get());
-												   }
+		  if (op->isConstant()) {
+			if (std::static_pointer_cast<Constant> (op)->isNonCompileConstant ()) {
+			  throw MiniMC::Support::Exception ("Can't copy non-compile constants");}
+			inserter = op;
+		  }
+		  else   {
+			inserter = val.at(op.get());
+		  }
 		}										   
 		  );
 		  
@@ -33,17 +33,19 @@ namespace MiniMC {
 		insert = MiniMC::Model::Instruction (inst.getOpcode (),vals);
 	  }
 	  
-	  template<class Inserter>
-	  void  copyEdgeAndReplace (const MiniMC::Model::Edge_ptr& edge,
-								const ReplaceMap<MiniMC::Model::Value>& val,
-								const ReplaceMap<MiniMC::Model::Location>& locs,
-								MiniMC::Model::CFG_ptr& cfg,
-								Inserter insertTo) { 
+	  
+	  inline void  copyEdgeAnd (const MiniMC::Model::Edge_ptr& edge,
+						 const ReplaceMap<MiniMC::Model::Location>& locs,
+						 MiniMC::Model::CFG_ptr& cfg
+						 ) { 
 		
-		auto nedge = cfg->makeEdge (locs.at(edge->getFrom ().get().get()),locs.at(edge->getTo ().get().get()),edge->getProgram());
+		auto to = (locs.count (edge->getTo ().get().get())) ? locs.at (edge->getTo ().get().get()) : edge->getTo ().get();
+		auto from = (locs.count (edge->getFrom ().get().get())) ? locs.at (edge->getFrom ().get().get()) : edge->getFrom ().get ();
+		
+		auto nedge = cfg->makeEdge (from,to,edge->getProgram());
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 		  auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard> ();
-		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (val.at(guard.guard.get()),guard.negate));
+		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> (guard);
 		}
 
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
@@ -52,16 +54,32 @@ namespace MiniMC {
 		  nstr.isPhi = orig.isPhi;
 		  auto insert = nstr.back_inserter  ();
 		  std::for_each (orig.begin(),orig.end(),[&](const MiniMC::Model::Instruction& inst) {
-												   copyInstructionAndReplace (inst,val,insert);
-												 });
+			insert = inst;
+		  });
 		  
 		  nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (nstr);
 		}
 
-		insertTo =  nedge;
+	
 		
 	  }
 
+	  template<class LocInsert,class LocInserter>
+	  void copyLocation (MiniMC::Model::CFG_ptr to, const MiniMC::Model::Location_ptr& loc , LocInsert inserter, LocInserter linserter,const std::string pref  ="") {
+		auto nloc = to->makeLocation (pref+":"+loc->getName());
+		nloc->setAttributesFlags (loc->getAttributesFlags ());
+		inserter = std::make_pair (loc.get(),nloc);
+		linserter = nloc.get();
+	  }
+
+	  template<class Inserter>
+	  void  copyEdgeAndReplace (const MiniMC::Model::Edge_ptr& edge,
+								const ReplaceMap<MiniMC::Model::Value>& val,
+								const ReplaceMap<MiniMC::Model::Location>& locs,
+								MiniMC::Model::CFG_ptr& cfg,
+								Inserter insertTo) {
+		
+	  }
 	  
 	  template<class LocInsert,class EdgeInsert>
 	  void copyCFG (const MiniMC::Model::CFG_ptr& from,
@@ -84,6 +102,8 @@ namespace MiniMC {
 		}
 		
 	  }
+
+	  
 
 	  
 	 

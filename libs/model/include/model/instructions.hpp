@@ -16,120 +16,120 @@
 
 namespace MiniMC {
   namespace Model {
-#define TACOPS					\
-    X(Add)					\
-    X(Sub)					\
-    X(Mul)					\
-    X(UDiv)					\
-    X(SDiv)					\
-    X(Shl)					\
-    X(LShr)					\
-    X(AShr)					\
-    X(And)					\
-    X(Or)					\
+#define TACOPS									\
+    X(Add)										\
+    X(Sub)										\
+    X(Mul)										\
+    X(UDiv)										\
+    X(SDiv)										\
+    X(Shl)										\
+    X(LShr)										\
+    X(AShr)										\
+    X(And)										\
+    X(Or)										\
     X(Xor)
 
-#define UNARYOPS				\
-    X(Not)					\
+#define UNARYOPS								\
+    X(Not)										\
     
     
-#define COMPARISONS				\
-    X(ICMP_SGT)					\
-    X(ICMP_UGT)					\
-    X(ICMP_SGE)					\
-    X(ICMP_UGE)					\
-    X(ICMP_SLT)					\
-    X(ICMP_ULT)					\
-    X(ICMP_SLE)					\
-    X(ICMP_ULE)					\
-    X(ICMP_EQ)					\
-    X(ICMP_NEQ)					\
+#define COMPARISONS								\
+    X(ICMP_SGT)									\
+    X(ICMP_UGT)									\
+    X(ICMP_SGE)									\
+    X(ICMP_UGE)									\
+    X(ICMP_SLT)									\
+    X(ICMP_ULT)									\
+    X(ICMP_SLE)									\
+    X(ICMP_ULE)									\
+    X(ICMP_EQ)									\
+    X(ICMP_NEQ)									\
     
-#define POINTEROPS				\
-    X(PtrAdd)					\
-    X(PtrEq)					\
+#define POINTEROPS								\
+    X(PtrAdd)									\
+    X(PtrEq)									\
     
-#define AGGREGATEOPS				\
-    X(ExtractValue)				\
-    X(InsertValue)				\
-    X(InsertValueFromConst)			\
+#define AGGREGATEOPS							\
+    X(ExtractValue)								\
+    X(InsertValue)								\
+    X(InsertValueFromConst)						\
     
     
-#define CASTOPS					\
-    X(Trunc)					\
-    X(ZExt)					\
-    X(SExt)					\
-    X(PtrToInt)					\
-    X(IntToPtr)					\
-    X(BitCast)					\
-    X(BoolZExt)					\
-    X(BoolSExt)					\
-    X(IntToBool)				\
+#define CASTOPS									\
+    X(Trunc)									\
+    X(ZExt)										\
+    X(SExt)										\
+    X(PtrToInt)									\
+    X(IntToPtr)									\
+    X(BitCast)									\
+    X(BoolZExt)									\
+    X(BoolSExt)									\
+    X(IntToBool)								\
 	
 
-#define MEMORY					\
-    X(Alloca)					\
-    X(FindSpace)				\
-    X(Malloc)					\
-    X(Free)					\
-    X(Store)					\
-    X(Load)					\
+#define MEMORY									\
+    X(Alloca)									\
+    X(FindSpace)								\
+    X(Malloc)									\
+    X(Free)										\
+    X(Store)									\
+    X(Load)										\
 
-#define INTERNAL				\
-    X(Skip)					\
-    X(Call)					\
-    X(Assign)					\
-    X(Ret)					\
-    X(RetVoid)					\
-    X(NonDet)					\
-    X(Assert)					\
-    X(Assume)					\
-    X(NegAssume)				\
-    X(StackRestore)				\
-    X(StackSave)				\
-    X(MemCpy)					\
-    X(Uniform)					\
+#define INTERNAL								\
+    X(Skip)										\
+    X(Call)										\
+    X(Assign)									\
+    X(Ret)										\
+    X(RetVoid)									\
+    X(NonDet)									\
+    X(Assert)									\
+    X(Assume)									\
+    X(NegAssume)								\
+    X(StackRestore)								\
+    X(StackSave)								\
+    X(MemCpy)									\
+    X(Uniform)									\
 
-#define PREDICATES					\
-    X(PRED_ICMP_SGT)					\
-    X(PRED_ICMP_UGT)					\
-    X(PRED_ICMP_SGE)					\
-    X(PRED_ICMP_UGE)					\
-    X(PRED_ICMP_SLT)					\
-    X(PRED_ICMP_ULT)					\
-    X(PRED_ICMP_SLE)					\
-    X(PRED_ICMP_ULE)					\
-    X(PRED_ICMP_EQ)					\
-    X(PRED_ICMP_NEQ)					\
+#define PREDICATES								\
+    X(PRED_ICMP_SGT)							\
+    X(PRED_ICMP_UGT)							\
+    X(PRED_ICMP_SGE)							\
+    X(PRED_ICMP_UGE)							\
+    X(PRED_ICMP_SLT)							\
+    X(PRED_ICMP_ULT)							\
+    X(PRED_ICMP_SLE)							\
+    X(PRED_ICMP_ULE)							\
+    X(PRED_ICMP_EQ)								\
+    X(PRED_ICMP_NEQ)							\
 
-#define OPERATIONS				\
-    TACOPS					\
-    UNARYOPS					\
-    COMPARISONS					\
-    CASTOPS					\
-    MEMORY					\
-    INTERNAL					\
-    POINTEROPS					\
-    AGGREGATEOPS				\
-    PREDICATES					\
+#define OPERATIONS								\
+    TACOPS										\
+    UNARYOPS									\
+    COMPARISONS									\
+    CASTOPS										\
+    MEMORY										\
+    INTERNAL									\
+    POINTEROPS									\
+    AGGREGATEOPS								\
+    PREDICATES									\
     
 	
     enum class InstructionCode {
-#define X(OP)					\
-				OP,
-				OPERATIONS
+#define X(OP)									\
+	  OP,
+	  OPERATIONS
 #undef X
     };
 
     inline std::ostream& operator<< (std::ostream& os, const InstructionCode& c) {
       switch (c) {
-#define X(OP)					\
-	case InstructionCode::OP:		\
-	  return os << #OP;			
+#define X(OP)									\
+		case InstructionCode::OP:				\
+		  return os << #OP;			
 		OPERATIONS
 #undef X
       default:
-	return os << "Unknown";
+		return os << "Unknown";
 	
       }	
     }
@@ -148,91 +148,91 @@ namespace MiniMC {
       static const bool hasResVar = false;
     };
 
-#define X(OP)						\
-    template<>						\
+#define X(OP)										\
+    template<>										\
     struct InstructionData<InstructionCode::OP>{	\
-      static const bool isTAC = true;			\
-      static const bool isMemory = false;		\
-      static const bool isUnary =false;			\
+      static const bool isTAC = true;				\
+      static const bool isMemory = false;			\
+      static const bool isUnary =false;				\
       static const bool isComparison = false;		\
-      static const bool isCast = false;			\
-      static const bool isPointer = false;		\
+      static const bool isCast = false;				\
+      static const bool isPointer = false;			\
       static const bool isPredicate = false;		\
-    static const bool isAggregate = false;		\
-    static const std::size_t operands = 2;		\
-      static const bool hasResVar = true;		\
+	  static const bool isAggregate = false;		\
+	  static const std::size_t operands = 2;		\
+      static const bool hasResVar = true;			\
     };
     TACOPS
 #undef X
 
 
 
-#define X(OP)						\
-    template<>						\
+#define X(OP)										\
+    template<>										\
     struct InstructionData<InstructionCode::OP>{	\
-    static const bool isTAC = false;			\
-    static const bool isUnary = true;			\
-    static const bool isMemory = false;			\
-    static const bool isComparison = false;		\
-    static const bool isCast = false;			\
-    static const bool isPointer = false;		\
-    static const bool isAggregate = false;		\
-    static const bool isPredicate = false;		\
-    static const std::size_t operands = 1;		\
-    static const bool hasResVar = true;			\
+	  static const bool isTAC = false;				\
+	  static const bool isUnary = true;				\
+	  static const bool isMemory = false;			\
+	  static const bool isComparison = false;		\
+	  static const bool isCast = false;				\
+	  static const bool isPointer = false;			\
+	  static const bool isAggregate = false;		\
+	  static const bool isPredicate = false;		\
+	  static const std::size_t operands = 1;		\
+	  static const bool hasResVar = true;			\
     };
     UNARYOPS
 #undef X
 
 
-#define X(OP)						\
-    template<>						\
+#define X(OP)										\
+    template<>										\
     struct InstructionData<InstructionCode::OP>{	\
-    static const bool isTAC = false;			\
-    static const bool isUnary = false;			\
-    static const bool isMemory = false;			\
-    static const bool isComparison = false;		\
-    static const bool isCast = false;			\
-    static const bool isPointer = false;		\
-    static const bool isAggregate = false;		\
-    static const bool isPredicate = true;		\
-    static const std::size_t operands = 2;		\
-    static const bool hasResVar = false;		\
+	  static const bool isTAC = false;				\
+	  static const bool isUnary = false;			\
+	  static const bool isMemory = false;			\
+	  static const bool isComparison = false;		\
+	  static const bool isCast = false;				\
+	  static const bool isPointer = false;			\
+	  static const bool isAggregate = false;		\
+	  static const bool isPredicate = true;			\
+	  static const std::size_t operands = 2;		\
+	  static const bool hasResVar = false;			\
     };
     PREDICATES
 #undef X
 
     
-#define X(OP)						\
-    template<>						\
+#define X(OP)										\
+    template<>										\
     struct InstructionData<InstructionCode::OP>{	\
-      static const bool isTAC = false;			\
-      static const bool isUnary = false;		\
-      static const bool isMemory = false;		\
+      static const bool isTAC = false;				\
+      static const bool isUnary = false;			\
+      static const bool isMemory = false;			\
       static const bool isComparison = true;		\
-      static const bool isCast = false;			\
-      static const bool isPointer = false;		\
+      static const bool isCast = false;				\
+      static const bool isPointer = false;			\
       static const bool isAggregate = false;		\
       static const bool isPredicate = false;		\
       static const std::size_t operands = 2;		\
-      static const bool hasResVar = true;		\
+      static const bool hasResVar = true;			\
     };
     COMPARISONS
 #undef X
 	
-#define X(OP)						\
-    template<>						\
+#define X(OP)										\
+    template<>										\
     struct InstructionData<InstructionCode::OP>{	\
-      static const bool isTAC = false;			\
+      static const bool isTAC = false;				\
       static const bool isUnary = false;			\
       static const bool isComparison = false;		\
-      static const bool isMemory = false;		\
-      static const bool isCast = true;			\
-      static const bool isPointer = false;		\
+      static const bool isMemory = false;			\
+      static const bool isCast = true;				\
+      static const bool isPointer = false;			\
       static const bool isAggregate = false;		\
       static const bool isPredicate = false;		\
-    static const std::size_t operands = 1;		\
-      static const bool hasResVar = true;		\
+	  static const std::size_t operands = 1;		\
+      static const bool hasResVar = true;			\
     };
     CASTOPS
 #undef X
@@ -537,12 +537,12 @@ namespace MiniMC {
     struct Instruction {
     public:
       Instruction (InstructionCode code, std::initializer_list<Value_ptr> ops) : opcode(code),
-										 ops(ops),
-										 parent(nullptr)
+																				 ops(ops),
+																				 parent(nullptr)
       {}
       Instruction (InstructionCode code, std::vector<Value_ptr> ops) : opcode(code),
-								       ops(ops),
-								       parent(nullptr)
+																	   ops(ops),
+																	   parent(nullptr)
       {}
 
       /**
@@ -590,7 +590,7 @@ namespace MiniMC {
        * \param par Function_ptr to the parent. 
        */
       void setFunction (const Function_ptr& par) {
-	parent = par;
+		parent = par;
       }
     private:
       InstructionCode opcode;
@@ -634,10 +634,10 @@ namespace MiniMC {
       auto& setLeft (const Value_ptr& ptr) {left = ptr; return *this;}
       auto& setRight (const Value_ptr& ptr) {right = ptr;return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(left);
-	assert(right);
-	return Instruction (i,{res,left,right});
+		assert(res);
+		assert(left);
+		assert(right);
+		return Instruction (i,{res,left,right});
       }
     private:
       Value_ptr res;
@@ -648,12 +648,12 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isTAC>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << " " << *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
     
-     template<InstructionCode i>
+	template<InstructionCode i>
     class InstHelper<i,typename std::enable_if<InstructionData<i>::isPredicate>::type> {
     public:
       InstHelper (const Instruction& inst) : inst(inst) {}
@@ -670,9 +670,9 @@ namespace MiniMC {
       auto& setLeft (const Value_ptr& ptr) {left = ptr; return *this;}
       auto& setRight (const Value_ptr& ptr) {right = ptr;return *this;}
       Instruction BuildInstruction () {
-	assert(left);
-	assert(right);
-	return Instruction (i,{left,right});
+		assert(left);
+		assert(right);
+		return Instruction (i,{left,right});
       }
     private:
       Value_ptr left;
@@ -704,9 +704,9 @@ namespace MiniMC {
       auto& setRes (const Value_ptr& ptr) {res = ptr; return *this;}
       auto& setOP (const Value_ptr& ptr) {left = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(left);
-	return Instruction (i,{res,left});
+		assert(res);
+		assert(left);
+		return Instruction (i,{res,left});
       }
     private:
       Value_ptr res;
@@ -728,10 +728,10 @@ namespace MiniMC {
       auto& setLeft (const Value_ptr& ptr) {left = ptr; return *this;}
       auto& setRight (const Value_ptr& ptr) {right = ptr;return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(left);
-	assert(right);
-	return Instruction (i,{res,left,right});
+		assert(res);
+		assert(left);
+		assert(right);
+		return Instruction (i,{res,left,right});
       }
     private:
       Value_ptr res;
@@ -754,8 +754,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isComparison>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << " " <<  *h.getLeftOp () << " " << *h.getRightOp ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << " " <<  *h.getLeftOp () << " " << *h.getRightOp ();
       } 
     };
 
@@ -777,9 +777,9 @@ namespace MiniMC {
       auto& setRes (const Value_ptr& ptr) {res = ptr; return *this;}
       auto& setCastee (const Value_ptr& ptr) {castee = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(castee);
-	return Instruction (i,{res,castee});
+		assert(res);
+		assert(castee);
+		return Instruction (i,{res,castee});
       }
     private:
       Value_ptr res;
@@ -789,8 +789,8 @@ namespace MiniMC {
     template<InstructionCode i> 
     struct Formatter<i,typename std::enable_if<InstructionData<i>::isCast>::type> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<i> h (inst);
-	return os << *h.getResult () << " = " << i << *h.getCastee ();
+		InstHelper<i> h (inst);
+		return os << *h.getResult () << " = " << i << *h.getCastee ();
       } 
     };
     
@@ -813,9 +813,9 @@ namespace MiniMC {
       auto& setSize (const Value_ptr& ptr) {size = ptr; return *this;}
       
       Instruction BuildInstruction () {
-	assert(res);
-	assert(size);
-	return Instruction (InstructionCode::Alloca,{res,size});
+		assert(res);
+		assert(size);
+		return Instruction (InstructionCode::Alloca,{res,size});
       }
     private:
       Value_ptr res;
@@ -841,9 +841,9 @@ namespace MiniMC {
       auto& setSize (const Value_ptr& ptr) {size = ptr; return *this;}
       
       Instruction BuildInstruction () {
-	assert(pointer);
-	assert(size);
-	return Instruction (InstructionCode::Malloc,{pointer,size});
+		assert(pointer);
+		assert(size);
+		return Instruction (InstructionCode::Malloc,{pointer,size});
       }
     private:
       Value_ptr pointer;
@@ -867,8 +867,8 @@ namespace MiniMC {
       auto& setPointer (const Value_ptr& ptr) {pointer = ptr; return *this;}
       
       Instruction BuildInstruction () {
-	assert(pointer);
-	return Instruction (InstructionCode::Free,{pointer});
+		assert(pointer);
+		return Instruction (InstructionCode::Free,{pointer});
       }
     private:
       Value_ptr pointer;
@@ -892,9 +892,9 @@ namespace MiniMC {
       auto& setResult (const Value_ptr& ptr) {res = ptr; return *this;}
       auto& setSize (const Value_ptr& ptr) {size = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(size);
-	return Instruction (InstructionCode::FindSpace,{res,size});
+		assert(res);
+		assert(size);
+		return Instruction (InstructionCode::FindSpace,{res,size});
       }
     private:
       Value_ptr res;
@@ -904,32 +904,32 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Alloca,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Alloca> h (inst);
-	return os << InstructionCode::Alloca << " (" << *h.getResult () << ", "  << *h.getSize () <<" )";
+		InstHelper<InstructionCode::Alloca> h (inst);
+		return os << InstructionCode::Alloca << " (" << *h.getResult () << ", "  << *h.getSize () <<" )";
       } 
     };
 
     template<> 
     struct Formatter<InstructionCode::Malloc,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Malloc> h (inst);
-	return os << InstructionCode::Malloc << " (" << *h.getPointer () << ", "  << *h.getSize () <<" )";
+		InstHelper<InstructionCode::Malloc> h (inst);
+		return os << InstructionCode::Malloc << " (" << *h.getPointer () << ", "  << *h.getSize () <<" )";
       } 
     };
     
     template<> 
     struct Formatter<InstructionCode::Free,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Free> h (inst);
-	return os << InstructionCode::Free << " (" << *h.getPointer () <<" )";
+		InstHelper<InstructionCode::Free> h (inst);
+		return os << InstructionCode::Free << " (" << *h.getPointer () <<" )";
       } 
     };
     
     template<> 
     struct Formatter<InstructionCode::FindSpace,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Alloca> h (inst);
-	return os << *h.getResult () << " = " << InstructionCode::FindSpace << *h.getSize ();
+		InstHelper<InstructionCode::Alloca> h (inst);
+		return os << *h.getResult () << " = " << InstructionCode::FindSpace << *h.getSize ();
       } 
     };
     
@@ -946,7 +946,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Skip,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::Skip,{});
+		return Instruction (InstructionCode::Skip,{});
       }
     
     };
@@ -954,8 +954,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Skip,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Alloca> h (inst);
-	return os <<  InstructionCode::Skip;
+		InstHelper<InstructionCode::Alloca> h (inst);
+		return os <<  InstructionCode::Skip;
       } 
     };
 
@@ -975,7 +975,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::NonDet,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::NonDet,{res});
+		return Instruction (InstructionCode::NonDet,{res});
       }
      
       auto& setResult (const Value_ptr& p) {res = p; return *this;}
@@ -988,8 +988,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::NonDet,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::NonDet> h (inst);
-	return os << *h.getResult() << "=" <<  InstructionCode::NonDet;
+		InstHelper<InstructionCode::NonDet> h (inst);
+		return os << *h.getResult() << "=" <<  InstructionCode::NonDet;
       } 
     };
     //
@@ -1008,7 +1008,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::StackSave,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::StackSave,{res});
+		return Instruction (InstructionCode::StackSave,{res});
       }
      
       auto& setResult (const Value_ptr& p) {res = p; return *this;}
@@ -1021,8 +1021,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::StackSave,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::StackSave> h (inst);
-	return os << *h.getResult() << "=" <<  InstructionCode::StackSave;
+		InstHelper<InstructionCode::StackSave> h (inst);
+		return os << *h.getResult() << "=" <<  InstructionCode::StackSave;
       } 
     };
     
@@ -1042,7 +1042,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::StackRestore,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::StackRestore,{res});
+		return Instruction (InstructionCode::StackRestore,{res});
       }
       
       auto& setValue (const Value_ptr& p) {res = p; return *this;}
@@ -1055,8 +1055,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::StackRestore,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::StackRestore> h (inst);
-	return os <<  InstructionCode::StackRestore << "( " << *h.getValue() << " )";
+		InstHelper<InstructionCode::StackRestore> h (inst);
+		return os <<  InstructionCode::StackRestore << "( " << *h.getValue() << " )";
       } 
     };
 	
@@ -1084,7 +1084,7 @@ namespace MiniMC {
 	  
 	  
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::MemCpy,{src,target,size});
+		return Instruction (InstructionCode::MemCpy,{src,target,size});
       }
     private:
       Value_ptr src = nullptr;
@@ -1096,8 +1096,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::MemCpy,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::MemCpy> h (inst);
-	return os <<  InstructionCode::MemCpy;;
+		InstHelper<InstructionCode::MemCpy> h (inst);
+		return os <<  InstructionCode::MemCpy;;
       } 
     };
 	
@@ -1105,9 +1105,9 @@ namespace MiniMC {
     //
     template<InstructionCode i>
     class InstHelper<i,std::enable_if_t<i == InstructionCode::Assert ||
-					i == InstructionCode::Assume ||
-					i == InstructionCode::NegAssume
-					>> {
+										i == InstructionCode::Assume ||
+										i == InstructionCode::NegAssume
+										>> {
     public:
       
       InstHelper (const Instruction& inst) : inst(inst) {}
@@ -1118,12 +1118,12 @@ namespace MiniMC {
 
     template<InstructionCode i>
     class InstBuilder<i,std::enable_if_t<i == InstructionCode::Assert ||
-					 i == InstructionCode::Assume ||
-					 i == InstructionCode::NegAssume
-					 >> {
+										 i == InstructionCode::Assume ||
+										 i == InstructionCode::NegAssume
+										 >> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (i,{ass});
+		return Instruction (i,{ass});
       }
      
       auto& setAssert (const Value_ptr& p) {ass = p; return *this;}
@@ -1135,12 +1135,12 @@ namespace MiniMC {
 
     template<InstructionCode i> 
     struct Formatter<i,std::enable_if_t<i == InstructionCode::Assert ||
-					i == InstructionCode::Assume ||
-					i == InstructionCode::NegAssume
-					>> {
+										i == InstructionCode::Assume ||
+										i == InstructionCode::NegAssume
+										>> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Assert> h (inst);
-	return os << i << "(" << *h.getAssert() << ")"  ;
+		InstHelper<InstructionCode::Assert> h (inst);
+		return os << i << "(" << *h.getAssert() << ")"  ;
       } 
     };
     //
@@ -1150,7 +1150,7 @@ namespace MiniMC {
     public:
       
       InstHelper (const Instruction& inst) : inst(inst) {
-	nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (inst.getOp (1))->getValue();
+		nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> (inst.getOp (1))->getValue();
 	
       }
       
@@ -1158,7 +1158,7 @@ namespace MiniMC {
       auto getFunctionPtr () {return inst.getOp (0);}
       auto getParam (std::size_t p) {return inst.getOp (3+p);}
       auto getResult () {
-	return inst.getOp (2);
+		return inst.getOp (2);
       }
       
     private:
@@ -1171,33 +1171,33 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Call,void> {
     public:
       Instruction BuildInstruction () {
-	std::vector<Value_ptr> values;
-	values.push_back (func);
-	values.push_back (nbParameters);
-	values.push_back(res);
-	std::copy(params.begin(),params.end(),std::back_inserter(values));
-	return Instruction (InstructionCode::Call,values);
+		std::vector<Value_ptr> values;
+		values.push_back (func);
+		values.push_back (nbParameters);
+		values.push_back(res);
+		std::copy(params.begin(),params.end(),std::back_inserter(values));
+		return Instruction (InstructionCode::Call,values);
       }
 	  
       auto& setFunctionPtr (const Value_ptr& func) {
-	this->func = func;
-	return *this;
+		this->func = func;
+		return *this;
       }
 	  
       auto& setRes (const Value_ptr& res) {
-	this->res = res;
-	return *this;
+		this->res = res;
+		return *this;
       }
 	  
       auto& setNbParamters (const Value_ptr& p) {
-	assert(p->isConstant ());
-	this->nbParameters = p;
-	return *this;
+		assert(p->isConstant ());
+		this->nbParameters = p;
+		return *this;
       }
 
       auto& addParam (const Value_ptr& p) {
-	params.push_back (p);
-	return *this;
+		params.push_back (p);
+		return *this;
       }
       
       
@@ -1212,8 +1212,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Call,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	//InstHelper<InstructionCode::Call> h (inst);
-	return os <<  InstructionCode::Call;
+		//InstHelper<InstructionCode::Call> h (inst);
+		return os <<  InstructionCode::Call;
       } 
     };
     
@@ -1240,7 +1240,7 @@ namespace MiniMC {
       auto& setAddress (const Value_ptr& ptr) {address = ptr; return *this;}
       auto& setResult (const Value_ptr& ptr) {result = ptr; return *this;}
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::PtrAdd,{value,address,skipSize,result});
+		return Instruction (InstructionCode::PtrAdd,{value,address,skipSize,result});
       }
       
     private:
@@ -1253,8 +1253,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::PtrAdd,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::PtrAdd> h (inst);
-	return os << *h.getResult () << " = " << *h.getAddress () << " + " << *h.getSkipSize() << "*"<<*h.getValue ();
+		InstHelper<InstructionCode::PtrAdd> h (inst);
+		return os << *h.getResult () << " = " << *h.getAddress () << " + " << *h.getSkipSize() << "*"<<*h.getValue ();
       } 
     };
     
@@ -1279,7 +1279,7 @@ namespace MiniMC {
       auto& setOffset (const Value_ptr& ptr) {offset = ptr; return *this;}
       auto& setResult (const Value_ptr& ptr) {res = ptr; return *this;}
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::ExtractValue,{aggregate,offset,res});
+		return Instruction (InstructionCode::ExtractValue,{aggregate,offset,res});
       }
       
     private:
@@ -1291,8 +1291,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::ExtractValue,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::ExtractValue> h (inst);
-	return os << *h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ] ";
+		InstHelper<InstructionCode::ExtractValue> h (inst);
+		return os << *h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ] ";
       } 
     };
     
@@ -1312,8 +1312,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Assign,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Assign> h (inst);
-	return os << *h.getResult () << " = " << *h.getValue ();
+		InstHelper<InstructionCode::Assign> h (inst);
+		return os << *h.getResult () << " = " << *h.getValue ();
       } 
     };
     
@@ -1323,7 +1323,7 @@ namespace MiniMC {
       auto& setValue (const Value_ptr& aggr) {value = aggr; return *this;}
       auto& setResult (const Value_ptr& ptr) {res = ptr; return *this;}
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::Assign,{res,value});
+		return Instruction (InstructionCode::Assign,{res,value});
       }
       
     private:
@@ -1346,15 +1346,15 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::RetVoid,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::RetVoid,{});
+		return Instruction (InstructionCode::RetVoid,{});
       }
     };
     
     template<> 
     struct Formatter<InstructionCode::RetVoid,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::RetVoid> h (inst);
-	return os << "RetVoid";
+		InstHelper<InstructionCode::RetVoid> h (inst);
+		return os << "RetVoid";
       } 
     };
 
@@ -1373,11 +1373,11 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Ret,void> {
     public:
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::Ret,{value});
+		return Instruction (InstructionCode::Ret,{value});
       }
 
       void setRetValue (const Value_ptr& value)  {
-	this->value = value;
+		this->value = value;
       }
 
     private:
@@ -1387,8 +1387,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Ret,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Ret> h (inst);
-	return os << "Ret " << *h.getValue ();
+		InstHelper<InstructionCode::Ret> h (inst);
+		return os << "Ret " << *h.getValue ();
       } 
     };
 
@@ -1416,7 +1416,7 @@ namespace MiniMC {
       auto& setResult (const Value_ptr& ptr) {res = res; return *this;}
       auto& setInsertee (const Value_ptr& ptr)  {insertee = ptr; return *this;}
       Instruction BuildInstruction () {
-	return Instruction (InstructionCode::PtrAdd,{aggregate,offset,res,insertee});
+		return Instruction (InstructionCode::PtrAdd,{aggregate,offset,res,insertee});
       }
       
     private:
@@ -1449,9 +1449,9 @@ namespace MiniMC {
       void setResult (const Value_ptr& ptr) {res = res;}
       void setInsertee (const Value_ptr& ptr)  {insertee = ptr;}
       Instruction BuildInstruction () {
-	std::vector<Value_ptr> vals ({aggregate,res,insertee});
-	std::copy (consts.begin(),consts.end(),std::back_inserter (vals));
-	return Instruction (InstructionCode::InsertValueFromConst,vals);
+		std::vector<Value_ptr> vals ({aggregate,res,insertee});
+		std::copy (consts.begin(),consts.end(),std::back_inserter (vals));
+		return Instruction (InstructionCode::InsertValueFromConst,vals);
       }
       
     private:
@@ -1464,8 +1464,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::InsertValue,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::InsertValue> h (inst);
-	return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
+		InstHelper<InstructionCode::InsertValue> h (inst);
+		return os << h.getResult () << " = " << *h.getAggregate () << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee ();
       } 
     };
 
@@ -1490,10 +1490,10 @@ namespace MiniMC {
       auto& setMin (const Value_ptr& ptr) {min = ptr; return *this;}
       auto& setMax (const Value_ptr& ptr) {max = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(min);
-	assert(max);
-	assert(res);
-	return Instruction (InstructionCode::Uniform,{res,min,max});
+		assert(min);
+		assert(max);
+		assert(res);
+		return Instruction (InstructionCode::Uniform,{res,min,max});
       }
     private:
       Value_ptr res;
@@ -1504,8 +1504,8 @@ namespace MiniMC {
     template<>
     struct Formatter<InstructionCode::Uniform,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Uniform> h (inst);
-	return os  << *h.getResult () << " = " << InstructionCode::Uniform << " ( " << *h.getMin() << ", " << *h.getMax() << ")"; 
+		InstHelper<InstructionCode::Uniform> h (inst);
+		return os  << *h.getResult () << " = " << InstructionCode::Uniform << " ( " << *h.getMin() << ", " << *h.getMax() << ")"; 
 	
       } 
     };
@@ -1528,9 +1528,9 @@ namespace MiniMC {
       auto& setValue (const Value_ptr& ptr) {value = ptr; return *this;}
       auto& setAddress (const Value_ptr& ptr) {address = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(value);
-	assert(address);
-	return Instruction (InstructionCode::Store,{value,address});
+		assert(value);
+		assert(address);
+		return Instruction (InstructionCode::Store,{value,address});
       }
     private:
       Value_ptr value;
@@ -1540,8 +1540,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Store,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::PtrAdd> h (inst);
-	return os << "*" <<*h.getAddress () << " = " << *h.getValue ();
+		InstHelper<InstructionCode::PtrAdd> h (inst);
+		return os << "*" <<*h.getAddress () << " = " << *h.getValue ();
       } 
     };
     
@@ -1563,9 +1563,9 @@ namespace MiniMC {
       auto& setRes (const Value_ptr& ptr) {res = ptr; return *this;}
       auto& setAddress (const Value_ptr& ptr) {address = ptr; return *this;}
       Instruction BuildInstruction () {
-	assert(res);
-	assert(address);
-	return Instruction (InstructionCode::Load,{res,address});
+		assert(res);
+		assert(address);
+		return Instruction (InstructionCode::Load,{res,address});
       }
     private:
       Value_ptr res;
@@ -1575,8 +1575,8 @@ namespace MiniMC {
     template<> 
     struct Formatter<InstructionCode::Load,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
-	InstHelper<InstructionCode::Load> h (inst);
-	return os  << *h.getResult () << " = *" << *h.getAddress ();
+		InstHelper<InstructionCode::Load> h (inst);
+		return os  << *h.getResult () << " = *" << *h.getAddress ();
       } 
     };
     
@@ -1598,21 +1598,21 @@ namespace MiniMC {
 
     inline std::ostream& Instruction::output (std::ostream& os) const {
       switch (getOpcode () ) {
-#define X(OP)								\
-	case InstructionCode::OP:					\
-	  return Formatter<InstructionCode::OP>::output (os,*this);	\
-	  break;							
-	TACOPS
-	  COMPARISONS
-	  CASTOPS
-	  MEMORY
-	  INTERNAL
-	  POINTEROPS
-	  AGGREGATEOPS
-	  UNARYOPS
-	  PREDICATES
+#define X(OP)														\
+		case InstructionCode::OP:									\
+		  return Formatter<InstructionCode::OP>::output (os,*this);	\
+		  break;							
+		TACOPS
+		  COMPARISONS
+		  CASTOPS
+		  MEMORY
+		  INTERNAL
+		  POINTEROPS
+		  AGGREGATEOPS
+		  UNARYOPS
+		  PREDICATES
 #undef X
-	  }
+		  }
       return os << "??";
     }
 	
@@ -1620,11 +1620,11 @@ namespace MiniMC {
     template<InstructionCode op, InstructionCode... tail>
     inline static bool isOneOf (MiniMC::Model::Instruction& instr) {
       if constexpr (sizeof...(tail) == 0) 
-		     return instr.getOpcode() ==op;
+					 return instr.getOpcode() ==op;
       else {
-	if (instr.getOpcode () == op)
-	  return true;
-	else return isOneOf<tail...> (instr);
+		if (instr.getOpcode () == op)
+		  return true;
+		else return isOneOf<tail...> (instr);
       }
     }
    		   

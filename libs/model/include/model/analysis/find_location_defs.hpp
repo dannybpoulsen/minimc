@@ -57,7 +57,7 @@ namespace MiniMC {
 	      
 			});
 		}
-	
+		
 	
 		auto& getDefs (const MiniMC::Model::Location_ptr& ptr) {
 		  return locDefs.at(ptr);
@@ -82,7 +82,7 @@ namespace MiniMC {
 		ProgramDefs (const MiniMC::Model::Program_ptr& prgm) : functions(prgm->getFunctions().size()) {
 		 
 		}
-
+		
 		auto& getFunctionDefs (const MiniMC::Model::Function_ptr& func) {
 		  //if (!functions.at(func->getID ()))
 		  {
