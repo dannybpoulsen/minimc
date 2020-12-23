@@ -20,8 +20,10 @@ namespace MiniMC {
 		virtual bool need2Store () const {return false;}
 		auto& getSSAMap () {return map;}
 		auto& getSSAMap () const {return map;}
-		auto& getContext () {return context;}
+		auto& getContext () const {return context;}
+		auto& getContext ()  {return context;}
 		auto& getPathFormula () {return pathformula;}
+		const auto& getPathFormula () const {return pathformula;}
 		
 	  private:
 		SMTLib::Context_ptr context;

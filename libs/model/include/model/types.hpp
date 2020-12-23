@@ -3,7 +3,7 @@
  * @date   Sun Apr 19 11:31:42 2020
  * 
  * @brief  File containing the overall definitions of types in MiniMC
- * 
+  * 
  * 
  */
 #ifndef _TYPES___

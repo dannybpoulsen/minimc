@@ -26,25 +26,28 @@ namespace MiniMC {
       };
       
       struct Joiner {  
-		/** 
-		 * The Location tracking CPA can only join if the two states has equal hash value.  
-		 *
-		 * @return 
-		 */
-		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
-		  if (std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r))
-			return l;
-		  return nullptr;
-		}
-
-		/** 
-		 *  \p l covers \p r if their hash values are the same 
-		 */
+	/** 
+	 * The Location tracking CPA can only join if the two states has equal hash value.  
+	 *
+	 * @return 
+	 */
+	static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
+	  if (std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r))
+	    return l;
+	  return nullptr;
+	}
+	
+	/** 
+	 *  \p l covers \p r if their hash values are the same 
+	 */
 		static bool covers (const State_ptr& l, const State_ptr& r) {
 		  return std::hash<MiniMC::CPA::State>{} (*l) == std::hash<MiniMC::CPA::State>{} (*r);
 		}
 		
-	  };
+		static void coverCopy (const State_ptr& from, State_ptr& to) {}
+		
+		
+      };
 	  
       struct CPADef {
 		using Query = StateQuery;
@@ -52,7 +55,7 @@ namespace MiniMC {
 		using Join = Joiner;
 		using Storage = MiniMC::CPA::Storer<Join>; 
 		using PreValidate = MiniMC::CPA::PrevalidateSetup;
-	  };
+      };
     }
   }
 }

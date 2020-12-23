@@ -95,19 +95,21 @@ namespace MiniMC {
 				  }
 				  auto& fact = prgm.getConstantFactory ();
 				  MiniMC::uint64_t it = min;
-				  
-				  while (true) {
-					MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-					auto val = fact->makeIntegerConstant (it,type);
-					builder.setResult (nondet.getResult ());
-					builder.setValue (val);
-
-					auto nedge = cfg->makeEdge (from,to,prgm.shared_from_this ());
-					nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (origstr);
-					nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace (builder.BuildInstruction ());
-					it++;
-					if (it == max)
-					  break;
+				  auto addFunc = [&] (MiniMC::uint64_t value) {
+						   MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
+						   auto val = fact->makeIntegerConstant (value,type);
+						   builder.setResult (nondet.getResult ());
+						   builder.setValue (val);
+						   
+						   auto nedge = cfg->makeEdge (from,to,prgm.shared_from_this ());
+						   nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (origstr);
+						   nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace (builder.BuildInstruction ());
+						 };
+				  addFunc (it);
+				  while (it < max) {
+				    
+				    it++;
+				    addFunc (it);
 				  }
 				  cfg->deleteEdge (E);
 				}

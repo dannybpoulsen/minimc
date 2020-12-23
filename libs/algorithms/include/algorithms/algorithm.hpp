@@ -21,6 +21,7 @@
 #include "model/modifications/replacenondetuniform.hpp"
 #include "model/modifications/markinglooplocations.hpp"
 #include "model/modifications/func_inliner.hpp"
+#include "model/modifications/replacesub.hpp"
 
 #include "model/checkers/typechecker.hpp"
 #include "model/checkers/structure.hpp"
@@ -75,6 +76,8 @@ namespace MiniMC {
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
 	  bool replaceNonDetUniform = false;
+	  bool simplifyCFG = false;
+	  bool replaceSub = false;
 	  std::size_t inlinefunctions = 0;
 	};
 	
@@ -98,18 +101,22 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();  
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
-	  
+	  if (options.replaceSub) {
+	    seq.template add<MiniMC::Model::Modifications::ReplaceSub> ();  
+	  }
 	  if (options.expandNonDet) {
 		seq.template add<MiniMC::Model::Modifications::ExpandNondet> ();  
 	  }
 	   if (options.replaceNonDetUniform) {
-		seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
+	     seq.template add<MiniMC::Model::Modifications::ReplaceNonDetUniform> ();  
 	  }
-	  seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
+	  seq.template add<MiniMC::Model::Modifications::RemoveRetEntryPoints> ();
+	  if (options.simplifyCFG)
+		seq.template add<MiniMC::Model::Modifications::SimplifyCFG> (); 
 	  if (options.isConcurrent) {
 		seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
-	  
 	  }
+	  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  

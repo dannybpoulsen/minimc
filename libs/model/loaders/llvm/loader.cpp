@@ -448,7 +448,6 @@ namespace MiniMC {
 				std::vector<MiniMC::Model::Instruction> insts;
 				auto succ = term->getSuccessor (0);
 				auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
-				//locmap.at(succ);
 				auto edge = cfg->makeEdge (loc,succloc,prgm);
 				if (insts.size())
 				  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
@@ -495,7 +494,7 @@ namespace MiniMC {
 			}
 		    
 		  }
-		}		
+		}
 		f->takeOwnsership ();
 		return llvm::PreservedAnalyses::all();
       }
