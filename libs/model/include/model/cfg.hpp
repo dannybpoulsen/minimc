@@ -84,8 +84,9 @@ namespace MiniMC {
 		AssertViolated = 1, /**< Indicates an assert was violated */
 		NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
 		CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
-		AssumptionPlace = 8 /**< Indicates an assumption is made on an edge leaving this location  */
-      };
+		AssumptionPlace = 8, /**< Indicates an assumption is made on an edge leaving this location  */
+		ConvergencePoint = 16
+	  };
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
@@ -183,6 +184,22 @@ namespace MiniMC {
       gsl::not_null<SourceLocation_ptr> getSourceLoc () const {return sourceloc;} 
       void setSourceLoc (const SourceLocation_ptr& ptr) {sourceloc = ptr;} 
 
+	  bool isOutgoing (const MiniMC::Model::Edge_ptr& e) {
+		auto it = std::find_if (edges.begin(),edges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		return it != edges.end();
+	  }
+
+	  bool isIncoming  (const MiniMC::Model::Edge_ptr& e) {
+		auto it = std::find_if (incomingEdges.begin(),incomingEdges.end(),
+								[&e](const Edge_wptr& ptr1) {
+								  return ptr1.lock() == e;
+								});
+		return it != incomingEdges.end();
+	  }
+	  
 	protected:
 	  
 	  /** 
@@ -196,6 +213,7 @@ namespace MiniMC {
 								[&e](const Edge_wptr& ptr1) {
 								  return ptr1.lock() == e;
 								});
+		
 		assert(it != edges.end());
 		edges.erase (it);
       }
@@ -526,7 +544,18 @@ namespace MiniMC {
       auto& getLocations () const {return locations;}
       auto& getLocations ()  {return locations;}
       auto& getEdges () {return edges;}
-    private:
+
+	  //Check if locations and edges are consistent
+	  bool isIncomingOutgoingConsistent () const {
+		for (auto& e : edges) {
+		  if (!e->getTo ()->isIncoming (e) || !e->getFrom ()->isOutgoing (e)) {
+			return false;
+		  }
+		}
+		return true;
+		
+	  }
+	private:
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;;

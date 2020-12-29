@@ -9,28 +9,28 @@ namespace MiniMC {
     namespace Location {
 
       struct LocationState {
-	void push (gsl::not_null<MiniMC::Model::Location*> l) {  
-	  stack.push_back(l.get());
-	}
-
-	void pop () {
-	  if(stack.size()>1)
-	    stack.pop_back();
-	  assert(stack.back());
-	}
+		void push (gsl::not_null<MiniMC::Model::Location*> l) {  
+		  stack.push_back(l.get());
+		}
 		
-	auto& cur () {assert (stack.size()); return stack.back();}
-	auto& cur () const {assert (stack.size()); return stack.back();}
-	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
-	  MiniMC::Hash::hash_t s = seed;
-	  for (auto& t: stack)
-	    MiniMC::Hash::hash_combine(s,*t);
-	  return s;
-	  
-	}
-	
-	
-	std::vector<MiniMC::Model::Location*> stack;
+		void pop () {
+		  if(stack.size()>1)
+			stack.pop_back();
+		  assert(stack.back());
+		}
+		
+		auto& cur () {assert (stack.size()); return stack.back();}
+		auto& cur () const {assert (stack.size()); return stack.back();}
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+		  MiniMC::Hash::hash_t s = seed;
+		  for (auto& t: stack)
+			MiniMC::Hash::hash_combine(s,*t);
+		  return s;
+		  
+		}
+		
+		
+		std::vector<MiniMC::Model::Location*> stack;
 		
       };
 	}
@@ -45,14 +45,17 @@ namespace std {
   };
 	
 }
+
 namespace MiniMC {
   namespace CPA {
 	namespace Location {
 	  class State : public MiniMC::CPA::State  {
       public:
 		State (const std::vector<LocationState>& locations ) : locations(locations) {
-		  
 		}
+
+		State (const State& ) = default;
+		
 		virtual std::ostream& output (std::ostream& os) const {
 		  os << "[ ";
 		  for (auto l : locations) {
@@ -67,7 +70,7 @@ namespace MiniMC {
 			MiniMC::Hash::hash_combine(s,t);
 		  return s;
 		}
-		virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy () const {return std::make_shared<State> (locations);}
+		virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy () const {return std::make_shared<State> (*this);}
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return lcopy();}
 		
 	
@@ -85,9 +88,12 @@ namespace MiniMC {
 		  }
 		  return false;
 		}
-      private:
+		
+	  private:
 		std::vector<LocationState> locations;
-      };
+		std::vector<bool> ready;
+		
+	  };
 	  
       MiniMC::CPA::State_ptr MiniMC::CPA::Location::Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& edge,proc_id id) {
 		auto state = static_cast<const State*> (s.get ());
@@ -112,7 +118,7 @@ namespace MiniMC {
 			}
 
 			else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
-					 MiniMC::Model::InstructionCode::RetVoid> (inst)) {
+					 MiniMC::Model::InstructionCode::Ret> (inst)) {
 			  nstate->popLocation (id);
 			}
 			

@@ -86,6 +86,8 @@ namespace MiniMC {
 	  bool replaceSub = false;
 	  bool splitCMPS = false;
 	  bool foldConstants = false;
+	  bool convergencePoints = false;
+	  
 	  std::size_t inlinefunctions = 0;
 	  std::size_t unrollLoops = 0;
 	  
@@ -142,6 +144,10 @@ namespace MiniMC {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
 	  }
 
+	  if (options.convergencePoints) {
+		seq.template add<MiniMC::Model::Modifications::ConvergencePointAnnotator> ();  	  
+	  }
+	  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
 	  

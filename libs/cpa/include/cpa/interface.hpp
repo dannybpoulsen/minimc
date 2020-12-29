@@ -87,13 +87,11 @@ namespace MiniMC {
        * Test if \p l covers \p r i.e. whether the behaviour of \l
        * includes that of \p r
        */
-      static bool covers (const State_ptr& l, const State_ptr& r) { return false;
+      static bool covers (const State_ptr& l, const State_ptr& r) {
+		return false;
       }
       
       static void coverCopy (const State_ptr& from, State_ptr& to) {}
-      
-      
-      
       
     };
 
@@ -123,22 +121,22 @@ namespace MiniMC {
        * @return 
        */
       bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
-	assert(!isCoveredByStore (state));
-	if (tag)
-	  *tag = actualStore.size();
-	actualStore.emplace_back(state);		     
+		assert(!isCoveredByStore (state));
+		if (tag)
+		  *tag = actualStore.size();
+		actualStore.emplace_back(state);		     
 	    
-	return true;
+		return true;
       }
 
 	  
       State_ptr loadState (StorageTag st) {
-	return actualStore.at(st);
+		return actualStore.at(st);
       }
 
       struct JoinPair {
-	State_ptr orig;
-	State_ptr joined;
+		State_ptr orig;
+		State_ptr joined;
       };
 	  
       /** 
@@ -149,17 +147,17 @@ namespace MiniMC {
        * @return Merged State or nullptr if unsuccessful
        */
       JoinPair joinState (const State_ptr& state) {
-	for (auto& it : actualStore) {
-	  auto res = JoinOperation::doJoin (it,state);
-	  if (res) {
-	    auto orig =  it;
-	    it = res;
-	    return {.orig = orig,  .joined = res};
-	  }
+		for (auto& it : actualStore) {
+		  auto res = JoinOperation::doJoin (it,state);
+		  if (res) {
+			auto orig =  it;
+			it = res;
+			return {.orig = orig,  .joined = res};
+		  }
 	      
-	}
-	saveState (state);
-	return {.orig = nullptr, .joined = nullptr} ;
+		}
+		saveState (state);
+		return {.orig = nullptr, .joined = nullptr} ;
       }
 	  
       /** 
@@ -171,12 +169,12 @@ namespace MiniMC {
        * @return state covering state
        */
       State_ptr isCoveredByStore (const State_ptr& state) {
-	for (auto& it : actualStore) {
-	  if (JoinOperation::covers (it,state)) {
-	    return it;
-	  }
-	}
-	return nullptr;
+		for (auto& it : actualStore) {
+		  if (JoinOperation::covers (it,state)) {
+			return it;
+		  }
+		}
+		return nullptr;
       }
       
       
@@ -200,3 +198,4 @@ namespace MiniMC {
 }
 
 #endif
+

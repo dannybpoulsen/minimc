@@ -9,7 +9,7 @@ namespace MiniMC {
     namespace Modifications {
 
 	  template<class LocInserter>
-	  void unrollLoop (MiniMC::Model::CFG_ptr cfg, const MiniMC::Model::Analysis::Loop_ptr& loop,std::size_t amount, LocInserter linserter, MiniMC::Model::Program& prgm) {
+	  void unrollLoop (MiniMC::Model::CFG_ptr cfg, const MiniMC::Model::Analysis::Loop* loop,std::size_t amount, LocInserter linserter, MiniMC::Model::Program& prgm) {
 		std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
 		auto deadLoc = cfg->makeLocation ("DEAD").get();
 		//linserter =deadLoc;
@@ -45,8 +45,7 @@ namespace MiniMC {
 			  }
 			  else
 				to = deadLoc;
-			  auto nedge = cfg->makeEdge (from,
-										  to,prgm.shared_from_this());
+			  auto nedge = cfg->makeEdge (from,to,prgm.shared_from_this());
 			  nedge->copyAttributesFrom (*e);
 			});
 		  
@@ -60,8 +59,9 @@ namespace MiniMC {
 	  bool UnrollLoops::run (MiniMC::Model::Program&  prgm) {
 		for (auto& func : prgm.getEntryPoints ()) {
 		  auto cfg = func->getCFG ();
+		  
 		  auto loopinfo = MiniMC::Model::Analysis::createLoopInfo (cfg);
-		  std::vector<MiniMC::Model::Analysis::Loop_ptr> loops;
+		  std::vector<MiniMC::Model::Analysis::Loop*> loops;
 		  loopinfo.enumerate_loops (std::back_inserter (loops));
 		  
 		  for (auto& l : loops) { 
@@ -82,7 +82,9 @@ namespace MiniMC {
 			}
 			  
 		  }
+		  
 		}
+		 
 		return true;
 	  }
 	};

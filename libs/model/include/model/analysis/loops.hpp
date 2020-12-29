@@ -66,15 +66,15 @@ namespace MiniMC {
 
 		auto size () const {return latches.size()+body.size()+1;}
 
-		void addChildLoop (const std::shared_ptr<Loop>& l) {
-		  child.push_back (l);
+		void addChildLoop (std::unique_ptr<Loop>& l) {
+		  child.push_back (std::move(l));
 		}
 
-		void setParent (const std::shared_ptr<Loop>& p) {
+		void setParent (Loop* p) {
 		  parent = p;
 		}
 		
-		std::shared_ptr<Loop> getParent () {
+		Loop* getParent () {
 		  return parent;
 		}
 
@@ -84,7 +84,7 @@ namespace MiniMC {
 		  for (auto& l : child) {
 			l->enumerate_loops (iter);
 		  }
-		  iter = this->shared_from_this ();
+		  iter = this;
 		}
 		
 	  private:
@@ -107,11 +107,11 @@ namespace MiniMC {
 		std::set<MiniMC::Model::Edge_ptr> internal;
 		std::set<MiniMC::Model::Edge_ptr> back_edges;
 		
-		std::vector<std::shared_ptr<Loop>> child;
-		std::shared_ptr<Loop> parent = nullptr;
+		std::vector<std::unique_ptr<Loop>> child;
+		Loop* parent = nullptr;
 	  };
 
-	  using Loop_ptr = std::shared_ptr<Loop>;
+	  using Loop_ptr = std::unique_ptr<Loop>;
 
 	  class LoopInfo {
 	  public:
@@ -121,7 +121,7 @@ namespace MiniMC {
 		template<class Iterator>
 		auto deleteLoop (Iterator it) {return loops.erase (it);}
 		void addLoop (Loop_ptr& loop) {
-		  loops.push_back (loop);
+		  loops.push_back (std::move(loop));
 		  
 		}
 
@@ -133,8 +133,8 @@ namespace MiniMC {
 			
 			for (auto ritpar = rit+1;ritpar != loops.end (); ++ritpar) {
 			  if ((*ritpar)->contains((*rit)->getHeader())) {
+				(*rit)->setParent (ritpar->get());
 				(*ritpar)->addChildLoop (*rit);
-				(*rit)->setParent (*ritpar);
 				rit = loops.erase (rit);
 				break;
 			  }

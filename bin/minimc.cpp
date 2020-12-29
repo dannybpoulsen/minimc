@@ -58,8 +58,8 @@ int main (int argc,char* argv[]) {
     ("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
     ("constfold",boost::program_options::bool_switch(&soptions.foldConstants),"Constant Folding")
     ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
-    ;
-
+	;
+  
     ;
         
   hidden.add_options()

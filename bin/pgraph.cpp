@@ -68,7 +68,8 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
     ("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	("inlinefunctions",po::value<std::size_t> (&sopt.inlinefunctions),"Inline function calls")
 	("unrollloops",po::value<std::size_t> (&sopt.unrollLoops),"Unroll Loops")
-	
+	("convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
+    
 	;
   
   
@@ -83,7 +84,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 													   MiniMC::CPA::ConcreteNoMem::CPADef
 													   >;
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
-												  MiniMC::CPA::Location::CPADef,
+												  MiniMC::CPA::SingleLocation::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
 												  >;
   MiniMC::Algorithms::Result res;

@@ -18,10 +18,18 @@ namespace MiniMC {
       auto begin () {return container.begin();}
       auto end () {return container.end();}
       auto size () const {return container.size ();}
-    private:
+	  bool empty () const {return !size();}
+	  auto pop ()  {
+		Element elem = container.back ();
+		container.pop_back ();
+		return elem;
+		
+	  }
+	  
+	private:
       Container container;
     };
-
+	
     
   }
 }

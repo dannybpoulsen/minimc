@@ -16,22 +16,7 @@
 namespace MiniMC {
   namespace Algorithms {
     using Stack = MiniMC::Support::Stack<MiniMC::CPA::State>;
-    using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;
-	
-    /*template<class Iterator, class Joiner>
-    State_ptr mergeIn (Iterator beg, Iterator end, MiniMC::CPA::State_ptr& state) {
-      bool merged = false;
-      for (; beg != end; ++beg) {
-	auto res = Joiner::doJoin (*beg,state);
-	if (res) {
-	  *beg = res;
-	  return res;
-	}
-      }
-      return nullptr;
-    }
-    */
-    
+    using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;    
 	
     /** 
      * PassedWaiting list implemented using the \p StateStorage operations and \p Joiner operations.
@@ -51,45 +36,47 @@ namespace MiniMC {
        * @param ptr State to insert
        */
       MiniMC::CPA::State_ptr insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
-	auto insert = [&](auto& inst) {
-			/*auto it = waiting.begin();
-			auto end = waiting.end ();
-			auto state = ptr.get();
-			auto res = mergeIn<decltype(it),Joiner> (it,end,state) 
-			  if (res)
-			    return res;
-			*/
-			waiting.insert(inst.get());
+		auto insert = [&](const MiniMC::CPA::State_ptr& inst) -> MiniMC::CPA::State_ptr {
+		  if (inst->ready2explore ()) {
+			waiting.insert(inst);
 			passed++;
-			return inst.get();	
-		      };
-	auto repl_or_insert = [&](const typename StateStorage::JoinPair& p) {
-				auto it = waiting.begin();
-				auto end = waiting.end ();
-				auto ff = std::find (it,end,p.orig);
-				if (ff != end) 
-				  *ff = p.joined;
-				else {
-				  waiting.insert (p.joined);
-				  passed++;
-				  
-				}
-				return p.joined;
-			      };
+			return inst;
+		  }
+		  return nullptr;
+		};
+		auto repl_or_insert = [&](const typename StateStorage::JoinPair& p) {
+		  if (p.orig->ready2explore () ) {
+			auto it = waiting.begin();
+			auto end = waiting.end ();
+			auto ff = std::find (it,end,p.orig);
+			if (ff != end) 
+			  *ff = p.joined;
+			else {
+			  waiting.insert (p.joined);
+			  passed++;
+			  
+			}
+			return p.joined;
+			  
+		  }
+		  else {
+			return insert (p.joined);
+		  }
+		};
 	
-	if (ptr->need2Store ()) {
-	  auto cover = store.isCoveredByStore (ptr.get());
-	  if (cover) {
-		Joiner::coverCopy (ptr.get(),cover);
-	    return cover;
-	  }
-	  auto join = store.joinState (ptr.get()); 
-	  if (join.orig) {
-	    return repl_or_insert (join);
-	    //return join.joined;
-	  }
-	}
-	return insert (ptr);
+		if (ptr->need2Store ()) {
+		  auto cover = store.isCoveredByStore (ptr.get());
+		  if (cover) {
+			Joiner::coverCopy (ptr.get(),cover);
+			return cover;
+		  }
+		  auto join = store.joinState (ptr.get()); 
+		  if (join.orig) {
+			return repl_or_insert (join);
+			//return join.joined;
+		  }
+		}
+		return insert (ptr);
       }
 	  
       /** Extract the first State*/ 
@@ -118,7 +105,7 @@ namespace MiniMC {
       Waiting waiting;
       std::size_t passed = 0;
     };	
-   
+	
     template<class StateStorage,class Joiner>
     using DFSBaseWaiting = PassedWaiting<StateStorage,Joiner,Stack>;
 

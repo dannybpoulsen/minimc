@@ -29,6 +29,8 @@ namespace MiniMC {
 		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return wrappedState->hash (seed);}
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
 		virtual bool need2Store () const {return wrappedState->need2Store();}
+		virtual bool ready2explore () const override {return wrappedState->ready2explore();}
+		
 		auto parent_inserter () {return std::back_inserter(parents);}
 		auto begin() {return parents.begin();}
 		auto end () {return parents.end ();}
@@ -97,7 +99,7 @@ namespace MiniMC {
 		  auto nr = std::static_pointer_cast<State> (r);
 		  return WrappedJoiner::covers (nl->getWrapped(),nr->getWrapped());
 		}
-
+		
 		static void coverCopy (const State_ptr& from, State_ptr& to) {
 		  auto nfrom = std::static_pointer_cast<State> (from);
 		  auto nto = std::static_pointer_cast<State> (to);
@@ -105,7 +107,7 @@ namespace MiniMC {
 		  auto insertFunction = [&] (auto it) {inserter = it;};
 		  std::for_each (nfrom->begin(),nfrom->end(),insertFunction);
 		}
-		
+
 		
       };
 	  

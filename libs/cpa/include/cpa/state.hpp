@@ -36,7 +36,8 @@ namespace MiniMC {
        * @return 
        */
       virtual bool need2Store () const {return false;}
-    };
+	  virtual bool ready2explore () const {return true;}
+	};
     
     using State_ptr = std::shared_ptr<State>;
     

@@ -27,7 +27,7 @@ namespace MiniMC {
 	  }
 
 	  MiniMC::CPA::State_ptr Joiner::doJoin (const State_ptr& l, const State_ptr& r) {
-		/*auto& left = static_cast<const MiniMC::CPA::PathFormula::State&> (*l);
+		auto& left = static_cast<const MiniMC::CPA::PathFormula::State&> (*l);
 		auto& right = static_cast<const MiniMC::CPA::PathFormula::State&> (*r);
 		if (left.getContext() != right.getContext ()) {
 		  return nullptr;
@@ -42,8 +42,8 @@ namespace MiniMC {
 		MiniMC::Util::SSAMap nmap = MiniMC::Util::SSAMap::merge (left.getSSAMap (),right.getSSAMap(), mergeOp);
 		
 		return std::make_shared<MiniMC::CPA::PathFormula::State> (nmap,left.getContext(),mergeOp (left.getPathFormula(),right.getPathFormula ())); 
-		*/
-		return nullptr;
+		
+		//return nullptr;
 	  }
 	  
 	  MiniMC::CPA::State_ptr Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
