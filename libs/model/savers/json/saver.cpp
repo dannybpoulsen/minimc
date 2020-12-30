@@ -1,13 +1,16 @@
 #include <sstream>
 #include <string>
+#ifdef RAPIDJSON
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
+#endif
 
 #include "support/binary_encode.hpp"
 #include "savers/savers.hpp" 
 	
 namespace MiniMC {
   namespace Savers {
+#ifdef RAPIDJSON
 	template<class T>
 	std::string toString (const T& t) {
 	  std::stringstream str;
@@ -207,6 +210,11 @@ namespace MiniMC {
 	  doc.Accept (writer);
 	  *saveOptions.writeTo  << buffer.GetString () << std::endl;
 	}
+#else
 	
+	template<>
+	void saveModel<Type::JSON,BaseSaveOptions> (const MiniMC::Model::Program_ptr& prgm, BaseSaveOptions saveOptions) {
+	}
+#endif
   }
 }
