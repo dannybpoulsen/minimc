@@ -9,7 +9,6 @@
 #include "savers/savers.hpp"
 
 #include "cpa/location.hpp"
-#include "cpa/concrete_no_mem.hpp"
 #include "cpa/pathformula.hpp"
 #include "cpa/compound.hpp"
 
@@ -30,7 +29,6 @@ void runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOption
   
 enum class CPAUsage {
 					 Location,
-					 LocationExplicit,
 					 CVC4PathFormula
 };
 
@@ -42,9 +40,6 @@ int tojson_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   std::string input;
   auto updateCPA = [&CPA] (int val) {
 					 switch (val) {
-					 case 2:
-					   CPA = CPAUsage::LocationExplicit;
-					   break;
 					 case 3:
 					   CPA = CPAUsage::CVC4PathFormula;
 					   break;
@@ -76,10 +71,6 @@ int tojson_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 	return -1;
   }
   
-  using LocExpliStack = MiniMC::CPA::Compounds::CPADef<0,
-													   MiniMC::CPA::Location::CPADef,
-													   MiniMC::CPA::ConcreteNoMem::CPADef
-													   >;
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
 												  MiniMC::CPA::Location::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
@@ -88,9 +79,6 @@ int tojson_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   case CPAUsage::CVC4PathFormula:
 	runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
-  case CPAUsage::LocationExplicit:
-    runAlgorithm<LocExpliStack> (*prgm,sopt);
-    break;
   case CPAUsage::Location:
   default:
 	runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);

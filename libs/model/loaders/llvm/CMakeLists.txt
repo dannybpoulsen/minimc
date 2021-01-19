@@ -5,5 +5,5 @@ find_package(LLVM REQUIRED CONFIG)
 
 add_library (llvmloader OBJECT loader.cpp)
 target_include_directories (llvmloader  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include PRIVATE ${LLVM_INCLUDE_DIRS})
-target_link_libraries (llvmloader  PUBLIC support  ${llvm_libs} )
+target_link_libraries (llvmloader  PUBLIC support  util ${llvm_libs} )
 target_include_directories(llvmloader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)

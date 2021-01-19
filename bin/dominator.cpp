@@ -10,7 +10,6 @@
 #include "savers/savers.hpp"
 
 #include "cpa/location.hpp"
-#include "cpa/concrete_no_mem.hpp"
 #include "cpa/pathformula.hpp"
 #include "cpa/compound.hpp"
 

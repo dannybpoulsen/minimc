@@ -13,6 +13,8 @@
 #include "support/storehelp.hpp"
 #include "support/types.hpp"
 #include "support/binary_encode.hpp"
+#include "util/valuemap.hpp"
+
 namespace MiniMC {
   namespace Model {
 
@@ -281,8 +283,20 @@ namespace MiniMC {
     };
 
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
-    
+
+	struct VariablePtrIndexer {
+	  std::size_t operator() (const Variable_ptr& t) {return t->getId ();}
+	  
+	};
+
+	template<class T>
+	using VariableMap = MiniMC::Util::FixedVector<Variable_ptr,T,VariablePtrIndexer>; 
+	
   }
 }
 
+
+
+
+ 
 #endif
