@@ -23,9 +23,9 @@ namespace MiniMC {
 
 		static MiniMC::Model::Location_ptr getLocation (const MiniMC::CPA::State_ptr&, proc_id id) {return nullptr;}
 	  };
-
+	  
 	  struct Transferer {
-
+		
 		static MiniMC::CPA::State_ptr doTransfer (const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {return nullptr;}
 	  };
 
@@ -39,11 +39,11 @@ namespace MiniMC {
 		static void coverCopy (const MiniMC::CPA::State_ptr& from, MiniMC::CPA::State_ptr& to) {}
 		
 	  };
-
+	  
 	  struct PrevalidateSetup {
 		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
 	  };
-
+	  
 	
     
 	  struct CPADef {

@@ -620,7 +620,8 @@ namespace MiniMC {
 			   ) : cfact(cfact), tfact(tfact)  {
 		globals = makeVariableStack().get();
       }
-      gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
+
+	  gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
       gsl::not_null<Function_ptr>  addFunction (const std::string& name,
 												const std::vector<gsl::not_null<Variable_ptr>>& params,
 												const gsl::not_null<Type_ptr> retType,
@@ -657,7 +658,7 @@ namespace MiniMC {
 
       auto& getConstantFactory () {return cfact;}
       auto& getTypeFactory () {return tfact;}
-
+	  
       const auto& getInitialisation () const {return initialiser;}
       void setInitialiser (const InstructionStream& instr) {initialiser = instr;}
       
