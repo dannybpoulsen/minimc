@@ -26,7 +26,7 @@ namespace MiniMC {
 	  
 	  struct Transferer {
 		
-		static MiniMC::CPA::State_ptr doTransfer (const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {return nullptr;}
+		static MiniMC::CPA::State_ptr doTransfer (const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id);
 	  };
 
 	

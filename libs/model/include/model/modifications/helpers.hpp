@@ -78,7 +78,29 @@ namespace MiniMC {
 								const ReplaceMap<MiniMC::Model::Location>& locs,
 								MiniMC::Model::CFG_ptr& cfg,
 								Inserter insertTo) {
+		auto to = (locs.count (edge->getTo ().get().get())) ? locs.at (edge->getTo ().get().get()) : edge->getTo ().get();
+		auto from = (locs.count (edge->getFrom ().get().get())) ? locs.at (edge->getFrom ().get().get()) : edge->getFrom ().get ();
 		
+		auto nedge = cfg->makeEdge (from,to,edge->getProgram());
+		if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
+		  auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard> ();
+		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> (guard);
+		}
+		
+		if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+		  auto& orig = edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+		  MiniMC::Model::InstructionStream nstr;
+		  nstr.isPhi = orig.isPhi;
+		  auto insert = nstr.back_inserter  ();
+		  std::for_each (orig.begin(),orig.end(),[&](const MiniMC::Model::Instruction& inst) {
+			insert = inst;
+		  });
+		  
+		  nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (nstr);
+		}
+
+		insertTo = nedge;
+
 	  }
 	  
 	  template<class LocInsert,class EdgeInsert>

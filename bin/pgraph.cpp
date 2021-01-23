@@ -10,6 +10,8 @@
 
 #include "cpa/location.hpp"
 #include "cpa/pathformula.hpp"
+#include "cpa/concrete.hpp"
+
 #include "cpa/compound.hpp"
 
 
@@ -30,6 +32,7 @@ auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOption
 
 enum class CPAUsage {
 					 Location,
+					 Concrete,
 					 CVC4PathFormula
 };
 
@@ -43,6 +46,9 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 					 switch (val) {
 					 case 3:
 					   CPA = CPAUsage::CVC4PathFormula;
+					   break;
+					 case 2:
+					   CPA = CPAUsage::Concrete;
 					   break;
 					 case 1:
 					 default:
@@ -77,11 +83,21 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 												  MiniMC::CPA::SingleLocation::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
 												  >;
+
+    using CPAConcrete = MiniMC::CPA::Compounds::CPADef<0,
+													MiniMC::CPA::Location::CPADef,
+													MiniMC::CPA::Concrete::CPADef
+												  >;
+  
   MiniMC::Algorithms::Result res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
+  case CPAUsage::Concrete:
+	res = runAlgorithm<CPAConcrete> (*prgm,sopt);
+	break;
+	
   case CPAUsage::Location:
   default:
     res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);

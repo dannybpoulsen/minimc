@@ -45,7 +45,7 @@ namespace MiniMC {
        * @return number of processes
        */
       static size_t nbOfProcesses (const State_ptr& ) {return 0;}
-
+	  
       /** 
        * Get the current Location of process \p id 
        * 

@@ -29,7 +29,7 @@ namespace MiniMC {
       virtual std::ostream& output (std::ostream& os) const {return os << "_";}
       virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return reinterpret_cast<MiniMC::Hash::hash_t> (this);}
       virtual std::shared_ptr<State> copy () const {return std::make_shared<State> ();}
-      
+	  
       /** 
        * Function to tell whether it is deemed necessary to store this State during  explorations to guarantee termination. 
        *

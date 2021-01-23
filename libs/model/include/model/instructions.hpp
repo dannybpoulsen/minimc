@@ -937,9 +937,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Skip,void> {
     public:
       
-      InstHelper (Instruction& inst) : inst(inst) {}
+      InstHelper (const Instruction& inst) : inst(inst) {}
     private:
-      Instruction& inst;
+      const Instruction& inst;
     };
 
     template<>

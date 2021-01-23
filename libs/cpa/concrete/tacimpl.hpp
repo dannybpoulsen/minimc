@@ -3,6 +3,7 @@
 #include "model/variables.hpp"
 #include "util/array.hpp"
 #include "support/exceptions.hpp"
+#include "support/localisation.hpp"
 #include "support/div.hpp"
 #include "support/rightshifts.hpp"
 
@@ -10,13 +11,13 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
-	  
+
 	  template<MiniMC::Model::InstructionCode opc,class T>
 	  MiniMC::Util::Array tacexec (const MiniMC::Util::Array& left, const MiniMC::Util::Array& right) {
 		MiniMC::Util::Array res (sizeof(T));
 		auto ll = left.template read<T> ();
 		auto rr = right.template read<T> ();
-
+		
 		if constexpr ( opc == MiniMC::Model::InstructionCode::Add) {
 		  res.template set<T> (0, ll+rr);
 		}
@@ -66,6 +67,26 @@ namespace MiniMC {
 	  }
 		
 
+	  
+	  template<MiniMC::Model::InstructionCode opc>
+	  MiniMC::Util::Array Steptacexec (const MiniMC::Util::Array& left, const MiniMC::Util::Array& right) {
+		assert (left.getSize() == right.getSize ());
+		switch (left.getSize ()) {
+		case 1:
+		  return tacexec<opc,MiniMC::uint8_t> (left,right);
+		case 2:
+		  return tacexec<opc,MiniMC::uint16_t> (left,right);
+		case 4:
+		  return tacexec<opc,MiniMC::uint32_t> (left,right);
+		case 8:
+		  return tacexec<opc,MiniMC::uint64_t> (left,right);
+		default:
+		  throw MiniMC::Support::Exception (MiniMC::Support::Localiser ("Unsupport size %0% for operation '%1%").format (left.getSize(),opc));
+			
+		}
+	  }
+	  
+	  
 	}
   }
 }

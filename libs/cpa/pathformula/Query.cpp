@@ -51,7 +51,7 @@ namespace MiniMC {
 		State_ptr resstate = s->copy ();
 		auto& oState = static_cast<const MiniMC::CPA::PathFormula::State&> (*s);
 		auto& nState = static_cast<MiniMC::CPA::PathFormula::State&> (*resstate);
-
+		
 
 		VMData data {.oldSSAMap = &oState.getSSAMap (),
 					 .newSSAMap = &nState.getSSAMap (),

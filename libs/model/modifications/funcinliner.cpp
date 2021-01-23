@@ -1,11 +1,3 @@
-/**
- * @file   lower_guards.hpp
- * @date   Mon Apr 20 17:04:05 2020
- * 
- * @brief  
- * 
- * 
- */
 
 #include "model/cfg.hpp"
 #include "model/modifications/func_inliner.hpp"

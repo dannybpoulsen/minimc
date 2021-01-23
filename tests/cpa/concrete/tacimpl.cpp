@@ -14,9 +14,7 @@ TEST_P(AddUi8, KK) {
   MiniMC::Util::Array rarr (sizeof(MiniMC::uint8_t));
   larr.template set (0,left);
   rarr.template set (0,right);
-  auto res = MiniMC::CPA::Concrete::tacexec<MiniMC::Model::InstructionCode::Add,
-											MiniMC::uint8_t>
-	(larr,rarr);
+  auto res = MiniMC::CPA::Concrete::Steptacexec<MiniMC::Model::InstructionCode::Add> (larr,rarr);
   
   EXPECT_EQ(res.template read<MiniMC::uint8_t> (),expected);
 }

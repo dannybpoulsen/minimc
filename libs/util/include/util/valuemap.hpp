@@ -17,17 +17,35 @@ namespace MiniMC {
 
 	template<class F, class T,class Index = GetIndex<F>>
 	class FixedVector {
+	public:
 	  FixedVector (std::size_t size) : mem(new T[size]),size(size){}
-	  FixedVector (const FixedVector&) = default;
+	  FixedVector (const FixedVector& o) :mem(new T[o.size]),size(o.size) {
+		std::copy (o.mem.get(),o.mem.get()+o.size,mem.get());
+	  }
+	  
 	  const T& at (const F& f) const  { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
 	  T& operator[] (const F& f) { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
-	  T& operator[] (const F& f) const  { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
+	  const T& operator[] (const F& f) const  { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
 	  
-				
+	  std::ostream& output (std::ostream& os) const {
+		for (size_t i = 0; i < size; i++) {
+		  os << i << " : " << mem[i] << std::endl;
+		}
+		return os;
+	  }
+
+	  
+	  
 	private:
-	  std::shared_ptr<T[]> mem;
+	  std::unique_ptr<T[]> mem;
 	  std::size_t size;
 	};
+
+	template<class F, class T,class Index>
+	inline std::ostream& operator<< (std::ostream& os, const FixedVector<F,T,Index>& vec) {
+	  return vec.output (os);
+	}
+	
   }
 }
 
