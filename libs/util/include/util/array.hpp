@@ -17,8 +17,8 @@ namespace MiniMC {
 		std::fill (buffer.get(),buffer.get()+size,0);
 	  }
 	  
-	  Array (const Array& a) : buffer (new MiniMC::uint8_t[a.size]),size(a.size) {
-		std::copy (a.buffer.get(),a.buffer.get()+a.size,buffer.get());
+	  Array (const Array& a)  {
+		*this = a;
 	  }
 
 	  Array& operator= (const Array& a) {

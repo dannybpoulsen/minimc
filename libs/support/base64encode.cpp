@@ -1,11 +1,13 @@
+#include <sstream>
+
 #include "support/binary_encode.hpp"
 #include "base64.h"
 
 
 namespace MiniMC {
   namespace Support {
-    std::string Base64Encode::encode (const char* buf, std::size_t len) {
-      return base64_encode (reinterpret_cast<unsigned char const*> (buf),len,false);
+    std::string Base64Encode::encode (const char* buf, std::size_t len) { 
+	  return base64_encode (reinterpret_cast<unsigned char const*> (buf),len,false);
     }
 
     DecodeResult Base64Encode::decode (const std::string& str) {

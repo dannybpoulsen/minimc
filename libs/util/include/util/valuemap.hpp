@@ -19,9 +19,9 @@ namespace MiniMC {
 	class FixedVector {
 	public:
 	  FixedVector (std::size_t size) : mem(new T[size]),size(size){}
-	  FixedVector (const FixedVector& o) :mem(new T[o.size]),size(o.size) {
+	  FixedVector (const FixedVector& o) : mem(new T[o.size]),size(o.size) {
 		std::copy (o.mem.get(),o.mem.get()+o.size,mem.get());
-	  }
+	}
 	  
 	  const T& at (const F& f) const  { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
 	  T& operator[] (const F& f) { assert(Index{}(f) < size); return mem.get()[Index{}(f)];}
@@ -29,7 +29,7 @@ namespace MiniMC {
 	  
 	  std::ostream& output (std::ostream& os) const {
 		for (size_t i = 0; i < size; i++) {
-		  os << i << " : " << mem[i] << std::endl;
+		  os << i << " : " << mem[i] << mem[i].getSize()<< std::endl;
 		}
 		return os;
 	  }

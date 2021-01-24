@@ -84,7 +84,8 @@ namespace MiniMC {
 		auto nedge = cfg->makeEdge (from,to,edge->getProgram());
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 		  auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard> ();
-		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> (guard);
+		  
+		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> ( MiniMC::Model::Guard (val.at (guard.guard.get()),guard.negate ));
 		}
 		
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
@@ -93,7 +94,11 @@ namespace MiniMC {
 		  nstr.isPhi = orig.isPhi;
 		  auto insert = nstr.back_inserter  ();
 		  std::for_each (orig.begin(),orig.end(),[&](const MiniMC::Model::Instruction& inst) {
-			insert = inst;
+			std::vector<MiniMC::Model::Value_ptr> vals;
+			for (auto it = inst.begin(); it!=inst.end (); ++it) {
+			  vals.push_back ((*it)->isConstant () ? *it : val.at (it->get()) ); 
+			}
+			insert = MiniMC::Model::Instruction (inst.getOpcode (), vals);
 		  });
 		  
 		  nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (nstr);
@@ -128,7 +133,7 @@ namespace MiniMC {
 	  
 
 	  
-	 
+	  
 	}
   }
 }

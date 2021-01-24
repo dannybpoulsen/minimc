@@ -28,11 +28,11 @@ namespace MiniMC {
 		auto cfunc = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId (loadPtr));
 		MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
 		auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) { 
-						 for (auto& v : stack->getVariables ()) {
-						   valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (cfunc->getName()+v->getName(),v->getType ())));
-						 }
-
-						   
+		  for (auto& v : stack->getVariables ()) {
+			valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (cfunc->getName()+v->getName(),v->getType ())));
+		  }
+		  
+		  
 						   
 		};
 		

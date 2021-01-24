@@ -18,7 +18,7 @@ namespace MiniMC {
 		  os << globals << "\n";
 		  for (auto& vl : proc_vars) {
 			os << "===\n";
-			os << vl;
+			os << vl << "\n";
 		  }
 		  return os << "==\n";
 		}
@@ -104,8 +104,8 @@ namespace MiniMC {
 		  
 		  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
 		  try {
-		
-			if (!instr.isPhi) {
+			
+			if (instr.isPhi) {
 			  data.readFrom.global = const_cast<VariableLookup*> (&ostate.getGlobals ());
 			  data.readFrom.local = const_cast<VariableLookup*> (&ostate.getProc(id));
 			  
