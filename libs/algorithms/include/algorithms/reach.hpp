@@ -6,7 +6,7 @@
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "cpa/location.hpp"
-#include "cpa/concrete_no_mem.hpp"
+#include "cpa/concrete.hpp"
 #include "cpa/compound.hpp"
 #include "algorithms/algorithm.hpp"
 #include "algorithms/passedwaiting.hpp"
@@ -23,7 +23,7 @@ namespace MiniMC {
       ExplicitReachability (const Options& opt) : messager(*opt.messager)  {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 												 MiniMC::CPA::Location::CPADef,
-												 MiniMC::CPA::ConcreteNoMem::CPADef
+												 MiniMC::CPA::Concrete::CPADef
 												 >;
       
       virtual Result run (const MiniMC::Model::Program& prgm) {

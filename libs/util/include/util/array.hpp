@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <ostream>
+#include "hash/hashing.hpp"
 #include "support/binary_encode.hpp"
 
 
@@ -61,6 +62,10 @@ namespace MiniMC {
 		return os << encoder.encode (reinterpret_cast<const char*> (buffer.get()),size);
 	  }
 	  
+	  MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t s) const {
+		return MiniMC::Hash::Hash (buffer.get (),size,s);
+	  }
+	  
 	private:
 	  std::unique_ptr<MiniMC::uint8_t[]> buffer;
 	  std::size_t size;
@@ -71,6 +76,16 @@ namespace MiniMC {
 	}
 	
   }	
+}
+
+namespace std {
+  template<>
+  struct hash<MiniMC::Util::Array> {
+	auto operator() (const MiniMC::Util::Array& arr) {
+	  return arr.hash (0);
+	}
+  };
+  
 }
 
 #endif

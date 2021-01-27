@@ -21,7 +21,7 @@ namespace MiniMC {
 		
 		auto& cur () {assert (stack.size()); return stack.back();}
 		auto& cur () const {assert (stack.size()); return stack.back();}
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const  {
 		  MiniMC::Hash::hash_t s = seed;
 		  for (auto& t: stack)
 			MiniMC::Hash::hash_combine(s,*t);
@@ -64,7 +64,7 @@ namespace MiniMC {
 		  }
 		  return os << "]";
 		}
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {
 		  MiniMC::Hash::hash_t s = seed;
 		  for (auto& t: locations)
 			MiniMC::Hash::hash_combine(s,t);

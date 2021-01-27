@@ -6,6 +6,7 @@
 #include <memory>
 #include <gsl/pointers>
 
+#include "hash/hashing.hpp"
 #include "model/variables.hpp"
 
 namespace MiniMC {
@@ -33,7 +34,14 @@ namespace MiniMC {
 		}
 		return os;
 	  }
-
+	  
+	  MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t s) const {
+		MiniMC::Hash::seed_t seed = s;
+		for (size_t i = 0; i < size; i++) {
+		  MiniMC::Hash::hash_combine (seed,mem[i]);
+		}
+		return seed;
+	  }
 	  
 	  
 	private:
@@ -48,6 +56,5 @@ namespace MiniMC {
 	
   }
 }
-
 
 #endif

@@ -10,7 +10,7 @@
 #ifndef _STATE__
 #define _STATE__
 
-#include <ostream>
+#include <iostream>
 #include <memory>
 #include "hash/hashing.hpp"
 
@@ -52,8 +52,8 @@ namespace MiniMC {
 namespace std {
   template<>
   struct hash<MiniMC::CPA::State> {
-    std::size_t operator()(MiniMC::CPA::State const& s) const noexcept {
-      return s.hash ();
+    std::size_t operator()(const MiniMC::CPA::State& s) const noexcept {
+	  return s.hash ();
     }
   };
   

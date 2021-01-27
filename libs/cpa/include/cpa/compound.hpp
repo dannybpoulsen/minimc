@@ -23,7 +23,7 @@ namespace MiniMC {
 		  std::copy(l.begin(), l.end(), states.begin());
 		}
 
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const  {
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override  {
 		  MiniMC::Hash::hash_t hash = seed;
 		  
 		  for (auto& state : states) {

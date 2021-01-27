@@ -33,7 +33,7 @@ namespace MiniMC {
 	  struct Joiner {  
 		static MiniMC::CPA::State_ptr doJoin (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {return nullptr;}
 		static bool covers (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
-		  return false;
+		  return l->hash () == r->hash ();
 		}
 		
 		static void coverCopy (const MiniMC::CPA::State_ptr& from, MiniMC::CPA::State_ptr& to) {}

@@ -26,7 +26,7 @@ namespace MiniMC {
 		State (const State& s) :wrappedState(s.wrappedState), parents(s.parents) {}  
 	
 		virtual std::ostream& output (std::ostream& os) const {return wrappedState->output (os);}
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return wrappedState->hash (seed);}
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {return wrappedState->hash (seed);}
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
 		virtual bool need2Store () const {return wrappedState->need2Store();}
 		virtual bool ready2explore () const override {return wrappedState->ready2explore();}

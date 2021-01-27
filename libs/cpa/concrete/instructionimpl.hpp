@@ -6,6 +6,9 @@
 
 #include "model/variables.hpp"
 #include "util/array.hpp"
+#include "support/types.hpp"
+
+#include "support/random.hpp"
 #include "except.hpp"
 #include "tacimpl.hpp"
 #include "cmpimpl.hpp"
@@ -134,6 +137,38 @@ namespace MiniMC {
 			  throw MiniMC::Support::AssumeViolated ();
 		  }
 
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Uniform) {
+			auto& res = helper.getResult ();
+			auto& min = helper.getMin ();
+			auto& max = helper.getMax ();
+			
+			auto lmin = data.readFrom.evaluate (min);
+			auto lmax = data.readFrom.evaluate (max);
+
+			
+			auto mod = [&]<typename T> () {
+			  MiniMC::Util::Array arrres (sizeof (T));
+			  arrres.template set<T> (0,MiniMC::Support::RandomNumber{}.uniform (lmin.template read<T>(), lmax.template read<T>()));;
+			  data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (res),arrres);
+			};
+			
+			switch (res->getType()->getSize ()) {
+			case 1:
+			  mod.template operator()<MiniMC::uint8_t> ();
+			  break;
+			case 2:
+			  mod.template operator()<MiniMC::uint16_t> ();
+			  break;
+			case 4:
+			  mod.template operator()<MiniMC::uint32_t> ();
+			  break;
+			case 8:
+			  mod.template operator()<MiniMC::uint64_t> ();
+			  break;
+			}
+			
+		  }
+		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Assert) {
 			auto& val = helper.getAssert ();
 			auto lval = data.readFrom.evaluate (val);
@@ -157,5 +192,16 @@ namespace MiniMC {
 	}
   }
 }
+
+namespace std {
+  template<>
+  struct hash<MiniMC::CPA::Concrete::VariableLookup > {
+	auto operator() (const MiniMC::CPA::Concrete::VariableLookup& arr) {
+	  return arr.hash (0);
+	}
+  };
+  
+}
+
 
 #endif

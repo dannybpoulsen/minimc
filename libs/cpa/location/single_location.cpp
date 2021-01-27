@@ -19,7 +19,7 @@ namespace MiniMC {
 		virtual std::ostream& output (std::ostream& os) const {
 		  return os << "[" << location->getName () <<"]" ;
 		}
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {
 		  MiniMC::Hash::hash_t s = seed;
 		  
 		  MiniMC::Hash::hash_combine(s,location);

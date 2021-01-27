@@ -58,6 +58,8 @@ int main (int argc,char* argv[]) {
     ("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
     ("constfold",boost::program_options::bool_switch(&soptions.foldConstants),"Constant Folding")
     ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
+	("inlinefunctions",po::value<std::size_t> (&soptions.inlinefunctions),"Inline function calls")
+	("unrollloops",po::value<std::size_t> (&soptions.unrollLoops),"Unroll Loops")
 	;
   
     ;

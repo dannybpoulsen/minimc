@@ -8,7 +8,7 @@
 #include "algorithms/algorithm.hpp"
 #include "algorithms/psuccessorgen.hpp"
 #include "cpa/location.hpp"
-#include "cpa/concrete_no_mem.hpp"
+#include "cpa/concrete.hpp"
 #include "cpa/compound.hpp"
 
 
@@ -26,7 +26,7 @@ namespace MiniMC {
       ProbaChecker (const Options& opt) : messager(*opt.messager), smc(opt.smcoptions),length(opt.len) {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 						       MiniMC::CPA::Location::CPADef,
-						       MiniMC::CPA::ConcreteNoMem::CPADef
+						       MiniMC::CPA::Concrete::CPADef
 						       >;
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		auto initstate = CPA::Query::makeInitialState (prgm);

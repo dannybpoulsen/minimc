@@ -1,5 +1,6 @@
 #include <gsl/pointers>
 
+#include "hash/hashing.hpp"
 #include "util/vm.hpp"
 #include "cpa/concrete.hpp"
 #include "instructionimpl.hpp"
@@ -7,7 +8,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
-
+	  
 	  class State : public MiniMC::CPA::State {
 	  public:
 		State (const VariableLookup& g, const std::vector<VariableLookup>& var) : globals(g),proc_vars(var) {
@@ -23,9 +24,18 @@ namespace MiniMC {
 		  return os << "==\n";
 		}
 		
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {
-		  return reinterpret_cast<MiniMC::Hash::hash_t> (this);
+		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {
+		  if (!hash_val) {
+			MiniMC::Hash::hash_combine (seed,globals);
+			for (auto& vl : proc_vars) {
+			  MiniMC::Hash::hash_combine (seed,vl);
+			  
+			}
+			hash_val = seed;
+		  }
+		  return hash_val;
 		}
+		
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {
 		  return std::make_shared<State> (*this);
 		}
@@ -42,6 +52,7 @@ namespace MiniMC {
 	  private:
 		VariableLookup globals;
 		std::vector<VariableLookup> proc_vars;
+		mutable MiniMC::Hash::hash_t hash_val = 0;
 	  };
 	  
 	  MiniMC::CPA::State_ptr  StateQuery::makeInitialState (const MiniMC::Model::Program& p) {

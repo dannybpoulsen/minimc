@@ -2,6 +2,7 @@
 #define _VM__
 
 #define DEBUGVM
+#include <iostream>
 #include "model/instructions.hpp"
 
 namespace MiniMC {
@@ -17,14 +18,14 @@ namespace MiniMC {
 		};
 #undef X
 		
-#define DISPATCH(INST,END)											\
+#define DISPATCH(INST,END)												\
 		if (INST == END){												\
 		  data.finalise();												\
 		  return;														\
 		}																\
-		else															\
+		else									{						\
 		  goto *arr[static_cast<std::size_t> (INST->getOpcode ())];		\
-		
+		}
 		
 			
 		DISPATCH(it,end);
