@@ -4,6 +4,7 @@
 #include "util/vm.hpp"
 #include "cpa/concrete.hpp"
 #include "instructionimpl.hpp"
+#include "heap.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -31,7 +32,15 @@ namespace MiniMC {
 			  MiniMC::Hash::hash_combine (seed,vl);
 			  
 			}
-			hash_val = seed;
+			MiniMC::Hash::hash_combine(seed,heap);
+			//uncommnented the update of this buffered hash value. It
+			//disables the buffering as it might be incorrect
+			//The State is really just a container and the parts
+			//making up its hash-values can actually change outside
+			//its knowledge....making it impossible to keep
+			//precomputed hash_value up to date
+			//hash_val = seed;
+			return seed;
 		  }
 		  return hash_val;
 		}
@@ -42,16 +51,19 @@ namespace MiniMC {
 
 		auto& getGlobals () {return globals;}
 		auto& getProc (std::size_t i) {return proc_vars[i];}
-
+		auto& getHeap ()   {return heap;}
+		
+		
 		auto& getGlobals () const {return globals;}
 		auto& getProc (std::size_t i) const  {return proc_vars[i];}
-		
+		auto& getHeap () const  {return heap;}
 		
 		virtual bool need2Store () const {return false;}
 		virtual bool ready2explore () const {return true;}
 	  private:
 		VariableLookup globals;
 		std::vector<VariableLookup> proc_vars;
+		Heap heap;
 		mutable MiniMC::Hash::hash_t hash_val = 0;
 	  };
 	  
@@ -78,11 +90,13 @@ namespace MiniMC {
 		VMData data {
 		  .readFrom = {
 			.global = const_cast<VariableLookup*> (&state->getGlobals ()),
-			.local = nullptr
+			.local = nullptr,
+			.heap = &state->getHeap ()
 		  },
 		  .writeTo = {
 			.global = &state->getGlobals (),
-			.local = nullptr
+			.local = nullptr,
+			.heap = &state->getHeap ()
 		  }
 		};
 		
@@ -103,11 +117,13 @@ namespace MiniMC {
 		VMData data {
 		  .readFrom = {
 			.global = const_cast<VariableLookup*> (&nstate.getGlobals ()),
-			.local = const_cast<VariableLookup*> (&nstate.getProc (id))
+			.local = const_cast<VariableLookup*> (&nstate.getProc (id)),
+			.heap = &nstate.getHeap ()
 		  },
 		  .writeTo = {
 			.global = &nstate.getGlobals (),
-			.local = &nstate.getProc (id)
+			.local = &nstate.getProc (id),
+			.heap = &nstate.getHeap ()
 		  }
 		};
 		
@@ -119,7 +135,8 @@ namespace MiniMC {
 			if (instr.isPhi) {
 			  data.readFrom.global = const_cast<VariableLookup*> (&ostate.getGlobals ());
 			  data.readFrom.local = const_cast<VariableLookup*> (&ostate.getProc(id));
-			  
+			  data.readFrom.heap = const_cast<Heap*> (&ostate.getHeap ());
+				
 			}
 			auto it = instr.begin();
 			auto end = instr.end ();

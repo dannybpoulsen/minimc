@@ -4,6 +4,8 @@
 
 #include <ostream>
 #include <memory>
+#include "model/checkers/HasInstruction.hpp"
+
 #include <unordered_map>
 #include "cpa/state.hpp"
 #include "cpa/interface.hpp"
@@ -40,10 +42,14 @@ namespace MiniMC {
 		
 	  };
 	  
+
 	  struct PrevalidateSetup {
-		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
-	  };
-	  
+		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
+		  seq.template add<MiniMC::Model::Checkers::HasNoInstruction<
+			MiniMC::Model::InstructionCode::Call>
+						   ,MiniMC::Support::Messager&,const std::string&> (mess,"This CPA does not support '%1%' instructions.");
+		}
+      };
 	
     
 	  struct CPADef {

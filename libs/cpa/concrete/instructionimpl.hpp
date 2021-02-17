@@ -13,7 +13,7 @@
 #include "tacimpl.hpp"
 #include "cmpimpl.hpp"
 #include "castimpl.hpp"
-
+#include "heap.hpp"
 
 
 namespace MiniMC {
@@ -25,6 +25,7 @@ namespace MiniMC {
 	  struct GlobalLocalVariableLookup{
 		VariableLookup* global;
 		VariableLookup* local;
+		Heap* heap;
 		auto LookUp (const MiniMC::Model::Variable_ptr& v) const  {
 		  if (v->isGlobal ()) {
 			return global->at (v);
@@ -88,7 +89,7 @@ namespace MiniMC {
 			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Variable> (res), Steptacexec<opc> (lval,rval));
 			
 		  }
-
+		  
 		  else if constexpr (MiniMC::Model::InstructionData<opc>::isComparison) {
 			auto& res = helper.getResult ();
 			auto& left = helper.getLeftOp ();
@@ -182,6 +183,34 @@ namespace MiniMC {
 			if (lval.template read<MiniMC::uint8_t> ())
 			  throw MiniMC::Support::AssumeViolated ();
 		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca) {
+			auto& result = helper.getResult ();
+			auto& size = helper.getSize ();
+			auto lsize = data.readFrom.evaluate (size);
+			MiniMC::pointer_t pointer = data.writeTo.heap->allocate (lsize.template read<MiniMC::uint64_t> (0));
+			MiniMC::Util::Array res (sizeof(pointer));
+			res.set (0,pointer);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Store) {
+			auto addr = data.readFrom.evaluate (helper.getAddress ());
+			auto value = data.readFrom.evaluate (helper.getValue ());
+			data.writeTo.heap->write (value,addr.template read<MiniMC::pointer_t> ());
+			
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Load) {
+			auto& result = helper.getResult ();
+			MiniMC::Util::Array res (result->getType ()->getSize());
+			auto addr = data.readFrom.evaluate (helper.getAddress ());
+			data.readFrom.heap->read (res,addr.template read<MiniMC::pointer_t> ());
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			
+		  }
+		  
 		  else {
 			throw NotImplemented<opc> ();
 		  }

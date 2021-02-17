@@ -1,6 +1,9 @@
+
+#ifndef _EXCEPT__
+#define _EXCEPT__
+
 #include "support/localisation.hpp"
 #include "support/exceptions.hpp"
-
 
 namespace MiniMC {
   namespace CPA {
@@ -11,6 +14,20 @@ namespace MiniMC {
 		NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
       };
 
+	  class BufferOverflow : public MiniMC::Support::Exception {
+      public:
+		BufferOverflow () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"BufferOverflow detected"}.format ()) {}
+      };
+
+	  class InvalidFree : public MiniMC::Support::Exception {
+      public:
+		InvalidFree () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid freedetected"}.format ()) {}
+      };
+	  
+	  
 	}
   }
 }
+
+
+#endif

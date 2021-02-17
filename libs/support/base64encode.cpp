@@ -8,7 +8,7 @@ namespace MiniMC {
   namespace Support {
     std::string Base64Encode::encode (const char* buf, std::size_t len) { 
 	  return base64_encode (reinterpret_cast<unsigned char const*> (buf),len,false);
-    }
+	}
 
     DecodeResult Base64Encode::decode (const std::string& str) {
       std::string dec = base64_decode (str);

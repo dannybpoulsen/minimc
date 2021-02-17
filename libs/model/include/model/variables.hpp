@@ -125,8 +125,9 @@ namespace MiniMC {
       virtual bool isInteger () const {return true;}
       
       virtual std::ostream& output (std::ostream& os) const {
-		MiniMC::Support::Base64Encode encoder;
-		os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
+		//MiniMC::Support::Base64Encode encoder;
+		//os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
+		os << value << std::endl;
 		if (getType ())
 		  os << *getType();
 		else

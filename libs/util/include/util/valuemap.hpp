@@ -30,7 +30,7 @@ namespace MiniMC {
 	  
 	  std::ostream& output (std::ostream& os) const {
 		for (size_t i = 0; i < size; i++) {
-		  os << i << " : " << mem[i] << mem[i].getSize()<< std::endl;
+		  os << i << " : " << mem[i] << "-"<< mem[i].getSize() << std::endl;
 		}
 		return os;
 	  }
@@ -48,7 +48,7 @@ namespace MiniMC {
 	  std::unique_ptr<T[]> mem;
 	  std::size_t size;
 	};
-
+	
 	template<class F, class T,class Index>
 	inline std::ostream& operator<< (std::ostream& os, const FixedVector<F,T,Index>& vec) {
 	  return vec.output (os);

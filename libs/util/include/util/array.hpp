@@ -54,12 +54,17 @@ namespace MiniMC {
 		assert(byte+block_size <= size);
 		std::copy (buffer.get()+byte,buffer.get()+byte+block_size,block);
 	  }
+
+	  const MiniMC::uint8_t* get_direct_access () const {
+		return buffer.get();
+	  }
 	  
 	  std::size_t getSize () const {return size;}
 
 	  std::ostream& output (std::ostream& os) const  {
 		MiniMC::Support::Base64Encode encoder;
 		return os << encoder.encode (reinterpret_cast<const char*> (buffer.get()),size);
+		
 	  }
 	  
 	  MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t s) const {
