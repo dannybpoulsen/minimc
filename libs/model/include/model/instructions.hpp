@@ -1,4 +1,4 @@
-/**
+ /**
  * @file   instructions.hpp
  * @author Danny Bøgsted Poulsen <caramon@homemachine>
  * @date   Sun Apr 19 11:30:31 2020
@@ -74,7 +74,9 @@ namespace MiniMC {
     X(Free)										\
     X(Store)									\
     X(Load)										\
-
+	X(ExtendObj)								\
+	
+	
 #define INTERNAL								\
     X(Skip)										\
     X(Call)										\
@@ -319,6 +321,18 @@ namespace MiniMC {
       static const bool hasResVar = true;			
     };
 
+	template<>						
+    struct InstructionData<InstructionCode::ExtendObj> {
+	  static const bool isTAC = false;
+	  static const bool isUnary =false;			\
+	  static const bool isComparison = false;
+      static const bool isMemory = true;			
+      static const bool isCast = false;
+      static const bool isPredicate = false;
+      static const std::size_t operands = 2;			
+      static const bool hasResVar = true;			
+    };
+	
     template<>						
     struct InstructionData<InstructionCode::Malloc> {		
       static const bool isTAC = false;
@@ -822,6 +836,39 @@ namespace MiniMC {
       Value_ptr size;
     };
 
+	template<>
+    class InstHelper<InstructionCode::ExtendObj,void> {
+    public:
+      InstHelper (const Instruction& inst) : inst(inst) {}
+      auto& getResult () const {return inst.getOp(0);}
+      auto& getPointer () const {return inst.getOp(1);}
+      auto& getSize () const {return inst.getOp(2);}
+      
+    private:
+      const Instruction& inst;
+    };
+
+
+    template<>
+    class InstBuilder<InstructionCode::ExtendObj> {
+    public:
+      auto& setRes (const Value_ptr& ptr) {res = ptr; return *this;}
+      auto& setPointer (const Value_ptr& ptr) {pointer = ptr; return *this;}
+      auto& setSize (const Value_ptr& ptr) {size = ptr; return *this;}
+      
+      Instruction BuildInstruction () {
+		assert(res);
+		assert(size);
+		assert(pointer);
+		return Instruction (InstructionCode::ExtendObj,{res,pointer,size});
+	  }
+    private:
+      Value_ptr res;
+      Value_ptr pointer;
+	  Value_ptr size;
+	};
+	
+	
     template<>
     class InstHelper<InstructionCode::Malloc,void> {
     public:
@@ -909,6 +956,14 @@ namespace MiniMC {
       } 
     };
 
+  template<> 
+    struct Formatter<InstructionCode::ExtendObj,void> {
+      static std::ostream& output (std::ostream& os, const Instruction& inst) {
+		InstHelper<InstructionCode::ExtendObj> h (inst);
+		return os << InstructionCode::ExtendObj << " (" << *h.getResult () << ", " << *h.getPointer() << " by "  << *h.getSize () <<" )";
+      } 
+    };
+  
     template<> 
     struct Formatter<InstructionCode::Malloc,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {

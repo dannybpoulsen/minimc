@@ -45,12 +45,23 @@ namespace MiniMC {
 			throw BufferOverflow ();
 		}
 
+		void extend (MiniMC::uint64_t size) {
+		  MiniMC::uint8_t* nmem = new MiniMC::uint8_t[this->size+size];
+		  std::copy (memory.get(),memory.get()+this->size,nmem);
+		  this->size+=size;
+		  memory.reset(nmem);
+		}
+		
 		auto hash () const {
 		  return MiniMC::Hash::Hash (memory.get(),size,static_cast<MiniMC::Hash::seed_t> (state));
 		}
 
 		void setState (EntryState state) {
 		  this->state=state;
+		}
+
+		auto getSize () const {
+		  return size;
 		}
 		
 		EntryState state;
@@ -87,14 +98,28 @@ namespace MiniMC {
 		  return pointer;
 		}
 
+		MiniMC::pointer_t extend (MiniMC::pointer_t pointer, MiniMC::uint64_t size) {
+		  auto base = MiniMC::Support::getBase(pointer);
+		  auto offset = MiniMC::Support::getOffset(pointer);
+		  if (base < entries.size () && offset == 0) {
+			auto& entry = entries.at(base);
+			auto pointer = MiniMC::Support::makeHeapPointer (base,entry.getSize());
+			entry.extend (size);
+			return pointer;
+			
+		  }
+		  else {
+			throw InvalidExtend ();
+		  }
+		}
+		
 		void free (MiniMC::pointer_t pointer) {
 		  auto base = MiniMC::Support::getBase(pointer);
-		  auto offset = MiniMC::Support::getBase(pointer);
-	
+		  auto offset = MiniMC::Support::getOffset(pointer);
 		  if (base < entries.size() &&
-				offset == 0) {
-			  entries.at(base).setState (EntryState::Freed);
-			}
+			  offset == 0) {
+			entries.at(base).setState (EntryState::Freed);
+		  }
 		  else {
 			throw InvalidFree ();
 		  }
@@ -111,7 +136,7 @@ namespace MiniMC {
 			throw BufferOverflow ();
 		  }
 		}
-
+		
 		void write (const MiniMC::Util::Array& arr, MiniMC::pointer_t pointer) {
 		  auto base = MiniMC::Support::getBase(pointer);
 		  auto offset = MiniMC::Support::getBase(pointer);

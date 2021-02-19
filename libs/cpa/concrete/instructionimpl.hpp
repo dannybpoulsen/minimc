@@ -184,7 +184,18 @@ namespace MiniMC {
 			  throw MiniMC::Support::AssumeViolated ();
 		  }
 
-		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca) {
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
+			//Ignore. The space is technically already reserved by FindSpace
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Free) {
+			auto& pointer = helper.getPointer ();
+			auto lpointer = data.readFrom.evaluate (pointer);
+			data.writeTo.heap->free (lpointer.template read<pointer_t> ());
+		  }
+		  
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca ||
+							 opc == MiniMC::Model::InstructionCode::FindSpace) {
 			auto& result = helper.getResult ();
 			auto& size = helper.getSize ();
 			auto lsize = data.readFrom.evaluate (size);
@@ -194,7 +205,22 @@ namespace MiniMC {
 			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
 			
 		  }
-
+		  
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::ExtendObj) {
+			auto& result = helper.getResult ();
+			auto& size = helper.getSize ();
+			auto lsize = data.readFrom.evaluate (size);
+			auto& pointer = helper.getPointer ();
+			auto lpointer = data.readFrom.evaluate (pointer);
+			
+			MiniMC::pointer_t pointer_res = data.writeTo.heap->extend (lpointer.template read<pointer_t> (),
+																	   lsize.template read<MiniMC::uint64_t> (0));
+			MiniMC::Util::Array res (sizeof(pointer_res));
+			res.set (0,pointer_res);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			
+		  }
+		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Store) {
 			auto addr = data.readFrom.evaluate (helper.getAddress ());
 			auto value = data.readFrom.evaluate (helper.getValue ());

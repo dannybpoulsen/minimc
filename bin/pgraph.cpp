@@ -65,7 +65,9 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
      "\t 3: PathFormula With CVC4\n"
      )
     ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
-    ("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
+	("removeallocs",po::bool_switch (&sopt.removeAllocs),"Remove Alloca (replace them with Malloc and ExtendObj")
+    
+	("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	("convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
     
 	;

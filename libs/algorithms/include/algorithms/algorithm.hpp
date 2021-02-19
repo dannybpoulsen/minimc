@@ -25,6 +25,8 @@
 #include "model/modifications/splitcmps.hpp"
 #include "model/modifications/constantfolding.hpp"
 #include "model/modifications/loops.hpp"
+#include "model/modifications/removealloca.hpp"
+
 
 #include "model/analysis/manager.hpp"
 
@@ -87,6 +89,7 @@ namespace MiniMC {
 	  bool splitCMPS = false;
 	  bool foldConstants = false;
 	  bool convergencePoints = false;
+	  bool removeAllocs = false;
 	  
 	  std::size_t inlinefunctions = 0;
 	  std::size_t unrollLoops = 0;
@@ -107,7 +110,8 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
-	  
+	  if (options.removeAllocs)  
+		seq.template add<MiniMC::Model::Modifications::RemoveAllocas> (); 
 	  
 	  if (options.inlinefunctions) {
 	    seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 

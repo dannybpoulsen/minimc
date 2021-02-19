@@ -21,8 +21,14 @@ namespace MiniMC {
 
 	  class InvalidFree : public MiniMC::Support::Exception {
       public:
-		InvalidFree () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid freedetected"}.format ()) {}
+		InvalidFree () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid free detected"}.format ()) {}
       };
+
+	  class InvalidExtend : public MiniMC::Support::Exception {
+      public:
+		InvalidExtend () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid extend detected"}.format ()) {}
+      };
+	  
 	  
 	  
 	}
