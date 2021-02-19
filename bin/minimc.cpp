@@ -62,6 +62,7 @@ int main (int argc,char* argv[]) {
 	("unrollloops",po::value<std::size_t> (&soptions.unrollLoops),"Unroll Loops")
 	("removeallocas",po::bool_switch (&soptions.removeAllocs),"Remove Alloca (replace them with equivalent construction)")
 	("replacememnondet",po::bool_switch (&soptions.replacememnodet),"Remove Alloca (replace them with equivalent construction)")
+	("removephi",po::bool_switch (&soptions.removephi),"Removephi")
 	
 	;
   
