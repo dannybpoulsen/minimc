@@ -72,6 +72,15 @@ namespace MiniMC {
 			data.path = data.smtbuilder->buildTerm(SMTLib::Ops::And,{data.path,notted});
 		    
 		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::NonDet) {
+			MiniMC::Model::InstHelper<opc> helper (i);
+			auto& res = helper.getResult ();
+			auto valTerm = MiniMC::Util::buildSMTValue (*data.smtbuilder,res);
+			
+			data.newSSAMap->updateValue (res.get(),valTerm);
+			
+		  }
 		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Skip) {
 			//Do nothing

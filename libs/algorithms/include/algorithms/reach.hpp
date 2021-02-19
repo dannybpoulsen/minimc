@@ -28,19 +28,19 @@ namespace MiniMC {
       
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		messager.message ("Initiating Reachability");
-		auto progresser = messager.makeProgresser ();
 		CPADFSPassedWaiting<CPA> passed;
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::CPA::State_ptr foundState = nullptr;
 		try {
+		  auto progresser = messager.makeProgresser ();
 		  auto predicate = [](const MiniMC::Algorithms::Successor& succ) {
-							 auto nstate = succ.state;
-							 auto loc = CPA::Query::getLocation (nstate,succ.proc);
-							 if (loc->template is<MiniMC::Model::Location::Attributes::AssertViolated> ()) {
-							   return true;
-							 }
+			auto nstate = succ.state;
+			auto loc = CPA::Query::getLocation (nstate,succ.proc);
+			if (loc->template is<MiniMC::Model::Location::Attributes::AssertViolated> ()) {
+			  return true;
+			}
 							 return false;
-						   };
+		  };
 		  
 		  
 		  MiniMC::Algorithms::PassedInsert insert (*progresser,passed);

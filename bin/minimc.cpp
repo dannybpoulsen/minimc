@@ -60,6 +60,9 @@ int main (int argc,char* argv[]) {
     ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
 	("inlinefunctions",po::value<std::size_t> (&soptions.inlinefunctions),"Inline function calls")
 	("unrollloops",po::value<std::size_t> (&soptions.unrollLoops),"Unroll Loops")
+	("removeallocas",po::bool_switch (&soptions.removeAllocs),"Remove Alloca (replace them with equivalent construction)")
+	("replacememnondet",po::bool_switch (&soptions.replacememnodet),"Remove Alloca (replace them with equivalent construction)")
+	
 	;
   
     ;

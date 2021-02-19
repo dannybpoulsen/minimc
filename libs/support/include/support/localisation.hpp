@@ -17,7 +17,7 @@ namespace MiniMC {
       }
       
     private:
-      boost::format formatter;
+	  boost::format formatter;
     };
   }
 }

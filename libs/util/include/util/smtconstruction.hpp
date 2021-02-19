@@ -157,11 +157,16 @@ namespace MiniMC {
 			break;
 		  }
 		  
+		 
 		  
 		}
 		else if (type->getTypeID () == MiniMC::Model::TypeID::Bool) {
 		  sort = builder.makeSort (SMTLib::SortKind::Bool,{});
 		}
+		else if (type->getTypeID () == MiniMC::Model::TypeID::Pointer) {
+		  sort = builder.makeBVSort (64);
+		}
+		
 		if (sort)
 		  return builder.makeVar (sort,var->getName ());
 	  }

@@ -40,8 +40,8 @@
 namespace MiniMC {
   namespace Algorithms {
 	enum class Result {
-					   Success = 0,
-					   Error = 1
+	  Success = 0,
+	  Error = 1
     };
 
 	
@@ -90,7 +90,7 @@ namespace MiniMC {
 	  bool foldConstants = false;
 	  bool convergencePoints = false;
 	  bool removeAllocs = false;
-	  
+	  bool replacememnodet = false;
 	  std::size_t inlinefunctions = 0;
 	  std::size_t unrollLoops = 0;
 	  
@@ -110,6 +110,9 @@ namespace MiniMC {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
+	  if (options.replacememnodet) {
+		seq.template add<MiniMC::Model::Modifications::RemoveMemNondet> ();
+	  }
 	  if (options.removeAllocs)  
 		seq.template add<MiniMC::Model::Modifications::RemoveAllocas> (); 
 	  

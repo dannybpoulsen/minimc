@@ -33,6 +33,16 @@ namespace MiniMC {
 			    nondet.setResult (load.getResult ());
 			    I.replace (nondet.BuildInstruction ());
 			  }
+			  if (I.getOpcode () == MiniMC::Model::InstructionCode::Alloca ||
+				  I.getOpcode () == MiniMC::Model::InstructionCode::Malloc ||
+				  I.getOpcode () == MiniMC::Model::InstructionCode::ExtendObj || 
+				  I.getOpcode () == MiniMC::Model::InstructionCode::Store  
+				  
+				  ) {
+				MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Skip> skip;
+				I.replace (skip.BuildInstruction ());
+			  }
+			  
 			}
 		      }
 		    }
