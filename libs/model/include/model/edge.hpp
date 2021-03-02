@@ -81,8 +81,10 @@ namespace MiniMC {
       
       template<class Iterator>
       auto erase( Iterator iter) {
-		return instr.erase (iter);
-      }
+		auto res =  instr.erase (iter);
+		assert (instr.size () > 0);
+		return res;
+	  }
 	  
       std::vector<Instruction> instr;
       bool isPhi = false;;

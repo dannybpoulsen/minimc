@@ -2,7 +2,7 @@
 #define _EXCEPTION__
 
 #include <stdexcept>
-
+#include "support/localisation.hpp"
 
 namespace MiniMC {
   namespace Support {
@@ -35,7 +35,12 @@ namespace MiniMC {
     public:
       AssumeViolated () : VerificationException ("Assume Violated") {}
     };
-    
+
+	class FunctionDoesNotExist : public  VerificationException {
+    public:
+      FunctionDoesNotExist (const std::string& name) : VerificationException (Localiser ("Function '%1%' does not exists").format(name)) {}
+    };
+	
     
   }
 }

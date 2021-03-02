@@ -104,16 +104,13 @@ int main (int argc,char* argv[]) {
   
   if (vm.count ("task")) {
     std::vector< std::string > entries = vm["task"].as< std::vector< std::string > >();
-    std::unordered_map<std::string,MiniMC::Model::Function_ptr> fmap;
-    for (auto f: prgm->getFunctions ()) {
-      fmap.insert (std::make_pair(f->getName(),f));
-    }
     for (std::string& s : entries) {
-      if (fmap.count (s)) 
-	prgm->addEntryPoint (fmap.at(s));
-      else {
-	std::cerr << MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format (s) << std::endl;
-	return -1;
+	  try {
+		prgm->addEntryPoint (s );
+	  }
+	  catch (MiniMC::Support::FunctionDoesNotExist& ){
+		std::cerr << MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format (s) << std::endl;
+		return -1;
       }
     }
   }

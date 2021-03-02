@@ -68,13 +68,9 @@ int main () {
   MiniMC::Model::Program_ptr prgm = MiniMC::Loaders::loadFromString<MiniMC::Loaders::Type::LLVM> (ir, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac,
 																																												  .cfactory =cfac}
 	);
-  std::unordered_map<std::string,MiniMC::Model::Function_ptr> fmap;
-  for (auto f: prgm->getFunctions ()) {
-	fmap.insert (std::make_pair(f->getName(),f));
-  }
   
-  prgm->addEntryPoint (fmap.at("main"));
-
+  prgm->addEntryPoint ("main");
+  
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Algorithms::SetupOptions soptions {.messager = mess.get()};
   soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);;

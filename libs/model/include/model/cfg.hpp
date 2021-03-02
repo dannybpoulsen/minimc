@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 #include <gsl/pointers>
 
 #include "model/instructions.hpp"
@@ -185,6 +186,7 @@ namespace MiniMC {
 												const VariableStackDescr_ptr& variableStackDescr,
 												const gsl::not_null<CFG_ptr> cfg) {
 		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg,shared_from_this()));
+		function_map.insert (std::make_pair (name,functions.back ()));
 		return functions.back();
       }
 
@@ -193,14 +195,25 @@ namespace MiniMC {
 	  }
 	  
       auto& getFunctions  () const {return functions;}
-      void addEntryPoint (const gsl::not_null<Function_ptr>& func) {
-		entrypoints.push_back(func.get());
-      }
+      
+
+	  void addEntryPoint (const std::string& str) {
+		auto function = getFunction (str);
+		entrypoints.push_back(function);
+	  }
       
       Function_ptr getFunction (MiniMC::func_t id) const {
 		return functions.at(id);
       }
 
+	  gsl::not_null<Function_ptr> getFunction (const std::string& name) {
+		if (function_map.count (name)) {
+		  return function_map.at (name);
+		}
+		
+		throw MiniMC::Support::FunctionDoesNotExist (name); 
+	  }
+	  
       bool  functionExists (MiniMC::func_t id) const {
 		return id < functions.size();
       }
@@ -226,7 +239,8 @@ namespace MiniMC {
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
       InstructionStream initialiser;
-    };
+	  std::unordered_map<std::string,Function_ptr> function_map;
+	};
     
   }
 }
