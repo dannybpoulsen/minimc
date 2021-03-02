@@ -140,9 +140,11 @@ namespace MiniMC {
 				 public std::enable_shared_from_this<Edge> 
     {
     public:
-      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) : 
+      Edge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_wptr& prgm) : 
 		from(from.get()),
-		to(to.get()) {
+		to(to.get()),
+		prgm(prgm)
+	  {
       }
       
       Edge (const Edge& ) = default;
@@ -190,7 +192,7 @@ namespace MiniMC {
 	  
       auto getProgram() const {return prgm.lock();}
       
-      void setProgram (const Program_ptr& p) {prgm = p;} 
+      //void setProgram (const Program_ptr& p) {prgm = p;} 
       
       void copyAttributesFrom (const Edge& e) {
 		if (e.hasAttribute<AttributeType::Guard> ()){

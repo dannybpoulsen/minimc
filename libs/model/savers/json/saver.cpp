@@ -115,8 +115,8 @@ namespace MiniMC {
 	  rapidjson::Value rvalue;
 	  rvalue.SetObject ();
 	  rvalue.AddMember ("id",rapidjson::Value().SetInt (loc->getID ()),alloc);
-	  rvalue.AddMember ("callplace",rapidjson::Value().SetBool(loc->is<MiniMC::Model::Location::Attributes::CallPlace> ()),alloc);
-	  rvalue.AddMember ("assumptionplace",rapidjson::Value().SetBool(loc->is<MiniMC::Model::Location::Attributes::AssumptionPlace> ()),alloc);
+	  rvalue.AddMember ("callplace",rapidjson::Value().SetBool(loc->getInfo().is<MiniMC::Model::Attributes::CallPlace> ()),alloc);
+	  rvalue.AddMember ("assumptionplace",rapidjson::Value().SetBool(loc->getInfo().is<MiniMC::Model::Attributes::AssumptionPlace> ()),alloc);
 	  obj.PushBack (rvalue,alloc);
 	}
 

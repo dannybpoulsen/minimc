@@ -42,7 +42,7 @@ namespace MiniMC {
 		auto to = (locs.count (edge->getTo ().get().get())) ? locs.at (edge->getTo ().get().get()) : edge->getTo ().get();
 		auto from = (locs.count (edge->getFrom ().get().get())) ? locs.at (edge->getFrom ().get().get()) : edge->getFrom ().get ();
 		
-		auto nedge = cfg->makeEdge (from,to,edge->getProgram());
+		auto nedge = cfg->makeEdge (from,to);
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 		  auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard> ();
 		  nedge->setAttribute<MiniMC::Model::AttributeType::Guard> (guard);
@@ -66,8 +66,7 @@ namespace MiniMC {
 
 	  template<class LocInsert,class LocInserter>
 	  void copyLocation (MiniMC::Model::CFG_ptr to, const MiniMC::Model::Location_ptr& loc , LocInsert inserter, LocInserter linserter,const std::string pref  ="") {
-		auto nloc = to->makeLocation (pref+":"+loc->getName());
-		nloc->setAttributesFlags (loc->getAttributesFlags ());
+		auto nloc = to->makeLocation (loc->getInfo());
 		inserter = std::make_pair (loc.get(),nloc);
 		linserter = nloc.get();
 	  }
@@ -81,7 +80,7 @@ namespace MiniMC {
 		auto to = (locs.count (edge->getTo ().get().get())) ? locs.at (edge->getTo ().get().get()) : edge->getTo ().get();
 		auto from = (locs.count (edge->getFrom ().get().get())) ? locs.at (edge->getFrom ().get().get()) : edge->getFrom ().get ();
 		
-		auto nedge = cfg->makeEdge (from,to,edge->getProgram());
+		auto nedge = cfg->makeEdge (from,to);
 		if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard> ()) {
 		  auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard> ();
 		  
@@ -117,8 +116,7 @@ namespace MiniMC {
 					LocInsert lInsert,
 					EdgeInsert eInsert) {
 		for (auto& loc : from->getLocations ()) {
-		  auto nloc = to->makeLocation (pref+":"+loc->getName());
-		  nloc->setAttributesFlags (loc->getAttributesFlags ());
+		  auto nloc = to->makeLocation (loc->getInfo());
 		  locmap.insert (std::pair (loc.get(),nloc));
 		  lInsert = loc;
 		}

@@ -35,11 +35,12 @@ namespace MiniMC {
 	 *
 	 */
     class CFG {
-    public:
-      CFG () {}
-	  
-      gsl::not_null<Location_ptr> makeLocation (const std::string& name) {
-		locations.emplace_back (new Location (name,locations.size()));
+    protected:
+	  friend class Program;
+      CFG (const Program_ptr& prgm) : prgm(prgm) {}
+	public:
+      gsl::not_null<Location_ptr> makeLocation (const LocationInfo& info) {
+		locations.emplace_back (new Location (info,locations.size()));
 		return locations.back();
       }
 
@@ -52,11 +53,10 @@ namespace MiniMC {
 	   *
 	   * @return 
 	   */
-      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_ptr& p) {
-		edges.emplace_back (new Edge (from,to));
+      gsl::not_null<Edge_ptr> makeEdge (gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) {
+		edges.emplace_back (new Edge (from,to,prgm));
 		to->addIncomingEdge (edges.back ());
 		from->addEdge (edges.back());
-		edges.back()->setProgram(p);
 		return edges.back();
       }
 	  
@@ -92,8 +92,6 @@ namespace MiniMC {
 		std::for_each (location->ebegin(),location->eend(),[&](const auto& e) {insert = e;});
 		std::for_each (location->iebegin(),location->ieend(),[&](const auto& e) {insert = e;});
 	
-	
-	
 		std::for_each (wlist.begin(),wlist.end(), [&](const auto& e) {this->deleteEdge (e);});
 	
 
@@ -125,6 +123,7 @@ namespace MiniMC {
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;;
+	  Program_wptr prgm;
     };
 
     using CFG_ptr = std::shared_ptr<CFG>;
@@ -137,26 +136,19 @@ namespace MiniMC {
 				const std::vector<gsl::not_null<Variable_ptr>>& params,
 				const gsl::not_null<Type_ptr> rtype,
 				const VariableStackDescr_ptr& variableStackDescr,
-				const gsl::not_null<CFG_ptr> cfg) : name(name),
+				const gsl::not_null<CFG_ptr> cfg,
+				const Program_ptr& prgm
+				) : name(name),
 													parameters(params),
 													variableStackDescr(variableStackDescr),
 													cfg(cfg),
 													id(id),
-													retType(rtype)
+					retType(rtype),
+					prgm(prgm)
       {
 		
       }
 
-      void takeOwnsership () {
-		auto wptr = std::shared_ptr<Function>( this, [](Function*){} ); 
-		for (auto& e : cfg->getEdges ()) {
-		  if (e->hasAttribute<AttributeType::Instructions> ()) 
-			for (auto& l : e->getAttribute<AttributeType::Instructions> ()) {
-			  l.setFunction (shared_from_this());
-			}
-		}
-      }
-	  
       auto& getName() const {return name;}
       auto& getParameters () const {return parameters;}
       auto& getVariableStackDescr () const {return variableStackDescr;}
@@ -165,7 +157,6 @@ namespace MiniMC {
       auto& getID () const {return id;}
       auto& getReturnType () {return retType;}
       gsl::not_null<Program_ptr> getPrgm () const {return prgm.lock();}
-      void setPrgm (const Program_ptr& prgm ) {this->prgm = prgm;}
     private:
       std::string name;
       std::vector<gsl::not_null<Variable_ptr>> parameters;
@@ -193,10 +184,13 @@ namespace MiniMC {
 												const gsl::not_null<Type_ptr> retType,
 												const VariableStackDescr_ptr& variableStackDescr,
 												const gsl::not_null<CFG_ptr> cfg) {
-		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg));
-		functions.back()->setPrgm (this->shared_from_this ());
+		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg,shared_from_this()));
 		return functions.back();
       }
+
+	  gsl::not_null<CFG_ptr> makeCFG () {
+		return std::shared_ptr<CFG> (new CFG(this->shared_from_this ()));
+	  }
 	  
       auto& getFunctions  () const {return functions;}
       void addEntryPoint (const gsl::not_null<Function_ptr>& func) {

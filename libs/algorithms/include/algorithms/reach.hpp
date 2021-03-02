@@ -36,10 +36,10 @@ namespace MiniMC {
 		  auto predicate = [](const MiniMC::Algorithms::Successor& succ) {
 			auto nstate = succ.state;
 			auto loc = CPA::Query::getLocation (nstate,succ.proc);
-			if (loc->template is<MiniMC::Model::Location::Attributes::AssertViolated> ()) {
+			if (loc->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ()) {
 			  return true;
 			}
-							 return false;
+			return false;
 		  };
 		  
 		  

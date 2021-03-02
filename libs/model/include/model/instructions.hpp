@@ -593,19 +593,7 @@ namespace MiniMC {
        * @return Reference to \p os, to allowing chaining outputs.
        */
       std::ostream& output (std::ostream& os) const;
-      /**
-       * Get the parent function of this instruction.
-       * \returns The Function_ptr to the parent or nullptr if not set.
-       */
-      const Function_ptr& getFunction () const {return parent;}
-
-      /**
-       * Set the parent function of this instruction. 
-       * \param par Function_ptr to the parent. 
-       */
-      void setFunction (const Function_ptr& par) {
-		parent = par;
-      }
+    
     private:
       InstructionCode opcode;
       std::vector<Value_ptr> ops;

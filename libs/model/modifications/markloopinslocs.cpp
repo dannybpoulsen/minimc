@@ -57,7 +57,7 @@ namespace MiniMC {
 				auto to = it->getTo().get().get();
 				if (colours.at(to) == Colour::OnStack) {
 				  //We have a loop
-				  to->template set <MiniMC::Model::Location::Attributes::NeededStore> ();
+				  to->getInfo().template set <MiniMC::Model::Attributes::NeededStore> ();
 				  
 				}
 				else if (colours.at(to) == Colour::Unvisited) {

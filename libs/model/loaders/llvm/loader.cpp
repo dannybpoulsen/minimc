@@ -391,7 +391,7 @@ namespace MiniMC {
 		Types tt;
 		tt.tfac = tfactory;
 		std::string fname =  F.getName().str();
-		auto cfg  = std::make_shared<MiniMC::Model::CFG> ();
+		auto cfg  = prgm->makeCFG ();
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
 		auto variablestack =  prgm->makeVariableStack ();
 		tt.stack = variablestack;
@@ -421,9 +421,9 @@ namespace MiniMC {
 			  addInstruction (&inst,insts,tt);
 			}
 			if (llvm::isa<llvm::CallInst> (inst)) {
-			  loc->set<MiniMC::Model::Location::Attributes::CallPlace> ();
-			  auto mloc = cfg->makeLocation (loc->getName () + ":AC");
-			  auto edge = cfg->makeEdge (loc,mloc,prgm);
+			  auto mloc = cfg->makeLocation (loc->getInfo ());
+			  loc->getInfo().set<MiniMC::Model::Attributes::CallPlace> ();
+			  auto edge = cfg->makeEdge (loc,mloc);
 			  if (insts.size())
 				edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			  insts.clear();
@@ -432,8 +432,8 @@ namespace MiniMC {
 		  }
 		  
 		  if (insts.size()) {
-			auto mloc = cfg->makeLocation (loc->getName () + ":S");
-			auto edge = cfg->makeEdge (loc,mloc,prgm);
+			auto mloc = cfg->makeLocation (loc->getInfo());
+			auto edge = cfg->makeEdge (loc,mloc);
 			edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			loc = mloc;
 			insts.clear();
@@ -448,7 +448,7 @@ namespace MiniMC {
 				std::vector<MiniMC::Model::Instruction> insts;
 				auto succ = term->getSuccessor (0);
 				auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
-				auto edge = cfg->makeEdge (loc,succloc,prgm);
+				auto edge = cfg->makeEdge (loc,succloc);
 				if (insts.size())
 				  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			  }
@@ -456,15 +456,15 @@ namespace MiniMC {
 				auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
 				auto ttloc = buildPhiEdge (&BB,term->getSuccessor (0),*cfg,tt,locmap);
 				auto ffloc = buildPhiEdge (&BB,term->getSuccessor (1),*cfg,tt,locmap);
-				auto edge = cfg->makeEdge (loc,ttloc,prgm);
+				auto edge = cfg->makeEdge (loc,ttloc);
 				edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
-				edge = cfg->makeEdge (loc,ffloc,prgm);
+				edge = cfg->makeEdge (loc,ffloc);
 				edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,true));
 			  }
 			}
 			else if ( term->getOpcode () == llvm::Instruction::IndirectBr) {
 			  auto brterm = llvm::dyn_cast<llvm::IndirectBrInst> (term);
-			  auto splitloc = cfg->makeLocation ("Indirect");
+			  auto splitloc = cfg->makeLocation ({"Indirect"});
 			  std::size_t dests = brterm->getNumDestinations ();
 			  auto value = findValue (brterm->getAddress(),values,tt,cfactory);
 			  for (std::size_t i = 0; i < dests;++i) {
@@ -476,12 +476,12 @@ namespace MiniMC {
 				builder.setRight (valComp);
 				builder.setRes (cond);
 				auto ttloc = buildPhiEdge (&BB,brterm->getDestination (i),*cfg,tt,locmap);
-				auto edge = cfg->makeEdge (splitloc,ttloc,prgm);
+				auto edge = cfg->makeEdge (splitloc,ttloc);
 				edge->setAttribute <MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
 				insts.push_back (builder.BuildInstruction ());
 			  }
 			  //splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
-			  auto nedge = cfg->makeEdge (loc,splitloc,prgm);
+			  auto nedge = cfg->makeEdge (loc,splitloc);
 			  nedge->setAttribute <MiniMC::Model::AttributeType::Instructions> (insts);
 			}
 		    
@@ -489,13 +489,12 @@ namespace MiniMC {
 			  std::vector<MiniMC::Model::Instruction> insts;
 			  addInstruction (term,insts,tt);
 			  auto succloc = cfg->makeLocation (fname+"."+"Term");
-			  auto edge = cfg->makeEdge (loc,succloc,prgm);
+			  auto edge = cfg->makeEdge (loc,succloc);
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			}
 		    
 		  }
 		}
-		f->takeOwnsership ();
 		return llvm::PreservedAnalyses::all();
       }
 
@@ -512,7 +511,7 @@ namespace MiniMC {
 		auto loc = locmap.at(to);
 		if (insts.size()) {
 		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI");
-		  auto edge = cfg.makeEdge (nloc,loc,prgm);
+		  auto edge = cfg.makeEdge (nloc,loc);
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (MiniMC::Model::InstructionStream (insts,true));
 		  return nloc;
 		}

@@ -51,7 +51,7 @@ namespace MiniMC {
 		  if (!cur)
 			break;
 		  auto loc = CPA::Query::getLocation (cur,it->proc);
-		  if (loc->template is<MiniMC::Model::Location::Attributes::AssertViolated> ()) {
+		  if (loc->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ()) {
 			smc.sample (MiniMC::Support::Statistical::Result::Satis);
 			return;
 		  }

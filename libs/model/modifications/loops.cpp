@@ -11,7 +11,7 @@ namespace MiniMC {
 	  template<class LocInserter>
 	  void unrollLoop (MiniMC::Model::CFG_ptr cfg, const MiniMC::Model::Analysis::Loop* loop,std::size_t amount, LocInserter linserter, MiniMC::Model::Program& prgm) {
 		std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
-		auto deadLoc = cfg->makeLocation ("DEAD").get();
+		auto deadLoc = cfg->makeLocation ({"DEAD"}).get();
 		//linserter =deadLoc;
 		for (size_t i = 0; i< amount; i++) {
 		  std::stringstream str;
@@ -45,7 +45,7 @@ namespace MiniMC {
 			  }
 			  else
 				to = deadLoc;
-			  auto nedge = cfg->makeEdge (from,to,prgm.shared_from_this());
+			  auto nedge = cfg->makeEdge (from,to);
 			  nedge->copyAttributesFrom (*e);
 			});
 		  

@@ -11,7 +11,7 @@ namespace MiniMC {
     namespace Checkers {
       template<MiniMC::Model::InstructionCode i,typename t = void> 
       struct TypeCheck {
-		static bool doCheck (MiniMC::Model::Instruction&, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction&, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr, MiniMC::Model::Program_ptr& prgm ) {
 		  MiniMC::Support::Localiser no_typecheck_for ("No typechecking implemented for '%1%'");
 		  mess.error (no_typecheck_for.format(i));
 	  
@@ -20,7 +20,7 @@ namespace MiniMC {
 	  
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isTAC>::type > {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser loc ("All operands to '%1%' must have same type as the result."); 
 		  InstHelper<i> h (inst);
 		  auto resType = h.getResult ()->getType ();
@@ -38,7 +38,7 @@ namespace MiniMC {
 
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isPredicate>::type > {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser loc ("All operands to '%1%' must be same type."); 
 		  InstHelper<i> h (inst);
 		  auto lType = h.getLeftOp ()->getType ();
@@ -54,7 +54,7 @@ namespace MiniMC {
 
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isUnary>::type > {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  if constexpr (i == MiniMC::Model::InstructionCode::Not) {
 			MiniMC::Support::Localiser loc ("All operands to '%1%' must have same type as the result."); 
 			InstHelper<i> h (inst);
@@ -72,7 +72,7 @@ namespace MiniMC {
       
       template<MiniMC::Model::InstructionCode i>
       struct TypeCheck<i,typename std::enable_if<MiniMC::Model::InstructionData<i>::isComparison>::type > {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser loc ("All operands to '%1%' must have same type..");
 		  MiniMC::Support::Localiser res_must_be_bool ("The result of '%1% must be boolean.");
 	  
@@ -96,7 +96,7 @@ namespace MiniMC {
 	  
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Trunc,void > {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser trunc_must_be_integer ("'%1%' can only be applied to integer types. "); 
 		  MiniMC::Support::Localiser trunc_must_be_larger ("From type must be larger that to type for '%1%'"); 
 		  
@@ -120,7 +120,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::IntToBool>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied to integer types. "); 
 		  MiniMC::Support::Localiser must_be_smaller ("From type must be smaller that to type for '%1%'"); 
 	  
@@ -141,7 +141,7 @@ namespace MiniMC {
 						   i == MiniMC::Model::InstructionCode::SExt ||
 						   i == MiniMC::Model::InstructionCode::ZExt>>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied to integer types. "); 
 		  MiniMC::Support::Localiser must_be_smaller ("From type must be smaller that to type for '%1%'"); 
 		  
@@ -167,7 +167,7 @@ namespace MiniMC {
 						   i == MiniMC::Model::InstructionCode::BoolSExt ||
 						   i == MiniMC::Model::InstructionCode::BoolZExt>::type>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied from boolean types to  integer types. "); 
 		  MiniMC::Support::Localiser must_be_smaller ("From type must be smaller that to type for '%1%'"); 
 		  
@@ -191,7 +191,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::IntToPtr,void>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only be applied to integer types. "); 
 		  MiniMC::Support::Localiser must_be_pointer ("Return type has to be pointer for '%1%'"); 
 		  
@@ -215,7 +215,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::PtrAdd,void>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_integer ("'%2%' has to be an integer for '%1%'. ");
 		  MiniMC::Support::Localiser must_be_same_type ("'value and skipeSize must be same type '%1%'. ");
 		  
@@ -258,7 +258,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::PtrToInt>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only be applied to pointer types. "); 
 		  MiniMC::Support::Localiser must_be_integer ("Return type has to be integer for '%1%'"); 
 		  
@@ -282,7 +282,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Alloca>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
 		  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer and 8 bytes long. "); 
 	  
@@ -309,7 +309,7 @@ namespace MiniMC {
 	  template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::ExtendObj>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
 		  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer and 8 bytes long. "); 
 	  
@@ -341,7 +341,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::BitCast>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser warning ("TypeCheck not fully implemented for '%1%'"); 
 		  mess.warning (warning.format (MiniMC::Model::InstructionCode::BitCast));
 		  return true;
@@ -351,7 +351,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Malloc>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only accept pointer types. "); 
 		  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer and 8 bytes long. "); 
 	  
@@ -378,7 +378,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Free>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only accept pointer types. "); 
 	  
 		  InstHelper<MiniMC::Model::InstructionCode::Free> h (inst);
@@ -396,7 +396,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::FindSpace>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only return pointer types. "); 
 		  MiniMC::Support::Localiser must_be_integer ("Size parameter to '%1%' must be an Integer. ");
 	  
@@ -422,7 +422,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Store>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only store to pointer types. "); 
 	 
 	  
@@ -440,7 +440,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Load>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only load from pointer types. "); 
 	  
 	  
@@ -458,7 +458,7 @@ namespace MiniMC {
       template<>
       struct TypeCheck<MiniMC::Model::InstructionCode::Skip>
       {
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  return true;
 		}
 	  
@@ -468,8 +468,8 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Call>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
-		  auto prgm = inst.getFunction()->getPrgm ();
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+		  //auto prgm = inst.getFunction()->getPrgm ();
 		  InstHelper<OpCode> h (inst);
 		  auto func = h.getFunctionPtr ();
 		  if (!func->isConstant ()) {
@@ -526,7 +526,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Assign>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assign;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_same_type ("Result and assignee must be same type for '%1%' "); 
 		  InstHelper<OpCode> h (inst);
 		  auto valT = h.getValue()->getType();
@@ -544,7 +544,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Ret>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Ret;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<MiniMC::Model::InstructionCode::Ret> h (inst);
 		  
 		  if (tt != h.getValue()->getType ()) {
@@ -562,7 +562,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::RetVoid>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
 		  if (tt->getTypeID () != MiniMC::Model::TypeID::Void) {
 			MiniMC::Support::Localiser must_be_same_type ("Return type of function with '%1%' must be void  "); 
 			mess.error (must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
@@ -577,7 +577,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::NonDet>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::NonDet;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  auto type =  h.getResult ()->getType();
 		  MiniMC::Support::Localiser must_be_integer  ("'%1% must return Integers");
@@ -596,7 +596,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Assert>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assert;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
 	  
@@ -615,7 +615,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Assume>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assume;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
 	  
@@ -634,7 +634,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::NegAssume>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::NegAssume;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_bool ("'%1%' must take boolean or integer as input. "); 
 	  
@@ -653,7 +653,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::StackRestore>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackRestore;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' must take pointer as inputs. "); 
 		  auto type = h.getValue()->getType();
@@ -670,7 +670,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::MemCpy>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::MemCpy;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&,MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_pointer_source ("'%1%' must take pointer as source inputs. ");
 		  MiniMC::Support::Localiser must_be_pointer_target ("'%1%' must take pointer as target inputs. ");
@@ -700,7 +700,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::StackSave>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackSave;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm ) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' must take pointer as result. "); 
 		  auto type = h.getResult ()->getType();
@@ -717,7 +717,7 @@ namespace MiniMC {
       struct TypeCheck<MiniMC::Model::InstructionCode::Uniform>
       {
 		static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Uniform;
-		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&) {
+		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  InstHelper<OpCode> h (inst);
 		  MiniMC::Support::Localiser must_be_same_type ("Result and assignee must be same type for '%1%' "); 
 		  MiniMC::Support::Localiser must_be_integer ("Result must be integer for '%1%' "); 
@@ -741,6 +741,7 @@ namespace MiniMC {
       
       bool TypeChecker::run (MiniMC::Model::Program&  prgm){
 		messager.message ("Initiating Typechecking");
+		Program_ptr prgm_ptr = prgm.shared_from_this();
 		bool res = true;
 		for (auto& F : prgm.getFunctions ()) {
 		  for (auto& E : F->getCFG()->getEdges ()) {
@@ -750,7 +751,7 @@ namespace MiniMC {
 				switch (I.getOpcode ()) {
 #define X(OP)															\
 				  case MiniMC::Model::InstructionCode::OP:				\
-					if (!TypeCheck<MiniMC::Model::InstructionCode::OP>::doCheck (I,messager,F->getReturnType())) { \
+					if (!TypeCheck<MiniMC::Model::InstructionCode::OP>::doCheck (I,messager,F->getReturnType(),prgm_ptr)) {	\
 					  res = false;										\
 					}													\
 					break;							

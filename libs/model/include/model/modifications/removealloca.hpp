@@ -32,9 +32,9 @@ namespace MiniMC {
 			minstr.setSize (prgm.getConstantFactory()->makeIntegerConstant (0,prgm.getTypeFactory()->makeIntegerType (64)));
 			InstructionStream stream ({instr.BuildInstruction (),minstr.BuildInstruction ()});
 			
-			auto ninitloc = cfg->makeLocation ("StackAlloc");
+			auto ninitloc = cfg->makeLocation ({"StackAlloc"});
 			auto oinitloc = cfg->getInitialLocation ().get();
-			auto edge =  cfg->makeEdge ( ninitloc,oinitloc,prgm.shared_from_this ());
+			auto edge =  cfg->makeEdge ( ninitloc,oinitloc);
 			edge->template setAttribute<AttributeType::Instructions> (stream);
 			cfg->setInitial (ninitloc);
 
@@ -76,8 +76,6 @@ namespace MiniMC {
 			  }
 			}
 			
-			
-			F->takeOwnsership ();
 		  }
 		  return true;
 		}

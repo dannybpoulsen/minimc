@@ -1,6 +1,7 @@
 #ifndef __LOCATION__
 #define __LOCATION__
 
+#include "model/source.hpp"
 
 namespace MiniMC {
   namespace Model {    
@@ -47,23 +48,12 @@ namespace MiniMC {
     public:
 	  friend class CFG;
 	  friend class Edge;
-      using AttrType = char;
-
-	  /**
-	   * The possible attributes that can be assigned locations
-	   *
-	   */
-      enum class Attributes  : AttrType {
-		AssertViolated = 1, /**< Indicates an assert was violated */
-		NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
-		CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
-		AssumptionPlace = 8, /**< Indicates an assumption is made on an edge leaving this location  */
-		ConvergencePoint = 16
-	  };
+      
+	  
       
       using edge_iterator = SmartIterator<Edge_ptr,std::vector<Edge_wptr>::iterator>;
       
-      Location (const std::string& n, MiniMC::offset_t id) : name(n),id(id) {}
+      Location (const LocationInfo& n, MiniMC::offset_t id) : info(n),id(id) {}
       
       void addEdge (gsl::not_null<Edge_ptr> e) {edges.push_back(e.get());}
       void addIncomingEdge (gsl::not_null<Edge_ptr> e) {incomingEdges.push_back(e.get());}
@@ -103,11 +93,10 @@ namespace MiniMC {
       auto nbOutgoingEdges () const {
 		return edges.size();
       }
-      
-      auto& getName () const {return name;}
-
 	  
-
+	  const LocationInfo& getInfo () const {return info;}
+	  LocationInfo& getInfo () {return info;}
+	  
 	  /** 
 	   * Count the number of incoming edges
 	   *
@@ -117,39 +106,6 @@ namespace MiniMC {
       auto nbIncomingEdges () const  {
 		return incomingEdges.size();
       }
-
-	  /** 
-	   * Check  if this location has Attributes \p i set 
-	   *
-	   *
-	   * @return true if \p i  is set false otherwise
-	   */
-      template<Attributes i>
-      bool is () {
-		return static_cast<AttrType> (i) & flags;
-      }
-
-	  /** 
-	   * Set attribute \p i.
-	   *
-	   */
-      template<Attributes i>
-      void set () {
-		flags |= static_cast<AttrType> (i);
-      }
-
-	  /** 
-	   * Remove attribute \p i from this Location.
-	   *
-	   */
-      template<Attributes i>
-      void unset () {
-		flags &= ~static_cast<AttrType> (i);
-      }
-
-	  AttrType getAttributesFlags () const {return flags;}
-	  void setAttributesFlags (AttrType t)  {flags = t;}
-	  
 	  
       auto getID () const {return id;}
       
@@ -206,8 +162,7 @@ namespace MiniMC {
 	private:
       std::vector<Edge_wptr> edges;
       std::vector<Edge_wptr> incomingEdges;
-      std::string name;
-      AttrType flags = 0;
+      LocationInfo info;
       MiniMC::offset_t id;
     };
 

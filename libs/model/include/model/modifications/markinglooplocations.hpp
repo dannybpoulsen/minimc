@@ -32,7 +32,7 @@ namespace MiniMC {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
 			for (auto& l : F->getCFG()->getLocations ()) {
-			  l->template set <MiniMC::Model::Location::Attributes::NeededStore> ();
+			  l->getInfo().template set <MiniMC::Model::Attributes::NeededStore> ();
 			}
 		  }
 		  return true;

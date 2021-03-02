@@ -60,7 +60,7 @@ namespace MiniMC {
 		  os << "[ ";
 		  for (auto l : locations) {
 			assert(l.cur());
-			os << l.cur()->getName() << ", ";
+			os << l.cur()->getInfo() << ", ";
 		  }
 		  return os << "]";
 		}
@@ -83,7 +83,7 @@ namespace MiniMC {
 		void popLocation (size_t i) {locations[i].pop ();}
 		bool need2Store () const {
 		  for (auto& locState : locations) {
-			if (locState.cur()->template is<MiniMC::Model::Location::Attributes::NeededStore> ())
+			if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::NeededStore> ())
 			  return true;
 		  }
 		  return false;

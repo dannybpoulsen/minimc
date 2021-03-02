@@ -112,7 +112,7 @@ namespace MiniMC {
 					builder.setResult (nondet.getResult ());
 					builder.setValue (val);
 
-					auto nedge = cfg->makeEdge (from,to,prgm.shared_from_this ());
+					auto nedge = cfg->makeEdge (from,to);
 					nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (origstr);
 					nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace (builder.BuildInstruction ());
 					it++;

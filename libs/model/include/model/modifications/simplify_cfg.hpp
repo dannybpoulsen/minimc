@@ -44,11 +44,11 @@ namespace MiniMC {
 						   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
 						   );
 			for (auto& E : wlist) {
-			  if (E->getFrom ()->template is<MiniMC::Model::Location::Attributes::CallPlace> () &&
+			  if (E->getFrom ()->getInfo().template is<MiniMC::Model::Attributes::CallPlace> () &&
 				  E->template getAttribute<MiniMC::Model::AttributeType::Instructions> ().last ().getOpcode () !=
 				  MiniMC::Model::InstructionCode::Call) 
 				{
-				  E->getFrom()->unset<MiniMC::Model::Location::Attributes::CallPlace> ();
+				  E->getFrom()->getInfo().unset<MiniMC::Model::Attributes::CallPlace> ();
 				}
 			}
 		  }
@@ -69,12 +69,11 @@ namespace MiniMC {
 			while (!wlist.empty ()) {
 			  MiniMC::Model::Location_ptr location = wlist.pop ();
 			  if (location->nbIncomingEdges () == 2) {
-				location->set<MiniMC::Model::Location::Attributes::ConvergencePoint> ();
+				location->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint> ();
 			  }
 			  else if (location->nbIncomingEdges () > 2) {
-				std::cerr << "Splitting " << location->getName()<<std::endl;
-				auto nlocation = cfg->makeLocation ("");
-				nlocation->set<MiniMC::Model::Location::Attributes::ConvergencePoint> ();
+				auto nlocation = cfg->makeLocation ({""});
+				nlocation->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint> ();
 				auto it = location->ebegin ();
 				MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> elist;
 				std::for_each (location->ebegin(),
@@ -82,11 +81,11 @@ namespace MiniMC {
 							   [&](const MiniMC::Model::Edge_ptr& l) {elist.inserter() = l;}
 							   );
 				for (auto& edge : elist) {
-				  auto nedge = cfg->makeEdge (nlocation,edge->getTo (),prgm.shared_from_this());
+				  auto nedge = cfg->makeEdge (nlocation,edge->getTo ());
 				  nedge->copyAttributesFrom (**it);
 				  cfg->deleteEdge (edge);
 				}
-				cfg->makeEdge (location,nlocation,prgm.shared_from_this());
+				cfg->makeEdge (location,nlocation);
 				auto eit = location->iebegin ();
 				eit->setTo (nlocation);
 				wlist.inserter() = location;
@@ -115,8 +114,8 @@ namespace MiniMC {
 
 		  auto canSkipLocation =  [](const MiniMC::Model::Location_ptr& loc) {
 			return loc->nbIncomingEdges () <= 1 &&
-			  !loc->template is<MiniMC::Model::Location::Attributes::AssumptionPlace> () &&
-			  !loc->template is<MiniMC::Model::Location::Attributes::CallPlace> ();
+			  !loc->getInfo().template is<MiniMC::Model::Attributes::AssumptionPlace> () &&
+			  !loc->getInfo().template  is<MiniMC::Model::Attributes::CallPlace> ();
 										
 		  };
 		  
@@ -137,7 +136,7 @@ namespace MiniMC {
 				if (edge) {
 				  auto from = edge->getFrom ();
 				  auto to = edge->getTo ();
-				  if (!from->template is<MiniMC::Model::Location::Attributes::CallPlace> () &&
+				  if (!from->getInfo().template is<MiniMC::Model::Attributes::CallPlace> () &&
 					  canSkipLocation (to)) {
 					MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> inner_wlist;
 					addToWorkingList (inner_wlist,to->ebegin (),to->eend ());
@@ -145,7 +144,7 @@ namespace MiniMC {
 					for (auto rwedge : inner_wlist) {
 					  if (auto remove_edge = rwedge.lock () ) {
 						inner_mod = true;
-						auto nedge = cfg->makeEdge (from,remove_edge->getTo (),prgm.shared_from_this());
+						auto nedge = cfg->makeEdge (from,remove_edge->getTo ());
 						
 						copyInstrStream (nedge,edge);
 						copyInstrStream (nedge,remove_edge);
@@ -193,8 +192,8 @@ namespace MiniMC {
 		
 				auto from = edge->getFrom ();
 				auto makeEdge = [&]  (MiniMC::Model::InstructionStream& str) {
-				  auto nloc = cfg->makeLocation ("");
-				  auto nedge = cfg->makeEdge (from,nloc,edge->getProgram());
+				  auto nloc = cfg->makeLocation ({""});
+				  auto nedge = cfg->makeEdge (from,nloc);
 				  nedge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
 				  newedges.push_back (nedge);
 				  from = nloc;

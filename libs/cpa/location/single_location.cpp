@@ -11,13 +11,13 @@ namespace MiniMC {
 	  class State : public MiniMC::CPA::State  {
       public:
 		State (const MiniMC::Model::Location_ptr& loc ) : location(loc.get()) {
-		  ready = !location->template is<MiniMC::Model::Location::Attributes::ConvergencePoint> ();
+		  ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint> ();
 		}
 		
 		State (const State& ) = default;
 		
 		virtual std::ostream& output (std::ostream& os) const {
-		  return os << "[" << location->getName () <<"]" ;
+		  return os << "[" << location->getInfo () <<"]" ;
 		}
 		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {
 		  MiniMC::Hash::hash_t s = seed;
@@ -35,10 +35,10 @@ namespace MiniMC {
 		MiniMC::Model::Location_ptr getLocation () const  {return location->shared_from_this();}
 		void setLocation (MiniMC::Model::Location* l)   {
 		  location = l;
-		  ready = !location->template is<MiniMC::Model::Location::Attributes::ConvergencePoint> ();
+		  ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint> ();
 		}
 		bool need2Store () const {
-		  return location->template is<MiniMC::Model::Location::Attributes::NeededStore> ();
+		  return location->getInfo().template is<MiniMC::Model::Attributes::NeededStore> ();
 			
 		}
 
