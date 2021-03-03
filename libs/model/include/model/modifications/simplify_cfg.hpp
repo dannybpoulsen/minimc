@@ -192,7 +192,7 @@ namespace MiniMC {
 		
 				auto from = edge->getFrom ();
 				auto makeEdge = [&]  (MiniMC::Model::InstructionStream& str) {
-				  auto nloc = cfg->makeLocation ({""});
+				  auto nloc = cfg->makeLocation ({"-"});
 				  auto nedge = cfg->makeEdge (from,nloc);
 				  nedge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
 				  newedges.push_back (nedge);

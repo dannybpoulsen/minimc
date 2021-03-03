@@ -241,7 +241,8 @@ namespace MiniMC {
       InstructionStream initialiser;
 	  std::unordered_map<std::string,Function_ptr> function_map;
 	};
-    
+
+	gsl::not_null<Function_ptr> createEntryPoint (Program_ptr& program, gsl::not_null<Function_ptr> function);	
   }
 }
 

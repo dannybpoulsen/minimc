@@ -25,10 +25,12 @@ namespace MiniMC {
 	  }
 
 	  Obj operator-> () {
+		assert((*iter).lock());
 		return (*iter).lock();
 	  }
 
 	  Obj operator* () {
+		assert((*iter).lock());
 		return (*iter).lock();
 	  }
 

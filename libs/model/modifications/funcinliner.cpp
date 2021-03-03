@@ -52,7 +52,9 @@ namespace MiniMC {
 			}
 
 			else if (ninstr.last().getOpcode () == MiniMC::Model::InstructionCode::RetVoid) {
+			  InstBuilder<MiniMC::Model::InstructionCode::Skip> builder;
 			  ne->setTo (edge->getTo ());
+			  ninstr.last().replace (builder.BuildInstruction ());
 			}
 
 			else if (ninstr.last().getOpcode () == MiniMC::Model::InstructionCode::Ret) {
@@ -80,7 +82,8 @@ namespace MiniMC {
 		  inserter = builder.BuildInstruction ();
 		}
 		edge->delAttribute<MiniMC::Model::AttributeType::Instructions> ();
-		edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
+		if (str.begin () != str.end())
+		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
 		//func->getCFG ()->deleteEdge (edge);
 		
 	  }

@@ -100,13 +100,14 @@ int main (int argc,char* argv[]) {
 	);
   
   assert(prgm);
-  soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (vm.count ("task")) {
     std::vector< std::string > entries = vm["task"].as< std::vector< std::string > >();
     for (std::string& s : entries) {
 	  try {
-		prgm->addEntryPoint (s );
+		auto func = prgm->getFunction (s);
+		auto entry = createEntryPoint (prgm,func);
+		prgm->addEntryPoint (entry->getName());
 	  }
 	  catch (MiniMC::Support::FunctionDoesNotExist& ){
 		std::cerr << MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format (s) << std::endl;
@@ -122,6 +123,7 @@ int main (int argc,char* argv[]) {
   }
   std::vector<std::string> subargs = po::collect_unrecognized(parsed.options, po::include_positional);
   subargs.erase(subargs.begin(),subargs.begin()+2);
+  soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
 	return getCommand(subcommand) (prgm,subargs,soptions);

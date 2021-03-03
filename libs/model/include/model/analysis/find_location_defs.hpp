@@ -52,9 +52,10 @@ namespace MiniMC {
       class CFGDefs {
       public:
 		CFGDefs (const MiniMC::Model::CFG_ptr& cfg, std::size_t nbVars) {
+		  assert(nbVars);
 		  std::for_each (cfg->getLocations().begin(),cfg->getLocations().end(), [&] (auto& l) {
 			  locDefs.insert (std::make_pair(l,LocationDefs(nbVars)));
-	      
+			  
 			});
 		}
 		
@@ -73,10 +74,9 @@ namespace MiniMC {
 		std::unordered_map<MiniMC::Model::Location_ptr,LocationDefs> locDefs;
       };
 
-	  
-      CFGDefs calculateDefs (MiniMC::Model::Function& f);
-      using CFGDefs_ptr = std::shared_ptr<CFGDefs>;
-	  
+	  using CFGDefs_ptr = std::shared_ptr<CFGDefs>;
+      CFGDefs_ptr calculateDefs (MiniMC::Model::Function& f);
+      
       class ProgramDefs {
       public:
 		ProgramDefs (const MiniMC::Model::Program_ptr& prgm) : functions(prgm->getFunctions().size()) {
@@ -86,9 +86,10 @@ namespace MiniMC {
 		auto& getFunctionDefs (const MiniMC::Model::Function_ptr& func) {
 		  //if (!functions.at(func->getID ()))
 		  {
-			CFGDefs defs = calculateDefs (*func);
-			functions[func->getID ()] = std::make_shared<CFGDefs> (defs);
-		  }
+			assert(func->getID() < functions.size());
+			auto defs = calculateDefs (*func);
+			functions[func->getID ()] =  calculateDefs (*func);
+		}
 		  return functions[func->getID()];
 		}
 

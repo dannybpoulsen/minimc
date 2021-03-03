@@ -47,8 +47,13 @@ namespace MiniMC {
 			}
 		return false;
       }
-      void killBranchingInFunction (const MiniMC::Model::Function_ptr& func, MiniMC::Model::Analysis::Manager_ptr& manager) {
-		auto& cfgdefs = *manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);
+      void killBranchingInFunction (const MiniMC::Model::Function_ptr& func, MiniMC::Model::Analysis::Manager_ptr& manager) {	
+		if (func->getVariableStackDescr ()->getTotalVariables () <= 0) {
+		  //No variables, so no point in doing anything here
+		  
+		  return; 
+		}
+		auto& cfgdefs = *manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);	
 		MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 		auto& edges = func->getCFG ()->getEdges ();
 		std::copy_if (edges.begin(), edges.end (),wlist.inserter(),[] (auto& e) {return e->template hasAttribute<MiniMC::Model::AttributeType::Guard> () && !e->template hasAttribute<MiniMC::Model::AttributeType::Instructions> () ;});
@@ -56,6 +61,7 @@ namespace MiniMC {
 	
 		std::unordered_set<MiniMC::Model::Location_ptr>  loc_list;
 		for (auto& e : wlist) { 
+		  
 		  auto guard = e->template getAttribute<MiniMC::Model::AttributeType::Guard> ();
 		  assert(!e->template hasAttribute<MiniMC::Model::AttributeType::Instructions> ());
 		  //Grab definitions of predecessor location (as that must be the definitions used when moving along this edge) 

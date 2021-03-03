@@ -744,6 +744,7 @@ namespace MiniMC {
 		Program_ptr prgm_ptr = prgm.shared_from_this();
 		bool res = true;
 		for (auto& F : prgm.getFunctions ()) {
+		  std::cerr << "Type check function " << F->getName () << std::endl;
 		  for (auto& E : F->getCFG()->getEdges ()) {
 			if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 			  for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {

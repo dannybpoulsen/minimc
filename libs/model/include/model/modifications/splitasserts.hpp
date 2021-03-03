@@ -56,7 +56,7 @@ namespace MiniMC {
 				  auto val = MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert> (instrs.last ()).getAssert ();
 				  instrs.erase ((instrs.rbegin()+1).base());
 		  
-				  auto nloc = cfg->makeLocation ({""});
+				  auto nloc = cfg->makeLocation ({"+"});
 				  auto ttloc = E->getTo ();
 				  E->setTo (nloc);
 				  auto ff_edge = cfg->makeEdge (nloc,eloc);
