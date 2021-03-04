@@ -38,7 +38,6 @@ namespace MiniMC {
 		  return l->hash () == r->hash ();
 		}
 		
-		static void coverCopy (const MiniMC::CPA::State_ptr& from, MiniMC::CPA::State_ptr& to) {}
 		
 	  };
 	  

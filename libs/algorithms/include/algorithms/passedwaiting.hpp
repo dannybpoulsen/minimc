@@ -67,13 +67,11 @@ namespace MiniMC {
 		if (ptr->need2Store ()) {
 		  auto cover = store.isCoveredByStore (ptr.get());
 		  if (cover) {
-			Joiner::coverCopy (ptr.get(),cover);
 			return cover;
 		  }
 		  auto join = store.joinState (ptr.get()); 
 		  if (join.orig) {
 			return repl_or_insert (join);
-			//return join.joined;
 		  }
 		}
 		return insert (ptr);

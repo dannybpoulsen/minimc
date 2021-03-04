@@ -37,13 +37,11 @@ namespace MiniMC {
 		auto boolsort = builder.makeSort (SMTLib::SortKind::Bool,{});
 		auto mergeVar = builder.makeVar (boolsort,"");
 	    auto mergeOp = [&](const SMTLib::Term_ptr& lterm, const SMTLib::Term_ptr& rterm) {
-						 return builder.buildTerm (SMTLib::Ops::ITE,{mergeVar,lterm,rterm}); 
-					   };
+		  return builder.buildTerm (SMTLib::Ops::ITE,{mergeVar,lterm,rterm}); 
+		};
 		MiniMC::Util::SSAMap nmap = MiniMC::Util::SSAMap::merge (left.getSSAMap (),right.getSSAMap(), mergeOp);
 		
 		return std::make_shared<MiniMC::CPA::PathFormula::State> (nmap,left.getContext(),mergeOp (left.getPathFormula(),right.getPathFormula ())); 
-		
-		//return nullptr;
 	  }
 	  
 	  MiniMC::CPA::State_ptr Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {

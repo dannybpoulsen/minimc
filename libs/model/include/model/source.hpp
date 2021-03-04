@@ -21,7 +21,7 @@ namespace MiniMC {
 	};
 	
 	struct LocationInfo   {
-	  LocationInfo (const std::string& name, AttrType flags = 0) : name(name) {}
+	  LocationInfo (const std::string& name, AttrType flags = 0) : name(name),flags(flags) {}
 	  const std::string& getName () const {return name;}
 	  
 	  /** 

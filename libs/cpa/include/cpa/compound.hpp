@@ -218,12 +218,6 @@ namespace MiniMC {
 		  return checkCovers<0> (left,right);
 		}
 		
-
-		
-		
-		static void coverCopy (const State_ptr& from, State_ptr& to) {
-		}
-
       };
 	  
       template<class A, class... CPAs>

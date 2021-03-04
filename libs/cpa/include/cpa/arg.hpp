@@ -97,17 +97,21 @@ namespace MiniMC {
 		static bool covers (const State_ptr& l, const State_ptr& r) {
 		  auto nl = std::static_pointer_cast<State> (l);
 		  auto nr = std::static_pointer_cast<State> (r);
-		  return WrappedJoiner::covers (nl->getWrapped(),nr->getWrapped());
+		  if (WrappedJoiner::covers (nl->getWrapped(),nr->getWrapped())) {
+			coverCopy (std::static_pointer_cast<MiniMC::CPA::State> (nr),std::static_pointer_cast<MiniMC::CPA::State> (l));
+			return true;
+		  }
+		  return false;
 		}
 		
-		static void coverCopy (const State_ptr& from, State_ptr& to) {
+		static void coverCopy (const State_ptr& from, const State_ptr& to) {
 		  auto nfrom = std::static_pointer_cast<State> (from);
 		  auto nto = std::static_pointer_cast<State> (to);
 		  auto inserter = nto->parent_inserter ();
 		  auto insertFunction = [&] (auto it) {inserter = it;};
 		  std::for_each (nfrom->begin(),nfrom->end(),insertFunction);
 		}
-
+		
 		
       };
 	  

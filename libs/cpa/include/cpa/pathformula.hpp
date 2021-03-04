@@ -29,9 +29,6 @@ namespace MiniMC {
 		  return false;
 		}
 		
-		static void coverCopy (const State_ptr& from, State_ptr& to) {}
-      
-
       };
 	  
 

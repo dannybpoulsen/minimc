@@ -64,7 +64,8 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   desc.add_options()
     ("cpa,c",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
      "\t 1: Location\n"
-     "\t 3: PathFormula With CVC4\n"
+	 "\t 2: Concrete\n"
+	 "\t 3: PathFormula With CVC4\n"
      )
     ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
 	
@@ -93,6 +94,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   MiniMC::Algorithms::Result res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
+	sopt.convergencePoints = true;
 	res = runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
   case CPAUsage::Concrete:
