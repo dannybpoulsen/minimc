@@ -223,16 +223,16 @@ namespace MiniMC {
       template<class A, class... CPAs>
       struct PreValidateSetup {
 		
-		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  A::PreValidate::validate (seq,mess);
-		  PreValidateSetup<CPAs...>::validate (seq,mess);
+		static bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+		  A::PreValidate::validate (prgm,mess);
+		  return PreValidateSetup<CPAs...>::validate (prgm,mess);
 		}
       };
 
       template<class A>
       struct PreValidateSetup<A> {
-		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  A::PreValidate::validate (seq,mess);
+		static bool validate (const MiniMC::Model::Program& seq, MiniMC::Support::Messager& mess) {
+		  return A::PreValidate::validate (seq,mess);
 		}
       };
 	  

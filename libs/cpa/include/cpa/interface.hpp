@@ -92,15 +92,15 @@ namespace MiniMC {
       }
        
     };
-
+	
     struct PrevalidateSetup {
       /** 
-       * Add checks to \p seq  that guarantees this CPA can be run
+       * Check whether this CPA can be run on prgm
        * without encountering runtime errors. 
        */
-      static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {}
+      static bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {return true;}
     };
-
+    
 	
     template<class JoinOperation>
     class Storer {

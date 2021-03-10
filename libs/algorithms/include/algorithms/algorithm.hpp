@@ -43,39 +43,28 @@ namespace MiniMC {
 	enum class Result {
 	  Success = 0,
 	  Error = 1
-    };
-
+	};
+	
 	
 	/**
 	   Algorithm 
-	 */
+	*/
     class Algorithm {
     public:
       Algorithm ()  {}
       Algorithm (const Algorithm& ) = default;
-
-	  /** Run the algorithm on \p program 
-	   */
-	  virtual Result run (const MiniMC::Model::Program&) {
-		
-		return Result::Success;
-      }
-
-	  /** 
-	   * Algorithms can have modification they need to be run  before the algorithm can be run. The presetups function add these to the sequencer. 
-	   */
-      static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
+static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
     };
-
+	
 	/**  
 	 *	Possible State space reductions. MiniMC can reduce the stored
 	 *  state space by storing states that are in locations marked as
 	 *  important. 	 
 	 */  
 	enum class SpaceReduction  {
-							   None, /**< Mark all states as important*/
-							   Conservative, /**< Mark states that are part of a loop*/ 
-							   Extreme /**< Mark no states - effectively meaning we store absolutely no states. */
+	  None, /**< Mark all states as important*/
+	  Conservative, /**< Mark states that are part of a loop*/ 
+	  Extreme /**< Mark no states - effectively meaning we store absolutely no states. */
 	};
 	
 	struct SetupOptions {
@@ -107,8 +96,7 @@ namespace MiniMC {
 	/** 
 	 * Add the typechecking, structural checks and modifications needed by \tparam algorithm to the MiniMC::Support::Sequencer<MiniMC::Model::Program> \p seq
 	 */
-    template<class algorithm>
-    void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
+    inline void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
@@ -162,8 +150,6 @@ namespace MiniMC {
 	  
 	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
 	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
-	  
-	  algorithm::presetups (seq,*options.messager);
 	  
 	  if  (options.reduction == SpaceReduction::Conservative) {
 	    seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 

@@ -29,6 +29,9 @@ namespace MiniMC {
 						       MiniMC::CPA::Concrete::CPADef
 						       >;
       virtual Result run (const MiniMC::Model::Program& prgm) {
+		if (!CPA::PreValidate::validate (prgm,messager)) {
+		  return Result::Error;
+		}
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		try {
 		  while (smc.continueSampling()) {
@@ -58,10 +61,8 @@ namespace MiniMC {
 		}
 		smc.sample (MiniMC::Support::Statistical::Result::NSatis);
       }
-      
-      static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
-		CPA::PreValidate::validate (seq,mess);
-      }
+	  
+
 	private:
 	  MiniMC::Support::Messager& messager;
       SMC smc;

@@ -25,6 +25,9 @@ namespace MiniMC {
       using CPA = MiniMC::CPA::ARG::CPADef<ACPA>;
       PrintCPA (const Options& opt) : messager(*opt.messager.get())  {}
       virtual Result run (const MiniMC::Model::Program& prgm) {
+		if (!CPA::PreValidate::validate (prgm,messager)) {
+		  return Result::Error;
+		}
 		messager.message ("Initiating PrintCPA");
 		MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		CPADFSPassedWaiting<CPA> passed;

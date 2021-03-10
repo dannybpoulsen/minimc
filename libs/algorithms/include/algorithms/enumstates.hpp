@@ -23,6 +23,9 @@ namespace MiniMC {
 	  
       EnumStates (const Options& opt) : messager(*opt.messager)  {}
       virtual Result run (const MiniMC::Model::Program& prgm) {
+		if (!CPA::PreValidate::validate (prgm,messager)) {
+		  return Result::Error;
+		}
 		messager.message ("Initiating EnumStates");
 		std::size_t states = 0;
 		
@@ -44,7 +47,7 @@ namespace MiniMC {
 
 	  static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
 		CPA::PreValidate::validate (seq,mess);
-	}
+	  }
 	private:
 	  MiniMC::Support::Messager& messager;
 	  

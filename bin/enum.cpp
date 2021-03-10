@@ -22,7 +22,7 @@ template<class CPADef>
 auto runAlgorithm (MiniMC::Model::Program& prgm, const MiniMC::Algorithms::SetupOptions sopt) {
   using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);
+  MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
   return MiniMC::Algorithms::runSetup (seq,algo,prgm);
 }

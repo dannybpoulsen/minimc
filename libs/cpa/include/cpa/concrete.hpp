@@ -43,10 +43,8 @@ namespace MiniMC {
 	  
 
 	  struct PrevalidateSetup {
-		static void validate (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, MiniMC::Support::Messager& mess) {
-		  seq.template add<MiniMC::Model::Checkers::HasNoInstruction<
-			MiniMC::Model::InstructionCode::Call>
-						   ,MiniMC::Support::Messager&,const std::string&> (mess,"This CPA does not support '%1%' instructions.");
+		static bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+		  return MiniMC::Model::Checkers::HasNoInstruction<MiniMC::Model::InstructionCode::Call>{mess,"This CPA does not support '%1%' instructions."}.run (prgm);
 		}
       };
 	

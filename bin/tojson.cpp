@@ -20,7 +20,7 @@ template<class CPADef>
 void runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm<algorithm> (seq,sopt);
+  MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
   MiniMC::Savers::OptionsSave<MiniMC::Savers::Type::JSON>::Opt saveOpt {.writeTo = &std::cout};
   MiniMC::Savers::saveModel<MiniMC::Savers::Type::JSON> (prgm.shared_from_this (),saveOpt);
