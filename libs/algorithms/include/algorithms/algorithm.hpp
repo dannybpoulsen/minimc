@@ -163,13 +163,13 @@ static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, Mini
 	/** First run the modications of \p seq on \p prgm and then run \p algo.
 		\returns Result::Error if running \p seq failed, other the result of algo.run (prgm)
 	*/ 
-	template<class Seq, class Algo>
+	/*template<class Seq, class Algo>
 	auto runSetup (Seq& seq, Algo& algo, MiniMC::Model::Program& prgm) {
 	  if (seq.run (prgm)) {
 	    return algo.run (prgm);
 	  }
 	  return Result::Error;
-	}
+	  }*/
 	
   }
 }

@@ -19,7 +19,9 @@ namespace {
 	MiniMC::Model::Analysis::Manager_ptr amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm.shared_from_this ());
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);	
 	algorithm algo(typename algorithm::Options {opt});
-	return MiniMC::Algorithms::runSetup (seq,algo,prgm);
+	if (seq.run (prgm))
+	  return algo.run (prgm);
+	return MiniMC::Algorithms::Result::Error;
   }
 
   enum class Algo {

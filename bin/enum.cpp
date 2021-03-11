@@ -18,19 +18,21 @@ namespace po = boost::program_options;
 
 namespace {
 
-template<class CPADef>
-auto runAlgorithm (MiniMC::Model::Program& prgm, const MiniMC::Algorithms::SetupOptions sopt) {
-  using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
-  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-  algorithm algo(typename algorithm::Options {.messager = sopt.messager});
-  return MiniMC::Algorithms::runSetup (seq,algo,prgm);
-}
-
-enum class CPAUsage {
-					 Location,
-					 CVC4PathFormula
-};
+  template<class CPADef>
+  auto runAlgorithm (MiniMC::Model::Program& prgm, const MiniMC::Algorithms::SetupOptions sopt) {
+	using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
+	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
+	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+	if (seq.run (prgm))
+	  return algo.run (prgm);
+	return MiniMC::Algorithms::Result::Error;
+  }
+  
+  enum class CPAUsage {
+	Location,
+	CVC4PathFormula
+  };
 }
 
 int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  const MiniMC::Algorithms::SetupOptions& sopt)  {

@@ -57,7 +57,9 @@ auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOption
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
   MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
   algorithm algo(typename algorithm::Options {.messager = sopt.messager});
-  return MiniMC::Algorithms::runSetup (seq,algo,prgm);
+  //if (seq.run (prgm))
+  return algo.run (prgm);
+  //return MiniMC::Algorithm::Result::Error;
 }
 }
 

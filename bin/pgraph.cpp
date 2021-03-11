@@ -5,6 +5,8 @@
 
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
+#include "algorithms/algorithm.hpp"
+
 #include "algorithms/printgraph.hpp"
 
 
@@ -21,22 +23,25 @@
 
 namespace po = boost::program_options;
 namespace {
-template<class CPADef>
-auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
-  using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
-  MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-  MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-  algorithm algo(typename algorithm::Options {.messager = sopt.messager});
-  return MiniMC::Algorithms::runSetup (seq,algo,prgm);
+  template<class CPADef>
+  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
+	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
+	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
+	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+	if (seq.run (prgm))
+	  return algo.run (prgm);
+	return MiniMC::Algorithms::Result::Error;
+  }
 }
-
+  
 enum class CPAUsage {
 					 Location,
 					 Concrete,
 					 CVC4PathFormula
 };
 
-}
+
 
 int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
   CPAUsage CPA = CPAUsage::Location;

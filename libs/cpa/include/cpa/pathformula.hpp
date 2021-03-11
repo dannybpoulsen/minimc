@@ -2,7 +2,6 @@
 #define _PATHFORMULA__
 
 #include "cpa/interface.hpp"
-#include "smt/context.hpp"
 #include "support/localisation.hpp"
 #include "model/checkers/HasInstruction.hpp"
 
@@ -10,7 +9,6 @@
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
-	  template<SMTLib::SMTBackend>
 	  struct StateQuery {
 		static MiniMC::CPA::State_ptr makeInitialState (const MiniMC::Model::Program&);
 		static size_t nbOfProcesses (const State_ptr& );
@@ -60,16 +58,15 @@ namespace MiniMC {
 		}
       };
       
-	  template<SMTLib::SMTBackend b>
-      struct CPADef {
-		using Query = StateQuery<b>;
+	  struct CPADef {
+		using Query = StateQuery;
 		using Transfer = Transferer;
 		using Join = Joiner;
 		using Storage = MiniMC::CPA::Storer<Join>; 
 		using PreValidate = PrevalidateSetup;
 	  };
 
-	  using CVC4CPA = CPADef<SMTLib::SMTBackend::CVC4>;
+	  using CVC4CPA = CPADef;
 	  
 	}
   }

@@ -98,8 +98,8 @@ namespace MiniMC {
 
 		//edge->getFrom ()->removeEdge (edge);
 		//edge->getTo ()->removeIncomingEdge (edge);
-	
-	
+		
+		
 		auto it = std::find (locations.begin(),locations.end(),location);
 		if (it != locations.end()) {
 		  locations.erase (it);
@@ -205,7 +205,7 @@ namespace MiniMC {
       Function_ptr getFunction (MiniMC::func_t id) const {
 		return functions.at(id);
       }
-
+	  
 	  gsl::not_null<Function_ptr> getFunction (const std::string& name) {
 		if (function_map.count (name)) {
 		  return function_map.at (name);

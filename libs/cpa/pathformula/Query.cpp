@@ -6,16 +6,17 @@
 #include "state.hpp"
 #include "smt/context.hpp"
 #include "instructionimpl.hpp"
+#include "support/smt.hpp"
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 	  
 
-	  template<SMTLib::SMTBackend b>
-	  State_ptr StateQuery<b>::makeInitialState (const MiniMC::Model::Program& prgm) {
+	  
+	  State_ptr StateQuery::makeInitialState (const MiniMC::Model::Program& prgm) {
 		MiniMC::Util::SSAMap map;
-		auto context = SMTLib::makeContext<b> ();
+		auto context = MiniMC::Support::SMT::getSMTFactory()->construct ();
 		for (auto& entry : prgm.getEntryPoints ()) {
 		  auto stackDescr = entry->getVariableStackDescr ();
 		  for (auto& v : stackDescr->getVariables ()) {
@@ -52,16 +53,16 @@ namespace MiniMC {
 		
 
 		VMData data {.oldSSAMap = &oState.getSSAMap (),
-					 .newSSAMap = &nState.getSSAMap (),
-					 .smtbuilder = &nState.getContext()->getBuilder(),
-					 .path = nState.getPathFormula ()
+		  .newSSAMap = &nState.getSSAMap (),
+		  .smtbuilder = &nState.getContext()->getBuilder(),
+		  .path = nState.getPathFormula ()
 		};
 		
 		if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 		  
 		  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
 		  try {
-		
+			
 			if (!instr.isPhi) {
 			  data.oldSSAMap = data.newSSAMap;
 			}
@@ -69,19 +70,18 @@ namespace MiniMC {
 			auto end = instr.end ();
 			MiniMC::Util::runVM<decltype(it),VMData,ExecuteInstruction> (it,end,data);
 			nState.getPathFormula () = data.path;
-
+			
 			
 		  }
 		  catch  (MiniMC::Support::AssumeViolated) {
 			return nullptr;
 		  }
-		
+		  
 		}
 		
 		return resstate;
 	  }
-	
-	  template class StateQuery<SMTLib::SMTBackend::CVC4>;
+	  
 	  
 	}
   }
