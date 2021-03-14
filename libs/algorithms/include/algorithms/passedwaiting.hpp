@@ -9,6 +9,7 @@
 #ifndef _PASSED__
 #define _PASSED__
 
+#include <functional>
 #include <gsl/pointers>
 #include "cpa/interface.hpp"
 #include "support/queue_stack.hpp"
@@ -17,6 +18,18 @@ namespace MiniMC {
   namespace Algorithms {
     using Stack = MiniMC::Support::Stack<MiniMC::CPA::State>;
     using Queue = MiniMC::Support::Queue<MiniMC::CPA::State>;    
+
+	using FilterFunction =   std::function<bool(const MiniMC::CPA::State_ptr&)>; 
+	using DelaySearchPredicate =   std::function<bool(const MiniMC::CPA::State_ptr&)>; 
+	using StoreStatePredicate =   std::function<bool(const MiniMC::CPA::State_ptr&)>; 
+	
+	
+	struct PWOptions {
+		FilterFunction filter = [](const MiniMC::CPA::State_ptr& s) {return true;};
+		DelaySearchPredicate delay = [](const MiniMC::CPA::State_ptr& s) {return !s->ready2explore ();};
+		StoreStatePredicate storage = [](const MiniMC::CPA::State_ptr& s) {return s->need2Store ();};
+	  };
+	  
 	
     /** 
      * PassedWaiting list implemented using the \p StateStorage operations and \p Joiner operations.
@@ -26,6 +39,9 @@ namespace MiniMC {
     template<class StateStorage, class Joiner, class Waiting>
     class PassedWaiting {
     public:
+
+	  
+	  PassedWaiting (const PWOptions& opt) : filter(opt.filter),delay(opt.delay),doStore (opt.storage) {}
       /** 
        * Insert a state into the passed waiting list.  If it covered
        * by a State already stored, then it is discarded otherwise it
@@ -36,16 +52,19 @@ namespace MiniMC {
        * @param ptr State to insert
        */
       MiniMC::CPA::State_ptr insert (gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
+		if (!filter(ptr))
+		  return nullptr;
 		auto insert = [&](const MiniMC::CPA::State_ptr& inst) -> MiniMC::CPA::State_ptr {
-		  if (inst->ready2explore ()) {
+		  if (delay(inst))
+			return nullptr;
+		  else {
 			waiting.insert(inst);
 			passed++;
 			return inst;
 		  }
-		  return nullptr;
 		};
 		auto repl_or_insert = [&](const typename StateStorage::JoinPair& p) {
-		  if (p.orig->ready2explore () ) {
+		  if (!delay(p.orig)) {
 			auto it = waiting.begin();
 			auto end = waiting.end ();
 			auto ff = std::find (it,end,p.orig);
@@ -63,8 +82,8 @@ namespace MiniMC {
 			return insert (p.joined);
 		  }
 		};
-	
-		if (ptr->need2Store ()) {
+		  
+		if (doStore(ptr)) {
 		  auto cover = store.isCoveredByStore (ptr.get());
 		  if (cover) {
 			return cover;
@@ -102,7 +121,10 @@ namespace MiniMC {
       StateStorage store;
       Waiting waiting;
       std::size_t passed = 0;
-    };	
+	  FilterFunction filter;
+	  DelaySearchPredicate delay;
+	  StoreStatePredicate doStore;  
+	};	
 	
     template<class StateStorage,class Joiner>
     using DFSBaseWaiting = PassedWaiting<StateStorage,Joiner,Stack>;

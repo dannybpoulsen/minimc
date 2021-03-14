@@ -5,10 +5,14 @@
 #include "util/ssamap.hpp"
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
+#include "smt/solver.hpp"
+
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
+
+	  
 	  class State : public MiniMC::CPA::State
       {
 	  public:
@@ -24,12 +28,46 @@ namespace MiniMC {
 		auto& getContext ()  {return context;}
 		auto& getPathFormula () {return pathformula;}
 		const auto& getPathFormula () const {return pathformula;}
+
+		const Concretizer_ptr getConcretizer () override;
+		
 		
 	  private:
 		SMTLib::Context_ptr context;
 		MiniMC::Util::SSAMap map;
 		SMTLib::Term_ptr pathformula;
 	  };
+
+	  class Concretizer : public MiniMC::CPA::Concretizer {
+	  public:
+		Concretizer (std::shared_ptr<State> state) : state(state),
+															solver(state->getContext()->makeSolver())
+																				
+		{
+		  solver->assert_formula (state->getPathFormula ());
+		}
+		
+		virtual Feasibility isFeasible () const {
+		  switch (solver->check_sat ()) {
+		  case SMTLib::Result::Satis:
+			return Feasibility::Feasible;
+		  case SMTLib::Result::NSatis:
+			return Feasibility::Infeasible;
+		  default:
+			return Feasibility::Unknown;
+		  }
+		}
+		
+	  private:
+		std::shared_ptr<State> state;
+		SMTLib::Solver_ptr  solver;
+	  };
+
+	  
+	  const Concretizer_ptr State::getConcretizer ()  {
+		return std::make_shared<Concretizer> (std::static_pointer_cast<State> (this->shared_from_this()));
+	  }
+	  
 	}
   }
 }

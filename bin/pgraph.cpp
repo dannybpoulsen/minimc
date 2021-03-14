@@ -6,14 +6,12 @@
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include "algorithms/algorithm.hpp"
-
 #include "algorithms/printgraph.hpp"
 
 
 #include "cpa/location.hpp"
 #include "cpa/pathformula.hpp"
 #include "cpa/concrete.hpp"
-
 #include "cpa/compound.hpp"
 
 
@@ -24,11 +22,11 @@
 namespace po = boost::program_options;
 namespace {
   template<class CPADef>
-  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt) {
+  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt,bool filter) {
 	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+	algorithm algo(typename algorithm::Options {.messager = sopt.messager, . filterSatis = filter, .delayTillConverge = !filter});
 	if (seq.run (prgm))
 	  return algo.run (prgm);
 	return MiniMC::Algorithms::Result::Error;
@@ -47,10 +45,13 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   CPAUsage CPA = CPAUsage::Location;
   po::options_description desc("Print Graph Options");
   std::string input;
+  bool filter;
   auto updateCPA = [&CPA,&sopt] (int val) {
 					 switch (val) {
 					 case 3:
 					   sopt.replacememnodet = true;
+					   sopt.convergencePoints = true;
+					   
 					   CPA = CPAUsage::CVC4PathFormula;
 
 					   break;
@@ -73,6 +74,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 	 "\t 3: PathFormula With CVC4\n"
      )
     ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
+	("filtersatis",po::bool_switch (&filter),"Filter out unsatisfied states")
 	
 	("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	("convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
@@ -99,16 +101,15 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   MiniMC::Algorithms::Result res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
-	sopt.convergencePoints = true;
-	res = runAlgorithm<CVC4Path> (*prgm,sopt);
+	res = runAlgorithm<CVC4Path> (*prgm,sopt,filter);
 	break;
   case CPAUsage::Concrete:
-	res = runAlgorithm<CPAConcrete> (*prgm,sopt);
+	res = runAlgorithm<CPAConcrete> (*prgm,sopt,filter);
 	break;
 	
   case CPAUsage::Location:
   default:
-    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);
+    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,filter);
     break;
   }
 

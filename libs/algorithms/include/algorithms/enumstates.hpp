@@ -29,7 +29,8 @@ namespace MiniMC {
 		messager.message ("Initiating EnumStates");
 		std::size_t states = 0;
 		
-		CPADFSPassedWaiting<CPA> passed;
+		PWOptions opt;
+		CPADFSPassedWaiting<CPA> passed (opt);
 		auto progresser = messager.makeProgresser ();
 		auto predicate = [] (auto& b) {return false;};
 		auto initstate = CPA::Query::makeInitialState (prgm);

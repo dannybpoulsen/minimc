@@ -31,7 +31,8 @@ namespace MiniMC {
 		  return Result::Error;
 		}
 		messager.message ("Initiating Reachability");
-		CPADFSPassedWaiting<CPA> passed;
+		PWOptions opt;
+		CPADFSPassedWaiting<CPA> passed (opt);
 		auto initstate = CPA::Query::makeInitialState (prgm);
 		MiniMC::CPA::State_ptr foundState = nullptr;
 		try {

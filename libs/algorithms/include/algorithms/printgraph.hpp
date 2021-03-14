@@ -21,16 +21,25 @@ namespace MiniMC {
     public:
       struct Options {
 		gsl::not_null<MiniMC::Support::Messager*> messager;
-      };
+		bool filterSatis = false;
+		bool delayTillConverge = true;
+	  };
       using CPA = MiniMC::CPA::ARG::CPADef<ACPA>;
-      PrintCPA (const Options& opt) : messager(*opt.messager.get())  {}
+      PrintCPA (const Options& opt) : messager(*opt.messager.get())  {
+		if (opt.filterSatis)
+		  pwopt.filter = [](const MiniMC::CPA::State_ptr& s) {return s->getConcretizer()->isFeasible () == MiniMC::CPA::Concretizer::Feasibility::Feasible;};
+		if (!opt.delayTillConverge)
+		  pwopt.filter = [](const MiniMC::CPA::State_ptr& s) {return false;};
+	  }
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		if (!CPA::PreValidate::validate (prgm,messager)) {
 		  return Result::Error;
 		}
 		messager.message ("Initiating PrintCPA");
 		MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
-		CPADFSPassedWaiting<CPA> passed;
+		
+		
+		CPADFSPassedWaiting<CPA> passed (pwopt);
 		
 		try {
 		  auto progresser = messager.makeProgresser ();
@@ -43,9 +52,9 @@ namespace MiniMC {
 		  auto it = passed.stored_begin();
 		  auto end = passed.stored_end();
 		  MiniMC::CPA::ARG::generateARGGraph (graph,it,end);
-
+		  
 		}
-	
+		
 		catch(MiniMC::Support::VerificationException& exc) {
 		  messager.error (exc.what());
 		}
@@ -53,7 +62,7 @@ namespace MiniMC {
 		messager.message ("Writing Graph");
 		graph->write ("CPA");
 		messager.message ("Wrote Graph");
-	
+		
 		return Result::Success;
       }
       
@@ -61,11 +70,13 @@ namespace MiniMC {
 		CPA::PreValidate::validate (seq,mess);
       }
 
-
+	  
 	  
     private:
       MiniMC::Support::Messager& messager;
-    };
+	  PWOptions pwopt;
+	  
+	};
     
    
     

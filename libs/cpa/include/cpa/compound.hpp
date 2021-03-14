@@ -63,6 +63,13 @@ namespace MiniMC {
 		
 		template<size_t i>
 		const State_ptr& get () const  {return states[i];}
+
+		virtual const Concretizer_ptr getConcretizer () {
+		  
+		  return this->template get<1> ()->getConcretizer ();
+		  //return Concretizer_ptr (this);
+		}
+		
 		
       private:
 		std::array<MiniMC::CPA::State_ptr,S> states;

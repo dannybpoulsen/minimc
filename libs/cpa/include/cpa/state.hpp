@@ -12,17 +12,47 @@
 
 #include <iostream>
 #include <memory>
+#include "model/variables.hpp"
 #include "hash/hashing.hpp"
+#include "support/exceptions.hpp"
+#include "support/localisation.hpp"
 
 namespace MiniMC {
   namespace CPA {
+
+	using proc_id = std::size_t;
 	
-    using proc_id = std::size_t;
+	
+	class CanntEvaluateException : public MiniMC::Support::VerificationException {
+	public:
+	  CanntEvaluateException (const MiniMC::Model::Variable_ptr& var) : VerificationException (MiniMC::Support::Localiser ("Cannot Evaluate '%1%' to a value").format(var->getName ())) {}
+
+		
+	};
+
+	
+	class Concretizer {
+	public:
+	  enum class Feasibility {
+		Feasible,
+		Infeasible,
+		Unknown
+	  };
+
+	  virtual Feasibility isFeasible () const { return Feasibility::Feasible;}
+	  virtual MiniMC::Model::Value_ptr evaluate (proc_id, const MiniMC::Model::Variable_ptr& var) {
+		throw CanntEvaluateException (var);
+	  }
+	  
+	};
+
+	using Concretizer_ptr = std::shared_ptr<Concretizer>; 
+	
 
     /** A general CPA state interface. It is deliberately kept minimal to relay no information to observers besides what is absolutely needed 
      * 
      */ 
-    class State {
+    class State  : public std::enable_shared_from_this<State>{
     public:
       ~State () {}
 	  
@@ -37,8 +67,9 @@ namespace MiniMC {
        */
       virtual bool need2Store () const {return false;}
 	  virtual bool ready2explore () const {return true;}
+	  virtual const Concretizer_ptr getConcretizer () {return std::make_shared<Concretizer> ();}
 	};
-    
+	
     using State_ptr = std::shared_ptr<State>;
     
     inline std::ostream& operator<< (std::ostream& os, const State& state) {

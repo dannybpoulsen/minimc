@@ -1,4 +1,5 @@
 #include <gsl/pointers>
+#include <memory>
 
 #include "hash/hashing.hpp"
 #include "util/vm.hpp"
@@ -9,8 +10,15 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
+
+	  class MConcretizer : public MiniMC::CPA::Concretizer {
+	  public:
+		
+		virtual MiniMC::CPA::Concretizer::Feasibility isFeasible () const override { return Feasibility::Feasible;}
+		
+	  };
 	  
-	  class State : public MiniMC::CPA::State {
+	  class State : public MiniMC::CPA::State, public MiniMC::CPA::Concretizer {
 	  public:
 		State (const VariableLookup& g, const std::vector<VariableLookup>& var) : globals(g),proc_vars(var) {
 		  
@@ -60,6 +68,10 @@ namespace MiniMC {
 		
 		virtual bool need2Store () const {return false;}
 		virtual bool ready2explore () const {return true;}
+
+		virtual const Concretizer_ptr getConcretizer () override {return std::make_shared<MConcretizer> ();}
+		
+		
 	  private:
 		VariableLookup globals;
 		std::vector<VariableLookup> proc_vars;

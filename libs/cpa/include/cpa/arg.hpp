@@ -31,6 +31,13 @@ namespace MiniMC {
 		virtual bool need2Store () const {return wrappedState->need2Store();}
 		virtual bool ready2explore () const override {return wrappedState->ready2explore();}
 		
+		
+		virtual const Concretizer_ptr getConcretizer () override {
+		  return wrappedState->getConcretizer ();  
+		}
+		
+		
+		
 		auto parent_inserter () {return std::back_inserter(parents);}
 		auto begin() {return parents.begin();}
 		auto end () {return parents.end ();}
@@ -55,6 +62,8 @@ namespace MiniMC {
 		  auto ns = std::static_pointer_cast<State> (s);
 		  return WrappedQuery::getLocation (ns->getWrapped (),id);
 		}
+
+		
       };
 
       template<class WrappedTransferer>
