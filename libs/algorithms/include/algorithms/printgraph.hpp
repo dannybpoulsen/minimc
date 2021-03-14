@@ -24,6 +24,11 @@ namespace MiniMC {
 		bool filterSatis = false;
 		bool delayTillConverge = true;
 	  };
+
+	  struct AnalysisResult {
+		MiniMC::Support::Graph_ptr graph = nullptr;
+	  };
+	  
       using CPA = MiniMC::CPA::ARG::CPADef<ACPA>;
       PrintCPA (const Options& opt) : messager(*opt.messager.get())  {
 		if (opt.filterSatis)
@@ -36,7 +41,7 @@ namespace MiniMC {
 		  return Result::Error;
 		}
 		messager.message ("Initiating PrintCPA");
-		MiniMC::Support::Graph_ptr graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
+		aresult.graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		
 		
 		CPADFSPassedWaiting<CPA> passed (pwopt);
@@ -51,7 +56,7 @@ namespace MiniMC {
 		  //State space is now generated - create the graph
 		  auto it = passed.stored_begin();
 		  auto end = passed.stored_end();
-		  MiniMC::CPA::ARG::generateARGGraph (graph,it,end);
+		  MiniMC::CPA::ARG::generateARGGraph (aresult.graph,it,end);
 		  
 		}
 		
@@ -59,23 +64,19 @@ namespace MiniMC {
 		  messager.error (exc.what());
 		}
 		messager.message ("Finished PrintCPA");
-		messager.message ("Writing Graph");
-		graph->write ("CPA");
-		messager.message ("Wrote Graph");
-		
 		return Result::Success;
       }
       
       static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq,  MiniMC::Support::Messager& mess) {
 		CPA::PreValidate::validate (seq,mess);
       }
-
 	  
+	  const AnalysisResult& getAnalysisResult () const {return aresult;}
 	  
     private:
       MiniMC::Support::Messager& messager;
 	  PWOptions pwopt;
-	  
+	  AnalysisResult aresult;
 	};
     
    

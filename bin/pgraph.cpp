@@ -27,8 +27,16 @@ namespace {
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
 	algorithm algo(typename algorithm::Options {.messager = sopt.messager, . filterSatis = filter, .delayTillConverge = !filter});
-	if (seq.run (prgm))
-	  return algo.run (prgm);
+	if (seq.run (prgm)) {
+	  
+	  auto res = algo.run (prgm);
+	  if (res == MiniMC::Algorithms::Result::Success) {
+		sopt.messager->message ("Writing Graph");
+		algo.getAnalysisResult().graph->write ("CPA");
+		sopt.messager->message ("Wrote Graph");
+	  }
+	  return res;
+	}
 	return MiniMC::Algorithms::Result::Error;
   }
 }
