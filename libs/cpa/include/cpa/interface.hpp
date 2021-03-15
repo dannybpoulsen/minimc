@@ -37,7 +37,7 @@ namespace MiniMC {
        *
        * @return the create State
        */
-      static State_ptr makeInitialState (const MiniMC::Model::Program&) {return std::make_shared<State> ();}
+      static State_ptr makeInitialState (const MiniMC::Model::Program&) {return nullptr;}
 
       /** 
        * Query the given state how many processes it has
@@ -46,14 +46,7 @@ namespace MiniMC {
        */
       static size_t nbOfProcesses (const State_ptr& ) {return 0;}
 	  
-      /** 
-       * Get the current Location of process \p id 
-       * 
-       *
-       * @return the Location of \p id or nullptr if there no process
-       * \p id
-       */
-      static MiniMC::Model::Location_ptr getLocation (const State_ptr&, proc_id id) {return nullptr;}
+      
     };
 
     /** 

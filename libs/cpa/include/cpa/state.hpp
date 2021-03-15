@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include "model/variables.hpp"
+#include "model/location.hpp"
 #include "hash/hashing.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
@@ -43,6 +44,10 @@ namespace MiniMC {
 	  virtual MiniMC::Model::Value_ptr evaluate (proc_id, const MiniMC::Model::Variable_ptr& var) {
 		throw CanntEvaluateException (var);
 	  }
+
+	  virtual std::ostream&  evaluate_str (proc_id, const MiniMC::Model::Variable_ptr& var,std::ostream& os) {
+		return os << "??";
+	  }
 	  
 	};
 
@@ -58,7 +63,20 @@ namespace MiniMC {
 	  
       virtual std::ostream& output (std::ostream& os) const {return os << "_";}
       virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const {return reinterpret_cast<MiniMC::Hash::hash_t> (this);}
-      virtual std::shared_ptr<State> copy () const {return std::make_shared<State> ();}
+      virtual std::shared_ptr<State> copy () const = 0;
+	  
+	  /** 
+       * Get the current Location of process \p id 
+       * 
+       *
+       * @return the Location of \p id or nullptr if there no process
+       * \p id
+       */
+	  virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const  {
+		throw MiniMC::Support::Exception ("Should not be called");
+	  }
+
+	  virtual size_t nbOfProcesses ( ) const {return 0;}
 	  
       /** 
        * Function to tell whether it is deemed necessary to store this State during  explorations to guarantee termination. 
@@ -67,14 +85,12 @@ namespace MiniMC {
        */
       virtual bool need2Store () const {return false;}
 	  virtual bool ready2explore () const {return true;}
-	  virtual const Concretizer_ptr getConcretizer () {return std::make_shared<Concretizer> ();}
+	  virtual const Concretizer_ptr getConcretizer () const {return std::make_shared<Concretizer> ();}
 	};
 	
     using State_ptr = std::shared_ptr<State>;
     
-    inline std::ostream& operator<< (std::ostream& os, const State& state) {
-      return state.output(os);
-    }
+    std::ostream& operator<< (std::ostream& os, const State& state);
     
   }
 }

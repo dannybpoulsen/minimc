@@ -39,7 +39,7 @@ namespace MiniMC {
 		  auto progresser = messager.makeProgresser ();
 		  auto predicate = [](const MiniMC::Algorithms::Successor& succ) {
 			auto nstate = succ.state;
-			auto loc = CPA::Query::getLocation (nstate,succ.proc);
+			auto loc = nstate->getLocation (succ.proc);
 			if (loc->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ()) {
 			  return true;
 			}

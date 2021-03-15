@@ -31,8 +31,8 @@ namespace MiniMC {
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return lcopy();}
 		
 		
-		size_t nbOfProcesses () const {return 1;}
-		MiniMC::Model::Location_ptr getLocation () const  {return location->shared_from_this();}
+		size_t nbOfProcesses () const override {return 1;}
+		MiniMC::Model::Location_ptr getLocation (proc_id id ) const  override  {assert(id ==0); return location->shared_from_this();}
 		void setLocation (MiniMC::Model::Location* l)   {
 		  location = l;
 		  ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint> ();
@@ -62,7 +62,7 @@ namespace MiniMC {
       MiniMC::CPA::State_ptr Transferer::doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& edge,proc_id id) {
 		auto state = static_cast<const MiniMC::CPA::SingleLocation::State*> (s.get ());
 		assert(id < state->nbOfProcesses());
-		if (edge->getFrom().get() == state->getLocation ()) {
+		if (edge->getFrom().get() == state->getLocation (0)) {
 		  auto nstate = state->lcopy ();
 		  nstate->setLocation (edge->getTo().get().get());
 		  
@@ -101,17 +101,6 @@ namespace MiniMC {
 		return std::make_shared<State> (locs[0]);
       }
       
-      size_t StateQuery::nbOfProcesses (const State_ptr& s) {
-		auto state = static_cast<const State*> (s.get ());
-		return state->nbOfProcesses ();
-      }
-	  
-      MiniMC::Model::Location_ptr StateQuery::getLocation (const State_ptr& s, proc_id id) {
-		auto state = static_cast<const State*> (s.get ());
-		return state->getLocation ();
-      }
-	  
-
 	  State_ptr Joiner::doJoin (const State_ptr& l, const State_ptr& r) {
 		auto lstate = std::static_pointer_cast<const State> (l);
 		auto rstate = std::static_pointer_cast<const State> (r);

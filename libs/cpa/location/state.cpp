@@ -74,7 +74,7 @@ namespace MiniMC {
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return lcopy();}
 		
 	
-		size_t nbOfProcesses () const {return locations.size();}
+		size_t nbOfProcesses () const  override {return locations.size();}
 		MiniMC::Model::Location_ptr getLocation (size_t i) const  {return locations[i].cur()->shared_from_this();}
 		void setLocation (size_t i,MiniMC::Model::Location* l)   {
 		  locations[i].cur() = l;

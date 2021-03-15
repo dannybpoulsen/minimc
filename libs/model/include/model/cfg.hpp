@@ -24,8 +24,12 @@
 
 namespace MiniMC {
   namespace Model {        
-    
 
+	class Function;
+	using Function_ptr = std::shared_ptr<Function>;
+	using Function_wptr = std::weak_ptr<Function>;
+	
+	
 	/**
 	 *
 	 * Representation of an Control Flow Automaton (despite the misleading name CFG). 
@@ -35,13 +39,14 @@ namespace MiniMC {
 	 * deleting edges. This 
 	 *
 	 */
-    class CFG {
+    class CFG : public std::enable_shared_from_this<CFG>{
     protected:
 	  friend class Program;
       CFG (const Program_ptr& prgm) : prgm(prgm) {}
+	  void setFunction (const Function_ptr& func) {function = func;}
 	public:
       gsl::not_null<Location_ptr> makeLocation (const LocationInfo& info) {
-		locations.emplace_back (new Location (info,locations.size()));
+		locations.emplace_back (new Location (info,locations.size(),this->shared_from_this()));
 		return locations.back();
       }
 
@@ -120,11 +125,17 @@ namespace MiniMC {
 		return true;
 		
 	  }
+
+	  Function_ptr getFunction () const {
+		return function.lock ();
+	  }
+	  
 	private:
       std::vector<Location_ptr>locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;;
 	  Program_wptr prgm;
+	  Function_wptr function;
     };
 
     using CFG_ptr = std::shared_ptr<CFG>;
@@ -168,8 +179,7 @@ namespace MiniMC {
       Type_ptr retType;
     };
     
-    using Function_ptr = std::shared_ptr<Function>;
-
+    
 	
     class Program  : public std::enable_shared_from_this<Program>{
     public:
@@ -187,6 +197,7 @@ namespace MiniMC {
 												const gsl::not_null<CFG_ptr> cfg) {
 		functions.push_back (std::make_shared<Function> (functions.size(),name,params,retType,variableStackDescr,cfg,shared_from_this()));
 		function_map.insert (std::make_pair (name,functions.back ()));
+		cfg->setFunction (functions.back());
 		return functions.back();
       }
 

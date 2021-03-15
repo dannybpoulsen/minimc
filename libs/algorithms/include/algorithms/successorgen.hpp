@@ -33,13 +33,13 @@ namespace MiniMC {
       public:
 
 		static Iterator makeBegin (MiniMC::CPA::State_ptr& pt) {
-		  auto loc = StateQuery::getLocation (pt,0);
-		  return Iterator(pt,0,StateQuery::nbOfProcesses (pt),loc->ebegin(),loc->eend());
+		  auto loc = pt->getLocation (0);
+		  return Iterator(pt,0,pt->nbOfProcesses (),loc->ebegin(),loc->eend());
 		}
 		
 		static Iterator makeEnd (MiniMC::CPA::State_ptr& pt) {
-		  auto proc = StateQuery::nbOfProcesses (pt);
-		  auto loc = StateQuery::getLocation (pt,proc-1);
+		  auto proc = pt->nbOfProcesses ();
+		  auto loc = pt->getLocation (proc-1);
 		  return Iterator(pt,proc-1,proc,loc->eend(),loc->eend());
 		}
 		
@@ -80,7 +80,7 @@ namespace MiniMC {
 			  if (proc >= last_proc)
 				break;
 			  assert(proc <= last_proc);
-			  auto loc = StateQuery::getLocation (curState,proc);
+			  auto loc = curState->getLocation (proc);//
 			  iter = loc->ebegin();
 			  end  = loc->eend ();
 			}
@@ -124,7 +124,7 @@ namespace MiniMC {
       }
 	  
       auto begin() {
-		if (StateQuery::nbOfProcesses (state) == 0) {
+		if (state->nbOfProcesses () == 0) {
 		  throw MiniMC::Support::Exception ("No Processes to generate sucessors for");
 		}
 		return Iterator::makeBegin(state);}

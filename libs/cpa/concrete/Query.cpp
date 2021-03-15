@@ -13,8 +13,19 @@ namespace MiniMC {
 
 	  class MConcretizer : public MiniMC::CPA::Concretizer {
 	  public:
-		
+		MConcretizer (const VariableLookup& globals,const std::vector<VariableLookup>& v) :  globals(globals),vars(v) {}
 		virtual MiniMC::CPA::Concretizer::Feasibility isFeasible () const override { return Feasibility::Feasible;}
+		virtual std::ostream&  evaluate_str (proc_id id, const MiniMC::Model::Variable_ptr& var,std::ostream& os) {
+		  if (var->isGlobal ()) {
+			return os << globals.at(var);
+		  }
+		  else {
+			return os << vars.at(id).at(var);
+		  }
+		}
+	  private:
+		const VariableLookup& globals;
+		const std::vector<VariableLookup>& vars;
 		
 	  };
 	  
@@ -69,7 +80,7 @@ namespace MiniMC {
 		virtual bool need2Store () const {return false;}
 		virtual bool ready2explore () const {return true;}
 
-		virtual const Concretizer_ptr getConcretizer () override {return std::make_shared<MConcretizer> ();}
+		virtual const Concretizer_ptr getConcretizer () const override {return std::make_shared<MConcretizer> (globals,proc_vars);}
 		
 		
 	  private:
@@ -126,6 +137,7 @@ namespace MiniMC {
 		auto& ostate = static_cast<const MiniMC::CPA::Concrete::State&> (*s);
 		auto& nstate = static_cast<MiniMC::CPA::Concrete::State&> (*resstate);
 
+		
 		VMData data {
 		  .readFrom = {
 			.global = const_cast<VariableLookup*> (&nstate.getGlobals ()),

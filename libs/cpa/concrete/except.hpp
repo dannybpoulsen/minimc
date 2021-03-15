@@ -19,6 +19,12 @@ namespace MiniMC {
 		BufferOverflow () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"BufferOverflow detected"}.format ()) {}
       };
 
+	  class BufferOverread : public MiniMC::Support::Exception {
+      public:
+		BufferOverread () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"BufferOverread detected"}.format ()) {}
+      };
+	  
+	  
 	  class InvalidFree : public MiniMC::Support::Exception {
       public:
 		InvalidFree () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid free detected"}.format ()) {}

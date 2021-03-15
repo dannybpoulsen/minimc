@@ -64,10 +64,24 @@ namespace MiniMC {
 		template<size_t i>
 		const State_ptr& get () const  {return states[i];}
 
-		virtual const Concretizer_ptr getConcretizer () {
+		virtual const Concretizer_ptr getConcretizer () const override {
 		  
 		  return this->template get<1> ()->getConcretizer ();
 		  //return Concretizer_ptr (this);
+		}
+
+		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {
+		  std::vector<MiniMC::CPA::State_ptr> copies;
+		  std::for_each (states.begin(),states.end(),[&](auto& s) {copies.push_back(s->copy());});
+		  return std::make_shared<State> (copies);
+		}
+
+		virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const override  {
+		  return this->template get<0> ()->getLocation (id);
+		}
+
+		size_t nbOfProcesses () const override {
+		  return this->template get<0> ()->nbOfProcesses ();
 		}
 		
 		
@@ -94,17 +108,6 @@ namespace MiniMC {
 		  return std::make_shared<State<sizeof... (args)>> (init);
 		}						       
 		
-		static size_t nbOfProcesses (const State_ptr& a) {
-		  auto s = static_cast<State<sizeof... (args)>&> (*a);
-		  return GetNthTemplateArgument<ask,args...>::Temp::Query::nbOfProcesses (s.template get<ask> ());
-		}
-
-	
-		static MiniMC::Model::Location_ptr getLocation (const State_ptr& a, proc_id id) {
-		  auto s = static_cast<State<sizeof... (args)>&> (*a);
-		  return GetNthTemplateArgument<ask,args...>::Temp::Query::getLocation (s.template get<ask> (),id);
-	  
-		}
       };
       
       template<size_t i, size_t statesize, class A, class ... args>

@@ -25,7 +25,7 @@ namespace MiniMC {
 											
 		HeapEntry& write (const MiniMC::Util::Array& arr,  MiniMC::uint64_t offset) {
 		  assert(state == EntryState::InUse);
-		  if ( size+offset <= this->size ) {
+		  if ( arr.getSize()+offset <= this->size ) {
 			//Copy the existing memory
 			MiniMC::uint8_t* nmem = new MiniMC::uint8_t[this->size];
 			std::copy (memory.get(),memory.get()+this->size,nmem);
@@ -33,8 +33,9 @@ namespace MiniMC {
 			memory.reset(nmem);
 			return *this;
 		  }
-		  else 
+		  else  {
 			throw BufferOverflow();
+		  }
 		}
 				
 		void read (MiniMC::Util::Array& arr, MiniMC::uint64_t offset) {
@@ -42,7 +43,7 @@ namespace MiniMC {
 			arr.set_block (0,arr.getSize(),memory.get()+offset);
 		  }
 		  else 
-			throw BufferOverflow ();
+			throw BufferOverread ();
 		}
 
 		void extend (MiniMC::uint64_t size) {
@@ -127,19 +128,19 @@ namespace MiniMC {
 
 		void read (MiniMC::Util::Array& arr, MiniMC::pointer_t pointer) {
 		  auto base = MiniMC::Support::getBase(pointer);
-		  auto offset = MiniMC::Support::getBase(pointer);
+		  auto offset = MiniMC::Support::getOffset(pointer);
 		  if (base < entries.size()) {
 			entries.at(base).read (arr,offset);
 		  }
 
 		  else {
-			throw BufferOverflow ();
+			throw BufferOverread ();
 		  }
 		}
 		
 		void write (const MiniMC::Util::Array& arr, MiniMC::pointer_t pointer) {
 		  auto base = MiniMC::Support::getBase(pointer);
-		  auto offset = MiniMC::Support::getBase(pointer);
+		  auto offset = MiniMC::Support::getOffset(pointer);
 		  if (base < entries.size()) {
 			entries.at(base).write (arr,offset);
 		  }

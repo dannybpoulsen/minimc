@@ -28,8 +28,8 @@ namespace MiniMC {
 		auto& getContext ()  {return context;}
 		auto& getPathFormula () {return pathformula;}
 		const auto& getPathFormula () const {return pathformula;}
-
-		const Concretizer_ptr getConcretizer () override;
+		
+		const Concretizer_ptr getConcretizer () const override;
 		
 		
 	  private:
@@ -40,7 +40,7 @@ namespace MiniMC {
 
 	  class Concretizer : public MiniMC::CPA::Concretizer {
 	  public:
-		Concretizer (std::shared_ptr<State> state) : state(state),
+		Concretizer (std::shared_ptr<const State> state) : state(state),
 															solver(state->getContext()->makeSolver())
 																				
 		{
@@ -57,15 +57,19 @@ namespace MiniMC {
 			return Feasibility::Unknown;
 		  }
 		}
+
+		virtual std::ostream&  evaluate_str (proc_id id, const MiniMC::Model::Variable_ptr& var,std::ostream& os) {
+		  return os << *state->getSSAMap ().lookup (var.get());
+		}
 		
 	  private:
-		std::shared_ptr<State> state;
+		const std::shared_ptr<const State> state;
 		SMTLib::Solver_ptr  solver;
 	  };
 
 	  
-	  const Concretizer_ptr State::getConcretizer ()  {
-		return std::make_shared<Concretizer> (std::static_pointer_cast<State> (this->shared_from_this()));
+	  const Concretizer_ptr State::getConcretizer () const  {
+		return std::make_shared<Concretizer> (std::static_pointer_cast<const State> (this->shared_from_this()));
 	  }
 	  
 	}

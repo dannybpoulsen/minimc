@@ -54,18 +54,18 @@ namespace MiniMC {
 		  }
 		  
 		  void update () {
-			auto proc = StateQuery::nbOfProcesses (curState);
+			auto proc = curState->nbOfProcesses ();
 			std::vector<MiniMC::proc_t> procs;
 			auto insert = std::back_inserter (procs); 
 			for (size_t i = 0; i < proc; ++i) {
-			  if (StateQuery::getLocation (curState,i)->hasOutgoingEdge())
+			  if (curState->getLocation (i)->hasOutgoingEdge())
 				insert = i;
 			}
 			if (procs.size()) {
 			  MiniMC::Support::RandomNumber random;
 			  succ.proc = random.selectUniform<MiniMC::proc_t> (procs);
-			  auto it = StateQuery::getLocation(curState,succ.proc)->ebegin();
-			  auto end = StateQuery::getLocation(curState,succ.proc)->eend();
+			  auto it = curState->getLocation(succ.proc)->ebegin();
+			  auto end = curState->getLocation(succ.proc)->eend();
 			  for (; it != end; ++it) {
 			    auto edge = *it;
 			    succ.state = Transfer::doTransfer (curState,edge,succ.proc);

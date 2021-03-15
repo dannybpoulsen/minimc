@@ -31,8 +31,16 @@ namespace MiniMC {
 		virtual bool need2Store () const {return wrappedState->need2Store();}
 		virtual bool ready2explore () const override {return wrappedState->ready2explore();}
 		
+		virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const override  {
+		  return wrappedState->getLocation (id);
+		}
+
+		size_t nbOfProcesses () const override {
+		  return wrappedState->nbOfProcesses ();
+		}
 		
-		virtual const Concretizer_ptr getConcretizer () override {
+		
+		virtual const Concretizer_ptr getConcretizer () const override {
 		  return wrappedState->getConcretizer ();  
 		}
 		
@@ -52,17 +60,6 @@ namespace MiniMC {
 		static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
 		  return std::make_shared<State> (WrappedQuery::makeInitialState (prgm));
 		}
-
-		static size_t nbOfProcesses (const State_ptr&  s) {
-		  auto ns = std::static_pointer_cast<State> (s);
-		  return WrappedQuery::nbOfProcesses(ns->getWrapped ());
-		}
-	
-		static MiniMC::Model::Location_ptr getLocation (const State_ptr& s, proc_id id) {
-		  auto ns = std::static_pointer_cast<State> (s);
-		  return WrappedQuery::getLocation (ns->getWrapped (),id);
-		}
-
 		
       };
 
@@ -139,13 +136,13 @@ namespace MiniMC {
 						};
 		
 		auto insert = [&](auto& state) -> std::unique_ptr<MiniMC::Support::Node> {
-																				  std::stringstream str;
-																				  str << std::hash<MiniMC::CPA::State>{} (*state);
-																				  auto node = graph->getNode (str.str());
-																				  std::stringstream labelstr;
-																				  labelstr<< *state;
-																				  node->setLabel (labelstr.str());
- 																				  return node;
+		  std::stringstream str;
+		  str << std::hash<MiniMC::CPA::State>{} (*state);
+		  auto node = graph->getNode (str.str());
+		  std::stringstream labelstr;
+		  labelstr<< *state;
+		  node->setLabel (labelstr.str());
+		  return node;
 		};
 		
 		std::for_each (begin,end,addState);
