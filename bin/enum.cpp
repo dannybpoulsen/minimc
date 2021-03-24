@@ -2,6 +2,7 @@
 
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
+#include "support/host.hpp"
 #include "algorithms/enumstates.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/replacememnondet.hpp"
@@ -24,9 +25,11 @@ namespace {
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
 	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
-	if (seq.run (prgm))
-	  return algo.run (prgm);
-	return MiniMC::Algorithms::Result::Error;
+	if (seq.run (prgm)) {
+	  algo.run (prgm);
+	  return MiniMC::Support::ExitCodes::AllGood;
+	}
+	return MiniMC::Support::ExitCodes::ConfigurationError;
   }
   
   enum class CPAUsage {
@@ -35,7 +38,7 @@ namespace {
   };
 }
 
-int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  const MiniMC::Algorithms::SetupOptions& sopt)  {
+MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  const MiniMC::Algorithms::SetupOptions& sopt)  {
     CPAUsage CPA = CPAUsage::Location;
 	MiniMC::Algorithms::SpaceReduction reduction;
   int SpaceReduction = 0;
@@ -63,14 +66,14 @@ int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& param
   
   po::variables_map vm; 
     if (!parseOptionsAddHelp (vm,desc,parameters)) {
-	return -1;
+	  return MiniMC::Support::ExitCodes::ConfigurationError;
   }
 	  
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
 												  MiniMC::CPA::Location::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
 												  >;
-  MiniMC::Algorithms::Result res;
+  MiniMC::Support::ExitCodes res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt);
@@ -81,7 +84,7 @@ int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& param
     break;
   }
   
-  return static_cast<int> (res);
+  return res;
   
 }
 

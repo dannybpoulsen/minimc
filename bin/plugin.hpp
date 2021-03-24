@@ -8,9 +8,10 @@
 
 #include "loaders/loader.hpp"
 #include "algorithms/algorithm.hpp"
+#include "support/host.hpp"
 
 
-using subcommandfunc= std::function<int(MiniMC::Model::Program_ptr&,std::vector<std::string>&, MiniMC::Algorithms::SetupOptions&)>;
+using subcommandfunc= std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Program_ptr&,std::vector<std::string>&, MiniMC::Algorithms::SetupOptions&)>;
 
 
 struct CommandRegistrar;

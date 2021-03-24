@@ -17,15 +17,25 @@ namespace MiniMC {
   namespace Algorithms {
 	class ExplicitReachability : public MiniMC::Algorithms::Algorithm {
     public:
+	  enum class ReachabilityResult {
+		AssertViolated,
+		NoViolation,
+		Inconclusive
+	  };
+	  struct AnalysisResult {
+		ReachabilityResult result;
+	  };
+	  
 	  struct Options {
 		gsl::not_null<MiniMC::Support::Messager*> messager;
+		
 	  };
       ExplicitReachability (const Options& opt) : messager(*opt.messager)  {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 												 MiniMC::CPA::Location::CPADef,
 												 MiniMC::CPA::Concrete::CPADef
 												 >;
-      
+	  
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		if (!CPA::PreValidate::validate (prgm,messager)) {
 		  return Result::Error;
@@ -57,18 +67,22 @@ namespace MiniMC {
 		}
 		messager.message ("Finished Reachability");
 		if (foundState) {
+		  result.result = ReachabilityResult::AssertViolated;
 		  messager.message ("AssertViolated");
 		  return Result::Success;
 		}
 		else {
+		  result.result = ReachabilityResult::NoViolation;
 		  messager.message ("No Problem found");
 		  return Result::Success;
 		}
       }
-      
+
+	  const auto& getAnalysisResult () const {return result;}
+	  
 	private:
 	  MiniMC::Support::Messager& messager;
-	  
+	  AnalysisResult result {.result = ReachabilityResult::Inconclusive};
     };
   }
 }

@@ -53,8 +53,11 @@ namespace MiniMC {
     public:
       Algorithm ()  {}
       Algorithm (const Algorithm& ) = default;
-static void presetups (MiniMC::Support::Sequencer<MiniMC::Model::Program>&, MiniMC::Support::Messager&) {}
-    };
+	  virtual Result run (const MiniMC::Model::Program& prgm) = 0;
+	  
+	};
+
+	
 	
 	/**  
 	 *	Possible State space reductions. MiniMC can reduce the stored

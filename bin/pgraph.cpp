@@ -5,6 +5,8 @@
 
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
+#include "support/host.hpp"
+
 #include "algorithms/algorithm.hpp"
 #include "algorithms/printgraph.hpp"
 
@@ -35,9 +37,9 @@ namespace {
 		algo.getAnalysisResult().graph->write ("CPA");
 		sopt.messager->message ("Wrote Graph");
 	  }
-	  return res;
+	  return MiniMC::Support::ExitCodes::AllGood;
 	}
-	return MiniMC::Algorithms::Result::Error;
+	return MiniMC::Support::ExitCodes::ConfigurationError;;
   }
 }
   
@@ -49,7 +51,7 @@ enum class CPAUsage {
 
 
 
-int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
+MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
   CPAUsage CPA = CPAUsage::Location;
   po::options_description desc("Print Graph Options");
   std::string input;
@@ -93,7 +95,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
   po::variables_map vm; 
   
   if (!parseOptionsAddHelp (vm,desc,parameters)) {
-	return -1;
+	return MiniMC::Support::ExitCodes::ConfigurationError;;
   }
   
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
@@ -106,7 +108,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
 													MiniMC::CPA::Concrete::CPADef
 												  >;
   
-  MiniMC::Algorithms::Result res;
+  MiniMC::Support::ExitCodes res;
   switch (CPA) {
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt,filter);
@@ -121,7 +123,7 @@ int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& par
     break;
   }
 
-  return static_cast<int> (res);
+  return res;
 }
 
 

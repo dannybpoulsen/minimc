@@ -19,18 +19,20 @@ namespace {
 	MiniMC::Model::Analysis::Manager_ptr amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm.shared_from_this ());
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);	
 	algorithm algo(typename algorithm::Options {opt});
-	if (seq.run (prgm))
-	  return algo.run (prgm);
-	return MiniMC::Algorithms::Result::Error;
+	if (seq.run (prgm)) {
+	  algo.run (prgm);
+	  return MiniMC::Support::ExitCodes::AllGood;
+	}
+	return MiniMC::Support::ExitCodes::ConfigurationError;;
   }
 
   enum class Algo {
-				   Fixed,
-				   Clopper
+	Fixed,
+	Clopper
   };
 }
   
-int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  MiniMC::Algorithms::SetupOptions& sopt) {
+MiniMC::Support::ExitCodes smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  MiniMC::Algorithms::SetupOptions& sopt) {
   MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson>::Options clopperOpt {.messager = sopt.messager};
 	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>::Options fixedOpt {.messager = sopt.messager};
 	sopt.replaceNonDetUniform = true;
@@ -81,13 +83,13 @@ int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parame
   po::variables_map vm; 
 
   if (!parseOptionsAddHelp (vm,cmdline,parameters)) {
-	return -1;
+	return MiniMC::Support::ExitCodes::ConfigurationError;
   }
  
 
   clopperOpt.len = length;
   fixedOpt.len = length;
-  MiniMC::Algorithms::Result res;
+  MiniMC::Support::ExitCodes res;
   switch (algo) {
   case Algo::Fixed:
     res = runAlgorithm<MiniMC::Support::Statistical::FixedEffort> (*prgm,sopt,fixedOpt);
@@ -96,7 +98,7 @@ int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parame
     res = runAlgorithm<MiniMC::Support::Statistical::ClopperPearson> (*prgm,sopt,clopperOpt);
     break;
   }
-  return static_cast<int> (res);
+  return res;
 }
 
 

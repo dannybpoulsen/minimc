@@ -18,14 +18,6 @@ void printBanner (std::ostream& os) {
 }
 
 
-int pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
-
-int mc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,MiniMC::Algorithms::SetupOptions&);
-
-int enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
-
-int smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions&);
-
 
 
 int main (int argc,char* argv[]) {
@@ -126,12 +118,13 @@ int main (int argc,char* argv[]) {
   soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
-	return getCommand(subcommand) (prgm,subargs,soptions);
+	return static_cast<int>(getCommand(subcommand) (prgm,subargs,soptions));
   }
   
   else {
     std::cerr << MiniMC::Support::Localiser{"Unknown subcommand '%1%"}.format (subcommand) << std::endl;
-	
+	return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+	  
   }
   
   }
@@ -144,7 +137,7 @@ int main (int argc,char* argv[]) {
     for (auto& it :  comms) {
       std::cerr << it.first <<"\t" << it.second << std::endl;
     }
-    return -1;
+    return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   }
   
     
