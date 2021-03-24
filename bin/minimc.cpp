@@ -41,8 +41,22 @@ int main (int argc,char* argv[]) {
 					 };
   po::options_description hidden("Hidden");
   po::options_description general("General Options");
+
+  auto printHelp  = [&general]() {
+	printBanner (std::cerr);
+    std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
+    std::cerr << general << std::endl;
+    std::cerr << "Subcommands" << std::endl;
+    auto comms = getCommandNameAndDescr ();
+    for (auto& it :  comms) {
+      std::cerr << it.first <<"\t" << it.second << std::endl;
+    }
+    return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+  };
+
   general.add_options()
-    ("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
+	("config",boost::program_options::value<std::string>(),"Read configuration from config file")
+	("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
 	("spacereduction",po::value<int> ()->default_value(1)->notifier(updateSpace), "Space Reduction\n"
 	 "\t 1: None\n"
 	 "\t 2: Conservative\n"
@@ -61,11 +75,11 @@ int main (int argc,char* argv[]) {
     ;
         
   hidden.add_options()
-	("command",po::value<std::string> (&subcommand)->required(), "Subcommand")
+	("command",po::value<std::string> (&subcommand), "Subcommand")
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")
-	("inputfile",po::value<std::string> (&input)->required(),"Input file")
+	("inputfile",po::value<std::string> (&input),"Input file")
 	;
-
+  
   po::options_description desc;
   desc.add (general).add(hidden);
   
@@ -84,13 +98,29 @@ int main (int argc,char* argv[]) {
 	po::store(parsed,vm);
 	po::notify (vm);
 
+	if (vm.count("config")) {
+	  po::store(parse_config_file(vm["config"].as<std::string>().c_str(), desc), vm);
+	  po::notify(vm);
+	}
+	
+	if (!vm.count ("command")) {
+	  printHelp ();
+	  return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+	}
+
+	if (!vm.count ("inputfile")) {
+	  printHelp ();
+
+	  return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+	}
+	
 	//Load Program
 	MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
 	MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
 	MiniMC::Model::Program_ptr prgm = MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM> (input, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac,
 																																												  .cfactory =cfac}
-	);
-  
+	  );
+	
   assert(prgm);
   
   if (vm.count ("task")) {
@@ -114,7 +144,7 @@ int main (int argc,char* argv[]) {
     return -1;
   }
   std::vector<std::string> subargs = po::collect_unrecognized(parsed.options, po::include_positional);
-  subargs.erase(subargs.begin(),subargs.begin()+2);
+  //subargs.erase(subargs.begin(),subargs.begin()+2);
   soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
@@ -129,14 +159,7 @@ int main (int argc,char* argv[]) {
   
   }
   catch(po::error& e) {
-    printBanner (std::cerr);
-    std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
-    std::cerr << general << std::endl;
-    std::cerr << "Subcommands" << std::endl;
-    auto comms = getCommandNameAndDescr ();
-    for (auto& it :  comms) {
-      std::cerr << it.first <<"\t" << it.second << std::endl;
-    }
+    printHelp ();
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   }
   
