@@ -3,7 +3,7 @@ find_program(CLANG clang REQUIRED)
 add_custom_target(testmodels)
 
 function(clang_compile PREP INP)
-    add_custom_target("${PREP}_${INP}" 
+    add_custom_target("${PREP}_${INP}" ALL 
         COMMAND ${CLANG} -emit-llvm -c -S ${CMAKE_CURRENT_SOURCE_DIR}/${INP}.c -o ${CMAKE_CURRENT_BINARY_DIR}/${INP}.ll
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${INP}.c
         COMMENT "Generate $PREP_${INP}" # Just for nice message during build
