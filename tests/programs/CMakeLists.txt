@@ -1,5 +1,8 @@
 find_program(CLANG clang REQUIRED)
 
+if (CLANG)
+
+
 add_custom_target(testmodels)
 
 function(clang_compile PREP INP)
@@ -26,3 +29,5 @@ endfunction ()
 
 add_subdirectory(dummy)
 add_subdirectory(array)
+
+endif(CLANG)
