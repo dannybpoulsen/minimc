@@ -236,6 +236,23 @@ namespace MiniMC {
 			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
 			
 		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::PtrAdd) {
+			auto& result = helper.getResult ();
+			auto addr = data.readFrom.evaluate (helper.getAddress ());
+			auto value = data.readFrom.evaluate (helper.getValue ());
+			auto skip = data.readFrom.evaluate (helper.getSkipSize ());
+
+			MiniMC::uint64_t jump = value.template read<MiniMC::uint64_t> ()* skip.template read<MiniMC::uint64_t> ();
+			MiniMC::pointer_t resptr = MiniMC::Support::ptradd (addr.template read<MiniMC::pointer_t> (),jump);
+
+			MiniMC::Util::Array res (sizeof(MiniMC::pointer_t));
+			res.set (0,resptr);
+			
+			
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			
+		  }
 		  
 		  else {
 			throw NotImplemented<opc> ();

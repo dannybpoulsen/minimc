@@ -21,7 +21,7 @@ target_link_libraries (rshifts  minimclib ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (ext  minimclib ${GTEST_BOTH_LIBRARIES})
 
 
-gtest_discover_tests(divisions)
-gtest_discover_tests(sdivisions)
-gtest_discover_tests(rshifts)
-gtest_discover_tests(ext)
+gtest_discover_tests(divisions	PROPERTIES  LABELS unit)
+gtest_discover_tests(sdivisions PROPERTIES  LABELS unit)
+gtest_discover_tests(rshifts PROPERTIES  LABELS unit)
+gtest_discover_tests(ext PROPERTIES  LABELS unit)

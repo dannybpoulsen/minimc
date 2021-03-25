@@ -1,0 +1,5 @@
+command=mc
+inputfile=@CMAKE_CURRENT_BINARY_DIR@/array.ll
+task=main
+inlinefunctions=2
+mc.expect=0

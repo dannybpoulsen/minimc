@@ -75,6 +75,9 @@ namespace MiniMC {
 		auto it = parameters.begin();
 		MiniMC::Model::InstructionStream str;
 		auto inserter = str.back_inserter ();
+		for (auto it = instrs.begin(); it != instrs.end()-1; ++it) {
+		  inserter = *it;
+		}
 		for(size_t i = 0; i < helper.nbParams (); i++,it++) {
 		  InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
 		  builder.setResult (valmap.at(it->get().get()));

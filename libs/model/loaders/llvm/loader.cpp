@@ -34,6 +34,7 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/MemoryBuffer.h>
 
+#include "support/localisation.hpp"
 #include "support/exceptions.hpp"
 #include "loaders/loader.hpp"
 #include "model/cfg.hpp"
@@ -44,16 +45,18 @@
 namespace MiniMC {
   namespace Loaders {
 
+	
     MiniMC::Model::Value_ptr makeConstant (llvm::Value* val, Types& tt, MiniMC::Model::ConstantFactory_ptr& fac, Val2ValMap& map) {
       auto constant = llvm::dyn_cast<llvm::Constant> (val);
       assert(constant);
       auto ltype = constant->getType ();
       if (ltype->isIntegerTy ()) {
 		llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt> (constant);
-		assert(csti);
-		auto type = tt.getType(csti->getType());
-		auto cst = fac->makeIntegerConstant(csti->getZExtValue (),type);
-		return cst;
+		if (csti) {
+		  auto type = tt.getType(csti->getType());
+		  auto cst = fac->makeIntegerConstant(csti->getZExtValue (),type);
+		  return cst;
+		}
       }
       else if (ltype->isStructTy() || ltype->isArrayTy () ) {
 		
@@ -103,7 +106,12 @@ namespace MiniMC {
       else if (ltype->isPointerTy ()) {
 		throw MiniMC::Support::Exception ("Pointer Not Quite there");
       }
-      throw MiniMC::Support::Exception ("Error");
+
+	  MiniMC::Support::Localiser local ("LLVM '%1%' not implemented");
+	  std::string str;
+	  llvm::raw_string_ostream output(str);
+	  val->print (output);
+	  throw MiniMC::Support::Exception (local.format (str));
     }
     
 

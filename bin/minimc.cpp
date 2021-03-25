@@ -155,7 +155,8 @@ int main (int argc,char* argv[]) {
   soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
-	return static_cast<int>(getCommand(subcommand) (prgm,soptions));
+	
+	  return static_cast<int>(getCommand(subcommand) (prgm,soptions));
   }
   
   else {
@@ -168,6 +169,10 @@ int main (int argc,char* argv[]) {
   catch(po::error& e) {
 	printHelp ();
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+  }
+  catch (MiniMC::Support::Exception& ex) {
+	std::cerr << "An error happended: " << ex.what () << std::endl;
+	return static_cast<int>(MiniMC::Support::ExitCodes::RuntimeError);
   }
   
     
