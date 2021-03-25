@@ -84,8 +84,7 @@ namespace MiniMC {
 		edge->delAttribute<MiniMC::Model::AttributeType::Instructions> ();
 		if (str.begin () != str.end())
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
-		//func->getCFG ()->deleteEdge (edge);
-		
+		from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace> ();
 	  }
 	  
 	  bool InlineFunctions::run (MiniMC::Model::Program&  prgm) {

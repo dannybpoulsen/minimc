@@ -24,6 +24,7 @@ int main (int argc,char* argv[]) {
 
   std::string input;
   std::string subcommand;
+  std::vector<std::string> subargs;
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Algorithms::SetupOptions soptions {.messager = mess.get()};
 
@@ -69,11 +70,12 @@ int main (int argc,char* argv[]) {
 	("removeallocas",po::bool_switch (&soptions.removeAllocs),"Remove Alloca (replace them with equivalent construction)")
 	("replacememnondet",po::bool_switch (&soptions.replacememnodet),"Remove Alloca (replace them with equivalent construction)")
 	("removephi",po::bool_switch (&soptions.removephi),"Removephi")
-	
-	;
-  
     ;
-        
+
+  for (auto& it :  getCommandNameAndDescr ()) {
+	getOptionsFunc (it.first) (general,soptions);
+  }
+  
   hidden.add_options()
 	("command",po::value<std::string> (&subcommand), "Subcommand")
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")
@@ -99,8 +101,13 @@ int main (int argc,char* argv[]) {
 	po::notify (vm);
 
 	if (vm.count("config")) {
-	  po::store(parse_config_file(vm["config"].as<std::string>().c_str(), desc), vm);
+	  auto parsed =parse_config_file(vm["config"].as<std::string>().c_str(), desc,true); 
+	  po::store(parsed, vm);
 	  po::notify(vm);
+	  subargs = po::collect_unrecognized (parsed.options, po::include_positional);
+	  for (auto t : po::collect_unrecognized(parsed.options, po::include_positional)) {
+		subargs.push_back(t);
+	  }
 	}
 	
 	if (!vm.count ("command")) {
@@ -108,6 +115,7 @@ int main (int argc,char* argv[]) {
 	  return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
 	}
 
+	
 	if (!vm.count ("inputfile")) {
 	  printHelp ();
 
@@ -143,12 +151,11 @@ int main (int argc,char* argv[]) {
     std::cerr << MiniMC::Support::Localiser{"At least one entry point must be specified. "}.format() << std::endl;
     return -1;
   }
-  std::vector<std::string> subargs = po::collect_unrecognized(parsed.options, po::include_positional);
-  //subargs.erase(subargs.begin(),subargs.begin()+2);
+  
   soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
-	return static_cast<int>(getCommand(subcommand) (prgm,subargs,soptions));
+	return static_cast<int>(getCommand(subcommand) (prgm,soptions));
   }
   
   else {
@@ -159,7 +166,7 @@ int main (int argc,char* argv[]) {
   
   }
   catch(po::error& e) {
-    printHelp ();
+	printHelp ();
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   }
   

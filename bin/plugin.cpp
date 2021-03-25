@@ -22,6 +22,12 @@ subcommandfunc getCommand (const std::string& s) {
   return getMap().at(s)->getFunction ();
 }
 
+options_func getOptionsFunc (const std::string& s) {
+    return getMap().at(s)->getOptions ();
+	
+}
+
+
 std::unordered_map<std::string,std::string> getCommandNameAndDescr () {
   std::unordered_map<std::string,std::string>res;
   for (auto& it : getMap ()) {
@@ -37,8 +43,8 @@ bool parseOptionsAddHelp (boost::program_options::variables_map& vm, boost::prog
   
   try {
     boost::program_options::store(boost::program_options::command_line_parser(params).
-			  options(desc) 
-			  .run(), vm);
+								  options(desc) 
+								  .run(), vm);
 	boost::program_options::notify (vm);
 	
   }

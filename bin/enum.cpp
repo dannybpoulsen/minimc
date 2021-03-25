@@ -31,50 +31,55 @@ namespace {
 	}
 	return MiniMC::Support::ExitCodes::ConfigurationError;
   }
-  
+
   enum class CPAUsage {
 	Location,
 	CVC4PathFormula
   };
+  
+  struct LocalOptions {
+	CPAUsage CPA = CPAUsage::Location;
+  };
+
+  LocalOptions locoptions;
+  
+  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
+	po::options_description desc("Enum Options");
+	auto updateCPA = [] (int val) {
+	  switch (val) {
+	  case 3:
+		locoptions.CPA = CPAUsage::CVC4PathFormula;
+		break;
+	  case 1:
+	  default:
+		locoptions.CPA = CPAUsage::Location;
+		break;
+		
+	  }
+	};
+	
+	desc.add_options()
+	  ("enum.cpa,c",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
+	   "\t 1: Location\n"
+	   "\t 3: PathFormula With CVC4\n"
+	   );
+    
+	op.add(desc);
+  
+  }
+
+  
+
 }
 
-MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  const MiniMC::Algorithms::SetupOptions& sopt)  {
-    CPAUsage CPA = CPAUsage::Location;
-	MiniMC::Algorithms::SpaceReduction reduction;
-  int SpaceReduction = 0;
-  po::options_description desc("Print Graph Options");
-  std::string input;
-  auto updateCPA = [&CPA] (int val) {
-					 switch (val) {
-					 case 3:
-					   CPA = CPAUsage::CVC4PathFormula;
-					   break;
-					 case 1:
-					 default:
-					   CPA = CPAUsage::Location;
-					   break;
-					 
-					 }
-				   };
-  
-  desc.add_options()
-    ("cpa,c",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
-     "\t 1: Location\n"
-     "\t 3: PathFormula With CVC4\n"
-     );
-    
-  
-  po::variables_map vm; 
-    if (!parseOptionsAddHelp (vm,desc,parameters)) {
-	  return MiniMC::Support::ExitCodes::ConfigurationError;
-  }
-	  
+MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm,   MiniMC::Algorithms::SetupOptions& sopt)  {
+	
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
 												  MiniMC::CPA::Location::CPADef,
 												  MiniMC::CPA::PathFormula::CVC4CPA
 												  >;
   MiniMC::Support::ExitCodes res;
-  switch (CPA) {
+  switch (locoptions.CPA) {
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
@@ -88,5 +93,5 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm, std::vec
   
 }
 
-static CommandRegistrar enum_reg ("enum",enum_main,"Enumerate total number of states in CPA");
+static CommandRegistrar enum_reg ("enum",enum_main,"Enumerate total number of states in CPA",addOptions);
 

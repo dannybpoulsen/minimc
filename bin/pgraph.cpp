@@ -41,62 +41,71 @@ namespace {
 	}
 	return MiniMC::Support::ExitCodes::ConfigurationError;;
   }
+
+  enum class CPAUsage {
+	Location,
+	Concrete,
+	CVC4PathFormula
+  };
+
+  
+  struct LocalOptions {
+	CPAUsage CPA = CPAUsage::Location;;
+	bool filter;
+  };
+
+  LocalOptions locoptions;
+  
+  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
+	po::options_description desc("Print Graph Options");
+	bool filter;
+	auto updateCPA = [&sopt] (int val) {
+	switch (val) {
+	case 3:
+	  sopt.replacememnodet = true;
+	  sopt.convergencePoints = true;
+	  
+	  locoptions.CPA = CPAUsage::CVC4PathFormula;
+	  
+	  break;
+	case 2:
+	  locoptions.CPA = CPAUsage::Concrete;
+	  break;
+	case 1:
+	default:
+	  locoptions.CPA = CPAUsage::Location;
+	  break;
+	  
+	}
+	};
+	
+  
+	desc.add_options()
+	  ("pgraph.cpa",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
+	   "\t 1: Location\n"
+	   "\t 2: Concrete\n"
+	   "\t 3: PathFormula With CVC4\n"
+	   )
+	  ("pgraph.expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
+	  ("pgraph.filtersatis",po::bool_switch (&filter),"Filter out unsatisfied states")
+	  
+	  ("pgraph.splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
+	  ("pgraph.convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
+	  
+	  ;
+
+	op.add(desc);
+
+  }
+
+
+  
 }
   
-enum class CPAUsage {
-					 Location,
-					 Concrete,
-					 CVC4PathFormula
-};
 
 
 
-MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters, MiniMC::Algorithms::SetupOptions& sopt) {
-  CPAUsage CPA = CPAUsage::Location;
-  po::options_description desc("Print Graph Options");
-  std::string input;
-  bool filter;
-  auto updateCPA = [&CPA,&sopt] (int val) {
-					 switch (val) {
-					 case 3:
-					   sopt.replacememnodet = true;
-					   sopt.convergencePoints = true;
-					   
-					   CPA = CPAUsage::CVC4PathFormula;
-
-					   break;
-					 case 2:
-					   CPA = CPAUsage::Concrete;
-					   break;
-					 case 1:
-					 default:
-					   CPA = CPAUsage::Location;
-					   break;
-					 
-					 }
-				   };
-
-  
-  desc.add_options()
-    ("cpa,c",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
-     "\t 1: Location\n"
-	 "\t 2: Concrete\n"
-	 "\t 3: PathFormula With CVC4\n"
-     )
-    ("expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
-	("filtersatis",po::bool_switch (&filter),"Filter out unsatisfied states")
-	
-	("splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
-	("convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
-    
-	;
-  
-  
-  po::variables_map vm; 
-  
-  if (!parseOptionsAddHelp (vm,desc,parameters)) {
-	return MiniMC::Support::ExitCodes::ConfigurationError;;
-  }
+MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm,  MiniMC::Algorithms::SetupOptions& sopt) {
   
   using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
 												  MiniMC::CPA::SingleLocation::CPADef,
@@ -109,17 +118,17 @@ MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm, std::v
 												  >;
   
   MiniMC::Support::ExitCodes res;
-  switch (CPA) {
+  switch (locoptions.CPA) {
   case CPAUsage::CVC4PathFormula:
-	res = runAlgorithm<CVC4Path> (*prgm,sopt,filter);
+	res = runAlgorithm<CVC4Path> (*prgm,sopt,locoptions.filter);
 	break;
   case CPAUsage::Concrete:
-	res = runAlgorithm<CPAConcrete> (*prgm,sopt,filter);
+	res = runAlgorithm<CPAConcrete> (*prgm,sopt,locoptions.filter);
 	break;
 	
   case CPAUsage::Location:
   default:
-    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,filter);
+    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
     break;
   }
 
@@ -127,4 +136,4 @@ MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm, std::v
 }
 
 
-static CommandRegistrar pgraph_reg ("pgraph",pgraph_main,"Generate the state graph for given CPA");
+static CommandRegistrar pgraph_reg ("pgraph",pgraph_main,"Generate the state graph for given CPA",addOptions);

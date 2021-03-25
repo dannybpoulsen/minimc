@@ -30,76 +30,81 @@ namespace {
 	Fixed,
 	Clopper
   };
-}
-  
-MiniMC::Support::ExitCodes smc_main (MiniMC::Model::Program_ptr& prgm, std::vector<std::string>& parameters,  MiniMC::Algorithms::SetupOptions& sopt) {
-  MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson>::Options clopperOpt {.messager = sopt.messager};
-	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>::Options fixedOpt {.messager = sopt.messager};
-	sopt.replaceNonDetUniform = true;
+
+  struct LocalOptions {
 	std::size_t length;
 	Algo algo = Algo::Fixed;
-	std::string input; 
+	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::ClopperPearson>::Options clopperOpt;
+	MiniMC::Algorithms::ProbaChecker<MiniMC::Support::Statistical::FixedEffort>::Options fixedOpt;
+  };
+
+  LocalOptions locoptions;
+
+  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
 	po::options_description desc("Basic SMC Options");
 	
 	auto setAlgo = [&] (int val) {
-				   switch (val) {
-				   case 1:
-					 algo = Algo::Fixed;
-					 break;
-				   case 2:
-					 algo = Algo::Clopper;
-					 break;
-				   }
-				 };
-  
-  desc.add_options()
-    ("algorithm",po::value<int> ()->default_value (1)->notifier (setAlgo),"Algorithm\n"
-    "\t 1 Fixed Effort\n"
-    "\t 1 Clopper Pearson\n"
-     )
-    ("length",po::value<std::size_t> (&length),"Length")
-    ;
+	  switch (val) {
+	  case 1:
+		locoptions.algo = Algo::Fixed;
+		break;
+	  case 2:
+		locoptions.algo = Algo::Clopper;
+		break;
+	  }
+	};
+	
+	desc.add_options()
+	  ("smc.algorithm",po::value<int> ()->default_value (1)->notifier (setAlgo),"Algorithm\n"
+	   "\t 1 Fixed Effort\n"
+	   "\t 1 Clopper Pearson\n"
+	   )
+	  ("smc.length",po::value<std::size_t> (&locoptions.length),"Length")
+	  ;
     
   
-  po::options_description fixed ("Fixed Effort Options");
-  fixed.add_options ()
-    ("samples",po::value<std::size_t> (&fixedOpt.smcoptions.effort),"Samples")
-	("falpha",po::value<MiniMC::proba_t> (&fixedOpt.smcoptions.alpha),"Significance");
+	po::options_description fixed ("Fixed Effort Options");
+	fixed.add_options ()
+	  ("smc.fixed.samples",po::value<std::size_t> (&locoptions.fixedOpt.smcoptions.effort),"Samples")
+	  ("smc.fixed.alpha",po::value<MiniMC::proba_t> (&locoptions.fixedOpt.smcoptions.alpha),"Significance");
 	
   
-  po::options_description clopper ("Clopper Options");
-  clopper.add_options ()
-    ("width",po::value<MiniMC::proba_t> (&clopperOpt.smcoptions.width),"Desired Width")
-	("calpha",po::value<MiniMC::proba_t> (&clopperOpt.smcoptions.alpha),"Significance")
+	po::options_description clopper ("Clopper Options");
+	clopper.add_options ()
+	  ("smc.clopper.width",po::value<MiniMC::proba_t> (&locoptions.clopperOpt.smcoptions.width),"Desired Width")
+	  ("smc.clopper.alpha",po::value<MiniMC::proba_t> (&locoptions.clopperOpt.smcoptions.alpha),"Significance")
+	  
+	  ;
 	
-	;
-  
   po::options_description cmdline;
   cmdline.add(desc).
     add(clopper).
     add(fixed);
-  
-  
-  po::variables_map vm; 
 
-  if (!parseOptionsAddHelp (vm,cmdline,parameters)) {
-	return MiniMC::Support::ExitCodes::ConfigurationError;
+  op.add(cmdline);
+  
   }
- 
+  
+}
+  
+MiniMC::Support::ExitCodes smc_main (MiniMC::Model::Program_ptr& prgm,   MiniMC::Algorithms::SetupOptions& sopt) {
+  locoptions.clopperOpt.messager = sopt.messager;
+  locoptions.fixedOpt.messager = sopt.messager;
+  sopt.replaceNonDetUniform = true;
 
-  clopperOpt.len = length;
-  fixedOpt.len = length;
+  locoptions.clopperOpt.len = locoptions.length;
+  locoptions.fixedOpt.len = locoptions.length;
   MiniMC::Support::ExitCodes res;
-  switch (algo) {
+  switch (locoptions.algo) {
   case Algo::Fixed:
-    res = runAlgorithm<MiniMC::Support::Statistical::FixedEffort> (*prgm,sopt,fixedOpt);
+    res = runAlgorithm<MiniMC::Support::Statistical::FixedEffort> (*prgm,sopt,locoptions.fixedOpt);
     break;
   case Algo::Clopper:
-    res = runAlgorithm<MiniMC::Support::Statistical::ClopperPearson> (*prgm,sopt,clopperOpt);
+    res = runAlgorithm<MiniMC::Support::Statistical::ClopperPearson> (*prgm,sopt,locoptions.clopperOpt);
     break;
   }
   return res;
 }
 
 
-static CommandRegistrar smc_reg ("smc",smc_main,"Determine the probability of reaching an assert violation. Non-deterministic choices is converted to uniform choices.");
+static CommandRegistrar smc_reg ("smc",smc_main,"Determine the probability of reaching an assert violation. Non-deterministic choices is converted to uniform choices.",addOptions);

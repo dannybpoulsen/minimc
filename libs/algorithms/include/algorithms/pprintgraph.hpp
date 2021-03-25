@@ -18,7 +18,7 @@ namespace MiniMC {
     class ProbaChecker : public MiniMC::Algorithms::Algorithm {
     public:
 	  struct Options  {
-		gsl::not_null<MiniMC::Support::Messager*> messager;
+		MiniMC::Support::Messager* messager;
 		std::size_t len;
 		typename SMC::Options smcoptions;
 	  };

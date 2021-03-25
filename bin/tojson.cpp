@@ -52,4 +52,4 @@ MiniMC::Support::ExitCodes tojson_main (MiniMC::Model::Program_ptr& prgm, std::v
 }
 
 
-static CommandRegistrar tojson_reg ("convert",tojson_main,"Convert input to JSON format");
+static CommandRegistrar tojson_reg ("convert",tojson_main,"Convert input to JSON format",);
