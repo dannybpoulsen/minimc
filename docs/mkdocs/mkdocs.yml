@@ -1,0 +1,14 @@
+site_name: MiniMC
+theme: material
+plugins:
+  - macros
+nav:
+  - 'Introduction': index.md
+  - 'Configurable Program Analysis':
+      - 'CPA': cpa/index.md
+      - 'Location CPA': cpa/location.md
+  
+extra:
+  minimc: MiniMC
+markdown_extensions:
+  - admonition
