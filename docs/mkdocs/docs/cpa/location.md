@@ -11,6 +11,11 @@ This CPA is mostly useful because it can be combined with others
 CPAs. Thus making it unncessary for those CPAs to track the program
 location.  
 
+!!! note
+	The location CPA does not allow indirect function calls because an
+	indirect function would require evaluating a function pointer
+	which the Location CPA cannot do. 
+
 ## Example  
 
 !!! todo
