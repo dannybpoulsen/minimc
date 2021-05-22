@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <iostream>
 
 #include "support/queue_stack.hpp"
 
@@ -70,7 +71,6 @@ namespace MiniMC {
 	  }
 
 	  while (!waiting.empty ()) {
-			
 		Loc_ptr fromLoc = waiting.pull ();
 		GenKillState<Loc_ptr,T>& cur = states.at (fromLoc);
 		for (auto eit = fromLoc->ebegin(); eit != fromLoc->eend (); ++eit) {

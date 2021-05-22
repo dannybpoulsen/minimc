@@ -14,6 +14,7 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/IR/AssemblyAnnotationWriter.h>
 #include <llvm/IR/PassManager.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/IRPrintingPasses.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/SimplifyCFG.h>
@@ -26,6 +27,8 @@
 #include <llvm/Transforms/Utils/Mem2Reg.h>
 #include <llvm/Transforms/Utils/UnrollLoop.h>
 #include <llvm/Transforms/Utils/LCSSA.h>
+#include <llvm/Transforms/Utils.h>
+
 #include <llvm/Analysis/LoopInfo.h>
 
 #include <llvm/PassRegistry.h>
@@ -500,7 +503,11 @@ namespace MiniMC {
 			  auto edge = cfg->makeEdge (loc,succloc);
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			}
-		    
+
+			else if( term->getOpcode () == llvm::Instruction::Switch) {
+			  throw MiniMC::Support::Exception ("Not Implemented");
+			}
+			
 		  }
 		}
 		return llvm::PreservedAnalyses::all();
@@ -642,10 +649,17 @@ namespace MiniMC {
 	  
 	  virtual MiniMC::Model::Program_ptr readFromBuffer (std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {	
 		auto prgm = std::make_shared<MiniMC::Model::Program> (tfac,cfac);
+
+		llvm::legacy::PassManager lpm;
 		
 		llvm::SMDiagnostic diag;
 		std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext> ();
 		std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag,*context);
+
+
+		lpm.add (llvm::createLowerSwitchPass ());
+		lpm.run (*module);
+		
 		
 		llvm::PassBuilder PB;
 		
@@ -671,9 +685,10 @@ namespace MiniMC {
 		funcmanager.addPass (llvm::PromotePass());
 		funcmanagerllvm.addPass (GetElementPtrSimplifier());
 		funcmanagerllvm.addPass (InstructionNamer());
+		//funcmanagerllvm.addPass (llvm::LowerSwitch ());
+		
 		mpm.addPass (llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));	
 		//mpm.addPass (llvm::PrintModulePass (llvm::errs()));
-		
 		mpm.addPass (GlobalConstructor (prgm,tfac,cfac,values));	
 		
 		funcmanager.addPass (Constructor(prgm,tfac,cfac,values));
