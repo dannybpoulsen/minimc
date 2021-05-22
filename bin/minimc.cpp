@@ -152,7 +152,6 @@ int main (int argc,char* argv[]) {
     return -1;
   }
   
-  soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);
   
   if (isCommand (subcommand)) {
 	

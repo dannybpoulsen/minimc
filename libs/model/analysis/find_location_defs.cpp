@@ -2,72 +2,82 @@
 #include <unordered_set>
 
 #include "support/queue_stack.hpp"
+#include "support/dataflow.hpp"
 #include "model/analysis/find_location_defs.hpp"
+
 #include "model/utils.hpp"
 
 namespace MiniMC {
   namespace Model {
     namespace Analysis {
-      CFGDefs_ptr calculateDefs (MiniMC::Model::Function& f) {
-		auto& cfg = f.getCFG ();
-		auto& vStack = f.getVariableStackDescr ();
-		CFGDefs_ptr defs = std::make_shared<CFGDefs> (cfg,vStack->getTotalVariables ());
-		MiniMC::Support::Queue<MiniMC::Model::Location> waiting;
-		for (auto loc : cfg->getLocations ())
-		  waiting.insert (loc);
-
-		while (!waiting.empty ()) {
-		  auto curLoc = waiting.pull ();
-		  auto& ldefs = defs->getDefs (curLoc);
-		  auto addEdge = [&] (const MiniMC::Model::Edge_ptr& edge ) {
-			
-			bool changed = false;
-			std::unordered_set<MiniMC::Model::Variable_ptr> varsDefByEdge;
-			auto& edgeDefs = defs->getDefs(edge->getTo ());
-			assert(edge->getFrom ().get() == curLoc);
-	    
-			if (edge->template hasAttribute<MiniMC::Model::AttributeType::Instructions> () ) {
-			  auto& instrs = edge->template getAttribute<MiniMC::Model::AttributeType::Instructions> ();
-			  
-			  for (auto iit = instrs.rbegin(); iit != instrs.rend();++iit) {
-				auto valueDefined = valueDefinedBy (*iit);
-		
-				if (valueDefined) {
-				  MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Variable> (valueDefined);
-				  if (varsDefByEdge.count (varDefined))
-					continue;
-				  varsDefByEdge.insert(varDefined);;
-				  changed |= edgeDefs.insert (varDefined,&*iit);
-				}
-			  }
-			}
-			
-			for (auto& v : vStack->getVariables ()) {
-			  if (varsDefByEdge.count (v))
-				continue;
-			  auto variableDefinitions = ldefs.getDefsOfVariables (v);
-			  auto it = variableDefinitions.first;
-			  auto end = variableDefinitions.second;
-			  for (; it != end; ++it) {
-		
-				changed |= edgeDefs.insert(v, *it);
-			  }
-			}
-	    
-			
-			if (changed) {
-			  
-			  waiting.insert (edge->getTo ());  
-			}
-		  };
+	  struct GenKillInterface {
+		static bool update (const MiniMC::Support::GenKillState<MiniMC::Model::Location_ptr,MiniMC::Model::Instruction*>& from ,
+							const MiniMC::Model::Edge_ptr& edge,
+							MiniMC::Support::GenKillState<MiniMC::Model::Location_ptr,MiniMC::Model::Instruction*>& to) {
+		  assert (edge->getFrom ().get() == from.getLocation());
+		  assert (edge->getTo ().get() == to.getLocation ());
+		  bool changed = false;
+		  std::unordered_set<MiniMC::Model::Variable_ptr> varsDef;
 		  
-		  for (auto eit = curLoc->ebegin(); eit != curLoc->eend (); ++eit) {
-			addEdge (*eit);
+		  if (edge->template hasAttribute<MiniMC::Model::AttributeType::Instructions> () ) {
+			auto& instrs = edge->template getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+			
+			for (auto iit = instrs.rbegin(); iit != instrs.rend();++iit) {
+			  auto valueDefined = valueDefinedBy (*iit);
+			  
+			  if (valueDefined) {
+				MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Variable> (valueDefined);
+				if (varsDef.count (varDefined))
+				  continue;
+				varsDef.insert(varDefined);
+				changed |= to.gen (&*iit);
+			  }
+			}
+			
+		
 		  }
+		  
+		  for (auto& instr : from) {
+			if (!varsDef.count (std::static_pointer_cast<MiniMC::Model::Variable> (valueDefinedBy (*instr)))) {
+			  changed |= to.gen (instr);
+			}
+		  }
+		  
+
 	  
+	  
+		  return changed;
 		}
+		
+		
+	  };
+
+
+	  CFGDefs calculateDefs (MiniMC::Model::Function& f) {
+		auto& cfg = f.getCFG ();
+		auto vStack = f.getVariableStackDescr ();
+		CFGDefs defs (cfg,vStack->getTotalVariables ());
+
+		
+		auto lit = cfg->getLocations ().begin ();
+		auto eit =cfg->getLocations ().end ();
+		auto res = MiniMC::Support::ForwardDataFlowAnalysis<MiniMC::Model::Location,
+												 MiniMC::Model::Instruction*,
+												 MiniMC::Model::Edge_ptr,
+												 GenKillInterface,
+												 decltype(lit)> (lit,eit);
+		//Analysis done. Convert result to what caller expects :-)
+		for (auto& tup : res) {
+		  MiniMC::Model::Location_ptr loc = tup.first;
+		  auto& genkillstate = tup.second;
+		  for (auto instr : genkillstate) {
+			defs.getDefs (loc).insert (std::static_pointer_cast<MiniMC::Model::Variable> (valueDefinedBy(*instr)),
+										instr);
+		  }
+		}
+
 		return defs;
-	
+
       }
     }
   }

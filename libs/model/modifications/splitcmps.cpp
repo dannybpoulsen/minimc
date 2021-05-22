@@ -47,13 +47,13 @@ namespace MiniMC {
 			}
 		return false;
       }
-      void killBranchingInFunction (const MiniMC::Model::Function_ptr& func, MiniMC::Model::Analysis::Manager_ptr& manager) {	
+      void killBranchingInFunction (const MiniMC::Model::Function_ptr& func) {	
 		if (func->getVariableStackDescr ()->getTotalVariables () <= 0) {
 		  //No variables, so no point in doing anything here
 		  
 		  return; 
 		}
-		auto& cfgdefs = *manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);	
+		auto cfgdefs = MiniMC::Model::Analysis::calculateDefs (*func);//manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);	
 		MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 		auto& edges = func->getCFG ()->getEdges ();
 		std::copy_if (edges.begin(), edges.end (),wlist.inserter(),[] (auto& e) {return e->template hasAttribute<MiniMC::Model::AttributeType::Guard> () && !e->template hasAttribute<MiniMC::Model::AttributeType::Instructions> () ;});
@@ -104,7 +104,7 @@ namespace MiniMC {
 	  
       bool KillUnneededBranching::run (MiniMC::Model::Program&  prgm) {
 		for (auto& F : prgm.getFunctions ()) {
-		  killBranchingInFunction (F,amanager);
+		  killBranchingInFunction (F);
 		}
 		return true;
       }

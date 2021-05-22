@@ -27,7 +27,7 @@ namespace MiniMC {
 		}
 
 	  
-	
+		
 		bool insert (const MiniMC::Model::Variable_ptr& var, MiniMC::Model::Instruction* instr) {
 		  auto& set = map.at(var->getId ());
 		  if (set.count (instr))
@@ -74,31 +74,18 @@ namespace MiniMC {
 		std::unordered_map<MiniMC::Model::Location_ptr,LocationDefs> locDefs;
       };
 
-	  using CFGDefs_ptr = std::shared_ptr<CFGDefs>;
-      CFGDefs_ptr calculateDefs (MiniMC::Model::Function& f);
+	  CFGDefs calculateDefs (MiniMC::Model::Function& f);
       
       class ProgramDefs {
       public:
-		ProgramDefs (const MiniMC::Model::Program_ptr& prgm) : functions(prgm->getFunctions().size()) {
-		 
+		ProgramDefs (const MiniMC::Model::Program_ptr& prgm) {}
+		
+		auto getFunctionDefs (const MiniMC::Model::Function_ptr& func) {
+		  
+		  return calculateDefs (*func);
 		}
 		
-		auto& getFunctionDefs (const MiniMC::Model::Function_ptr& func) {
-		  //if (!functions.at(func->getID ()))
-		  {
-			assert(func->getID() < functions.size());
-			auto defs = calculateDefs (*func);
-			functions[func->getID ()] =  calculateDefs (*func);
-		}
-		  return functions[func->getID()];
-		}
-
-		void forgetFunction (const MiniMC::Model::Function_ptr& func) {
-		  functions[func->getID ()] = nullptr;
-		}
 		
-      private:
-		std::vector<CFGDefs_ptr> functions; 
       };
 	  
     }

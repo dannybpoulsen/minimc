@@ -75,7 +75,6 @@ int main () {
   
   auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
   MiniMC::Algorithms::SetupOptions soptions {.messager = mess.get()};
-  soptions.amanager = std::make_shared<MiniMC::Model::Analysis::Manager> (prgm);;
   return static_cast<int> (runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,soptions));
   
 }

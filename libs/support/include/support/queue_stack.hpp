@@ -67,6 +67,9 @@ namespace MiniMC {
     private:
       std::deque<T_ptr> thequeue;
     };
+
+	
+	
   }
 }
 

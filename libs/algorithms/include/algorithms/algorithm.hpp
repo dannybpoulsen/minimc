@@ -72,7 +72,6 @@ namespace MiniMC {
 	
 	struct SetupOptions {
 	  gsl::not_null<MiniMC::Support::Messager*> messager;
-	  MiniMC::Model::Analysis::Manager_ptr amanager;
 	  SpaceReduction reduction;
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
@@ -128,7 +127,7 @@ namespace MiniMC {
 	    seq.template add<MiniMC::Model::Modifications::SplitCompares> ();
 	  }
 	  
-	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> (options.amanager);
+	  seq.template add<MiniMC::Model::Modifications::KillUnneededBranching> ();
 	  seq.template add<MiniMC::Model::Modifications::LowerGuards> ();  
 	  seq.template add<MiniMC::Model::Modifications::RemoveUnneededCallPlaceAnnotations> ();
 	  if (options.replaceSub) {

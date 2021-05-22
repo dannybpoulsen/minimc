@@ -11,8 +11,7 @@ namespace MiniMC {
     namespace Modifications {
 	  struct UnrollOptions {
 		size_t maxAmount = 0;
-		MiniMC::Model::Analysis::Manager_ptr manager;
-	  };
+	};
 
 	  void unrollLoop (MiniMC::Model::CFG_ptr& cfg, const MiniMC::Model::Analysis::Loop_ptr& loop,std::size_t amount);
 	  

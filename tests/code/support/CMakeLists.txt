@@ -9,6 +9,8 @@ add_executable (gen generate.cpp)
 add_executable (ext ext_casts.cpp)
 add_executable (random random.cpp)
 add_executable (base64e base64.cpp)
+add_executable (dataflow dataflow.cpp)
+
 
 target_link_libraries (base64e minimclib)
 target_link_libraries (gen minimclib)
@@ -19,7 +21,7 @@ target_link_libraries (divisions minimclib  ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (sdivisions  minimclib ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (rshifts  minimclib ${GTEST_BOTH_LIBRARIES})
 target_link_libraries (ext  minimclib ${GTEST_BOTH_LIBRARIES})
-
+target_link_libraries (dataflow minimclib)
 
 gtest_discover_tests(divisions	PROPERTIES  LABELS unit)
 gtest_discover_tests(sdivisions PROPERTIES  LABELS unit)

@@ -51,7 +51,7 @@ namespace MiniMC {
 		}
 		assert(cfg->isIncomingOutgoingConsistent ());
 		return domres;
-		  
+		
 	  }
 	  
 	}
