@@ -81,6 +81,54 @@ namespace MiniMC {
 			data.newSSAMap->updateValue (res.get(),valTerm);
 			
 		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::BoolZExt) {
+			
+			MiniMC::Model::InstHelper<opc> helper (i);
+			
+			auto& res = helper.getResult ();
+			auto& castee = helper.getCastee ();
+			
+			auto bytesize = res->getType ()->getSize ();
+			auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
+			auto ones = data.smtbuilder->makeBVIntConst (1,bytesize*8);
+			
+			data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ITE,{data.oldSSAMap->lookup (castee.get()),ones,zeros}));
+			
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::BoolSExt) {
+			  
+			  MiniMC::Model::InstHelper<opc> helper (i);
+			  
+			  auto& res = helper.getResult ();
+			  auto& castee = helper.getCastee ();
+			  
+			  auto bytesize = res->getType ()->getSize ();
+			  auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
+			  auto ones = data.smtbuilder->makeBVIntConst (~0,bytesize*8);
+			  
+			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ITE,{data.oldSSAMap->lookup (castee.get()),ones,zeros}));
+			
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::IntToBool) {
+			
+			MiniMC::Model::InstHelper<opc> helper (i);
+			
+			auto& res = helper.getResult ();
+			auto& castee = helper.getCastee ();
+			
+			
+			auto bytesize = castee->getType ()->getSize ();
+			auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
+			auto eq =   data.smtbuilder->buildTerm (SMTLib::Ops::Equal,{data.oldSSAMap->lookup (castee.get()),zeros});
+			data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ITE,{eq,
+																								 data.smtbuilder->makeBoolConst (false),
+																								 data.smtbuilder->makeBoolConst (true)}));
+			
+		  }
+		  
 		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Skip) {
 			//Do nothing
