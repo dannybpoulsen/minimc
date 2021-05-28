@@ -28,7 +28,7 @@ namespace {
 	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.messager = sopt.messager, . filterSatis = filter, .delayTillConverge = !filter});
+	algorithm algo(typename algorithm::Options {.messager = sopt.messager, .filterSatis = filter, .delayTillConverge = !filter});
 	if (seq.run (prgm)) {
 	  
 	  auto res = algo.run (prgm);
@@ -58,7 +58,6 @@ namespace {
   
   void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
 	po::options_description desc("Print Graph Options");
-	bool filter;
 	auto updateCPA = [&sopt] (int val) {
 	switch (val) {
 	case 3:
@@ -87,7 +86,7 @@ namespace {
 	   "\t 3: PathFormula With CVC4\n"
 	   )
 	  ("pgraph.expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
-	  ("pgraph.filtersatis",po::bool_switch (&filter),"Filter out unsatisfied states")
+	  ("pgraph.filtersatis",po::bool_switch (&locoptions.filter),"Filter out unsatisfied states")
 	  
 	  ("pgraph.splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	  ("pgraph.convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")

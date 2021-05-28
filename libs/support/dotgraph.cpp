@@ -32,7 +32,7 @@ namespace MiniMC {
 	  agset (e,const_cast<char*>("label"),const_cast<char*>(label.c_str()));
 	}
 
-	void color (Color& c ) {
+	void color (const Color& c ) {
 	  agset (node,const_cast<char*>("fillcolor"),const_cast<char*> (c.toString().c_str()));
 	}
 

@@ -17,7 +17,7 @@ namespace MiniMC {
       virtual ~Node () {}
       virtual void setLabel (std::string str) = 0;
       virtual void connect (Node& n,std::string label) = 0;
-      virtual void color (Color& c ) = 0;
+      virtual void color (const Color& c ) = 0;
       virtual void color ( ) = 0;
     };
 

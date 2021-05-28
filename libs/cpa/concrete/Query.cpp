@@ -79,7 +79,9 @@ namespace MiniMC {
 		
 		virtual bool need2Store () const {return false;}
 		virtual bool ready2explore () const {return true;}
-
+		virtual bool assertViolated () const { return false;}
+		
+		
 		virtual const Concretizer_ptr getConcretizer () const override {return std::make_shared<MConcretizer> (globals,proc_vars);}
 		
 		

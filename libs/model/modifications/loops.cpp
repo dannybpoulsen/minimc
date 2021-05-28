@@ -12,6 +12,7 @@ namespace MiniMC {
 	  void unrollLoop (MiniMC::Model::CFG_ptr cfg, const MiniMC::Model::Analysis::Loop* loop,std::size_t amount, LocInserter linserter, MiniMC::Model::Program& prgm) {
 		std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
 		auto deadLoc = cfg->makeLocation (MiniMC::Model::LocationInfo ("DEAD")).get();
+		deadLoc->getInfo ().set<MiniMC::Model::Attributes::UnrollFailed> ();
 		//linserter =deadLoc;
 		for (size_t i = 0; i< amount; i++) {
 		  std::stringstream str;

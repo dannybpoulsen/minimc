@@ -134,6 +134,7 @@ namespace MiniMC {
 	}
 
 	SMTLib::Term_ptr buildSMTValue (SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
+	  static std::size_t nb = 0;
 	  if (ptr->isConstant()) {
 		return buildSMTConstant (builder,ptr);
 	  }
@@ -168,7 +169,7 @@ namespace MiniMC {
 		}
 		
 		if (sort)
-		  return builder.makeVar (sort,var->getName ());
+		  return builder.makeVar (sort,MiniMC::Support::Localiser ("SMT-%1%").format (++nb));
 	  }
 	  throw MiniMC::Support::Exception ("Error");
 	}

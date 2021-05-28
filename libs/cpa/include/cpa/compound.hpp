@@ -42,6 +42,16 @@ namespace MiniMC {
 			
 		}
 
+		virtual bool assertViolated () const {
+		  for (auto& state : states) {
+			if (state->assertViolated ()) {
+			  return true;
+			  }
+		  }
+		  return false;
+		  
+		}
+		
 		bool ready2explore () const override {
 		  for (auto& state : states) {
 			if (!state->ready2explore ()) {

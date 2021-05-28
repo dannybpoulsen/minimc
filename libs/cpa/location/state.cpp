@@ -88,6 +88,17 @@ namespace MiniMC {
 		  }
 		  return false;
 		}
+
+		virtual bool assertViolated () const {
+		  for (auto& locState : locations) {
+			if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ())
+			  return true;
+		  }
+		  return false;
+		}
+		
+		
+		
 		
 	  private:
 		std::vector<LocationState> locations;

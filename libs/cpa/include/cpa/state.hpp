@@ -85,6 +85,10 @@ namespace MiniMC {
        */
       virtual bool need2Store () const {return false;}
 	  virtual bool ready2explore () const {return true;}
+	  virtual bool assertViolated () const {	throw MiniMC::Support::Exception ("Should not be called");}
+
+	  
+	  
 	  virtual const Concretizer_ptr getConcretizer () const {return std::make_shared<Concretizer> ();}
 	};
 	

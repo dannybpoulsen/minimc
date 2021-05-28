@@ -42,6 +42,13 @@ namespace MiniMC {
 			
 		}
 
+		virtual bool assertViolated () const {
+		  return location->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ();
+		  
+		}
+		
+		
+		
 		bool ready2explore () const override {return ready;}
 		
 		std::shared_ptr<State> join (const State& oth) const {

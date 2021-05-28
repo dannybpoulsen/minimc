@@ -17,7 +17,8 @@ namespace MiniMC {
 	  NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
 	  CallPlace = 4, /**< Indicates a call takes place on an edge leaving this location */
 	  AssumptionPlace = 8, /**< Indicates an assumption is made on an edge leaving this location  */
-	  ConvergencePoint = 16
+	  ConvergencePoint = 16,
+	  UnrollFailed = 32 /** Indicates loop unrolling was unsufficient **/
 	};
 	
 	struct LocationInfo   {

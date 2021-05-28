@@ -30,7 +30,7 @@ namespace MiniMC {
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
 		virtual bool need2Store () const {return wrappedState->need2Store();}
 		virtual bool ready2explore () const override {return wrappedState->ready2explore();}
-		
+		virtual bool assertViolated () const {return wrappedState->assertViolated();}
 		virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const override  {
 		  return wrappedState->getLocation (id);
 		}
@@ -126,14 +126,14 @@ namespace MiniMC {
 		std::set<MiniMC::CPA::State_ptr> visited;
 		MiniMC::Support::Stack<MiniMC::CPA::State> working;
 		auto addState = [&] (std::weak_ptr<MiniMC::CPA::State> winp) {
-						  auto inp = winp.lock();
-						  if (inp) {
-							if (visited.count(inp) == 0) {
-							  working.insert(inp);
-							  visited.insert(inp);
-							}
-						  }
-						};
+		  auto inp = winp.lock();
+		  if (inp) {
+			if (visited.count(inp) == 0) {
+			  working.insert(inp);
+			  visited.insert(inp);
+			}
+		  }
+		};
 		
 		auto insert = [&](auto& state) -> std::unique_ptr<MiniMC::Support::Node> {
 		  std::stringstream str;
@@ -142,6 +142,8 @@ namespace MiniMC {
 		  std::stringstream labelstr;
 		  labelstr<< *state;
 		  node->setLabel (labelstr.str());
+		  if (state->assertViolated ())
+			node->color ();
 		  return node;
 		};
 		

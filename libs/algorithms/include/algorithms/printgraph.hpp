@@ -34,7 +34,7 @@ namespace MiniMC {
 		if (opt.filterSatis)
 		  pwopt.filter = [](const MiniMC::CPA::State_ptr& s) {return s->getConcretizer()->isFeasible () == MiniMC::CPA::Concretizer::Feasibility::Feasible;};
 		if (!opt.delayTillConverge)
-		  pwopt.filter = [](const MiniMC::CPA::State_ptr& s) {return false;};
+		  pwopt.delay = [](const MiniMC::CPA::State_ptr& s) {return false;};
 	  }
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		if (!CPA::PreValidate::validate (prgm,messager)) {

@@ -22,6 +22,8 @@ namespace MiniMC {
 		MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {return reinterpret_cast<MiniMC::Hash::hash_t> (this);}
 		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {return std::make_shared<State> (*this);}
 		virtual bool need2Store () const {return false;}
+		virtual bool assertViolated () const { return false;}
+		
 		auto& getSSAMap () {return map;}
 		auto& getSSAMap () const {return map;}
 		auto& getContext () const {return context;}
