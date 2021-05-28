@@ -194,24 +194,22 @@ namespace MiniMC {
     
     struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager&) {
-		std::string fname = F.getName().str();
-		fname = fname+".";
 		for (auto &Arg : F.args())
 		  if (!Arg.hasName()) 
-			Arg.setName(fname+"arg");
+			Arg.setName("arg");
 		  else 
-			Arg.setName(fname+Arg.getName());
+			Arg.setName(Arg.getName());
 		for (llvm::BasicBlock &BB : F) {
 		  if (!BB.hasName())
-			BB.setName(fname+"bb");
+			BB.setName("bb");
 		  else {
-			BB.setName(fname+BB.getName());
+			BB.setName(BB.getName());
 		  }
 		  for (llvm::Instruction &I : BB)
 			if (!I.hasName())
-			  I.setName(fname+"tmp");
+			  I.setName("tmp");
 			else
-			  I.setName(fname+I.getName());
+			  I.setName(I.getName());
 		}
 		return llvm::PreservedAnalyses::all();
       }
@@ -402,9 +400,10 @@ namespace MiniMC {
 		Types tt;
 		tt.tfac = tfactory;
 		std::string fname =  F.getName().str();
+		MiniMC::Model::LocationInfoCreator locinfoc (fname);
 		auto cfg  = prgm->makeCFG ();
 		std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
-		auto variablestack =  prgm->makeVariableStack ();
+		auto variablestack =  prgm->makeVariableStack (fname);
 		tt.stack = variablestack;
 		using inserter = std::back_insert_iterator< std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
 		pickVariables <inserter> (F,variablestack,std::back_inserter(params));
@@ -412,7 +411,7 @@ namespace MiniMC {
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
 	
 		for (llvm::BasicBlock &BB : F) {
-		  auto loc = cfg->makeLocation(BB.getName().str());
+		  auto loc = cfg->makeLocation(locinfoc.make(BB.getName().str()));
 		  locmap.insert (std::make_pair(&BB,loc)); 
 		}
 	
@@ -458,15 +457,15 @@ namespace MiniMC {
 			  if (brterm->isUnconditional ()) {
 				std::vector<MiniMC::Model::Instruction> insts;
 				auto succ = term->getSuccessor (0);
-				auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap);
+				auto succloc =  buildPhiEdge (&BB,succ,*cfg,tt,locmap,locinfoc);
 				auto edge = cfg->makeEdge (loc,succloc);
 				if (insts.size())
 				  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			  }
 			  else {
 				auto cond = findValue (brterm->getCondition(),values,tt,cfactory);
-				auto ttloc = buildPhiEdge (&BB,term->getSuccessor (0),*cfg,tt,locmap);
-				auto ffloc = buildPhiEdge (&BB,term->getSuccessor (1),*cfg,tt,locmap);
+				auto ttloc = buildPhiEdge (&BB,term->getSuccessor (0),*cfg,tt,locmap,locinfoc);
+				auto ffloc = buildPhiEdge (&BB,term->getSuccessor (1),*cfg,tt,locmap,locinfoc);
 				auto edge = cfg->makeEdge (loc,ttloc);
 				edge->setAttribute<MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
 				edge = cfg->makeEdge (loc,ffloc);
@@ -475,7 +474,7 @@ namespace MiniMC {
 			}
 			else if ( term->getOpcode () == llvm::Instruction::IndirectBr) {
 			  auto brterm = llvm::dyn_cast<llvm::IndirectBrInst> (term);
-			  auto splitloc = cfg->makeLocation ({"Indirect"});
+			  auto splitloc = cfg->makeLocation (locinfoc.make("Indirect"));
 			  std::size_t dests = brterm->getNumDestinations ();
 			  auto value = findValue (brterm->getAddress(),values,tt,cfactory);
 			  for (std::size_t i = 0; i < dests;++i) {
@@ -486,7 +485,7 @@ namespace MiniMC {
 				builder.setLeft (value);
 				builder.setRight (valComp);
 				builder.setRes (cond);
-				auto ttloc = buildPhiEdge (&BB,brterm->getDestination (i),*cfg,tt,locmap);
+				auto ttloc = buildPhiEdge (&BB,brterm->getDestination (i),*cfg,tt,locmap,locinfoc);
 				auto edge = cfg->makeEdge (splitloc,ttloc);
 				edge->setAttribute <MiniMC::Model::AttributeType::Guard> (MiniMC::Model::Guard (cond,false));
 				insts.push_back (builder.BuildInstruction ());
@@ -499,7 +498,7 @@ namespace MiniMC {
 			else if( term->getOpcode () == llvm::Instruction::Ret) {
 			  std::vector<MiniMC::Model::Instruction> insts;
 			  addInstruction (term,insts,tt);
-			  auto succloc = cfg->makeLocation (fname+"."+"Term");
+			  auto succloc = cfg->makeLocation (locinfoc.make(("Term")));
 			  auto edge = cfg->makeEdge (loc,succloc);
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			}
@@ -513,7 +512,7 @@ namespace MiniMC {
 		return llvm::PreservedAnalyses::all();
       }
 
-      MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap) {
+      MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap,MiniMC::Model::LocationInfoCreator& locinfoc) {
 		std::vector<MiniMC::Model::Instruction> insts;  
 		for (auto& phi : to->phis ()) {
 		  auto ass = findValue (&phi,values,tt,cfactory);
@@ -525,7 +524,7 @@ namespace MiniMC {
 		}
 		auto loc = locmap.at(to);
 		if (insts.size()) {
-		  auto nloc = cfg.makeLocation (to->getName().str()+":PHI");
+		  auto nloc = cfg.makeLocation (locinfoc.make(to->getName().str()));
 		  auto edge = cfg.makeEdge (nloc,loc);
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (MiniMC::Model::InstructionStream (insts,true));
 		  return nloc;

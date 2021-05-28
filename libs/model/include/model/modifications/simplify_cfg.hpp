@@ -59,6 +59,7 @@ namespace MiniMC {
 	  struct ConvergencePointAnnotator : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
+			MiniMC::Model::LocationInfoCreator locinfoc(F->getName ());
 			MiniMC::Support::WorkingList<MiniMC::Model::Location_ptr> wlist;
 			auto inserter =wlist.inserter ();
 			auto cfg = F->getCFG ();
@@ -72,7 +73,7 @@ namespace MiniMC {
 				location->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint> ();
 			  }
 			  else if (location->nbIncomingEdges () > 2) {
-				auto nlocation = cfg->makeLocation ({""});
+				auto nlocation = cfg->makeLocation (locinfoc.make(""));
 				nlocation->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint> ();
 				auto it = location->ebegin ();
 				MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> elist;
@@ -175,6 +176,7 @@ namespace MiniMC {
       struct EnsureEdgesOnlyHasOne : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
 		  for (auto& F : prgm.getFunctions ()) {
+			MiniMC::Model::LocationInfoCreator locinfoc(F->getName ());
 			MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
 			auto inserter =wlist.inserter ();
 			auto cfg = F->getCFG ();
@@ -192,7 +194,7 @@ namespace MiniMC {
 		
 				auto from = edge->getFrom ();
 				auto makeEdge = [&]  (MiniMC::Model::InstructionStream& str) {
-				  auto nloc = cfg->makeLocation ({"-"});
+				  auto nloc = cfg->makeLocation (locinfoc.make(""));
 				  auto nedge = cfg->makeEdge (from,nloc);
 				  nedge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
 				  newedges.push_back (nedge);

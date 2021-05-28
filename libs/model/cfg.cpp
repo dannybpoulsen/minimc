@@ -9,11 +9,12 @@ namespace MiniMC {
   namespace Model {
 	gsl::not_null<Function_ptr> createEntryPoint (Program_ptr& program, gsl::not_null<Function_ptr> function) {
 	  static std::size_t nb = 0;
+	  const std::string name = MiniMC::Support::Localiser ("__minimc__entry_%1%-%2%").format (function->getName (),++nb);
 	  auto cfg = program->makeCFG ();
-	  auto vstack = program->makeVariableStack ();
+	  auto vstack = program->makeVariableStack (name);
 	  auto funcpointer = program->getConstantFactory ()->makeFunctionPointer (function->getID ());
-	  auto init= cfg->makeLocation ({"init"});
-	  auto end = cfg->makeLocation ({"end"});
+	  auto init= cfg->makeLocation (MiniMC::Model::LocationInfo("init"));
+	  auto end = cfg->makeLocation (MiniMC::Model::LocationInfo("end"));
 
 	  cfg->setInitial (init);
 	  auto edge = cfg->makeEdge (init,end);
@@ -29,7 +30,7 @@ namespace MiniMC {
 
 	  edge->setAttribute<AttributeType::Instructions> (InstructionStream({builder.BuildInstruction ()}));
 	  
-	  return program->addFunction (MiniMC::Support::Localiser ("__minimc__entry_%1%-%2%").format (function->getName (),++nb),{},
+	  return program->addFunction (name,{},
 								   program->getTypeFactory ()->makeVoidType (),
 								   vstack,
 								   cfg

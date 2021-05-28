@@ -21,7 +21,8 @@ namespace MiniMC {
 	};
 	
 	struct LocationInfo   {
-	  LocationInfo (const std::string& name, AttrType flags = 0) : name(name),flags(flags) {}
+	  explicit LocationInfo (const std::string& name, AttrType flags = 0) : name(name),flags(flags) {}
+	
 	  const std::string& getName () const {return name;}
 	  
 	  /** 
@@ -54,7 +55,7 @@ namespace MiniMC {
       }
 
 	  
-	private:
+
 	  std::string name;
 	  AttrType flags;
 	};
@@ -62,6 +63,26 @@ namespace MiniMC {
 	inline std::ostream& operator<< (std::ostream& os, const LocationInfo& info) {
 	  return os << info.getName ();
 	}
+
+	struct LocationInfoCreator {
+	  LocationInfoCreator (const std::string prefix) : pref(prefix) {}
+	  
+	  LocationInfo make (const std::string& name, AttrType type = 0) {
+		return LocationInfo (pref+":"+name, type);
+	  }
+
+	  LocationInfo make (const LocationInfo& loc) {
+		
+		return LocationInfo (pref+":"+loc.name, loc.flags);
+	  }
+	
+	private:
+
+	  const std::string pref;
+	};
+	
+	
+	
   }
 }
 

@@ -442,12 +442,18 @@ namespace MiniMC {
       {
 		static bool doCheck (MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
 		  MiniMC::Support::Localiser must_be_pointer ("'%1%' can only load from pointer types. "); 
-	  
+		  MiniMC::Support::Localiser must_be_integer ("'%1%' can only load integers. "); 
+		  
 	  
 		  InstHelper<MiniMC::Model::InstructionCode::Load> h (inst);
 		  auto addr = h.getAddress ()->getType();
 		  if (addr->getTypeID () != MiniMC::Model::TypeID::Pointer ) {
 			mess.error (must_be_pointer.format (MiniMC::Model::InstructionCode::Load));
+			return false;
+		  }
+
+		  if (h.getResult()->getType()->getTypeID () != MiniMC::Model::TypeID::Integer ) {
+			mess.error (must_be_integer.format (MiniMC::Model::InstructionCode::Load));
 			return false;
 		  }
 		

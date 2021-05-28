@@ -221,7 +221,31 @@ namespace MiniMC {
       else if (func->isDeclaration ()) {
 		//We don't know what to do for this function
 		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> builder;
-		if (!inst->getType ()->isVoidTy ()) {
+		if (inst->getType ()->isIntegerTy ()) {
+		  std::size_t bitwidth = inst->getType ()->getIntegerBitWidth ();
+		  auto type = tt.tfac->makeIntegerType(bitwidth);
+		  switch (bitwidth) {
+		  case 8:
+			builder.setMin (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint8_t>::min (),type));
+			builder.setMax (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint8_t>::max (),type));
+			break;
+		  case 16:
+			builder.setMin (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint16_t>::min (),type));
+			builder.setMax (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint16_t>::max (),type));
+			break;
+		  case 32:
+			builder.setMin (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint32_t>::min (),type));
+			builder.setMax (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint32_t>::max (),type));
+			break;
+		  case 64:
+			builder.setMin (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint64_t>::min (),type));
+			builder.setMax (cfac->makeIntegerConstant (std::numeric_limits<MiniMC::uint64_t>::max (),type));
+			break;
+		  default:
+			throw MiniMC::Support::Exception ("Error");
+			  
+		  }
+			
 		  builder.setResult (findValue(inst,values,tt,cfac));
 		  instr.push_back(builder.BuildInstruction ());
 		}

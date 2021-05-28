@@ -114,9 +114,11 @@ namespace MiniMC {
 					const std::string pref,
 					ReplaceMap<MiniMC::Model::Location>& locmap,	
 					LocInsert lInsert,
-					EdgeInsert eInsert) {
+					EdgeInsert eInsert,
+					MiniMC::Model::LocationInfoCreator& locinfoc
+					) {
 		for (auto& loc : from->getLocations ()) {
-		  auto nloc = to->makeLocation (loc->getInfo());
+		  auto nloc = to->makeLocation (locinfoc.make(loc->getInfo()));
 		  locmap.insert (std::pair (loc.get(),nloc));
 		  lInsert = loc;
 		}

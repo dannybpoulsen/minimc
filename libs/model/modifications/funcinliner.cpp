@@ -13,7 +13,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-	  void inlineCallEdgeToFunction (const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge,size_t depth = 10) {
+	  void inlineCallEdgeToFunction (const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge,MiniMC::Model::LocationInfoCreator& locinfoc,size_t depth = 10) {
 		if (!depth)
 		  throw MiniMC::Support::Exception ("Inlining Depth exceeded");
 		auto from_loc = edge->getFrom ();
@@ -29,7 +29,7 @@ namespace MiniMC {
 		MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
 		auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) { 
 		  for (auto& v : stack->getVariables ()) {
-			valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (cfunc->getName()+v->getName(),v->getType ())));
+			valmap.insert(std::make_pair(v.get(),func->getVariableStackDescr()->addVariable (v->getName(),v->getType ())));
 		  }
 		  
 		  
@@ -42,13 +42,13 @@ namespace MiniMC {
 		std::vector<Location_ptr> nlocs;
 		MiniMC::Support::WorkingList<Edge_ptr> wlist;
 		
-		copyCFG (cfunc->getCFG ().get(), valmap,func->getCFG().get(),cfunc->getName(),locmap,std::back_inserter(nlocs),wlist.inserter());
+		copyCFG (cfunc->getCFG ().get(), valmap,func->getCFG().get(),cfunc->getName(),locmap,std::back_inserter(nlocs),wlist.inserter(),locinfoc);
 		
 		for (auto& ne :wlist) {
 		  if (ne->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
 			auto& ninstr = ne->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
 			if (ninstr.last().getOpcode () == MiniMC::Model::InstructionCode::Call) {
-			  inlineCallEdgeToFunction (func,ne,depth-1);
+			  inlineCallEdgeToFunction (func,ne,locinfoc,depth-1);
 			}
 
 			else if (ninstr.last().getOpcode () == MiniMC::Model::InstructionCode::RetVoid) {
@@ -92,6 +92,7 @@ namespace MiniMC {
 	  
 	  bool InlineFunctions::run (MiniMC::Model::Program&  prgm) {
 		for (auto& F : prgm.getFunctions ()) {
+		  MiniMC::Model::LocationInfoCreator linfoc (F->getName ());
 		  MiniMC::Support::WorkingList<Edge_ptr> wlist;
 		  auto inserter = wlist.inserter();
 		  auto cfg =  F->getCFG();
@@ -104,7 +105,7 @@ namespace MiniMC {
 				e->getAttribute<MiniMC::Model::AttributeType::Instructions> ().last().getOpcode () ==
 				MiniMC::Model::InstructionCode::Call
 				) {
-			  inlineCallEdgeToFunction (F,e,depth);
+			  inlineCallEdgeToFunction (F,e,linfoc,depth);
 			}
 		  }
 		  

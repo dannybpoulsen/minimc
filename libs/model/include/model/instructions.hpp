@@ -393,7 +393,7 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
-      static const std::size_t operands = 0;			
+      static const std::size_t operands = 2;			
       static const bool hasResVar = true;			
     };
 
@@ -1007,32 +1007,40 @@ namespace MiniMC {
     template<>
     class InstHelper<InstructionCode::NonDet,void> {
     public:
-      
-      InstHelper (const Instruction& inst) : inst(inst) {}
+	  InstHelper (const Instruction& inst) : inst(inst) {}
       auto& getResult () const {return inst.getOp(0);}
+      auto& getMin () const {return inst.getOp(1);}
+      auto& getMax () const {return inst.getOp(2);}
+      
     private:
       const Instruction& inst;
+ 
     };
 
     template<>
     class InstBuilder<InstructionCode::NonDet,void> {
     public:
-      Instruction BuildInstruction () {
-		return Instruction (InstructionCode::NonDet,{res});
-      }
-     
-      auto& setResult (const Value_ptr& p) {res = p; return *this;}
       
+	  auto& setResult (const Value_ptr& ptr) {res = ptr; return *this;}
+      auto& setMin (const Value_ptr& ptr) {min = ptr; return *this;}
+      auto& setMax (const Value_ptr& ptr) {max = ptr; return *this;}
+      Instruction BuildInstruction () {
+		assert(min);
+		assert(max);
+		assert(res);
+		return Instruction (InstructionCode::NonDet,{res,min,max});
+      }
     private:
-      Value_ptr res = nullptr;
-    
+      Value_ptr res;
+      Value_ptr min;
+      Value_ptr max;
     };
 
     template<> 
     struct Formatter<InstructionCode::NonDet,void> {
       static std::ostream& output (std::ostream& os, const Instruction& inst) {
 		InstHelper<InstructionCode::NonDet> h (inst);
-		return os << *h.getResult() << "=" <<  InstructionCode::NonDet;
+		return os << *h.getResult() << "=" <<  InstructionCode::NonDet << "(" << *h.getMin () << ", " << *h.getMax () << ")";
       } 
     };
     //

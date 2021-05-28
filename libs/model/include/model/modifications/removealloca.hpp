@@ -32,7 +32,7 @@ namespace MiniMC {
 			minstr.setSize (prgm.getConstantFactory()->makeIntegerConstant (0,prgm.getTypeFactory()->makeIntegerType (64)));
 			InstructionStream stream ({instr.BuildInstruction (),minstr.BuildInstruction ()});
 			
-			auto ninitloc = cfg->makeLocation ({"StackAlloc"});
+			auto ninitloc = cfg->makeLocation (MiniMC::Model::LocationInfo("StackAlloc"));
 			auto oinitloc = cfg->getInitialLocation ().get();
 			auto edge =  cfg->makeEdge ( ninitloc,oinitloc);
 			edge->template setAttribute<AttributeType::Instructions> (stream);
@@ -67,7 +67,7 @@ namespace MiniMC {
 				else if (instrstream.last ().getOpcode () == InstructionCode::RetVoid) {
 				  InstBuilder<InstructionCode::Free> freebuilder;
 				  InstBuilder<InstructionCode::RetVoid> retbuilder;
-
+				  
 				  freebuilder.setPointer (stackvar);
 				  instrstream.last().replace (freebuilder.BuildInstruction ());
 				  instrstream.back_inserter () = retbuilder.BuildInstruction ();

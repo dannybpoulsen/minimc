@@ -108,16 +108,15 @@ namespace MiniMC {
 	  if (options.replacememnodet) {
 		seq.template add<MiniMC::Model::Modifications::RemoveMemNondet> ();
 	  }
-	  if (options.removeAllocs)  
-		seq.template add<MiniMC::Model::Modifications::RemoveAllocas> (); 
+	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
 	  
 	  if (options.inlinefunctions) {
 	    seq.template add<MiniMC::Model::Modifications::InlineFunctions,std::size_t> (options.inlinefunctions); 
 	  }
+	  
 	  if (options.unrollLoops) 
 		seq.template add<MiniMC::Model::Modifications::UnrollLoops> ( options.unrollLoops);
 	  
-	  seq.template add<MiniMC::Model::Modifications::SplitAsserts> ();
 	  
 	  if (options.foldConstants) {
 	    seq.template add<MiniMC::Model::Modifications::FoldConstants> ();
@@ -145,7 +144,9 @@ namespace MiniMC {
 	  if (options.isConcurrent) {
 	    seq.template add<MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess> ();  
 	  }
-
+	  if (options.removeAllocs)  
+		seq.template add<MiniMC::Model::Modifications::RemoveAllocas> (); 
+	  
 	  if (options.convergencePoints) {
 		seq.template add<MiniMC::Model::Modifications::ConvergencePointAnnotator> ();  	  
 	  }

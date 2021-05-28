@@ -186,7 +186,7 @@ namespace MiniMC {
       Program (const MiniMC::Model::TypeFactory_ptr& tfact,
 			   const MiniMC::Model::ConstantFactory_ptr& cfact
 			   ) : cfact(cfact), tfact(tfact)  {
-		globals = makeVariableStack().get();
+		globals = makeVariableStack("Globals").get();
       }
 
 	  gsl::not_null<VariableStackDescr_ptr> getGlobals () const { return globals;}
@@ -232,8 +232,8 @@ namespace MiniMC {
       auto& getEntryPoints () const {return entrypoints;}
 
       bool hasEntryPoints () const {return entrypoints.size();}
-      gsl::not_null<VariableStackDescr_ptr> makeVariableStack () {
-		return std::make_shared<VariableStackDescr> (); 
+      gsl::not_null<VariableStackDescr_ptr> makeVariableStack (const std::string& name) {
+		return std::make_shared<VariableStackDescr> (name); 
       }
 
       auto& getConstantFactory () {return cfact;}

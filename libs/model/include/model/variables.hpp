@@ -237,7 +237,7 @@ namespace MiniMC {
 	 */
     class VariableStackDescr : public std::enable_shared_from_this<VariableStackDescr> {
     public:
-      VariableStackDescr ()  {}
+      VariableStackDescr (const std::string& pref) : pref(pref) {}
       Variable_ptr addVariable (const std::string& name, const Type_ptr& type); 
       auto& getVariables () const {return variables;}
 
@@ -250,7 +250,7 @@ namespace MiniMC {
     private:
       std::vector<Variable_ptr> variables;
       std::size_t totalSize = 0;
-    
+	  const std::string pref;
     };
 
 

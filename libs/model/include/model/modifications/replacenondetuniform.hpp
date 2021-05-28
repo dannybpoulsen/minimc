@@ -36,40 +36,9 @@ namespace MiniMC {
 		    
 					MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Uniform> uniform;
 					MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet (I);	  
-					auto type = nondet.getResult ()->getType ();
-					MiniMC::uint64_t min = 0;
-					MiniMC::uint64_t max = 0;
-					if (type->getTypeID () == MiniMC::Model::TypeID::Integer) {
-		      
-		      
-					  switch (type->getSize()) {
-					  case 1:
-						min =std::numeric_limits<MiniMC::uint8_t>::min ();
-						max =std::numeric_limits<MiniMC::uint8_t>::max ();
-						break;
-					  case 2:
-						min =std::numeric_limits<MiniMC::uint16_t>::min ();
-						max =std::numeric_limits<MiniMC::uint16_t>::max ();
-						break;
-					  case 4:
-						min =std::numeric_limits<MiniMC::uint32_t>::min ();
-						max =std::numeric_limits<MiniMC::uint32_t>::max ();
-						break;
-					  case 8:
-						min =std::numeric_limits<MiniMC::uint64_t>::min ();
-						max =std::numeric_limits<MiniMC::uint64_t>::max ();
-						break;
-					  default:
-						assert(false);
-					  }
-					}
-					auto minC = fact->makeIntegerConstant (min,type);
-					auto maxC = fact->makeIntegerConstant (max,type);
-					minC->setType (type);
-					maxC->setType (type);
 					uniform.setResult (nondet.getResult ());
-					uniform.setMin (minC);
-					uniform.setMax (maxC);
+					uniform.setMin (nondet.getMin ());
+					uniform.setMax (nondet.getMax ());
 					I.replace (uniform.BuildInstruction ());
 				  }
 				}
