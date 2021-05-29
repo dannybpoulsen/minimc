@@ -24,7 +24,7 @@ namespace {
 	using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+	algorithm algo(typename algorithm::Options {});
 	if (seq.run (prgm)) {
 	  algo.run (prgm);
 	  return MiniMC::Support::ExitCodes::AllGood;

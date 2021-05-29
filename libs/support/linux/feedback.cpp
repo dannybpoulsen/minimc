@@ -7,8 +7,9 @@ namespace MiniMC {
     class LinuxProgresser : public Progresser  {
     public:
       LinuxProgresser () {
-      }
-
+		std::cout << "\n";
+	  }
+	  
       ~LinuxProgresser () {
 		std::cout << "\n";
       }
@@ -23,14 +24,18 @@ namespace MiniMC {
       int next = 0;
     };
     
-
-    
+	    
     class LinuxMessager : public Messager {
     public:
       LinuxMessager () : errorC(MiniMC::Linux::ColorModifier::Code::FG_RED),
 						 warningC(MiniMC::Linux::ColorModifier::Code::FG_GREEN),
-						 defaultC(MiniMC::Linux::ColorModifier::Code::FG_DEFAULT) {}
-	  
+						 defaultC(MiniMC::Linux::ColorModifier::Code::FG_DEFAULT) {
+	}
+
+	  ~LinuxMessager () {
+		std::cerr   <<  std::endl;
+		
+	  }
       virtual Progresser_ptr makeProgresser () {return std::make_unique<LinuxProgresser> ();}
       virtual void error (const std::string& s) {
 		std::cerr << errorC << "Error  :" << defaultC << s << std::endl;;
@@ -39,9 +44,9 @@ namespace MiniMC {
       virtual void warning (const std::string& s) {
 		std::cerr << warningC << "Warning:" << defaultC << s << std::endl;;
       }
-
+	  
       virtual void message (const std::string& s) {
-		std::cerr << defaultC << "Message:" << defaultC << s << std::endl;;
+		std::cerr << "\x1b[2K" << defaultC  << s << '\r' << std::flush;
       }
     private:
       MiniMC::Linux::ColorModifier errorC; 

@@ -30,7 +30,7 @@ namespace MiniMC {
 	   * for the actual checks 
 	   */
 	  struct StructureChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-		StructureChecker (MiniMC::Support::Messager& ptr) : messager (ptr) {}
+		StructureChecker () : messager (MiniMC::Support::getMessager ()) {}
 		virtual bool run (MiniMC::Model::Program&  prgm);
       private:
 		MiniMC::Support::Messager& messager;

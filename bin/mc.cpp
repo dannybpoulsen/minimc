@@ -12,10 +12,9 @@ namespace {
   
   MiniMC::Support::ExitCodes runAlgorithm (MiniMC::Model::Program& prgm,  const MiniMC::Algorithms::SetupOptions sopt, MiniMC::Algorithms::ExplicitReachability::ReachabilityResult expected ) {
 	using algorithm = MiniMC::Algorithms::ExplicitReachability;
-	auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
 	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+	algorithm algo(typename algorithm::Options {});
 	if (seq.run (prgm)) {
 	  if (algo.run (prgm) == MiniMC::Algorithms::Result::Success) {
 		if (algo.getAnalysisResult ().result == expected) {

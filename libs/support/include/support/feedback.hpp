@@ -13,9 +13,9 @@ namespace MiniMC {
     class Progresser {
     public:
       virtual ~Progresser () {}
-      virtual void progressMessage (const std::string& ) = 0; 
+      virtual void progressMessage (const std::string& ) {}
     };
-
+	
     using Progresser_ptr = std::unique_ptr<Progresser>;
 
 	/**
@@ -28,20 +28,24 @@ namespace MiniMC {
 	 */
     class Messager {
     public:
-      virtual Progresser_ptr makeProgresser () = 0; 
-      virtual void error (const std::string&) = 0;
-      virtual void warning (const std::string&) = 0;
-      virtual void message (const std::string&) = 0;
+	  virtual ~Messager () {}
+      virtual Progresser_ptr makeProgresser () {return std::make_unique<Progresser> ();}; 
+      virtual void error (const std::string&) {}
+      virtual void warning (const std::string&) {};
+      virtual void message (const std::string&) {};
     };
 
+	using Messager_ptr = std::unique_ptr<Messager>;
+	
+	
     enum class MessagerType {
-			 Terminal
+	  Terminal
     };
 
-    using Messager_ptr = std::unique_ptr<Messager>;
-
-    Messager_ptr makeMessager (MessagerType);
-    
+    void setMessager (MessagerType);
+	
+	Messager& getMessager ();
+	
   }
 }
 

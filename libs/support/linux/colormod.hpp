@@ -19,18 +19,18 @@ namespace MiniMC {
       ColorModifier(Code pCode) : code(pCode) {}
       void operator= (Code c) {code = c;}
       std::ostream& apply (std::ostream& os) const {
-	if ( (&os == &std::cout && isatty( STDOUT_FILENO ))
-	     || (&os == &std::cerr && isatty( STDERR_FILENO ))
-	     || (&os == &std::clog && isatty( STDERR_FILENO )) ) {
-	  return os << "\033[" << static_cast<int>(code) << "m";
-	}
-	else 
-	  return os;
+		if ( (&os == &std::cout && isatty( STDOUT_FILENO ))
+			 || (&os == &std::cerr && isatty( STDERR_FILENO ))
+			 || (&os == &std::clog && isatty( STDERR_FILENO )) ) {
+		  return os << "\033[" << static_cast<int>(code) << "m";
+		}
+		else 
+		  return os;
       }
     private:
       Code code;
     };
-
+	
     
     
   }

@@ -18,10 +18,9 @@ namespace MiniMC {
     class EnumStates : public MiniMC::Algorithms::Algorithm {
     public:
 	  struct Options {
-		gsl::not_null<MiniMC::Support::Messager*> messager;
-	  };
+	};
 	  
-      EnumStates (const Options& opt) : messager(*opt.messager)  {}
+      EnumStates (const Options& opt) : messager(MiniMC::Support::getMessager ())  {}
       virtual Result run (const MiniMC::Model::Program& prgm) {
 		if (!CPA::PreValidate::validate (prgm,messager)) {
 		  return Result::Error;

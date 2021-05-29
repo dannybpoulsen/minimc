@@ -27,10 +27,9 @@ namespace MiniMC {
 	  };
 	  
 	  struct Options {
-		gsl::not_null<MiniMC::Support::Messager*> messager;
 		
 	  };
-      ExplicitReachability (const Options& opt) : messager(*opt.messager)  {}
+      ExplicitReachability (const Options& opt) : messager(MiniMC::Support::getMessager ())  {}
       using CPA = MiniMC::CPA::Compounds::CPADef<0,
 												 MiniMC::CPA::Location::CPADef,
 												 MiniMC::CPA::Concrete::CPADef
@@ -40,6 +39,7 @@ namespace MiniMC {
 		if (!CPA::PreValidate::validate (prgm,messager)) {
 		  return Result::Error;
 		}
+
 		messager.message ("Initiating Reachability");
 		PWOptions opt;
 		CPADFSPassedWaiting<CPA> passed (opt);

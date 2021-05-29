@@ -56,7 +56,7 @@ auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOption
   using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
   MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
   MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-  algorithm algo(typename algorithm::Options {.messager = sopt.messager});
+  algorithm algo(typename algorithm::Options {});
   //if (seq.run (prgm))
   return algo.run (prgm);
   //return MiniMC::Algorithm::Result::Error;
@@ -73,8 +73,7 @@ int main () {
   
   prgm->addEntryPoint ("main");
   
-  auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
-  MiniMC::Algorithms::SetupOptions soptions {.messager = mess.get()};
+  MiniMC::Algorithms::SetupOptions soptions;
   return static_cast<int> (runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,soptions));
   
 }

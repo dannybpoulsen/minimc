@@ -23,26 +23,7 @@
 
 namespace po = boost::program_options;
 namespace {
-  template<class CPADef>
-  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt,bool filter) {
-	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
-	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.messager = sopt.messager, .filterSatis = filter, .delayTillConverge = !filter});
-	if (seq.run (prgm)) {
-	  
-	  auto res = algo.run (prgm);
-	  if (res == MiniMC::Algorithms::Result::Success) {
-		sopt.messager->message ("Writing Graph");
-		algo.getAnalysisResult().graph->write ("CPA");
-		sopt.messager->message ("Wrote Graph");
-	  }
-	  return MiniMC::Support::ExitCodes::AllGood;
-	}
-	return MiniMC::Support::ExitCodes::ConfigurationError;;
-  }
-
-  enum class CPAUsage {
+    enum class CPAUsage {
 	Location,
 	Concrete,
 	CVC4PathFormula
@@ -51,10 +32,31 @@ namespace {
   
   struct LocalOptions {
 	CPAUsage CPA = CPAUsage::Location;;
+	std::string outputname;
 	bool filter;
   };
 
   LocalOptions locoptions;
+
+  
+  template<class CPADef>
+  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt,bool filter) {
+	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
+	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
+	algorithm algo(typename algorithm::Options {.filterSatis = filter, .delayTillConverge = !filter});
+	if (seq.run (prgm)) {
+	  
+	  auto res = algo.run (prgm);
+	  if (res == MiniMC::Algorithms::Result::Success) {
+		MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Outputting graph to '%1%.dot'").format (locoptions.outputname));
+		algo.getAnalysisResult().graph->write (locoptions.outputname);
+	  }
+	  return MiniMC::Support::ExitCodes::AllGood;
+	}
+	return MiniMC::Support::ExitCodes::ConfigurationError;;
+  }
+
   
   void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
 	po::options_description desc("Print Graph Options");
@@ -90,6 +92,7 @@ namespace {
 	  
 	  ("pgraph.splitcmps",po::bool_switch (&sopt.splitCMPS),"Split control-flow at comparisons")
 	  ("pgraph.convergence",boost::program_options::bool_switch(&sopt.convergencePoints),"Make sure convergencepoints only has to incoming edges")
+	  ("pgraph.output",po::value<std::string>(&locoptions.outputname)->default_value("CPA"),"output filename")
 	  
 	  ;
 

@@ -71,7 +71,6 @@ namespace MiniMC {
 	};
 	
 	struct SetupOptions {
-	  gsl::not_null<MiniMC::Support::Messager*> messager;
 	  SpaceReduction reduction;
 	  bool isConcurrent = false;
 	  bool expandNonDet = false;
@@ -100,8 +99,8 @@ namespace MiniMC {
 	 */
     inline void  setupForAlgorithm (MiniMC::Support::Sequencer<MiniMC::Model::Program>& seq, const SetupOptions& options) {
 	  seq.template add<MiniMC::Model::Modifications::InsertBoolCasts> ();  
-	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
-	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);
+	  seq.template add<MiniMC::Model::Checkers::TypeChecker> ();
+	  seq.template add<MiniMC::Model::Checkers::StructureChecker> ();
 	  if (options.removephi) {
 		seq.template add<MiniMC::Model::Modifications::RemovePhi> ();	
 	  }
@@ -151,8 +150,8 @@ namespace MiniMC {
 		seq.template add<MiniMC::Model::Modifications::ConvergencePointAnnotator> ();  	  
 	  }
 	  
-	  seq.template add<MiniMC::Model::Checkers::TypeChecker, MiniMC::Support::Messager&> (*options.messager);
-	  seq.template add<MiniMC::Model::Checkers::StructureChecker, MiniMC::Support::Messager&> (*options.messager);  
+	  seq.template add<MiniMC::Model::Checkers::TypeChecker> ();
+	  seq.template add<MiniMC::Model::Checkers::StructureChecker> ();  
 	  
 	  if  (options.reduction == SpaceReduction::Conservative) {
 	    seq.template add<MiniMC::Model::Modifications::MarkLoopStates> (); 

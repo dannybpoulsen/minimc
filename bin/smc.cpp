@@ -88,8 +88,6 @@ namespace {
 }
   
 MiniMC::Support::ExitCodes smc_main (MiniMC::Model::Program_ptr& prgm,   MiniMC::Algorithms::SetupOptions& sopt) {
-  locoptions.clopperOpt.messager = sopt.messager;
-  locoptions.fixedOpt.messager = sopt.messager;
   sopt.replaceNonDetUniform = true;
 
   locoptions.clopperOpt.len = locoptions.length;

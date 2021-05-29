@@ -25,9 +25,9 @@ int main (int argc,char* argv[]) {
   std::string input;
   std::string subcommand;
   std::vector<std::string> subargs;
-  auto mess = MiniMC::Support::makeMessager (MiniMC::Support::MessagerType::Terminal);
-  MiniMC::Algorithms::SetupOptions soptions {.messager = mess.get()};
-
+  MiniMC::Support::setMessager (MiniMC::Support::MessagerType::Terminal);
+  MiniMC::Algorithms::SetupOptions soptions;
+  
   auto updateSpace = [&] (int val) {
 					   switch (val) {
 					   case 1:

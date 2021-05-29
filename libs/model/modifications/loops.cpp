@@ -1,4 +1,6 @@
 #include <sstream>
+#include "support/feedback.hpp"
+#include "support/localisation.hpp"
 #include "model/analysis/loops.hpp"
 #include "model/modifications/loops.hpp"
 #include "model/modifications/helpers.hpp"
@@ -59,6 +61,7 @@ namespace MiniMC {
 	  
 	  bool UnrollLoops::run (MiniMC::Model::Program&  prgm) {
 		for (auto& func : prgm.getEntryPoints ()) {
+		  MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Unrolling Loops for: '%1%'").format (func->getName ()));
 		  auto cfg = func->getCFG ();
 		  
 		  auto loopinfo = MiniMC::Model::Analysis::createLoopInfo (cfg);

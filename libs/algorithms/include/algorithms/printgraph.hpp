@@ -20,7 +20,6 @@ namespace MiniMC {
     class PrintCPA : public MiniMC::Algorithms::Algorithm {
     public:
       struct Options {
-		gsl::not_null<MiniMC::Support::Messager*> messager;
 		bool filterSatis = false;
 		bool delayTillConverge = true;
 	  };
@@ -30,7 +29,7 @@ namespace MiniMC {
 	  };
 	  
       using CPA = MiniMC::CPA::ARG::CPADef<ACPA>;
-      PrintCPA (const Options& opt) : messager(*opt.messager.get())  {
+      PrintCPA (const Options& opt) : messager(MiniMC::Support::getMessager ())  {
 		if (opt.filterSatis)
 		  pwopt.filter = [](const MiniMC::CPA::State_ptr& s) {return s->getConcretizer()->isFeasible () == MiniMC::CPA::Concretizer::Feasibility::Feasible;};
 		if (!opt.delayTillConverge)
