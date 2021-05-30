@@ -1,12 +1,14 @@
 #include <iostream>
 #include <gsl/pointers>
+#include "support/timing.hpp"
 #include "support/feedback.hpp"
 #include "colormod.hpp"
 namespace MiniMC {
   namespace Support {
     class LinuxProgresser : public Progresser  {
     public:
-      LinuxProgresser () {
+      LinuxProgresser (long del = 50) : delay(del),timer("_progres") {
+		timer.startTimer ();
 		std::cout << "\n";
 	  }
 	  
@@ -15,13 +17,19 @@ namespace MiniMC {
       }
 
       virtual void progressMessage (const std::string& s) {
-		std::cout << "\x1b[2K\r" << arr[next] << ' ' << s << std::flush;
-		next = (next +1)% 4;
+		if (timer.current().milliseconds > delay) {
+		  std::cout << "\x1b[2K\r" << arr[next] << ' ' << s << std::flush;
+		  next = (next +1)% 4;
+		  timer.stopTimer ();
+		  timer.startTimer ();
+		}
       }
 
     private:
       char arr[4] = {'\\', '|','/','-'};
       int next = 0;
+	  long delay;
+	  MiniMC::Support::Timer timer;
     };
     
 	    
@@ -46,7 +54,7 @@ namespace MiniMC {
       }
 	  
       virtual void message (const std::string& s) {
-		std::cerr << "\x1b[2K" << defaultC  << s << '\r' << std::flush;
+		std::cerr << "\x1b[2K\r" << defaultC  << s << '\r' << std::flush;
       }
     private:
       MiniMC::Linux::ColorModifier errorC; 

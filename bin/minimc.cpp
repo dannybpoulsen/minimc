@@ -7,6 +7,7 @@
 #include "config.h"
 #include "loaders/loader.hpp"
 #include "algorithms/algorithm.hpp"
+#include "support/timing.hpp"
 #include "plugin.hpp"
 
 namespace po = boost::program_options;
@@ -155,7 +156,7 @@ int main (int argc,char* argv[]) {
   
   if (isCommand (subcommand)) {
 	
-	  return static_cast<int>(getCommand(subcommand) (prgm,soptions));
+	return static_cast<int>(getCommand(subcommand) (prgm,soptions));
   }
   
   else {

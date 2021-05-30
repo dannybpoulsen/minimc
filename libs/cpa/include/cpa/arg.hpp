@@ -123,6 +123,8 @@ namespace MiniMC {
 	  
 	  template<class Iterator>
 	  void generateARGGraph (MiniMC::Support::Graph_ptr& graph,Iterator begin, Iterator end) {
+		MiniMC::Support::getMessager ().message ("Generate ARG-Graph");
+		auto progresser = MiniMC::Support::getMessager ().makeProgresser ();
 		std::set<MiniMC::CPA::State_ptr> visited;
 		MiniMC::Support::Stack<MiniMC::CPA::State> working;
 		auto addState = [&] (std::weak_ptr<MiniMC::CPA::State> winp) {
@@ -149,6 +151,8 @@ namespace MiniMC {
 		
 		std::for_each (begin,end,addState);
 		while (!working.empty ()) {
+		  MiniMC::Support::Localiser waitmess ("Waiting: %1%");
+		  progresser->progressMessage (waitmess.format (working.size ()));
 		  auto current = working.pull ();
 		  auto curnode = insert ( current );
 		  

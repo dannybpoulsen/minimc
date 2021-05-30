@@ -2,6 +2,7 @@
 #define _pathSTATE__
 
 #include <memory>
+#include "support/feedback.hpp"
 #include "util/ssamap.hpp"
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
@@ -50,6 +51,7 @@ namespace MiniMC {
 		}
 		
 		virtual Feasibility isFeasible () const {
+		  MiniMC::Support::getMessager ().message ("Running SMT Solver");
 		  switch (solver->check_sat ()) {
 		  case SMTLib::Result::Satis:
 			return Feasibility::Feasible;

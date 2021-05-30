@@ -39,19 +39,20 @@ namespace MiniMC {
 		if (!CPA::PreValidate::validate (prgm,messager)) {
 		  return Result::Error;
 		}
-		messager.message ("Initiating PrintCPA");
+		messager.message ("Running PrintCPA");
 		aresult.graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		
 		
 		CPADFSPassedWaiting<CPA> passed (pwopt);
 		
 		try {
-		  auto progresser = messager.makeProgresser ();
-		  auto predicate = [] (auto& b) {return false;};
-		  auto initstate = CPA::Query::makeInitialState (prgm);
-		  PassedInsert inserter (*progresser,passed);
-		  reachabilitySearch<CPA> (passed,inserter,initstate,predicate);
-		  
+		  {
+			auto progresser = messager.makeProgresser ();
+			auto predicate = [] (auto& b) {return false;};
+			auto initstate = CPA::Query::makeInitialState (prgm);
+			PassedInsert inserter (*progresser,passed);
+			reachabilitySearch<CPA> (passed,inserter,initstate,predicate);
+		  }
 		  //State space is now generated - create the graph
 		  auto it = passed.stored_begin();
 		  auto end = passed.stored_end();
