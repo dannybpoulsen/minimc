@@ -108,7 +108,7 @@ namespace MiniMC {
 		  return SMTLib::Ops::SExt;
 		}
 	  else 
-		assert(false && "Can't map instructioncode to SMT");
+		throw MiniMC::Support::Exception ("Can't map instructioncode to SMT");
 	}
 	
 	inline SMTLib::Term_ptr buildSMTConstant (SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
