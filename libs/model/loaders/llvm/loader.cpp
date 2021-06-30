@@ -13,6 +13,7 @@
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/IR/AssemblyAnnotationWriter.h>
+#include <llvm/IR/GetElementPtrTypeIterator.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/IRPrintingPasses.h>

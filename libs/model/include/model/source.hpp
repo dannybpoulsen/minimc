@@ -55,8 +55,7 @@ namespace MiniMC {
 		flags &= ~static_cast<AttrType> (i);
       }
 
-	  
-
+	  bool isFlagSet (AttrType t) {return flags & t;} 
 	  std::string name;
 	  AttrType flags;
 	};

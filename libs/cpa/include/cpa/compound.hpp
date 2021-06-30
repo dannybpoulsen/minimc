@@ -51,6 +51,16 @@ namespace MiniMC {
 		  return false;
 		  
 		}
+
+		virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
+		  for (auto& state : states) {
+			if (state->hasLocationAttribute (tt)) {
+			  return true;
+			}
+		  }
+		  return false;
+		  
+		}
 		
 		bool ready2explore () const override {
 		  for (auto& state : states) {

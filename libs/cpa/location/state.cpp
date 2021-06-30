@@ -98,7 +98,13 @@ namespace MiniMC {
 		}
 		
 		
-		
+		virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
+		  for (auto& locState : locations) {
+			if (locState.cur()->getInfo().isFlagSet (tt))
+			  return true;
+		  }
+		  return false;
+		}
 		
 	  private:
 		std::vector<LocationState> locations;

@@ -78,22 +78,30 @@ namespace MiniMC {
 
 	  virtual size_t nbOfProcesses ( ) const {return 0;}
 	  
-      /** 
+      virtual bool hasLocationAttribute (MiniMC::Model::AttrType ) const {return false;}
+	  /** 
        * Function to tell whether it is deemed necessary to store this State during  explorations to guarantee termination. 
        *
        * @return 
        */
-      virtual bool need2Store () const {return false;}
+	  template<MiniMC::Model::Attributes att>
+	  bool hasLocationOf () const {return  hasLocationAttribute (static_cast<MiniMC::Model::AttrType> (att));}
+      virtual bool need2Store () const {return hasLocationAttribute (static_cast<MiniMC::Model::AttrType> (MiniMC::Model::Attributes::NeededStore));}
+	  virtual bool assertViolated () const {return hasLocationAttribute (static_cast<MiniMC::Model::AttrType> (MiniMC::Model::Attributes::AssertViolated));}
+	  
 	  virtual bool ready2explore () const {return true;}
-	  virtual bool assertViolated () const {	throw MiniMC::Support::Exception ("Should not be called");}
-
+	  
 	  
 	  
 	  virtual const Concretizer_ptr getConcretizer () const {return std::make_shared<Concretizer> ();}
 	};
+
 	
     using State_ptr = std::shared_ptr<State>;
-    
+
+	
+	
+	
     std::ostream& operator<< (std::ostream& os, const State& state);
     
   }

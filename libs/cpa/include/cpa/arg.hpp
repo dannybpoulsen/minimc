@@ -35,6 +35,12 @@ namespace MiniMC {
 		  return wrappedState->getLocation (id);
 		}
 
+		virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
+		  return wrappedState->hasLocationAttribute (tt);
+		  
+		}
+		
+		
 		size_t nbOfProcesses () const override {
 		  return wrappedState->nbOfProcesses ();
 		}
@@ -145,7 +151,14 @@ namespace MiniMC {
 		  labelstr<< *state;
 		  node->setLabel (labelstr.str());
 		  if (state->assertViolated ())
-			node->color ();
+			node->color (MiniMC::Support::HSLColor (0.7,1.0,1.0));
+		  if (state->template hasLocationOf<MiniMC::Model::Attributes::ConvergencePoint> ())
+			node->color (MiniMC::Support::HSLColor (0.5,1.0,1.0));
+		  if (state->template hasLocationOf<MiniMC::Model::Attributes::UnrollFailed> ())
+			node->color (MiniMC::Support::HSLColor (0.7,1.0,1.0));
+		  if (state->template hasLocationOf<MiniMC::Model::Attributes::AssumptionPlace> ())
+			node->color (MiniMC::Support::HSLColor (0.3,1.0,1.0));
+		  
 		  return node;
 		};
 		

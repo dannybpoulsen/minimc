@@ -42,11 +42,14 @@ namespace MiniMC {
 			
 		}
 
-		virtual bool assertViolated () const {
-		  return location->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ();
-		  
+		/*virtual bool assertViolated () const {
+		  return location->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ();  
+		  }*/
+
+		virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
+		  return location->getInfo().isFlagSet (tt);
 		}
-		
+	  
 		
 		
 		bool ready2explore () const override {return ready;}
