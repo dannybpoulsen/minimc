@@ -34,7 +34,9 @@ namespace {
 
   enum class CPAUsage {
 	Location,
+#ifdef MINIMC_SYMBOLIC
 	CVC4PathFormula
+#endif
   };
   
   struct LocalOptions {
@@ -47,9 +49,11 @@ namespace {
 	po::options_description desc("Enum Options");
 	auto updateCPA = [] (int val) {
 	  switch (val) {
+#ifdef MINIMC_SYMBOLIC
 	  case 3:
 		locoptions.CPA = CPAUsage::CVC4PathFormula;
 		break;
+#endif
 	  case 1:
 	  default:
 		locoptions.CPA = CPAUsage::Location;
@@ -61,7 +65,9 @@ namespace {
 	desc.add_options()
 	  ("enum.cpa,c",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
 	   "\t 1: Location\n"
+#ifdef MINIMC_SYMBOLIC
 	   "\t 3: PathFormula With CVC4\n"
+#endif
 	   );
     
 	op.add(desc);
@@ -80,9 +86,11 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm,   MiniMC
 												  >;
   MiniMC::Support::ExitCodes res;
   switch (locoptions.CPA) {
+#ifdef MINIMC_SYMBOLIC
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt);
 	break;
+#endif
   case CPAUsage::Location:
   default:
     res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);

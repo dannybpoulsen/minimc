@@ -3,6 +3,9 @@ project(minimc)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
 set (CMAKE_CXX_STANDARD 17)
 
+option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
+
+
 SET (ToolName minimc)
 SET (VERSION_MAJOR 0)
 SET (VERSION_MINOR "1")

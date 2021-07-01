@@ -78,7 +78,7 @@ int main (int argc,char* argv[]) {
   for (auto& it :  getCommandNameAndDescr ()) {
 	getOptionsFunc (it.first) (general,soptions);
   }
-
+#ifdef MINIMC_SYMBOLIC
   //SMT options
   po::options_description smt("SMT Options");
   std::vector<MiniMC::Support::SMT::SMTDescr> smts;
@@ -105,6 +105,7 @@ int main (int argc,char* argv[]) {
 	  ("smt.solver",po::value<int> ()->default_value(0)->notifier(setSMTSolver), str.str ().c_str());
 	general.add (smt);
   }
+#endif
   
   hidden.add_options()
 	("command",po::value<std::string> (&subcommand), "Subcommand")

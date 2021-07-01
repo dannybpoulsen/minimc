@@ -26,8 +26,10 @@ namespace {
     enum class CPAUsage {
 	Location,
 	Concrete,
+#ifdef MINIMC_SYMBOLIC
 	CVC4PathFormula
-  };
+#endif
+	};
 
   
   struct LocalOptions {
@@ -62,6 +64,7 @@ namespace {
 	po::options_description desc("Print Graph Options");
 	auto updateCPA = [&sopt] (int val) {
 	switch (val) {
+#ifdef MINIMC_SYMBOLIC
 	case 3:
 	  sopt.replacememnodet = true;
 	  sopt.convergencePoints = true;
@@ -69,6 +72,7 @@ namespace {
 	  locoptions.CPA = CPAUsage::CVC4PathFormula;
 	  
 	  break;
+#endif
 	case 2:
 	  locoptions.CPA = CPAUsage::Concrete;
 	  break;
@@ -85,7 +89,9 @@ namespace {
 	  ("pgraph.cpa",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
 	   "\t 1: Location\n"
 	   "\t 2: Concrete\n"
+#ifdef MINIMC_SYMBOLIC	   
 	   "\t 3: PathFormula With CVC4\n"
+#endif
 	   )
 	  ("pgraph.expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
 	  ("pgraph.filtersatis",po::bool_switch (&locoptions.filter),"Filter out unsatisfied states")
@@ -121,9 +127,11 @@ MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm,  MiniM
   
   MiniMC::Support::ExitCodes res;
   switch (locoptions.CPA) {
+#ifdef MINIMC_SYMBOLIC
   case CPAUsage::CVC4PathFormula:
 	res = runAlgorithm<CVC4Path> (*prgm,sopt,locoptions.filter);
 	break;
+#endif
   case CPAUsage::Concrete:
 	res = runAlgorithm<CPAConcrete> (*prgm,sopt,locoptions.filter);
 	break;
