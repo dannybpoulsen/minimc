@@ -10,12 +10,17 @@ namespace MiniMC {
     public:
       Exception (const std::string& mess) : std::runtime_error(mess) {}
     };
-    
+	
     class VerificationException : public Exception {
     public:
       VerificationException (const std::string& mess) : Exception(mess) {}
     };
-    
+
+	class ConfigurationException : public Exception {
+    public:
+      ConfigurationException (const std::string& mess) : Exception(mess) {}
+    };
+	
     class BufferOverflow : public VerificationException {
     public:
       BufferOverflow () : VerificationException ("BUffer Overflow") {}

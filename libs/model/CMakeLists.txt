@@ -1,6 +1,6 @@
 add_library (model STATIC types.cpp variables.cpp cfg.cpp)
 target_include_directories (model PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include )
-target_link_libraries (model util support )
+target_link_libraries (model  util support )
 
 add_subdirectory(loaders)
 add_subdirectory(savers)

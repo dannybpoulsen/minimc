@@ -388,7 +388,7 @@ namespace MiniMC {
       Val2ValMap& values;
 	  
     };
-    
+	
     struct Constructor : public llvm::PassInfoMixin<Constructor> {
       
       Constructor (MiniMC::Model::Program_ptr& prgm,
@@ -398,6 +398,7 @@ namespace MiniMC {
 				   ) : prgm(prgm),cfactory(cfac),tfactory(tfac),values(val) {
       }
       llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager& AM) {
+		auto source_loc = std::make_shared<MiniMC::Model::SourceInfo> ();
 		Types tt;
 		tt.tfac = tfactory;
 		std::string fname =  F.getName().str();
@@ -412,7 +413,7 @@ namespace MiniMC {
 		std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr> locmap;
 	
 		for (llvm::BasicBlock &BB : F) {
-		  auto loc = cfg->makeLocation(locinfoc.make(BB.getName().str()));
+		  auto loc = cfg->makeLocation(locinfoc.make(BB.getName().str(),0,*source_loc));
 		  locmap.insert (std::make_pair(&BB,loc)); 
 		}
 	
@@ -475,7 +476,7 @@ namespace MiniMC {
 			}
 			else if ( term->getOpcode () == llvm::Instruction::IndirectBr) {
 			  auto brterm = llvm::dyn_cast<llvm::IndirectBrInst> (term);
-			  auto splitloc = cfg->makeLocation (locinfoc.make("Indirect"));
+			  auto splitloc = cfg->makeLocation (locinfoc.make("Indirect",0,*source_loc));
 			  std::size_t dests = brterm->getNumDestinations ();
 			  auto value = findValue (brterm->getAddress(),values,tt,cfactory);
 			  for (std::size_t i = 0; i < dests;++i) {
@@ -499,7 +500,7 @@ namespace MiniMC {
 			else if( term->getOpcode () == llvm::Instruction::Ret) {
 			  std::vector<MiniMC::Model::Instruction> insts;
 			  addInstruction (term,insts,tt);
-			  auto succloc = cfg->makeLocation (locinfoc.make(("Term")));
+			  auto succloc = cfg->makeLocation (locinfoc.make("Term",0,*source_loc));
 			  auto edge = cfg->makeEdge (loc,succloc);
 			  edge->template setAttribute<MiniMC::Model::AttributeType::Instructions> (insts);
 			}
@@ -514,6 +515,8 @@ namespace MiniMC {
       }
 
       MiniMC::Model::Location_ptr buildPhiEdge (llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg,Types& tt, std::unordered_map<llvm::BasicBlock*,MiniMC::Model::Location_ptr>& locmap,MiniMC::Model::LocationInfoCreator& locinfoc) {
+		auto source_loc = std::make_shared<MiniMC::Model::SourceInfo> ();
+		
 		std::vector<MiniMC::Model::Instruction> insts;  
 		for (auto& phi : to->phis ()) {
 		  auto ass = findValue (&phi,values,tt,cfactory);
@@ -525,7 +528,7 @@ namespace MiniMC {
 		}
 		auto loc = locmap.at(to);
 		if (insts.size()) {
-		  auto nloc = cfg.makeLocation (locinfoc.make(to->getName().str()));
+		  auto nloc = cfg.makeLocation (locinfoc.make(to->getName().str(),0,*source_loc));
 		  auto edge = cfg.makeEdge (nloc,loc);
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (MiniMC::Model::InstructionStream (insts,true));
 		  return nloc;

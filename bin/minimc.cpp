@@ -4,6 +4,7 @@
 #include <functional>
 #include <boost/program_options.hpp>
 #include "support/localisation.hpp"
+#include "support/smt.hpp"
 #include "config.h"
 #include "loaders/loader.hpp"
 #include "algorithms/algorithm.hpp"
@@ -43,7 +44,7 @@ int main (int argc,char* argv[]) {
 					 };
   po::options_description hidden("Hidden");
   po::options_description general("General Options");
-
+  
   auto printHelp  = [&general]() {
 	printBanner (std::cerr);
     std::cerr << "Usage: "<< MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" <<std::endl; 
@@ -73,8 +74,36 @@ int main (int argc,char* argv[]) {
 	("removephi",po::bool_switch (&soptions.removephi),"Removephi")
     ;
 
+  
   for (auto& it :  getCommandNameAndDescr ()) {
 	getOptionsFunc (it.first) (general,soptions);
+  }
+
+  //SMT options
+  po::options_description smt("SMT Options");
+  std::vector<MiniMC::Support::SMT::SMTDescr> smts;
+  MiniMC::Support::SMT::getSMTBackends (std::back_inserter (smts));
+  auto setSMTSolver = [smts] (int val) {
+	if (val < smts.size ()) {
+	  MiniMC::Support::SMT::setSMTSolver (&smts[val]);
+	}
+	else {
+	  MiniMC::Support::SMT::setSMTSolver (&smts[0]);
+	}
+  };
+  
+  if (smts.size ()) {
+	std::stringstream str;
+	str<< "SMT Solver\n";
+	int i = 0;
+	for (auto& ss : smts) {
+	  str << "\t " << i << ": " << ss.name () << "\n"; 
+	  i++;
+	}
+	
+	smt.add_options ()
+	  ("smt.solver",po::value<int> ()->default_value(0)->notifier(setSMTSolver), str.str ().c_str());
+	general.add (smt);
   }
   
   hidden.add_options()
@@ -82,9 +111,13 @@ int main (int argc,char* argv[]) {
 	("subargs",po::value<std::vector<std::string>> (),"Subcommand parameteers")
 	("inputfile",po::value<std::string> (&input),"Input file")
 	;
+
   
   po::options_description desc;
   desc.add (general).add(hidden);
+
+  
+  
   
   po::positional_options_description pos;
   pos.add("inputfile", 1).
@@ -169,6 +202,10 @@ int main (int argc,char* argv[]) {
   catch(po::error& e) {
 	printHelp ();
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+  }
+  catch (MiniMC::Support::ConfigurationException& ex) {
+	std::cerr << "Configuration error: " << ex.what () << std::endl;
+	return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   }
   catch (MiniMC::Support::Exception& ex) {
 	std::cerr << "An error happended: " << ex.what () << std::endl;

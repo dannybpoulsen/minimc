@@ -20,6 +20,7 @@ namespace MiniMC {
 		
 
 		virtual bool run (MiniMC::Model::Program&  prgm) {
+		  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo> ();
 		  for (auto& F : prgm.getFunctions ()) {
 			auto stackvar = F->getVariableStackDescr ()->addVariable ("stack",prgm.getTypeFactory ()->makePointerType ());
 			auto cfg = F->getCFG ();
@@ -32,7 +33,7 @@ namespace MiniMC {
 			minstr.setSize (prgm.getConstantFactory()->makeIntegerConstant (0,prgm.getTypeFactory()->makeIntegerType (64)));
 			InstructionStream stream ({instr.BuildInstruction (),minstr.BuildInstruction ()});
 			
-			auto ninitloc = cfg->makeLocation (MiniMC::Model::LocationInfo("StackAlloc"));
+			auto ninitloc = cfg->makeLocation (MiniMC::Model::LocationInfo("StackAlloc",0,*source_loc));
 			auto oinitloc = cfg->getInitialLocation ().get();
 			auto edge =  cfg->makeEdge ( ninitloc,oinitloc);
 			edge->template setAttribute<AttributeType::Instructions> (stream);

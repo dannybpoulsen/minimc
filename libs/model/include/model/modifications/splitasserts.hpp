@@ -34,6 +34,7 @@ namespace MiniMC {
 	   */
       struct SplitAsserts : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 		virtual bool run (MiniMC::Model::Program&  prgm) {
+		  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo> ();
 		  for (auto& F : prgm.getFunctions ()) {
 			MiniMC::Model::LocationInfoCreator locc(F->getName ());
 			auto cfg = F->getCFG ();
@@ -45,7 +46,7 @@ namespace MiniMC {
 						   cfg->getEdges().end (),
 						   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
 						   );
-			auto eloc = cfg->makeLocation (locc.make("AssertViolation", static_cast<AttrType> (MiniMC::Model::Attributes::AssertViolated)));
+			auto eloc = cfg->makeLocation (locc.make("AssertViolation", static_cast<AttrType> (MiniMC::Model::Attributes::AssertViolated),*source_loc));
 			eloc->getInfo().set<MiniMC::Model::Attributes::AssertViolated> ();
 	    
 			for (auto E : wlist) {
@@ -57,7 +58,7 @@ namespace MiniMC {
 				  auto val = MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert> (instrs.last ()).getAssert ();
 				  instrs.erase ((instrs.rbegin()+1).base());
 		  
-				  auto nloc = cfg->makeLocation (locc.make ("Assert"));
+				  auto nloc = cfg->makeLocation (locc.make ("Assert",0,*source_loc));
 				  auto ttloc = E->getTo ();
 				  E->setTo (nloc);
 				  auto ff_edge = cfg->makeEdge (nloc,eloc);

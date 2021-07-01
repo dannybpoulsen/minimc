@@ -3,15 +3,25 @@
 
 #include <string>
 #include <ostream>
+#include <memory>
 
 namespace MiniMC {
   namespace Model {
-
+	
 	using AttrType = char;
 	/**
 	 * The possible attributes that can be assigned locations
 	 *
 	 */
+
+	struct SourceInfo : public std::enable_shared_from_this<SourceInfo> {
+	  virtual std::ostream& out (std::ostream& os) {
+		return os << "[?]";
+	  }
+	};
+
+	using SourceInfo_ptr = std::shared_ptr<const SourceInfo>;
+	
 	enum class Attributes  : AttrType {
 	  AssertViolated = 1, /**< Indicates an assert was violated */
 	  NeededStore = 2, /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
@@ -20,9 +30,14 @@ namespace MiniMC {
 	  ConvergencePoint = 16,
 	  UnrollFailed = 32 /** Indicates loop unrolling was unsufficient **/
 	};
+
+	struct SourcePlace {
+	  const std::string filename;
+	  
+	};
 	
 	struct LocationInfo   {
-	  explicit LocationInfo (const std::string& name, AttrType flags = 0) : name(name),flags(flags) {}
+	  explicit LocationInfo (const std::string& name, AttrType flags , const SourceInfo& info) : name(name),flags(flags),source(info.shared_from_this()) {}
 	
 	  const std::string& getName () const {return name;}
 	  
@@ -31,7 +46,7 @@ namespace MiniMC {
 	   *
 	   *
 	   * @return true if \p i  is set false otherwise
-	   */
+k	   */
       template<Attributes i>
       bool is () const {
 		return static_cast<AttrType> (i) & flags;
@@ -55,9 +70,12 @@ namespace MiniMC {
 		flags &= ~static_cast<AttrType> (i);
       }
 
+	  
+	  
 	  bool isFlagSet (AttrType t) {return flags & t;} 
 	  std::string name;
 	  AttrType flags;
+	  SourceInfo_ptr source;
 	};
 	
 	inline std::ostream& operator<< (std::ostream& os, const LocationInfo& info) {
@@ -67,15 +85,15 @@ namespace MiniMC {
 	struct LocationInfoCreator {
 	  LocationInfoCreator (const std::string prefix) : pref(prefix) {}
 	  
-	  LocationInfo make (const std::string& name, AttrType type = 0) {
-		return LocationInfo (pref+":"+name, type);
+	  LocationInfo make (const std::string& name, AttrType type, const SourceInfo& info) {
+		return LocationInfo (pref+":"+name, type, info);
 	  }
 
 	  LocationInfo make (const LocationInfo& loc) {
 		
-		return LocationInfo (pref+":"+loc.name, loc.flags);
+		return LocationInfo (pref+":"+loc.name, loc.flags,*loc.source);
 	  }
-	
+	  
 	private:
 
 	  const std::string pref;
