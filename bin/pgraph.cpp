@@ -12,7 +12,9 @@
 
 
 #include "cpa/location.hpp"
+#ifdef MINIMC_SYMBOLIC
 #include "cpa/pathformula.hpp"
+#endif
 #include "cpa/concrete.hpp"
 #include "cpa/compound.hpp"
 
@@ -27,7 +29,7 @@ namespace {
 	Location,
 	Concrete,
 #ifdef MINIMC_SYMBOLIC
-	CVC4PathFormula
+	PathFormula
 #endif
 	};
 
@@ -41,17 +43,15 @@ namespace {
   LocalOptions locoptions;
 
   
-  template<class CPADef>
-  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt,bool filter) {
-	using algorithm = MiniMC::Algorithms::PrintCPA<CPADef>;
-	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+  auto runAlgorithm (MiniMC::Model::Program& prgm, MiniMC::Algorithms::SetupOptions sopt,bool filter,MiniMC::CPA::CPA_ptr cpa) {
+        MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
 	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {.filterSatis = filter, .delayTillConverge = !filter});
+	MiniMC::Algorithms::PrintCPA algo(MiniMC::Algorithms::PrintCPA::Options {.filterSatis = filter, .delayTillConverge = !filter,.cpa = cpa});
 	if (seq.run (prgm)) {
 	  
 	  auto res = algo.run (prgm);
 	  if (res == MiniMC::Algorithms::Result::Success) {
-		MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Outputting graph to '%1%.dot'").format (locoptions.outputname));
+	    MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Outputting graph to '%1%.dot'").format (locoptions.outputname));
 		algo.getAnalysisResult().graph->write (locoptions.outputname);
 	  }
 	  return MiniMC::Support::ExitCodes::AllGood;
@@ -69,7 +69,7 @@ namespace {
 	  sopt.replacememnodet = true;
 	  sopt.convergencePoints = true;
 	  
-	  locoptions.CPA = CPAUsage::CVC4PathFormula;
+	  locoptions.CPA = CPAUsage::PathFormula;
 	  
 	  break;
 #endif
@@ -90,7 +90,7 @@ namespace {
 	   "\t 1: Location\n"
 	   "\t 2: Concrete\n"
 #ifdef MINIMC_SYMBOLIC	   
-	   "\t 3: PathFormula With CVC4\n"
+	   "\t 3: PathFormula\n"
 #endif
 	   )
 	  ("pgraph.expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
@@ -115,34 +115,33 @@ namespace {
 
 MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm,  MiniMC::Algorithms::SetupOptions& sopt) {
   
-  using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
-												  MiniMC::CPA::SingleLocation::CPADef,
-												  MiniMC::CPA::PathFormula::CVC4CPA
-												  >;
-
-    using CPAConcrete = MiniMC::CPA::Compounds::CPADef<0,
-													MiniMC::CPA::Location::CPADef,
-													MiniMC::CPA::Concrete::CPADef
-												  >;
+  
   
   MiniMC::Support::ExitCodes res;
+  MiniMC::CPA::CPA_ptr cpa = nullptr;
   switch (locoptions.CPA) {
 #ifdef MINIMC_SYMBOLIC
-  case CPAUsage::CVC4PathFormula:
-	res = runAlgorithm<CVC4Path> (*prgm,sopt,locoptions.filter);
-	break;
+  case CPAUsage::PathFormula:
+    cpa = std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
+	  std::make_shared<MiniMC::CPA::Location::CPA> (),
+	  std::make_shared<MiniMC::CPA::PathFormula::CPA> ()}));
+    break;
+    
 #endif
   case CPAUsage::Concrete:
-	res = runAlgorithm<CPAConcrete> (*prgm,sopt,locoptions.filter);
-	break;
-	
+    cpa = std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
+	std::make_shared<MiniMC::CPA::Location::CPA> (),
+	std::make_shared<MiniMC::CPA::Concrete::CPA> ()}));
+    break;
+    
   case CPAUsage::Location:
   default:
-    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
+    cpa = std::make_shared<MiniMC::CPA::Location::CPA> ();
+    //res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
     break;
   }
-
-  return res;
+  return runAlgorithm (*prgm,sopt,locoptions.filter,cpa);
+    
 }
 
 

@@ -10,106 +10,103 @@
 namespace MiniMC {
   namespace CPA {
     namespace Compounds {
-      template<size_t S>
       class State : public MiniMC::CPA::State {
       public:
-		State (std::initializer_list<MiniMC::CPA::State_ptr> l) {
-		  assert (l.size () == S);
-		  std::copy(l.begin(), l.end(), states.begin());
-		}
+	State (std::initializer_list<MiniMC::CPA::State_ptr> l) {
+	  std::copy(l.begin(), l.end(), std::back_inserter(states));
+	}
 		
-		State (std::vector<MiniMC::CPA::State_ptr>& l) {
-		  assert (l.size () == S);
-		  std::copy(l.begin(), l.end(), states.begin());
-		}
+	State (std::vector<MiniMC::CPA::State_ptr>& l) {
+	  std::copy(l.begin(), l.end(), std::back_inserter(states));
+	}
 
-		virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override  {
-		  MiniMC::Hash::hash_t hash = seed;
+	virtual MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override  {
+	  MiniMC::Hash::hash_t hash = seed;
 		  
-		  for (auto& state : states) {
-			MiniMC::Hash::hash_combine (hash,*state);
-		  }
-		  return hash;
-		}
+	  for (auto& state : states) {
+	    MiniMC::Hash::hash_combine (hash,*state);
+	  }
+	  return hash;
+	}
 		
-		bool need2Store () const {
-		  for (auto& state : states) {
-			if (state->need2Store ()) {
-			  return true;
-			}
-		  }
-		  return false;
+	bool need2Store () const {
+	  for (auto& state : states) {
+	    if (state->need2Store ()) {
+	      return true;
+	    }
+	  }
+	  return false;
 			
-		}
+	}
 
-		virtual bool assertViolated () const {
-		  for (auto& state : states) {
-			if (state->assertViolated ()) {
-			  return true;
-			  }
-		  }
-		  return false;
+	virtual bool assertViolated () const {
+	  for (auto& state : states) {
+	    if (state->assertViolated ()) {
+	      return true;
+	    }
+	  }
+	  return false;
 		  
-		}
+	}
 
-		virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
-		  for (auto& state : states) {
-			if (state->hasLocationAttribute (tt)) {
-			  return true;
-			}
-		  }
-		  return false;
+	virtual bool hasLocationAttribute (MiniMC::Model::AttrType tt) const {
+	  for (auto& state : states) {
+	    if (state->hasLocationAttribute (tt)) {
+	      return true;
+	    }
+	  }
+	  return false;
 		  
-		}
+	}
 		
-		bool ready2explore () const override {
-		  for (auto& state : states) {
-			if (!state->ready2explore ()) {
-			  return false;
-			}
-		  }
-		  return true;
+	bool ready2explore () const override {
+	  for (auto& state : states) {
+	    if (!state->ready2explore ()) {
+	      return false;
+	    }
+	  }
+	  return true;
 		  
-		}
+	}
 		
 
-		virtual std::ostream& output (std::ostream& os) const  {
-		  for (auto& state : states) {
-			state->output (os);
-			os << "\n________________\n";
-		  }
-		  return os;
-		}
+	virtual std::ostream& output (std::ostream& os) const  {
+	  for (auto& state : states) {
+	    state->output (os);
+	    os << "\n________________\n";
+	  }
+	  return os;
+	}
 		
-		template<size_t i>
-		const State_ptr& get () const  {return states[i];}
 
-		virtual const Concretizer_ptr getConcretizer () const override {
+	const State_ptr& get (size_t i) const  {return states[i];}
+	
+	virtual const Concretizer_ptr getConcretizer () const override {
 		  
-		  return this->template get<1> ()->getConcretizer ();
-		  //return Concretizer_ptr (this);
-		}
+	  return this->get (1)->getConcretizer ();
+	  //return Concretizer_ptr (this);
+	}
 
-		virtual std::shared_ptr<MiniMC::CPA::State> copy () const {
-		  std::vector<MiniMC::CPA::State_ptr> copies;
-		  std::for_each (states.begin(),states.end(),[&](auto& s) {copies.push_back(s->copy());});
-		  return std::make_shared<State> (copies);
-		}
+	virtual std::shared_ptr<MiniMC::CPA::State> copy () const {
+	  std::vector<MiniMC::CPA::State_ptr> copies;
+	  std::for_each (states.begin(),states.end(),[&](auto& s) {copies.push_back(s->copy());});
+	  return std::make_shared<State> (copies);
+	}
 
-		virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const override  {
-		  return this->template get<0> ()->getLocation (id);
-		}
+	virtual MiniMC::Model::Location_ptr getLocation (proc_id id) const override  {
+	  return this->get (0)->getLocation (id);
+	}
 
-		size_t nbOfProcesses () const override {
-		  return this->template get<0> ()->nbOfProcesses ();
-		}
+	size_t nbOfProcesses () const override {
+	  return this->get (0)->nbOfProcesses ();
+	}
 		
 		
       private:
-		std::array<MiniMC::CPA::State_ptr,S> states;
+	std::vector<MiniMC::CPA::State_ptr> states;
       };
-	  
-      template<unsigned int N, class Head, class... Tail>
+      
+      /* template<unsigned int N, class Head, class... Tail>
       struct GetNthTemplateArgument : GetNthTemplateArgument<N-1,Tail...>
       {
       };
@@ -118,162 +115,197 @@ namespace MiniMC {
       template<class Head, class... Tail>
       struct GetNthTemplateArgument<0,Head,Tail...>
       {
-		using Temp = Head;;
+	using Temp = Head;;
       };
-      
-      template<size_t ask, class ... args>
-      struct StateQuery {
-		static State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
-		  std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
-		  return std::make_shared<State<sizeof... (args)>> (init);
-		}						       
-		
+      */
+      struct StateQuery : public MiniMC::CPA::StateQuery{
+	StateQuery (std::vector<MiniMC::CPA::StateQuery_ptr> pts) : states(pts) {}
+	State_ptr makeInitialState (const MiniMC::Model::Program& prgm) {
+	  //std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
+	  //return std::make_shared<State<sizeof... (args)>> (init);
+	  std::vector<MiniMC::CPA::State_ptr> statees;
+	  auto inserter = std::back_inserter (statees);
+	  std::for_each (states.begin (),states.end(),[&inserter,&prgm](auto& it) {inserter =  (it->makeInitialState(prgm));});
+	  return std::make_shared<State> (statees);
+	}
+	private:
+	  std::vector<MiniMC::CPA::StateQuery_ptr> states;
       };
-      
-      template<size_t i, size_t statesize, class A, class ... args>
+	
+	/*template<size_t i, size_t statesize, class A, class ... args>
       struct BuildVector {
-		static void doIt (std::vector<MiniMC::CPA::State_ptr>& vec,const State<statesize>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
-		  vec.push_back (A::Transfer::doTransfer (s.template get<i> (),e,id));
-		  BuildVector<i+1,statesize,args...>::doIt (vec,s,e,id);
-		}
+	static void doIt (std::vector<MiniMC::CPA::State_ptr>& vec,const State<statesize>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
+	  vec.push_back (A::Transfer::doTransfer (s.template get<i> (),e,id));
+	  BuildVector<i+1,statesize,args...>::doIt (vec,s,e,id);
+	}
       };
 
       template<size_t i, size_t statesize, class A>
       struct BuildVector<i,statesize,A> {
-		static void doIt (std::vector<MiniMC::CPA::State_ptr>& vec,const State<statesize>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
-		  vec.push_back (A::Transfer::doTransfer (s.template get<i> (),e,id));
-		}
-      };
+	static void doIt (std::vector<MiniMC::CPA::State_ptr>& vec,const State<statesize>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
+	  vec.push_back (A::Transfer::doTransfer (s.template get<i> (),e,id));
+	}
+	};*/
       
       
-      template<class ... args>
-      struct Transferer {
-		template<size_t i, class Inserter>
-		static bool buildVector (Inserter& ins, const State<sizeof...(args)>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
-		  static_assert(i <= sizeof... (args));
-		  if constexpr (i == sizeof... (args)) {
-			return true; //We are done
-		  }
-		  else {
-			using A = typename GetNthTemplateArgument<i,args...>::Temp;
-			auto res = A::Transfer::doTransfer (s.template get<i> (),e,id);
-			if (res) {
-			  ins = res;
-			  return buildVector<i+1,Inserter> (ins,s,e,id);
-			}
-			else
-			  return false;
-		  }
+      struct Transferer : public  MiniMC::CPA::Transferer{ 
+	Transferer (std::vector<MiniMC::CPA::Transferer_ptr> pts) : transfers(pts) {}
+	/*template<size_t i, class Inserter>
+	  static bool buildVector (Inserter& ins, const State<sizeof...(args)>& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {
+	  static_assert(i <= sizeof... (args));
+	  if constexpr (i == sizeof... (args)) {
+	    return true; //We are done
+	  }
+	  else {
+	    using A = typename GetNthTemplateArgument<i,args...>::Temp;
+	    auto res = A::Transfer::doTransfer (s.template get<i> (),e,id);
+	    if (res) {
+	      ins = res;
+	      return buildVector<i+1,Inserter> (ins,s,e,id);
+	    }
+	    else
+	      return false;
+	  }
 		
-		}
-		
-		static State_ptr doTransfer (const State_ptr& a, const MiniMC::Model::Edge_ptr& e,proc_id id) {
-		  auto s = static_cast<State<sizeof... (args)>&> (*a);
-		  std::vector<MiniMC::CPA::State_ptr> vec;
-		  auto ins = std::back_inserter(vec);
-		  //BuildVector<0,sizeof...(args),args...>::doIt (vec,s,e,id);
-		  if (buildVector<0,decltype(ins)> (ins,s,e,id)) {
-			return std::make_shared<State<sizeof... (args)>> (vec);	
-		  }
-		  return nullptr;
-		  
-		}
+	}
+	*/	
+	State_ptr doTransfer (const State_ptr& a, const MiniMC::Model::Edge_ptr& e,proc_id id) {
+	  auto s = static_cast<State&> (*a);
+	  auto n =transfers.size ();
+	  std::vector<MiniMC::CPA::State_ptr> vec;
+	  for (size_t i = 0; i < n; i++) {
+	    auto res = transfers[i]->doTransfer (s.get(i),e,id);
+	    if (!res) {
+	      return nullptr;
+	    }
+	    vec.push_back (res);
+	  }
+	  return std::make_shared<State> (vec);	
+	}
+	
+	std::vector<MiniMC::CPA::Transferer_ptr> transfers;
+	
       };
 
 	  
 	  
-      template<class... Args>
-      struct Joiner {
-		template<size_t i, class Inserter>
-		static bool buildVector (Inserter& ins, const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
-		  static_assert(i <= sizeof... (Args));
-		  if constexpr (i == sizeof... (Args)) {
-			return true; //We are done
-		  }
-		  else {
-			using A = typename GetNthTemplateArgument<i,Args...>::Temp;
-			auto left = l.template get<i> ();
-			auto right = r.template get<i> ();
-			auto res = A::Join::doJoin (left,right);
-		    
-			if (res) {
-			  ins = res;
-			  return buildVector<i+1,Inserter> (ins,l,r);
-			}
-			else
-			  return false;
-		  }
-		  
-		}
+      struct Joiner : public  MiniMC::CPA::Joiner {
+	Joiner (std::vector<MiniMC::CPA::Joiner_ptr> pts) : joiners(pts) {}
+	
+	State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
+	  auto left = static_cast<State&> (*l);
+	  auto right = static_cast<State&> (*r);
+	  auto n = joiners.size ();
+	  std::vector<MiniMC::CPA::State_ptr> vec;
+	  for (size_t i = 0; i < n; i++) {
+	    auto res = joiners[i]->doJoin (left.get(i),right.get(i));
+	    if (!res) {
+	      return nullptr;
+	    }
+	    vec.push_back (res);
+	  }
+	  return std::make_shared<State> (vec);	    
+	}
 	    
-		static State_ptr doJoin (const State_ptr& l, const State_ptr& r) {
-		  
-		  auto& left = static_cast<State<sizeof... (Args)>&> (*l);
-		  auto& right = static_cast<State<sizeof... (Args)>&> (*r);
-
-	  
-		  std::vector<MiniMC::CPA::State_ptr> vec;
-		  auto ins = std::back_inserter(vec);
-		  if (buildVector<0,decltype(ins)> (ins,left,right)) {
-			return std::make_shared<State<sizeof... (Args)>> (vec);	
-		  }
-		  return nullptr;
-	      
-		}
+	/*template<size_t i>
+	static bool checkCovers (const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
+	  static_assert(i <= sizeof... (Args));
+	  if constexpr (i == sizeof... (Args)) {
+	    return true; //We are done
+	  }
+	  else {
+	    using A = typename GetNthTemplateArgument<i,Args...>::Temp;
+	    auto left = l.template get<i> ();
+	    auto right = r.template get<i> ();
 	    
-		template<size_t i>
-		static bool checkCovers (const State<sizeof...(Args)>& l, const State<sizeof...(Args)>& r) {
-		  static_assert(i <= sizeof... (Args));
-		  if constexpr (i == sizeof... (Args)) {
-			return true; //We are done
-		  }
-		  else {
-			using A = typename GetNthTemplateArgument<i,Args...>::Temp;
-			auto left = l.template get<i> ();
-			auto right = r.template get<i> ();
 			
-			
-			if (A::Join::covers (left,right)) {
-			  return checkCovers<i+1> (l,r);
-			}
-			else {
-			  return false;
-			}
-		  }
-		}
+	    if (A::Join::covers (left,right)) {
+	      return checkCovers<i+1> (l,r);
+	    }
+	    else {
+	      return false;
+	    }
+	  }
+	  }*/
 	    
-		static bool covers (const State_ptr& l, const State_ptr& r) {
-		  auto left = static_cast<State<sizeof... (Args)>&> (*l);
-		  auto right = static_cast<State<sizeof... (Args)>&> (*r);
-		  return checkCovers<0> (left,right);
-		}
-		
+	bool covers (const State_ptr& l, const State_ptr& r) {
+	  /*auto left = static_cast<State<sizeof... (Args)>&> (*l);
+	  auto right = static_cast<State<sizeof... (Args)>&> (*r);
+	  return checkCovers<0> (left,right);*/
+	  auto left = static_cast<State&> (*l);
+	  auto right = static_cast<State&> (*r);
+	  auto n = joiners.size ();
+	  for (size_t i = 0; i < n; i++) {
+	    auto res = joiners[i]->covers (left.get(i),right.get(i));
+	    if (!res) {
+	      return false;
+	    }
+	    
+	  }
+	  return true;
+	  
+	}
+      private:
+	std::vector<MiniMC::CPA::Joiner_ptr> joiners;
+	
       };
 	  
-      template<class A, class... CPAs>
-      struct PreValidateSetup {
+      
+      struct PreValidateSetup : public MiniMC::CPA::PrevalidateSetup {
 		
-		static bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
-		  A::PreValidate::validate (prgm,mess);
-		  return PreValidateSetup<CPAs...>::validate (prgm,mess);
-		}
+	bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+	  /*A::PreValidate::validate (prgm,mess);
+	    return PreValidateSetup<CPAs...>::validate (prgm,mess);*/
+	  return true;
+	}
       };
 
-      template<class A>
-      struct PreValidateSetup<A> {
-		static bool validate (const MiniMC::Model::Program& seq, MiniMC::Support::Messager& mess) {
-		  return A::PreValidate::validate (seq,mess);
-		}
-      };
-	  
-      template<size_t ask,class... CPAs>
+      
+      /*template<size_t ask,class... CPAs>
       struct CPADef {
-		using Query = StateQuery<ask,CPAs...>;
-		using Transfer = Transferer<CPAs...>;
-		using Join = Joiner<CPAs...>;
-		using Storage = Storer<Join>;
-		using PreValidate = PreValidateSetup<CPAs...>;
+	using Query = StateQuery<ask,CPAs...>;
+	using Transfer = Transferer<CPAs...>;
+	using Join = Joiner<CPAs...>;
+	using Storage = Storer<Join>;
+	using PreValidate = PreValidateSetup<CPAs...>;
+	};*/
+
+      
+      struct CPA : public MiniMC::CPA::ICPA  {
+	CPA (std::vector<MiniMC::CPA::CPA_ptr>& p) : cpas(p) {
+	  
+	}
+
+	CPA (std::initializer_list<MiniMC::CPA::CPA_ptr> p)  {
+	  std::copy (p.begin(),p.end(),std::back_inserter (cpas));
+	}
+	virtual MiniMC::CPA::StateQuery_ptr makeQuery ()  const {
+	  std::vector<StateQuery_ptr> queries;
+	  std::for_each (cpas.begin(),cpas.end(),[&queries](auto& it) {queries.push_back (it->makeQuery ());});
+	  return std::make_shared<StateQuery> (queries);
+	}
+	virtual MiniMC::CPA::Transferer_ptr makeTransfer () const {
+	  std::vector<Transferer_ptr> transfers;
+	  std::for_each (cpas.begin(),cpas.end(),[&transfers](auto& it) {transfers.push_back (it->makeTransfer ());});
+	  return std::make_shared<Transferer> (transfers);
+	}
+	virtual MiniMC::CPA::Joiner_ptr makeJoin () const  {
+	  std::vector<Joiner_ptr> joiners;
+	  std::for_each (cpas.begin(),cpas.end(),[&joiners](auto& it) {joiners.push_back (it->makeJoin ());});
+	  return std::make_shared<Joiner> (joiners);
+	}
+	
+	virtual MiniMC::CPA::Storer_ptr makeStore () const  {
+	  return std::make_shared<MiniMC::CPA::Storer> (makeJoin ());
+	}
+
+	virtual MiniMC::CPA::PrevalidateSetup_ptr makeValidate () const {
+	  return std::make_shared<PreValidateSetup> ();
+	}
+      private:
+	std::vector<MiniMC::CPA::CPA_ptr> cpas;
       };
+      
     }
   }
 }

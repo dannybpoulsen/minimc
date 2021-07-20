@@ -7,7 +7,10 @@
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/replacememnondet.hpp"
 #include "cpa/location.hpp"
+#ifdef MINIMC_SYMBOLIC
+
 #include "cpa/pathformula.hpp"
+#endif
 #include "cpa/compound.hpp"
 
 
@@ -19,28 +22,26 @@ namespace po = boost::program_options;
 
 namespace {
 
-  template<class CPADef>
-  auto runAlgorithm (MiniMC::Model::Program& prgm, const MiniMC::Algorithms::SetupOptions sopt) {
-	using algorithm = MiniMC::Algorithms::EnumStates<CPADef>;
-	MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
-	MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
-	algorithm algo(typename algorithm::Options {});
-	if (seq.run (prgm)) {
-	  algo.run (prgm);
-	  return MiniMC::Support::ExitCodes::AllGood;
-	}
-	return MiniMC::Support::ExitCodes::ConfigurationError;
+  auto runAlgorithm (MiniMC::Model::Program& prgm, const MiniMC::Algorithms::SetupOptions sopt, MiniMC::CPA::CPA_ptr cpa ) {
+    MiniMC::Support::Sequencer<MiniMC::Model::Program> seq;
+    MiniMC::Algorithms::setupForAlgorithm (seq,sopt);
+    MiniMC::Algorithms::EnumStates algo(MiniMC::Algorithms::EnumStates::Options {.cpa = cpa});
+    if (seq.run (prgm)) {
+      algo.run (prgm);
+      return MiniMC::Support::ExitCodes::AllGood;
+    }
+    return MiniMC::Support::ExitCodes::ConfigurationError;
   }
 
   enum class CPAUsage {
 	Location,
 #ifdef MINIMC_SYMBOLIC
-	CVC4PathFormula
+	PathFormula
 #endif
   };
   
   struct LocalOptions {
-	CPAUsage CPA = CPAUsage::Location;
+    CPAUsage CPA = CPAUsage::Location;
   };
 
   LocalOptions locoptions;
@@ -51,7 +52,7 @@ namespace {
 	  switch (val) {
 #ifdef MINIMC_SYMBOLIC
 	  case 3:
-		locoptions.CPA = CPAUsage::CVC4PathFormula;
+		locoptions.CPA = CPAUsage::PathFormula;
 		break;
 #endif
 	  case 1:
@@ -80,24 +81,24 @@ namespace {
 
 MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Program_ptr& prgm,   MiniMC::Algorithms::SetupOptions& sopt)  {
 	
-  using CVC4Path = MiniMC::CPA::Compounds::CPADef<0,
-												  MiniMC::CPA::Location::CPADef,
-												  MiniMC::CPA::PathFormula::CVC4CPA
-												  >;
-  MiniMC::Support::ExitCodes res;
+  MiniMC::CPA::CPA_ptr cpa = nullptr;
   switch (locoptions.CPA) {
 #ifdef MINIMC_SYMBOLIC
-  case CPAUsage::CVC4PathFormula:
-	res = runAlgorithm<CVC4Path> (*prgm,sopt);
-	break;
+  case CPAUsage::PathFormula:
+    cpa = std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
+	  std::make_shared<MiniMC::CPA::Location::CPA> (),
+	  std::make_shared<MiniMC::CPA::PathFormula::CPA> ()}));
+    break;
+    
 #endif
   case CPAUsage::Location:
   default:
-    res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);
+    cpa = std::make_shared<MiniMC::CPA::Location::CPA> ();
+    //res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt);
     break;
   }
-  
-  return res;
+  assert (cpa);
+  return runAlgorithm (*prgm,sopt,cpa);;
   
 }
 

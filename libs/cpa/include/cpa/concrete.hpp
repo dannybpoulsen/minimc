@@ -16,47 +16,53 @@
 
 namespace MiniMC {
   namespace CPA {
-	namespace Concrete {
-	  struct StateQuery {
+    namespace Concrete {
+      struct StateQuery : public MiniMC::CPA::StateQuery{
 		
-		static MiniMC::CPA::State_ptr makeInitialState (const MiniMC::Model::Program&);
+	MiniMC::CPA::State_ptr makeInitialState (const MiniMC::Model::Program&);
 		
-		static size_t nbOfProcesses (const MiniMC::CPA::State_ptr& ) {return 0;}
+	size_t nbOfProcesses (const MiniMC::CPA::State_ptr& ) {return 0;}
 
-		static MiniMC::Model::Location_ptr getLocation (const MiniMC::CPA::State_ptr&, proc_id id) {return nullptr;}
-	  };
+	MiniMC::Model::Location_ptr getLocation (const MiniMC::CPA::State_ptr&, proc_id id) {return nullptr;}
+      };
 	  
-	  struct Transferer {
-		
-		static MiniMC::CPA::State_ptr doTransfer (const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id);
-	  };
+      struct Transferer : public MiniMC::CPA::Transferer{
+	
+	MiniMC::CPA::State_ptr doTransfer (const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id);
+      };
 
 	
-	  struct Joiner {  
-		static MiniMC::CPA::State_ptr doJoin (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {return nullptr;}
-		static bool covers (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
-		  return l->hash () == r->hash ();
-		}
+      struct Joiner : public MiniMC::CPA::Joiner {  
+	MiniMC::CPA::State_ptr doJoin (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {return nullptr;}
+	bool covers (const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
+	  return l->hash () == r->hash ();
+	}
 		
 		
-	  };
+      };
 	  
 
-	  struct PrevalidateSetup {
-		static bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
-		  return MiniMC::Model::Checkers::HasNoInstruction<MiniMC::Model::InstructionCode::Call>{mess,"This CPA does not support '%1%' instructions."}.run (prgm);
-		}
+      struct PrevalidateSetup : public MiniMC::CPA::PrevalidateSetup  {
+	bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+	  return MiniMC::Model::Checkers::HasNoInstruction<MiniMC::Model::InstructionCode::Call>{mess,"This CPA does not support '%1%' instructions."}.run (prgm);
+	}
       };
 	
-    
-	  struct CPADef {
-		using Query = StateQuery; 
-		using Transfer = Transferer;
-		using Join = Joiner; 
-		using Storage = MiniMC::CPA::Storer<Join>; 
-		using PreValidate = PrevalidateSetup;  
-	  };
-	}
+      using CPA = CPADef<
+	StateQuery,
+	Transferer,
+	Joiner,
+	MiniMC::CPA::Storer,
+	MiniMC::CPA::PrevalidateSetup>;
+      
+      /*struct CPADef {
+	using Query = StateQuery; 
+	using Transfer = Transferer;
+	using Join = Joiner; 
+	using Storage = MiniMC::CPA::Storer<Join>; 
+	using PreValidate = PrevalidateSetup;  
+      };*/
+    }
   }
 }
 

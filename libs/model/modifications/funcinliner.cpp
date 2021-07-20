@@ -108,6 +108,7 @@ namespace MiniMC {
 			}
 		  }
 		  
+		  return true;
       }
 
       
