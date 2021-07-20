@@ -125,8 +125,8 @@ namespace MiniMC {
 	 */
     class TypeFactory64 : public TypeFactory {
 	public:
-	  TypeFactory64 ();
-	  ~TypeFactory64 ();
+        TypeFactory64 ();
+        ~TypeFactory64 ();
       virtual const Type_ptr makeIntegerType (size_t t);
 	  virtual const Type_ptr makeFloatType () ;
 	  virtual const Type_ptr makeBoolType () ;

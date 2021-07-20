@@ -89,10 +89,9 @@ namespace MiniMC {
 		  edge->setAttribute<MiniMC::Model::AttributeType::Instructions> (str);
 		from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace> ();
 	  }
-	  
-	  bool InlineFunctions::run (MiniMC::Model::Program&  prgm) {
-		for (auto& F : prgm.getFunctions ()) {
-		  MiniMC::Model::LocationInfoCreator linfoc (F->getName ());
+
+      bool InlineFunctions::runFunction  (const MiniMC::Model::Function_ptr&  F) {
+	  MiniMC::Model::LocationInfoCreator linfoc (F->getName ());
 		  MiniMC::Support::WorkingList<Edge_ptr> wlist;
 		  auto inserter = wlist.inserter();
 		  auto cfg =  F->getCFG();
@@ -102,13 +101,19 @@ namespace MiniMC {
 						 );
 		  for (auto& e : wlist) {
 			if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions> () &&
-				e->getAttribute<MiniMC::Model::AttributeType::Instructions> ().last().getOpcode () ==
-				MiniMC::Model::InstructionCode::Call
-				) {
+			    e->getAttribute<MiniMC::Model::AttributeType::Instructions> ().last().getOpcode () ==
+			    MiniMC::Model::InstructionCode::Call
+			    ) {
 			  inlineCallEdgeToFunction (F,e,linfoc,depth);
 			}
 		  }
 		  
+      }
+
+      
+      bool InlineFunctions::run (MiniMC::Model::Program&  prgm) {
+		for (auto& F : prgm.getFunctions ()) {
+		  runFunction (F);
 		}
 		return true;
 	  }

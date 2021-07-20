@@ -36,16 +36,16 @@ namespace MiniMC {
       virtual void setGlobal () {glob = true;}
       
       virtual std::ostream& output (std::ostream& os) const = 0;
-	  const std::string string_repr () const {
-		std::stringstream str;
-		this->output (str);
-		return str.str();
-	  }
+      const std::string string_repr () const {
+	std::stringstream str;
+	this->output (str);
+	return str.str();
+      }
 
-	  operator std::string () const {
-		return this->string_repr ();
-	  }
-	  
+      operator std::string () const {
+	return this->string_repr ();
+      }
+      
     private:
       Type_ptr type;
       bool glob = false;
@@ -61,12 +61,12 @@ namespace MiniMC {
     public:
       virtual ~Constant () {}
       bool isConstant () const override {return true;}  
-	  virtual const MiniMC::uint8_t* getData () const = 0;
-	  virtual std::size_t getSize () {return 0;}
+      virtual const MiniMC::uint8_t* getData () const = 0;
+      virtual std::size_t getSize () {return 0;}
       virtual bool isAggregate () const {return false;}
       virtual bool isInteger () const {return false;}
-	  virtual bool isBinaryBlobConstant () const {return false;}
-	  virtual bool isNonCompileConstant () const {return false;}
+      virtual bool isBinaryBlobConstant () const {return false;}
+      virtual bool isNonCompileConstant () const {return false;}
     };
     
     class NonCompileConstant : public Constant {
@@ -76,29 +76,29 @@ namespace MiniMC {
       virtual bool isAggregate () const {return true;}
 	};
 
-	class AggregateNonCompileConstant : public NonCompileConstant {
-	public:
-	  AggregateNonCompileConstant (const std::vector<Value_ptr>& val) : ops(val) {}
-	  auto begin () const {return ops.begin();}
-	  auto end () const {return ops.end();}
-
-	  virtual std::ostream& output (std::ostream& os) const  {
-		os << "[";
-		std::for_each (ops.begin(),ops.end(),[&](const Value_ptr& v){os << *v << ",";});
-		return os << "]";
-	  }
-
-	  virtual const MiniMC::uint8_t* getData () const {
-		throw MiniMC::Support::Exception ("GetData should not be called on NonCompileConstants");
+    class AggregateNonCompileConstant : public NonCompileConstant {
+    public:
+      AggregateNonCompileConstant (const std::vector<Value_ptr>& val) : ops(val) {}
+      auto begin () const {return ops.begin();}
+      auto end () const {return ops.end();}
+      
+      virtual std::ostream& output (std::ostream& os) const  {
+	os << "[";
+	std::for_each (ops.begin(),ops.end(),[&](const Value_ptr& v){os << *v << ",";});
+	return os << "]";
       }
-	  
-	private:
-	  std::vector<Value_ptr> ops;
-	};
-	
-	using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
-	using Constant_ptr = std::shared_ptr<Constant>;
-	
+      
+      virtual const MiniMC::uint8_t* getData () const {
+	throw MiniMC::Support::Exception ("GetData should not be called on NonCompileConstants");
+      }
+      
+    private:
+      std::vector<Value_ptr> ops;
+    };
+    
+    using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
+    using Constant_ptr = std::shared_ptr<Constant>;
+    
     class ConstantFactory64;
 
     template<typename T>
@@ -110,29 +110,29 @@ namespace MiniMC {
     public:
       friend class ConstantFactory64;
       
-      auto getValue () const {
-		auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
-		return val;
+      T getValue () const {
+	auto val =  MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value),sizeof(value));
+	return val;
       }
 
-	  virtual std::size_t getSize () override {return sizeof(T);}
+      virtual std::size_t getSize () override {return sizeof(T);}
       
 	  
       virtual const MiniMC::uint8_t* getData () const {
-		return reinterpret_cast<const MiniMC::uint8_t*> (&value);
+	return reinterpret_cast<const MiniMC::uint8_t*> (&value);
       }
       
       virtual bool isInteger () const {return true;}
       
       virtual std::ostream& output (std::ostream& os) const {
-		MiniMC::Support::Base64Encode encoder;
-		os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
-		//os << value << std::endl;
-		if (getType ())
-		  os << *getType();
-		else
-		  os << "??";
-		return os << " >";
+	MiniMC::Support::Base64Encode encoder;
+	os << encoder.encode (reinterpret_cast<const char*> (&value),sizeof(T));
+	//os << value << std::endl;
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
       }
     private:
       T value;
@@ -160,18 +160,18 @@ namespace MiniMC {
 		return value.get();
       }
 
-	  virtual bool isBinaryBlobConstant () const {return true;}
-	  
-	  std::size_t getSize () override {return size;}
-	  
+      virtual bool isBinaryBlobConstant () const {return true;}
+      
+      std::size_t getSize () override {return size;}
+      
       virtual std::ostream& output (std::ostream& os) const {
-		MiniMC::Support::Base64Encode encoder;
-		os << encoder.encode (reinterpret_cast<const char*> (value.get()),size);
-		if (getType ())
-		  os << *getType();
-		else
-		  os << "??";
-		return os << " >";
+	MiniMC::Support::Base64Encode encoder;
+	os << encoder.encode (reinterpret_cast<const char*> (value.get()),size);
+	if (getType ())
+	  os << *getType();
+	else
+	  os << "??";
+	return os << " >";
       }
     private:
       std::unique_ptr<MiniMC::uint8_t[]> value;
@@ -210,15 +210,15 @@ namespace MiniMC {
       Variable (const std::string& name) : name(name) {}
       const std::string& getName () const {return name;}
       virtual std::ostream& output (std::ostream& os) const  {
-		os << " < " << getName() << " ";
-		if (getType()) 
-		  os  << *getType() ;
-		else {
-		  os << " ___ ";
-		}
-		return os << " >";
-	  }
-	  
+	os << " < " << getName() << " ";
+	if (getType()) 
+	  os  << *getType() ;
+	else {
+	  os << " ___ ";
+	}
+	return os << " >";
+      }
+      
       bool isVariable () const {return true;}
       void setOwner (const VariableStackDescr_ptr& descr) {owner = descr.get();}
       auto& getOwner () const  {return owner;}
@@ -250,7 +250,7 @@ namespace MiniMC {
     private:
       std::vector<Variable_ptr> variables;
       std::size_t totalSize = 0;
-	  const std::string pref;
+      const std::string pref;
     };
 
 
@@ -282,17 +282,16 @@ namespace MiniMC {
       virtual const Value_ptr makeFunctionPointer (MiniMC::func_t);
       
     };
-
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 
-	struct VariablePtrIndexer {
-	  std::size_t operator() (const Variable_ptr& t) {return t->getId ();}
-	  
-	};
-
-	template<class T>
-	using VariableMap = MiniMC::Util::FixedVector<Variable_ptr,T,VariablePtrIndexer>; 
-	
+    struct VariablePtrIndexer {
+      std::size_t operator() (const Variable_ptr& t) {return t->getId ();}
+      
+    };
+    
+    template<class T>
+    using VariableMap = MiniMC::Util::FixedVector<Variable_ptr,T,VariablePtrIndexer>; 
+    
   }
 }
 

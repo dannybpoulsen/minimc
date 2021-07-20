@@ -39,3 +39,4 @@ add_subdirectory(tests)
 add_subdirectory(package)	
 add_subdirectory(docs)	
 	
+add_subdirectory (python)

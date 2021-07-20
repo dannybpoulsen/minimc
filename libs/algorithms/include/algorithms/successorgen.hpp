@@ -9,7 +9,7 @@
 namespace MiniMC {
   namespace Algorithms {
     enum class ErrorFlags {
-						   AssertViolated = 1,
+      AssertViolated = 1,
     };
 	
 	
