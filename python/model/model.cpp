@@ -17,7 +17,7 @@ void addModelModule (py::module& m) {
   
   py::class_<MiniMC::Model::Type, MiniMC::Model::Type_ptr> (submodule,"Type")
     .def ("size",&MiniMC::Model::Type::getSize);
-
+  
   py::class_<MiniMC::Model::Value, MiniMC::Model::Value_ptr> value (submodule,"Value");
   value.def ("getType",&MiniMC::Model::Value::getType)
     .def ("__str__",&MiniMC::Model::Value::string_repr)
