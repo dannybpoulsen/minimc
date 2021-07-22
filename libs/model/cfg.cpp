@@ -33,11 +33,11 @@ namespace MiniMC {
 	  edge->setAttribute<AttributeType::Instructions> (InstructionStream({builder.BuildInstruction ()}));
 	  
 	  return program->addFunction (name,{},
-								   program->getTypeFactory ()->makeVoidType (),
-								   vstack,
-								   cfg
-								   );
-							  
+				       program->getTypeFactory ()->makeVoidType (),
+				       vstack,
+				       cfg
+				       );
+	  
 	  
 	}
   }

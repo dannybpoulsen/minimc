@@ -70,6 +70,7 @@ namespace MiniMC {
 	    return inst;
 	  }
 	};
+	
 	auto repl_or_insert = [&](const typename MiniMC::CPA::IStorer::JoinPair& p) {
 	  if (!delay(p.orig)) {
 	    auto it = waiting.begin();

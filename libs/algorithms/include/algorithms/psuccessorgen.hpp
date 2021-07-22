@@ -47,7 +47,7 @@ namespace MiniMC {
 	  }
 	
 	public:
-	  Iterator (MiniMC::CPA::State_ptr& st,	MiniMC::CPA::Transferer_ptr transfer) :
+	  Iterator (const MiniMC::CPA::State_ptr& st,	MiniMC::CPA::Transferer_ptr transfer) :
 	    curState(st),
 	    transfer(transfer)
 	  {
@@ -86,16 +86,19 @@ namespace MiniMC {
 	};
       public:
 	using iterator = Iterator;
-	Generator (MiniMC::CPA::State_ptr& state, MiniMC::CPA::Transferer_ptr t) :state(state),transfer(t) {
+	Generator (MiniMC::CPA::Transferer_ptr t) :transfer(t) {
 	}
 	
-	auto begin() {
+	auto begin_it(const MiniMC::CPA::State_ptr& state) {
 	  return Iterator (state,transfer);}
 	
-	auto end() {return Iterator (state,transfer);}
-		 
+	auto end_it(const MiniMC::CPA::State_ptr& state) {return Iterator (state,transfer);}
+
+	auto generate (const MiniMC::CPA::State_ptr& state) {
+	  return std::make_pair (begin_it(state),end_it(state));
+	}
+	
       private:
-	MiniMC::CPA::State_ptr state;
 	MiniMC::CPA::Transferer_ptr transfer;
 
       };

@@ -30,7 +30,7 @@ namespace MiniMC {
 	
       }
       virtual Result run (const MiniMC::Model::Program& prgm) {
-	
+	messager.message ("Initiating SMC");
 	if (!cpa->makeValidate()->validate (prgm,messager)) {
 	  return Result::Error;
 	}
@@ -50,8 +50,9 @@ namespace MiniMC {
 	  
       void generateTrace (MiniMC::CPA::State_ptr state ) {
 	auto cur = state;
+	MiniMC::Algorithms::Proba::Generator generator  (cpa->makeTransfer ());
 	for (size_t i = 0; i< length; i++) {
-	  auto it = (MiniMC::Algorithms::Proba::Generator (cur,cpa->makeTransfer ())).begin();
+	  auto it = generator.generate(cur).first;
 	  cur = it->state;
 	  if (!cur)
 	    break;

@@ -31,17 +31,17 @@ namespace MiniMC {
       class Iterator {
       public:
 
-	static Iterator makeBegin (MiniMC::CPA::State_ptr& pt, MiniMC::CPA::StateQuery_ptr query,
+	static Iterator makeBegin (const MiniMC::CPA::State_ptr& pt,
 				   MiniMC::CPA::Transferer_ptr transfer) {
 	  auto loc = pt->getLocation (0);
-	  return Iterator(pt,0,pt->nbOfProcesses (),loc->ebegin(),loc->eend(),query,transfer);
+	  return Iterator(pt,0,pt->nbOfProcesses (),loc->ebegin(),loc->eend(),transfer);
 	}
 	
-	static Iterator makeEnd (MiniMC::CPA::State_ptr& pt, MiniMC::CPA::StateQuery_ptr query,
-				   MiniMC::CPA::Transferer_ptr transfer) {
+	static Iterator makeEnd (const MiniMC::CPA::State_ptr& pt,
+				 MiniMC::CPA::Transferer_ptr transfer) {
 	  auto proc = pt->nbOfProcesses ();
 	  auto loc = pt->getLocation (proc-1);
-	  return Iterator(pt,proc-1,proc,loc->eend(),loc->eend(),query,transfer);
+	  return Iterator(pt,proc-1,proc,loc->eend(),loc->eend(),transfer);
 	}
 	
 	Successor& operator* () {return succ;}
@@ -64,16 +64,14 @@ namespace MiniMC {
 	}
 	
       private:
-	Iterator (MiniMC::CPA::State_ptr& st, MiniMC::CPA::proc_id proc, MiniMC::CPA::proc_id  lproc, MiniMC::Model::Location::edge_iterator beg, MiniMC::Model::Location::edge_iterator end,
-		  MiniMC::CPA::StateQuery_ptr query,
-		  MiniMC::CPA::Transferer_ptr transfer
+	Iterator (const MiniMC::CPA::State_ptr& st, MiniMC::CPA::proc_id proc, MiniMC::CPA::proc_id  lproc, MiniMC::Model::Location::edge_iterator beg, MiniMC::Model::Location::edge_iterator end,
+		  const MiniMC::CPA::Transferer_ptr& transfer
 		  ) :
 	  curState(st),
 	  proc(proc),
 	  last_proc(lproc),
 	  iter(beg),
 	  end(end),
-	  query(query),
 	  transfer(transfer)
 	{
 	  update();
@@ -124,29 +122,32 @@ namespace MiniMC {
 	MiniMC::Model::Location::edge_iterator iter;
 	MiniMC::Model::Location::edge_iterator end;
 	Successor succ;
-	MiniMC::CPA::StateQuery_ptr query;
 	MiniMC::CPA::Transferer_ptr transfer;
       
       };
     public:
       using iterator = Iterator;
-      Generator (MiniMC::CPA::State_ptr& state,
-		 MiniMC::CPA::StateQuery_ptr& query,
-		 MiniMC::CPA::Transferer_ptr& transfer
-		 ) :state(state), query(query),transfer(transfer) {
+      Generator (MiniMC::CPA::Transferer_ptr& transfer
+		 ) : transfer(transfer) {
       }
-	  
-      auto begin() {
+
+      auto begin_it(const MiniMC::CPA::State_ptr& state) {
 	if (state->nbOfProcesses () == 0) {
 	  throw MiniMC::Support::Exception ("No Processes to generate sucessors for");
 	}
-	return Iterator::makeBegin(state,query,transfer);}
+	
+	return Iterator::makeBegin(state,transfer);
+      }
 
-      auto end() {return Iterator::makeEnd(state,query,transfer);}
-	  
+      auto end_it(const MiniMC::CPA::State_ptr& state) {return Iterator::makeEnd(state,transfer);}
+      
+      
+      auto generate (const MiniMC::CPA::State_ptr& state) {
+	return std::make_pair (begin_it(state),end_it(state));
+      }
+      
+      
     private:
-      MiniMC::CPA::State_ptr state;
-      MiniMC::CPA::StateQuery_ptr query;
       MiniMC::CPA::Transferer_ptr transfer;
       
 

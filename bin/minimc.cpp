@@ -11,6 +11,14 @@
 #include "support/timing.hpp"
 #include "plugin.hpp"
 
+#include "cpa/location.hpp"
+#ifdef MINIMC_SYMBOLIC
+#include "cpa/pathformula.hpp"
+#endif
+#include "cpa/concrete.hpp"
+#include "cpa/compound.hpp"
+
+
 namespace po = boost::program_options;
 
 void printBanner (std::ostream& os) {
@@ -19,6 +27,35 @@ void printBanner (std::ostream& os) {
   os << std::endl;
 }
 
+CPASelector selectedCPA = CPASelector::Automatic;
+
+MiniMC::CPA::CPA_ptr createUserDefinedCPA (CPASelector defaultSelector) {      
+  assert(defaultSelector != CPASelector::Automatic);
+  CPASelector sel = (selectedCPA != CPASelector::Automatic) ? selectedCPA : defaultSelector;
+  switch (sel) {
+#ifdef MINIMC_SYMBOLIC
+  
+  case CPASelector::LocationPathformula:
+    return std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
+	  std::make_shared<MiniMC::CPA::Location::CPA> (),
+	  std::make_shared<MiniMC::CPA::PathFormula::CPA> ()}));
+    break;
+    
+#endif
+  case CPASelector::LocationConcrete:
+    return std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
+	  std::make_shared<MiniMC::CPA::Location::CPA> (),
+	  std::make_shared<MiniMC::CPA::Concrete::CPA> ()}));
+    break;
+    
+  case CPASelector::Location:
+  default:
+      
+    return std::make_shared<MiniMC::CPA::Location::CPA> ();
+    //res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
+    break;
+  }
+}
 
 
 
@@ -57,6 +94,31 @@ int main (int argc,char* argv[]) {
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   };
 
+  auto updateCPA = [&soptions] (int val) {
+    switch (val) {
+#ifdef MINIMC_SYMBOLIC
+    case 3:
+      soptions.replacememnodet = true;
+      soptions.convergencePoints = true;
+      
+      selectedCPA = CPASelector::LocationPathformula;
+      
+      break;
+#endif
+    case 2:
+      selectedCPA = CPASelector::LocationConcrete;
+      break;
+    case 1:
+      selectedCPA = CPASelector::Location;
+      break;
+      
+    default:
+      selectedCPA = CPASelector::Automatic;
+      break;
+      
+    }
+  };
+  
   general.add_options()
 	("config",boost::program_options::value<std::string>(),"Read configuration from config file")
 	("task",boost::program_options::value< std::vector< std::string > >(),"Add task as entrypoint")
@@ -67,13 +129,22 @@ int main (int argc,char* argv[]) {
     ("simplifycfg",boost::program_options::bool_switch(&soptions.simplifyCFG),"Simplify the CFG structure")
     ("constfold",boost::program_options::bool_switch(&soptions.foldConstants),"Constant Folding")
     ("replacesub",boost::program_options::bool_switch(&soptions.replaceSub),"Replace sub instructions")
-	("inlinefunctions",po::value<std::size_t> (&soptions.inlinefunctions),"Inline function calls")
-	("unrollloops",po::value<std::size_t> (&soptions.unrollLoops),"Unroll Loops")
-	("removeallocas",po::bool_switch (&soptions.removeAllocs),"Remove Alloca (replace them with equivalent construction)")
-	("replacememnondet",po::bool_switch (&soptions.replacememnodet),"Remove Alloca (replace them with equivalent construction)")
-	("removephi",po::bool_switch (&soptions.removephi),"Removephi")
-    ;
+    ("inlinefunctions",po::value<std::size_t> (&soptions.inlinefunctions),"Inline function calls")
+    ("unrollloops",po::value<std::size_t> (&soptions.unrollLoops),"Unroll Loops")
+    ("removeallocas",po::bool_switch (&soptions.removeAllocs),"Remove Alloca (replace them with equivalent construction)")
+    ("replacememnondet",po::bool_switch (&soptions.replacememnodet),"Remove Alloca (replace them with equivalent construction)")
+    ("removephi",po::bool_switch (&soptions.removephi),"Removephi")
+    ("cpa",po::value<int>()->default_value(0)->notifier(updateCPA), "CPA\n"
+     "\t 0: Automatic\n"
+     "\t 1: Location\n"
+     "\t 2: Concrete\n"
+#ifdef MINIMC_SYMBOLIC	   
+     "\t 3: PathFormula\n"
+#endif
+     )
 
+    ;
+  
   
   for (auto& it :  getCommandNameAndDescr ()) {
 	getOptionsFunc (it.first) (general,soptions);

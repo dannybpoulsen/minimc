@@ -7,7 +7,7 @@
 #include "support/localisation.hpp"
 #include "cpa/interface.hpp"
 #include "algorithms/algorithm.hpp"
-#include "algorithms/passedwaiting.hpp"
+#include "algorithms/simulationmanager.hpp"
 #include "algorithms/successorgen.hpp"
 #include "algorithms/reachability.hpp"
 
@@ -27,26 +27,28 @@ namespace MiniMC {
 	  return Result::Error;
 	}
 	messager.message ("Initiating EnumStates");
-	std::size_t states = 0;
-	
-	PWOptions opt;
-	opt.storer = cpa->makeStore();
-	opt.joiner = cpa->makeJoin ();
-	DFSWaiting passed (opt);
+
 	auto progresser = messager.makeProgresser ();
 	auto predicate = [] (auto& b) {return false;};
 	auto query = cpa->makeQuery ();
 	auto transfer = cpa->makeTransfer ();
 	auto initstate = query->makeInitialState (prgm);
-	PassedInsert inserter (*progresser,passed);
-	try {
-	  reachabilitySearch (passed,inserter,initstate,predicate,query,transfer);
-	}
-	catch(MiniMC::Support::VerificationException& exc) {
-	  messager.error (exc.what());
-	}
+	
+	MiniMC::Algorithms::SimulationManager simmanager (MiniMC::Algorithms::SimManagerOptions {
+	    .storer = cpa->makeStore (),
+	    .joiner = cpa->makeJoin (),
+	    .transfer = cpa->makeTransfer ()
+	  });
+	simmanager.insert(initstate);
+	simmanager.reachabilitySearch ({
+	    .filter = [](const MiniMC::CPA::State_ptr& state) {
+	      return state->getConcretizer()->isFeasible () == MiniMC::CPA::Concretizer::Feasibility::Feasible;
+	    } 
+	  });
+	
+	
 	messager.message ("Finished EnumStates");
-	messager.message (MiniMC::Support::Localiser ("Total Number of States %1%").format(passed.getPSize())); 
+	messager.message (MiniMC::Support::Localiser ("Total Number of States %1%").format(simmanager.getPSize())); 
 	return Result::Success;
       }
       

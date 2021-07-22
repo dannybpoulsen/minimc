@@ -105,7 +105,7 @@ namespace MiniMC {
     class IntegerConstant :public Constant  {
     protected:
       IntegerConstant (T val) : value(0) {
-		MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value),sizeof(value)) = val;
+	MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value),sizeof(value)) = val;
       }
     public:
       friend class ConstantFactory64;
@@ -143,7 +143,7 @@ namespace MiniMC {
 	 *
 	 */ 
     class BinaryBlobConstant :public Constant  {
-	protected:
+    protected:
       BinaryBlobConstant (MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]),size(s) {
 		std::copy(data,data+s,value.get());
       }

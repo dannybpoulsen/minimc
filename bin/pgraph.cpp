@@ -25,17 +25,8 @@
 
 namespace po = boost::program_options;
 namespace {
-    enum class CPAUsage {
-	Location,
-	Concrete,
-#ifdef MINIMC_SYMBOLIC
-	PathFormula
-#endif
-	};
-
   
   struct LocalOptions {
-	CPAUsage CPA = CPAUsage::Location;;
 	std::string outputname;
 	bool filter;
   };
@@ -61,38 +52,9 @@ namespace {
 
   
   void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
-	po::options_description desc("Print Graph Options");
-	auto updateCPA = [&sopt] (int val) {
-	switch (val) {
-#ifdef MINIMC_SYMBOLIC
-	case 3:
-	  sopt.replacememnodet = true;
-	  sopt.convergencePoints = true;
-	  
-	  locoptions.CPA = CPAUsage::PathFormula;
-	  
-	  break;
-#endif
-	case 2:
-	  locoptions.CPA = CPAUsage::Concrete;
-	  break;
-	case 1:
-	default:
-	  locoptions.CPA = CPAUsage::Location;
-	  break;
-	  
-	}
-	};
-	
+	po::options_description desc("Print Graph Options");	
   
 	desc.add_options()
-	  ("pgraph.cpa",po::value<int>()->default_value(1)->notifier(updateCPA), "CPA\n"
-	   "\t 1: Location\n"
-	   "\t 2: Concrete\n"
-#ifdef MINIMC_SYMBOLIC	   
-	   "\t 3: PathFormula\n"
-#endif
-	   )
 	  ("pgraph.expandnondet",po::bool_switch (&sopt.expandNonDet),"Expand all non-deterministic values")
 	  ("pgraph.filtersatis",po::bool_switch (&locoptions.filter),"Filter out unsatisfied states")
 	  
@@ -114,32 +76,9 @@ namespace {
 
 
 MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm,  MiniMC::Algorithms::SetupOptions& sopt) {
-  
-  
-  
   MiniMC::Support::ExitCodes res;
-  MiniMC::CPA::CPA_ptr cpa = nullptr;
-  switch (locoptions.CPA) {
-#ifdef MINIMC_SYMBOLIC
-  case CPAUsage::PathFormula:
-    cpa = std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
-	  std::make_shared<MiniMC::CPA::Location::CPA> (),
-	  std::make_shared<MiniMC::CPA::PathFormula::CPA> ()}));
-    break;
-    
-#endif
-  case CPAUsage::Concrete:
-    cpa = std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
-	std::make_shared<MiniMC::CPA::Location::CPA> (),
-	std::make_shared<MiniMC::CPA::Concrete::CPA> ()}));
-    break;
-    
-  case CPAUsage::Location:
-  default:
-    cpa = std::make_shared<MiniMC::CPA::Location::CPA> ();
-    //res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
-    break;
-  }
+  MiniMC::CPA::CPA_ptr cpa = createUserDefinedCPA (CPASelector::Location);
+  
   return runAlgorithm (*prgm,sopt,locoptions.filter,cpa);
     
 }

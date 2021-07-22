@@ -8,9 +8,8 @@
 #include "support/graph.hpp"
 #include "support/localisation.hpp"
 #include "algorithms/algorithm.hpp"
-#include "algorithms/passedwaiting.hpp"
+#include "algorithms/simulationmanager.hpp"
 #include "algorithms/successorgen.hpp"
-#include "algorithms/reachability.hpp"
 #include "cpa/arg.hpp"
 
 
@@ -34,9 +33,6 @@ namespace MiniMC {
 	if (!opt.delayTillConverge)
 	  pwopt.delay = [](const MiniMC::CPA::State_ptr& s) {return false;};
 	cpa = std::make_shared<MiniMC::CPA::ARG::CPA> (opt.cpa);
-	pwopt.storer = cpa->makeStore ();
-	pwopt.joiner = cpa->makeJoin ();
-	
       }
       virtual Result run (const MiniMC::Model::Program& prgm) {
 	if (!cpa->makeValidate()->validate (prgm,messager)) {
@@ -46,29 +42,24 @@ namespace MiniMC {
 	aresult.graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT> ("CPA");
 		
 		
-	DFSWaiting passed (pwopt);
-		
-	try {
-	  {
-	    auto progresser = messager.makeProgresser ();
-	    auto predicate = [] (auto& b) {return false;};
-	    auto query = cpa->makeQuery ();
-	    auto transfer = cpa->makeTransfer ();
-	    auto initstate = query->makeInitialState (prgm);
 	
-	    PassedInsert inserter (*progresser,passed);
-	    reachabilitySearch (passed,inserter,initstate,predicate,query,transfer);
-	  }
-	  //State space is now generated - create the graph
-	  auto it = passed.stored_begin();
-	  auto end = passed.stored_end();
-	  MiniMC::CPA::ARG::generateARGGraph (aresult.graph,it,end);
-		  
-	}
-		
-	catch(MiniMC::Support::VerificationException& exc) {
-	  messager.error (exc.what());
-	}
+	auto progresser = messager.makeProgresser ();
+	auto predicate = [] (auto& b) {return false;};
+	auto query = cpa->makeQuery ();
+	auto transfer = cpa->makeTransfer ();
+	auto initstate = query->makeInitialState (prgm);
+	MiniMC::Algorithms::SimulationManager simmanager (MiniMC::Algorithms::SimManagerOptions {
+	    .storer = cpa->makeStore (),
+	    .joiner = cpa->makeJoin (),
+	    .transfer = cpa->makeTransfer ()
+	  });
+	simmanager.insert (initstate);
+	simmanager.reachabilitySearch (  pwopt);
+	
+	//State space is now generated - create the graph
+	auto it = simmanager.stored_begin();
+	auto end = simmanager.stored_end();
+	MiniMC::CPA::ARG::generateARGGraph (aresult.graph,it,end);	
 	messager.message ("Finished PrintCPA");
 	return Result::Success;
       }
@@ -78,7 +69,7 @@ namespace MiniMC {
 	  
     private:
       MiniMC::Support::Messager& messager;
-      PWOptions pwopt;
+      MiniMC::Algorithms::SearchOptions pwopt;
       AnalysisResult aresult;
       MiniMC::CPA::CPA_ptr cpa;
       

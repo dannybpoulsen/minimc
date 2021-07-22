@@ -202,6 +202,11 @@ void addModelModule (py::module& m) {
       
       return MiniMC::Model::createEntryPoint (program,function).get();
     })
+    .def ("addEntryPoint",[](MiniMC::Model::Program_ptr& prgm,
+			     const MiniMC::Model::Function_ptr& function) {
+      
+      prgm->addEntryPoint (function->getName ());
+    })
     .def_property ("initialiser",
 		   [](const MiniMC::Model::Program_ptr& ptr) {return &ptr->getInitialisation ();},
 		   nullptr,
