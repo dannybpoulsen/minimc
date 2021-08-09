@@ -141,6 +141,20 @@ namespace MiniMC {
 			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ZExt,{valTerm},{bytesize*8}));
 			
 		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Trunc) {
+			  
+			  MiniMC::Model::InstHelper<opc> helper (i);
+			  
+			  auto& res = helper.getResult ();
+			  auto& castee = helper.getCastee ();
+			  auto bytesize = res->getType ()->getSize ();
+			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			  
+			  
+			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::Extract,{valTerm},{bytesize*8-1,0}));
+			  
+		  }
 		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::IntToBool) {
 			
