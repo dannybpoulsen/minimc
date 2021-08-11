@@ -6,6 +6,7 @@
 #include "model/modifications/simplify_cfg.hpp"
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/lower_guards.hpp"
+#include "model/modifications/replacememnondet.hpp"
 
 
 namespace py = pybind11;
@@ -39,6 +40,10 @@ void addModificationsModule (py::module& m) {
   py::class_<mcmod::LowerGuards> (submodule,"LowerGuards")
     .def (py::init<> ())
     .def ("runFunction",&mcmod::LowerGuards::runFunction);
+
+  py::class_<mcmod::ExpandNondet> (submodule,"ExpandNondet")
+    .def (py::init<> ())
+    .def ("runFunction",&mcmod::ExpandNondet::runFunction);
   
   
   

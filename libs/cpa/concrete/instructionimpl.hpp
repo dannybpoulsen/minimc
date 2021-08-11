@@ -54,23 +54,29 @@ namespace MiniMC {
 			return arr;
 		  }
 		  else {
-			auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (v);
-			if (!constant->isNonCompileConstant ()) {
-			  MiniMC::Util::Array arr(constant->getSize ());
-			  arr.set_block (0,constant->getSize (),constant->getData ());
-			  return arr;
-			}
-
-			throw MiniMC::Support::Exception ("No Evaluation of constants available");
+		    auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (v);
+		    if (constant -> isUndef ()) {
+		      throw MiniMC::Support::Exception ("No Evaluation of Undef constants available");
+			
+		    }
+		    else if (constant->isNonCompileConstant ()) {
+		      throw MiniMC::Support::Exception ("No Evaluation of Noncompile constants available");
+		    }
+		    else {
+		      MiniMC::Util::Array arr(constant->getSize ());
+		      arr.set_block (0,constant->getSize (),constant->getData ());
+		      return arr;
+		    }
+		    
 		  }
 		}
 		
 	  };
 	  
 	  struct VMData {
-		GlobalLocalVariableLookup readFrom;
-		GlobalLocalVariableLookup writeTo;
-		void finalise () {}
+	    GlobalLocalVariableLookup readFrom;
+	    GlobalLocalVariableLookup writeTo;
+	    void finalise () {}
 	  };
 	  
 	  struct ExecuteInstruction {

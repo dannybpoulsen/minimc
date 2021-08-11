@@ -59,6 +59,13 @@ namespace MiniMC {
       auto pptr = MiniMC::Support::makeFunctionPointer (id);
       return Value_ptr(new  MiniMC::Model::BinaryBlobConstant (reinterpret_cast<MiniMC::uint8_t*> (&pptr),sizeof(pptr)));
     }
+
+    const Value_ptr ConstantFactory64::makeUndef (const Type_ptr& ty) {
+      Value_ptr val (new  MiniMC::Model::Undef ());
+      val->setType (ty);
+      return val;
+    }
+    
     
     const Value_ptr ConstantFactory64::makeAggregateConstant (const ConstantFactory::aggr_input& inp,bool isArr) {
       std::size_t size = 0;

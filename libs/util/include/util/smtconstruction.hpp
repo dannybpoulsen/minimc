@@ -113,22 +113,29 @@ namespace MiniMC {
 	
 	inline SMTLib::Term_ptr buildSMTConstant (SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
 	  auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (ptr);
+	  auto type = ptr->getType ();
+	  
 	  if (constant->isInteger ()) {
-		auto create = [&]<typename T> (const MiniMC::uint8_t* data) {
-						  return builder.makeBVIntConst (*reinterpret_cast<const T*> (data),sizeof(T)*8);
-						};
-		auto type = ptr->getType ();
-		switch (type->getSize ()) {
-		case 1:
-		  return create. operator()<MiniMC::uint8_t> (constant->getData()); 
-		case 2:
-		  return create. operator()<MiniMC::uint16_t> (constant->getData());
-		case 4:
-		  return create.operator()<MiniMC::uint32_t> (constant->getData());
-		case 8:
-		  return create.operator()<MiniMC::uint64_t> (constant->getData());
-		}
-		throw MiniMC::Support::Exception ("Bug");
+	    auto create = [&]<typename T> (const MiniMC::uint8_t* data) {
+	      return builder.makeBVIntConst (*reinterpret_cast<const T*> (data),sizeof(T)*8);
+	    };
+	    switch (type->getSize ()) {
+	    case 1:
+	      return create. operator()<MiniMC::uint8_t> (constant->getData()); 
+	    case 2:
+	      return create. operator()<MiniMC::uint16_t> (constant->getData());
+	    case 4:
+	      return create.operator()<MiniMC::uint32_t> (constant->getData());
+	    case 8:
+	      return create.operator()<MiniMC::uint64_t> (constant->getData());
+	    }
+	    throw MiniMC::Support::Exception ("Bug");
+	  }
+
+	  else if (constant->isUndef ()) {
+	    static std::size_t nb = 0;
+	    auto sort = builder.makeBVSort (type->getSize()*8);
+	    return builder.makeVar (sort,MiniMC::Support::Localiser ("SMT-Undef-%1%").format (++nb));
 	  }
 	  
 	}

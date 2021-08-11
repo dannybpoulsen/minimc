@@ -10,8 +10,10 @@
 #define _REPLACEMEM__
 
 #include "model/cfg.hpp"
+#include "model/variables.hpp"
 #include "support/sequencer.hpp"
 #include "model/modifications/simplify_cfg.hpp"
+#include "model/modifications/helpers.hpp"
 
 
 namespace MiniMC {
@@ -79,80 +81,165 @@ namespace MiniMC {
 	
       };
 	  
+      struct ExpandUndefValues : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+	virtual bool runFunction (const MiniMC::Model::Function_ptr& F) {
 	  
+	  auto& prgm = *F->getPrgm(); 
+	  auto cfg =  F->getCFG().get();
+	  MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
+	  auto inserter =wlist.inserter ();
+	  std::for_each (cfg->getEdges().begin(),
+			 cfg->getEdges().end (),
+			 [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
+			 );
+	  while (wlist.size ()) {
+	    auto edge = wlist.pop ();
+	    if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	      auto& origstr = edge->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+	      bool expanded = false;
+	      for (auto& instr : origstr) {
+		if (expanded)
+		  break;
+		for (auto& op : instr) {
+		  if (std::dynamic_pointer_cast<MiniMC::Model::Undef> (op)) {
+		    MiniMC::Model::Modifications::ReplaceMap<Value> replace;
+		    MiniMC::uint64_t min = 0;
+		    MiniMC::uint64_t max = 0;
+		    
+		    
+		    switch (op->getType ()->getSize()) {
+		    case 1:
+		      min = std::numeric_limits<MiniMC::uint8_t>::min (); 
+		      max = std::numeric_limits<MiniMC::uint8_t>::max ();
+		      break;
+		    case 2:
+		      min = std::numeric_limits<MiniMC::uint16_t>::min ();
+		      max = std::numeric_limits<MiniMC::uint16_t>::max ();
+		      break;
+		    case 4:
+		      min = std::numeric_limits<MiniMC::uint32_t>::min ();
+		      max = std::numeric_limits<MiniMC::uint32_t>::max ();
+		      break;
+		    case 8:
+		      min = std::numeric_limits<MiniMC::uint64_t>::min ();
+		      max = std::numeric_limits<MiniMC::uint64_t>::max ();
+		      break;
+		    default:
+		      assert(false);
+		    }
+		    auto& fact = prgm.getConstantFactory ();
+		    MiniMC::uint64_t it = min;
+		    
+		    while (true) {
+		      auto replc =  fact->makeIntegerConstant (it,op->getType ());
+		      MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> vals;
+		      MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Location> loc;
+
+		      vals.insert (std::make_pair (op.get(),replc));
+		      
+		      copyEdgeAndReplace (edge,vals,loc,cfg,inserter);
+		      if (it == max)
+			break;
+		      it++;
+		    }
+		    cfg->deleteEdge (edge);
+		    expanded = true;
+		    break;
+		    
+		  }
+		  
+		}
+	      }
+	      
+	      
+	    }
+	  }
+	  return true;
+	}
+
+	virtual bool run (MiniMC::Model::Program&  prgm) {
+	  //First make sure we only have one NonDet on each edge
+	  for (auto& F : prgm.getFunctions ()) {
+	    runFunction (F);
+	  }
+	  
+	  return true;
+	}
+	
+      };
       struct ExpandNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
 	virtual bool runFunction (const MiniMC::Model::Function_ptr& F) {
+	  ExpandUndefValues{}.runFunction (F);
 	  EnsureEdgesOnlyHasOne<MiniMC::Model::InstructionCode::NonDet>{}.runFunction (F);
 	  auto& prgm = *F->getPrgm(); 
-	  std::vector<MiniMC::Model::Edge> todel;
 	  auto cfg =  F->getCFG();
 	  MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
-	    auto inserter =wlist.inserter ();
-	    std::for_each (cfg->getEdges().begin(),
-			   cfg->getEdges().end (),
-			   [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
-			   );
+	  auto inserter =wlist.inserter ();
+	  std::for_each (cfg->getEdges().begin(),
+			 cfg->getEdges().end (),
+			 [&](const MiniMC::Model::Edge_ptr& e) {inserter = e;}
+			 );
 	    
-	    for (auto& E : wlist) {
-	      if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
-		auto& origstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
-		auto& instr = origstr.last();	  
+	  for (auto& E : wlist) {
+	    if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+	      auto& origstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions> ();
+	      auto& instr = origstr.last();	  
 		
-		if (instr.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
-		  MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet (instr);	  
-		  assert(nondet.getResult ()->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer);
-		  auto type = nondet.getResult ()->getType ();
-		  auto from = E->getFrom();
-		  auto to = E->getTo ();
-		  MiniMC::uint64_t min = 0;
-		  MiniMC::uint64_t max = 0;
+	      if (instr.getOpcode () == MiniMC::Model::InstructionCode::NonDet) {
+		MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet (instr);	  
+		assert(nondet.getResult ()->getType ()->getTypeID () == MiniMC::Model::TypeID::Integer);
+		auto type = nondet.getResult ()->getType ();
+		auto from = E->getFrom();
+		auto to = E->getTo ();
+		MiniMC::uint64_t min = 0;
+		MiniMC::uint64_t max = 0;
 				  
 				  
-		  switch (type->getSize()) {
-		  case 1:
-		    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>> (nondet.getMin ())->getValue (); 
-		    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>> (nondet.getMax ())->getValue (); 
-		    break;
-		  case 2:
-		    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>> (nondet.getMin ())->getValue (); 
-		    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>> (nondet.getMax ())->getValue (); 
-		    break;
-		  case 4:
-		    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>> (nondet.getMin ())->getValue (); 
-		    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>> (nondet.getMax ())->getValue (); 
-		    break;
-		  case 8:
-		    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>> (nondet.getMin ())->getValue (); 
-		    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>> (nondet.getMax ())->getValue (); 
-		    break;
-		  default:
-		    assert(false);
-		  }
-		  auto& fact = prgm.getConstantFactory ();
-		  MiniMC::uint64_t it = min;
-				  
-		  while (true) {
-		    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-		    auto val = fact->makeIntegerConstant (it,type);
-		    builder.setResult (nondet.getResult ());
-		    builder.setValue (val);
-
-		    auto nedge = cfg->makeEdge (from,to);
-		    nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (origstr);
-		    nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace (builder.BuildInstruction ());
-		    it++;
-		    if (it == max)
-		      break;
-		  }
-		  cfg->deleteEdge (E);
+		switch (type->getSize()) {
+		case 1:
+		  min = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>> (nondet.getMin ())->getValue (); 
+		  max = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>> (nondet.getMax ())->getValue (); 
+		  break;
+		case 2:
+		  min = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>> (nondet.getMin ())->getValue (); 
+		  max = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>> (nondet.getMax ())->getValue (); 
+		  break;
+		case 4:
+		  min = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>> (nondet.getMin ())->getValue (); 
+		  max = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>> (nondet.getMax ())->getValue (); 
+		  break;
+		case 8:
+		  min = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>> (nondet.getMin ())->getValue (); 
+		  max = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>> (nondet.getMax ())->getValue (); 
+		  break;
+		default:
+		  assert(false);
 		}
+		auto& fact = prgm.getConstantFactory ();
+		MiniMC::uint64_t it = min;
+				  
+		while (true) {
+		  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
+		  auto val = fact->makeIntegerConstant (it,type);
+		  builder.setResult (nondet.getResult ());
+		  builder.setValue (val);
+
+		  auto nedge = cfg->makeEdge (from,to);
+		  nedge->setAttribute<MiniMC::Model::AttributeType::Instructions> (origstr);
+		  nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace (builder.BuildInstruction ());
+		  it++;
+		  if (it == max)
+		    break;
+		}
+		cfg->deleteEdge (E);
+	      }
 				
 
 				
 		
-	      }
 	    }
-	    return true;
+	  }
+	  return true;
 	}
 	
 	virtual bool run (MiniMC::Model::Program&  prgm) {
@@ -172,3 +259,4 @@ namespace MiniMC {
 }
 
 #endif
+

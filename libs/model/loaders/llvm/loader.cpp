@@ -93,29 +93,34 @@ namespace MiniMC {
 		  cst->setType (type);
 		  return cst;
 		  
-		  
 		  //assert(false && "FAil");
 		}
 		
 		  
       }
       else if (llvm::isa<llvm::Function> (val) ||
-			   llvm::isa<llvm::GlobalVariable> (val)
-			   ) {
-		return map.at (val);
+	       llvm::isa<llvm::GlobalVariable> (val)
+	       ) {
+	return map.at (val);
       }
       else if (llvm::BlockAddress* block = llvm::dyn_cast<llvm::BlockAddress> (val)) {
-		return map.at (block->getBasicBlock ());
+	return map.at (block->getBasicBlock ());
       }
       else if (ltype->isPointerTy ()) {
-		throw MiniMC::Support::Exception ("Pointer Not Quite there");
+	throw MiniMC::Support::Exception ("Pointer Not Quite there");
       }
-
-	  MiniMC::Support::Localiser local ("LLVM '%1%' not implemented");
-	  std::string str;
-	  llvm::raw_string_ostream output(str);
-	  val->print (output);
-	  throw MiniMC::Support::Exception (local.format (str));
+      
+      auto cst_undef = llvm::dyn_cast<llvm::UndefValue> (val);
+      if (cst_undef) {
+	auto type = tt.getType (constant->getType ());
+	return fac->makeUndef (type);
+      }
+      
+      MiniMC::Support::Localiser local ("LLVM '%1%' not implemented");
+      std::string str;
+      llvm::raw_string_ostream output(str);
+      val->print (output);
+      throw MiniMC::Support::Exception (local.format (str));
     }
     
 
@@ -123,17 +128,17 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       llvm::Constant* cst = llvm::dyn_cast<llvm::Constant> (val);
       if (cst) 
-		return makeConstant (cst,tt,cfac,values);
+	return makeConstant (cst,tt,cfac,values);
       else {
-		return values.at(val); 
+	return values.at(val); 
       }
     }
     
         
     MiniMC::Model::Variable_ptr makeVariable (const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack,Val2ValMap& values) {
       if (!values.count (val)) {
-		auto newVar = stack->addVariable (name,type);
-		values[val] = newVar;
+	auto newVar = stack->addVariable (name,type);
+	values[val] = newVar;
       }
       return std::static_pointer_cast<MiniMC::Model::Variable> (values[val]);
     }
