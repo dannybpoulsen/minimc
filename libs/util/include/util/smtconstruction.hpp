@@ -181,9 +181,14 @@ namespace MiniMC {
 	  throw MiniMC::Support::Exception ("Error");
 	}
 	
-	SMTLib::Term_ptr buildSMTTerm (const SSAMap& map, SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
+    SMTLib::Term_ptr buildSMTTerm (const SSAMap& map, const SSAMap& gmap , SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
 	  if (!ptr->isConstant ()) {
-		return map.lookup (ptr.get());
+	    if (ptr->isGlobal ()) {
+	      return gmap.lookup (ptr.get());
+		  
+	    }
+	    else 
+	      return map.lookup (ptr.get());
 	  }
 	  else {
 		return buildSMTConstant (builder,ptr);

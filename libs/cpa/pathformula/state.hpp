@@ -7,7 +7,7 @@
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
-
+#include "heap.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -17,7 +17,7 @@ namespace MiniMC {
 	  class State : public MiniMC::CPA::State
       {
 	  public:
-		State (const MiniMC::Util::SSAMap& map, const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context),map(map),pathformula(path) {}
+	State (const MiniMC::Util::SSAMap& map, const MiniMC::Util::SSAMap& gmap, const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context),map(map),gmap(gmap),pathformula(path) {}
 		State (const State& oth) = default;
 		virtual std::ostream& output (std::ostream& os) const {return os << map << "\nPathformula:" << *pathformula;}
 		MiniMC::Hash::hash_t hash (MiniMC::Hash::seed_t seed = 0) const override {return reinterpret_cast<MiniMC::Hash::hash_t> (this);}
@@ -26,10 +26,16 @@ namespace MiniMC {
 		virtual bool assertViolated () const { return false;}
 		
 		auto& getSSAMap () {return map;}
-		auto& getSSAMap () const {return map;}
-		auto& getContext () const {return context;}
-		auto& getContext ()  {return context;}
-		auto& getPathFormula () {return pathformula;}
+	        auto& getSSAMap () const {return map;}
+                auto& getGSSAMap () {return gmap;}
+	        auto& getGSSAMap () const {return gmap;}
+	        
+	        auto& getContext () const {return context;}
+	        auto& getContext ()  {return context;}
+	        auto& getHeap () {return heap;}
+	        auto& getHeap () const {return heap;}
+		
+	        auto& getPathFormula () {return pathformula;}
 		const auto& getPathFormula () const {return pathformula;}
 		
 		const Concretizer_ptr getConcretizer () const override;
@@ -38,7 +44,10 @@ namespace MiniMC {
 	  private:
 		SMTLib::Context_ptr context;
 		MiniMC::Util::SSAMap map;
-		SMTLib::Term_ptr pathformula;
+                MiniMC::Util::SSAMap gmap;
+	        
+	        Heap heap;
+	        SMTLib::Term_ptr pathformula;
 	  };
 
 	  class Concretizer : public MiniMC::CPA::Concretizer {
@@ -69,6 +78,7 @@ namespace MiniMC {
 	  private:
 		const std::shared_ptr<const State> state;
 		SMTLib::Solver_ptr  solver;
+	    Heap heap;
 	  };
 
 	  

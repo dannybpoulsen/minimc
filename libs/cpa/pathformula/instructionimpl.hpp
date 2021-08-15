@@ -4,17 +4,26 @@
 #include "util/ssamap.hpp"
 #include "util/smtconstruction.hpp"
 
+#include "heap.hpp"
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 	  
       struct VMData {
-		const MiniMC::Util::SSAMap* oldSSAMap;
-		MiniMC::Util::SSAMap* newSSAMap;
-		SMTLib::TermBuilder* smtbuilder;
-		SMTLib::Term_ptr path;
-		void finalise() {}
+	const MiniMC::Util::SSAMap* oldSSAMap;
+	MiniMC::Util::SSAMap* newSSAMap;
+
+	const MiniMC::Util::SSAMap* oldGSSAMap;
+	MiniMC::Util::SSAMap* newGSSAMap;
+	
+	
+	const Heap* oldHeap;
+	Heap* newHeap;
+	
+	SMTLib::TermBuilder* smtbuilder;
+	SMTLib::Term_ptr path;
+	void finalise() {}
       };
 	  
       template<MiniMC::Model::InstructionCode c>
@@ -30,14 +39,14 @@ namespace MiniMC {
 							 const MiniMC::Model::Instruction& i)  {
 	
 		  if constexpr (MiniMC::Model::InstructionData<opc>::isTAC ||
-						MiniMC::Model::InstructionData<opc>::isComparison) {
-			MiniMC::Model::InstHelper<opc> helper (i);
+				MiniMC::Model::InstructionData<opc>::isComparison) {
+		        MiniMC::Model::InstHelper<opc> helper (i);
 			auto& res = helper.getResult ();
 			auto& left = helper.getLeftOp ();
 			auto& right = helper.getRightOp ();
 			SMTLib::Ops smtop = MiniMC::Util::convertToSMTOp<opc> ();
-			auto leftTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,left);//data.oldSSAMap->lookup (left.get());
-			auto rightTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,right);
+			auto leftTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,left);//data.oldSSAMap->lookup (left.get());
+			auto rightTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,right);
 			data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (smtop,{leftTerm,rightTerm}));
 		  }
 		  else if constexpr (MiniMC::Model::InstructionData<opc>::isPredicate ) {
@@ -45,8 +54,8 @@ namespace MiniMC {
 			auto& left = helper.getLeftOp ();
 			auto& right = helper.getRightOp ();
 			SMTLib::Ops smtop = MiniMC::Util::convertToSMTOp<opc> ();
-			auto leftTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,left);//data.oldSSAMap->lookup (left.get());
-			auto rightTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,right);
+			auto leftTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,left);//data.oldSSAMap->lookup (left.get());
+			auto rightTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,right);
 			auto conjunct = data.smtbuilder->buildTerm (smtop,{leftTerm,rightTerm});
 			data.path = data.smtbuilder->buildTerm(SMTLib::Ops::And,{data.path,conjunct});
 	  
@@ -55,19 +64,19 @@ namespace MiniMC {
 			MiniMC::Model::InstHelper<opc> helper (i);
 			auto& res = helper.getResult ();
 			auto& value = helper.getValue ();
-			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,value);
+			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,value);
 			data.newSSAMap->updateValue (res.get(),valTerm);
 		  }
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Assume) {
 			MiniMC::Model::InstHelper<opc> helper (i);
 			auto assert = helper.getAssert ();
-			auto assertTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,assert);
+			auto assertTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,assert);
 			data.path = data.smtbuilder->buildTerm(SMTLib::Ops::And,{data.path,assertTerm});
 		  }
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::NegAssume) {
 			MiniMC::Model::InstHelper<opc> helper (i);
 			auto assert = helper.getAssert ();
-			auto assertTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,assert);
+			auto assertTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,assert);
 			auto notted = data.smtbuilder->buildTerm(SMTLib::Ops::Not,{assertTerm});
 			data.path = data.smtbuilder->buildTerm(SMTLib::Ops::And,{data.path,notted});
 		    
@@ -88,7 +97,7 @@ namespace MiniMC {
 			
 			auto& res = helper.getResult ();
 			auto& castee = helper.getCastee ();
-			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			
 			
 			auto bytesize = res->getType ()->getSize ();
@@ -105,7 +114,7 @@ namespace MiniMC {
 			  
 			  auto& res = helper.getResult ();
 			  auto& castee = helper.getCastee ();
-			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			  
 			  auto bytesize = res->getType ()->getSize ();
 			  auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
@@ -121,7 +130,7 @@ namespace MiniMC {
 			  
 			  auto& res = helper.getResult ();
 			  auto& castee = helper.getCastee ();
-			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			  auto bytesize = res->getType ()->getSize () - castee->getType()->getSize ();
 			  
 			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::SExt,{valTerm},{bytesize*8}));
@@ -135,7 +144,7 @@ namespace MiniMC {
 			  auto& res = helper.getResult ();
 			  auto& castee = helper.getCastee ();
 			  auto bytesize = res->getType ()->getSize () - castee->getType()->getSize ();
-			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			  
 			  
 			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ZExt,{valTerm},{bytesize*8}));
@@ -149,7 +158,7 @@ namespace MiniMC {
 			  auto& res = helper.getResult ();
 			  auto& castee = helper.getCastee ();
 			  auto bytesize = res->getType ()->getSize ();
-			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			  
 			  
 			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::Extract,{valTerm},{bytesize*8-1,0}));
@@ -162,7 +171,7 @@ namespace MiniMC {
 			
 			auto& res = helper.getResult ();
 			auto& castee = helper.getCastee ();
-			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.smtbuilder,castee);
+			auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
 			
 			auto bytesize = castee->getType ()->getSize ();
 			auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
@@ -173,13 +182,61 @@ namespace MiniMC {
 			
 		  }
 		  
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca) {
+		    MiniMC::Model::InstHelper<opc> helper (i);
+		    auto& result = helper.getResult ();
+		    auto& size = helper.getSize ();
+		    if (size->isVariable ()) {
+		      throw MiniMC::Support::Exception ("Symbolic Allocation sizes not supported");
+		    }
+		    
+		    else  {
+		      auto constant = std::static_pointer_cast<MiniMC::Model::Constant> (size);
+		      if (constant->isUndef ()) {
+			//This case should actually be ruled out earlier
+			throw MiniMC::Support::Exception ("Undef Allocation sizes not supported");
+		      }
+		      else {
+			MiniMC::uint64_t allocation_size;
+			std::copy (constant->getData (),constant->getData ()+sizeof(MiniMC::uint64_t),reinterpret_cast<MiniMC::uint8_t*> (&allocation_size));
+			MiniMC::Util::SSAMap* upd = data.newSSAMap;
+			if (result->isGlobal ()) {
+			  upd = data.newGSSAMap;
+			}
+			upd->updateValue (result.get(),
+						     data.newHeap->allocate (allocation_size,*data.smtbuilder));
+		      }
+		    }
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Load) {
+		    MiniMC::Model::InstHelper<opc> helper (i);
+		    
+		    auto& result = helper.getResult ();
+		    auto& addr = helper.getAddress ();
+		    auto addr_term = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,addr);
+		    auto read_data = data.oldHeap->read (addr_term,
+							 result->getType()->getSize(),
+							 *data.smtbuilder);
+		    
+		    data.newSSAMap->updateValue (result.get(),read_data);
+		  }
+		  
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Store) {
+		    MiniMC::Model::InstHelper<opc> helper (i);
+		    
+		    
+		    auto addr = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,helper.getAddress ());
+		    auto val = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,helper.getValue ());
+		    data.newHeap->write  (val,addr,helper.getValue ()->getType ()->getSize (),*data.smtbuilder);
+		  }
 		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Skip) {
-			//Do nothing
+		    //Do nothing
 		  }
 		  
 		  else {
-			throw NotImplemented<opc> ();
+		    throw NotImplemented<opc> ();
 		  }
 		}
       };

@@ -34,16 +34,16 @@ namespace MiniMC {
 			return *this;
 		  }
 		  else  {
-			throw BufferOverflow();
+		    throw BufferOverflow();
 		  }
 		}
 				
 		void read (MiniMC::Util::Array& arr, MiniMC::uint64_t offset) {
 		  if ( arr.getSize()+offset <= this->size ) {
-			arr.set_block (0,arr.getSize(),memory.get()+offset);
+		    arr.set_block (0,arr.getSize(),memory.get()+offset);
 		  }
 		  else 
-			throw BufferOverread ();
+		    throw BufferOverread ();
 		}
 
 		void extend (MiniMC::uint64_t size) {
