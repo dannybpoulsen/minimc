@@ -98,7 +98,6 @@ int main (int argc,char* argv[]) {
     switch (val) {
 #ifdef MINIMC_SYMBOLIC
     case 3:
-      soptions.replacememnodet = true;
       soptions.convergencePoints = true;
       
       selectedCPA = CPASelector::LocationPathformula;

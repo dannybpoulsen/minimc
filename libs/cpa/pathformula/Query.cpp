@@ -20,6 +20,8 @@ namespace MiniMC {
 	
 	auto context = MiniMC::Support::SMT::getSMTFactory()->construct ();
 	for (auto& v : prgm.getGlobals ()->getVariables ()) {
+	  std::cerr << "Initialise " << *v << std::endl;
+	  std::cerr << *MiniMC::Util::buildSMTValue (context->getBuilder (),v) << std::endl;
 	  gmap.initialiseValue (v.get(),MiniMC::Util::buildSMTValue (context->getBuilder (),v));   
 	}
 	for (auto& entry : prgm.getEntryPoints ()) {
@@ -42,10 +44,10 @@ namespace MiniMC {
 	  .path = state->getPathFormula ()
 	};
 
-	/*auto it = prgm.getInitialisation ().begin();
+	auto it = prgm.getInitialisation ().begin();
 	auto end = prgm.getInitialisation ().end();
 	MiniMC::Util::runVM<decltype(it),VMData,ExecuteInstruction> (it,end,data);
-	*/
+	
 	return state;
 	
       }

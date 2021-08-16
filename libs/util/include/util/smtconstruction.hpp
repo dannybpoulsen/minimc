@@ -137,13 +137,16 @@ namespace MiniMC {
 	    auto sort = builder.makeBVSort (type->getSize()*8);
 	    return builder.makeVar (sort,MiniMC::Support::Localiser ("SMT-Undef-%1%").format (++nb));
 	  }
-	  
+
+	  else {
+	    throw MiniMC::Support::Exception ("Unsupported Constant");
+	  }
 	}
 
 	SMTLib::Term_ptr buildSMTValue (SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
 	  static std::size_t nb = 0;
 	  if (ptr->isConstant()) {
-		return buildSMTConstant (builder,ptr);
+	    return buildSMTConstant (builder,ptr);
 	  }
 	  else {
 		auto var = std::static_pointer_cast<MiniMC::Model::Variable> (ptr);
@@ -182,20 +185,20 @@ namespace MiniMC {
 	}
 	
     SMTLib::Term_ptr buildSMTTerm (const SSAMap& map, const SSAMap& gmap , SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
-	  if (!ptr->isConstant ()) {
-	    if (ptr->isGlobal ()) {
-	      return gmap.lookup (ptr.get());
-		  
-	    }
-	    else 
-	      return map.lookup (ptr.get());
-	  }
-	  else {
-		return buildSMTConstant (builder,ptr);
-	  } 
-	   
+      if (!ptr->isConstant ()) {
+	if (ptr->isGlobal ()) {
+	  return gmap.lookup (ptr.get());
+	  
 	}
-	
+	else 
+	  return map.lookup (ptr.get());
+      }
+      else {
+	return buildSMTConstant (builder,ptr);
+      } 
+      
+    }
+    
   }
 }
 

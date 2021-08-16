@@ -159,8 +159,8 @@ namespace MiniMC {
 			  auto& castee = helper.getCastee ();
 			  auto bytesize = res->getType ()->getSize ();
 			  auto valTerm = MiniMC::Util::buildSMTTerm (*data.oldSSAMap,*data.oldGSSAMap,*data.smtbuilder,castee);
-			  
-			  
+
+
 			  data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::Extract,{valTerm},{bytesize*8-1,0}));
 			  
 		  }
@@ -177,12 +177,15 @@ namespace MiniMC {
 			auto zeros = data.smtbuilder->makeBVIntConst (0,bytesize*8);
 			auto eq =   data.smtbuilder->buildTerm (SMTLib::Ops::Equal,{valTerm,zeros});
 			data.newSSAMap->updateValue (res.get(),data.smtbuilder->buildTerm (SMTLib::Ops::ITE,{eq,
-																								 data.smtbuilder->makeBoolConst (false),
-																								 data.smtbuilder->makeBoolConst (true)}));
+													     data.smtbuilder->makeBoolConst (false),
+													     data.smtbuilder->makeBoolConst (true)}));
 			
 		  }
 		  
-		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca) {
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Alloca ||
+				     
+				     opc == MiniMC::Model::InstructionCode::FindSpace 
+				     ) {
 		    MiniMC::Model::InstHelper<opc> helper (i);
 		    auto& result = helper.getResult ();
 		    auto& size = helper.getSize ();
@@ -208,7 +211,7 @@ namespace MiniMC {
 		      }
 		    }
 		  }
-
+		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Load) {
 		    MiniMC::Model::InstHelper<opc> helper (i);
 		    
@@ -232,6 +235,10 @@ namespace MiniMC {
 		  }
 		  
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Skip) {
+		    //Do nothing
+		  }
+
+		  else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
 		    //Do nothing
 		  }
 		  
