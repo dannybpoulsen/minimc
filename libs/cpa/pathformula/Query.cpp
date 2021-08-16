@@ -96,6 +96,8 @@ namespace MiniMC {
 			
 	    if (!instr.isPhi) {
 	      data.oldSSAMap = data.newSSAMap;
+	      data.oldGSSAMap = data.newGSSAMap;
+	      data.oldHeap = data.newHeap;
 	    }
 	    auto it = instr.begin();
 	    auto end = instr.end ();

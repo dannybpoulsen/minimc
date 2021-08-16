@@ -43,17 +43,17 @@ namespace MiniMC {
 
 	SMTLib::Term_ptr isStackConstraint (SMTLib::Term_ptr& term) {
 	  //Extract first eight bits;
-	  auto stack_seg = builder->buildTerm (SMTLib::Ops::Extract,{term},{64,64-sizeof(MiniMC::seg_t)*8});
+	  auto stack_seg = builder->buildTerm (SMTLib::Ops::Extract,{term},{63,63-sizeof(MiniMC::seg_t)*8});
 	  auto stack_id = builder->makeBVIntConst (static_cast<MiniMC::seg_t> (MiniMC::Support::PointerType::Stack),8);
 	  return builder->buildTerm (SMTLib::Ops::Equal,{stack_seg,stack_id});
 	}
 
 	SMTLib::Term_ptr baseValue (SMTLib::Term_ptr& term) {
-	  return builder->buildTerm (SMTLib::Ops::Extract,{term},{31,15}); 
+	  return builder->buildTerm (SMTLib::Ops::Extract,{term},{47,32}); 
 	}
 
 	SMTLib::Term_ptr offsetValue (SMTLib::Term_ptr& term) {
-	  return builder->buildTerm (SMTLib::Ops::Extract,{term},{63,32}); 
+	  return builder->buildTerm (SMTLib::Ops::Extract,{term},{31,0}); 
 	}
 	
 	SMTLib::Term_ptr makeStackPointer (MiniMC::base_t base,MiniMC::offset_t) {
@@ -91,10 +91,11 @@ namespace MiniMC {
 	  
 	  carr = t.buildTerm (SMTLib::Ops::Store,{carr,curind,curbyte});
 	}
-	std::cerr << *carr << std::endl;
+	assert(carr);
+	//std::cerr << *carr << std::endl;
 	return carr;
       }
-      
+       
       class Heap {
       public:
 	void free (SMTLib::Term_ptr pointer) {
@@ -106,22 +107,32 @@ namespace MiniMC {
 	    //DO nothing atm
 	  }
 	  else {
-	    PointerHelper phelper (&builder);
+	    for (base_t i = 0; i < entries.size (); i++) {
+	      PointerHelper phelper (&builder);
+	      auto comp = builder.buildTerm (SMTLib::Ops::Equal, {phelper.baseValue (pointer), builder.makeBVIntConst (i,8*sizeof(MiniMC::base_t))});
+	      auto updArr = writeToArr (bytes,builder,entries[i].content,phelper.offsetValue(pointer),content);
+	      auto newcontent = builder.buildTerm (SMTLib::Ops::ITE, {comp,updArr,entries[i].content});
+	      entries[i].content = newcontent;
+	    }
 	    
-	    writeToArr (bytes,builder,entries[0].content,phelper.offsetValue(pointer),content);
 	  }
 	}
 
 	SMTLib::Term_ptr  read (SMTLib::Term_ptr pointer,std::size_t bytes,SMTLib::TermBuilder& builder) const  {
-	  if (entries.size () == 0) {
-	    auto sort = builder.makeBVSort (bytes*8);
-	    return builder.makeVar (sort, "Read");
-	  }
-	  else {
-	    PointerHelper phelper (&builder);
+	  auto sort = builder.makeBVSort (bytes*8);
+	  
 	    
-	    return readFromArr (bytes,builder,entries[0].content,phelper.offsetValue(pointer));
+	  auto res = builder.makeVar (sort, "UndefRead");
+	  
+	  PointerHelper phelper (&builder);
+	  auto offset = phelper.offsetValue(pointer);
+	  auto base = phelper.baseValue (pointer);
+	  for (base_t i = 0; i < entries.size(); i++) {
+	    auto comp = builder.buildTerm (SMTLib::Ops::Equal, {base, builder.makeBVIntConst (i,8*sizeof(MiniMC::base_t))});
+	    auto read = readFromArr (bytes,builder,entries.at(i).content,offset); 
+	    res = builder.buildTerm (SMTLib::Ops::ITE, {comp,read,res});
 	  }
+	  return res;
 	}
 
 	SMTLib::Term_ptr allocate (MiniMC::uint64_t size,SMTLib::TermBuilder& builder) {
@@ -130,7 +141,7 @@ namespace MiniMC {
 					     SMTLib::SortKind::Array,{
 					       builder.makeBVSort (32),
 					       builder.makeBVSort (8)}
-					     );
+					    );
 	  auto content = builder.makeVar (arr_sort,"CC");
 	  entries.emplace_back (content,size);
 	  return res;
