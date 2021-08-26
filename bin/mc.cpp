@@ -87,7 +87,6 @@ namespace {
 MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Program_ptr& prgm,   MiniMC::Algorithms::SetupOptions& sopt) {
   sopt.expandNonDet = true;  
   return runAlgorithm (*prgm,sopt,locoptions.expect);
-  
 }
 
 static CommandRegistrar mc_reg ("mc",mc_main,"Check whether it is possible to reach an assert violation. Classic reachability analysis. ",addOptions);

@@ -42,7 +42,7 @@ namespace MiniMC {
 	PointerHelper (SMTLib::TermBuilder* b) : builder(b) {}
 
 	SMTLib::Term_ptr isStackConstraint (SMTLib::Term_ptr& term) {
-	  //Extract first eight bits;
+	  //Extract last eight bits;
 	  auto stack_seg = builder->buildTerm (SMTLib::Ops::Extract,{term},{63,63-sizeof(MiniMC::seg_t)*8});
 	  auto stack_id = builder->makeBVIntConst (static_cast<MiniMC::seg_t> (MiniMC::Support::PointerType::Stack),8);
 	  return builder->buildTerm (SMTLib::Ops::Equal,{stack_seg,stack_id});
@@ -92,7 +92,6 @@ namespace MiniMC {
 	  carr = t.buildTerm (SMTLib::Ops::Store,{carr,curind,curbyte});
 	}
 	assert(carr);
-	//std::cerr << *carr << std::endl;
 	return carr;
       }
        

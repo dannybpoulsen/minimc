@@ -43,8 +43,8 @@ namespace MiniMC {
 	  }
 
 	  To lookup (gsl::not_null<From> from ) const {
-		assert(entries.count (from.get()));
-		return entries.at (from.get()).to; 
+	    assert(entries.count (from.get()));
+	    return entries.at (from.get()).to; 
 	  }
 
 	  Index getIndex (gsl::not_null<From> from ) const {
