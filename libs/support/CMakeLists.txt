@@ -20,11 +20,11 @@ if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 endif()
 
 configure_file (
- "${CMAKE_CURRENT_SOURCE_DIR}/include/support/config.h.in"
+ "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
 )
 
-target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
+target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
 
 target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} base64)
 if(BIG_ENDIAN)
