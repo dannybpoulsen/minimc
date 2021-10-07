@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include "support/exceptions.hpp"
 #include "model/variables.hpp"
+#include "model/instructions.hpp"
 
 
 namespace MiniMC {

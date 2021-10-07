@@ -3,14 +3,14 @@
 
 namespace MiniMC {
   namespace Support {
-	enum class ExitCodes {
-	  AllGood = 0,
-	  RuntimeError = 1,
-	  ConfigurationError = 2,
-	  UnexpectedResult = 4
-	};
-	  
+    enum class ExitCodes {
+      AllGood = 0,
+      RuntimeError = 1,
+      ConfigurationError = 2,
+      UnexpectedResult = 4
+    };
+
   }
-}
+} // namespace MiniMC
 
 #endif

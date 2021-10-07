@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
-
+#include <iostream>
 namespace MiniMC {
   namespace Linux {
     class ColorModifier {

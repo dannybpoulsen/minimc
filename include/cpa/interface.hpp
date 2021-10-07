@@ -13,14 +13,14 @@
 #ifndef _CPA_INTERFACE__
 #define _CPA_INTERFACE__
 
-#include <ostream>
-#include <memory>
-#include <unordered_map>
 #include "cpa/state.hpp"
-#include "support/sequencer.hpp"
-#include "support/feedback.hpp"
-#include "model/cfg.hpp"
 #include "hash/hashing.hpp"
+#include "model/cfg.hpp"
+#include "support/feedback.hpp"
+#include "support/sequencer.hpp"
+#include <memory>
+#include <ostream>
+#include <unordered_map>
 
 namespace MiniMC {
   namespace CPA {
@@ -37,23 +37,21 @@ namespace MiniMC {
        *
        * @return the create State
        */
-      virtual State_ptr makeInitialState (const MiniMC::Model::Program&) {return nullptr;}
-      
+      virtual State_ptr makeInitialState(const MiniMC::Model::Program&) { return nullptr; }
+
       /** 
        * Query the given state how many processes it has
        *
        * @return number of processes
        */
-      virtual size_t nbOfProcesses (const State_ptr& ) {return 0;}
-	  
-      
+      virtual size_t nbOfProcesses(const State_ptr&) { return 0; }
     };
 
     using StateQuery_ptr = std::shared_ptr<StateQuery>;
-    
+
     /** 
      * The Tranferer generates successor for States
-     */ 
+     */
     struct Transferer {
       /** 
        * Comput the successor state of \p s by performing edge \p e for
@@ -65,40 +63,37 @@ namespace MiniMC {
        * performed (which may happen for instance) when a guard is
        * false) 
        */
-      virtual State_ptr doTransfer (const State_ptr& s, const MiniMC::Model::Edge_ptr& e,proc_id id) {return nullptr;}
+      virtual State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) { return nullptr; }
     };
 
     using Transferer_ptr = std::shared_ptr<Transferer>;
-    
-	
-    struct Joiner {  
+
+    struct Joiner {
       /** 
        * Join two  states \p l and \p r with each other
        *
        * @return  the joined state of nullptr if the states cannot be
        * merged. 
        */
-      virtual State_ptr doJoin (const State_ptr& l, const State_ptr& r) {return nullptr;}
-      
+      virtual State_ptr doJoin(const State_ptr& l, const State_ptr& r) { return nullptr; }
+
       /** 
        * Test if \p l covers \p r i.e. whether the behaviour of \l
        * includes that of \p r
        */
-      virtual bool covers (const State_ptr& l, const State_ptr& r) {
-	return false;
+      virtual bool covers(const State_ptr& l, const State_ptr& r) {
+        return false;
       }
-       
     };
 
     using Joiner_ptr = std::shared_ptr<Joiner>;
-    
-    
+
     struct PrevalidateSetup {
       /** 
        * Check whether this CPA can be run on prgm
        * without encountering runtime errors. 
        */
-      virtual bool validate (const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {return true;}
+      virtual bool validate(const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) { return true; }
     };
 
     using PrevalidateSetup_ptr = std::shared_ptr<PrevalidateSetup>;
@@ -106,27 +101,27 @@ namespace MiniMC {
     public:
       using Iterator = std::vector<MiniMC::CPA::State_ptr>::iterator;
       using StorageTag = MiniMC::Hash::hash_t;
-      
-      virtual ~IStorer () {}
-      virtual bool saveState (const State_ptr& state,StorageTag* tag = nullptr) = 0;
-      virtual State_ptr loadState (StorageTag st)  = 0;
+
+      virtual ~IStorer() {}
+      virtual bool saveState(const State_ptr& state, StorageTag* tag = nullptr) = 0;
+      virtual State_ptr loadState(StorageTag st) = 0;
       struct JoinPair {
-	State_ptr orig;
-	State_ptr joined;
+        State_ptr orig;
+        State_ptr joined;
       };
-      virtual IStorer::JoinPair joinState (const State_ptr& state) = 0;
-      virtual State_ptr isCoveredByStore (const State_ptr& state)  = 0;
+      virtual IStorer::JoinPair joinState(const State_ptr& state) = 0;
+      virtual State_ptr isCoveredByStore(const State_ptr& state) = 0;
       //THese breeak the interfacec
-      virtual Iterator stored_begin () = 0;
-      virtual Iterator stored_end () = 0;
-     };
+      virtual Iterator stored_begin() = 0;
+      virtual Iterator stored_end() = 0;
+    };
 
     using Storer_ptr = std::shared_ptr<IStorer>;
-    
+
     class Storer : public IStorer {
     public:
-      Storer (const Joiner_ptr& join) : JoinOperation (join) {}
-      virtual ~Storer () {}
+      Storer(const Joiner_ptr& join) : JoinOperation(join) {}
+      virtual ~Storer() {}
 
       /** 
        * Insert a State into the store. It must be the case that
@@ -138,20 +133,19 @@ namespace MiniMC {
        *
        * @return 
        */
-      bool saveState (const State_ptr& state,StorageTag* tag = nullptr) {
-	assert(!isCoveredByStore (state));
-	if (tag)
-	  *tag = actualStore.size();
-	actualStore.emplace_back(state);		     
-	
-	return true;
+      bool saveState(const State_ptr& state, StorageTag* tag = nullptr) {
+        assert(!isCoveredByStore(state));
+        if (tag)
+          *tag = actualStore.size();
+        actualStore.emplace_back(state);
+
+        return true;
       }
 
-	  
-      State_ptr loadState (StorageTag st) {
-	return actualStore.at(st);
+      State_ptr loadState(StorageTag st) {
+        return actualStore.at(st);
       }
-	  
+
       /** 
        * Try to join \p state into a state states already stored
        *
@@ -159,20 +153,19 @@ namespace MiniMC {
        *
        * @return Merged State or nullptr if unsuccessful
        */
-      IStorer::JoinPair joinState (const State_ptr& state) {
-	for (auto& it : actualStore) {
-	  auto res = JoinOperation->doJoin (it,state);
-	  if (res) {
-	    auto orig =  it;
-	    it = res;
-	    return {.orig = orig,  .joined = res};
-	  }
-	  
-	}
-	saveState (state);
-	return {.orig = nullptr, .joined = nullptr} ;
+      IStorer::JoinPair joinState(const State_ptr& state) {
+        for (auto& it : actualStore) {
+          auto res = JoinOperation->doJoin(it, state);
+          if (res) {
+            auto orig = it;
+            it = res;
+            return {.orig = orig, .joined = res};
+          }
+        }
+        saveState(state);
+        return {.orig = nullptr, .joined = nullptr};
       }
-      
+
       /** 
        * Check whether a state is covered by some state already in
        * this storage.
@@ -181,52 +174,49 @@ namespace MiniMC {
        *
        * @return state covering state
        */
-      State_ptr isCoveredByStore (const State_ptr& state) {
-	for (auto& it : actualStore) {
-	  if (JoinOperation->covers (it,state)) {
-	    return it;
-	  }
-	}
-	return nullptr;
+      State_ptr isCoveredByStore(const State_ptr& state) {
+        for (auto& it : actualStore) {
+          if (JoinOperation->covers(it, state)) {
+            return it;
+          }
+        }
+        return nullptr;
       }
-      
-      
-      IStorer::Iterator stored_begin () {return actualStore.begin();}
-      IStorer::Iterator stored_end () {return actualStore.end();}
-      
+
+      IStorer::Iterator stored_begin() { return actualStore.begin(); }
+      IStorer::Iterator stored_end() { return actualStore.end(); }
+
     private:
       std::vector<State_ptr> actualStore;
       Joiner_ptr JoinOperation;
     };
 
     struct ICPA {
-      virtual ~ICPA () {}
-      virtual StateQuery_ptr makeQuery ()  const = 0;
-      virtual Transferer_ptr makeTransfer () const = 0;
-      virtual Joiner_ptr makeJoin () const = 0;
-      virtual Storer_ptr makeStore () const = 0;
-      virtual PrevalidateSetup_ptr makeValidate () const = 0;
+      virtual ~ICPA() {}
+      virtual StateQuery_ptr makeQuery() const = 0;
+      virtual Transferer_ptr makeTransfer() const = 0;
+      virtual Joiner_ptr makeJoin() const = 0;
+      virtual Storer_ptr makeStore() const = 0;
+      virtual PrevalidateSetup_ptr makeValidate() const = 0;
     };
 
     using CPA_ptr = std::shared_ptr<ICPA>;
-    
-    template<
-      class Query,
-      class Transfer,
-      class Joiner,
-      class Store,
-      class Prevalidate>
+
+    template <
+        class Query,
+        class Transfer,
+        class Joiner,
+        class Store,
+        class Prevalidate>
     struct CPADef : public ICPA {
-      virtual StateQuery_ptr makeQuery () const {return std::make_shared<Query>();}
-      virtual Transferer_ptr makeTransfer () const {return std::make_shared<Transfer>();}
-      virtual Joiner_ptr makeJoin ()  const  {return std::make_shared<Joiner> ();}
-      virtual Storer_ptr makeStore () const {return std::make_shared<Store> (std::make_shared<Joiner> ());}
-      virtual PrevalidateSetup_ptr makeValidate () const  {return std::make_shared<Prevalidate>();}
-    
+      virtual StateQuery_ptr makeQuery() const { return std::make_shared<Query>(); }
+      virtual Transferer_ptr makeTransfer() const { return std::make_shared<Transfer>(); }
+      virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
+      virtual Storer_ptr makeStore() const { return std::make_shared<Store>(std::make_shared<Joiner>()); }
+      virtual PrevalidateSetup_ptr makeValidate() const { return std::make_shared<Prevalidate>(); }
     };
-      
-  }
-}
+
+  } // namespace CPA
+} // namespace MiniMC
 
 #endif
-

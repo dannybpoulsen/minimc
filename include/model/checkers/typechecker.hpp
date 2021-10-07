@@ -10,26 +10,26 @@
 #define _TYPECHECK__
 
 #include "model/cfg.hpp"
-#include "support/sequencer.hpp"
 #include "support/feedback.hpp"
+#include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Model {
     namespace Checkers {
-	  /**
+      /**
 	   * Typecheck the progrm \p prgm.
 	   
 	   */
       struct TypeChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-		TypeChecker () : messager (MiniMC::Support::getMessager()) {}
-		virtual bool run (MiniMC::Model::Program&  prgm);
+        TypeChecker() : messager(MiniMC::Support::getMessager()) {}
+        virtual bool run(MiniMC::Model::Program& prgm);
+
       private:
-		MiniMC::Support::Messager& messager;
+        MiniMC::Support::Messager& messager;
       };
 
-    }
-  }
-}
-
+    } // namespace Checkers
+  }   // namespace Model
+} // namespace MiniMC
 
 #endif

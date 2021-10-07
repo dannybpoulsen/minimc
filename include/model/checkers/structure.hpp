@@ -12,14 +12,14 @@
 #define _STRUCTURECHECK__
 
 #include "model/cfg.hpp"
-#include "support/sequencer.hpp"
 #include "support/feedback.hpp"
+#include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Model {
     namespace Checkers {
-	  
-	  /**
+
+      /**
 	   * Run structural checks of the CFG such as whether Call instructions are the last instruction. 
 	   * Look at 
 	   * - \ref MiniMC::Model::Checkers::checkNoGuardAndInstructionStream()
@@ -29,16 +29,16 @@ namespace MiniMC {
 	   * - \ref MiniMC::Model::Checkers::checkAssertIsLast()
 	   * for the actual checks 
 	   */
-	  struct StructureChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-		StructureChecker () : messager (MiniMC::Support::getMessager ()) {}
-		virtual bool run (MiniMC::Model::Program&  prgm);
-      private:
-		MiniMC::Support::Messager& messager;
-      };
-	  
-    }
-  }
-}
+      struct StructureChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+        StructureChecker() : messager(MiniMC::Support::getMessager()) {}
+        virtual bool run(MiniMC::Model::Program& prgm);
 
+      private:
+        MiniMC::Support::Messager& messager;
+      };
+
+    } // namespace Checkers
+  }   // namespace Model
+} // namespace MiniMC
 
 #endif
