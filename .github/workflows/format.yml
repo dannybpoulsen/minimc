@@ -1,0 +1,15 @@
+name: Format Check
+
+on: push
+
+jobs:
+    formatting:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - name: Install clang-format
+          run: sudo apt-get update && sudo apt-get install clang-format
+        - name: Check Format CPP
+          run: find libs -iregex '.*\.cpp' | xargs clang-format -n -Werror
+        - name: Check Format hpp
+          run: find include -iregex '.*\.hpp$' | xargs clang-format -n -Werror
