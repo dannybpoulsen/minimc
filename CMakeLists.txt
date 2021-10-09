@@ -17,7 +17,6 @@ execute_process(COMMAND
   OUTPUT_VARIABLE GIT_HASH
   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-
 # use, i.e. don't skip the full RPATH for the build tree
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
@@ -25,14 +24,18 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 # (but later on when installing)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 
+set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+
 add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)
 enable_testing()
 add_subdirectory(tests)
-	
-add_subdirectory(package)	
-add_subdirectory(docs)	
+
 if(ENABLE_PYTHON)	
   add_subdirectory (python)
 endif()
+add_subdirectory(package)

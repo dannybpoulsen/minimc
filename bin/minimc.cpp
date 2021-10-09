@@ -28,6 +28,8 @@ void printBanner (std::ostream& os) {
 }
 
 CPASelector selectedCPA = CPASelector::Automatic;
+std::vector<MiniMC::Support::SMT::SMTDescr> smts;
+MiniMC::Support::SMT::SMTDescr* selsmt;
 
 MiniMC::CPA::CPA_ptr createUserDefinedCPA (CPASelector defaultSelector) {      
   assert(defaultSelector != CPASelector::Automatic);
@@ -38,7 +40,7 @@ MiniMC::CPA::CPA_ptr createUserDefinedCPA (CPASelector defaultSelector) {
   case CPASelector::LocationPathformula:
     return std::make_shared<MiniMC::CPA::Compounds::CPA> (std::initializer_list<MiniMC::CPA::CPA_ptr>({
 	  std::make_shared<MiniMC::CPA::Location::CPA> (),
-	  std::make_shared<MiniMC::CPA::PathFormula::CPA> ()}));
+	  std::make_shared<MiniMC::CPA::PathFormula::CPA> (MiniMC::Support::SMT::getSMTFactory (selsmt))}));
     break;
     
 #endif
@@ -151,15 +153,15 @@ int main (int argc,char* argv[]) {
 #ifdef MINIMC_SYMBOLIC
   //SMT options
   po::options_description smt("SMT Options");
-  std::vector<MiniMC::Support::SMT::SMTDescr> smts;
+  
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter (smts));
-  auto setSMTSolver = [smts] (int val) {
-	if (val < smts.size ()) {
-	  MiniMC::Support::SMT::setSMTSolver (&smts[val]);
-	}
-	else {
-	  MiniMC::Support::SMT::setSMTSolver (&smts[0]);
-	}
+  auto setSMTSolver = [] (int val) {
+    if (val < smts.size ()) {
+      selsmt  = &smts[val];
+    }
+    else {
+      selsmt = &smts[0];
+    }
   };
   
   if (smts.size ()) {

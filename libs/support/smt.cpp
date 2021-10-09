@@ -20,16 +20,10 @@ namespace MiniMC {
 
       SMTLib::SMTBackendRegistrar* r = 0;
 
-      SMTFactory_ptr getSMTFactory() {
-        if (r) {
-          return std::make_shared<SMTFactoryL>(r);
-        } else {
-          throw MiniMC::Support::ConfigurationException("No  SMT Backend Selected");
-        }
-      }
-
-      void setSMTSolver(const SMTDescr* descr) {
-        r = (descr)->r;
+      SMTFactory_ptr getSMTFactory(const SMTDescr* descr) {
+	assert(descr);
+	return std::make_shared<SMTFactoryL>(descr->r);
+	  
       }
 
     } // namespace SMT

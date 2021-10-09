@@ -24,6 +24,7 @@ enum class CPASelector {
 
 MiniMC::CPA::CPA_ptr createUserDefinedCPA (CPASelector defaultSelector);
 
+
 struct CommandRegistrar;
 void registerCommand (const std::string&, CommandRegistrar&);
 bool isCommand (const std::string&);

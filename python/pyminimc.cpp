@@ -19,14 +19,18 @@ PYBIND11_MODULE(pyminimc, minimc) {
   addAlgorithmsModule (minimc);
 
   auto submodule = minimc.def_submodule("smt");
+
   py::class_<MiniMC::Support::SMT::SMTDescr>  (submodule,"SMTDescr")
     .def("name",&MiniMC::Support::SMT::SMTDescr::name)
     .def("description",&MiniMC::Support::SMT::SMTDescr::descr)
-    .def("useSolver",[](MiniMC::Support::SMT::SMTDescr& descr) {
-      MiniMC::Support::SMT::setSMTSolver (&descr);
+    .def("createSolver",[](MiniMC::Support::SMT::SMTDescr& descr) {
+      return MiniMC::Support::SMT::getSMTFactory (&descr);
     }
       );
 
+  py::class_<MiniMC::Support::SMT::SMTFactory,MiniMC::Support::SMT::SMTFactory_ptr> (submodule,"SMTFactory");
+  
+  
   submodule.
     def ("smtsolvers",[]() {
       std::vector<MiniMC::Support::SMT::SMTDescr> res;

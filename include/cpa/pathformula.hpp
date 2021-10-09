@@ -4,12 +4,16 @@
 #include "cpa/interface.hpp"
 #include "model/checkers/HasInstruction.hpp"
 #include "support/localisation.hpp"
+#include "support/smt.hpp"
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
       struct StateQuery : public MiniMC::CPA::StateQuery {
+	StateQuery (const MiniMC::Support::SMT::SMTFactory_ptr& factory) : factory(factory) {}
         MiniMC::CPA::State_ptr makeInitialState(const MiniMC::Model::Program&);
+      private:
+	MiniMC::Support::SMT::SMTFactory_ptr factory;
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
@@ -47,18 +51,23 @@ namespace MiniMC {
         MiniMC::Support::Messager& mess;
       };
 
-      struct PrevalidateSetup {
+      struct PrevalidateSetup : MiniMC::CPA::PrevalidateSetup{
         bool validate(const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
           return MiniMC::Model::Checkers::HasNoInstruction<MiniMC::Model::InstructionCode::Call>(mess, "This CPA does not support '%1%' instructions.").run(prgm);
         }
       };
 
-      using CPA = CPADef<
-          StateQuery,
-          Transferer,
-          Joiner,
-          MiniMC::CPA::Storer,
-          MiniMC::CPA::PrevalidateSetup>;
+
+      struct CPA : public ICPA {
+	CPA (const MiniMC::Support::SMT::SMTFactory_ptr& fact) : factory(fact) {}
+	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(factory); }
+	Transferer_ptr makeTransfer() const { return std::make_shared<Transferer>(); }
+	Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
+	Storer_ptr makeStore() const { return std::make_shared<Storer>(std::make_shared<Joiner>()); }
+	PrevalidateSetup_ptr makeValidate() const { return std::make_shared<PrevalidateSetup>(); }
+      private:
+	MiniMC::Support::SMT::SMTFactory_ptr factory;
+      };
 
     } // namespace PathFormula
   }   // namespace CPA

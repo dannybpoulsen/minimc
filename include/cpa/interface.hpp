@@ -215,7 +215,7 @@ namespace MiniMC {
       virtual Storer_ptr makeStore() const { return std::make_shared<Store>(std::make_shared<Joiner>()); }
       virtual PrevalidateSetup_ptr makeValidate() const { return std::make_shared<Prevalidate>(); }
     };
-
+    
   } // namespace CPA
 } // namespace MiniMC
 

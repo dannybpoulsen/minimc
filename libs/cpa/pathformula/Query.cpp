@@ -16,7 +16,7 @@ namespace MiniMC {
         MiniMC::Util::SSAMap map;
         MiniMC::Util::SSAMap gmap;
 
-        auto context = MiniMC::Support::SMT::getSMTFactory()->construct();
+        auto context = factory->construct();
         for (auto& v : prgm.getGlobals()->getVariables()) {
           gmap.initialiseValue(v.get(), MiniMC::Util::buildSMTValue(context->getBuilder(), v));
         }
