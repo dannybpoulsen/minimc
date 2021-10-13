@@ -125,7 +125,7 @@ namespace MiniMC {
         if (state->nbOfProcesses() == 0) {
           throw MiniMC::Support::Exception("No Processes to generate sucessors for");
         }
-
+	
         return Iterator::makeBegin(state, transfer);
       }
 

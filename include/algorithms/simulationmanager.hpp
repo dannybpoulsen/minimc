@@ -27,7 +27,6 @@ namespace MiniMC {
     struct SimManagerOptions {
       StoreStatePredicate storage = [](const MiniMC::CPA::State_ptr& s) { return s->need2Store(); };
       MiniMC::CPA::Storer_ptr storer;
-      MiniMC::CPA::Joiner_ptr joiner;
       MiniMC::CPA::Transferer_ptr transfer;
     };
 
@@ -41,9 +40,8 @@ namespace MiniMC {
     public:
       SimulationManager(SimManagerOptions opt) : doStore(opt.storage),
                                                  storage(opt.storer),
-                                                 joiner(opt.joiner),
                                                  generator(opt.transfer) {}
-
+      
       std::size_t getWSize() const { return waiting.size(); }
       std::size_t getPSize() const { return passed; }
 
@@ -169,7 +167,6 @@ namespace MiniMC {
       DelaySearchPredicate delay;
       StoreStatePredicate doStore;
       MiniMC::CPA::Storer_ptr storage;
-      MiniMC::CPA::Joiner_ptr joiner;
       MiniMC::Algorithms::Generator generator;
     };
 

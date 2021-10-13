@@ -13,7 +13,6 @@ void addAlgorithmsModule (py::module& m) {
     .def(py::init<> ())
     .def_readwrite ("storage",&MiniMC::Algorithms::SimManagerOptions::storage)
     .def_readwrite ("storer",&MiniMC::Algorithms::SimManagerOptions::storer)
-    .def_readwrite ("joiner",&MiniMC::Algorithms::SimManagerOptions::joiner)
     .def_readwrite ("transfer",&MiniMC::Algorithms::SimManagerOptions::transfer);
 
   py::class_<MiniMC::Algorithms::SearchOptions> (submodule,"SearchOptions")

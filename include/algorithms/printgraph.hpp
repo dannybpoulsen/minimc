@@ -47,7 +47,6 @@ namespace MiniMC {
         auto initstate = query->makeInitialState(prgm);
         MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
             .storer = cpa->makeStore(),
-            .joiner = cpa->makeJoin(),
             .transfer = cpa->makeTransfer()});
         simmanager.insert(initstate);
         simmanager.reachabilitySearch(pwopt);

@@ -56,15 +56,13 @@ namespace MiniMC {
         auto initstate = query->makeInitialState(prgm);
         MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
             .storer = cpa->makeStore(),
-            .joiner = cpa->makeJoin(),
             .transfer = cpa->makeTransfer()});
         simmanager.insert(initstate);
         foundState = simmanager.reachabilitySearch({.filter = filter,
                                                     .goal = predicate
 
         });
-        //foundState = MiniMC::Algorithms::reachabilitySearch (passed,insert,initstate,predicate,transfer);
-
+       
         messager.message("Finished Reachability");
         if (foundState) {
           result.result = ReachabilityResult::Found;

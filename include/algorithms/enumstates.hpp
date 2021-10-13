@@ -34,7 +34,6 @@ namespace MiniMC {
 
         MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
             .storer = cpa->makeStore(),
-            .joiner = cpa->makeJoin(),
             .transfer = cpa->makeTransfer()});
         simmanager.insert(initstate);
         simmanager.reachabilitySearch({.filter = [](const MiniMC::CPA::State_ptr& state) {
