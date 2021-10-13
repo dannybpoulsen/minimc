@@ -21,12 +21,12 @@ void addModelModule (py::module& m) {
   py::class_<MiniMC::Model::Value, MiniMC::Model::Value_ptr> value (submodule,"Value");
   value.def ("getType",&MiniMC::Model::Value::getType)
     .def ("__str__",&MiniMC::Model::Value::string_repr)
-    .def_property ("isVariable",&MiniMC::Model::Value::isVariable,nullptr)
+    .def_property ("isRegister",&MiniMC::Model::Value::isRegister,nullptr)
     .def_property ("isConstant",&MiniMC::Model::Value::isConstant,nullptr)
     .def_property ("isGlobal",&MiniMC::Model::Value::isGlobal,nullptr);
     
-  py::class_<MiniMC::Model::Variable,MiniMC::Model::Variable_ptr> (submodule,"Variable",value)
-    .def_property ("name",&MiniMC::Model::Variable::getName,nullptr);
+  py::class_<MiniMC::Model::Register,MiniMC::Model::Variable_ptr> (submodule,"Variable",value)
+    .def_property ("name",&MiniMC::Model::Register::getName,nullptr);
 
   py::class_<MiniMC::Model::Constant,std::shared_ptr<MiniMC::Model::Constant> > constant (submodule,"Constant",value);
   constant

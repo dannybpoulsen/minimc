@@ -129,7 +129,7 @@ namespace MiniMC {
         auto newVar = stack->addVariable(name, type);
         values[val] = newVar;
       }
-      return std::static_pointer_cast<MiniMC::Model::Variable>(values[val]);
+      return std::static_pointer_cast<MiniMC::Model::Register>(values[val]);
     }
 
     MiniMC::Model::Type_ptr getType(llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);

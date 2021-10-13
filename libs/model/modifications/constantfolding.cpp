@@ -8,49 +8,45 @@ namespace MiniMC {
     namespace Modifications {
       template <MiniMC::Model::InstructionCode i>
       void foldInstr(MiniMC::Model::Instruction& instr, MiniMC::Model::Program& prgm) {
-        //Default - do nothing
-      }
+        if constexpr (i == MiniMC::Model::InstructionCode::IntToBool) {
+          MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::IntToBool> helper(instr);
+          auto res = helper.getResult();
+          auto val = helper.getCastee();
+          auto type = val->getType();
 
-      template <>
-      void foldInstr<MiniMC::Model::InstructionCode::IntToBool>(MiniMC::Model::Instruction& instr, MiniMC::Model::Program& prgm) {
-        assert(instr.getOpcode() == MiniMC::Model::InstructionCode::IntToBool);
-        MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::IntToBool> helper(instr);
-        auto res = helper.getResult();
-        auto val = helper.getCastee();
-        auto type = val->getType();
+          if (val->isConstant()) {
+            assert(type->getTypeID() == MiniMC::Model::TypeID::Integer);
+            auto cfac = prgm.getConstantFactory();
+            auto tfac = prgm.getTypeFactory();
 
-        if (val->isConstant()) {
-          assert(type->getTypeID() == MiniMC::Model::TypeID::Integer);
-          auto cfac = prgm.getConstantFactory();
-          auto tfac = prgm.getTypeFactory();
+            auto tt = cfac->makeIntegerConstant(1, tfac->makeBoolType());
+            auto ff = cfac->makeIntegerConstant(0, tfac->makeBoolType());
 
-          auto tt = cfac->makeIntegerConstant(1, tfac->makeBoolType());
-          auto ff = cfac->makeIntegerConstant(0, tfac->makeBoolType());
+            uint64_t value = 0;
+            switch (type->getSize()) {
+              case 1:
+                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>>(val)->getValue();
+                break;
+              case 2:
+                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>>(val)->getValue();
+                break;
+              case 4:
+                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>>(val)->getValue();
+                break;
+              case 8:
+                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>>(val)->getValue();
+                break;
+            }
 
-          uint64_t value = 0;
-          switch (type->getSize()) {
-            case 1:
-              value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>>(val)->getValue();
-              break;
-            case 2:
-              value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>>(val)->getValue();
-              break;
-            case 4:
-              value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>>(val)->getValue();
-              break;
-            case 8:
-              value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>>(val)->getValue();
-              break;
+            MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> build;
+            build.setResult(res);
+            if (value) {
+              build.setValue(tt);
+            } else {
+              build.setValue(ff);
+            }
+            instr.replace(build.BuildInstruction());
           }
-
-          MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> build;
-          build.setResult(res);
-          if (value) {
-            build.setValue(tt);
-          } else {
-            build.setValue(ff);
-          }
-          instr.replace(build.BuildInstruction());
         }
       }
 

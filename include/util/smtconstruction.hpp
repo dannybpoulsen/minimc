@@ -1,6 +1,8 @@
 #ifndef _SMTCONSTR__
 #define _SMTCONSTR__
 
+#include "util/ssamap.hpp"
+#include "model/cfg.hpp"
 #include "smt/builder.hpp"
 #include "support/exceptions.hpp"
 
@@ -116,7 +118,7 @@ namespace MiniMC {
       if (ptr->isConstant()) {
         return buildSMTConstant(builder, ptr);
       } else {
-        auto var = std::static_pointer_cast<MiniMC::Model::Variable>(ptr);
+        auto var = std::static_pointer_cast<MiniMC::Model::Register>(ptr);
         auto type = ptr->getType();
         SMTLib::Sort_ptr sort = nullptr;
         if (type->getTypeID() == MiniMC::Model::TypeID::Integer) {

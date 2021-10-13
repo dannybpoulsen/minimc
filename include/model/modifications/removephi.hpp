@@ -23,7 +23,7 @@ namespace MiniMC {
                 if (instrstream.isPhi) {
                   for (auto& inst : instrstream) {
                     InstHelper<InstructionCode::Assign> ass(inst);
-                    auto nvar = F->getVariableStackDescr()->addVariable(std::static_pointer_cast<Variable>(ass.getResult())->getName() + "PHI-tmp", ass.getResult()->getType());
+                    auto nvar = F->getVariableStackDescr()->addVariable(std::static_pointer_cast<Register>(ass.getResult())->getName() + "PHI-tmp", ass.getResult()->getType());
                     replacemap.insert(std::make_pair(ass.getResult().get(), nvar));
                     InstBuilder<InstructionCode::Assign> builder;
                     builder.setResult(replacemap.at(ass.getResult().get()));

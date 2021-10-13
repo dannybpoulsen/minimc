@@ -29,7 +29,7 @@ namespace MiniMC {
       virtual ~Value() {}
       const Type_ptr& getType() const { return type; }
       void setType(const Type_ptr& t) { type = t; }
-      virtual bool isVariable() const { return false; }
+      virtual bool isRegister() const { return false; }
       virtual bool isConstant() const { return false; }
 
       virtual bool isGlobal() const { return glob; }
@@ -218,11 +218,11 @@ namespace MiniMC {
 	 * Representation of Variable in MiniMC. 
 	 * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution  
 	 */
-    class Variable : public Value,
-                     public Placed<Variable>,
-                     public std::enable_shared_from_this<Variable> {
+    class Register : public Value,
+                     public Placed<Register>,
+                     public std::enable_shared_from_this<Register> {
     public:
-      Variable(const std::string& name) : name(name) {}
+      Register(const std::string& name) : name(name) {}
       const std::string& getName() const { return name; }
       virtual std::ostream& output(std::ostream& os) const {
         os << " < " << getName() << " ";
@@ -234,8 +234,8 @@ namespace MiniMC {
         return os << " >";
       }
 
-      bool isVariable() const { return true; }
-      void setOwner(const VariableStackDescr_ptr& descr) { owner = descr.get(); }
+      bool isRegister () const override { return true; }
+      void setOwner (const VariableStackDescr_ptr& descr) { owner = descr.get(); }
       auto& getOwner() const { return owner; }
 
     private:
@@ -243,7 +243,7 @@ namespace MiniMC {
       VariableStackDescr* owner;
     };
 
-    using Variable_ptr = std::shared_ptr<Variable>;
+    using Variable_ptr = std::shared_ptr<Register>;
 
     /**
 	 * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not 

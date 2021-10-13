@@ -62,7 +62,7 @@ namespace MiniMC {
           assert(!e->template hasAttribute<MiniMC::Model::AttributeType::Instructions>());
           //Grab definitions of predecessor location (as that must be the definitions used when moving along this edge)
           auto& locdefs = cfgdefs.getDefs(e->getFrom());
-          auto guard_var = std::static_pointer_cast<MiniMC::Model::Variable>(guard.guard);
+          auto guard_var = std::static_pointer_cast<MiniMC::Model::Register>(guard.guard);
           if (locdefs.nbDefsForVariable(guard_var) == 1) {
             auto instr_tup = locdefs.getDefsOfVariables(guard_var);
             auto instr = *instr_tup.first;

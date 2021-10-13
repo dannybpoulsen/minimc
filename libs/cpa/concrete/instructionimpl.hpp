@@ -47,8 +47,8 @@ namespace MiniMC {
 		}
 
 		const MiniMC::Util::Array evaluate (const MiniMC::Model::Value_ptr& v) const {
-		  if (v->isVariable ()) {
-			auto var =  std::static_pointer_cast<MiniMC::Model::Variable> (v);
+		  if (v->isRegister ()) {
+			auto var =  std::static_pointer_cast<MiniMC::Model::Register> (v);
 			auto arr = LookUp (var);
 			assert(arr.getSize () == v->getType ()->getSize ());
 			return arr;
@@ -80,7 +80,6 @@ namespace MiniMC {
 	  };
 	  
 	  struct ExecuteInstruction {
-
 		template<MiniMC::Model::InstructionCode opc>
 		static void execute (VMData& data,
 							 const MiniMC::Model::Instruction& i)  {
@@ -92,7 +91,7 @@ namespace MiniMC {
 
 			auto lval = data.readFrom.evaluate (left);
 			auto rval = data.readFrom.evaluate (right);
-			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Variable> (res), Steptacexec<opc> (lval,rval));
+			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Register> (res), Steptacexec<opc> (lval,rval));
 			
 		  }
 		  
@@ -104,7 +103,7 @@ namespace MiniMC {
 			auto lval = data.readFrom.evaluate (left);
 			auto rval = data.readFrom.evaluate (right);
 			assert(lval.getSize () == left->getType()->getSize ());
-			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Variable> (res), Stepcmpexec<opc> (lval,rval));
+			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Register> (res), Stepcmpexec<opc> (lval,rval));
 			
 		  }
 
@@ -122,7 +121,7 @@ namespace MiniMC {
 			auto& res = helper.getResult ();
 			auto& left = helper.getCastee ();
 			auto lval = data.readFrom.evaluate (left);
-			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Variable> (res), Stepcastexec1<opc> (lval,res->getType()->getSize()));
+			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Register> (res), Stepcastexec1<opc> (lval,res->getType()->getSize()));
 			
 		  }
 
@@ -130,7 +129,7 @@ namespace MiniMC {
 			auto& res = helper.getResult ();
 			auto& left = helper.getValue ();
 			auto lval = data.readFrom.evaluate (left);
-			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Variable> (res), lval);
+			data.writeTo .set (std::static_pointer_cast<MiniMC::Model::Register> (res), lval);
 		  }
 
 		  else if constexpr (opc == MiniMC::Model::InstructionCode::Skip) {
@@ -156,7 +155,7 @@ namespace MiniMC {
 			auto mod = [&]<typename T> () {
 			  MiniMC::Util::Array arrres (sizeof (T));
 			  arrres.template set<T> (0,MiniMC::Support::RandomNumber{}.uniform (lmin.template read<T>(), lmax.template read<T>()));;
-			  data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (res),arrres);
+			  data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Register> (res),arrres);
 			};
 			
 			switch (res->getType()->getSize ()) {
@@ -208,7 +207,7 @@ namespace MiniMC {
 			MiniMC::pointer_t pointer = data.writeTo.heap->allocate (lsize.template read<MiniMC::uint64_t> (0));
 			MiniMC::Util::Array res (sizeof(pointer));
 			res.set (0,pointer);
-			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Register> (result),res);
 			
 		  }
 		  
@@ -223,7 +222,7 @@ namespace MiniMC {
 																	   lsize.template read<MiniMC::uint64_t> (0));
 			MiniMC::Util::Array res (sizeof(pointer_res));
 			res.set (0,pointer_res);
-			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Register> (result),res);
 			
 		  }
 		  
@@ -239,7 +238,7 @@ namespace MiniMC {
 			MiniMC::Util::Array res (result->getType ()->getSize());
 			auto addr = data.readFrom.evaluate (helper.getAddress ());
 			data.readFrom.heap->read (res,addr.template read<MiniMC::pointer_t> ());
-			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Register> (result),res);
 			
 		  }
 
@@ -256,7 +255,7 @@ namespace MiniMC {
 			res.set (0,resptr);
 			
 			
-			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Variable> (result),res);
+			data.writeTo.set (std::static_pointer_cast<MiniMC::Model::Register> (result),res);
 			
 		  }
 		  

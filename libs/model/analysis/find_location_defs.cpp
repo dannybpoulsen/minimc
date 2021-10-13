@@ -26,7 +26,7 @@ namespace MiniMC {
               auto valueDefined = valueDefinedBy(*iit);
 
               if (valueDefined) {
-                MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Variable>(valueDefined);
+                MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Register>(valueDefined);
                 if (varsDef.count(varDefined))
                   continue;
                 varsDef.insert(varDefined);
@@ -36,7 +36,7 @@ namespace MiniMC {
           }
 
           for (auto& instr : from) {
-            if (!varsDef.count(std::static_pointer_cast<MiniMC::Model::Variable>(valueDefinedBy(*instr)))) {
+            if (!varsDef.count(std::static_pointer_cast<MiniMC::Model::Register>(valueDefinedBy(*instr)))) {
               changed |= to.gen(instr);
             }
           }
@@ -62,7 +62,7 @@ namespace MiniMC {
           MiniMC::Model::Location_ptr loc = tup.first;
           auto& genkillstate = tup.second;
           for (auto instr : genkillstate) {
-            defs.getDefs(loc).insert(std::static_pointer_cast<MiniMC::Model::Variable>(valueDefinedBy(*instr)),
+            defs.getDefs(loc).insert(std::static_pointer_cast<MiniMC::Model::Register>(valueDefinedBy(*instr)),
                                      instr);
           }
         }

@@ -76,7 +76,7 @@ int main () {
 		  auto valueDefined = valueDefinedBy (*iit);
 		  
 		  if (valueDefined) {
-			MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Variable> (valueDefined);
+			MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Register> (valueDefined);
 			if (varsDef.count (varDefined))
 			  continue;
 			varsDef.insert(varDefined);
@@ -88,7 +88,7 @@ int main () {
 	  }
 
 	  for (auto& instr : from) {
-		if (!varsDef.count (std::static_pointer_cast<MiniMC::Model::Variable> (valueDefinedBy (*instr)))) {
+		if (!varsDef.count (std::static_pointer_cast<MiniMC::Model::Register> (valueDefinedBy (*instr)))) {
 		  changed |= to.gen (instr);
 		}
 	  }

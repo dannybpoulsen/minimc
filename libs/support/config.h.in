@@ -8,9 +8,6 @@ namespace MiniMC {
       static constexpr const char* VERSION_MAJOR = "@VERSION_MAJOR@";
       static constexpr const char* VERSION_MINOR = "@VERSION_MINOR@";
       static constexpr const char* GIT_HASH = "@GIT_HASH@";
-      static constexpr const char* COMPILED_AS = "@CMAKE_BUILD_TYPE@";
-      static constexpr const char* ORGANISATION = "@ORGANISATION@";
-      static constexpr const char* DEPSACK = "@DEPSACK@";
     };
   } // namespace Support
 } // namespace MiniMC
