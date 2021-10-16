@@ -80,7 +80,7 @@ namespace MiniMC {
       struct ExpandUndefValues : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
 
-          auto& prgm = *F->getPrgm();
+	  /* auto& prgm = *F->getPrgm();
           auto cfg = F->getCFG().get();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
@@ -143,7 +143,7 @@ namespace MiniMC {
                 }
               }
             }
-          }
+	    }*/
           return true;
         }
 

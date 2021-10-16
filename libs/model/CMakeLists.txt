@@ -3,13 +3,13 @@ target_include_directories (model PUBLIC ${PROJECT_SOURCE_DIR}/include )
 target_link_libraries (model  util support )
 
 add_subdirectory(loaders)
-add_subdirectory(savers)
+#add_subdirectory(savers)
 add_subdirectory (analysis)
 add_subdirectory (checkers)
 add_subdirectory (modifications)
 
 
-target_link_libraries (model checkers loader saver modifications modelanalysis )
+target_link_libraries (model checkers loader modifications modelanalysis )
 
 	
 	

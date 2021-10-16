@@ -70,14 +70,14 @@ namespace MiniMC {
 
       }
 
-      else if constexpr (c == MiniMC::Model::InstructionCode::InsertValueFromConst) {
+      /*else if constexpr (c == MiniMC::Model::InstructionCode::InsertValueFromConst) {
         iter = helper.getAggregate();
         iter = helper.getnsertee();
         for (size_t i = 0; i < helper.nbOps(); i++) {
           iter = helper.getOp(i);
         }
       }
-
+      */
       else if constexpr (c == MiniMC::Model::InstructionCode::PtrAdd) {
         iter = helper.getValue();
         iter = helper.getAddress();

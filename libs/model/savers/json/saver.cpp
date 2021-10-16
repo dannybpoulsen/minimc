@@ -42,8 +42,8 @@ namespace MiniMC {
     void writeValue(const MiniMC::Model::Value_ptr& val, Obj& obj, Allocator& alloc) {
       rapidjson::Value rvalue;
       rvalue.SetObject();
-      if (val->isVariable()) {
-        auto var = std::static_pointer_cast<MiniMC::Model::Variable>(val);
+      if (val->isRegister()) {
+        auto var = std::static_pointer_cast<MiniMC::Model::Register>(val);
         rvalue.AddMember("type", rapidjson::Value().SetString(var->isGlobal() ? "global" : "local", alloc), alloc);
         rvalue.AddMember("value", rapidjson::Value().SetInt(var->getId()), alloc);
 

@@ -56,7 +56,7 @@ namespace MiniMC {
                   InstBuilder<InstructionCode::Ret> retbuilder;
 
                   freebuilder.setPointer(stackvar);
-                  retbuilder.setRetValue(instrstream.last().getOp(0));
+                  retbuilder.setRetValue(instrstream.last().getOps<InstructionCode::Ret> ().value);
                   instrstream.last().replace(freebuilder.BuildInstruction());
                   instrstream.back_inserter() = retbuilder.BuildInstruction();
 

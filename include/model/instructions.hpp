@@ -13,6 +13,7 @@
 #include "model/variables.hpp"
 #include <cassert>
 #include <ostream>
+#include <variant>
 
 namespace MiniMC {
   namespace Model {
@@ -51,7 +52,7 @@ namespace MiniMC {
 #define AGGREGATEOPS \
   X(ExtractValue)    \
   X(InsertValue)     \
-  X(InsertValueFromConst)
+  //  X(InsertValueFromConst)
 
 #define CASTOPS \
   X(Trunc)      \
@@ -130,6 +131,8 @@ namespace MiniMC {
       }
     }
 
+    
+    
     template <InstructionCode i>
     struct InstructionData {
       static const bool isTAC = false;
@@ -141,8 +144,15 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
+      using Content = int;
     };
 
+    struct TACContent {
+      Value_ptr res;
+      Value_ptr op1;
+      Value_ptr op2;
+    };
+    
 #define X(OP)                                   \
   template <>                                   \
   struct InstructionData<InstructionCode::OP> { \
@@ -156,10 +166,16 @@ namespace MiniMC {
     static const bool isAggregate = false;      \
     static const std::size_t operands = 2;      \
     static const bool hasResVar = true;         \
+    using Content = TACContent;			\
   };
     TACOPS
 #undef X
 
+    struct UnaryContent {
+      Value_ptr res;
+      Value_ptr op1;
+    };
+    
 #define X(OP)                                   \
   template <>                                   \
   struct InstructionData<InstructionCode::OP> { \
@@ -173,10 +189,16 @@ namespace MiniMC {
     static const bool isPredicate = false;      \
     static const std::size_t operands = 1;      \
     static const bool hasResVar = true;         \
+    using Content = UnaryContent;		\
   };
     UNARYOPS
 #undef X
 
+    struct BinaryContent {
+      Value_ptr op1;
+      Value_ptr op2;
+    };
+    
 #define X(OP)                                   \
   template <>                                   \
   struct InstructionData<InstructionCode::OP> { \
@@ -190,6 +212,7 @@ namespace MiniMC {
     static const bool isPredicate = true;       \
     static const std::size_t operands = 2;      \
     static const bool hasResVar = false;        \
+    using Content = BinaryContent;		\
   };
     PREDICATES
 #undef X
@@ -207,6 +230,7 @@ namespace MiniMC {
     static const bool isPredicate = false;      \
     static const std::size_t operands = 2;      \
     static const bool hasResVar = true;         \
+    using Content = TACContent;			\
   };
     COMPARISONS
 #undef X
@@ -224,10 +248,17 @@ namespace MiniMC {
     static const bool isPredicate = false;      \
     static const std::size_t operands = 1;      \
     static const bool hasResVar = true;         \
+    using Content = UnaryContent;			\
   };
     CASTOPS
 #undef X
 
+    struct ExtractContent {
+      Value_ptr res;
+      Value_ptr aggregate;
+      Value_ptr offset;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::ExtractValue> {
       static const bool isTAC = false;
@@ -240,8 +271,16 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 3;
       static const bool hasResVar = true;
+      using Content = ExtractContent;
     };
 
+    struct InsertContent {
+      Value_ptr res;
+      Value_ptr aggregate;
+      Value_ptr offset;
+      Value_ptr insertee;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::InsertValue> {
       static const bool isTAC = false;
@@ -252,11 +291,12 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = true;
       static const bool isPredicate = false;
-      static const std::size_t operands = 3;
+      static const std::size_t operands = 4;
       static const bool hasResVar = true;
+      using Content = InsertContent;
     };
 
-    template <>
+    /*template <>
     struct InstructionData<InstructionCode::InsertValueFromConst> {
       static const bool isTAC = false;
       static const bool isUnary = false;
@@ -269,7 +309,15 @@ namespace MiniMC {
       static const std::size_t operands = 0;
       static const bool hasResVar = true;
     };
+    */
 
+    struct PtrAddContent{
+      Value_ptr res;
+      Value_ptr ptr;
+      Value_ptr skipsize;
+      Value_ptr nbSkips;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::PtrAdd> {
       static const bool isTAC = false;
@@ -282,6 +330,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 4;
       static const bool hasResVar = true;
+      using Content = PtrAddContent;
     };
 
     template <>
@@ -296,6 +345,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
+      using Content = TACContent;
     };
 
     template <>
@@ -308,8 +358,15 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = true;
+      using Content = UnaryContent;
     };
 
+    struct ExtendObjContent {
+      Value_ptr res;
+      Value_ptr object;
+      Value_ptr size;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::ExtendObj> {
       static const bool isTAC = false;
@@ -320,8 +377,14 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
+      using Content = ExtendObjContent;
     };
 
+    struct MallocContent {
+      Value_ptr object;
+      Value_ptr size;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::Malloc> {
       static const bool isTAC = false;
@@ -332,8 +395,14 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = false;
+      using Content = MallocContent;
     };
 
+    struct FreeContent {
+      Value_ptr object;
+    };
+    
+    
     template <>
     struct InstructionData<InstructionCode::Free> {
       static const bool isTAC = false;
@@ -344,8 +413,15 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
+      using Content = FreeContent;
     };
 
+    
+    struct FindSpaceContent {
+      Value_ptr res;
+      Value_ptr size;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::FindSpace> {
       static const bool isTAC = false;
@@ -356,6 +432,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = true;
+      using Content = FindSpaceContent;
     };
 
     template <>
@@ -370,8 +447,15 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
+      using Content = int;
     };
 
+    struct NonDetContent {
+      Value_ptr res;
+      Value_ptr min;
+      Value_ptr max;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::NonDet> {
       static const bool isTAC = false;
@@ -384,8 +468,13 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
+      using Content = NonDetContent;
     };
 
+    struct AssertAssumeContent {
+      Value_ptr expr;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::Assert> {
       static const bool isTAC = false;
@@ -398,6 +487,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
+      using Content = AssertAssumeContent;
     };
 
     template <>
@@ -412,6 +502,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
+      using Content = AssertAssumeContent;
     };
 
     template <>
@@ -426,8 +517,35 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
+      using Content = AssertAssumeContent;
     };
 
+    struct CallContent {
+      Value_ptr res;
+      Value_ptr function;
+      std::vector<Value_ptr> params;
+    };
+    
+    template <>
+    struct InstructionData<InstructionCode::Call> {
+      static const bool isTAC = false;
+      static const bool isUnary = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
+      static const std::size_t operands = 1;
+      static const bool hasResVar = false;
+      using Content = CallContent;
+    };
+
+    struct StackSaveContent {
+      Value_ptr res;
+    };
+    
+    
     template <>
     struct InstructionData<InstructionCode::StackSave> {
       static const bool isTAC = false;
@@ -440,8 +558,14 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = true;
+      using Content = StackSaveContent;
     };
 
+    struct StackRestoreContent {
+      Value_ptr stackobject;
+    };
+    
+    
     template <>
     struct InstructionData<InstructionCode::StackRestore> {
       static const bool isTAC = false;
@@ -454,8 +578,16 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
+      using Content = StackRestoreContent ;
     };
 
+    struct MemCpyContent {
+      Value_ptr dst;
+      Value_ptr src;
+      Value_ptr size;
+      
+    };
+    
     template <>
     struct InstructionData<InstructionCode::MemCpy> {
       static const bool isTAC = false;
@@ -468,8 +600,14 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 3;
       static const bool hasResVar = false;
+      using Content = MemCpyContent;
     };
 
+    struct LoadContent {
+      Value_ptr res;
+      Value_ptr addr;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::Load> {
       static const bool isTAC = false;
@@ -480,10 +618,16 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
-      static const std::size_t operands = 1;
+      static const std::size_t operands = 2;
       static const bool hasResVar = true;
+      using Content = LoadContent;
     };
 
+    struct StoreContent {
+      Value_ptr addr;
+      Value_ptr storee;
+    };
+    
     template <>
     struct InstructionData<InstructionCode::Store> {
       static const bool isTAC = false;
@@ -496,6 +640,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = false;
+      using Content = StoreContent;
     };
 
     template <>
@@ -510,6 +655,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
+      using Content = NonDetContent;
     };
 
     template <>
@@ -524,11 +670,169 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = true;
+      using Content = UnaryContent;
     };
 
+    struct RetContent {
+      Value_ptr value;
+    };
+    
+    template <>
+    struct InstructionData<InstructionCode::Ret> {
+      static const bool isTAC = false;
+      static const bool isUnary = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
+      static const std::size_t operands = 1;
+      static const bool hasResVar = false;
+      using Content = RetContent;
+    };
+
+    template <>
+    struct InstructionData<InstructionCode::RetVoid> {
+      static const bool isTAC = false;
+      static const bool isUnary = false;
+      static const bool isComparison = false;
+      static const bool isMemory = true;
+      static const bool isCast = false;
+      static const bool isPointer = false;
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
+      static const std::size_t operands = 1;
+      static const bool hasResVar = false;
+      using Content = int;
+    };
+    
+    using Instruction_content = std::variant<TACContent,
+					     UnaryContent,
+					     BinaryContent,
+					     ExtractContent,
+					     InsertContent,
+					     PtrAddContent,
+					     ExtendObjContent,
+					     MallocContent,
+					     FreeContent,
+					     FindSpaceContent,
+					     NonDetContent,
+					     AssertAssumeContent,
+					     StackSaveContent,
+					     StackRestoreContent,
+					     MemCpyContent,
+					     LoadContent,
+					     StoreContent,
+					     RetContent,
+					     CallContent,
+					     int
+					     >;
+
+    using ReplaceFunction = std::function<Value_ptr(const Value_ptr&)>;
+    template<class T>
+    T copyReplace (const T& t, ReplaceFunction replace) {
+      if constexpr (std::is_same<TACContent, T> ()) {
+	return {.res = replace(t.res), .op1 = replace(t.op1), .op2 = replace(t.op2)};
+      }
+
+      else if constexpr (std::is_same<UnaryContent, T> ()) {
+	return {.res = replace(t.res), .op1 = replace(t.op1)};
+      }
+
+      else if constexpr (std::is_same<BinaryContent,T> ()) {
+	return {.op1 = replace(t.op1), .op2 = replace(t.op2)};
+      }
+      else if constexpr (std::is_same<ExtractContent,T> ()) {
+	return {.res = replace(t.res), .aggregate = replace(t.aggregate), .offset = replace (t.offset)};
+      }
+
+      else if constexpr (std::is_same<InsertContent,T> ()) {
+	return {.res = replace(t.res), .aggregate = replace(t.aggregate), .offset = replace (t.offset), .insertee = replace (t.insertee)};
+		
+      }
+
+      else  if constexpr (std::is_same<PtrAddContent,T> ()) {
+	return {.res = replace(t.res),
+	        .ptr = replace(t.ptr),
+		.skipsize = replace(t.skipsize),
+		.nbSkips = replace(t.nbSkips)
+	};
+      }
+
+      else if constexpr (std::is_same<ExtendObjContent,T> ()) {
+	return {.res = replace(t.res), .object = replace(t.object), .size = replace(t.size)};
+      }
+
+      else if constexpr (std::is_same<MallocContent,T> ()) {
+	return { .object= replace(t.object), .size = replace(t.size)};
+      }
+
+      else if constexpr (std::is_same<FreeContent,T> ()) {
+	return { .object= replace(t.object)};
+      }
+      
+      else if constexpr (std::is_same<FindSpaceContent,T> ()) {
+	return { .res = replace(t.res),
+	  .size = replace(t.size)
+	};
+      }
+      
+      else if constexpr (std::is_same<NonDetContent,T> ()) {
+	return { .res = replace(t.res), .min = replace(t.min), .max = replace(t.max)};
+      }
+
+      else if constexpr (std::is_same<AssertAssumeContent,T> ()) {
+	return {.expr = replace(t.expr)};
+      }
+
+      else if constexpr (std::is_same<StackSaveContent,T> ()) {
+	return {.res = replace(t.res)};
+      }
+
+      else if constexpr (std::is_same<StackRestoreContent,T> ()) {
+	return {.stackobject = replace(t.stackobject)};
+      }
+
+      else if constexpr (std::is_same<MemCpyContent,T> ()) {
+	return {.dst = replace(t.dst), .src = replace(t.src), .size = replace(t.size)};
+      }
+
+      else if constexpr (std::is_same<LoadContent,T> ()) {
+	return {.res = replace(t.res), .addr = replace(t.addr)};
+      }
+      
+      else if constexpr (std::is_same<StoreContent,T> ()) {
+	return {.addr = replace(t.addr), .storee = replace(t.storee)};
+      }
+
+      else if constexpr (std::is_same<RetContent,T> ()) {
+	return {.value = replace(t.value)};
+      }
+
+      else if constexpr (std::is_same<CallContent,T> ()) {
+	std::vector<Value_ptr> params;
+	auto inserter = std::back_inserter(params);
+	std::for_each (t.params.begin(),t.params.end(),[replace,&inserter](auto& p) {inserter = replace(p);}); 
+	
+	return {.res = replace(t.res), .function = replace(t.function), .params = params};
+
+      }
+
+      else if constexpr (std::is_same<int,T> ()) {
+	return t;
+      }
+
+      else {
+	[]<bool flag = false>() {static_assert(flag, "Uncopiable Object");}();
+      }
+      
+    }
+    
     class Function;
     using Function_ptr = std::shared_ptr<Function>;
 
+    
     /**
      *  \brief Container for instruction codes and their paramaters
      * 
@@ -539,19 +843,17 @@ namespace MiniMC {
      */
     struct Instruction {
     public:
-      Instruction(InstructionCode code, std::initializer_list<Value_ptr> ops) : opcode(code),
-                                                                                ops(ops),
-                                                                                parent(nullptr) {}
-      Instruction(InstructionCode code, std::vector<Value_ptr> ops) : opcode(code),
-                                                                      ops(ops),
-                                                                      parent(nullptr) {}
+      Instruction(InstructionCode code, Instruction_content content) : opcode(code),
+								       content(content),
+								       parent(nullptr) {}
 
+      
       /**
        * Replace this instruction with contents of \p i.
        */
       void replace(const Instruction& i) {
         opcode = i.opcode;
-        ops = i.ops;
+        content = i.content;
       }
 
       /**
@@ -559,18 +861,11 @@ namespace MiniMC {
        */
       auto getOpcode() const { return opcode; }
 
-      /**
-       * \returns std::vector<Value_ptr>& with all operands op this Instruction. 
-       */
-      auto& getOps() const { return ops; }
-
-      auto& getOp(std::size_t i) const { return ops.at(i); }
-
-      auto getNbOps() const { return ops.size(); }
-
-      auto begin() const { return ops.begin(); }
-      auto end() const { return ops.end(); }
-
+      template<InstructionCode c>
+      auto& getOps () const {
+	return std::get<typename InstructionData<c>::Content> (content);
+      }
+      
       /** 
        * Write a textual representation to \p os
        *
@@ -582,10 +877,16 @@ namespace MiniMC {
 
     private:
       InstructionCode opcode;
-      std::vector<Value_ptr> ops;
+      Instruction_content content;
       Function_ptr parent;
     };
 
+
+    template<InstructionCode i>
+    Instruction createInstruction (const typename InstructionData<i>::Content  content) {
+      return Instruction (i,content);
+    }
+    
     inline std::ostream& operator<<(std::ostream& os, const Instruction& inst) {
       return inst.output(os);
     }
@@ -601,13 +902,17 @@ namespace MiniMC {
       static std::ostream& output(std::ostream& os, const Instruction&) { return os << "??"; }
     };
 
+    
+    
     template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isTAC>::type> {
+    class InstHelper<i, typename std::enable_if<InstructionData<i>::isTAC ||
+						InstructionData<i>::isComparison
+						>::type>   {
     public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getLeftOp() const { return inst.getOp(1); }
-      auto& getRightOp() const { return inst.getOp(2); }
+      InstHelper(const Instruction& inst) :  inst(inst) {}
+      auto& getResult() const { return inst.getOps<i>().res; }
+      auto& getLeftOp() const { return inst.getOps<i>().op1; }
+      auto& getRightOp() const { return inst.getOps<i>().op2; }
 
     private:
       const Instruction& inst;
@@ -632,14 +937,14 @@ namespace MiniMC {
         assert(res);
         assert(left);
         assert(right);
-        return Instruction(i, {res, left, right});
+        return createInstruction<i> ({.res = res, .op1 = left, .op2 = right});
       }
 
     private:
       Value_ptr res;
       Value_ptr left;
       Value_ptr right;
-    };
+      };
 
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isTAC>::type> {
@@ -652,9 +957,11 @@ namespace MiniMC {
     template <InstructionCode i>
     class InstHelper<i, typename std::enable_if<InstructionData<i>::isPredicate>::type> {
     public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getLeftOp() const { return inst.getOp(0); }
-      auto& getRightOp() const { return inst.getOp(1); }
+      InstHelper(const Instruction& inst) : inst(inst)
+					    
+      {}
+      auto& getLeftOp() const { return inst.getOps<i>().op1; }
+      auto& getRightOp() const { return inst.getOps<i>().op2; }
 
     private:
       const Instruction& inst;
@@ -674,7 +981,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(left);
         assert(right);
-        return Instruction(i, {left, right});
+        return createInstruction<i> ({.op1 = left, .op2 = right});
       }
 
     private:
@@ -694,8 +1001,8 @@ namespace MiniMC {
     class InstHelper<i, typename std::enable_if<InstructionData<i>::isUnary>::type> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getOp() const { return inst.getOp(1); }
+      auto& getResult() const { return inst.getOps<i> ().res; }
+      auto& getOp() const { return inst.getOps<i> ().op1; }
 
     private:
       const Instruction& inst;
@@ -715,7 +1022,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(res);
         assert(left);
-        return Instruction(i, {res, left});
+        return createInstruction<i> ({.res = res, .op1 = left});
       }
 
     private:
@@ -750,25 +1057,13 @@ namespace MiniMC {
         assert(res);
         assert(left);
         assert(right);
-        return Instruction(i, {res, left, right});
+        return createInstruction<i> ({.res = res, .op1 = left, .op2 = right});
       }
 
     private:
       Value_ptr res;
       Value_ptr left;
       Value_ptr right;
-    };
-
-    template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isComparison>::type> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getLeftOp() const { return inst.getOp(1); }
-      auto& getRightOp() const { return inst.getOp(2); }
-
-    private:
-      const Instruction& inst;
     };
 
     template <InstructionCode i>
@@ -783,8 +1078,8 @@ namespace MiniMC {
     class InstHelper<i, typename std::enable_if<InstructionData<i>::isCast>::type> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getCastee() const { return inst.getOp(1); }
+      auto& getResult() const { return inst.getOps<i>().res; }
+      auto& getCastee() const { return inst.getOps<i>().op1; }
 
     private:
       const Instruction& inst;
@@ -804,7 +1099,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(res);
         assert(castee);
-        return Instruction(i, {res, castee});
+        return createInstruction<i> ({.res = res, .op1 = castee});
       }
 
     private:
@@ -824,8 +1119,8 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Alloca, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getSize() const { return inst.getOp(1); }
+      auto& getResult() const { return inst.getOps<InstructionCode::Alloca> ().res; }
+      auto& getSize() const { return inst.getOps<InstructionCode::Alloca>().op1; }
 
     private:
       const Instruction& inst;
@@ -846,7 +1141,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(res);
         assert(size);
-        return Instruction(InstructionCode::Alloca, {res, size});
+        return createInstruction<InstructionCode::Alloca> ({.res = res, .op1 = size});
       }
 
     private:
@@ -858,9 +1153,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::ExtendObj, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getPointer() const { return inst.getOp(1); }
-      auto& getSize() const { return inst.getOp(2); }
+      auto& getResult() const { return inst.getOps<InstructionCode::ExtendObj> ().res; }
+      auto& getPointer() const { return inst.getOps<InstructionCode::ExtendObj>().object; }
+      auto& getSize() const { return inst.getOps<InstructionCode::ExtendObj>().size; }
 
     private:
       const Instruction& inst;
@@ -886,7 +1181,7 @@ namespace MiniMC {
         assert(res);
         assert(size);
         assert(pointer);
-        return Instruction(InstructionCode::ExtendObj, {res, pointer, size});
+        return createInstruction<InstructionCode::ExtendObj> ({.res = res, .object = pointer, .size = size});
       }
 
     private:
@@ -899,8 +1194,8 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Malloc, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getPointer() const { return inst.getOp(0); }
-      auto& getSize() const { return inst.getOp(1); }
+      auto& getPointer() const { return inst.getOps<InstructionCode::Malloc>().object; }
+      auto& getSize() const { return inst.getOps<InstructionCode::Malloc>().size; }
 
     private:
       const Instruction& inst;
@@ -921,7 +1216,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(pointer);
         assert(size);
-        return Instruction(InstructionCode::Malloc, {pointer, size});
+        return createInstruction<InstructionCode::Malloc> ({.object = pointer, .size = size});
       }
 
     private:
@@ -933,7 +1228,7 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Free, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getPointer() const { return inst.getOp(0); }
+      auto& getPointer() const { return inst.getOps<InstructionCode::Free>().object; }
 
     private:
       const Instruction& inst;
@@ -949,7 +1244,7 @@ namespace MiniMC {
 
       Instruction BuildInstruction() {
         assert(pointer);
-        return Instruction(InstructionCode::Free, {pointer});
+        return createInstruction<InstructionCode::Free> ({.object = pointer});
       }
 
     private:
@@ -960,8 +1255,8 @@ namespace MiniMC {
     class InstHelper<InstructionCode::FindSpace, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getSize() const { return inst.getOp(1); }
+      auto& getResult() const { return inst.getOps<InstructionCode::FindSpace> ().res; }
+      auto& getSize() const { return inst.getOps<InstructionCode::FindSpace> ().size; }
 
     private:
       const Instruction& inst;
@@ -981,7 +1276,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(res);
         assert(size);
-        return Instruction(InstructionCode::FindSpace, {res, size});
+        return createInstruction<InstructionCode::FindSpace> ({.res = res, .size = size});
       }
 
     private:
@@ -1042,7 +1337,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Skip, void> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::Skip, {});
+        return Instruction(InstructionCode::Skip, 0);
       }
     };
 
@@ -1059,9 +1354,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::NonDet, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getMin() const { return inst.getOp(1); }
-      auto& getMax() const { return inst.getOp(2); }
+      auto& getResult() const { return inst.getOps<InstructionCode::NonDet> ().res; }
+      auto& getMin() const { return inst.getOps<InstructionCode::NonDet> ().min; }
+      auto& getMax() const { return inst.getOps<InstructionCode::NonDet>().max; }
 
     private:
       const Instruction& inst;
@@ -1086,7 +1381,7 @@ namespace MiniMC {
         assert(min);
         assert(max);
         assert(res);
-        return Instruction(InstructionCode::NonDet, {res, min, max});
+        return createInstruction<InstructionCode::NonDet> ({.res = res, .min = min, .max = max});
       }
 
     private:
@@ -1108,7 +1403,7 @@ namespace MiniMC {
     class InstHelper<InstructionCode::StackSave, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
+      auto& getResult() const { return inst.getOps<InstructionCode::StackSave> ().res; }
 
     private:
       const Instruction& inst;
@@ -1118,7 +1413,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::StackSave, void> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::StackSave, {res});
+        return createInstruction<InstructionCode::StackSave> ({.res = res});
       }
 
       auto& setResult(const Value_ptr& p) {
@@ -1144,7 +1439,7 @@ namespace MiniMC {
     class InstHelper<InstructionCode::StackRestore, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOp(0); }
+      auto& getValue() const { return inst.getOps<InstructionCode::StackRestore> ().stackobject ; }
 
     private:
       const Instruction& inst;
@@ -1154,7 +1449,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::StackRestore, void> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::StackRestore, {res});
+        return createInstruction<InstructionCode::StackRestore> ({.stackobject = res});
       }
 
       auto& setValue(const Value_ptr& p) {
@@ -1180,9 +1475,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::MemCpy, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getSource() const { return inst.getOp(0); }
-      auto& getTarget() const { return inst.getOp(1); }
-      auto& getSize() const { return inst.getOp(2); }
+      auto& getSource() const { return inst.getOps<InstructionCode::MemCpy> ().src;; }
+      auto& getTarget() const { return inst.getOps<InstructionCode::MemCpy>().dst; }
+      auto& getSize() const { return inst.getOps<InstructionCode::MemCpy>().size; }
 
     private:
       const Instruction& inst;
@@ -1205,7 +1500,7 @@ namespace MiniMC {
       }
 
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::MemCpy, {src, target, size});
+        return createInstruction<InstructionCode::MemCpy> ({.dst = target, .src = src,  .size = size});
       }
 
     private:
@@ -1230,7 +1525,7 @@ namespace MiniMC {
                                          i == InstructionCode::NegAssume>> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAssert() const { return inst.getOp(0); }
+      auto& getAssert() const { return inst.getOps<i>().expr; }
 
     private:
       const Instruction& inst;
@@ -1242,7 +1537,7 @@ namespace MiniMC {
                                           i == InstructionCode::NegAssume>> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(i, {ass});
+        return createInstruction<i> ({.expr = ass});
       }
 
       auto& setAssert(const Value_ptr& p) {
@@ -1268,32 +1563,22 @@ namespace MiniMC {
     template <>
     class InstHelper<InstructionCode::Call, void> {
     public:
-      InstHelper(const Instruction& inst) : inst(inst) {
-        nbparams = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>>(inst.getOp(1))->getValue();
-      }
+      InstHelper(const Instruction& inst) : inst(inst) {}
 
-      auto nbParams() const { return nbparams; }
-      auto getFunctionPtr() { return inst.getOp(0); }
-      auto getParam(std::size_t p) { return inst.getOp(3 + p); }
-      auto getResult() {
-        return inst.getOp(2);
-      }
+      auto nbParams() const { return inst.getOps<InstructionCode::Call> ().params.size(); }
+      auto getFunctionPtr() { return inst.getOps<InstructionCode::Call> ().function; }
+      auto getParam(std::size_t p) { return inst.getOps<InstructionCode::Call> ().params.at(p); }
+      auto getResult() {return inst.getOps<InstructionCode::Call> ().res;}
 
     private:
       const Instruction& inst;
-      std::size_t nbparams;
     };
 
     template <>
     class InstBuilder<InstructionCode::Call, void> {
     public:
       Instruction BuildInstruction() {
-        std::vector<Value_ptr> values;
-        values.push_back(func);
-        values.push_back(nbParameters);
-        values.push_back(res);
-        std::copy(params.begin(), params.end(), std::back_inserter(values));
-        return Instruction(InstructionCode::Call, values);
+        return createInstruction<InstructionCode::Call> ({.res = res, .function = func, .params = params});
       }
 
       auto& setFunctionPtr(const Value_ptr& func) {
@@ -1336,10 +1621,10 @@ namespace MiniMC {
     class InstHelper<InstructionCode::PtrAdd, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOp(0); }
-      auto& getAddress() const { return inst.getOp(1); }
-      auto& getSkipSize() const { return inst.getOp(2); }
-      auto& getResult() const { return inst.getOp(3); }
+      auto& getValue() const { return inst.getOps<InstructionCode::PtrAdd> ().nbSkips; }
+      auto& getAddress() const { return inst.getOps<InstructionCode::PtrAdd> ().ptr; }
+      auto& getSkipSize() const { return inst.getOps<InstructionCode::PtrAdd> ().skipsize; ; }
+      auto& getResult() const { return inst.getOps<InstructionCode::PtrAdd> ().res;; }
 
     private:
       const Instruction& inst;
@@ -1365,7 +1650,7 @@ namespace MiniMC {
         return *this;
       }
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::PtrAdd, {value, address, skipSize, result});
+        return createInstruction<InstructionCode::PtrAdd>  ({.res = result, .ptr = address, .skipsize = skipSize, .nbSkips = value});
       }
 
     private:
@@ -1387,9 +1672,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::ExtractValue, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAggregate() const { return inst.getOp(0); }
-      auto& getOffset() const { return inst.getOp(1); }
-      auto& getResult() const { return inst.getOp(2); }
+      auto& getAggregate() const { return inst.getOps<InstructionCode::ExtractValue> ().aggregate;}
+      auto& getOffset() const { return inst.getOps<InstructionCode::ExtractValue> ().offset; }
+      auto& getResult() const { return inst.getOps<InstructionCode::ExtractValue> ().res; }
 
     private:
       const Instruction& inst;
@@ -1411,7 +1696,7 @@ namespace MiniMC {
         return *this;
       }
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::ExtractValue, {aggregate, offset, res});
+        return createInstruction<InstructionCode::ExtractValue> ({.res = res, .aggregate = aggregate, .offset = offset});
       }
 
     private:
@@ -1432,8 +1717,8 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Assign, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOp(1); }
-      auto& getResult() const { return inst.getOp(0); }
+      auto& getValue() const { return inst.getOps<InstructionCode::Assign> ().op1; }
+      auto& getResult() const { return inst.getOps<InstructionCode::Assign> ().res; }
 
     private:
       const Instruction& inst;
@@ -1459,7 +1744,7 @@ namespace MiniMC {
         return *this;
       }
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::Assign, {res, value});
+        return createInstruction<InstructionCode::Assign> ({.res = res, .op1 = value});
       }
 
     private:
@@ -1480,7 +1765,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::RetVoid, void> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::RetVoid, {});
+        return createInstruction<InstructionCode::RetVoid> (0);
       }
     };
 
@@ -1497,7 +1782,7 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Ret, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOp(0); }
+      auto& getValue() const { return inst.getOps<InstructionCode::Ret> ().value; }
 
     private:
       const Instruction& inst;
@@ -1507,7 +1792,7 @@ namespace MiniMC {
     class InstBuilder<InstructionCode::Ret, void> {
     public:
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::Ret, {value});
+        return createInstruction<InstructionCode::Ret> ({.value  = value});
       }
 
       void setRetValue(const Value_ptr& value) {
@@ -1531,10 +1816,10 @@ namespace MiniMC {
     class InstHelper<InstructionCode::InsertValue, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAggregate() const { return inst.getOp(0); }
-      auto& getOffset() const { return inst.getOp(1); }
-      auto& getInsertee() const { return inst.getOp(3); }
-      auto& getResult() const { return inst.getOp(2); }
+      auto& getAggregate() const { return inst.getOps<InstructionCode::InsertValue> ().aggregate; }
+      auto& getOffset() const { return inst.getOps<InstructionCode::InsertValue> ().offset; }
+      auto& getInsertee() const { return inst.getOps<InstructionCode::InsertValue> ().insertee; }
+      auto& getResult() const { return inst.getOps<InstructionCode::InsertValue> ().res; }
 
     private:
       const Instruction& inst;
@@ -1552,7 +1837,7 @@ namespace MiniMC {
         return *this;
       }
       auto& setResult(const Value_ptr& ptr) {
-        res = res;
+        res = ptr;
         return *this;
       }
       auto& setInsertee(const Value_ptr& ptr) {
@@ -1560,7 +1845,7 @@ namespace MiniMC {
         return *this;
       }
       Instruction BuildInstruction() {
-        return Instruction(InstructionCode::PtrAdd, {aggregate, offset, res, insertee});
+        return createInstruction<InstructionCode::InsertValue> ({.res = res, .aggregate = aggregate, .offset = offset, .insertee = insertee});
       }
 
     private:
@@ -1570,7 +1855,7 @@ namespace MiniMC {
       Value_ptr res;
     };
 
-    template <>
+    /*   template <>
     class InstHelper<InstructionCode::InsertValueFromConst, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
@@ -1603,7 +1888,7 @@ namespace MiniMC {
       Value_ptr res;
       std::vector<Value_ptr> consts;
     };
-
+    */
     template <>
     struct Formatter<InstructionCode::InsertValue, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1617,9 +1902,9 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Uniform, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getMin() const { return inst.getOp(1); }
-      auto& getMax() const { return inst.getOp(2); }
+      auto& getResult() const { return inst.getOps<InstructionCode::Uniform> ().res; }
+      auto& getMin() const { return inst.getOps<InstructionCode::Uniform> ().min; }
+      auto& getMax() const { return inst.getOps<InstructionCode::Uniform> ().max; }
 
     private:
       const Instruction& inst;
@@ -1644,7 +1929,7 @@ namespace MiniMC {
         assert(min);
         assert(max);
         assert(res);
-        return Instruction(InstructionCode::Uniform, {res, min, max});
+        return createInstruction<InstructionCode::Uniform> ({.res = res, .min = min, .max = max});
       }
 
     private:
@@ -1666,8 +1951,8 @@ namespace MiniMC {
     class InstHelper<InstructionCode::Store, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOp(0); }
-      auto& getAddress() const { return inst.getOp(1); }
+      auto& getValue() const { return inst.getOps<InstructionCode::Store> ().storee; }
+      auto& getAddress() const { return  inst.getOps<InstructionCode::Store> ().addr;}
 
     private:
       const Instruction& inst;
@@ -1687,7 +1972,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(value);
         assert(address);
-        return Instruction(InstructionCode::Store, {value, address});
+        return createInstruction<InstructionCode::Store> ({.addr = address, .storee =value });
       }
 
     private:
@@ -1708,8 +1993,8 @@ namespace MiniMC {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {
       }
-      auto& getResult() const { return inst.getOp(0); }
-      auto& getAddress() const { return inst.getOp(1); }
+      auto& getResult() const { return inst.getOps<InstructionCode::Load> ().res;}
+      auto& getAddress() const { return inst.getOps<InstructionCode::Load> ().addr; }
 
     private:
       const Instruction& inst;
@@ -1729,7 +2014,7 @@ namespace MiniMC {
       Instruction BuildInstruction() {
         assert(res);
         assert(address);
-        return Instruction(InstructionCode::Load, {res, address});
+        return createInstruction<InstructionCode::Load> ({.res = res, .addr = address});
       }
 
     private:
@@ -1792,6 +2077,26 @@ namespace MiniMC {
       }
     }
 
+    template<InstructionCode i>
+    Instruction copyInstructionWithReplaceT (const Instruction& inst, ReplaceFunction replace) {
+      assert(inst.getOpcode () == i);
+      return createInstruction<i> (copyReplace (inst.getOps<i> (), replace));
+    }
+
+    inline Instruction copyInstructionWithReplace (const Instruction& inst, ReplaceFunction replace) {
+      switch (inst.getOpcode ()) {
+#define X(OP)					\
+	case InstructionCode::OP:		\
+	  return copyInstructionWithReplaceT<InstructionCode::OP>  (inst,replace);
+	OPERATIONS
+#undef X
+      }
+      throw MiniMC::Support::Exception ("Uncopiable Object");
+    }
+
+    
+    
+    
   } // namespace Model
 } // namespace MiniMC
 

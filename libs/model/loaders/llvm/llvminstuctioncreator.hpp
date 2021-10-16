@@ -327,15 +327,15 @@ namespace MiniMC {
       auto insertfrom = insertinst->getAggregateOperand();
       auto insertval = insertinst->getInsertedValueOperand ();
       if (llvm::Constant* cstextract = llvm::dyn_cast<llvm::Constant> (insertfrom)) {
-
-		auto aggregate = findValue (insertfrom,values,tt,cfac);
+	throw MiniMC::Support::Exception ("Not supported");
+	/*auto aggregate = findValue (insertfrom,values,tt,cfac);
 		auto value = findValue (insertval,values,tt,cfac);
 		auto res = findValue (inst,values,tt,cfac);
 		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::InsertValueFromConst> builder;
 		builder.setAggregate (aggregate);
 		builder.setResult (res);
 		builder.setInsertee (value);
-		instr.push_back(builder.BuildInstruction ());
+		instr.push_back(builder.BuildInstruction ());*/
       }
       else {
 		auto aggre = findValue (insertfrom,values,tt,cfac);

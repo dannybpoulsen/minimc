@@ -15,21 +15,20 @@ namespace MiniMC {
 
       template <class Inserter>
       void copyInstructionAndReplace(const MiniMC::Model::Instruction& inst, const ReplaceMap<MiniMC::Model::Value>& val, Inserter insert) {
-        std::vector<MiniMC::Model::Value_ptr> vals;
-        auto inserter = std::back_inserter(vals);
-        std::for_each(inst.begin(), inst.end(), [&](const MiniMC::Model::Value_ptr& op) {
+        //std::vector<MiniMC::Model::Value_ptr> vals;
+        //auto inserter = std::back_inserter(vals);
+	auto replaceFunction = [&](const MiniMC::Model::Value_ptr& op) {
           if (op->isConstant()) {
             if (std::static_pointer_cast<Constant>(op)->isNonCompileConstant()) {
               throw MiniMC::Support::Exception("Can't copy non-compile constants");
             }
-            inserter = op;
+            return op;
           } else {
-            inserter = val.at(op.get());
+            return val.at(op.get());
           }
-        });
-
-        assert(vals.size() == inst.getNbOps());
-        insert = MiniMC::Model::Instruction(inst.getOpcode(), vals);
+        }; 
+	
+        insert = MiniMC::Model::copyInstructionWithReplace (inst,replaceFunction);
       }
 
       inline void copyEdgeAnd(const MiniMC::Model::Edge_ptr& edge,
@@ -96,11 +95,11 @@ namespace MiniMC {
           nstr.isPhi = orig.isPhi;
           auto insert = nstr.back_inserter();
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-            std::vector<MiniMC::Model::Value_ptr> vals;
-            for (auto it = inst.begin(); it != inst.end(); ++it) {
-              vals.push_back(lookupValue(*it, val));
-            }
-            insert = MiniMC::Model::Instruction(inst.getOpcode(), vals);
+	    auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
+	      return lookupValue (op,val);
+	    };
+	      
+	    insert = copyInstructionWithReplace (inst,replaceF);
           });
 
           nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(nstr);

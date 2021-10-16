@@ -239,8 +239,9 @@ void addModelModule (py::module& m) {
     return str.str ();
   })
     .def ("opcode",&MiniMC::Model::Instruction::getOpcode)
-    .def_property ("ops", [](MiniMC::Model::Instruction* instr) {
+  /*.def_property ("ops", [](MiniMC::Model::Instruction* instr) {
       return py::make_iterator (instr->begin(),instr->end());},
       nullptr,py::keep_alive<0,1> ()
-      );
+      )*/
+    ;
 }
