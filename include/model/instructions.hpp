@@ -918,34 +918,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <InstructionCode i>
-    class InstBuilder<i, typename std::enable_if<InstructionData<i>::isTAC>::type> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setLeft(const Value_ptr& ptr) {
-        left = ptr;
-        return *this;
-      }
-      auto& setRight(const Value_ptr& ptr) {
-        right = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(left);
-        assert(right);
-        return createInstruction<i> ({.res = res, .op1 = left, .op2 = right});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr left;
-      Value_ptr right;
-      };
-
+    
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isTAC>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -967,28 +940,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <InstructionCode i>
-    class InstBuilder<i, typename std::enable_if<InstructionData<i>::isPredicate>::type> {
-    public:
-      auto& setLeft(const Value_ptr& ptr) {
-        left = ptr;
-        return *this;
-      }
-      auto& setRight(const Value_ptr& ptr) {
-        right = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(left);
-        assert(right);
-        return createInstruction<i> ({.op1 = left, .op2 = right});
-      }
-
-    private:
-      Value_ptr left;
-      Value_ptr right;
-    };
-
+    
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isPredicate>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1009,61 +961,11 @@ namespace MiniMC {
     };
 
     template <InstructionCode i>
-    class InstBuilder<i, typename std::enable_if<InstructionData<i>::isUnary>::type> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setOP(const Value_ptr& ptr) {
-        left = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(left);
-        return createInstruction<i> ({.res = res, .op1 = left});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr left;
-    };
-
-    template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isUnary>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
         InstHelper<i> h(inst);
         return os << *h.getResult() << " = " << i << " " << *h.getOp();
       }
-    };
-
-    template <InstructionCode i>
-    class InstBuilder<i, typename std::enable_if<InstructionData<i>::isComparison>::type> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setLeft(const Value_ptr& ptr) {
-        left = ptr;
-        return *this;
-      }
-      auto& setRight(const Value_ptr& ptr) {
-        right = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(left);
-        assert(right);
-        return createInstruction<i> ({.res = res, .op1 = left, .op2 = right});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr left;
-      Value_ptr right;
     };
 
     template <InstructionCode i>
@@ -1086,28 +988,6 @@ namespace MiniMC {
     };
 
     template <InstructionCode i>
-    class InstBuilder<i, typename std::enable_if<InstructionData<i>::isCast>::type> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setCastee(const Value_ptr& ptr) {
-        castee = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(castee);
-        return createInstruction<i> ({.res = res, .op1 = castee});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr castee;
-    };
-
-    template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isCast>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
         InstHelper<i> h(inst);
@@ -1127,29 +1007,6 @@ namespace MiniMC {
     };
 
     template <>
-    class InstBuilder<InstructionCode::Alloca, void> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setSize(const Value_ptr& ptr) {
-        size = ptr;
-        return *this;
-      }
-
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(size);
-        return createInstruction<InstructionCode::Alloca> ({.res = res, .op1 = size});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr size;
-    };
-
-    template <>
     class InstHelper<InstructionCode::ExtendObj, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
@@ -1160,36 +1017,7 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::ExtendObj> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setPointer(const Value_ptr& ptr) {
-        pointer = ptr;
-        return *this;
-      }
-      auto& setSize(const Value_ptr& ptr) {
-        size = ptr;
-        return *this;
-      }
-
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(size);
-        assert(pointer);
-        return createInstruction<InstructionCode::ExtendObj> ({.res = res, .object = pointer, .size = size});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr pointer;
-      Value_ptr size;
-    };
-
+    
     template <>
     class InstHelper<InstructionCode::Malloc, void> {
     public:
@@ -1200,30 +1028,7 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::Malloc, void> {
-    public:
-      auto& setPointer(const Value_ptr& ptr) {
-        pointer = ptr;
-        return *this;
-      }
-      auto& setSize(const Value_ptr& ptr) {
-        size = ptr;
-        return *this;
-      }
-
-      Instruction BuildInstruction() {
-        assert(pointer);
-        assert(size);
-        return createInstruction<InstructionCode::Malloc> ({.object = pointer, .size = size});
-      }
-
-    private:
-      Value_ptr pointer;
-      Value_ptr size;
-    };
-
+    
     template <>
     class InstHelper<InstructionCode::Free, void> {
     public:
@@ -1234,23 +1039,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
-    class InstBuilder<InstructionCode::Free, void> {
-    public:
-      auto& setPointer(const Value_ptr& ptr) {
-        pointer = ptr;
-        return *this;
-      }
-
-      Instruction BuildInstruction() {
-        assert(pointer);
-        return createInstruction<InstructionCode::Free> ({.object = pointer});
-      }
-
-    private:
-      Value_ptr pointer;
-    };
-
+    
     template <>
     class InstHelper<InstructionCode::FindSpace, void> {
     public:
@@ -1261,29 +1050,8 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::FindSpace, void> {
-    public:
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setSize(const Value_ptr& ptr) {
-        size = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(size);
-        return createInstruction<InstructionCode::FindSpace> ({.res = res, .size = size});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr size;
-    };
-
+    
+    
     template <>
     struct Formatter<InstructionCode::Alloca, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1333,13 +1101,13 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
+    /*template <>
     class InstBuilder<InstructionCode::Skip, void> {
     public:
       Instruction BuildInstruction() {
         return Instruction(InstructionCode::Skip, 0);
       }
-    };
+      };*/
 
     template <>
     struct Formatter<InstructionCode::Skip, void> {
@@ -1363,34 +1131,6 @@ namespace MiniMC {
     };
 
     template <>
-    class InstBuilder<InstructionCode::NonDet, void> {
-    public:
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setMin(const Value_ptr& ptr) {
-        min = ptr;
-        return *this;
-      }
-      auto& setMax(const Value_ptr& ptr) {
-        max = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(min);
-        assert(max);
-        assert(res);
-        return createInstruction<InstructionCode::NonDet> ({.res = res, .min = min, .max = max});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr min;
-      Value_ptr max;
-    };
-
-    template <>
     struct Formatter<InstructionCode::NonDet, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
         InstHelper<InstructionCode::NonDet> h(inst);
@@ -1408,22 +1148,7 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::StackSave, void> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::StackSave> ({.res = res});
-      }
-
-      auto& setResult(const Value_ptr& p) {
-        res = p;
-        return *this;
-      }
-
-    private:
-      Value_ptr res = nullptr;
-    };
+    
 
     template <>
     struct Formatter<InstructionCode::StackSave, void> {
@@ -1443,22 +1168,6 @@ namespace MiniMC {
 
     private:
       const Instruction& inst;
-    };
-
-    template <>
-    class InstBuilder<InstructionCode::StackRestore, void> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::StackRestore> ({.stackobject = res});
-      }
-
-      auto& setValue(const Value_ptr& p) {
-        res = p;
-        return *this;
-      }
-
-    private:
-      Value_ptr res = nullptr;
     };
 
     template <>
@@ -1483,31 +1192,6 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
-    class InstBuilder<InstructionCode::MemCpy, void> {
-    public:
-      auto& setSource(const Value_ptr& p) {
-        src = p;
-        return *this;
-      }
-      auto& setTarget(const Value_ptr& p) {
-        target = p;
-        return *this;
-      }
-      auto& setSize(const Value_ptr& p) {
-        size = p;
-        return *this;
-      }
-
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::MemCpy> ({.dst = target, .src = src,  .size = size});
-      }
-
-    private:
-      Value_ptr src = nullptr;
-      Value_ptr target = nullptr;
-      Value_ptr size = nullptr;
-    };
 
     template <>
     struct Formatter<InstructionCode::MemCpy, void> {
@@ -1531,24 +1215,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <InstructionCode i>
-    class InstBuilder<i, std::enable_if_t<i == InstructionCode::Assert ||
-                                          i == InstructionCode::Assume ||
-                                          i == InstructionCode::NegAssume>> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<i> ({.expr = ass});
-      }
-
-      auto& setAssert(const Value_ptr& p) {
-        ass = p;
-        return *this;
-      }
-
-    private:
-      Value_ptr ass = nullptr;
-    };
-
+    
     template <InstructionCode i>
     struct Formatter<i, std::enable_if_t<i == InstructionCode::Assert ||
                                          i == InstructionCode::Assume ||
@@ -1574,40 +1241,6 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
-    class InstBuilder<InstructionCode::Call, void> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::Call> ({.res = res, .function = func, .params = params});
-      }
-
-      auto& setFunctionPtr(const Value_ptr& func) {
-        this->func = func;
-        return *this;
-      }
-
-      auto& setRes(const Value_ptr& res) {
-        this->res = res;
-        return *this;
-      }
-
-      auto& setNbParamters(const Value_ptr& p) {
-        assert(p->isConstant());
-        this->nbParameters = p;
-        return *this;
-      }
-
-      auto& addParam(const Value_ptr& p) {
-        params.push_back(p);
-        return *this;
-      }
-
-    private:
-      Value_ptr func;
-      Value_ptr nbParameters;
-      Value_ptr res = nullptr;
-      std::vector<Value_ptr> params;
-    };
 
     template <>
     struct Formatter<InstructionCode::Call, void> {
@@ -1630,36 +1263,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
-    class InstBuilder<InstructionCode::PtrAdd, void> {
-    public:
-      auto& setSkipSize(const Value_ptr& ptr) {
-        skipSize = ptr;
-        return *this;
-      }
-      auto& setValue(const Value_ptr& ptr) {
-        value = ptr;
-        return *this;
-      }
-      auto& setAddress(const Value_ptr& ptr) {
-        address = ptr;
-        return *this;
-      }
-      auto& setResult(const Value_ptr& ptr) {
-        result = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::PtrAdd>  ({.res = result, .ptr = address, .skipsize = skipSize, .nbSkips = value});
-      }
-
-    private:
-      Value_ptr skipSize;
-      Value_ptr value;
-      Value_ptr address;
-      Value_ptr result;
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::PtrAdd, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1679,32 +1283,7 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::ExtractValue, void> {
-    public:
-      auto& setAggregate(const Value_ptr& aggr) {
-        aggregate = aggr;
-        return *this;
-      }
-      auto& setOffset(const Value_ptr& ptr) {
-        offset = ptr;
-        return *this;
-      }
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::ExtractValue> ({.res = res, .aggregate = aggregate, .offset = offset});
-      }
-
-    private:
-      Value_ptr aggregate;
-      Value_ptr offset;
-      Value_ptr res;
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::ExtractValue, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1731,27 +1310,7 @@ namespace MiniMC {
         return os << *h.getResult() << " = " << *h.getValue();
       }
     };
-
-    template <>
-    class InstBuilder<InstructionCode::Assign, void> {
-    public:
-      auto& setValue(const Value_ptr& aggr) {
-        value = aggr;
-        return *this;
-      }
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::Assign> ({.res = res, .op1 = value});
-      }
-
-    private:
-      Value_ptr value;
-      Value_ptr res;
-    };
-
+    
     template <>
     class InstHelper<InstructionCode::RetVoid, void> {
     public:
@@ -1760,15 +1319,7 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::RetVoid, void> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::RetVoid> (0);
-      }
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::RetVoid, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1787,22 +1338,8 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::Ret, void> {
-    public:
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::Ret> ({.value  = value});
-      }
-
-      void setRetValue(const Value_ptr& value) {
-        this->value = value;
-      }
-
-    private:
-      Value_ptr value;
-    };
-
+    
+    
     template <>
     struct Formatter<InstructionCode::Ret, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1824,71 +1361,8 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-
-    template <>
-    class InstBuilder<InstructionCode::InsertValue, void> {
-    public:
-      auto& setAggregate(const Value_ptr& aggr) {
-        aggregate = aggr;
-        return *this;
-      }
-      auto& setOffset(const Value_ptr& ptr) {
-        offset = ptr;
-        return *this;
-      }
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setInsertee(const Value_ptr& ptr) {
-        insertee = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        return createInstruction<InstructionCode::InsertValue> ({.res = res, .aggregate = aggregate, .offset = offset, .insertee = insertee});
-      }
-
-    private:
-      Value_ptr aggregate;
-      Value_ptr offset;
-      Value_ptr insertee;
-      Value_ptr res;
-    };
-
-    /*   template <>
-    class InstHelper<InstructionCode::InsertValueFromConst, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAggregate() const { return inst.getOp(0); }
-      size_t nbOps() const { return inst.getNbOps() - 3; }
-      auto& getOp(size_t op) const { return inst.getOp(op + 3); }
-      auto& getInsertee() const { return inst.getOp(2); }
-      auto& getResult() const { return inst.getOp(1); }
-
-    private:
-      const Instruction& inst;
-    };
-
-    template <>
-    class InstBuilder<InstructionCode::InsertValueFromConst, void> {
-    public:
-      void setAggregate(const Value_ptr& aggr) { aggregate = aggr; }
-      void addOps(const Value_ptr& ptr) { consts.push_back(ptr); }
-      void setResult(const Value_ptr& ptr) { res = res; }
-      void setInsertee(const Value_ptr& ptr) { insertee = ptr; }
-      Instruction BuildInstruction() {
-        std::vector<Value_ptr> vals({aggregate, res, insertee});
-        std::copy(consts.begin(), consts.end(), std::back_inserter(vals));
-        return Instruction(InstructionCode::InsertValueFromConst, vals);
-      }
-
-    private:
-      Value_ptr aggregate;
-      Value_ptr insertee;
-      Value_ptr res;
-      std::vector<Value_ptr> consts;
-    };
-    */
+    
+    
     template <>
     struct Formatter<InstructionCode::InsertValue, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1911,34 +1385,6 @@ namespace MiniMC {
     };
 
     template <>
-    class InstBuilder<InstructionCode::Uniform, void> {
-    public:
-      auto& setResult(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setMin(const Value_ptr& ptr) {
-        min = ptr;
-        return *this;
-      }
-      auto& setMax(const Value_ptr& ptr) {
-        max = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(min);
-        assert(max);
-        assert(res);
-        return createInstruction<InstructionCode::Uniform> ({.res = res, .min = min, .max = max});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr min;
-      Value_ptr max;
-    };
-
-    template <>
     struct Formatter<InstructionCode::Uniform, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
         InstHelper<InstructionCode::Uniform> h(inst);
@@ -1958,28 +1404,7 @@ namespace MiniMC {
       const Instruction& inst;
     };
 
-    template <>
-    class InstBuilder<InstructionCode::Store, void> {
-    public:
-      auto& setValue(const Value_ptr& ptr) {
-        value = ptr;
-        return *this;
-      }
-      auto& setAddress(const Value_ptr& ptr) {
-        address = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(value);
-        assert(address);
-        return createInstruction<InstructionCode::Store> ({.addr = address, .storee =value });
-      }
-
-    private:
-      Value_ptr value;
-      Value_ptr address;
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::Store, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
@@ -1998,28 +1423,6 @@ namespace MiniMC {
 
     private:
       const Instruction& inst;
-    };
-
-    template <>
-    class InstBuilder<InstructionCode::Load, void> {
-    public:
-      auto& setRes(const Value_ptr& ptr) {
-        res = ptr;
-        return *this;
-      }
-      auto& setAddress(const Value_ptr& ptr) {
-        address = ptr;
-        return *this;
-      }
-      Instruction BuildInstruction() {
-        assert(res);
-        assert(address);
-        return createInstruction<InstructionCode::Load> ({.res = res, .addr = address});
-      }
-
-    private:
-      Value_ptr res;
-      Value_ptr address;
     };
 
     template <>

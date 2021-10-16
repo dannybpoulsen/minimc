@@ -63,8 +63,10 @@ namespace MiniMC {
                   std::copy(instrs.begin(), instrs.end(), std::back_inserter(instr));
                   auto tt = cfg->makeEdge(E->getFrom(), loc);
                   tt->setAttribute<MiniMC::Model::AttributeType::Instructions>(instr);
-                  std::vector<MiniMC::Model::Instruction> ttI{MiniMC::Model::InstBuilder<left>().setLeft(helper.getLeftOp()).setRight(helper.getRightOp()).BuildInstruction(),
-                                                              MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign>().setResult(helper.getResult()).setValue(v).BuildInstruction()};
+                  std::vector<MiniMC::Model::Instruction> ttI{
+		    MiniMC::Model::createInstruction<left>({.op1 = helper.getLeftOp(), .op2 = helper.getRightOp()}),
+		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = helper.getResult (), .op1 = v})
+		  };
                   auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());
                 };

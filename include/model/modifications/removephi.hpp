@@ -25,18 +25,14 @@ namespace MiniMC {
                     InstHelper<InstructionCode::Assign> ass(inst);
                     auto nvar = F->getVariableStackDescr()->addVariable(std::static_pointer_cast<Register>(ass.getResult())->getName() + "PHI-tmp", ass.getResult()->getType());
                     replacemap.insert(std::make_pair(ass.getResult().get(), nvar));
-                    InstBuilder<InstructionCode::Assign> builder;
-                    builder.setResult(replacemap.at(ass.getResult().get()));
-                    builder.setValue(ass.getValue());
-                    stream.back_inserter() = builder.BuildInstruction();
+                    
+                    stream.back_inserter() = MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign> ({.res = replacemap.at(ass.getResult().get()),.op1 = ass.getValue ()});
                   }
 
                   for (auto& inst : instrstream) {
                     InstHelper<InstructionCode::Assign> ass(inst);
-                    InstBuilder<InstructionCode::Assign> builder;
-                    builder.setResult(ass.getResult());
-                    builder.setValue(replacemap.count(ass.getValue().get()) ? replacemap.at(ass.getValue().get()) : ass.getValue());
-                    stream.back_inserter() = builder.BuildInstruction();
+                    auto val = replacemap.count(ass.getValue().get()) ? replacemap.at(ass.getValue().get()) : ass.getValue();
+                    stream.back_inserter() = MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign> ({.res = replacemap.at(ass.getResult().get()),.op1 = val});
                   }
 
                   E->delAttribute<MiniMC::Model::AttributeType::Instructions>();

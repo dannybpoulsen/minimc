@@ -47,18 +47,18 @@ namespace MiniMC {
             }
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
-              InstBuilder<MiniMC::Model::InstructionCode::Skip> builder;
               ne->setTo(edge->getTo());
-              ninstr.last().replace(builder.BuildInstruction());
+              ninstr.last().replace(createInstruction<InstructionCode::Skip> (0));
             }
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Ret) {
               InstHelper<MiniMC::Model::InstructionCode::Ret> nehelper(ninstr.last());
-              InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-              builder.setResult(helper.getResult());
-              builder.setValue(nehelper.getValue());
               ne->setTo(edge->getTo());
-              ninstr.last().replace(builder.BuildInstruction());
+              ninstr.last().replace(createInstruction<InstructionCode::Assign> ( {
+		    .res = helper.getResult (),
+		    .op1 = nehelper.getValue ()
+		  })
+		);
             }
           }
         }
@@ -73,10 +73,8 @@ namespace MiniMC {
           inserter = *it;
         }
         for (size_t i = 0; i < helper.nbParams(); i++, it++) {
-          InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-          builder.setResult(valmap.at(it->get().get()));
-          builder.setValue(helper.getParam(i));
-          inserter = builder.BuildInstruction();
+          
+          inserter = createInstruction<InstructionCode::Assign> ({.res = valmap.at(it->get().get()), .op1 = helper.getParam(i)});  
         }
         edge->delAttribute<MiniMC::Model::AttributeType::Instructions>();
         if (str.begin() != str.end())

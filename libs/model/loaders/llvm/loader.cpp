@@ -333,24 +333,25 @@ namespace MiniMC {
           auto gvar = makeVariable(&g, g.getName().str(), type, gstack, values);
           gvar->setGlobal();
           auto pointTy = getType(g.getValueType(), tfactory);
-          MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::FindSpace> spaceb;
-          MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Malloc> mallocb;
           auto sizeType = tt.tfac->makeIntegerType(64);
           auto size = cfactory->makeIntegerConstant(pointTy->getSize(), sizeType);
           size->setType(sizeType);
-          spaceb.setResult(gvar);
-          spaceb.setSize(size);
-          mallocb.setPointer(gvar);
-          mallocb.setSize(size);
-          instr.push_back(spaceb.BuildInstruction());
-          instr.push_back(mallocb.BuildInstruction());
-          if (g.hasInitializer()) {
+          instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace> ({
+		.res = gvar,
+		.size = size
+	      }));
+          instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc> ({
+		.object = gvar,
+		.size = size }));
+
+	  if (g.hasInitializer()) {
             auto val = findValue(g.getInitializer(), values, tt, cfactory);
-            MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Store> store;
-            store.setValue(val);
-            store.setAddress(gvar);
-            instr.push_back(store.BuildInstruction());
-          }
+            instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Store> ( {
+	    .addr = gvar,  
+	    .storee = val
+	  }));
+	    
+	  }
         }
         if (instr.size()) {
           MiniMC::Model::InstructionStream str(instr);
@@ -456,15 +457,17 @@ namespace MiniMC {
                 auto valComp = findValue(brterm->getDestination(i), values, tt, cfactory);
                 auto btype = tfactory->makeBoolType();
                 auto cond = variablestack->addVariable("", btype);
-                MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::PtrEq> builder;
-                builder.setLeft(value);
-                builder.setRight(valComp);
-                builder.setRes(cond);
                 auto ttloc = buildPhiEdge(&BB, brterm->getDestination(i), *cfg, tt, locmap, locinfoc);
                 auto edge = cfg->makeEdge(splitloc, ttloc);
                 edge->setAttribute<MiniMC::Model::AttributeType::Guard>(MiniMC::Model::Guard(cond, false));
-                insts.push_back(builder.BuildInstruction());
-              }
+                insts.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::PtrEq> ({
+		      .res = cond,
+		      .op1 = value,
+		      .op2 = valComp
+		    }));
+		
+		
+	      }
               //splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
               auto nedge = cfg->makeEdge(loc, splitloc);
               nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(insts);
@@ -493,10 +496,7 @@ namespace MiniMC {
         for (auto& phi : to->phis()) {
           auto ass = findValue(&phi, values, tt, cfactory);
           auto incoming = findValue(phi.getIncomingValueForBlock(from), values, tt, cfactory);
-          MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
-          builder.setValue(incoming);
-          builder.setResult(ass);
-          insts.push_back(builder.BuildInstruction());
+          insts.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign> ({.res = ass, .op1 = incoming}));
         }
         auto loc = locmap.at(to);
         if (insts.size()) {

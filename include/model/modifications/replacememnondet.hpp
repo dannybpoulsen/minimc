@@ -29,31 +29,31 @@ namespace MiniMC {
             if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 if (I.getOpcode() == MiniMC::Model::InstructionCode::Load) {
-                  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::NonDet> nondet;
                   MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Load> load(I);
-
-                  nondet.setResult(load.getResult());
+		  MiniMC::Model::Value_ptr  min = nullptr, max = nullptr;;
                   switch (load.getResult()->getType()->getSize()) {
                     case 1:
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), load.getResult()->getType()));
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), load.getResult()->getType()));
+                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), load.getResult()->getType());
+		      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), load.getResult()->getType());
                       break;
                     case 2:
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), load.getResult()->getType()));
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), load.getResult()->getType()));
+                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), load.getResult()->getType());
+                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), load.getResult()->getType());
                       break;
                     case 4:
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), load.getResult()->getType()));
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), load.getResult()->getType()));
+                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), load.getResult()->getType());
+                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), load.getResult()->getType());
                       break;
                     case 8:
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), load.getResult()->getType()));
-                      nondet.setMin(prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), load.getResult()->getType()));
+                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), load.getResult()->getType());
+                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), load.getResult()->getType());
                       break;
                     default:
                       MiniMC::Support::Exception("Shouldnøt get here");
                   }
-                  I.replace(nondet.BuildInstruction());
+		  assert(min);
+		  assert(max);
+                  I.replace(createInstruction<InstructionCode::NonDet> ({.res = load.getResult (), .min = min, .max = max}));
                 }
                 if (I.getOpcode() == MiniMC::Model::InstructionCode::Alloca ||
                     I.getOpcode() == MiniMC::Model::InstructionCode::Malloc ||
@@ -61,8 +61,7 @@ namespace MiniMC {
                     I.getOpcode() == MiniMC::Model::InstructionCode::Store
 
                 ) {
-                  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Skip> skip;
-                  I.replace(skip.BuildInstruction());
+                  I.replace(createInstruction<InstructionCode::Skip> (0));
                 }
               }
             }
@@ -206,14 +205,16 @@ namespace MiniMC {
                 MiniMC::uint64_t it = min;
 
                 while (true) {
-                  MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> builder;
                   auto val = fact->makeIntegerConstant(it, type);
-                  builder.setResult(nondet.getResult());
-                  builder.setValue(val);
-
+                  
                   auto nedge = cfg->makeEdge(from, to);
                   nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(origstr);
-                  nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace(builder.BuildInstruction());
+                  nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign> ({
+			.res = nondet.getResult (),
+			.op1 = val})
+		    );
+		  
+		    
                   it++;
                   if (it == max)
                     break;

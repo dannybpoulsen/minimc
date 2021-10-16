@@ -20,17 +20,21 @@ namespace MiniMC {
       cfg->setInitial(init);
       auto edge = cfg->makeEdge(init, end);
 
-      InstBuilder<InstructionCode::Call> builder;
+      Value_ptr result = nullptr;
+      std::vector<Value_ptr> params;
       auto restype = function->getReturnType();
       if (restype->getTypeID() != TypeID::Void) {
-        auto resvar = vstack->addVariable("_", restype);
-        builder.setRes(resvar);
+        result = vstack->addVariable("_", restype);
       }
-      builder.setNbParamters(program->getConstantFactory()->makeIntegerConstant(0, program->getTypeFactory()->makeIntegerType(64)));
-      builder.setFunctionPtr(funcpointer);
-
-      edge->setAttribute<AttributeType::Instructions>(InstructionStream({builder.BuildInstruction()}));
-
+      edge->setAttribute<AttributeType::Instructions>(InstructionStream({createInstruction<InstructionCode::Call> ( {
+		.res = result,
+		.function = funcpointer,
+		.params = params
+	      })}
+	  )
+	);
+	  
+      
       return program->addFunction(name, {},
                                   program->getTypeFactory()->makeVoidType(),
                                   vstack,

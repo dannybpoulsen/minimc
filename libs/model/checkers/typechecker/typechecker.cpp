@@ -707,7 +707,7 @@ namespace MiniMC {
                   CASTOPS
                   MEMORY
                   INTERNAL
-                  POINTEROPS
+		  POINTEROPS
                   AGGREGATEOPS
                   PREDICATES
                 }

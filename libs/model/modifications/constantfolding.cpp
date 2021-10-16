@@ -38,14 +38,17 @@ namespace MiniMC {
                 break;
             }
 
-            MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Assign> build;
-            build.setResult(res);
-            if (value) {
-              build.setValue(tt);
+	    MiniMC::Model::Value_ptr resval;
+	    if (value) {
+              resval = tt; 
             } else {
-              build.setValue(ff);
+              resval = ff; 
             }
-            instr.replace(build.BuildInstruction());
+            instr.replace(createInstruction<InstructionCode::Assign> ( {
+		  .res = res,
+		  .op1 = resval
+		})
+	      );
           }
         }
       }

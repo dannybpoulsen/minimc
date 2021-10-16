@@ -24,9 +24,7 @@ namespace MiniMC {
       struct LowerGuards : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         template <MiniMC::Model::InstructionCode i, class Inserter>
         void add(MiniMC::Model::Guard& g, Inserter& inserter) {
-          MiniMC::Model::InstBuilder<i> builder;
-          builder.setAssert(g.guard);
-          inserter = builder.BuildInstruction();
+          inserter = MiniMC::Model::createInstruction<i> ({.expr = g.guard});
         }
 
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {

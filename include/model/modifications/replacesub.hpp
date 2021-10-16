@@ -31,9 +31,9 @@ namespace MiniMC {
                     auto nvar = F->getVariableStackDescr()->addVariable("", helper.getLeftOp()->getType());
                     auto one_constant = cfac->makeIntegerConstant(1, helper.getLeftOp()->getType());
                     std::vector<MiniMC::Model::Instruction> vec;
-                    vec.push_back(MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Not>{}.setOP(helper.getRightOp()).setRes(nvar).BuildInstruction());
-                    vec.push_back(MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Add>{}.setRes(nvar).setLeft(nvar).setRight(one_constant).BuildInstruction());
-                    vec.push_back(MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Add>{}.setRes(helper.getResult()).setLeft(helper.getLeftOp()).setRight(nvar).BuildInstruction());
+                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = helper.getRightOp ()}));
+                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = nvar, .op1  = nvar, .op2 = one_constant}));
+                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = helper.getResult (), .op1 = helper.getLeftOp(), .op2 = nvar}));
 
                     it = instrstr.replaceInstructionBySeq(it, vec.begin(), vec.end());
                     end = instrstr.end();

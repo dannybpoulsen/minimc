@@ -30,10 +30,7 @@ namespace MiniMC {
             MiniMC::Model::InstHelper<To> helper(I);
 
             if (helper.getCastee()->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
-              MiniMC::Model::InstBuilder<To> builder;
-              builder.setRes(helper.getResult());
-              builder.setCastee(helper.getCastee());
-              I.replace(builder.BuildInstruction());
+              I.replace(MiniMC::Model::createInstruction<To>( {.res = helper.getResult(), .op1 = helper.getCastee()}));
             }
           }
         }

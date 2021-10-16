@@ -31,13 +31,13 @@ namespace MiniMC {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::NonDet) {
-
-                    MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::Uniform> uniform;
+		    
                     MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet(I);
-                    uniform.setResult(nondet.getResult());
-                    uniform.setMin(nondet.getMin());
-                    uniform.setMax(nondet.getMax());
-                    I.replace(uniform.BuildInstruction());
+                    I.replace(createInstruction<InstructionCode::Uniform> ({
+			  .res = nondet.getResult(),
+			  .min = nondet.getMin (),
+			  .max = nondet.getMax ()
+			}));
                   }
                 }
               }
