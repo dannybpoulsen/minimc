@@ -27,13 +27,13 @@ namespace MiniMC {
                 for (it; it != end; ++it) {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
                     std::cerr << "Replace " << std::endl;
-                    MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Sub> helper(*it);
-                    auto nvar = F->getVariableStackDescr()->addVariable("", helper.getLeftOp()->getType());
-                    auto one_constant = cfac->makeIntegerConstant(1, helper.getLeftOp()->getType());
+                    auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();
+                    auto nvar = F->getVariableStackDescr()->addVariable("", content.op1->getType());
+                    auto one_constant = cfac->makeIntegerConstant(1, content.op1->getType());
                     std::vector<MiniMC::Model::Instruction> vec;
-                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = helper.getRightOp ()}));
+                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = content.op2}));
                     vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = nvar, .op1  = nvar, .op2 = one_constant}));
-                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = helper.getResult (), .op1 = helper.getLeftOp(), .op2 = nvar}));
+                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = content.res, .op1 = content.op1, .op2 = nvar}));
 
                     it = instrstr.replaceInstructionBySeq(it, vec.begin(), vec.end());
                     end = instrstr.end();

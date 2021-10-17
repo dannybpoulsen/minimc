@@ -23,7 +23,7 @@ namespace MiniMC {
             auto stackvar = F->getVariableStackDescr()->addVariable("stack", prgm.getTypeFactory()->makePointerType());
             auto cfg = F->getCFG();
             auto size = prgm.getConstantFactory()->makeIntegerConstant(0, prgm.getTypeFactory()->makeIntegerType(64));
-            InstructionStream stream({createInstruction<InstructionCode::FindSpace>({.res = stackvar, .size = size}),
+            InstructionStream stream({createInstruction<InstructionCode::FindSpace>({.res = stackvar, .op1 = size}),
                                       createInstruction<InstructionCode::Malloc>({.object = stackvar, .size = size})});
 
             auto ninitloc = cfg->makeLocation(MiniMC::Model::LocationInfo("StackAlloc", 0, *source_loc));
@@ -36,11 +36,11 @@ namespace MiniMC {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == InstructionCode::Alloca) {
-                    InstHelper<InstructionCode::Alloca> helper(I);
+		    auto& content = I.getOps<InstructionCode::Alloca> ();
                     I.replace(createInstruction<InstructionCode::ExtendObj>(
-                        {.res = helper.getResult(),
+                        {.res = content.res,
                          .object = stackvar,
-                         .size = helper.getSize()}));
+                         .size = content.op1}));
                   }
                 }
                 auto& instrstream = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();

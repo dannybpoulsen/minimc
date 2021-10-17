@@ -122,9 +122,9 @@ namespace MiniMC {
           if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
             auto& inst = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
-              MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper(inst);
-              if (helper.getFunctionPtr()->isConstant()) {
-                auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(helper.getFunctionPtr());
+	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
+	      if (content.function->isConstant()) {
+                auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(content.function);
                 MiniMC::loadHelper<MiniMC::pointer_t> loadPtr(constant->getData(), sizeof(MiniMC::pointer_t));
 
                 auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));

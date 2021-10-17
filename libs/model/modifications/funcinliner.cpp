@@ -18,9 +18,8 @@ namespace MiniMC {
         auto to_loc = edge->getTo();
         auto& instrs = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
         assert(instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Call);
-        MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Call> helper(instrs.last());
-        assert(helper.getFunctionPtr()->isConstant());
-        auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(helper.getFunctionPtr());
+	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
+	auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(call_content.function);
         MiniMC::loadHelper<MiniMC::pointer_t> loadPtr(constant->getData(), sizeof(MiniMC::pointer_t));
 
         auto cfunc = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
@@ -52,11 +51,12 @@ namespace MiniMC {
             }
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Ret) {
-              InstHelper<MiniMC::Model::InstructionCode::Ret> nehelper(ninstr.last());
+	      auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
+          
               ne->setTo(edge->getTo());
               ninstr.last().replace(createInstruction<InstructionCode::Assign> ( {
-		    .res = helper.getResult (),
-		    .op1 = nehelper.getValue ()
+		    .res = call_content.res,
+		    .op1 = content.value 
 		  })
 		);
             }
@@ -72,9 +72,10 @@ namespace MiniMC {
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
           inserter = *it;
         }
-        for (size_t i = 0; i < helper.nbParams(); i++, it++) {
+        for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
-          inserter = createInstruction<InstructionCode::Assign> ({.res = valmap.at(it->get().get()), .op1 = helper.getParam(i)});  
+          inserter = createInstruction<InstructionCode::Assign> ({.res = valmap.at(it->get().get()),
+	      .op1 = call_content.params.at(i)});  
         }
         edge->delAttribute<MiniMC::Model::AttributeType::Instructions>();
         if (str.begin() != str.end())

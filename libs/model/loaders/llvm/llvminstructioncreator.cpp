@@ -157,7 +157,7 @@ namespace MiniMC {
         auto val = findValue(*cinst->arg_begin(), values, tt, cfac);
         auto res = findValue(inst, values, tt, cfac);
         instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace>({.res = res,
-                                                                                                     .size = val}));
+                                                                                                     .op1 = val}));
         instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc>({.object = res,
                                                                                                   .size = val}));
       } else if (func->isDeclaration()) {

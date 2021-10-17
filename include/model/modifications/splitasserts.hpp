@@ -52,7 +52,7 @@ namespace MiniMC {
               if (instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Assert) {
                 E->getFrom()->getInfo().unset<MiniMC::Model::Attributes::CallPlace>();
                 assert(!E->getFrom()->getInfo().is<MiniMC::Model::Attributes::CallPlace>());
-                auto val = MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::Assert>(instrs.last()).getAssert();
+                auto val = instrs.last().getOps<MiniMC::Model::InstructionCode::Assert> ().expr;
                 instrs.erase((instrs.rbegin() + 1).base());
 
                 auto nloc = cfg->makeLocation(locc.make("Assert", 0, *source_loc));

@@ -417,10 +417,6 @@ namespace MiniMC {
     };
 
     
-    struct FindSpaceContent {
-      Value_ptr res;
-      Value_ptr size;
-    };
     
     template <>
     struct InstructionData<InstructionCode::FindSpace> {
@@ -432,7 +428,7 @@ namespace MiniMC {
       static const bool isPredicate = false;
       static const std::size_t operands = 1;
       static const bool hasResVar = true;
-      using Content = FindSpaceContent;
+      using Content = UnaryContent;
     };
 
     template <>
@@ -716,7 +712,6 @@ namespace MiniMC {
 					     ExtendObjContent,
 					     MallocContent,
 					     FreeContent,
-					     FindSpaceContent,
 					     NonDetContent,
 					     AssertAssumeContent,
 					     StackSaveContent,
@@ -770,12 +765,6 @@ namespace MiniMC {
 
       else if constexpr (std::is_same<FreeContent,T> ()) {
 	return { .object= replace(t.object)};
-      }
-      
-      else if constexpr (std::is_same<FindSpaceContent,T> ()) {
-	return { .res = replace(t.res),
-	  .size = replace(t.size)
-	};
       }
       
       else if constexpr (std::is_same<NonDetContent,T> ()) {
@@ -892,354 +881,148 @@ namespace MiniMC {
     }
 
     template <InstructionCode i, class T = void>
-    class InstHelper;
-
-    template <InstructionCode i, class T = void>
-    class InstBuilder;
-
-    template <InstructionCode i, class T = void>
     struct Formatter {
       static std::ostream& output(std::ostream& os, const Instruction&) { return os << "??"; }
     };
 
     
-    
     template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isTAC ||
-						InstructionData<i>::isComparison
-						>::type>   {
-    public:
-      InstHelper(const Instruction& inst) :  inst(inst) {}
-      auto& getResult() const { return inst.getOps<i>().res; }
-      auto& getLeftOp() const { return inst.getOps<i>().op1; }
-      auto& getRightOp() const { return inst.getOps<i>().op2; }
-
-    private:
-      const Instruction& inst;
-    };
-
-    
-    template <InstructionCode i>
-    struct Formatter<i, typename std::enable_if<InstructionData<i>::isTAC>::type> {
+    struct Formatter<i, typename std::enable_if<InstructionData<i>::isTAC || InstructionData<i>::isComparison>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<i> h(inst);
-        return os << *h.getResult() << " = " << i << " " << *h.getLeftOp() << " " << *h.getRightOp();
+        auto& content = inst.getOps<i> ();
+        return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op1;
       }
-    };
-
-    template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isPredicate>::type> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst)
-					    
-      {}
-      auto& getLeftOp() const { return inst.getOps<i>().op1; }
-      auto& getRightOp() const { return inst.getOps<i>().op2; }
-
-    private:
-      const Instruction& inst;
     };
 
     
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isPredicate>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<i> h(inst);
-        return os << i << " " << *h.getLeftOp() << " " << *h.getRightOp();
+	auto& content = inst.getOps<i> (); 
+	return os << i << " " << *content.op1 << " " << *content.op2;
       }
     };
-
-    template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isUnary>::type> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<i> ().res; }
-      auto& getOp() const { return inst.getOps<i> ().op1; }
-
-    private:
-      const Instruction& inst;
-    };
-
+    
+    
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isUnary>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<i> h(inst);
-        return os << *h.getResult() << " = " << i << " " << *h.getOp();
+        auto& content = inst.getOps<i> (); 
+	return os << *content.res << " = " << i << " " << *content.op1;
       }
     };
 
-    template <InstructionCode i>
-    struct Formatter<i, typename std::enable_if<InstructionData<i>::isComparison>::type> {
-      static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<i> h(inst);
-        return os << *h.getResult() << " = " << i << " " << *h.getLeftOp() << " " << *h.getRightOp();
-      }
-    };
-
-    template <InstructionCode i>
-    class InstHelper<i, typename std::enable_if<InstructionData<i>::isCast>::type> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<i>().res; }
-      auto& getCastee() const { return inst.getOps<i>().op1; }
-
-    private:
-      const Instruction& inst;
-    };
-
+   
     template <InstructionCode i>
     struct Formatter<i, typename std::enable_if<InstructionData<i>::isCast>::type> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<i> h(inst);
-        return os << *h.getResult() << " = " << i << *h.getCastee();
+	auto& content = inst.getOps<i>();
+	return os << *content.res << " = " << i << *content.op1;
       }
     };
-
-    template <>
-    class InstHelper<InstructionCode::Alloca, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::Alloca> ().res; }
-      auto& getSize() const { return inst.getOps<InstructionCode::Alloca>().op1; }
-
-    private:
-      const Instruction& inst;
-    };
-
-    template <>
-    class InstHelper<InstructionCode::ExtendObj, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::ExtendObj> ().res; }
-      auto& getPointer() const { return inst.getOps<InstructionCode::ExtendObj>().object; }
-      auto& getSize() const { return inst.getOps<InstructionCode::ExtendObj>().size; }
-
-    private:
-      const Instruction& inst;
-    };
-    
-    template <>
-    class InstHelper<InstructionCode::Malloc, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getPointer() const { return inst.getOps<InstructionCode::Malloc>().object; }
-      auto& getSize() const { return inst.getOps<InstructionCode::Malloc>().size; }
-
-    private:
-      const Instruction& inst;
-    };
-    
-    template <>
-    class InstHelper<InstructionCode::Free, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getPointer() const { return inst.getOps<InstructionCode::Free>().object; }
-
-    private:
-      const Instruction& inst;
-    };
-
-    
-    template <>
-    class InstHelper<InstructionCode::FindSpace, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::FindSpace> ().res; }
-      auto& getSize() const { return inst.getOps<InstructionCode::FindSpace> ().size; }
-
-    private:
-      const Instruction& inst;
-    };
-    
     
     template <>
     struct Formatter<InstructionCode::Alloca, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Alloca> h(inst);
-        return os << InstructionCode::Alloca << " (" << *h.getResult() << ", " << *h.getSize() << " )";
+	auto& content = inst.getOps<InstructionCode::Alloca> ();
+        return os << InstructionCode::Alloca << " (" << *content.res << ", " << *content.op1 << " )";
       }
     };
-
+    
     template <>
     struct Formatter<InstructionCode::ExtendObj, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::ExtendObj> h(inst);
-        return os << InstructionCode::ExtendObj << " (" << *h.getResult() << ", " << *h.getPointer() << " by " << *h.getSize() << " )";
+        auto& content = inst.getOps<InstructionCode::ExtendObj> ();
+        return os << InstructionCode::ExtendObj << " (" << *content.res << ", " << *content.object << " by " << *content.size << " )";
       }
     };
 
     template <>
     struct Formatter<InstructionCode::Malloc, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Malloc> h(inst);
-        return os << InstructionCode::Malloc << " (" << *h.getPointer() << ", " << *h.getSize() << " )";
+        auto& content = inst.getOps<InstructionCode::Malloc> ();
+	return os << InstructionCode::Malloc << " (" << *content.object << ", " << *content.size << " )";
       }
     };
 
     template <>
     struct Formatter<InstructionCode::Free, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Free> h(inst);
-        return os << InstructionCode::Free << " (" << *h.getPointer() << " )";
+	auto& content = inst.getOps<InstructionCode::Free> ();
+	return os << InstructionCode::Free << " (" << *content.object << " )";
       }
     };
 
     template <>
     struct Formatter<InstructionCode::FindSpace, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Alloca> h(inst);
-        return os << *h.getResult() << " = " << InstructionCode::FindSpace << *h.getSize();
+	auto& content = inst.getOps<InstructionCode::FindSpace> ();
+	return os << *content.res << " = " << InstructionCode::FindSpace << *content.op1;
       }
     };
 
-    template <>
-    class InstHelper<InstructionCode::Skip, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-
-    private:
-      const Instruction& inst;
-    };
-
-    /*template <>
-    class InstBuilder<InstructionCode::Skip, void> {
-    public:
-      Instruction BuildInstruction() {
-        return Instruction(InstructionCode::Skip, 0);
-      }
-      };*/
-
+    
     template <>
     struct Formatter<InstructionCode::Skip, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Alloca> h(inst);
         return os << InstructionCode::Skip;
       }
-    };
-
-    //
-    template <>
-    class InstHelper<InstructionCode::NonDet, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::NonDet> ().res; }
-      auto& getMin() const { return inst.getOps<InstructionCode::NonDet> ().min; }
-      auto& getMax() const { return inst.getOps<InstructionCode::NonDet>().max; }
-
-    private:
-      const Instruction& inst;
     };
 
     template <>
     struct Formatter<InstructionCode::NonDet, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::NonDet> h(inst);
-        return os << *h.getResult() << "=" << InstructionCode::NonDet << "(" << *h.getMin() << ", " << *h.getMax() << ")";
+	auto& content = inst.getOps<InstructionCode::NonDet> ();
+	return os << *content.res << "=" << InstructionCode::NonDet << "(" << *content.min << ", " << *content.max << ")";
       }
     };
     //
 
-    template <>
-    class InstHelper<InstructionCode::StackSave, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::StackSave> ().res; }
 
-    private:
-      const Instruction& inst;
-    };
     
 
     template <>
     struct Formatter<InstructionCode::StackSave, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::StackSave> h(inst);
-        return os << *h.getResult() << "=" << InstructionCode::StackSave;
+	auto& content = inst.getOps<InstructionCode::StackSave> ();
+	return os << *content.res << "=" << InstructionCode::StackSave;
       }
     };
 
     //
 
-    template <>
-    class InstHelper<InstructionCode::StackRestore, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOps<InstructionCode::StackRestore> ().stackobject ; }
-
-    private:
-      const Instruction& inst;
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::StackRestore, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::StackRestore> h(inst);
-        return os << InstructionCode::StackRestore << "( " << *h.getValue() << " )";
+	auto& content =  inst.getOps<InstructionCode::StackRestore> ();
+	return os << InstructionCode::StackRestore << "( " << *content.stackobject << " )";
       }
     };
 
     //
-
-    template <>
-    class InstHelper<InstructionCode::MemCpy, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getSource() const { return inst.getOps<InstructionCode::MemCpy> ().src;; }
-      auto& getTarget() const { return inst.getOps<InstructionCode::MemCpy>().dst; }
-      auto& getSize() const { return inst.getOps<InstructionCode::MemCpy>().size; }
-
-    private:
-      const Instruction& inst;
-    };
-
 
     template <>
     struct Formatter<InstructionCode::MemCpy, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::MemCpy> h(inst);
-        return os << InstructionCode::MemCpy;
+         return os << InstructionCode::MemCpy;
         ;
       }
     };
 
     //
-    template <InstructionCode i>
-    class InstHelper<i, std::enable_if_t<i == InstructionCode::Assert ||
-                                         i == InstructionCode::Assume ||
-                                         i == InstructionCode::NegAssume>> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAssert() const { return inst.getOps<i>().expr; }
-
-    private:
-      const Instruction& inst;
-    };
-
+    
     
     template <InstructionCode i>
     struct Formatter<i, std::enable_if_t<i == InstructionCode::Assert ||
                                          i == InstructionCode::Assume ||
                                          i == InstructionCode::NegAssume>> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Assert> h(inst);
-        return os << i << "(" << *h.getAssert() << ")";
+        auto& content = inst.getOps<InstructionCode::Assert> ();
+	return os << i << "(" << *content.expr << ")";
       }
     };
     //
-
-    template <>
-    class InstHelper<InstructionCode::Call, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-
-      auto nbParams() const { return inst.getOps<InstructionCode::Call> ().params.size(); }
-      auto getFunctionPtr() { return inst.getOps<InstructionCode::Call> ().function; }
-      auto getParam(std::size_t p) { return inst.getOps<InstructionCode::Call> ().params.at(p); }
-      auto getResult() {return inst.getOps<InstructionCode::Call> ().res;}
-
-    private:
-      const Instruction& inst;
-    };
 
 
     template <>
@@ -1250,106 +1033,54 @@ namespace MiniMC {
       }
     };
 
-    template <>
-    class InstHelper<InstructionCode::PtrAdd, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOps<InstructionCode::PtrAdd> ().nbSkips; }
-      auto& getAddress() const { return inst.getOps<InstructionCode::PtrAdd> ().ptr; }
-      auto& getSkipSize() const { return inst.getOps<InstructionCode::PtrAdd> ().skipsize; ; }
-      auto& getResult() const { return inst.getOps<InstructionCode::PtrAdd> ().res;; }
-
-    private:
-      const Instruction& inst;
-    };
-
     
     template <>
     struct Formatter<InstructionCode::PtrAdd, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::PtrAdd> h(inst);
-        return os << *h.getResult() << " = " << *h.getAddress() << " + " << *h.getSkipSize() << "*" << *h.getValue();
+        //InstHelper<InstructionCode::PtrAdd> h(inst);
+        //return os << *h.getResult() << " = " << *h.getAddress() << " + " << *h.getSkipSize() << "*" << *h.getValue();
+	return os << InstructionCode::PtrAdd;
       }
     };
 
-    template <>
-    class InstHelper<InstructionCode::ExtractValue, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getAggregate() const { return inst.getOps<InstructionCode::ExtractValue> ().aggregate;}
-      auto& getOffset() const { return inst.getOps<InstructionCode::ExtractValue> ().offset; }
-      auto& getResult() const { return inst.getOps<InstructionCode::ExtractValue> ().res; }
-
-    private:
-      const Instruction& inst;
-    };
     
     template <>
     struct Formatter<InstructionCode::ExtractValue, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::ExtractValue> h(inst);
-        return os << *h.getResult() << " = " << *h.getAggregate() << " [ " << *h.getOffset() << " ] ";
+        //InstHelper<InstructionCode::ExtractValue> h(inst);
+        //return os << *h.getResult() << " = " << *h.getAggregate() << " [ " << *h.getOffset() << " ] ";
+	return os << InstructionCode::ExtractValue;
       }
     };
 
-    template <>
-    class InstHelper<InstructionCode::Assign, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOps<InstructionCode::Assign> ().op1; }
-      auto& getResult() const { return inst.getOps<InstructionCode::Assign> ().res; }
-
-    private:
-      const Instruction& inst;
-    };
 
     template <>
     struct Formatter<InstructionCode::Assign, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Assign> h(inst);
-        return os << *h.getResult() << " = " << *h.getValue();
+	auto& content = inst.getOps<InstructionCode::Assign> (); 
+	return os << *content.res << " = " << *content.op1;
       }
     };
     
-    template <>
-    class InstHelper<InstructionCode::RetVoid, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-
-    private:
-      const Instruction& inst;
-    };
     
     template <>
     struct Formatter<InstructionCode::RetVoid, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::RetVoid> h(inst);
         return os << "RetVoid";
       }
     };
 
     //
-    template <>
-    class InstHelper<InstructionCode::Ret, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOps<InstructionCode::Ret> ().value; }
-
-    private:
-      const Instruction& inst;
-    };
-    
     
     template <>
     struct Formatter<InstructionCode::Ret, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Ret> h(inst);
-        return os << "Ret " << *h.getValue();
+        return os << "Ret " << *(inst.getOps<InstructionCode::Ret> ().value);
       }
     };
 
     //
-    template <>
+    /*template <>
     class InstHelper<InstructionCode::InsertValue, void> {
     public:
       InstHelper(const Instruction& inst) : inst(inst) {}
@@ -1361,84 +1092,45 @@ namespace MiniMC {
     private:
       const Instruction& inst;
     };
-    
+    */
     
     template <>
     struct Formatter<InstructionCode::InsertValue, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::InsertValue> h(inst);
-        return os << h.getResult() << " = " << *h.getAggregate() << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee();
+	//  InstHelper<InstructionCode::InsertValue> h(inst);
+        //return os << h.getResult() << " = " << *h.getAggregate() << " [ " << *h.getOffset() << " ]:= " << *h.getInsertee();
+	return os << InstructionCode::InsertValue;
       }
     };
 
     //
-    template <>
-    class InstHelper<InstructionCode::Uniform, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getResult() const { return inst.getOps<InstructionCode::Uniform> ().res; }
-      auto& getMin() const { return inst.getOps<InstructionCode::Uniform> ().min; }
-      auto& getMax() const { return inst.getOps<InstructionCode::Uniform> ().max; }
-
-    private:
-      const Instruction& inst;
-    };
-
     template <>
     struct Formatter<InstructionCode::Uniform, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Uniform> h(inst);
-        return os << *h.getResult() << " = " << InstructionCode::Uniform << " ( " << *h.getMin() << ", " << *h.getMax() << ")";
+        //InstHelper<InstructionCode::Uniform> h(inst);
+        //return os << *h.getResult() << " = " << InstructionCode::Uniform << " ( " << *h.getMin() << ", " << *h.getMax() << ")";
+	return os << InstructionCode::Uniform;
       }
     };
-
-    //
-    template <>
-    class InstHelper<InstructionCode::Store, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {}
-      auto& getValue() const { return inst.getOps<InstructionCode::Store> ().storee; }
-      auto& getAddress() const { return  inst.getOps<InstructionCode::Store> ().addr;}
-
-    private:
-      const Instruction& inst;
-    };
-
+    
     
     template <>
     struct Formatter<InstructionCode::Store, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::PtrAdd> h(inst);
-        return os << "*" << *h.getAddress() << " = " << *h.getValue();
+        //return os << "*" << *h.getAddress() << " = " << *h.getValue();
+	return os << InstructionCode::Store << std::endl;
       }
     };
 
-    template <>
-    class InstHelper<InstructionCode::Load, void> {
-    public:
-      InstHelper(const Instruction& inst) : inst(inst) {
-      }
-      auto& getResult() const { return inst.getOps<InstructionCode::Load> ().res;}
-      auto& getAddress() const { return inst.getOps<InstructionCode::Load> ().addr; }
-
-    private:
-      const Instruction& inst;
-    };
-
+    
     template <>
     struct Formatter<InstructionCode::Load, void> {
       static std::ostream& output(std::ostream& os, const Instruction& inst) {
-        InstHelper<InstructionCode::Load> h(inst);
-        return os << *h.getResult() << " = *" << *h.getAddress();
+	return os << InstructionCode::Load;
       }
     };
 
-    template <InstructionCode code>
-    InstHelper<code> makeHelper(Instruction& inst) {
-      assert(inst.getOpcode() == code);
-      return InstHelper<code, void>(inst);
-    }
-
+    
     using instructionstream = std::vector<Instruction>;
 
     inline std::ostream& operator<<(std::ostream& os, const instructionstream& str) {

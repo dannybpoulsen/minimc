@@ -27,10 +27,9 @@ namespace MiniMC {
         template <MiniMC::Model::InstructionCode From, MiniMC::Model::InstructionCode To>
         void modifyExt(MiniMC::Model::Instruction& I) {
           if (I.getOpcode() == From) {
-            MiniMC::Model::InstHelper<To> helper(I);
-
-            if (helper.getCastee()->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
-              I.replace(MiniMC::Model::createInstruction<To>( {.res = helper.getResult(), .op1 = helper.getCastee()}));
+            auto& content = I.getOps<To>();
+            if (content.op1->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
+              I.replace(MiniMC::Model::createInstruction<To>({.res = content.res, .op1 = content.op1}));
             }
           }
         }

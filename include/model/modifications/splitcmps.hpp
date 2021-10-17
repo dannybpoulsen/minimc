@@ -49,7 +49,7 @@ namespace MiniMC {
               if (isCMP(instrs.last())) {
                 auto buildEdge = [&]<MiniMC::Model::InstructionCode inst,
                                      MiniMC::Model::InstructionCode left>(auto& v) {
-                  MiniMC::Model::InstHelper<inst> helper(instrs.last());
+                  auto& origcontent = instrs.last().getOps<inst> ();
                   auto loc = cfg->makeLocation(E->getTo()->getInfo());
 
                   auto it = E->getTo()->ebegin();
@@ -64,8 +64,8 @@ namespace MiniMC {
                   auto tt = cfg->makeEdge(E->getFrom(), loc);
                   tt->setAttribute<MiniMC::Model::AttributeType::Instructions>(instr);
                   std::vector<MiniMC::Model::Instruction> ttI{
-		    MiniMC::Model::createInstruction<left>({.op1 = helper.getLeftOp(), .op2 = helper.getRightOp()}),
-		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = helper.getResult (), .op1 = v})
+		    MiniMC::Model::createInstruction<left>({.op1 = origcontent.op1, .op2 = origcontent.op2}),
+		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = origcontent.res, .op1 = v})
 		  };
                   auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());

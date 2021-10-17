@@ -19,15 +19,13 @@ namespace MiniMC {
                          MiniMC::Model::Value_ptr& cval) {
         cval = nullptr;
         assert(i == instr.getOpcode());
-        if constexpr (MiniMC::Model::InstructionData<i>::hasResVar) {
-          MiniMC::Model::InstHelper<i> helper(instr);
-          if (helper.getResult() == val) {
-            if constexpr (i == MiniMC::Model::InstructionCode::Assign) {
-              cval = helper.getValue();
-              return true;
-            }
-          }
-        }
+        if constexpr (MiniMC::Model::InstructionData<i>::hasResVar && i == MiniMC::Model::InstructionCode::Assign) {
+	  auto& content = instr.getOps<i> ();
+	  if (content.res == val) {
+	    cval = content.op1;
+	    return true;
+	  }
+	}
         return false;
       }
 

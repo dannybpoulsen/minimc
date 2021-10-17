@@ -32,11 +32,11 @@ namespace MiniMC {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::NonDet) {
 		    
-                    MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::NonDet> nondet(I);
-                    I.replace(createInstruction<InstructionCode::Uniform> ({
-			  .res = nondet.getResult(),
-			  .min = nondet.getMin (),
-			  .max = nondet.getMax ()
+                    auto& content = I.getOps<MiniMC::Model::InstructionCode::NonDet> ();
+		    I.replace(createInstruction<InstructionCode::Uniform> ({
+			  .res = content.res,
+			  .min = content.min,
+			  .max = content.max
 			}));
                   }
                 }

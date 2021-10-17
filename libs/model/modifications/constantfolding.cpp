@@ -9,9 +9,9 @@ namespace MiniMC {
       template <MiniMC::Model::InstructionCode i>
       void foldInstr(MiniMC::Model::Instruction& instr, MiniMC::Model::Program& prgm) {
         if constexpr (i == MiniMC::Model::InstructionCode::IntToBool) {
-          MiniMC::Model::InstHelper<MiniMC::Model::InstructionCode::IntToBool> helper(instr);
-          auto res = helper.getResult();
-          auto val = helper.getCastee();
+          auto& content  = instr.getOps<i> ();
+          auto res = content.res;
+          auto val = content.op1;
           auto type = val->getType();
 
           if (val->isConstant()) {

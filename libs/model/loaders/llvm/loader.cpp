@@ -338,7 +338,7 @@ namespace MiniMC {
           size->setType(sizeType);
           instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace> ({
 		.res = gvar,
-		.size = size
+		.op1 = size
 	      }));
           instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc> ({
 		.object = gvar,
