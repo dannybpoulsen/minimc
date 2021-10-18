@@ -61,7 +61,7 @@ namespace MiniMC {
       return val;
     }
 
-    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp, bool isArr) {
+    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp, bool ) {
       std::size_t size = 0;
       for (auto& v : inp) {
         size += v->getType()->getSize();

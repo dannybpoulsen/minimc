@@ -154,7 +154,7 @@ namespace MiniMC {
 
             MiniMC::Util::runVM<decltype(it), VMData, ExecuteInstruction>(it, end, data);
 
-          } catch (MiniMC::Support::AssumeViolated) {
+          } catch (MiniMC::Support::AssumeViolated&) {
             return nullptr;
           }
         }

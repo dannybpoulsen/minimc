@@ -8,21 +8,11 @@
 namespace MiniMC {
   namespace Model {
     namespace Checkers {
-      template <MiniMC::Model::InstructionCode i, typename t = void>
-      struct TypeCheck {
-        static bool doCheck(MiniMC::Model::Instruction&, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr, MiniMC::Model::Program_ptr& prgm) {
-          MiniMC::Support::Localiser no_typecheck_for("No typechecking implemented for '%1%'");
-          mess.error(no_typecheck_for.format(i));
-
-          return false;
-        }
-      };
-
       template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if<MiniMC::Model::InstructionData<i>::isTAC>::type> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+      bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
+        auto& content = inst.getOps<i>();
+        if constexpr (InstructionData<i>::isTAC) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
-          auto& content = inst.getOps<i> (); 
           auto resType = content.res->getType();
           auto lType = content.op1->getType();
           auto rType = content.op2->getType();
@@ -33,16 +23,9 @@ namespace MiniMC {
             return false;
           }
           return true;
-        }
-      };
-
-      template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if<MiniMC::Model::InstructionData<i>::isPredicate>::type> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        } else if constexpr (InstructionData<i>::isPredicate) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must be same type.");
-	  auto& content = inst.getOps<i> (); 
-          
-	  auto lType = content.op1->getType();
+          auto lType = content.op1->getType();
           auto rType = content.op2->getType();
           if (lType != rType) {
             mess.error(loc.format(i));
@@ -50,15 +33,11 @@ namespace MiniMC {
           }
           return true;
         }
-      };
 
-      template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if<MiniMC::Model::InstructionData<i>::isUnary>::type> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (InstructionData<i>::isUnary) {
           if constexpr (i == MiniMC::Model::InstructionCode::Not) {
             MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
-	    auto& content = inst.getOps<MiniMC::Model::InstructionCode::Not> ();
-	    auto resType = content.res->getType();
+            auto resType = content.res->getType();
             auto lType = content.op1->getType();
             if (resType != lType) {
               mess.error(loc.format(i));
@@ -67,15 +46,11 @@ namespace MiniMC {
             return true;
           }
         }
-      };
 
-      template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if<MiniMC::Model::InstructionData<i>::isComparison>::type> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (InstructionData<i>::isComparison) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type..");
           MiniMC::Support::Localiser res_must_be_bool("The result of '%1% must be boolean.");
 
-          auto& content = inst.getOps<i> ();
           auto resType = content.res->getType();
           auto lType = content.op1->getType();
           auto rType = content.op2->getType();
@@ -89,16 +64,12 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Trunc, void> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Trunc) {
           MiniMC::Support::Localiser trunc_must_be_integer("'%1%' can only be applied to integer types. ");
           MiniMC::Support::Localiser trunc_must_be_larger("From type must be larger that to type for '%1%'");
-	  
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Trunc> ();
-	  auto ftype = content.op1->getType();
+
+          auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
           if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
@@ -111,41 +82,31 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::IntToBool> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::IntToBool) {
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied to integer types. ");
           MiniMC::Support::Localiser must_be_smaller("From type must be smaller that to type for '%1%'");
 
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::IntToBool> ();
-	  auto ftype = content.op1->getType();
+          auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          
-	  if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
+
+          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Bool) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToBool));
             return false;
           }
           return true;
         }
-      };
 
-      template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if_t<
-                              i == MiniMC::Model::InstructionCode::SExt ||
-                              i == MiniMC::Model::InstructionCode::ZExt>> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::SExt ||
+                           i == InstructionCode::ZExt) {
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied to integer types. ");
           MiniMC::Support::Localiser must_be_smaller("From type must be smaller that to type for '%1%'");
 
-	  auto& content = inst.getOps<i> ();
-	  auto ftype = content.op1->getType();
+          auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          
-	  
-	  if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
+
+          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
             mess.error(must_be_integer.format(i));
             return false;
@@ -156,21 +117,17 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <MiniMC::Model::InstructionCode i>
-      struct TypeCheck<i, typename std::enable_if<
-                              i == MiniMC::Model::InstructionCode::BoolSExt ||
-                              i == MiniMC::Model::InstructionCode::BoolZExt>::type> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::BoolSExt ||
+                           i == InstructionCode::BoolZExt) {
+
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied from boolean types to  integer types. ");
           MiniMC::Support::Localiser must_be_smaller("From type must be smaller that to type for '%1%'");
 
-          auto& content = inst.getOps<i> ();
-	  auto ftype = content.op1->getType();
+          auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          
-	  if (ftype->getTypeID() != MiniMC::Model::TypeID::Bool ||
+
+          if (ftype->getTypeID() != MiniMC::Model::TypeID::Bool ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
             mess.error(must_be_integer.format(i));
             return false;
@@ -181,19 +138,15 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::IntToPtr, void> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::IntToPtr) {
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied to integer types. ");
           MiniMC::Support::Localiser must_be_pointer("Return type has to be pointer for '%1%'");
 
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::IntToPtr> ();
-	  auto ftype = content.op1->getType();
+          auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          
-	  if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+
+          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToPtr));
             return false;
           }
@@ -204,21 +157,18 @@ namespace MiniMC {
           }
 
           return true;
-        }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::PtrAdd, void> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        }
+
+        else if constexpr (i == InstructionCode::PtrAdd) {
           MiniMC::Support::Localiser must_be_integer("'%2%' has to be an integer for '%1%'. ");
           MiniMC::Support::Localiser must_be_same_type("'value and skipeSize must be same type '%1%'. ");
 
           MiniMC::Support::Localiser must_be_pointer("Return type has to be pointer for '%1%'");
           MiniMC::Support::Localiser base_must_be_pointer("Base  has to be pointer for '%1%'");
 
-	  auto content = inst.getOps<MiniMC::Model::InstructionCode::PtrAdd> (); 
-	  auto ptr = content.ptr->getType();
-	  auto skip = content.skipsize->getType();
+          auto ptr = content.ptr->getType();
+          auto skip = content.skipsize->getType();
           auto value = content.nbSkips->getType();
           auto result = content.res->getType();
 
@@ -243,15 +193,11 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::PtrToInt> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::PtrToInt) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only be applied to pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Return type has to be integer for '%1%'");
 
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::PtrToInt> ();
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
           if (ftype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
@@ -266,18 +212,14 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Alloca> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Alloca) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only return pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Size parameter to '%1%' must be an Integer and 8 bytes long. ");
 
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::Alloca> ();
-	  auto restype = content.res->getType();
+          auto restype = content.res->getType();
           auto sizetype = content.op1->getType();
-	  
+
           if (restype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
@@ -291,17 +233,12 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::ExtendObj> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::ExtendObj) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only return pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Size parameter to '%1%' must be an Integer and 8 bytes long. ");
 
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::ExtendObj> ();
-	  
-	  auto restype = content.res->getType();
+          auto restype = content.res->getType();
           auto pointertype = content.object->getType();
           auto sizetype = content.size->getType();
 
@@ -323,25 +260,12 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::BitCast> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-          MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
-          mess.warning(warning.format(MiniMC::Model::InstructionCode::BitCast));
-          return true;
-        }
-      };
-
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Malloc> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Malloc) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only accept pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Size parameter to '%1%' must be an Integer and 8 bytes long. ");
 
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::Malloc> ();
-	  auto ptrtype = content.object->getType();
+          auto ptrtype = content.object->getType();
           auto sizetype = content.size->getType();
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
@@ -355,18 +279,13 @@ namespace MiniMC {
           }
 
           return true;
+
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Free> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Free) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only accept pointer types. ");
-
-          auto& content = inst.getOps<InstructionCode::Free> ();
-	
           auto ptrtype = content.object->getType();
-	  
+
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
             return false;
@@ -374,19 +293,14 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::FindSpace> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::FindSpace) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only return pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Size parameter to '%1%' must be an Integer. ");
 
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::FindSpace> ();
-	  auto restype = content.res->getType();
+          auto restype = content.res->getType();
           auto sizetype = content.op1->getType();
-	  
-	  
+
           if (restype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::FindSpace));
             return false;
@@ -398,15 +312,12 @@ namespace MiniMC {
           }
 
           return true;
-        }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Store> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        }
+
+        else if constexpr (i == InstructionCode::Store) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
 
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Store> ();
           auto addr = content.addr->getType();
           if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Store));
@@ -415,15 +326,11 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Load> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Load) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only load from pointer types. ");
           MiniMC::Support::Localiser must_be_integer("'%1%' can only load integers. ");
 
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Load> ();
           auto addr = content.addr->getType();
           if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Load));
@@ -437,31 +344,22 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Skip> {
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Skip) {
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Call> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Call) {
           //auto prgm = inst.getFunction()->getPrgm ();;
-	  auto content = inst.getOps<OpCode> ();
-	  auto func = content.function;
+          auto func = content.function;
           if (!func->isConstant()) {
             MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
-            mess.error(must_be_constant.format(OpCode));
+            mess.error(must_be_constant.format(i));
             return false;
           }
 
           else {
             auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(func);
-            ;
             auto ptr = (*constant).template getValue<MiniMC::pointer_t>(); //MiniMC::Support::CastToPtr (constant->getValue());
             bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
@@ -471,17 +369,17 @@ namespace MiniMC {
             }
 
             auto func = prgm->getFunction(MiniMC::Support::getFunctionId(ptr));
-            if (func->getParameters().size() != content.params.size ()) {
+            if (func->getParameters().size() != content.params.size()) {
               mess.error("Inconsistent number of parameters between call and function prototype");
               return false;
             }
 
-            auto nbParams = content.params.size ();
+            auto nbParams = content.params.size();
             auto it = func->getParameters().begin();
 
-            for (size_t i = 0; i < nbParams; i++, ++it) {
+            for (size_t j = 0; j < nbParams; j++, ++it) {
               auto form_type = (*it)->getType();
-              auto act_type = content.params.at(i)->getType();
+              auto act_type = content.params.at(j)->getType();
               if (form_type != act_type) {
                 mess.error("Formal and actual parameters do not match typewise");
                 return false;
@@ -499,30 +397,19 @@ namespace MiniMC {
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Assign> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assign;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::Assign) {
           MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
-          auto& content = inst.getOps<OpCode> (); 
-	
           auto valT = content.op1->getType();
           auto resT = content.res->getType();
           if (valT != resT) {
-            mess.error(must_be_same_type.format(OpCode));
+            mess.error(must_be_same_type.format(i));
             return false;
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Ret> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Ret;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
-          auto& content = inst.getOps<OpCode> ();
+        else if constexpr (i == InstructionCode::Ret) {
           if (tt != content.value->getType()) {
             MiniMC::Support::Localiser must_be_same_type("Return value of '%1% must be the same as the function");
 
@@ -531,12 +418,8 @@ namespace MiniMC {
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::RetVoid> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Call;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
+        else if constexpr (i == InstructionCode::RetVoid) {
           if (tt->getTypeID() != MiniMC::Model::TypeID::Void) {
             MiniMC::Support::Localiser must_be_same_type("Return type of function with '%1%' must be void  ");
             mess.error(must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
@@ -544,158 +427,107 @@ namespace MiniMC {
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::NonDet> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::NonDet;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-          auto type = inst.getOps<OpCode>().res->getType();
+        else if constexpr (i == InstructionCode::NonDet) {
+          auto type = inst.getOps<i>().res->getType();
           MiniMC::Support::Localiser must_be_integer("'%1% must return Integers");
           if (type->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_integer.format(OpCode));
+            mess.error(must_be_integer.format(i));
             return false;
           }
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Assert> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assert;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-	  auto& content = inst.getOps<OpCode> ();
-	  MiniMC::Support::Localiser must_be_bool("'%1%' must take boolean or integer as input. ");
-	  
+        else if constexpr (i == InstructionCode::Assert ||
+                           i == InstructionCode::Assume ||
+                           i == InstructionCode::NegAssume) {
+          MiniMC::Support::Localiser must_be_bool("'%1%' must take boolean or integer as input. ");
+
           auto type = content.expr->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Bool &&
               type->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_bool.format(OpCode));
+            mess.error(must_be_bool.format(i));
             return false;
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Assume> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Assume;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-	  auto& content = inst.getOps<OpCode> ();
-	  
-	  MiniMC::Support::Localiser must_be_bool("'%1%' must take boolean or integer as input. ");
-	  
-          auto type = content.expr->getType();
-          
-	  if (type->getTypeID() != MiniMC::Model::TypeID::Bool &&
-              type->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_bool.format(OpCode));
-            return false;
-          }
-          return true;
-        }
-      };
-
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::NegAssume> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::NegAssume;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-          auto& content = inst.getOps<OpCode> ();
-	  MiniMC::Support::Localiser must_be_bool("'%1%' must take boolean or integer as input. ");
-	  
-          auto type = content.expr->getType();
-          
-	  if (type->getTypeID() != MiniMC::Model::TypeID::Bool &&
-              type->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_bool.format(OpCode));
-            return false;
-          }
-          return true;
-        }
-      };
-
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::StackRestore> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackRestore;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-          auto& content = inst.getOps<OpCode> ();
-	  MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as inputs. ");
+        else if constexpr (i == InstructionCode::StackRestore) {
+          MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as inputs. ");
           auto type = content.stackobject->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(OpCode));
+            mess.error(must_be_pointer.format(i));
             return false;
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::MemCpy> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::MemCpy;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-	  auto& content = inst.getOps<OpCode> ();
-	  MiniMC::Support::Localiser must_be_pointer_source("'%1%' must take pointer as source inputs. ");
+        else if constexpr (i == InstructionCode::MemCpy) {
+          MiniMC::Support::Localiser must_be_pointer_source("'%1%' must take pointer as source inputs. ");
           MiniMC::Support::Localiser must_be_pointer_target("'%1%' must take pointer as target inputs. ");
           MiniMC::Support::Localiser must_be_integer("'%1%' must take integer as size inputs. ");
 
           if (content.src->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer_source.format(OpCode));
+            mess.error(must_be_pointer_source.format(i));
             return false;
           }
 
           if (content.dst->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer_target.format(OpCode));
+            mess.error(must_be_pointer_target.format(i));
             return false;
           }
 
           if (content.size->getType()->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_integer.format(OpCode));
+            mess.error(must_be_integer.format(i));
             return false;
           }
 
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::StackSave> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::StackSave;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-          auto& content = inst.getOps<MiniMC::Model::InstructionCode::StackSave> ();
+        else if constexpr (i == InstructionCode::StackSave) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as result. ");
           auto type = content.res->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(OpCode));
+            mess.error(must_be_pointer.format(i));
             return false;
           }
           return true;
         }
-      };
 
-      template <>
-      struct TypeCheck<MiniMC::Model::InstructionCode::Uniform> {
-        static const MiniMC::Model::InstructionCode OpCode = MiniMC::Model::InstructionCode::Uniform;
-        static bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program_ptr& prgm) {
-	  auto& content = inst.getOps<OpCode> ();
-	  MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
+        else if constexpr (i == InstructionCode::BitCast ||
+                           i == InstructionCode::ExtractValue ||
+                           i == InstructionCode::InsertValue) {
+          MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
+          mess.warning(warning.format(i));
+          return true;
+        }
+
+        else if constexpr (i == InstructionCode::Uniform) {
+          MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
           MiniMC::Support::Localiser must_be_integer("Result must be integer for '%1%' ");
 
           if (!MiniMC::Model::hasSameTypeID({content.res->getType(),
                                              content.max->getType(),
                                              content.min->getType()})) {
-            mess.error(must_be_same_type.format(OpCode));
+            mess.error(must_be_same_type.format(i));
             return false;
           }
 
           if (content.res->getType()->getTypeID() != MiniMC::Model::TypeID::Integer) {
-            mess.error(must_be_integer.format(OpCode));
+            mess.error(must_be_integer.format(i));
             return false;
           }
 
           return true;
         }
-      };
+
+        else {
+          []<bool b = false>() { static_assert(b && "cannot type check instruction"); }
+          ();
+        }
+      }
 
       bool TypeChecker::run(MiniMC::Model::Program& prgm) {
         messager.message("Initiating Typechecking");
@@ -707,20 +539,13 @@ namespace MiniMC {
               for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 
                 switch (I.getOpcode()) {
-#define X(OP)                                                                                                 \
-  case MiniMC::Model::InstructionCode::OP:                                                                    \
-    if (!TypeCheck<MiniMC::Model::InstructionCode::OP>::doCheck(I, messager, F->getReturnType(), prgm_ptr)) { \
-      res = false;                                                                                            \
-    }                                                                                                         \
+#define X(OP)                                                                                      \
+  case MiniMC::Model::InstructionCode::OP:                                                         \
+    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I, messager, F->getReturnType(), prgm_ptr)) { \
+      res = false;                                                                                 \
+    }                                                                                              \
     break;
-                  TACOPS
-                  COMPARISONS
-                  CASTOPS
-                  MEMORY
-                  INTERNAL
-		  POINTEROPS
-                  AGGREGATEOPS
-                  PREDICATES
+                  OPERATIONS
                 }
               }
             }

@@ -98,8 +98,6 @@ namespace MiniMC {
           auto it = instr.rbegin();
           auto end = instr.rend();
           for (++it; it != end; ++it) {
-            switch (it->getOpcode()) {
-            }
             if (it->getOpcode() != MiniMC::Model::InstructionCode::Assert) {
               mess.error("Asserts can only be last instruction of an instructionstream");
               return false;

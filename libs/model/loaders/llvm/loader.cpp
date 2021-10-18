@@ -283,7 +283,6 @@ namespace MiniMC {
               ++type_iter;
               const std::size_t E = inst->getNumOperands();
               for (std::size_t oper = 2; oper < E; ++oper, ++type_iter) {
-                auto resType = type_iter.getIndexedType();
                 llvm::Value* indexList[2] = {zero, inst->getOperand(oper)};
                 prev = llvm::GetElementPtrInst::Create(nullptr, prev, llvm::ArrayRef<llvm::Value*>(indexList, 2), "_gep__", inst);
               }
@@ -301,11 +300,11 @@ namespace MiniMC {
       GlobalConstructor(MiniMC::Model::Program_ptr& prgm,
                         MiniMC::Model::TypeFactory_ptr& tfac,
                         MiniMC::Model::ConstantFactory_ptr& cfac,
-                        Val2ValMap& values) : prgm(prgm), cfactory(cfac), tfactory(tfac), values(values) {
+                        Val2ValMap& values) : prgm(prgm),  tfactory(tfac), cfactory(cfac), values(values) {
       }
 
     public:
-      llvm::PreservedAnalyses run(llvm::Module& F, llvm::ModuleAnalysisManager& AM) {
+      llvm::PreservedAnalyses run(llvm::Module& F, llvm::ModuleAnalysisManager&) {
         std::vector<MiniMC::Model::Instruction> instr;
         Types tt;
         tt.tfac = tfactory;
@@ -373,9 +372,9 @@ namespace MiniMC {
       Constructor(MiniMC::Model::Program_ptr& prgm,
                   MiniMC::Model::TypeFactory_ptr& tfac,
                   MiniMC::Model::ConstantFactory_ptr& cfac,
-                  Val2ValMap& val) : prgm(prgm), cfactory(cfac), tfactory(tfac), values(val) {
+                  Val2ValMap& val) : prgm(prgm),  tfactory(tfac), cfactory(cfac), values(val) {
       }
-      llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager& AM) {
+      llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager&) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         Types tt;
         tt.tfac = tfactory;

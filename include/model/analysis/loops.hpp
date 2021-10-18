@@ -118,7 +118,7 @@ namespace MiniMC {
           std::sort(loops.begin(), loops.end(), [](auto& l, auto& r) { return l->size() < r->size(); });
           auto rit = loops.begin();
           auto rend = loops.end();
-          for (; rit != loops.end(); ++rit) {
+          for (; rit != rend; ++rit) {
 
             for (auto ritpar = rit + 1; ritpar != loops.end(); ++ritpar) {
               if ((*ritpar)->contains((*rit)->getHeader())) {
@@ -146,7 +146,7 @@ namespace MiniMC {
 
       class LoopAnalyser {
       public:
-        LoopAnalyser(const MiniMC::Model::Program_ptr& prgm) {
+        LoopAnalyser(const MiniMC::Model::Program_ptr&) {
         }
 
         LoopInfo getLoopsFunction(const MiniMC::Model::Function_ptr& func) {

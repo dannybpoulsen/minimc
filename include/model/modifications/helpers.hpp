@@ -112,7 +112,7 @@ namespace MiniMC {
       void copyCFG(const MiniMC::Model::CFG_ptr& from,
                    ReplaceMap<MiniMC::Model::Value>& val,
                    MiniMC::Model::CFG_ptr to,
-                   const std::string pref,
+                   const std::string,
                    ReplaceMap<MiniMC::Model::Location>& locmap,
                    LocInsert lInsert,
                    EdgeInsert eInsert,

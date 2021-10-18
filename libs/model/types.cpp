@@ -25,7 +25,7 @@ namespace MiniMC {
       FloatType() : Type(TypeID::Float) {}
       virtual std::size_t getSize() const { return 4; }
       virtual std::ostream& output(std::ostream& os) const { return os << "Float"; }
-      virtual bool innerEq(const Type& t) { return true; }
+      virtual bool innerEq(const Type& ) { return true; }
     };
 
     class DoubleType : public Type {
@@ -33,7 +33,7 @@ namespace MiniMC {
       DoubleType() : Type(TypeID::Double) {}
       virtual std::size_t getSize() const { return 8; }
       virtual std::ostream& output(std::ostream& os) const { return os << "Double"; }
-      virtual bool innerEq(const Type& t) { return false; }
+      virtual bool innerEq(const Type& ) { return false; }
     };
 
     class PointerType : public Type {
@@ -41,7 +41,7 @@ namespace MiniMC {
       PointerType() : Type(TypeID::Pointer) {}
       virtual std::size_t getSize() const { return 8; }
       virtual std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
-      virtual bool innerEq(const Type& t) { return true; }
+      virtual bool innerEq(const Type& ) { return true; }
     };
 
     class BoolType : public Type {
@@ -49,7 +49,7 @@ namespace MiniMC {
       BoolType() : Type(TypeID::Bool) {}
       virtual std::size_t getSize() const { return 1; }
       virtual std::ostream& output(std::ostream& os) const { return os << "Bool"; }
-      virtual bool innerEq(const Type& t) { return true; }
+      virtual bool innerEq(const Type&) { return true; }
     };
 
     class VoidType : public Type {
@@ -57,7 +57,7 @@ namespace MiniMC {
       VoidType() : Type(TypeID::Void) {}
       virtual std::size_t getSize() const { return 0; }
       virtual std::ostream& output(std::ostream& os) const { return os << "Void"; }
-      virtual bool innerEq(const Type& t) { return true; }
+      virtual bool innerEq(const Type&) { return true; }
     };
 
     class AggregateType : public Type {

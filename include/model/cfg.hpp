@@ -130,7 +130,6 @@ namespace MiniMC {
       std::vector<Location_ptr> locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;
-      ;
       Program_wptr prgm;
       Function_wptr function;
     };
@@ -150,8 +149,10 @@ namespace MiniMC {
                                           variableStackDescr(variableStackDescr),
                                           cfg(cfg),
                                           id(id),
-                                          retType(rtype),
-                                          prgm(prgm) {
+                                          prgm(prgm),
+					  retType(rtype)
+                                          
+      {
       }
 
       auto& getName() const { return name; }
@@ -216,7 +217,7 @@ namespace MiniMC {
       }
 
       bool functionExists(MiniMC::func_t id) const {
-        return id < functions.size();
+        return static_cast<std::size_t> (id) < functions.size();
       }
 
       auto& getEntryPoints() const { return entrypoints; }

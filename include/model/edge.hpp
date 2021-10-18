@@ -62,6 +62,8 @@ namespace MiniMC {
       }
       InstructionStream(const InstructionStream& str) : instr(str.instr), isPhi(str.isPhi) {}
 
+      InstructionStream& operator= (const InstructionStream&) = default;
+      
       auto begin() const { return instr.begin(); }
       auto end() const { return instr.end(); }
       auto begin() { return instr.begin(); }
@@ -93,7 +95,6 @@ namespace MiniMC {
 
       std::vector<Instruction> instr;
       bool isPhi = false;
-      ;
     };
 
     template <>

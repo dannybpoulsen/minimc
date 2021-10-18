@@ -267,7 +267,7 @@ namespace MiniMC {
       llvm::InsertValueInst* insertinst = llvm::dyn_cast<llvm::InsertValueInst>(inst);
       auto insertfrom = insertinst->getAggregateOperand();
       auto insertval = insertinst->getInsertedValueOperand();
-      if (llvm::Constant* cstextract = llvm::dyn_cast<llvm::Constant>(insertfrom)) {
+      if (llvm::isa<llvm::Constant>(insertfrom)) {
         throw MiniMC::Support::Exception("Not supported");
         /*auto aggregate = findValue (insertfrom,values,tt,cfac);
 		auto value = findValue (insertval,values,tt,cfac);

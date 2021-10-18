@@ -35,8 +35,6 @@ namespace MiniMC {
                                                                       MiniMC::Model::InstructionCode::ICMP_ULE>(inst); };
 
           auto cfg = F->getCFG();
-          auto it = cfg->getEdges().begin();
-          auto end = cfg->getEdges().end();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
           std::for_each(cfg->getEdges().begin(),
@@ -126,7 +124,9 @@ namespace MiniMC {
                     buildEdge.operator()<MiniMC::Model::InstructionCode::ICMP_ULE, MiniMC::Model::InstructionCode::PRED_ICMP_UGT>(ff);
 
                     break;
-                };
+		default:
+		  throw MiniMC::Support::Exception ("Not a  comparison");
+		};
                 if (E->getTo()->nbIncomingEdges() <= 1) {
                   cfg->deleteLocation(E->getTo());
                 } else {

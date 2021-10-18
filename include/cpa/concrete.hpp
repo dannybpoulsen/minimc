@@ -23,7 +23,7 @@ namespace MiniMC {
 
         size_t nbOfProcesses(const MiniMC::CPA::State_ptr&) { return 0; }
 
-        MiniMC::Model::Location_ptr getLocation(const MiniMC::CPA::State_ptr&, proc_id id) { return nullptr; }
+        MiniMC::Model::Location_ptr getLocation(const MiniMC::CPA::State_ptr&, proc_id) { return nullptr; }
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
@@ -32,7 +32,7 @@ namespace MiniMC {
       };
 
       struct Joiner : public MiniMC::CPA::Joiner {
-        MiniMC::CPA::State_ptr doJoin(const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) { return nullptr; }
+        MiniMC::CPA::State_ptr doJoin(const MiniMC::CPA::State_ptr&, const MiniMC::CPA::State_ptr&) { return nullptr; }
         bool covers(const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
           return l->hash() == r->hash();
         }

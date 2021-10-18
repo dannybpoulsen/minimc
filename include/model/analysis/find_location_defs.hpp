@@ -73,7 +73,7 @@ namespace MiniMC {
 
       class ProgramDefs {
       public:
-        ProgramDefs(const MiniMC::Model::Program_ptr& prgm) {}
+        ProgramDefs(const MiniMC::Model::Program_ptr&) {}
 
         auto getFunctionDefs(const MiniMC::Model::Function_ptr& func) {
 

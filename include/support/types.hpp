@@ -73,10 +73,10 @@ namespace MiniMC {
   using uint64_t = TypeD<InternalTypes::uint64>::type;
   using proba_t = double;
 
-  using seg_t = int8_t;
-  using base_t = int16_t;
-  using proc_t = int16_t;
-  using offset_t = int32_t;
+  using seg_t = uint8_t;
+  using base_t = uint16_t;
+  using proc_t = uint16_t;
+  using offset_t = uint32_t;
   using func_t = base_t;
 
   struct __attribute__((packed)) pointer_struct {

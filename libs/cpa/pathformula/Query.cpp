@@ -95,7 +95,7 @@ namespace MiniMC {
             MiniMC::Util::runVM<decltype(it), VMData, ExecuteInstruction>(it, end, data);
             nState.getPathFormula() = data.path;
 
-          } catch (MiniMC::Support::AssumeViolated) {
+          } catch (MiniMC::Support::AssumeViolated&) {
             return nullptr;
           }
         }

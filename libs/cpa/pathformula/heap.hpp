@@ -95,7 +95,7 @@ namespace MiniMC {
 
       class Heap {
       public:
-        void free(SMTLib::Term_ptr pointer) {
+        void free(SMTLib::Term_ptr) {
           //Ignore for now
         }
 
@@ -103,7 +103,7 @@ namespace MiniMC {
           if (entries.size() == 0) {
             //DO nothing atm
           } else {
-            for (base_t i = 0; i < entries.size(); i++) {
+            for (base_t i = 0; static_cast<std::size_t> (i) < entries.size(); i++) {
               PointerHelper phelper(&builder);
               auto comp = builder.buildTerm(SMTLib::Ops::Equal, {phelper.baseValue(pointer), builder.makeBVIntConst(i, 8 * sizeof(MiniMC::base_t))});
               auto updArr = writeToArr(bytes, builder, entries[i].content, phelper.offsetValue(pointer), content);
@@ -121,7 +121,7 @@ namespace MiniMC {
           PointerHelper phelper(&builder);
           auto offset = phelper.offsetValue(pointer);
           auto base = phelper.baseValue(pointer);
-          for (base_t i = 0; i < entries.size(); i++) {
+          for (base_t i = 0; static_cast<std::size_t> (i) < entries.size(); i++) {
             auto comp = builder.buildTerm(SMTLib::Ops::Equal, {base, builder.makeBVIntConst(i, 8 * sizeof(MiniMC::base_t))});
             auto read = readFromArr(bytes, builder, entries.at(i).content, offset);
             res = builder.buildTerm(SMTLib::Ops::ITE, {comp, read, res});

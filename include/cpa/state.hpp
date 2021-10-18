@@ -42,7 +42,7 @@ namespace MiniMC {
         throw CanntEvaluateException(var);
       }
 
-      virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
+      virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr&, std::ostream& os) {
         return os << "??";
       }
     };
@@ -57,7 +57,7 @@ namespace MiniMC {
       ~State() {}
 
       virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
-      virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
+      virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t = 0) const { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
       virtual std::shared_ptr<State> copy() const = 0;
 
       /** 
@@ -67,7 +67,7 @@ namespace MiniMC {
        * @return the Location of \p id or nullptr if there no process
        * \p id
        */
-      virtual MiniMC::Model::Location_ptr getLocation(proc_id id) const {
+      virtual MiniMC::Model::Location_ptr getLocation(proc_id) const {
         throw MiniMC::Support::Exception("Should not be called");
       }
 

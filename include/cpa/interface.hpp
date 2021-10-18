@@ -63,7 +63,7 @@ namespace MiniMC {
        * performed (which may happen for instance) when a guard is
        * false) 
        */
-      virtual State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) { return nullptr; }
+      virtual State_ptr doTransfer(const State_ptr&, const MiniMC::Model::Edge_ptr&, proc_id) { return nullptr; }
     };
 
     using Transferer_ptr = std::shared_ptr<Transferer>;
@@ -75,13 +75,13 @@ namespace MiniMC {
        * @return  the joined state of nullptr if the states cannot be
        * merged. 
        */
-      virtual State_ptr doJoin(const State_ptr& l, const State_ptr& r) { return nullptr; }
+      virtual State_ptr doJoin(const State_ptr&, const State_ptr&) { return nullptr; }
 
       /** 
        * Test if \p l covers \p r i.e. whether the behaviour of \l
        * includes that of \p r
        */
-      virtual bool covers(const State_ptr& l, const State_ptr& r) {
+      virtual bool covers(const State_ptr&, const State_ptr&) {
         return false;
       }
     };
@@ -93,7 +93,7 @@ namespace MiniMC {
        * Check whether this CPA can be run on prgm
        * without encountering runtime errors. 
        */
-      virtual bool validate(const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) { return true; }
+      virtual bool validate(const MiniMC::Model::Program&, MiniMC::Support::Messager&) { return true; }
     };
 
     using PrevalidateSetup_ptr = std::shared_ptr<PrevalidateSetup>;

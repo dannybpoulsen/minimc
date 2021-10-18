@@ -18,7 +18,7 @@ namespace MiniMC {
         State(const MiniMC::Util::SSAMap& map, const MiniMC::Util::SSAMap& gmap, const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context), map(map), gmap(gmap), pathformula(path) {}
         State(const State& oth) = default;
         virtual std::ostream& output(std::ostream& os) const { return os << map << "\nPathformula:" << *pathformula; }
-        MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
+        MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t  = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const { return std::make_shared<State>(*this); }
         virtual bool need2Store() const { return false; }
         virtual bool assertViolated() const { return false; }
@@ -68,7 +68,7 @@ namespace MiniMC {
           }
         }
 
-        virtual std::ostream& evaluate_str(proc_id id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
+        virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
           return os << *state->getSSAMap().lookup(var.get());
         }
 

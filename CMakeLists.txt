@@ -28,7 +28,6 @@ set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
-
 add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)

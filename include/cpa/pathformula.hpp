@@ -23,7 +23,7 @@ namespace MiniMC {
       struct Joiner : public MiniMC::CPA::Joiner {
         MiniMC::CPA::State_ptr doJoin(const State_ptr& l, const State_ptr& r);
 
-        bool covers(const State_ptr& l, const State_ptr& r) {
+        bool covers(const State_ptr&, const State_ptr&) {
           return false;
         }
       };
