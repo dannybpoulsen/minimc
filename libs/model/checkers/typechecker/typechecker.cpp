@@ -12,9 +12,9 @@ namespace MiniMC {
       struct TypeCheck {
         static bool doCheck(MiniMC::Model::Instruction&, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr, MiniMC::Model::Program_ptr& prgm) {
           MiniMC::Support::Localiser no_typecheck_for("No typechecking implemented for '%1%'");
-          mess.error(no_typecheck_for.format(i));
-
-          return false;
+          mess.warning(no_typecheck_for.format(i));
+	  
+          return true;
         }
       };
 

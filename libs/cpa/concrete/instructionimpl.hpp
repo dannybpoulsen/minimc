@@ -118,6 +118,8 @@ namespace MiniMC {
 
           }
 
+	  
+	  
           else if constexpr (opc == MiniMC::Model::InstructionCode::Assign) {
             auto& res = content.res;
             auto& left = content.op1;
@@ -224,6 +226,33 @@ namespace MiniMC {
 
           }
 
+	  else if constexpr (opc == MiniMC::Model::InstructionCode::InsertValue) {
+            
+            auto aggregate = data.readFrom.evaluate(content.aggregate);
+	    auto offset = data.readFrom.evaluate (content.offset);
+	    auto insertee = data.readFrom.evaluate (content.insertee);
+
+	    MiniMC::Util::Array res = aggregate;
+	    res.set_block (offset.template read<MiniMC::uint32_t> (),insertee.getSize(),insertee.get_direct_access());
+	    
+	    
+	    data.writeTo.set(std::static_pointer_cast<MiniMC::Model::Register>(content.res), res);
+
+          }
+
+	  else if constexpr (opc == MiniMC::Model::InstructionCode::ExtractValue) {
+            
+            auto aggregate = data.readFrom.evaluate(content.aggregate);
+	    auto offset = data.readFrom.evaluate (content.offset);
+	    
+	    MiniMC::Util::Array res (content.res->getType()->getSize ());
+	    aggregate.get_block (offset.template read<MiniMC::uint32_t> (),res.getSize(),res.get_direct_access());
+	    
+	    
+	    data.writeTo.set(std::static_pointer_cast<MiniMC::Model::Register>(content.res), res);
+
+          }
+	  
           else if constexpr (opc == MiniMC::Model::InstructionCode::Store) {
             
             auto addr = data.readFrom.evaluate(content.addr);

@@ -29,5 +29,6 @@ endfunction ()
 
 add_subdirectory(dummy)
 add_subdirectory(array)
+add_subdirectory(llvm)
 
 endif(CLANG)

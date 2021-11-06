@@ -297,7 +297,7 @@ namespace MiniMC {
     };
 
     /*template <>
-    struct InstructionData<InstructionCode::InsertValueFromConst> {
+      struct InstructionData<InstructionCode::InsertValueFromConst> {
       static const bool isTAC = false;
       static const bool isUnary = false;
       static const bool isComparison = false;
