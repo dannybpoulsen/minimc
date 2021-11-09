@@ -494,7 +494,6 @@ namespace MiniMC {
           }
           return true;
         }
-      };
 
         else if constexpr (i == InstructionCode::BitCast ||
                            i == InstructionCode::ExtractValue ||

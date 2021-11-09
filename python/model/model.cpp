@@ -22,8 +22,7 @@ void addModelModule (py::module& m) {
   value.def ("getType",&MiniMC::Model::Value::getType)
     .def ("__str__",&MiniMC::Model::Value::string_repr)
     .def_property ("isRegister",&MiniMC::Model::Value::isRegister,nullptr)
-    .def_property ("isConstant",&MiniMC::Model::Value::isConstant,nullptr)
-    .def_property ("isGlobal",&MiniMC::Model::Value::isGlobal,nullptr);
+    .def_property ("isConstant",&MiniMC::Model::Value::isConstant,nullptr);
     
   py::class_<MiniMC::Model::Register,MiniMC::Model::Variable_ptr> (submodule,"Variable",value)
     .def_property ("name",&MiniMC::Model::Register::getName,nullptr);
@@ -32,8 +31,7 @@ void addModelModule (py::module& m) {
   constant
     .def_property ("isInteger",&MiniMC::Model::Constant::isInteger,nullptr)
     .def_property ("isAggregate",&MiniMC::Model::Constant::isAggregate,nullptr)
-    .def_property ("isBinaryBlob",&MiniMC::Model::Constant::isBinaryBlobConstant,nullptr)
-    .def_property ("isNonCompile",&MiniMC::Model::Constant::isNonCompileConstant,nullptr);
+    .def_property ("isBinaryBlob",&MiniMC::Model::Constant::isBinaryBlobConstant,nullptr);
   
 
   py::class_<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>,std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> >  (submodule,"IntConstant64",constant)

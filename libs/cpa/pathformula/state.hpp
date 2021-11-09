@@ -15,7 +15,7 @@ namespace MiniMC {
 
       class State : public MiniMC::CPA::State {
       public:
-        State(const MiniMC::Util::SSAMap& map, const MiniMC::Util::SSAMap& gmap, const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context), map(map), gmap(gmap), pathformula(path) {}
+        State(const MiniMC::Util::SSAMap& map,  const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context), map(map),  pathformula(path) {}
         State(const State& oth) = default;
         virtual std::ostream& output(std::ostream& os) const { return os << map << "\nPathformula:" << *pathformula; }
         MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t  = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
@@ -25,9 +25,7 @@ namespace MiniMC {
 
         auto& getSSAMap() { return map; }
         auto& getSSAMap() const { return map; }
-        auto& getGSSAMap() { return gmap; }
-        auto& getGSSAMap() const { return gmap; }
-
+        
         auto& getContext() const { return context; }
         auto& getContext() { return context; }
         auto& getHeap() { return heap; }
@@ -41,8 +39,7 @@ namespace MiniMC {
       private:
         SMTLib::Context_ptr context;
         MiniMC::Util::SSAMap map;
-        MiniMC::Util::SSAMap gmap;
-
+        
         Heap heap;
         SMTLib::Term_ptr pathformula;
       };

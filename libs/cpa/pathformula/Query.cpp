@@ -14,25 +14,24 @@ namespace MiniMC {
 
       State_ptr StateQuery::makeInitialState(const MiniMC::Model::Program& prgm) {
         MiniMC::Util::SSAMap map;
-        MiniMC::Util::SSAMap gmap;
-
+        
         auto context = factory->construct();
-        for (auto& v : prgm.getGlobals()->getVariables()) {
-          gmap.initialiseValue(v.get(), MiniMC::Util::buildSMTValue(context->getBuilder(), v));
-        }
         for (auto& entry : prgm.getEntryPoints()) {
           auto stackDescr = entry->getVariableStackDescr();
           for (auto& v : stackDescr->getVariables()) {
             map.initialiseValue(v.get(), MiniMC::Util::buildSMTValue(context->getBuilder(), v));
           }
         }
-        auto state = std::make_shared<MiniMC::CPA::PathFormula::State>(map, gmap, context, context->getBuilder().makeBoolConst(true));
-
+        auto state = std::make_shared<MiniMC::CPA::PathFormula::State>(map,  context, context->getBuilder().makeBoolConst(true));
+	
+	for (auto block : prgm.getHeapLayout ()) {
+	  state->getHeap ().allocate (block.size,state->getContext()->getBuilder());
+	}
+	
+	
         VMData data{
             .oldSSAMap = &state->getSSAMap(),
             .newSSAMap = &state->getSSAMap(),
-            .oldGSSAMap = &state->getGSSAMap(),
-            .newGSSAMap = &state->getGSSAMap(),
             .oldHeap = &state->getHeap(),
             .newHeap = &state->getHeap(),
             .smtbuilder = &state->getContext()->getBuilder(),
@@ -59,11 +58,10 @@ namespace MiniMC {
           return builder.buildTerm(SMTLib::Ops::ITE, {mergeVar, lterm, rterm});
         };
         MiniMC::Util::SSAMap nmap = MiniMC::Util::SSAMap::merge(left.getSSAMap(), right.getSSAMap(), mergeOp);
-        MiniMC::Util::SSAMap ngmap = MiniMC::Util::SSAMap::merge(left.getGSSAMap(), right.getGSSAMap(), mergeOp);
-
-        return std::make_shared<MiniMC::CPA::PathFormula::State>(nmap, ngmap, left.getContext(), mergeOp(left.getPathFormula(), right.getPathFormula()));
+        
+        return std::make_shared<MiniMC::CPA::PathFormula::State>(nmap,  left.getContext(), mergeOp(left.getPathFormula(), right.getPathFormula()));
       }
-
+      
       MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
         assert(id == 0 && "PathFormula only useful for one process systems");
         State_ptr resstate = s->copy();
@@ -73,8 +71,6 @@ namespace MiniMC {
         VMData data{
             .oldSSAMap = &oState.getSSAMap(),
             .newSSAMap = &nState.getSSAMap(),
-            .oldGSSAMap = &oState.getGSSAMap(),
-            .newGSSAMap = &nState.getGSSAMap(),
             .oldHeap = &oState.getHeap(),
             .newHeap = &nState.getHeap(),
             .smtbuilder = &nState.getContext()->getBuilder(),
@@ -84,10 +80,8 @@ namespace MiniMC {
 
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
           try {
-
             if (!instr.isPhi) {
               data.oldSSAMap = data.newSSAMap;
-              data.oldGSSAMap = data.newGSSAMap;
               data.oldHeap = data.newHeap;
             }
             auto it = instr.begin();

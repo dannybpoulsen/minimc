@@ -55,6 +55,10 @@ namespace MiniMC {
       return Value_ptr(new MiniMC::Model::BinaryBlobConstant(reinterpret_cast<MiniMC::uint8_t*>(&pptr), sizeof(pptr)));
     }
 
+    const Value_ptr ConstantFactory64::makePointer(MiniMC::pointer_t pptr) {
+      return Value_ptr(new MiniMC::Model::BinaryBlobConstant(reinterpret_cast<MiniMC::uint8_t*>(&pptr), sizeof(pptr)));
+    }
+
     const Value_ptr ConstantFactory64::makeUndef(const Type_ptr& ty) {
       Value_ptr val(new MiniMC::Model::Undef());
       val->setType(ty);
@@ -76,10 +80,6 @@ namespace MiniMC {
         out = std::copy(c->getData(), c->getData() + c->getType()->getSize(), out);
       }
       return Value_ptr(new MiniMC::Model::BinaryBlobConstant(reinterpret_cast<MiniMC::uint8_t*>(data.get()), size));
-    }
-
-    const Value_ptr ConstantFactory64::makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool) {
-      return Value_ptr(new MiniMC::Model::AggregateNonCompileConstant(inp));
     }
 
   } // namespace Model

@@ -281,8 +281,8 @@ int main (int argc,char* argv[]) {
 	return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
   }
   catch (MiniMC::Support::Exception& ex) {
-	std::cerr << "An error happended: " << ex.what () << std::endl;
-	return static_cast<int>(MiniMC::Support::ExitCodes::RuntimeError);
+    std::cerr << "An error happended: " << ex.what () << std::endl;
+    return static_cast<int>(MiniMC::Support::ExitCodes::RuntimeError);
   }
   
     

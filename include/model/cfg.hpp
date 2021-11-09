@@ -19,6 +19,7 @@
 #include "model/instructions.hpp"
 #include "model/location.hpp"
 #include "model/variables.hpp"
+#include "model/heaplayout.hpp"
 #include "support/types.hpp"
 #include "support/workinglist.hpp"
 
@@ -178,10 +179,8 @@ namespace MiniMC {
     public:
       Program(const MiniMC::Model::TypeFactory_ptr& tfact,
               const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact), tfact(tfact) {
-        globals = makeVariableStack("Globals").get();
       }
 
-      gsl::not_null<VariableStackDescr_ptr> getGlobals() const { return globals; }
       gsl::not_null<Function_ptr> addFunction(const std::string& name,
                                               const std::vector<gsl::not_null<Variable_ptr>>& params,
                                               const gsl::not_null<Type_ptr> retType,
@@ -233,15 +232,18 @@ namespace MiniMC {
       const auto& getInitialisation() const { return initialiser; }
       void setInitialiser(const InstructionStream& instr) { initialiser = instr; }
 
+      HeapLayout& getHeapLayout () {return heaplayout;}
+      const HeapLayout& getHeapLayout () const  {return heaplayout;}
+      
     private:
       std::vector<Function_ptr> functions;
-      VariableStackDescr_ptr globals;
       std::vector<Function_ptr> entrypoints;
       std::size_t stacks = 0;
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
       InstructionStream initialiser;
       std::unordered_map<std::string, Function_ptr> function_map;
+      HeapLayout heaplayout;
     };
 
     gsl::not_null<Function_ptr> createEntryPoint(Program_ptr& program, gsl::not_null<Function_ptr> function);

@@ -82,36 +82,21 @@ namespace MiniMC {
 
          
         if ( auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate>(val) ) {
-	  bool isConstant = true;
-          MiniMC::Model::ConstantFactory::noncompile_aggr_input vals;
 	  MiniMC::Model::ConstantFactory::aggr_input const_vals;
-          
+	  
 	  const size_t oper = cstAggr2->getNumOperands();
           for (size_t i = 0; i < oper; ++i) {
             auto elem = cstAggr2->getOperand(i);
 	    auto nconstant = makeConstant (elem,tt,fac,map);
-	    if (!nconstant->isConstant ()) {
-	      isConstant = false;
-	      vals.push_back(nconstant);
-	    }
-	    else {
-	      const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
-	    }
+	    const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
           }
           auto type = tt.getType(constant->getType());
-	  if (!isConstant) {
-	    auto cst = fac->makeAggregateConstantNonCompile(vals, ltype->isArrayTy());
-	    cst->setType(type);
-	    return cst;
-	  }
-	  else  {
-	    auto cst = fac->makeAggregateConstant(const_vals, ltype->isArrayTy());
-	    cst->setType(type);
-	    return cst;
+	  auto cst = fac->makeAggregateConstant(const_vals, ltype->isArrayTy());
+	  cst->setType(type);
+	  return cst;
 	    
 	  }
           //assert(false && "FAil");
-        }
 
       } else if (llvm::isa<llvm::Function>(val) ||
                  llvm::isa<llvm::GlobalVariable>(val)) {
@@ -342,29 +327,19 @@ namespace MiniMC {
           fid++;
         }
 
-        auto gstack = prgm->getGlobals().get();
         for (auto& g : F.getGlobalList()) {
-          auto lltype = g.getType();
+	  auto lltype = g.getType();
           auto type = getType(lltype, tfactory);
-          auto gvar = makeVariable(&g, g.getName().str(), type, gstack, values);
-          gvar->setGlobal();
           auto pointTy = getType(g.getValueType(), tfactory);
-          auto sizeType = tt.tfac->makeIntegerType(64);
-          auto size = cfactory->makeIntegerConstant(pointTy->getSize(), sizeType);
-          size->setType(sizeType);
-          instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace> ({
-		.res = gvar,
-		.op1 = size
-	      }));
-          instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc> ({
-		.object = gvar,
-		.size = size }));
-
+          
+	  auto gvar = cfactory->makePointer (prgm->getHeapLayout ().addBlock (pointTy->getSize ()));
+	  gvar->setType(type);
+	  values.emplace (&g,gvar);
 	  if (g.hasInitializer()) {
             auto val = findValue(g.getInitializer(), values, tt, cfactory);
             instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Store> ( {
-	    .addr = gvar,  
-	    .storee = val
+		  .addr = gvar,  
+		  .storee = val
 	  }));
 	    
 	  }

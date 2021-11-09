@@ -32,9 +32,6 @@ namespace MiniMC {
       virtual bool isRegister() const { return false; }
       virtual bool isConstant() const { return false; }
 
-      virtual bool isGlobal() const { return glob; }
-      virtual void setGlobal() { glob = true; }
-
       virtual std::ostream& output(std::ostream& os) const = 0;
       const std::string string_repr() const {
         std::stringstream str;
@@ -48,7 +45,6 @@ namespace MiniMC {
 
     private:
       Type_ptr type;
-      bool glob = false;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Value& v) {
@@ -61,13 +57,12 @@ namespace MiniMC {
     public:
       virtual ~Constant() {}
       bool isConstant() const override { return true; }
-      virtual const MiniMC::uint8_t* getData() const = 0;
+      virtual const MiniMC::uint8_t* getData() const  = 0;
       virtual std::size_t getSize() { return 0; }
       virtual bool isAggregate() const { return false; }
       virtual bool isInteger() const { return false; }
-      virtual bool isBinaryBlobConstant() const { return false; }
+      virtual bool isBinaryBlobConstant() const  { return false; }
       virtual bool isUndef() const { return false; }
-      virtual bool isNonCompileConstant() const { return false; }
     };
 
     class Undef : public Constant {
@@ -82,34 +77,8 @@ namespace MiniMC {
       }
     };
 
-    class NonCompileConstant : public Constant {
-    public:
-      virtual ~NonCompileConstant() {}
-      bool isNonCompileConstant() const { return true; }
-      virtual bool isAggregate() const { return true; }
-    };
-
-    class AggregateNonCompileConstant : public NonCompileConstant {
-    public:
-      AggregateNonCompileConstant(const std::vector<Value_ptr>& val) : ops(val) {}
-      auto begin() const { return ops.begin(); }
-      auto end() const { return ops.end(); }
-
-      virtual std::ostream& output(std::ostream& os) const {
-        os << "[";
-        std::for_each(ops.begin(), ops.end(), [&](const Value_ptr& v) { os << *v << ","; });
-        return os << "]";
-      }
-
-      virtual const MiniMC::uint8_t* getData() const {
-        throw MiniMC::Support::Exception("GetData should not be called on NonCompileConstants");
-      }
-
-    private:
-      std::vector<Value_ptr> ops;
-    };
-
-    using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
+    
+    //using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
     using Constant_ptr = std::shared_ptr<Constant>;
 
     class ConstantFactory64;
@@ -277,11 +246,12 @@ namespace MiniMC {
       using aggr_input = std::vector<Constant_ptr>;
       using noncompile_aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
-      virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool) = 0;
+      //virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&) = 0;
       virtual const Value_ptr makeBinaryBlobConstant(MiniMC::uint8_t*, std::size_t) = 0;
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
+      virtual const Value_ptr makePointer(MiniMC::pointer_t) = 0;
       virtual const Value_ptr makeUndef(const Type_ptr&) = 0;
     };
 
@@ -291,10 +261,11 @@ namespace MiniMC {
       virtual ~ConstantFactory64() {}
       virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&);
       virtual const Value_ptr makeBinaryBlobConstant(MiniMC::uint8_t*, std::size_t);
-      virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool);
+      //virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool);
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool);
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);
+      virtual const Value_ptr makePointer(MiniMC::pointer_t);
       virtual const Value_ptr makeUndef(const Type_ptr&);
     };
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;

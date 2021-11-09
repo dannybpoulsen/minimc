@@ -19,9 +19,6 @@ namespace MiniMC {
         //auto inserter = std::back_inserter(vals);
 	auto replaceFunction = [&](const MiniMC::Model::Value_ptr& op) {
           if (op->isConstant()) {
-            if (std::static_pointer_cast<Constant>(op)->isNonCompileConstant()) {
-              throw MiniMC::Support::Exception("Can't copy non-compile constants");
-            }
             return op;
           } else {
             return val.at(op.get());

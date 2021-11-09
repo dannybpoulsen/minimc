@@ -12,37 +12,26 @@ namespace MiniMC {
     namespace Concrete {
       class MConcretizer : public MiniMC::CPA::Concretizer {
       public:
-        MConcretizer(const VariableLookup& globals, const std::vector<VariableLookup>& v) : globals(globals), vars(v) {}
+        MConcretizer(const std::vector<VariableLookup>& v) :  vars(v) {}
         virtual MiniMC::CPA::Concretizer::Feasibility isFeasible() const override { return Feasibility::Feasible; }
 
         virtual std::ostream& evaluate_str(proc_id id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
-          if (var->isGlobal()) {
-            return os << globals.at(var);
-          } else {
-            return os << vars.at(id).at(var);
-          }
+	  return os << vars.at(id).at(var);          
         }
 
         virtual MiniMC::Util::Array evaluate(proc_id id, const MiniMC::Model::Variable_ptr& var) override {
-          if (var->isGlobal()) {
-            return globals.at(var);
-          } else {
-            return vars.at(id).at(var);
-          }
+	  return vars.at(id).at(var);
         }
 
       private:
-        const VariableLookup& globals;
         const std::vector<VariableLookup>& vars;
       };
 
       class State : public MiniMC::CPA::State, public MiniMC::CPA::Concretizer {
       public:
-        State(const VariableLookup& g, const std::vector<VariableLookup>& var) : globals(g), proc_vars(var) {
+        State( const std::vector<VariableLookup>& var) :  proc_vars(var) {
         }
         virtual std::ostream& output(std::ostream& os) const {
-          os << "Globals\n";
-          os << globals << "\n";
           for (auto& vl : proc_vars) {
             os << "===\n";
             os << vl << "\n";
@@ -52,7 +41,6 @@ namespace MiniMC {
 
         virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
           if (!hash_val) {
-            MiniMC::Hash::hash_combine(seed, globals);
             for (auto& vl : proc_vars) {
               MiniMC::Hash::hash_combine(seed, vl);
             }
@@ -69,37 +57,30 @@ namespace MiniMC {
           return hash_val;
         }
 
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const {
+        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
           return std::make_shared<State>(*this);
         }
 
-        auto& getGlobals() { return globals; }
         auto& getProc(std::size_t i) { return proc_vars[i]; }
         auto& getHeap() { return heap; }
 
-        auto& getGlobals() const { return globals; }
         auto& getProc(std::size_t i) const { return proc_vars[i]; }
         auto& getHeap() const { return heap; }
 
-        virtual bool need2Store() const { return false; }
-        virtual bool ready2explore() const { return true; }
-        virtual bool assertViolated() const { return false; }
+        virtual bool need2Store() const override { return false; }
+        virtual bool ready2explore() const override  { return true; }
+        virtual bool assertViolated() const override  { return false; }
 
-        virtual const Concretizer_ptr getConcretizer() const override { return std::make_shared<MConcretizer>(globals, proc_vars); }
+        virtual const Concretizer_ptr getConcretizer() const override { return std::make_shared<MConcretizer>(proc_vars); }
 
       private:
-        VariableLookup globals;
         std::vector<VariableLookup> proc_vars;
         Heap heap;
         mutable MiniMC::Hash::hash_t hash_val = 0;
       };
 
       MiniMC::CPA::State_ptr StateQuery::makeInitialState(const MiniMC::Model::Program& p) {
-        VariableLookup globals(p.getGlobals()->getTotalVariables());
-        for (auto& v : p.getGlobals()->getVariables()) {
-          globals[v] = MiniMC::Util::Array(v->getType()->getSize());
-        }
-
+        
         std::vector<VariableLookup> stack;
         for (auto& f : p.getEntryPoints()) {
           auto& vstack = f->getVariableStackDescr();
@@ -111,14 +92,15 @@ namespace MiniMC {
           }
         }
 
-        auto state = std::make_shared<State>(globals, stack);
+        auto state = std::make_shared<State>(stack);
 
+	for (auto block : p.getHeapLayout ()) {
+	  state->getHeap ().allocate (block.size);
+	}
+	
         VMData data{
-            .readFrom = {
-                .global = const_cast<VariableLookup*>(&state->getGlobals()),
-                .local = nullptr,
-                .heap = &state->getHeap()},
-            .writeTo = {.global = &state->getGlobals(), .local = nullptr, .heap = &state->getHeap()}};
+            .readFrom = {.local = nullptr, .heap = &state->getHeap()},
+            .writeTo = { .local = nullptr, .heap = &state->getHeap()}};
 
         auto it = p.getInitialisation().begin();
         auto end = p.getInitialisation().end();
@@ -134,10 +116,9 @@ namespace MiniMC {
 
         VMData data{
             .readFrom = {
-                .global = const_cast<VariableLookup*>(&nstate.getGlobals()),
                 .local = const_cast<VariableLookup*>(&nstate.getProc(id)),
                 .heap = &nstate.getHeap()},
-            .writeTo = {.global = &nstate.getGlobals(), .local = &nstate.getProc(id), .heap = &nstate.getHeap()}};
+            .writeTo = { .local = &nstate.getProc(id), .heap = &nstate.getHeap()}};
 
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 
@@ -145,7 +126,6 @@ namespace MiniMC {
           try {
 
             if (instr.isPhi) {
-              data.readFrom.global = const_cast<VariableLookup*>(&ostate.getGlobals());
               data.readFrom.local = const_cast<VariableLookup*>(&ostate.getProc(id));
               data.readFrom.heap = const_cast<Heap*>(&ostate.getHeap());
             }

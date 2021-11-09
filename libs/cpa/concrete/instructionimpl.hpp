@@ -21,25 +21,16 @@ namespace MiniMC {
       using VariableLookup = MiniMC::Model::VariableMap<MiniMC::Util::Array>;
 
       struct GlobalLocalVariableLookup {
-        VariableLookup* global;
         VariableLookup* local;
         Heap* heap;
         auto LookUp(const MiniMC::Model::Variable_ptr& v) const {
-          if (v->isGlobal()) {
-            return global->at(v);
-          } else
-            return local->at(v);
+	  return local->at(v);
         }
 
         void set(const MiniMC::Model::Variable_ptr& v, const MiniMC::Util::Array& arr) {
           assert(v->getType()->getSize() == arr.getSize());
-          if (v->isGlobal()) {
-            (*global)[v] = arr;
-          } else {
-            assert(arr.getSize() == v->getType()->getSize());
-
-            (*local)[v] = arr;
-          }
+	  assert(arr.getSize() == v->getType()->getSize());
+	  (*local)[v] = arr;
         }
 
         const MiniMC::Util::Array evaluate(const MiniMC::Model::Value_ptr& v) const {
@@ -53,9 +44,7 @@ namespace MiniMC {
             if (constant->isUndef()) {
               throw MiniMC::Support::Exception("No Evaluation of Undef constants available");
 
-            } else if (constant->isNonCompileConstant()) {
-              throw MiniMC::Support::Exception("No Evaluation of Noncompile constants available");
-            } else {
+            }  else {
               MiniMC::Util::Array arr(constant->getSize());
               arr.set_block(0, constant->getSize(), constant->getData());
               return arr;
