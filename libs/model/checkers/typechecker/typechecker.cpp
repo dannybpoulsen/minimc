@@ -285,7 +285,7 @@ namespace MiniMC {
         else if constexpr (i == InstructionCode::Free) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only accept pointer types. ");
           auto ptrtype = content.object->getType();
-
+  
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
             return false;
@@ -312,7 +312,6 @@ namespace MiniMC {
           }
 
           return true;
-
         }
 
         else if constexpr (i == InstructionCode::Store) {
@@ -495,6 +494,7 @@ namespace MiniMC {
           }
           return true;
         }
+      };
 
         else if constexpr (i == InstructionCode::BitCast ||
                            i == InstructionCode::ExtractValue ||

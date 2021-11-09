@@ -267,32 +267,21 @@ namespace MiniMC {
       llvm::InsertValueInst* insertinst = llvm::dyn_cast<llvm::InsertValueInst>(inst);
       auto insertfrom = insertinst->getAggregateOperand();
       auto insertval = insertinst->getInsertedValueOperand();
-      if (llvm::isa<llvm::Constant>(insertfrom)) {
-        throw MiniMC::Support::Exception("Not supported");
-        /*auto aggregate = findValue (insertfrom,values,tt,cfac);
-		auto value = findValue (insertval,values,tt,cfac);
-		auto res = findValue (inst,values,tt,cfac);
-		MiniMC::Model::InstBuilder<MiniMC::Model::InstructionCode::InsertValueFromConst> builder;
-		builder.setAggregate (aggregate);
-		builder.setResult (res);
-		builder.setInsertee (value);
-		instr.push_back(builder.BuildInstruction ());*/
-      } else {
-        auto aggre = findValue(insertfrom, values, tt, cfac);
-        auto insertee = findValue(insertval, values, tt, cfac);
-        size_t skip = 0;
-        auto cur = insertfrom->getType();
-        for (auto i : insertinst->getIndices()) {
-          skip += calcSkip(cur, i, tt);
-        }
-        auto type = tt.tfac->makeIntegerType(32);
-        auto skipee = cfac->makeIntegerConstant(skip, type);
-
-        instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::InsertValue>({.res = findValue(inst, values, tt, cfac),
-                                                                                                       .aggregate = aggre,
-                                                                                                       .offset = skipee,
-                                                                                                       .insertee = insertee}));
+      
+      auto aggre = findValue(insertfrom, values, tt, cfac);
+      auto insertee = findValue(insertval, values, tt, cfac);
+      size_t skip = 0;
+      auto cur = insertfrom->getType();
+      for (auto i : insertinst->getIndices()) {
+	skip += calcSkip(cur, i, tt);
       }
+      auto type = tt.tfac->makeIntegerType(32);
+      auto skipee = cfac->makeIntegerConstant(skip, type);
+
+      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::InsertValue>({.res = findValue(inst, values, tt, cfac),
+	    .aggregate = aggre,
+	    .offset = skipee,
+	    .insertee = insertee}));
     }
 
     template <>

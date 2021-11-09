@@ -64,8 +64,8 @@ namespace MiniMC {
         }
       } else if (ltype->isStructTy() || ltype->isArrayTy()) {
 
-        auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential>(val);
-        if (cstAggr) {
+        
+        if ( auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential>(val) ) {
           MiniMC::Model::ConstantFactory::aggr_input vals;
           const size_t oper = cstAggr->getNumElements();
           for (size_t i = 0; i < oper; ++i) {
@@ -80,19 +80,36 @@ namespace MiniMC {
           return cst;
         }
 
-        auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate>(val);
-        if (cstAggr2) {
+         
+        if ( auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate>(val) ) {
+	  bool isConstant = true;
           MiniMC::Model::ConstantFactory::noncompile_aggr_input vals;
-          const size_t oper = cstAggr2->getNumOperands();
+	  MiniMC::Model::ConstantFactory::aggr_input const_vals;
+          
+	  const size_t oper = cstAggr2->getNumOperands();
           for (size_t i = 0; i < oper; ++i) {
             auto elem = cstAggr2->getOperand(i);
-            vals.push_back(makeConstant(elem, tt, fac, map));
+	    auto nconstant = makeConstant (elem,tt,fac,map);
+	    if (!nconstant->isConstant ()) {
+	      isConstant = false;
+	      vals.push_back(nconstant);
+	    }
+	    else {
+	      const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
+	    }
           }
           auto type = tt.getType(constant->getType());
-          auto cst = fac->makeAggregateConstantNonCompile(vals, ltype->isArrayTy());
-          cst->setType(type);
-          return cst;
-
+	  if (!isConstant) {
+	    auto cst = fac->makeAggregateConstantNonCompile(vals, ltype->isArrayTy());
+	    cst->setType(type);
+	    return cst;
+	  }
+	  else  {
+	    auto cst = fac->makeAggregateConstant(const_vals, ltype->isArrayTy());
+	    cst->setType(type);
+	    return cst;
+	    
+	  }
           //assert(false && "FAil");
         }
 

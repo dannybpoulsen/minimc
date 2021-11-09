@@ -57,6 +57,10 @@ namespace MiniMC {
         return buffer.get();
       }
 
+      MiniMC::uint8_t* get_direct_access()  {
+        return buffer.get();
+      }
+
       std::size_t getSize() const { return size; }
 
       std::ostream& output(std::ostream& os) const {
