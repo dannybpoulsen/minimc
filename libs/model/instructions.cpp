@@ -138,7 +138,8 @@ namespace MiniMC {
 	  break;
 	OPERATIONS
 #undef X
-      }
+	  }
+      throw MiniMC::Support::Exception ("Not an instruction");
     }
   }
 }

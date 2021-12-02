@@ -1,4 +1,4 @@
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra )
 
 
 add_subdirectory (model)
