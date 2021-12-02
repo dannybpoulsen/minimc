@@ -910,11 +910,92 @@ namespace MiniMC {
       throw MiniMC::Support::Exception ("Uncopiable Object");
     }
 
-        
-    using instructionstream = std::vector<Instruction>;
+    std::ostream& operator<<(std::ostream& os, const std::vector<Instruction>& str);
     
-    std::ostream& operator<<(std::ostream& os, const instructionstream& str);
+    
+    /**
+	 * Structure representing InstructionStream on  edges.
+	 * An InstructionStream is a sequence of instruction to be performed uninterrupted.
+	 * If the isPhi is true, then the InstructionStream must be performed without the instructions affecting eachother (this is to 
+	 * to reflect that some operations are atomic even within a single process - such as phi-nodes in SSA form).
+	 */
+    struct InstructionStream {
+      using iterator = std::vector<Instruction>::iterator;
+      InstructionStream() : phi(false) {}
+      InstructionStream(bool isPhi) : phi(isPhi) {}
+      
+      InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
+                                                                                 phi(isPhi) {
+        assert(instr.size());
+      }
+      InstructionStream(const InstructionStream& str) : instr(str.instr), phi(str.phi) {}
 
+      InstructionStream& operator= (const InstructionStream&) = default;
+      
+      auto begin() const { return instr.begin(); }
+      auto end() const { return instr.end(); }
+      auto begin() { return instr.begin(); }
+      auto end() { return instr.end(); }
+
+      auto rbegin() const { return instr.rbegin(); }
+      auto rend() const { return instr.rend(); }
+      auto rbegin() { return instr.rbegin(); }
+      auto rend() { return instr.rend(); }
+
+
+      template<InstructionCode c>
+      InstructionStream addInstruction (const typename InstructionData<c>::Content  content) {
+	instr.emplace_back (createInstruction<c> (content));
+	return *this;
+      }
+
+      InstructionStream addInstruction (const Instruction& i) {
+	instr.emplace_back (i);
+	return *this;
+      }
+
+      void clear () {
+	instr.clear ();
+      }
+
+      bool empty () {
+	return instr.empty ();
+      }
+      
+      auto& last() {
+        assert(instr.size());
+        return instr.back();
+      }
+
+      template <class Iterator>
+      auto erase(Iterator iter) {
+        auto res = instr.erase(iter);
+        assert(instr.size() > 0);
+        return res;
+      }
+
+      template <class Iterator>
+      auto replaceInstructionBySeq(iterator repl, Iterator beg, Iterator end) {
+        return instr.insert(erase(repl), beg, end);
+      }
+
+      std::ostream& output (std::ostream& os) const  {
+	return os << instr;
+      }
+
+      bool isPhi () const {
+	return phi;
+      }
+
+	
+      
+    private:
+      std::vector<Instruction> instr;
+      bool phi = false;
+    };
+    
+    std::ostream& operator<<(std::ostream& os, const InstructionStream& str);
+    
     
     
   } // namespace Model

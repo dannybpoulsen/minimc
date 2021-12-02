@@ -125,7 +125,7 @@ namespace MiniMC {
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
           try {
 
-            if (instr.isPhi) {
+            if (instr.isPhi ()) {
               data.readFrom.local = const_cast<VariableLookup*>(&ostate.getProc(id));
               data.readFrom.heap = const_cast<Heap*>(&ostate.getHeap());
             }

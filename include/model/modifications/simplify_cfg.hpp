@@ -23,9 +23,8 @@ namespace MiniMC {
             to->template setAttribute<MiniMC::Model::AttributeType::Instructions>(str);
           }
           auto& str = to->template getAttribute<MiniMC::Model::AttributeType::Instructions>();
-          auto backInsert = str.back_inserter();
           for (auto& e : copyee->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-            backInsert = e;
+            str.addInstruction(e);
           }
         }
       }
@@ -196,8 +195,7 @@ namespace MiniMC {
             std::vector<MiniMC::Model::Edge_ptr> newedges;
             if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               MiniMC::Model::InstructionStream str;
-              auto backInsert = str.back_inserter();
-
+              
               auto from = edge->getFrom();
               auto makeEdge = [&](MiniMC::Model::InstructionStream& str) {
                 auto nloc = cfg->makeLocation(locinfoc.make("", 0, *source_loc));
@@ -208,15 +206,14 @@ namespace MiniMC {
               };
 
               for (auto instr : edge->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-                backInsert = instr;
+                str.addInstruction(instr);
                 if (MiniMC::Model::isOneOf<pos...>(instr)) {
                   makeEdge(str);
-                  str.instr.clear();
-                  backInsert = str.back_inserter();
+                  str.clear();
                 }
               }
 
-              if (str.instr.size()) {
+              if (!str.empty()) {
                 makeEdge(str);
               }
               newedges.back()->setTo(edge->getTo());

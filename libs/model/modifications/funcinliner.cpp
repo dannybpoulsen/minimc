@@ -68,14 +68,14 @@ namespace MiniMC {
         auto& parameters = cfunc->getParameters();
         auto it = parameters.begin();
         MiniMC::Model::InstructionStream str;
-        auto inserter = str.back_inserter();
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
-          inserter = *it;
+          str.addInstruction(*it);
         }
         for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
-          inserter = createInstruction<InstructionCode::Assign> ({.res = valmap.at(it->get().get()),
-	      .op1 = call_content.params.at(i)});  
+          str.addInstruction<InstructionCode::Assign> (
+					 {.res = valmap.at(it->get().get()),
+					  .op1 = call_content.params.at(i)});  
         }
         edge->delAttribute<MiniMC::Model::AttributeType::Instructions>();
         if (str.begin() != str.end())

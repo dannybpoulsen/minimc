@@ -100,15 +100,15 @@ namespace MiniMC {
       }
 
       else if constexpr ( i == InstructionCode::Uniform) {
-	return os << InstructionCode::InsertValue;
+	return os << InstructionCode::Uniform;
       }
 
       else if constexpr ( i == InstructionCode::Store) {
-	return os << InstructionCode::Store << std::endl;	
+	return os << InstructionCode::Store;	
       }
 
       else if constexpr ( i == InstructionCode::Load) {
-		return os << InstructionCode::Load;
+	return os << InstructionCode::Load;
       }
 
       else {
@@ -120,9 +120,12 @@ namespace MiniMC {
     }
 
     
+    std::ostream& operator<<(std::ostream& os, const InstructionStream& str) {
+      return str.output (os);
+    }
     
     
-    std::ostream& operator<<(std::ostream& os, const instructionstream& str) {
+    std::ostream& operator<<(std::ostream& os, const std::vector<Instruction>& str) {
       for (auto& i : str) {
         os << i << std::endl;
       }

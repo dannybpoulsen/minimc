@@ -32,14 +32,14 @@ namespace MiniMC {
                 if (instrstream.last().getOpcode() == InstructionCode::Ret) {
                   auto retinstr = createInstruction<InstructionCode::Ret> ({.value = instrstream.last().getOps<InstructionCode::Ret>().value});
                   instrstream.last().replace(createInstruction<InstructionCode::Free>({.object = stackvar}));
-                  instrstream.back_inserter() = retinstr;
+                  instrstream.addInstruction (retinstr);
 		  
                 }
 
                 else if (instrstream.last().getOpcode() == InstructionCode::RetVoid) {
 
                   instrstream.last().replace(createInstruction<InstructionCode::Free>({.object = stackvar}));
-                  instrstream.back_inserter() = createInstruction<InstructionCode::RetVoid> (0);
+                  instrstream.addInstruction<InstructionCode::RetVoid> (0);
                 }
               }
             }

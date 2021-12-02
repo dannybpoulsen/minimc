@@ -47,56 +47,7 @@ namespace MiniMC {
       return os << "<< " << (g.negate ? "!" : "") << *g.guard << " >>";
     }
 
-    /**
-	 * Structure representing InstructionStream on  edges.
-	 * An InstructionStream is a sequence of instruction to be performed uninterrupted.
-	 * If the isPhi is true, then the InstructionStream must be performed without the instructions affecting eachother (this is to 
-	 * to reflect that some operations are atomic even within a single process - such as phi-nodes in SSA form).
-	 */
-    struct InstructionStream {
-      using iterator = std::vector<Instruction>::iterator;
-      InstructionStream() : isPhi(false) {}
-      InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
-                                                                                 isPhi(isPhi) {
-        assert(instr.size());
-      }
-      InstructionStream(const InstructionStream& str) : instr(str.instr), isPhi(str.isPhi) {}
-
-      InstructionStream& operator= (const InstructionStream&) = default;
-      
-      auto begin() const { return instr.begin(); }
-      auto end() const { return instr.end(); }
-      auto begin() { return instr.begin(); }
-      auto end() { return instr.end(); }
-
-      auto rbegin() const { return instr.rbegin(); }
-      auto rend() const { return instr.rend(); }
-      auto rbegin() { return instr.rbegin(); }
-      auto rend() { return instr.rend(); }
-
-      template <class Iterator>
-      auto replaceInstructionBySeq(iterator repl, Iterator beg, Iterator end) {
-        return instr.insert(erase(repl), beg, end);
-      }
-
-      auto& last() {
-        assert(instr.size());
-        return instr.back();
-      }
-
-      auto back_inserter() { return std::back_inserter(instr); }
-
-      template <class Iterator>
-      auto erase(Iterator iter) {
-        auto res = instr.erase(iter);
-        assert(instr.size() > 0);
-        return res;
-      }
-
-      std::vector<Instruction> instr;
-      bool isPhi = false;
-    };
-
+    
     template <>
     struct AttributeValueType<AttributeType::Instructions> {
       using ValType = InstructionStream;
@@ -215,7 +166,7 @@ namespace MiniMC {
       if (e.hasAttribute<AttributeType::Guard>()) {
         os << e.getAttribute<AttributeType::Guard>();
       } else if (e.hasAttribute<AttributeType::Instructions>()) {
-        os << e.getAttribute<AttributeType::Instructions>().instr;
+        os << e.getAttribute<AttributeType::Instructions>();
       }
       return os;
     }

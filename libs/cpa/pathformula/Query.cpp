@@ -80,7 +80,7 @@ namespace MiniMC {
 
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
           try {
-            if (!instr.isPhi) {
+            if (!instr.isPhi ()) {
               data.oldSSAMap = data.newSSAMap;
               data.oldHeap = data.newHeap;
             }

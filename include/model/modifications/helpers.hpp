@@ -43,11 +43,9 @@ namespace MiniMC {
 
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
           auto& orig = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
-          MiniMC::Model::InstructionStream nstr;
-          nstr.isPhi = orig.isPhi;
-          auto insert = nstr.back_inserter();
+          MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-            insert = inst;
+            nstr.addInstruction (inst); 
           });
 
           nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(nstr);
@@ -88,15 +86,13 @@ namespace MiniMC {
 
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
           auto& orig = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
-          MiniMC::Model::InstructionStream nstr;
-          nstr.isPhi = orig.isPhi;
-          auto insert = nstr.back_inserter();
+          MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
 	    auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
 	      return lookupValue (op,val);
 	    };
 	      
-	    insert = copyInstructionWithReplace (inst,replaceF);
+	    nstr.addInstruction(copyInstructionWithReplace (inst,replaceF));
           });
 
           nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(nstr);
