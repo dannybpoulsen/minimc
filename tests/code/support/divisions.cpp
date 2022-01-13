@@ -1,6 +1,6 @@
 #include <tuple>
 
-#include "support/div.hpp"
+#include "support/operataions.hpp"
 #include "support/types.hpp"
 #include "gtest/gtest.h"
 
@@ -12,7 +12,7 @@ TEST_P(UDiv8, KK) {
   MiniMC::uint8_t right = std::get<1> (GetParam());
   MiniMC::uint8_t expected = std::get<2> (GetParam());
   
-  EXPECT_EQ(MiniMC::Support::div (left,right),expected);
+  EXPECT_EQ(MiniMC::Support::Op<MiniMC::Support::TAC::UDiv> (left,right),expected);
 }
 
 INSTANTIATE_TEST_CASE_P(
@@ -37,7 +37,7 @@ TEST_P(UDiv16, KK) {
   MiniMC::uint16_t right = std::get<1> (GetParam());
   MiniMC::uint16_t expected = std::get<2> (GetParam());
   
-  EXPECT_EQ(MiniMC::Support::div (left,right),expected);
+  EXPECT_EQ(MiniMC::Support::Op<MiniMC::Support::TAC::UDiv> (left,right),expected);
 }
 
 
@@ -62,7 +62,7 @@ TEST_P(UDiv32, KK) {
   MiniMC::uint32_t right = std::get<1> (GetParam());
   MiniMC::uint32_t expected = std::get<2> (GetParam());
   
-  EXPECT_EQ(MiniMC::Support::div (left,right),expected);
+  EXPECT_EQ(MiniMC::Support::Op<MiniMC::Support::TAC::UDiv> (left,right),expected);
 }
 
 
@@ -87,7 +87,7 @@ TEST_P(UDiv64, KK) {
   MiniMC::uint32_t right = std::get<1> (GetParam());
   MiniMC::uint32_t expected = std::get<2> (GetParam());
   
-  EXPECT_EQ(MiniMC::Support::div (left,right),expected);
+  EXPECT_EQ(MiniMC::Support::Op<MiniMC::Support::TAC::UDiv> (left,right),expected);
 }
 
 

@@ -2,6 +2,7 @@
 
 #include "model/variables.hpp"
 #include "support/cmps.hpp"
+#include "support/operataions.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "util/array.hpp"
@@ -17,43 +18,43 @@ namespace MiniMC {
         auto rr = right.template read<T>();
 
         if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_SGT) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::sgt(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::SGT>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_UGT) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::ugt(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::UGT>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_SGE) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::sgeq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::SGE>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_UGE) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::ugeq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::UGE>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_SLT) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::slt(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::SLT>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_ULT) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::ult(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::ULT>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_SLE) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::sleq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::SGE>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_ULE) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::uleq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::ULE>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_EQ) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::eq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::EQ>(ll, rr));
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::ICMP_NEQ) {
-          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::neq(ll, rr));
+          res.template set<MiniMC::uint8_t>(0, MiniMC::Support::Op<MiniMC::Support::CMP::NEQ>(ll, rr));
         }
 
         return res;
@@ -83,61 +84,61 @@ namespace MiniMC {
         auto rr = right.template read<T>();
 
         if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_SGT) {
-          if (!MiniMC::Support::sgt(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::SGT>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_UGT) {
-          if (!MiniMC::Support::ugt(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::UGT>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_SGE) {
-          if (!MiniMC::Support::sgeq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::SGE>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_UGE) {
-          if (!MiniMC::Support::ugeq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::UGE> (ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_SLT) {
-          if (!MiniMC::Support::slt(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::SLT> (ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_ULT) {
-          if (!MiniMC::Support::ult(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::ULT> (ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_SLE) {
-          if (!MiniMC::Support::sleq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::SLE>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_ULE) {
-          if (!MiniMC::Support::uleq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::ULE>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_EQ) {
-          if (!MiniMC::Support::eq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::EQ>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }
 
         else if constexpr (opc == MiniMC::Model::InstructionCode::PRED_ICMP_NEQ) {
-          if (!MiniMC::Support::neq(ll, rr)) {
+          if (!MiniMC::Support::Op<MiniMC::Support::CMP::NEQ>(ll, rr)) {
             throw MiniMC::Support::AssumeViolated();
           }
         }

@@ -1,4 +1,4 @@
-#include "support/div.hpp"
+#include "support/operataions.hpp"
 #include "support/types.hpp"
 #include <cstdint>
 #include <iostream>
@@ -7,7 +7,7 @@ namespace MiniMC {
   namespace Support {
 #ifdef __x86_64__
     template <>
-    uint8_t div<uint8_t>(uint8_t l, uint8_t r) {
+    uint8_t udivimpl<uint8_t>(uint8_t l, uint8_t r) {
       uint8_t res;
       ;
       asm("divb %%cl;"
@@ -18,7 +18,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint16_t div<uint16_t>(uint16_t l, uint16_t r) {
+    uint16_t udivimpl<uint16_t>(uint16_t l, uint16_t r) {
       uint16_t res;
       asm("xor %%dx,%%dx;"
           "divw %%cx;"
@@ -30,7 +30,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t div<uint32_t>(uint32_t l, uint32_t r) {
+    uint32_t udivimpl<uint32_t>(uint32_t l, uint32_t r) {
       uint32_t res;
       asm("xor %%edx,%%edx;"
           "divl %%ecx;"
@@ -42,7 +42,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint64_t div<uint64_t>(uint64_t l, uint64_t r) {
+    uint64_t udivimpl<uint64_t>(uint64_t l, uint64_t r) {
       uint64_t res;
       asm("xor %%rdx,%%rdx;"
           "divq %%rcx;"
@@ -53,7 +53,7 @@ namespace MiniMC {
       return res;
     }
     template <>
-    uint8_t idiv<uint8_t>(uint8_t l, uint8_t r) {
+    uint8_t sdivimpl<uint8_t>(uint8_t l, uint8_t r) {
       uint8_t res;
       asm("cbw;"
           "idivb %%cl;"
@@ -64,7 +64,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint16_t idiv<uint16_t>(uint16_t l, uint16_t r) {
+    uint16_t sdivimpl<uint16_t>(uint16_t l, uint16_t r) {
       uint16_t res;
       asm("cwd;"
           "idivw %%cx;"
@@ -76,7 +76,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t idiv<uint32_t>(uint32_t l, uint32_t r) {
+    uint32_t sdivimpl<uint32_t>(uint32_t l, uint32_t r) {
       uint32_t res;
       asm("cdq;"
           "idivl %%ecx;"
@@ -88,7 +88,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint64_t idiv<uint64_t>(uint64_t l, uint64_t r) {
+    uint64_t sdivimpl<uint64_t>(uint64_t l, uint64_t r) {
       uint64_t res;
       asm("cqo;"
           "idivq %%rcx;"
