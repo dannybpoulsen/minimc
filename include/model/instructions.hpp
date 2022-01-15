@@ -52,8 +52,7 @@ namespace MiniMC {
 #define AGGREGATEOPS \
   X(ExtractValue)    \
   X(InsertValue)     \
-  //  X(InsertValueFromConst)
-
+ 
 #define CASTOPS \
   X(Trunc)      \
   X(ZExt)       \

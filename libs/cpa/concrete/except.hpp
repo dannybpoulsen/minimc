@@ -13,8 +13,8 @@ namespace MiniMC {
       public:
 		NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not implemented for this CPA"}.format (c)) {}
       };
-
-	  class BufferOverflow : public MiniMC::Support::Exception {
+      
+      class BufferOverflow : public MiniMC::Support::Exception {
       public:
 		BufferOverflow () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"BufferOverflow detected"}.format ()) {}
       };

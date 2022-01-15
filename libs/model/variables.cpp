@@ -19,6 +19,11 @@ namespace MiniMC {
              ty->getTypeID() == MiniMC::Model::TypeID::Bool);
       Value_ptr retval;
 
+      if (ty->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	retval.reset (new Bool (static_cast<MiniMC::uint8_t> (val)));
+	return retval;
+      }
+      
 #define ALLOWEDTYPES  \
   X(MiniMC::uint8_t)  \
   X(MiniMC::uint16_t) \
@@ -28,7 +33,7 @@ namespace MiniMC {
       switch (ty->getSize()) {
 #define X(TY)                                                                   \
   case sizeof(TY):                                                              \
-    retval.reset(new MiniMC::Model::IntegerConstant<TY>(static_cast<TY>(val))); \
+    retval.reset(new MiniMC::Model::TConstant<TY>(static_cast<TY>(val))); \
     break;
         ALLOWEDTYPES
 #undef X

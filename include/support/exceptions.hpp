@@ -26,6 +26,18 @@ namespace MiniMC {
       BufferOverflow() : VerificationException("BUffer Overflow") {}
     };
 
+    class BufferOverread : public MiniMC::Support::Exception {
+    public:
+      BufferOverread () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"BufferOverread detected"}.format ()) {}
+    };
+    
+    
+    class InvalidFree : public MiniMC::Support::Exception {
+    public:
+      InvalidFree () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Invalid free detected"}.format ()) {}
+    };
+    
+    
     class InvalidPointer : public VerificationException {
     public:
       InvalidPointer() : VerificationException("Invalid Pointer") {}
@@ -46,6 +58,11 @@ namespace MiniMC {
       FunctionDoesNotExist(const std::string& name) : VerificationException(Localiser("Function '%1%' does not exists").format(name)) {}
     };
 
+    
+
+    	  
+
+    
   } // namespace Support
 } // namespace MiniMC
 

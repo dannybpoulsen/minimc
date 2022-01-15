@@ -66,7 +66,7 @@ namespace MiniMC {
             auto instr = *instr_tup.first;
             MiniMC::Model::Value_ptr constant;
             if (evalConst(*instr, guard.guard, constant)) {
-              auto iconst = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>>(constant);
+              auto iconst = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint8_t>>(constant);
               if (iconst->getValue() && guard.negate) {
                 func->getCFG()->deleteEdge(e);
               }

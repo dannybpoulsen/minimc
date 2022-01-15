@@ -30,35 +30,34 @@ void addModelModule (py::module& m) {
   py::class_<MiniMC::Model::Constant,std::shared_ptr<MiniMC::Model::Constant> > constant (submodule,"Constant",value);
   constant
     .def_property ("isInteger",&MiniMC::Model::Constant::isInteger,nullptr)
-    .def_property ("isAggregate",&MiniMC::Model::Constant::isAggregate,nullptr)
     .def_property ("isBinaryBlob",&MiniMC::Model::Constant::isBinaryBlobConstant,nullptr);
   
 
-  py::class_<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>,std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> >  (submodule,"IntConstant64",constant)
-    .def_property ("int",&MiniMC::Model::IntegerConstant<MiniMC::uint64_t>::getValue,nullptr )
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>> ptr) {
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint64_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint64_t>> >  (submodule,"IntConstant64",constant)
+    .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint64_t>::getValue,nullptr )
+    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint64_t>> ptr) {
       return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
       
     });
   
   
-  py::class_<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>,std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>> >  (submodule,"IntConstant32",constant)
-  .def_property ("int",&MiniMC::Model::IntegerConstant<MiniMC::uint32_t>::getValue,nullptr )
-  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>> ptr) {
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint32_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint32_t>> >  (submodule,"IntConstant32",constant)
+  .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint32_t>::getValue,nullptr )
+  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint32_t>> ptr) {
     return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
       
     });
   
-  py::class_<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>,std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>> >  (submodule,"IntConstant16",constant)
-  .def_property ("int",&MiniMC::Model::IntegerConstant<MiniMC::uint16_t>::getValue,nullptr )
-  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>> ptr) {
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint16_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint16_t>> >  (submodule,"IntConstant16",constant)
+  .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint16_t>::getValue,nullptr )
+  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint16_t>> ptr) {
     return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
       
   });
   
-  py::class_<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>,std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>> >  (submodule,"IntConstant8",constant)
-    .def_property ("int",&MiniMC::Model::IntegerConstant<MiniMC::uint8_t>::getValue,nullptr )
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>> ptr) {
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint8_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint8_t>> >  (submodule,"IntConstant8",constant)
+    .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint8_t>::getValue,nullptr )
+    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint8_t>> ptr) {
       return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
       
   });

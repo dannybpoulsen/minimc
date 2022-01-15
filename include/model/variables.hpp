@@ -59,9 +59,10 @@ namespace MiniMC {
       bool isConstant() const override { return true; }
       virtual const MiniMC::uint8_t* getData() const  = 0;
       virtual std::size_t getSize() { return 0; }
-      virtual bool isAggregate() const { return false; }
       virtual bool isInteger() const { return false; }
+      virtual bool isPointer() const { return false; }
       virtual bool isBinaryBlobConstant() const  { return false; }
+      virtual bool isBool() const  { return false; }
       virtual bool isUndef() const { return false; }
     };
 
@@ -82,29 +83,31 @@ namespace MiniMC {
     using Constant_ptr = std::shared_ptr<Constant>;
 
     class ConstantFactory64;
-
-    template <typename T>
-    class IntegerConstant : public Constant {
+    
+    template <typename T,bool is_bool = false>
+    class TConstant : public Constant {
     protected:
-      IntegerConstant(T val) : value(0) {
+      TConstant(T val) : value(0) {
         MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value), sizeof(value)) = val;
       }
 
     public:
       friend class ConstantFactory64;
 
-      T getValue() const {
+      T getValue() const  {
         auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
         return val;
       }
 
       virtual std::size_t getSize() override { return sizeof(T); }
 
-      virtual const MiniMC::uint8_t* getData() const {
+      virtual const MiniMC::uint8_t* getData() const override  {
         return reinterpret_cast<const MiniMC::uint8_t*>(&value);
       }
 
-      virtual bool isInteger() const { return true; }
+      virtual bool isBool() const override { return is_bool; }
+      virtual bool isInteger() const override { return std::is_integral_v<T>; }
+      virtual bool isPointer() const override { return std::is_same_v<T,MiniMC::pointer_t>;; }
 
       virtual std::ostream& output(std::ostream& os) const {
         MiniMC::Support::Base64Encode encoder;
@@ -121,6 +124,16 @@ namespace MiniMC {
       T value;
     };
 
+    using Bool = TConstant<MiniMC::uint8_t,true>;
+    using I8Integer = TConstant<MiniMC::uint16_t>;
+    using I16Integer = TConstant<MiniMC::uint16_t>;
+    using I32Integer = TConstant<MiniMC::uint32_t>;
+    using I64Integer = TConstant<MiniMC::uint64_t>;
+    using Pointer = TConstant<MiniMC::pointer_t>;
+
+    
+    
+    
     /**
 	 * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
 	 *
@@ -141,15 +154,15 @@ namespace MiniMC {
         ;
       }
 
-      virtual const MiniMC::uint8_t* getData() const {
+      virtual const MiniMC::uint8_t* getData() const override {
         return value.get();
       }
 
-      virtual bool isBinaryBlobConstant() const { return true; }
+      virtual bool isBinaryBlobConstant() const override { return true; }
 
       std::size_t getSize() override { return size; }
 
-      virtual std::ostream& output(std::ostream& os) const {
+      virtual std::ostream& output(std::ostream& os) const override  {
         MiniMC::Support::Base64Encode encoder;
         os << encoder.encode(reinterpret_cast<const char*>(value.get()), size);
         if (getType())

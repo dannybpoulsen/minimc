@@ -16,6 +16,10 @@ namespace MiniMC {
         std::fill(buffer.get(), buffer.get() + size, 0);
       }
 
+      Array(size_t s, const MiniMC::uint8_t* buffer) : buffer(new MiniMC::uint8_t[s]), size(s) {
+        std::copy(buffer, buffer + size, this->buffer.get());
+      }
+      
       Array(const Array& a) {
         *this = a;
       }
@@ -43,6 +47,10 @@ namespace MiniMC {
         std::copy(reinterpret_cast<const MiniMC::uint8_t*>(&t), reinterpret_cast<const MiniMC::uint8_t*>(&t) + sizeof(T), buffer.get() + byte);
       }
 
+      void set (const Array& oth, std::size_t byte) {
+	std::copy (oth.buffer.get(),oth.buffer.get()+oth.getSize(),buffer.get()+byte);
+      }
+      
       void set_block(std::size_t byte, std::size_t block_size, const MiniMC::uint8_t* block) {
         assert(byte + block_size <= size);
         std::copy(block, block + block_size, buffer.get() + byte);
@@ -80,7 +88,7 @@ namespace MiniMC {
     inline std::ostream& operator<<(std::ostream& os, const Array& vec) {
       return vec.output(os);
     }
-
+    
   } // namespace Util
 } // namespace MiniMC
 

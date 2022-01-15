@@ -184,20 +184,20 @@ namespace MiniMC {
 
                 switch (type->getSize()) {
                   case 1:
-                    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint8_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.max)->getValue();
                     break;
                   case 2:
-                    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint16_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.max)->getValue();
                     break;
                   case 4:
-                    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint32_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.max)->getValue();
                     break;
                   case 8:
-                    min = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<IntegerConstant<MiniMC::uint64_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.max)->getValue();
                     break;
                   default:
                     assert(false);

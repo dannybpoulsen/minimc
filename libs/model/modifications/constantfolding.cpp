@@ -25,16 +25,16 @@ namespace MiniMC {
             uint64_t value = 0;
             switch (type->getSize()) {
               case 1:
-                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint8_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint8_t>>(val)->getValue();
                 break;
               case 2:
-                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint16_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint16_t>>(val)->getValue();
                 break;
               case 4:
-                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint32_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint32_t>>(val)->getValue();
                 break;
               case 8:
-                value = std::static_pointer_cast<MiniMC::Model::IntegerConstant<MiniMC::uint64_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint64_t>>(val)->getValue();
                 break;
             }
 
