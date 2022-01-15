@@ -25,7 +25,6 @@ namespace MiniMC {
 	   */
       struct ReplaceNonDetUniform : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
-          auto& fact = prgm.getConstantFactory();
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFG()->getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {

@@ -76,7 +76,6 @@ namespace {
 
 
 MiniMC::Support::ExitCodes pgraph_main (MiniMC::Model::Program_ptr& prgm,  MiniMC::Algorithms::SetupOptions& sopt) {
-  MiniMC::Support::ExitCodes res;
   MiniMC::CPA::CPA_ptr cpa = createUserDefinedCPA (CPASelector::Location);
   
   return runAlgorithm (*prgm,sopt,locoptions.filter,cpa);

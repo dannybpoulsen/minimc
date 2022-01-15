@@ -78,10 +78,9 @@ namespace MiniMC {
 
     private:
       MiniMC::Support::Messager& messager;
-      AnalysisResult result{.result = ReachabilityResult::Inconclusive};
+      AnalysisResult result{.result = ReachabilityResult::Inconclusive, .foundState = nullptr};
       MiniMC::Algorithms::GoalFunction predicate;
       MiniMC::Algorithms::FilterFunction filter;
-      ;
       MiniMC::CPA::CPA_ptr cpa;
     };
   } // namespace Algorithms

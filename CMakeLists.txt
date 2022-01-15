@@ -6,6 +6,7 @@ set (CMAKE_CXX_STANDARD 20)
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
 option (ENABLE_PYTHON "Enable Symbolic Representations" OFF)
 
+add_compile_options(-Wall -Wextra -Wpedantic)
 
 SET (ToolName minimc)
 SET (VERSION_MAJOR 0)

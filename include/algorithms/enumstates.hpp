@@ -27,7 +27,6 @@ namespace MiniMC {
         messager.message("Initiating EnumStates");
 
         auto progresser = messager.makeProgresser();
-        auto predicate = [](auto& b) { return false; };
         auto query = cpa->makeQuery();
         auto transfer = cpa->makeTransfer();
         auto initstate = query->makeInitialState(prgm);

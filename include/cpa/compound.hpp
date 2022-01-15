@@ -240,7 +240,7 @@ namespace MiniMC {
 
       struct PreValidateSetup : public MiniMC::CPA::PrevalidateSetup {
 
-        bool validate(const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+        bool validate(const MiniMC::Model::Program&, MiniMC::Support::Messager&) {
           /*A::PreValidate::validate (prgm,mess);
 	    return PreValidateSetup<CPAs...>::validate (prgm,mess);*/
           return true;

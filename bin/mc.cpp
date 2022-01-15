@@ -50,7 +50,7 @@ namespace {
   LocalOptions locoptions;
   
   
-  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
+  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions) {
     locoptions.expect = MiniMC::Algorithms::Reachability::ReachabilityResult::NotFound;
 	
     auto setExpected= [&] (int val) {

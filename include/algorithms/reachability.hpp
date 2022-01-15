@@ -12,7 +12,7 @@ namespace MiniMC {
   namespace Algorithms {
 
     struct DummyInsert {
-      void operator=(const MiniMC::CPA::State_ptr& ptr) {
+      void operator=(const MiniMC::CPA::State_ptr&) {
       }
     };
 
@@ -23,7 +23,6 @@ namespace MiniMC {
         progresser.progressMessage(waitmess.format(passed.getWSize(), passed.getPSize()));
       }
       MiniMC::Support::Localiser waitmess;
-      ;
       MiniMC::Support::Progresser& progresser;
       Passed& passed;
     };

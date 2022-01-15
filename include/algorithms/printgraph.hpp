@@ -30,7 +30,7 @@ namespace MiniMC {
         if (opt.filterSatis)
           pwopt.filter = [](const MiniMC::CPA::State_ptr& s) { return s->getConcretizer()->isFeasible() == MiniMC::CPA::Concretizer::Feasibility::Feasible; };
         if (!opt.delayTillConverge)
-          pwopt.delay = [](const MiniMC::CPA::State_ptr& s) { return false; };
+          pwopt.delay = [](const MiniMC::CPA::State_ptr&) { return false; };
         cpa = std::make_shared<MiniMC::CPA::ARG::CPA>(opt.cpa);
       }
       virtual Result run(const MiniMC::Model::Program& prgm) {
@@ -41,7 +41,6 @@ namespace MiniMC {
         aresult.graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT>("CPA");
 
         auto progresser = messager.makeProgresser();
-        auto predicate = [](auto& b) { return false; };
         auto query = cpa->makeQuery();
         auto transfer = cpa->makeTransfer();
         auto initstate = query->makeInitialState(prgm);

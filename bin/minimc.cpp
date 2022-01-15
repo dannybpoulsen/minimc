@@ -155,7 +155,7 @@ int main (int argc,char* argv[]) {
   po::options_description smt("SMT Options");
   
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter (smts));
-  auto setSMTSolver = [] (int val) {
+  auto setSMTSolver = [] (std::size_t val) {
     if (val < smts.size ()) {
       selsmt  = &smts[val];
     }
@@ -174,7 +174,7 @@ int main (int argc,char* argv[]) {
 	}
 	
 	smt.add_options ()
-	  ("smt.solver",po::value<int> ()->default_value(0)->notifier(setSMTSolver), str.str ().c_str());
+	  ("smt.solver",po::value<std::size_t> ()->default_value(0)->notifier(setSMTSolver), str.str ().c_str());
 	general.add (smt);
   }
 #endif

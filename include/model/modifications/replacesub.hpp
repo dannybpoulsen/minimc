@@ -24,7 +24,7 @@ namespace MiniMC {
                 auto& instrstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 auto it = instrstr.begin();
                 auto end = instrstr.end();
-                for (it; it != end; ++it) {
+                for (; it != end; ++it) {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
                     std::cerr << "Replace " << std::endl;
                     auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();

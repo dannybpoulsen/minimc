@@ -78,7 +78,7 @@ namespace MiniMC {
       };
 
       struct ExpandUndefValues : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
+        virtual bool runFunction(const MiniMC::Model::Function_ptr&) {
 
 	  /* auto& prgm = *F->getPrgm();
           auto cfg = F->getCFG().get();

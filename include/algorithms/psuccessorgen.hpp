@@ -38,11 +38,11 @@ namespace MiniMC {
             return *this;
           }
 
-          bool operator==(const Iterator& oth) const {
+          bool operator==(const Iterator&) const {
             return false;
           }
 
-          bool operator!=(const Iterator& oth) const {
+          bool operator!=(const Iterator&) const {
             return true;
           }
 

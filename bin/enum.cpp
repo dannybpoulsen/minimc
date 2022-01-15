@@ -34,7 +34,7 @@ namespace {
   }
 
   
-  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {  
+  void addOptions (po::options_description&,MiniMC::Algorithms::SetupOptions&) {  
     
   }
 }

@@ -7,6 +7,7 @@ add_subdirectory (hash)
 add_subdirectory (cpa)
 add_subdirectory (algorithms)	
 add_subdirectory (util)
+add_subdirectory (vm)
 
 
 add_library (minimclib SHARED)

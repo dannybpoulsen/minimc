@@ -40,7 +40,7 @@ namespace {
 
   LocalOptions locoptions;
 
-  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions& sopt) {
+  void addOptions (po::options_description& op,MiniMC::Algorithms::SetupOptions&) {
 	po::options_description desc("Basic SMC Options");
 	
 	auto setAlgo = [&] (int val) {

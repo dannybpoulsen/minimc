@@ -159,8 +159,8 @@ namespace MiniMC {
         std::size_t satis = 0;
         std::size_t nsatis = 0;
         std::size_t maybe = 0;
+	MiniMC::proba_t width = 1;
         MiniMC::proba_t alpha = 0;
-        MiniMC::proba_t width = 1;
         MiniMC::proba_t lower;
         MiniMC::proba_t upper;
       };

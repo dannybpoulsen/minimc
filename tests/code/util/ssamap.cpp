@@ -6,7 +6,6 @@ TEST(ssamap, mapInitialisation)
 {
   int index;
   double d = 5;
-  double n = 6;
   MiniMC::Util::SSAMapImpl<int*,double*> map;
   map.initialiseValue (&index,&d);
   EXPECT_EQ(1, map.getIndex (&index));	

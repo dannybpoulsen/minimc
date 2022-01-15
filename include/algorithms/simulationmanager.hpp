@@ -31,9 +31,9 @@ namespace MiniMC {
     };
 
     struct SearchOptions {
-      FilterFunction filter = [](const MiniMC::CPA::State_ptr& s) { return true; };
+      FilterFunction filter = [](const MiniMC::CPA::State_ptr&) { return true; };
       DelaySearchPredicate delay = [](const MiniMC::CPA::State_ptr& s) { return !s->ready2explore(); };
-      GoalFunction goal = [](const MiniMC::CPA::State_ptr& s) { return false; };
+      GoalFunction goal = [](const MiniMC::CPA::State_ptr&) { return false; };
     };
 
     class SimulationManager {

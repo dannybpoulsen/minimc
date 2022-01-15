@@ -19,7 +19,7 @@ namespace MiniMC {
     namespace Concrete {
 
       using VariableLookup = MiniMC::Model::VariableMap<MiniMC::Util::Array>;
-
+      
       struct GlobalLocalVariableLookup {
         VariableLookup* local;
         Heap* heap;
