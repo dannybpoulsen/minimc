@@ -205,9 +205,9 @@ namespace MiniMC {
             //Do nothing
           }
 
-          else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
+          /*else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
             //Do nothing
-          }
+	    }*/
 
           else {
             throw NotImplemented<opc>();

@@ -11,7 +11,7 @@ namespace MiniMC {
       template <MiniMC::Model::InstructionCode i>
       bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
         auto& content = inst.getOps<i>();
-        if constexpr (InstructionData<i>::isTAC) {
+        if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
           auto resType = content.res->getType();
           auto lType = content.op1->getType();
@@ -225,11 +225,11 @@ namespace MiniMC {
             return false;
           }
 
-          if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
+          /*if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               sizetype->getSize() != 8) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Malloc));
             return false;
-          }
+	    }*/
 
           return true;
         }
@@ -261,7 +261,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::Malloc) {
+        /*else if constexpr (i == InstructionCode::Malloc) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only accept pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Size parameter to '%1%' must be an Integer and 8 bytes long. ");
 
@@ -280,14 +280,14 @@ namespace MiniMC {
 
           return true;
 
-        }
+	  }*/
 
         else if constexpr (i == InstructionCode::Free) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only accept pointer types. ");
           auto ptrtype = content.object->getType();
   
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
+            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Free));
             return false;
           }
 

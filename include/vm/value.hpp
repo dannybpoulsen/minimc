@@ -13,12 +13,20 @@ namespace MiniMC {
     class Value;
     using Value_ptr = std::shared_ptr<Value>;
     
+    enum class TriBool {
+      True,
+      False,
+      Unk
+    };
+    
     class Value {
     public:
       virtual ~Value () {}
       virtual std::string output () = 0;
       virtual MiniMC::Util::Array bytes () = 0;
       virtual explicit operator MiniMC::offset_t () {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual TriBool triBool () const {throw MiniMC::Support::Exception ("Not implemented");}
+      
       
       virtual Value_ptr Add (const Value_ptr&)  {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr Sub(const Value_ptr&) { throw MiniMC::Support::Exception("Not implemented"); }
@@ -44,54 +52,31 @@ namespace MiniMC {
       virtual Value_ptr NEq (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
 
       /*virtual Value_ptr InsertValue (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-      virtual Value_ptr ExtractValue (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr ExtractValue (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       */
       virtual Value_ptr PtrAdd (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr PtrEq (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       
+      virtual Value_ptr BoolNegate () {throw MiniMC::Support::Exception ("Not implemented");}
+      
+      // Casts
+      virtual Value_ptr Trunc (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr ZExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr SExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr BoolSExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr BoolZExt (const  MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+	virtual Value_ptr IntToBool () {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr PtrToI64 () {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr IntToPtr () {throw MiniMC::Support::Exception ("Not implemented");}
       
       
       
-    };
-    
-  
-    
-    struct ValueLookup {
-    public:
-      virtual ~ValueLookup ()  {}
-      virtual Value_ptr lookupValue (const MiniMC::Model::Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void saveValue (const MiniMC::Model::Variable_ptr&, Value_ptr&&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void unboundValue (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");};
+      
+      
     };
     
 
     
-    using ValueLookup_ptr = std::shared_ptr<ValueLookup>;
-    
-    struct Memory {
-    public:
-      virtual ~Memory ()  {}
-      virtual const Value_ptr loadValue (const Value_ptr&, const MiniMC::Model::Type_ptr& ) {throw MiniMC::Support::Exception ("Not implemented");};
-      //First parameter is address to store at, second is the value to state
-      virtual void storeValue (const Value_ptr&, const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");};
-      //PArameter is size to allocate
-      virtual Value_ptr alloca (const Value_ptr) {throw MiniMC::Support::Exception ("Not implemented");};
-      
-      virtual void free (const MiniMC::Model::Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");};
-    };
-    
-    using Memory_ptr = std::shared_ptr<Memory>;
-
-    enum class DomainType {
-      Concrete
-    };
-
-    
-    struct VMState {
-      VMState (ValueLookup_ptr p, Memory_ptr m) : lookup(p),memory(m) {}
-      ValueLookup_ptr lookup;
-      Memory_ptr memory;
-    };
     
   }
   

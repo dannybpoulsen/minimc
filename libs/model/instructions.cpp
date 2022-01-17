@@ -6,8 +6,8 @@ namespace MiniMC {
     template<InstructionCode i>
     std::ostream& format (std::ostream& os, const Instruction& inst) {
       auto& content = inst.getOps<i> ();
-      if constexpr (InstructionData<i>::isTAC || InstructionData<i>::isComparison) {
-	return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op1;   
+      if constexpr (InstructionData<i>::isTAC || InstructionData<i>::isComparison || i == MiniMC::Model::InstructionCode::PtrEq) {
+	return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op2;   
       }
 
       else if constexpr (InstructionData<i>::isPredicate) {
@@ -31,9 +31,9 @@ namespace MiniMC {
       
       }
 
-      else if constexpr (i == InstructionCode::Malloc) {
+      /*else if constexpr (i == InstructionCode::Malloc) {
 	return os << InstructionCode::Malloc << " (" << *content.object << ", " << *content.size << " )";
-      }
+	}*/
 
       else if constexpr ( i == InstructionCode::Free) {
 	return os << InstructionCode::Free << " (" << *content.object << " )";

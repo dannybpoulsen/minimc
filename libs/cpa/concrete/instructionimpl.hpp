@@ -68,7 +68,7 @@ namespace MiniMC {
             auto& res = content.res;
             auto& left = content.op1;
             auto& right = content.op2;
-
+	    
             auto lval = data.readFrom.evaluate(left);
             auto rval = data.readFrom.evaluate(right);
             data.writeTo.set(std::static_pointer_cast<MiniMC::Model::Register>(res), Steptacexec<opc>(lval, rval));
@@ -175,9 +175,9 @@ namespace MiniMC {
               throw MiniMC::Support::AssumeViolated();
           }
 
-          else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
+          /*else if constexpr (opc == MiniMC::Model::InstructionCode::Malloc) {
             //Ignore. The space is technically already reserved by FindSpace
-          }
+	    }*/
 
           else if constexpr (opc == MiniMC::Model::InstructionCode::Free) {
             

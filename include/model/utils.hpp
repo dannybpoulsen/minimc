@@ -49,10 +49,10 @@ namespace MiniMC {
         iter = content.size;
       }
 
-      else if constexpr (c == MiniMC::Model::InstructionCode::Malloc) {
+      /*else if constexpr (c == MiniMC::Model::InstructionCode::Malloc) {
         iter = content.size;
 	iter = content.addr;
-      }
+	}*/
 
       else if constexpr (c == MiniMC::Model::InstructionCode::Free) {
         iter = content.object;

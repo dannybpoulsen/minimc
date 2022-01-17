@@ -56,7 +56,7 @@ namespace MiniMC {
         std::copy(block, block + block_size, buffer.get() + byte);
       }
 
-      void get_block(std::size_t byte, std::size_t block_size, MiniMC::uint8_t* block) {
+      void get_block(std::size_t byte, std::size_t block_size, MiniMC::uint8_t* block)  const {
         assert(byte + block_size <= size);
         std::copy(buffer.get() + byte, buffer.get() + byte + block_size, block);
       }

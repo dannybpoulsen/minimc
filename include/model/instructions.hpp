@@ -54,7 +54,7 @@ namespace MiniMC {
   X(InsertValue)     \
  
 #define CASTOPS \
-  X(Trunc)      \
+  X(Trunc)	\
   X(ZExt)       \
   X(SExt)       \
   X(PtrToInt)   \
@@ -67,12 +67,12 @@ namespace MiniMC {
 #define MEMORY \
   X(Alloca)    \
   X(FindSpace) \
-  X(Malloc)    \
   X(Free)      \
   X(Store)     \
   X(Load)      \
   X(ExtendObj)
 
+    
 #define INTERNAL  \
   X(Skip)         \
   X(Call)         \
@@ -80,14 +80,17 @@ namespace MiniMC {
   X(Ret)          \
   X(RetVoid)      \
   X(NonDet)       \
-  X(Assert)       \
-  X(Assume)       \
-  X(NegAssume)    \
   X(StackRestore) \
   X(StackSave)    \
   X(MemCpy)       \
   X(Uniform)
 
+#define ASSUMEASSERTS				\
+    X(Assert)					\
+    X(Assume)					\
+    X(NegAssume)				\
+    
+    
 #define PREDICATES \
   X(PRED_ICMP_SGT) \
   X(PRED_ICMP_UGT) \
@@ -109,7 +112,8 @@ namespace MiniMC {
   INTERNAL         \
   POINTEROPS       \
   AGGREGATEOPS     \
-  PREDICATES
+  ASSUMEASSERTS		   \
+    PREDICATES
 
     enum class InstructionCode {
 #define X(OP) \
@@ -141,6 +145,7 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isAssumeAssert = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
     };
@@ -320,7 +325,7 @@ namespace MiniMC {
     struct InstructionData<InstructionCode::PtrEq> {
       static const bool isTAC = false;
       static const bool isUnary = false;
-      static const bool isComparison = true;
+      static const bool isComparison = false;
       static const bool isMemory = false;
       static const bool isCast = false;
       static const bool isPointer = true;
@@ -368,7 +373,7 @@ namespace MiniMC {
       Value_ptr size;
     };
     
-    template <>
+    /*template <>
     struct InstructionData<InstructionCode::Malloc> {
       static const bool isTAC = false;
       static const bool isUnary = false;
@@ -380,7 +385,7 @@ namespace MiniMC {
       static const bool hasResVar = false;
       using Content = MallocContent;
     };
-
+    */
     struct FreeContent {
       Value_ptr object;
     };
@@ -453,51 +458,27 @@ namespace MiniMC {
     struct AssertAssumeContent {
       Value_ptr expr;
     };
+
+#define X(OP)					\
+    template <>						\
+    struct InstructionData<InstructionCode::OP> {	\
+    static const bool isTAC = false;			\
+    static const bool isUnary = false;			\
+    static const bool isComparison = false;		\
+    static const bool isMemory = false;			\
+    static const bool isCast = false;			\
+    static const bool isPointer = false;		\
+    static const bool isAggregate = false;		\
+    static const bool isPredicate = false;		\
+    static const bool isAssertAssume = true;		\
+    static const std::size_t operands = 1;		\
+    static const bool hasResVar = false;		\
+    using Content = AssertAssumeContent;		\
+  };							\
+
+ASSUMEASSERTS
     
-    template <>
-    struct InstructionData<InstructionCode::Assert> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = false;
-      using Content = AssertAssumeContent;
-    };
-
-    template <>
-    struct InstructionData<InstructionCode::Assume> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = false;
-      using Content = AssertAssumeContent;
-    };
-
-    template <>
-    struct InstructionData<InstructionCode::NegAssume> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = false;
-      using Content = AssertAssumeContent;
-    };
+#undef X
 
     struct CallContent {
       Value_ptr res;

@@ -1,6 +1,10 @@
 #ifndef _VALUE_VM__
 #define _VALUE_VM__
 
+#include <bit>
+#include "vm/value.hpp"
+#include "support/casts.hpp"
+
 namespace MiniMC {
   namespace VM {
     namespace Concrete {
@@ -45,6 +49,16 @@ namespace MiniMC {
 	virtual std::size_t size () const override {return sizeof(bool);}
 	virtual const MiniMC::uint8_t* data () const override {return reinterpret_cast<const MiniMC::uint8_t*>(&value);}
 	
+	virtual MiniMC::VM::TriBool triBool () const {
+	  return (value) ? MiniMC::VM::TriBool::True : MiniMC::VM::TriBool::False;
+	}
+
+	virtual Value_ptr BoolNegate () override {
+	  return std::make_shared<BoolValue> (!value);
+	}
+
+	Value_ptr BoolSExt (const MiniMC::Model::Type_ptr& t) override;
+	 Value_ptr BoolZExt (const MiniMC::Model::Type_ptr& t) override ;
 	
       private:
         bool value;
@@ -136,6 +150,82 @@ namespace MiniMC {
         Value_ptr NEq(const Value_ptr& r) override {
           return performOp<MiniMC::Support::CMP::NEQ, T>(*this, *r);
         }
+
+	
+	virtual Value_ptr Trunc (const MiniMC::Model::Type_ptr& t) {
+	  
+	  auto performTrunc = []<typename To>(auto& val){
+	    if constexpr(sizeof(To) > sizeof(T)) {
+		throw MiniMC::Support::Exception ("Improper truncation");
+		return nullptr;
+	      }
+	    else {
+	      return std::make_shared<TValue<To>> (MiniMC::Support::trunc<T,To> (val));}
+	  };
+	  switch (t->getSize()) {
+	  case 1:
+	    return performTrunc.template operator()<MiniMC::uint8_t> (value);
+	  case 2:
+	    return performTrunc.template operator()<MiniMC::uint16_t> (value);
+	  case 4:
+	    return performTrunc.template operator()<MiniMC::uint32_t> (value);
+	  case 8:
+	    return performTrunc.template operator()<MiniMC::uint64_t> (value);
+	  }
+	  throw MiniMC::Support::Exception ("Impropert Truncation");
+	}
+	
+	virtual Value_ptr ZExt (const MiniMC::Model::Type_ptr& t) {
+	  auto performZExt = []<typename To>(auto& val){
+	    if constexpr(sizeof(To) < sizeof(T)) {
+		throw MiniMC::Support::Exception ("Improper Extenstion");
+		return nullptr;
+	      }
+	    else {
+	      return std::make_shared<TValue<To>> (MiniMC::Support::zext<T,To> (val));}
+	  };
+	  switch (t->getSize()) {
+	  case 1:
+	    return performZExt.template operator()<MiniMC::uint8_t> (value);
+	  case 2:
+	    return performZExt.template operator()<MiniMC::uint16_t> (value);
+	  case 4:
+	    return performZExt.template operator()<MiniMC::uint32_t> (value);
+	  case 8:
+	    return performZExt.template operator()<MiniMC::uint64_t> (value);
+	  }
+	  throw MiniMC::Support::Exception ("Impropert Extension");
+	}
+	
+	virtual Value_ptr SExt (const MiniMC::Model::Type_ptr& t) {
+	  auto performSExt = []<typename To>(auto& val){
+	    if constexpr(sizeof(To) < sizeof(T)) {
+		throw MiniMC::Support::Exception ("Improper Extenstion");
+		return nullptr;
+	      }
+	    else {
+	      return std::make_shared<TValue<To>> (MiniMC::Support::sext<T,To> (val));}
+	  };
+	  switch (t->getSize()) {
+	  case 1:
+	    return performSExt.template operator()<MiniMC::uint8_t> (value);
+	  case 2:
+	    return performSExt.template operator()<MiniMC::uint16_t> (value);
+	  case 4:
+	    return performSExt.template operator()<MiniMC::uint32_t> (value);
+	  case 8:
+	    return performSExt.template operator()<MiniMC::uint64_t> (value);
+	  }
+	  throw MiniMC::Support::Exception ("Impropert Extension");
+	}
+	
+	virtual Value_ptr IntToBool () {
+	  return std::make_shared<BoolValue> (value);
+	}
+	
+	virtual Value_ptr IntToPtr () override;
+	
+	
         auto val() const { return value; }
 
         std::string output() override { return ""; }
@@ -144,7 +234,7 @@ namespace MiniMC {
         }
 
         virtual explicit operator MiniMC::offset_t() { return static_cast<MiniMC::offset_t>(value); }
-
+	
 	virtual std::size_t size () const override {return sizeof(T);}
 	virtual const MiniMC::uint8_t* data () const override {return reinterpret_cast<const MiniMC::uint8_t*> (&value);}
 	
@@ -193,12 +283,23 @@ namespace MiniMC {
 
 	virtual std::size_t size () const override {return sizeof(pointer_t);}
 	virtual const MiniMC::uint8_t* data () const override {return reinterpret_cast<const MiniMC::uint8_t*> (&val);}
-  
+
+	virtual Value_ptr PtrToI64 () override {
+	  return std::make_shared<TValue<MiniMC::uint64_t> > (std::bit_cast<MiniMC::uint64_t> (val));
+	}
+	
 	
       private:
         pointer_t val;
       };
 
+      template<typename T>
+      Value_ptr TValue<T>::IntToPtr ()  {
+	MiniMC::uint64_t n = MiniMC::Support::zext<T,MiniMC::uint64_t> (value);
+	return std::make_shared<PointerValue> (std::bit_cast<pointer_t> (n));
+      }
+      
+      
     } // namespace Concrete
   }   // namespace VM
 } // namespace MiniMC

@@ -10,6 +10,7 @@
 #include "support/types.hpp"
 #include "support/exceptions.hpp"
 #include "util/array.hpp"
+#include "vm/vm.hpp"
 
 #include "value.hpp"
 
@@ -42,7 +43,7 @@ namespace MiniMC {
 
         
         
-        void read(ReadBuffer&& buffer, MiniMC::uint64_t offset) {
+        void read(ReadBuffer&& buffer, MiniMC::uint64_t offset)  const {
           if (buffer.size + offset <= content.getSize ()) {
 	    content.get_block (offset,buffer.size,buffer.buffer);
 	  } else
@@ -97,7 +98,7 @@ namespace MiniMC {
         }
 
         
-        void free(const MiniMC::VM::Value_ptr& val) {
+        void free(const MiniMC::VM::Value_ptr& val) override {
           auto pointer = std::static_pointer_cast<PointerValue> (val)->getPtr ();
 	  auto base = MiniMC::Support::getBase(pointer);
           auto offset = MiniMC::Support::getOffset(pointer);
@@ -108,8 +109,8 @@ namespace MiniMC {
             throw MiniMC::Support::InvalidFree();
           }
         }
-
-	virtual const Value_ptr loadValue (const Value_ptr& ptr, const MiniMC::Model::Type_ptr& readType) {
+	
+	virtual Value_ptr loadValue (const Value_ptr& ptr, const MiniMC::Model::Type_ptr& readType) const {
 	  //Find out what pointer we are going to read from 
 	  auto pointer = std::static_pointer_cast<PointerValue> (ptr)->getPtr ();
 	  auto base = MiniMC::Support::getBase(pointer);
@@ -166,11 +167,16 @@ namespace MiniMC {
 	    
 	  }
 	}
-	virtual void storeValue (const Value_ptr&, const Value_ptr&) {
+	virtual void storeValue (const Value_ptr&, const Value_ptr&) override {
 	  
 	  
 	}
-	  
+
+	virtual  Memory_ptr copy () {
+	  return std::make_shared<Heap> (*this);
+	}
+	
+	
 	auto hash() const {
           MiniMC::Hash::seed_t seed = 0;
           for (auto& entryt : entries) {
@@ -182,7 +188,7 @@ namespace MiniMC {
       private:
         std::vector<HeapEntry> entries;
       };
-
+      
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

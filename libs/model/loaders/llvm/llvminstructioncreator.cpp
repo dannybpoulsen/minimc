@@ -158,8 +158,8 @@ namespace MiniMC {
         auto res = findValue(inst, values, tt, cfac);
         instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace>({.res = res,
                                                                                                      .op1 = val}));
-        instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc>({.object = res,
-                                                                                                  .size = val}));
+        //instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc>({.object = res,
+        //                                                                                          .size = val}));
       } else if (func->isDeclaration()) {
         //We don't know what to do for this function
         if (inst->getType()->isIntegerTy()) {

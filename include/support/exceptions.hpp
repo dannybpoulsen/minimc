@@ -57,7 +57,6 @@ namespace MiniMC {
     public:
       FunctionDoesNotExist(const std::string& name) : VerificationException(Localiser("Function '%1%' does not exists").format(name)) {}
     };
-
     
 
     	  
