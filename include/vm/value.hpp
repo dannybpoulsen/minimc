@@ -6,6 +6,7 @@
 #include "model/variables.hpp"
 #include "util/array.hpp"
 #include "support/exceptions.hpp"
+#include "hash/hashing.hpp"
 
 
 namespace MiniMC {
@@ -61,15 +62,15 @@ namespace MiniMC {
       
       // Casts
       virtual Value_ptr Trunc (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-	virtual Value_ptr ZExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-	virtual Value_ptr SExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-	virtual Value_ptr BoolSExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-	virtual Value_ptr BoolZExt (const  MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-	virtual Value_ptr IntToBool () {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr ZExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr SExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr BoolSExt (const MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr BoolZExt (const  MiniMC::Model::Type_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual Value_ptr IntToBool () {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr PtrToI64 () {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr IntToPtr () {throw MiniMC::Support::Exception ("Not implemented");}
       
-      
+      virtual MiniMC::Hash::hash_t hash () const = 0;
       
       
       
@@ -79,7 +80,14 @@ namespace MiniMC {
     
     
   }
-  
+
+} // namespace MiniMC
+
+namespace std {
+  template<>
+  struct hash<MiniMC::VM::Value> {
+    auto operator() (const MiniMC::VM::Value& v) {return v.hash ();}
+  };
 }
 
 #endif

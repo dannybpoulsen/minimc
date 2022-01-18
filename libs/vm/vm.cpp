@@ -124,13 +124,13 @@ namespace MiniMC {
       auto& content = instr.getOps<op>();
       auto& pathcontrol = writeState.getPathControl();
       auto obj = readState.getValueLookup().lookupValue(content.expr);
-
       if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
-        pathcontrol.addAssumption(obj);
+	pathcontrol.addAssumption(obj);
         return (obj->triBool() == TriBool::False ? Status::AssumeViolated : Status::Ok);
       } else if constexpr (op == MiniMC::Model::InstructionCode::NegAssume) {
-        pathcontrol.addAssumption(obj->BoolNegate());
-        return (obj->triBool() == TriBool::False ? Status::AssumeViolated : Status::Ok);
+
+	pathcontrol.addAssumption(obj->BoolNegate());
+        return (obj->triBool() == TriBool::True ? Status::AssumeViolated : Status::Ok);
       }
 
       else if constexpr (op == MiniMC::Model::InstructionCode::Assert) {
@@ -175,12 +175,34 @@ namespace MiniMC {
 	auto ptrcaster = op1->PtrToI64 ();
 	writeState.getValueLookup().saveValue(res, ptrcaster->Trunc (res->getType ()));
       }
+
+      else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {
+	
+	writeState.getValueLookup().saveValue(res, op1->IntToBool ());
+      }
       
       else
         throw NotImplemented<op>();
       return Status::Ok;
     }
 
+    template <MiniMC::Model::InstructionCode op>
+    inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState& writeState, const VMState& readState) requires MiniMC::Model::InstructionData<op>::isInternal {
+      auto& content = instr.getOps<op>();
+      
+      if constexpr (op  ==MiniMC::Model::InstructionCode::Assign) {
+	auto res = std::static_pointer_cast<MiniMC::Model::Register>(content.res);
+	auto op1 = readState.getValueLookup().lookupValue(content.op1);
+	
+	writeState.getValueLookup().saveValue(res, std::move(op1));
+	return Status::Ok;
+      }
+
+      if constexpr (op  ==MiniMC::Model::InstructionCode::Skip) {
+	return Status::Ok;
+      }
+      
+    }
     template <MiniMC::Model::InstructionCode op>
     inline Status runInstruction(const MiniMC::Model::Instruction&, VMState&, const VMState&) requires MiniMC::Model::InstructionData<op>::isPredicate {
       throw NotImplemented<op>();

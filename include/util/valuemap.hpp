@@ -45,10 +45,19 @@ namespace MiniMC {
       }
 
       MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t s) const {
-        MiniMC::Hash::seed_t seed = s;
-        for (size_t i = 0; i < size; i++) {
-          MiniMC::Hash::hash_combine(seed, mem[i]);
-        }
+	MiniMC::Hash::seed_t seed = s;
+	for (size_t i = 0; i < size; i++) {
+	  constexpr bool has_get = requires(const T& t) {
+	    t.get();
+	  }; 
+	  if constexpr (has_get || std::is_pointer_v<T>) {
+	    MiniMC::Hash::hash_combine(seed, *mem[i]);
+	  }
+	  else {
+	    
+	    MiniMC::Hash::hash_combine(seed, mem[i]);
+	  }
+	}
         return seed;
       }
 

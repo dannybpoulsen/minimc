@@ -4,7 +4,7 @@ add_subdirectory (concrete)
 add_library (cpa STATIC interface.cpp)
 
 
-target_link_libraries (cpa hash location concrete)
+target_link_libraries (cpa hash location concrete vm)
 
 if(ENABLE_SYMBOLIC)
 add_subdirectory (pathformula)

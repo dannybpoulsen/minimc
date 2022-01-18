@@ -21,6 +21,12 @@ namespace MiniMC {
 	MiniMC::uint8_t* buffer;
 	std::size_t size;
       };
+
+      struct WriteBuffer {
+	const MiniMC::uint8_t* buffer;
+	std::size_t size;
+      };
+      
       enum class EntryState {
         InUse = 2,
         Freed = 4
@@ -41,6 +47,15 @@ namespace MiniMC {
           }
         }
 
+	void write(WriteBuffer&& buffer, MiniMC::uint64_t offset) {
+          assert(state == EntryState::InUse);
+          if (buffer.size + offset <= content.getSize()) {
+            content.set_block (offset,buffer.size,buffer.buffer);
+	  } else {
+            throw MiniMC::Support::BufferOverflow();
+          }
+        }
+	
         
         
         void read(ReadBuffer&& buffer, MiniMC::uint64_t offset)  const {
@@ -110,7 +125,7 @@ namespace MiniMC {
           }
         }
 	
-	virtual Value_ptr loadValue (const Value_ptr& ptr, const MiniMC::Model::Type_ptr& readType) const {
+	virtual Value_ptr loadValue (const Value_ptr& ptr, const MiniMC::Model::Type_ptr& readType) const  override {
 	  //Find out what pointer we are going to read from 
 	  auto pointer = std::static_pointer_cast<PointerValue> (ptr)->getPtr ();
 	  auto base = MiniMC::Support::getBase(pointer);
@@ -163,31 +178,50 @@ namespace MiniMC {
 	      break;
 	    }
 
-
+	    
 	    
 	  }
-	}
-	virtual void storeValue (const Value_ptr&, const Value_ptr&) override {
-	  
-	  
+
+	  throw  MiniMC::Support::BufferOverread ();
 	}
 
-	virtual  Memory_ptr copy () {
+	virtual void storeValue (const Value_ptr& ptr, const Value_ptr& storee) override {
+	  auto pointer = std::static_pointer_cast<PointerValue> (ptr)->getPtr ();
+	  auto base = MiniMC::Support::getBase(pointer);
+          auto offset = MiniMC::Support::getOffset(pointer);
+	  auto to_store = std::static_pointer_cast<CValue> (storee);
+          if (base < entries.size()) {
+	    entries.at(base).write ({.buffer = to_store->data (), .size = to_store->size  ()},offset);
+	  }
+	}
+
+	virtual  Memory_ptr copy () const override{
 	  return std::make_shared<Heap> (*this);
 	}
 	
-	
-	auto hash() const {
+	MiniMC::Hash::hash_t hash() const override{
           MiniMC::Hash::seed_t seed = 0;
           for (auto& entryt : entries) {
             MiniMC::Hash::hash_combine(seed, entryt);
           }
           return seed;
         }
+
+	virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) {
+	  for (auto block : layout) {
+
+	    entries.emplace_back (block.size);
+	  }
+	  
+	}
+
 	
       private:
         std::vector<HeapEntry> entries;
       };
+
+      MiniMC::VM::Memory_ptr makeMemory ( )  {return std::make_shared<Heap> ();}
+      
       
     } // namespace Concrete
   }   // namespace CPA

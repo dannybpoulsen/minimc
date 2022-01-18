@@ -1,8 +1,10 @@
 #ifndef _VM_VM__
 #define _VM_VM__
 
+#include "hash/hashing.hpp"
 #include "vm/value.hpp"
 #include "model/instructions.hpp"
+#include "model/heaplayout.hpp"
 
 namespace MiniMC {
   namespace VM {
@@ -21,8 +23,9 @@ namespace MiniMC {
       virtual ~ValueLookup ()  {}
       virtual Value_ptr lookupValue (const MiniMC::Model::Value_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
       virtual void saveValue (const MiniMC::Model::Variable_ptr&, Value_ptr&&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void unboundValue (const MiniMC::Model::Type_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual std::shared_ptr<ValueLookup> copy () = 0;
+      virtual Value_ptr unboundValue (const MiniMC::Model::Type_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual std::shared_ptr<ValueLookup> copy () const = 0;
+      virtual MiniMC::Hash::hash_t hash () const = 0;
     };
     
 
@@ -39,7 +42,9 @@ namespace MiniMC {
       virtual Value_ptr alloca (const Value_ptr) {throw MiniMC::Support::Exception ("Not implemented");};
       
       virtual void free (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-      virtual std::shared_ptr<Memory> copy () = 0;
+      virtual std::shared_ptr<Memory> copy () const = 0;
+      virtual MiniMC::Hash::hash_t hash () const = 0;
+      virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
     };
 
     using Memory_ptr = std::shared_ptr<Memory>;
@@ -78,12 +83,30 @@ namespace MiniMC {
     
     class Engine {
     public:
+      Engine () {}
+      ~Engine ()  {}
       virtual Status execute (const MiniMC::Model::InstructionStream&, VMState&, const VMState&  ) ;
     };
+
+    
     
   }
 
 		
+}
+
+namespace std {
+  template<>
+  struct hash<MiniMC::VM::ValueLookup> {
+    auto operator() (const MiniMC::VM::ValueLookup& val) {return val.hash ();}
+  };
+
+  template<>
+  struct hash<MiniMC::VM::Memory> {
+    auto operator() (const MiniMC::VM::Memory& val) {return val.hash ();}
+  };
+
+    
 }
 
 #endif

@@ -32,7 +32,7 @@ namespace MiniMC {
 
 	virtual std::size_t size () const override {return val.getSize();}
 	virtual const MiniMC::uint8_t* data () const override {return val.get_direct_access ();}
-	
+	MiniMC::Hash::hash_t hash () const override {return val.hash (0);}
 	
       private:
         MiniMC::Util::Array val;
@@ -58,13 +58,14 @@ namespace MiniMC {
 	}
 
 	Value_ptr BoolSExt (const MiniMC::Model::Type_ptr& t) override;
-	 Value_ptr BoolZExt (const MiniMC::Model::Type_ptr& t) override ;
-	
+	Value_ptr BoolZExt (const MiniMC::Model::Type_ptr& t) override ;
+	MiniMC::Hash::hash_t hash ()  const override {return value;}
       private:
         bool value;
       };
 
       template <typename T>
+      requires std::is_integral_v<T> 
       struct TValue : public CValue {
         TValue(T val) : value(val) {}
         virtual Value_ptr Add(const Value_ptr& r) override {
@@ -238,25 +239,25 @@ namespace MiniMC {
 	virtual std::size_t size () const override {return sizeof(T);}
 	virtual const MiniMC::uint8_t* data () const override {return reinterpret_cast<const MiniMC::uint8_t*> (&value);}
 	
-	
+	MiniMC::Hash::hash_t hash () const override {return value;}
       private:
         std::enable_if_t<std::is_integral_v<T>, T> value;
       };
-
+      
       template <MiniMC::Support::TAC op, typename T>
-      Value_ptr perfomOp(const Value& l, const Value& r) {
+      inline Value_ptr performOp(const Value& l, const Value& r) {
 
-        auto& ll = static_cast<TValue<T>&>(l);
-        auto& rr = static_cast<TValue<T>&>(r);
+        auto& ll = static_cast<const TValue<T>&>(l);
+        auto& rr = static_cast<const TValue<T>&>(r);
         return std::make_shared<TValue<T>>(MiniMC::Support::Op<op>(ll.val(), rr.val()));
       }
 
       template <MiniMC::Support::CMP op, typename T>
-      Value_ptr perfomOp(const Value& l, const Value& r) {
+      inline Value_ptr performOp(const Value& l, const Value& r) {
 
-        auto& ll = static_cast<TValue<T>&>(l);
-        auto& rr = static_cast<TValue<T>&>(r);
-        return std::make_shared<TValue<bool>>(MiniMC::Support::Op<op>(ll.val(), rr.val()));
+        auto& ll = static_cast<const TValue<T>&>(l);
+        auto& rr = static_cast<const TValue<T>&>(r);
+        return std::make_shared<BoolValue>(MiniMC::Support::Op<op>(ll.val(), rr.val()));
       }
 
       struct PointerValue : public CValue {
@@ -288,7 +289,7 @@ namespace MiniMC {
 	  return std::make_shared<TValue<MiniMC::uint64_t> > (std::bit_cast<MiniMC::uint64_t> (val));
 	}
 	
-	
+	MiniMC::Hash::hash_t hash () const override {return std::bit_cast<MiniMC::uint64_t> (val);}
       private:
         pointer_t val;
       };
