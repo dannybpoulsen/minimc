@@ -21,7 +21,7 @@ namespace MiniMC {
 
       template <MiniMC::Support::CMP op, typename T>
       Value_ptr performOp(const Value& l, const Value& r);
-
+      
       struct AggregateValue : public CValue {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
 

@@ -226,6 +226,6 @@ namespace MiniMC {
 
       return status;
     }
-
+    
   } // namespace VM
 } // namespace MiniMC

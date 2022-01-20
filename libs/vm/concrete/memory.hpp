@@ -101,7 +101,7 @@ namespace MiniMC {
       class Heap : public Memory {
       public:
         Heap() {}
-
+	
 	Value_ptr alloca(const MiniMC::VM::Value_ptr size) override  {
 	  
 	  auto size_ = static_cast<MiniMC::offset_t> (*size);
@@ -214,7 +214,7 @@ namespace MiniMC {
 	  }
 	  
 	}
-
+	
 	
       private:
         std::vector<HeapEntry> entries;

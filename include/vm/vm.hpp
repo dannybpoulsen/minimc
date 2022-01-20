@@ -28,7 +28,7 @@ namespace MiniMC {
       virtual MiniMC::Hash::hash_t hash () const = 0;
     };
     
-
+    
     
     using ValueLookup_ptr = std::shared_ptr<ValueLookup>;
     

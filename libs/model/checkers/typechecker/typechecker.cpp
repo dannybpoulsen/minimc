@@ -225,11 +225,11 @@ namespace MiniMC {
             return false;
           }
 
-          /*if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
+          if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               sizetype->getSize() != 8) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Malloc));
+            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
-	    }*/
+	  }
 
           return true;
         }

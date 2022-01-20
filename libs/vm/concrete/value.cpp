@@ -115,7 +115,7 @@ namespace MiniMC {
 	  
         private:
           MiniMC::Model::VariableMap<MiniMC::VM::Value_ptr> values;
-        };
+      };
 
         Value_ptr BoolValue::BoolSExt(const MiniMC::Model::Type_ptr& t) {
 

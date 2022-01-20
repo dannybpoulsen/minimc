@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <variant>
 #include "model/variables.hpp"
 #include "util/array.hpp"
 #include "support/exceptions.hpp"
@@ -10,6 +11,103 @@
 
 
 namespace MiniMC {
+  namespace VMT {
+    
+    
+    
+    
+    template<typename T,typename B>
+    concept isVMIntBoolCompatible = requires (T x, const T& xx, B b, MiniMC::Model::Type_ptr& type)  {
+      {(x.SGt (xx))} -> std::convertible_to<B>;
+      {(x.SGe (xx))} -> std::convertible_to<B>;
+      {(x.UGt (xx))} -> std::convertible_to<B>;
+      {(x.UGe (xx))} -> std::convertible_to<B>;
+      {(x.SLt (xx))} -> std::convertible_to<B>;
+      {(x.SLe (xx))} -> std::convertible_to<B>;
+      {(x.ULt (xx))} -> std::convertible_to<B>;
+      {(x.ULe (xx))} -> std::convertible_to<B>;
+      {(x.Eq (xx))} -> std::convertible_to<B>;
+      {(x.NEq (xx))} -> std::convertible_to<B>;
+    };
+      
+    
+    template<typename T>
+    concept isVMIntType = requires (T x, const T& xx,  const MiniMC::Model::Type_ptr& type)  {
+      {x.Add (xx)} -> std::convertible_to<T>;
+      {x.Sub (xx) } -> std::convertible_to<T>;
+      {x.Mul (xx) } -> std::convertible_to<T>;
+      {x.UDiv (xx) } -> std::convertible_to<T>;
+      {x.SDiv (xx) } -> std::convertible_to<T>;
+      {x.Shl (xx) } -> std::convertible_to<T>;
+      {x.LShr (xx) } -> std::convertible_to<T>;
+      {x.AShr (xx)  } -> std::convertible_to<T>;
+      {x.And (xx) } -> std::convertible_to<T>;
+      {x.Or (xx)  } -> std::convertible_to<T>;
+      {x.Xor (xx) } -> std::convertible_to<T>;
+      
+    };
+    
+    template<typename B>
+    concept isVMBoolType = requires (B x)  {
+      {x.BoolNegate ()} -> std::convertible_to<B>;
+    };
+
+    template<typename P>
+    concept isVMPtrType = requires (P x)  {
+      {x.PtrEq ()} -> std::convertible_to<P>;
+    };
+
+    template<typename P,typename T,typename B>
+    concept isVMPtrIntBoolCompatible = requires (P x,const P& xx, const T& y)  {
+      {x.PtrEq (xx)} -> std::convertible_to<B>;
+      {x.PtrAdd (y)} ->std::convertible_to<P>;
+    };
+
+    
+    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT> 
+    struct GenericVal {
+      using I8 = Int8;
+      using I16 = Int16;
+      using I32 = Int32;
+      using I64 = Int64;
+      using Pointer = PointerT;
+      using Bool = BoolT;
+      
+      GenericVal () : content(BoolT{}) {} 
+      GenericVal (I8 val) : content(val) {}
+      GenericVal (I16 val) : content(val) {}
+      GenericVal (I32 val) : content(val) {}
+      GenericVal (I64 val) : content(val) {}
+      
+      GenericVal (Pointer val) : content(val) {}
+      GenericVal (Bool val) : content(val) {}
+      
+      template<typename T>
+      T& as () {	
+	return std::get<T> (content);}
+
+      template<typename T>
+      bool is () {
+	return std::holds_alternative<T> (content);
+      }
+      
+      auto hash () const {return std::hash<decltype(content)>{} (content);}
+
+      auto& output (std::ostream& os) const {return std::visit([&](const auto& x) ->std::ostream&  { return os << x; }, content);}
+
+      
+      
+    private:
+      
+      std::variant<I8,I16,I32,I64,Pointer,Bool> content;
+    };
+
+    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT> 
+    inline std::ostream& operator<< (std::ostream&  os, const GenericVal<Int8,Int16,Int32,Int64,PointerT,BoolT>& val) {
+      return val.output (os);
+    }
+    
+			      }
   namespace VM {
     class Value;
     using Value_ptr = std::shared_ptr<Value>;
@@ -19,6 +117,7 @@ namespace MiniMC {
       False,
       Unk
     };
+
     
     class Value {
     public:
@@ -40,7 +139,7 @@ namespace MiniMC {
       virtual Value_ptr And(const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr Or(const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr Xor(const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-
+      
       virtual Value_ptr SGt (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr SGe (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr UGt (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
@@ -51,7 +150,7 @@ namespace MiniMC {
       virtual Value_ptr ULe (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr Eq  (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       virtual Value_ptr NEq (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
-
+      
       /*virtual Value_ptr InsertValue (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
 	virtual Value_ptr ExtractValue (const Value_ptr&) {throw MiniMC::Support::Exception ("Not implemented");}
       */
