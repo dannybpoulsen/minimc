@@ -145,7 +145,6 @@ namespace MiniMC {
         }
 
         BoolValue SGt(const TValue<T>& r) {
-	  std::cerr << "Compare" << value <<" "<< r.value << std::endl;
 	  return performOp<MiniMC::Support::CMP::SGT>(r);
         }
 
@@ -280,6 +279,66 @@ namespace MiniMC {
         T value;
       };
 
+      struct AggregateValue {
+        AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
+	AggregateValue(const MiniMC::Util::Array&& array) : val(std::move(array)) {}
+	
+	MiniMC::Hash::hash_t hash () const  {return val.hash (0);}
+	auto getValue () const {return val;}
+
+	template<class T>
+	auto ExtractBaseValue (const TValue<MiniMC::uint64_t>& offset ) {
+	  if constexpr (std::is_same_v<T,TValue<MiniMC::uint8_t>> ) {
+	    return TValue<MiniMC::uint8_t> ( val.read<MiniMC::uint8_t> (offset.getValue ()));
+	  }
+
+	  else if constexpr (std::is_same_v<T,TValue<MiniMC::uint16_t>>) {
+	    return TValue<MiniMC::uint16_t> ( val.template read<MiniMC::uint16_t> (offset.getValue ()));
+	  }
+
+	  else if constexpr (std::is_same_v<T,TValue<MiniMC::uint32_t>>) {
+	    return TValue<MiniMC::uint32_t> ( val.template read<MiniMC::uint32_t> (offset.getValue ()));
+	  }
+
+	  else if constexpr (std::is_same_v<T,TValue<MiniMC::uint64_t>>) {
+	    return TValue<MiniMC::uint64_t> ( val.template read<MiniMC::uint64_t> (offset.getValue ()));
+	  
+	  }
+
+	  else if constexpr (std::is_same_v<T,PointerValue>) {
+	    return PointerValue ( val.template read<MiniMC::pointer_t> (offset.getValue ()));
+	      
+	  }
+	}
+	
+	AggregateValue ExtractAggregateValue (const TValue<MiniMC::uint64_t>& offset,std::size_t size) {
+	  MiniMC::Util::Array extract{size};
+	  val.get_block  (offset.getValue (),size,extract.get_direct_access ());
+	  return extract;
+	}
+
+	template<class T>
+	AggregateValue InsertBaseValue (const TValue<MiniMC::uint64_t>& offset, const  T& insertee ) {
+	  std::cerr << "Insert " << insertee << std::endl;
+	  MiniMC::Util::Array arr {val};
+	  auto value  = insertee.getValue ();
+	  arr.set_block (offset.getValue (),sizeof(value),reinterpret_cast<MiniMC::uint8_t*> (&value));
+	  return arr;
+	}
+	AggregateValue InsertAggregateValue (const TValue<MiniMC::uint64_t>& offset,const AggregateValue& insertee) {
+	  MiniMC::Util::Array arr{val};
+	  arr.set_block  (offset.getValue (),insertee.getValue().getSize (),insertee.getValue ().get_direct_access ());
+	  return arr;
+	}
+	  
+      private:
+        MiniMC::Util::Array val;
+      };
+
+      
+      
+      inline std::ostream& operator<< (std::ostream& os, const AggregateValue&) {return os << "Aggre";}
+      
       template<class T>
       inline std::ostream& operator<< (std::ostream& os, const TValue<T>& v) {return os << v.getValue ();}
       
@@ -302,7 +361,9 @@ namespace MiniMC {
                                                     TValue<MiniMC::uint32_t>,
                                                     TValue<MiniMC::uint64_t>,
                                                     PointerValue,
-                                                    BoolValue>;
+                                                    BoolValue,
+						    AggregateValue
+						    >;
       using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Caster >;
 
       class Memory : public MiniMC::VMT::Memory<ConcreteVMVal> {
@@ -336,7 +397,6 @@ namespace MiniMC {
 	ValueLookup (const ValueLookup&) = default;
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
         void saveValue(const MiniMC::Model::Variable_ptr& v, ConcreteVMVal&& value) override {
-	  std::cerr << "Save " << *v << " "  << value <<std::endl;
 	  values[v] = std::move(value);
         }
         ConcreteVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;
@@ -356,8 +416,10 @@ namespace MiniMC {
 	}
       };
 
+      
+      
     } // namespace Concrete
-
+    
   } // namespace VMT
 } // namespace MiniMC
 
@@ -377,6 +439,11 @@ namespace std {
     auto operator()(const MiniMC::VMT::Concrete::BoolValue& t) { return t.hash(); }
   };
 
+  template <>
+  struct hash<MiniMC::VMT::Concrete::AggregateValue> {
+    auto operator()(const MiniMC::VMT::Concrete::AggregateValue& t) { return t.hash(); }
+  };
+  
   template <>
   struct hash<MiniMC::VMT::Concrete::ConcreteVMVal> {
     auto operator()(const MiniMC::VMT::Concrete::ConcreteVMVal& t) { return t.hash(); }

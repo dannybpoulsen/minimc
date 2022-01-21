@@ -23,7 +23,6 @@ namespace MiniMC {
       }
 
       ConcreteVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
-	std::cerr << "Lookup " << *v << " "   <<std::endl;
 	
 	if (v->isConstant()) {
           auto constant = std::static_pointer_cast<MiniMC::Model::Constant>(v);
@@ -48,6 +47,13 @@ namespace MiniMC {
             return PointerValue(std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue());
           }
 
+	  else if (constant->isBinaryBlobConstant ()) {
+	    auto bconstant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant> (constant);
+	    MiniMC::Util::Array val (bconstant->getSize (), bconstant->getData ());
+	    return AggregateValue({val});
+          
+	  }
+	  
           throw MiniMC::Support::Exception("Not Implemented");
         } else {
 	  std::cerr << values[std::static_pointer_cast<MiniMC::Model::Register>(v)] << std::endl;
@@ -76,13 +82,9 @@ namespace MiniMC {
             std::cerr << "unknown size " << t->getSize() << std::endl;
           } break;
 
-          case MiniMC::Model::TypeID::Array:
-            std::cerr << "array" << std::endl;
-            break;
-          case MiniMC::Model::TypeID::Struct:
-            std::cerr << "struct" << std::endl;
-            break;
-
+	case MiniMC::Model::TypeID::Array:
+	case MiniMC::Model::TypeID::Struct:
+	  return AggregateValue {MiniMC::Util::Array{t->getSize ()}};
           default:
             break;
         }

@@ -20,8 +20,8 @@ namespace MiniMC {
         assert(instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Call);
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(call_content.function);
-        MiniMC::loadHelper<MiniMC::pointer_t> loadPtr(constant->getData(), sizeof(MiniMC::pointer_t));
-
+        MiniMC::pointer_t loadPtr; 
+	std::copy (constant->getData(), constant->getData()+sizeof(MiniMC::pointer_t),reinterpret_cast<MiniMC::uint8_t*> (&loadPtr));
         auto cfunc = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) {

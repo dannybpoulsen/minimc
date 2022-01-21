@@ -88,15 +88,15 @@ namespace MiniMC {
     class TConstant : public Constant {
     protected:
       TConstant(T val) : value(0) {
-        MiniMC::saveHelper<T>(reinterpret_cast<MiniMC::uint8_t*>(&value), sizeof(value)) = val;
+        value =  val;
       }
 
     public:
       friend class ConstantFactory64;
 
       T getValue() const  {
-        auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
-        return val;
+	// auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
+	return value;
       }
 
       virtual std::size_t getSize() override { return sizeof(T); }

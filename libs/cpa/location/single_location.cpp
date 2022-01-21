@@ -29,8 +29,7 @@ namespace MiniMC {
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const { return lcopy(); }
 
         size_t nbOfProcesses() const override { return 1; }
-        MiniMC::Model::Location_ptr getLocation(proc_id id) const override {
-          assert(id == 0);
+        MiniMC::Model::Location_ptr getLocation(proc_id ) const override {
           return location->shared_from_this();
         }
         void setLocation(MiniMC::Model::Location* l) {
@@ -41,10 +40,7 @@ namespace MiniMC {
           return location->getInfo().template is<MiniMC::Model::Attributes::NeededStore>();
         }
 
-        /*virtual bool assertViolated () const {
-	  return location->getInfo().template is<MiniMC::Model::Attributes::AssertViolated> ();  
-	  }*/
-
+        
         virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const {
           return location->getInfo().isFlagSet(tt);
         }
@@ -65,9 +61,9 @@ namespace MiniMC {
         bool ready;
       };
 
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id id) {
+      MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id) {
         auto state = static_cast<const MiniMC::CPA::SingleLocation::State*>(s.get());
-        assert(id < state->nbOfProcesses());
+        
         if (edge->getFrom().get() == state->getLocation(0)) {
           auto nstate = state->lcopy();
           nstate->setLocation(edge->getTo().get().get());

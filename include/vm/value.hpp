@@ -64,7 +64,7 @@ namespace MiniMC {
     };
 
     
-    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT> 
+    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT,typename Ag> 
     struct GenericVal {
       using I8 = Int8;
       using I16 = Int16;
@@ -72,15 +72,17 @@ namespace MiniMC {
       using I64 = Int64;
       using Pointer = PointerT;
       using Bool = BoolT;
+      using Aggregate = Ag;
+      
       
       GenericVal () : content(BoolT{}) {} 
       GenericVal (I8 val) : content(val) {}
       GenericVal (I16 val) : content(val) {}
       GenericVal (I32 val) : content(val) {}
       GenericVal (I64 val) : content(val) {}
-      
       GenericVal (Pointer val) : content(val) {}
       GenericVal (Bool val) : content(val) {}
+      GenericVal (Aggregate ag) : content(ag) {}
       
       template<typename T>
       T& as () {	
@@ -99,11 +101,11 @@ namespace MiniMC {
       
     private:
       
-      std::variant<I8,I16,I32,I64,Pointer,Bool> content;
+      std::variant<I8,I16,I32,I64,Pointer,Bool,Ag> content;
     };
 
-    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT> 
-    inline std::ostream& operator<< (std::ostream&  os, const GenericVal<Int8,Int16,Int32,Int64,PointerT,BoolT>& val) {
+    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename BoolT,typename Aggregate> 
+    inline std::ostream& operator<< (std::ostream&  os, const GenericVal<Int8,Int16,Int32,Int64,PointerT,BoolT,Aggregate>& val) {
       return val.output (os);
     }
     
