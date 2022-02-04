@@ -1,4 +1,4 @@
-#include "vm/concrete.hpp"
+#include "vm/concrete/concrete.hpp"
 
 namespace MiniMC {
   namespace VMT {

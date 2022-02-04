@@ -5,7 +5,7 @@
 
 namespace MiniMC {
   namespace VM {
-
+    /*
     template <MiniMC::Model::InstructionCode opc>
     Status runInstruction(const MiniMC::Model::Instruction&, VMState&, const VMState&) {
       throw MiniMC::VM::NotImplemented<opc> ();
@@ -226,6 +226,6 @@ namespace MiniMC {
 
       return status;
     }
-    
+    */
   } // namespace VM
 } // namespace MiniMC

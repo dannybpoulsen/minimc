@@ -6,8 +6,7 @@
 #include "heap.hpp"
 #include "instructionimpl.hpp"
 //#include "util/vm.hpp"
-#include "vm/vm.hpp"
-#include "vm/concrete.hpp"
+#include "vm/concrete/concrete.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -105,8 +104,7 @@ namespace MiniMC {
       }
 
       MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
-	MiniMC::VMT::Concrete::ConcreteEngine engine;
-        auto resstate = s->copy();
+	auto resstate = s->copy();
         auto& ostate = static_cast<const MiniMC::CPA::Concrete::State&>(*s);
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;

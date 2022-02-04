@@ -101,7 +101,7 @@ namespace MiniMC {
             auto bytesize = res->getType()->getSize();
             auto zeros = data.smtbuilder->makeBVIntConst(0, bytesize * 8);
             auto ones = data.smtbuilder->makeBVIntConst(~0, bytesize * 8);
-
+	    
             data.newSSAMap->updateValue(res.get(), data.smtbuilder->buildTerm(SMTLib::Ops::ITE, {valTerm, ones, zeros}));
 
           }

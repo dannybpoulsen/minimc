@@ -1,26 +1,11 @@
 #include "support/casts.hpp"
 #include "support/operataions.hpp"
 #include "support/pointer.hpp"
-#include "vm/concrete.hpp"
+#include "vm/concrete/concrete.hpp"
 
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-      PointerValue PointerValue::PtrAdd(const TValue<MiniMC::uint64_t>& xx) {
-        return MiniMC::Support::ptradd(val, xx.getValue());
-      }
-
-      PointerValue PointerValue::PtrAdd(const TValue<MiniMC::uint32_t>& xx) {
-        return MiniMC::Support::ptradd(val, xx.getValue());
-      }
-
-      PointerValue PointerValue::PtrAdd(const TValue<MiniMC::uint16_t>& xx) {
-        return MiniMC::Support::ptradd(val, xx.getValue());
-      }
-
-      PointerValue PointerValue::PtrAdd(const TValue<MiniMC::uint8_t>& xx) {
-        return MiniMC::Support::ptradd(val, xx.getValue());
-      }
 
       ConcreteVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
 	

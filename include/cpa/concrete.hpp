@@ -10,6 +10,7 @@
 #include "cpa/state.hpp"
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
+#include "vm/concrete/concrete.hpp"
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include <unordered_map>
@@ -29,8 +30,10 @@ namespace MiniMC {
       struct Transferer : public MiniMC::CPA::Transferer {
 
         MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id);
+      private:
+	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{}};
       };
-
+      
       struct Joiner : public MiniMC::CPA::Joiner {
         MiniMC::CPA::State_ptr doJoin(const MiniMC::CPA::State_ptr&, const MiniMC::CPA::State_ptr&) { return nullptr; }
         bool covers(const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
