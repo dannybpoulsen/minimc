@@ -1,8 +1,9 @@
 #ifndef _pathSTATE__
 #define _pathSTATE__
 
+
 #include "cpa/interface.hpp"
-#include "heap.hpp"
+#include "vm/pathformula/pathformua.hpp"
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
@@ -13,70 +14,70 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
+      using ValueMap = MiniMC::Util::SSAMap<MiniMC::Model::Register,MiniMC::VMT::Pathformula::PathFormulaVMVal>;
+      
       class State : public MiniMC::CPA::State {
       public:
-        State(const MiniMC::Util::SSAMap& map,  const SMTLib::Context_ptr& context, const SMTLib::Term_ptr& path) : context(context), map(map),  pathformula(path) {}
-        State(const State& oth) = default;
-        virtual std::ostream& output(std::ostream& os) const { return os << map << "\nPathformula:" << *pathformula; }
+	State (ValueMap&& vals,  MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula,SMTLib::Context& ctxt) : values(std::move(vals)),
+																memory(std::move(memory)),
+																pathformula(std::move(formula)),
+																context(ctxt)
+	{}
+	State(const State& oth) = default;
+        virtual std::ostream& output(std::ostream& os) const override { return os << "\nPathformula:" << *pathformula; }
         MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t  = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const { return std::make_shared<State>(*this); }
-        virtual bool need2Store() const { return false; }
-        virtual bool assertViolated() const { return false; }
-
-        auto& getSSAMap() { return map; }
-        auto& getSSAMap() const { return map; }
+        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }
+        virtual bool need2Store() const override { return false; }
+        virtual bool assertViolated() const override { return false; }
+	
         
-        auto& getContext() const { return context; }
-        auto& getContext() { return context; }
-        auto& getHeap() { return heap; }
-        auto& getHeap() const { return heap; }
-
-        auto& getPathFormula() { return pathformula; }
-        const auto& getPathFormula() const { return pathformula; }
-
         const Concretizer_ptr getConcretizer() const override;
+	auto& getValues () {return values;}
+	auto& getMemory () {return memory;}
+	auto& getValues () const {return values;}
+	
+	void addConstraints (SMTLib::Term_ptr& term) {
+	  pathformula = context.getBuilder().buildTerm (SMTLib::Ops::And,{pathformula,term});
+	}
 
+	auto& getPathformula () const  {return pathformula;}
+	
       private:
-        SMTLib::Context_ptr context;
-        MiniMC::Util::SSAMap map;
-        
-        Heap heap;
+	ValueMap values;
+	MiniMC::VMT::Pathformula::Memory memory;
         SMTLib::Term_ptr pathformula;
+	SMTLib::Context& context;
       };
 
       class Concretizer : public MiniMC::CPA::Concretizer {
       public:
-        Concretizer(std::shared_ptr<const State> state) : state(state),
-                                                          solver(state->getContext()->makeSolver())
-
-        {
-          solver->assert_formula(state->getPathFormula());
+        Concretizer(const State& s, SMTLib::Solver_ptr&& solver) : state(s),solver(std::move(solver))  {
+	  this->solver->assert_formula (state.getPathformula ());
         }
 
         virtual Feasibility isFeasible() const {
-          MiniMC::Support::getMessager().message("Running SMT Solver");
-          switch (solver->check_sat()) {
-            case SMTLib::Result::Satis:
-              return Feasibility::Feasible;
-            case SMTLib::Result::NSatis:
-              return Feasibility::Infeasible;
-            default:
-              return Feasibility::Unknown;
-          }
-        }
-
-        virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
-          return os << *state->getSSAMap().lookup(var.get());
-        }
-
+	  switch (solver->check_sat ()) {
+	  case SMTLib::Result::Satis:
+	    return  Feasibility::Feasible;
+	  case SMTLib::Result::NSatis:
+	    return  Feasibility::Infeasible;
+	  default:
+	    return Feasibility::Unknown;
+	  }
+	}
+	
+        virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr& v, std::ostream& os) {
+	  return os << state.getValues().get(*v);
+	}
       private:
-        const std::shared_ptr<const State> state;
-        SMTLib::Solver_ptr solver;
-        Heap heap;
+	const State& state;
+	SMTLib::Solver_ptr solver;
       };
 
       const Concretizer_ptr State::getConcretizer() const {
-        return std::make_shared<Concretizer>(std::static_pointer_cast<const State>(this->shared_from_this()));
+	auto solver = context.makeSolver ();
+	solver->assert_formula (getPathformula ());
+	return std::make_shared<Concretizer>(*this,std::move(solver));
       }
 
     } // namespace PathFormula

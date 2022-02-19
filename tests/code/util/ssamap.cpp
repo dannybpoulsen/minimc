@@ -2,7 +2,7 @@
 #include "util/ssamap.hpp"
 
 
-TEST(ssamap, mapInitialisation)
+/*TEST(ssamap, mapInitialisation)
 {
   int index;
   double d = 5;
@@ -24,3 +24,4 @@ TEST(ssamap, mapCorrectInsert)
   EXPECT_EQ(&n,map.lookup (&index));
 
 }
+*/

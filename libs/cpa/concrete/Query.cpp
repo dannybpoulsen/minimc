@@ -4,7 +4,7 @@
 #include "cpa/concrete.hpp"
 #include "hash/hashing.hpp"
 #include "heap.hpp"
-#include "instructionimpl.hpp"
+//#include "instructionimpl.hpp"
 //#include "util/vm.hpp"
 #include "vm/concrete/concrete.hpp"
 
@@ -16,14 +16,12 @@ namespace MiniMC {
         MConcretizer(const std::vector<MiniMC::VMT::Concrete::ValueLookup>& v) :  vars(v) {}
         virtual MiniMC::CPA::Concretizer::Feasibility isFeasible() const override { return Feasibility::Feasible; }
 
-        virtual std::ostream& evaluate_str(proc_id id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) {
-	  return os <<"";
+        virtual std::ostream& evaluate_str(proc_id id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) override {
+	  auto& lookup = vars.at(id);
+	  return os <<lookup.lookupValue(var);
 	}
-
-        virtual MiniMC::Util::Array evaluate(proc_id id, const MiniMC::Model::Variable_ptr& var) override {
-	  return MiniMC::Util::Array{};
-	}
-
+	
+        
       private:
         const std::vector<MiniMC::VMT::Concrete::ValueLookup>& vars;
       };
@@ -32,7 +30,8 @@ namespace MiniMC {
       public:
         State( const std::vector<MiniMC::VMT::Concrete::ValueLookup>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
-        virtual std::ostream& output(std::ostream& os) const {
+
+	virtual std::ostream& output(std::ostream& os) const {
           /*for (auto& vl : proc_vars) {
             os << "===\n";
             os << vl << "\n";
@@ -97,7 +96,7 @@ namespace MiniMC {
         }
 	MiniMC::VMT::Concrete::Memory heap;
 	heap.createHeapLayout (p.getHeapLayout ());
-      
+	
         auto state = std::make_shared<State>(stack,heap);
         
         return state;

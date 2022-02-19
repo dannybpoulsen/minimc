@@ -4,13 +4,13 @@
 #include "cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
-#include "util/smtconstruction.hpp"
+//#include "util/smtconstruction.hpp"
 #include "support/feedback.hpp"
 #include "support/pointer.hpp"
-#include "util/ssamap.hpp"
+//#include "util/ssamap.hpp"
 #include <memory>
 
-namespace MiniMC {
+/*namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
       struct HeapEntry {
@@ -98,5 +98,5 @@ namespace MiniMC {
     } // namespace PathFormula
   }   // namespace CPA
 } // namespace MiniMC
-
+*/
 #endif

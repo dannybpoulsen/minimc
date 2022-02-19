@@ -41,10 +41,16 @@ namespace MiniMC {
       
       template<typename T>
       T& as () {	
-	return std::get<T> (content);}
+	return std::get<T> (content);
+      }
 
       template<typename T>
-      bool is () {
+      auto& as () const {	
+	return std::get<T> (content);
+      }
+      
+      template<typename T>
+      bool is () const {
 	return std::holds_alternative<T> (content);
       }
       
@@ -52,7 +58,7 @@ namespace MiniMC {
 
       auto& output (std::ostream& os) const {return std::visit([&](const auto& x) ->std::ostream&  { return os << x; }, content);}
 
-      
+      bool operator== (const GenericVal& oth) const {return oth.content == content;} 
       
     private:
       

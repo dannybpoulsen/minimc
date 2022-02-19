@@ -11,7 +11,7 @@ namespace MiniMC {
     template <SMTLib::Ops op>
       struct Chainer {
         Chainer(SMTLib::TermBuilder* builder) : builder(builder) {}
-
+      //construct term op nterm
         Chainer& operator<<(SMTLib::Term_ptr nterm) {
           if (!term)
             term = nterm;
@@ -21,6 +21,16 @@ namespace MiniMC {
           return *this;
         }
 
+      //construct nterm op term 
+      Chainer& operator>>(SMTLib::Term_ptr nterm) {
+          if (!term)
+            term = nterm;
+          else {
+            term = builder->buildTerm(op, {nterm,term});
+          }
+          return *this;
+        }
+      
         auto getTerm() const { return term; }
 
         SMTLib::Term_ptr term = nullptr;
@@ -192,7 +202,7 @@ namespace MiniMC {
       }
     }
 
-    SMTLib::Term_ptr buildSMTValue(SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
+    inline SMTLib::Term_ptr buildSMTValue(SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
       static std::size_t nb = 0;
       if (ptr->isConstant()) {
         return buildSMTConstant(builder, ptr);
@@ -228,14 +238,14 @@ namespace MiniMC {
       throw MiniMC::Support::Exception("Error");
     }
 
-    SMTLib::Term_ptr buildSMTTerm(const SSAMap& map,  SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
+    /*    SMTLib::Term_ptr buildSMTTerm(const SSAMap& map,  SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
       if (!ptr->isConstant()) {
           return map.lookup(ptr.get());
       } else {
         return buildSMTConstant(builder, ptr);
       }
     }
-
+    */
   } // namespace Util
 } // namespace MiniMC
 

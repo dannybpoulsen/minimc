@@ -60,7 +60,7 @@ namespace MiniMC {
       private:
         MiniMC::Model::VariableMap<ConcreteVMVal> values;
       };
-
+      
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {
       public:
         TriBool addAssumption(const ConcreteVMVal::Bool& b) override{

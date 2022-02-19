@@ -46,9 +46,9 @@ namespace MiniMC {
       return retval;
     }
 
-    const Value_ptr ConstantFactory64::makeBinaryBlobConstant(MiniMC::uint8_t* val, std::size_t s) {
+    /*const Value_ptr ConstantFactory64::makeBinaryBlobConstant(MiniMC::uint8_t* val, std::size_t s) {
       return Value_ptr(new MiniMC::Model::BinaryBlobConstant(val, s));
-    }
+      }*/
 
     const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id, MiniMC::offset_t block) {
       auto pptr = MiniMC::Support::makeLocationPointer(id, block);

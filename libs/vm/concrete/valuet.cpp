@@ -41,14 +41,13 @@ namespace MiniMC {
 	  
           throw MiniMC::Support::Exception("Not Implemented");
         } else {
-	  std::cerr << values[std::static_pointer_cast<MiniMC::Model::Register>(v)] << std::endl;
-          return values[std::static_pointer_cast<MiniMC::Model::Register>(v)];
+	  return values[std::static_pointer_cast<MiniMC::Model::Register>(v)];
         }
       }
 
       ConcreteVMVal ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
         switch (t->getTypeID()) {
-          case MiniMC::Model::TypeID::Bool:
+	case MiniMC::Model::TypeID::Bool:
             return BoolValue(false);
 
           case MiniMC::Model::TypeID::Pointer:

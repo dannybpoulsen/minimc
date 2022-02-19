@@ -36,12 +36,9 @@ namespace MiniMC {
         Infeasible,
         Unknown
       };
-
+      
       virtual Feasibility isFeasible() const { return Feasibility::Feasible; }
-      virtual MiniMC::Util::Array evaluate(proc_id, const MiniMC::Model::Variable_ptr& var) {
-        throw CanntEvaluateException(var);
-      }
-
+      
       virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr&, std::ostream& os) {
         return os << "??";
       }

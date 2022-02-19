@@ -83,7 +83,8 @@ namespace MiniMC {
     using Constant_ptr = std::shared_ptr<Constant>;
 
     class ConstantFactory64;
-    
+
+      
     template <typename T,bool is_bool = false>
     class TConstant : public Constant {
     protected:
@@ -99,20 +100,18 @@ namespace MiniMC {
 	return value;
       }
 
-      virtual std::size_t getSize() override { return sizeof(T); }
+      std::size_t getSize() override { return sizeof(T); }
 
-      virtual const MiniMC::uint8_t* getData() const override  {
+      const MiniMC::uint8_t* getData() const override  {
         return reinterpret_cast<const MiniMC::uint8_t*>(&value);
       }
 
-      virtual bool isBool() const override { return is_bool; }
-      virtual bool isInteger() const override { return std::is_integral_v<T>; }
-      virtual bool isPointer() const override { return std::is_same_v<T,MiniMC::pointer_t>;; }
+      bool isBool() const override { return is_bool; }
+      bool isInteger() const override { return std::is_integral_v<T>; }
+      bool isPointer() const override { return std::is_same_v<T,MiniMC::pointer_t>;; }
 
-      virtual std::ostream& output(std::ostream& os) const {
-        MiniMC::Support::Base64Encode encoder;
-        os << encoder.encode(reinterpret_cast<const char*>(&value), sizeof(T));
-        //os << value << std::endl;
+      std::ostream& output(std::ostream& os) const {
+        os << value << std::endl;
         if (getType())
           os << *getType();
         else
@@ -156,6 +155,14 @@ namespace MiniMC {
 
       virtual const MiniMC::uint8_t* getData() const override {
         return value.get();
+      }
+
+      auto begin () const {
+	return value.get ();
+      }
+
+      auto end () const {
+	return value.get ()+size;
       }
 
       virtual bool isBinaryBlobConstant() const override { return true; }
@@ -259,9 +266,7 @@ namespace MiniMC {
       using aggr_input = std::vector<Constant_ptr>;
       using noncompile_aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
-      //virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&) = 0;
-      virtual const Value_ptr makeBinaryBlobConstant(MiniMC::uint8_t*, std::size_t) = 0;
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
       virtual const Value_ptr makePointer(MiniMC::pointer_t) = 0;
@@ -273,8 +278,6 @@ namespace MiniMC {
       ConstantFactory64() {}
       virtual ~ConstantFactory64() {}
       virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&);
-      virtual const Value_ptr makeBinaryBlobConstant(MiniMC::uint8_t*, std::size_t);
-      //virtual const Value_ptr makeAggregateConstantNonCompile(const noncompile_aggr_input& inp, bool);
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool);
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);
@@ -289,8 +292,18 @@ namespace MiniMC {
 
     template <class T>
     using VariableMap = MiniMC::Util::FixedVector<Variable_ptr, T, VariablePtrIndexer>;
-
+    
   } // namespace Model
 } // namespace MiniMC
+
+namespace MiniMC {
+  namespace Util {
+    template<>
+    struct GetIndex<MiniMC::Model::Register> {
+      auto operator () (const MiniMC::Model::Register& r) {return r.getId ();}
+    };
+  }
+}
+  
 
 #endif

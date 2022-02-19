@@ -10,7 +10,7 @@
 #include "smt/term.hpp"
 #include "support/localisation.hpp"
 
-namespace MiniMC {
+/*namespace MiniMC {
   namespace Util {
 
     template <class From, class To, typename Index = std::size_t, Index defaultindex = 1>
@@ -95,5 +95,60 @@ namespace MiniMC {
 
   } // namespace Util
 } // namespace MiniMC
+*/
+
+#include "util/valuemap.hpp"
+
+namespace MiniMC {
+  namespace Util {
+    template<class From,class To, typename Index = std::size_t,Index defaultIndex = 1> 
+    class SSAMap {
+    public:
+      SSAMap (std::size_t vars = 0) : entries(vars) {}
+      
+      void set (const  From& f, To&& to) {
+	entries[f].val = std::move(to);
+	entries[f].ssaindex++; 
+      }
+
+      const To& get (const From& f) const {
+	return entries.at (f).val;
+      }
+
+      //If they match on all places, just return a copy of l
+      using ConflictBreaker = std::function<To(const To&, const To&)>;
+      static SSAMap merge(const SSAMap& l, const SSAMap& r, ConflictBreaker breakConflict) {
+        SSAMap mmap{l.entries.getSize  ()};
+	auto lit =  l.entries.begin();
+	auto lend = l.entries.end ();
+	auto rit = r.entries.begin ();
+	auto rend = r.entries.end ();
+	std::size_t i = 0;
+	for  (; lit != lend && rit != rend; ++i,++lit,++rit) {
+	  if (lit->ssaindex != rit->ssaindex || lit->val != rit->val) {
+	    mmap.entries[i] = {.val = breakConflict(lit->val,rit->val),
+	      .ssaindex = std::max(lit->ssaindex,rit->ssaindex)+1
+	    };
+	      
+	  }
+	  else {
+	    mmap.entries[i]  = *lit;
+	  }
+	}
+        return mmap;
+      }
+
+      
+    private:
+      struct Entry {
+	To val;
+	Index ssaindex{0};	
+      };
+      FixedVector<From,Entry> entries;
+      
+    };
+    
+  }
+}
 
 #endif

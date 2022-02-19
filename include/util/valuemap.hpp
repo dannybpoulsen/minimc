@@ -7,13 +7,12 @@
 #include <ostream>
 
 #include "hash/hashing.hpp"
-#include "model/variables.hpp"
 
 namespace MiniMC {
   namespace Util {
     template <class T>
     struct GetIndex {
-      std::size_t operator()(const T& t) { return 0; }
+      std::size_t operator()(const T&);
     };
 
     template <class F, class T, class Index = GetIndex<F>>
@@ -32,11 +31,17 @@ namespace MiniMC {
         assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];
       }
+
+      T& operator[](const std::size_t f) {
+        return mem.get()[f];
+    }
+      
+      
       const T& operator[](const F& f) const {
 	assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];
       }
-
+      
       std::ostream& output(std::ostream& os) const {
         for (size_t i = 0; i < size; i++) {
           os << i << " : " << mem[i] << "-" << mem[i].getSize() << std::endl;
@@ -61,6 +66,25 @@ namespace MiniMC {
         return seed;
       }
 
+      auto begin () {
+	return mem.get ();
+      }
+
+      auto end () {
+	return mem.get ()+size;
+      }
+
+      auto begin () const {
+	return mem.get ();
+      }
+
+      auto end () const  {
+	return mem.get ()+size;
+      }
+      
+      
+      auto getSize () const {return size;}
+      
     private:
       std::unique_ptr<T[]> mem;
       std::size_t size;

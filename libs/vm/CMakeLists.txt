@@ -4,4 +4,4 @@ add_subdirectory (concrete)
 add_subdirectory (pathformula)
 
 add_library (vm INTERFACE )
-target_link_libraries (vm INTERFACE vm_gen vm_concrete)
+target_link_libraries (vm INTERFACE vm_gen vm_concrete vm_path)
