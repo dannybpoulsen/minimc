@@ -52,20 +52,15 @@ namespace MiniMC {
 
           case MiniMC::Model::TypeID::Pointer:
             return PointerValue(MiniMC::Support::null_pointer());
-          case MiniMC::Model::TypeID::Integer: {
-            switch (t->getSize()) {
-              case 1:
-                return TValue<MiniMC::uint8_t>(0);
-              case 2:
-                return TValue<MiniMC::uint16_t>(0);
-              case 4:
-                return TValue<MiniMC::uint32_t>(0);
-              case 8:
-                return TValue<MiniMC::uint64_t>(0);
-            }
-            std::cerr << "unknown size " << t->getSize() << std::endl;
-          } break;
-
+	case MiniMC::Model::TypeID::I8: 
+	  return TValue<MiniMC::uint8_t>(0);
+	case MiniMC::Model::TypeID::I16: 
+	  return TValue<MiniMC::uint16_t>(0);
+	case MiniMC::Model::TypeID::I32: 
+	  return TValue<MiniMC::uint32_t>(0);
+	case MiniMC::Model::TypeID::I64: 
+	  return TValue<MiniMC::uint64_t>(0);
+	  
 	case MiniMC::Model::TypeID::Array:
 	case MiniMC::Model::TypeID::Struct:
 	  return AggregateValue {MiniMC::Util::Array{t->getSize ()}};

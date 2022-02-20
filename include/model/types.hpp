@@ -23,7 +23,10 @@ namespace MiniMC {
     enum class TypeID {
       Void,
       Bool,
-      Integer,
+      I8,
+      I16,
+      I32,
+      I64,
       Float,
       Double,
       Pointer,
@@ -42,20 +45,22 @@ namespace MiniMC {
       virtual std::ostream& output(std::ostream& os) const = 0;
 
       /** 
-	   * Calculate this types size in bytes
-	   *
-	   *
-	   * @return Size in bytes this type occupies.
-	   */
+       * Calculate this types size in bytes
+       *
+       *
+       * @return Size in bytes this type occupies.
+       */
       virtual std::size_t getSize() const = 0;
 
       TypeID getTypeID() const { return id; }
-
+      
       virtual bool isEqual(const Type& t) {
         return (&t == this) ||
                (getTypeID() == t.getTypeID() && innerEq(t));
       }
 
+      virtual bool isInteger () const {return false;}
+      
     protected:
       virtual bool innerEq(const Type& t) = 0;
 
@@ -151,7 +156,7 @@ namespace MiniMC {
       }
 
       return true;
-    }
+      }
 
   } // namespace Model
 } // namespace MiniMC

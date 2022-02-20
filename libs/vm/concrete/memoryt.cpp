@@ -91,7 +91,6 @@ namespace MiniMC {
         auto pointer = p.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
-        auto size_to_read = readType->getSize();
         if (base < _internal->entries.size()) {
           auto performRead = [&]<typename T>() {
             T readVal;
@@ -107,31 +106,26 @@ namespace MiniMC {
               MiniMC::uint8_t readVal;
               _internal->entries.at(base).read({.buffer = &readVal, .size = sizeof(MiniMC::uint8_t)}, offset);
               return ConcreteVMVal{BoolValue(readVal)};
-            case MiniMC::Model::TypeID::Integer: {
-
-              switch (size_to_read) {
-                case 1:
-                  return performRead.template operator()<MiniMC::uint8_t>();
-                case 2:
-                  return performRead.template operator()<MiniMC::uint16_t>();
-                case 4:
-                  return performRead.template operator()<MiniMC::uint32_t>();
-                case 8:
-                  return performRead.template operator()<MiniMC::uint64_t>();
-              }
-              throw MiniMC::Support::Exception("Error");
-            }
-            case MiniMC::Model::TypeID::Pointer:
-              return performRead.template operator()<MiniMC::pointer_t>();
-            case MiniMC::Model::TypeID::Struct:
-            case MiniMC::Model::TypeID::Array:
-            default:
-              throw MiniMC::Support::Exception("Error");
-
-              break;
+	  case MiniMC::Model::TypeID::I8: 
+	    return performRead.template operator()<MiniMC::uint8_t>();
+	  case MiniMC::Model::TypeID::I16:
+	    return performRead.template operator()<MiniMC::uint16_t>();
+	  case MiniMC::Model::TypeID::I32:
+	    return performRead.template operator()<MiniMC::uint32_t>();
+	  case MiniMC::Model::TypeID::I64:
+	    return performRead.template operator()<MiniMC::uint64_t>();
+	
+	  case MiniMC::Model::TypeID::Pointer:
+	    return performRead.template operator()<MiniMC::pointer_t>();
+	  case MiniMC::Model::TypeID::Struct:
+	  case MiniMC::Model::TypeID::Array:
+	  default:
+	    throw MiniMC::Support::Exception("Error");
+	    
+	    break;
           }
         }
-
+	
         throw MiniMC::Support::BufferOverread();
       }
       // First parameter is address to store at, second is the value to state

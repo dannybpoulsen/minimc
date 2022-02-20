@@ -15,33 +15,29 @@ namespace MiniMC {
     }
 
     const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::uint64_t val, const Type_ptr& ty) {
-      assert(ty->getTypeID() == MiniMC::Model::TypeID::Integer ||
+      assert(ty->isInteger () ||
              ty->getTypeID() == MiniMC::Model::TypeID::Bool);
       Value_ptr retval;
 
-      if (ty->getTypeID () == MiniMC::Model::TypeID::Bool) {
+      switch (ty->getTypeID ()) {
+      case MiniMC::Model::TypeID::Bool:
 	retval.reset (new Bool (static_cast<MiniMC::uint8_t> (val)));
-	return retval;
+	break;
+      case MiniMC::Model::TypeID::I8:
+	retval.reset(new MiniMC::Model::TConstant<MiniMC::uint8_t>(static_cast<MiniMC::uint8_t>(val))); \
+	break;
+      case MiniMC::Model::TypeID::I16:
+	retval.reset(new MiniMC::Model::TConstant<MiniMC::uint16_t>(static_cast<MiniMC::uint16_t>(val))); \
+	break;
+      case MiniMC::Model::TypeID::I32:
+	retval.reset(new MiniMC::Model::TConstant<MiniMC::uint32_t>(static_cast<MiniMC::uint32_t>(val))); \
+	break;
+      case MiniMC::Model::TypeID::I64:
+	retval.reset(new MiniMC::Model::TConstant<MiniMC::uint64_t>(static_cast<MiniMC::uint64_t>(val))); \
+	break;
+      default:
+	throw MiniMC::Support::Exception ("Error");
       }
-      
-#define ALLOWEDTYPES  \
-  X(MiniMC::uint8_t)  \
-  X(MiniMC::uint16_t) \
-  X(MiniMC::uint32_t) \
-  X(MiniMC::uint64_t)
-
-      switch (ty->getSize()) {
-#define X(TY)                                                                   \
-  case sizeof(TY):                                                              \
-    retval.reset(new MiniMC::Model::TConstant<TY>(static_cast<TY>(val))); \
-    break;
-        ALLOWEDTYPES
-#undef X
-#undef ALLOWEDTYPESS
-        default:
-          throw MiniMC::Support::Exception("HAHAH");
-      }
-
       retval->setType(ty);
       return retval;
     }

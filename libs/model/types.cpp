@@ -6,11 +6,11 @@ namespace MiniMC {
   namespace Model {
     class IntegerType : public Type {
     public:
-      IntegerType(size_t b) : Type(TypeID::Integer),
+      IntegerType(size_t b,TypeID id) : Type(id),
                               bytes(b) {}
-      virtual std::size_t getSize() const { return bytes; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Int" << bytes * 8; }
-
+      std::size_t getSize() const { return bytes; }
+      std::ostream& output(std::ostream& os) const { return os << "Int" << bytes * 8; }
+      bool isInteger () const override {return true;}
     protected:
       virtual bool innerEq(const Type& t) {
         return bytes == static_cast<const IntegerType&>(t).bytes;
@@ -23,49 +23,49 @@ namespace MiniMC {
     class FloatType : public Type {
     public:
       FloatType() : Type(TypeID::Float) {}
-      virtual std::size_t getSize() const { return 4; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Float"; }
-      virtual bool innerEq(const Type& ) { return true; }
+      std::size_t getSize() const { return 4; }
+       std::ostream& output(std::ostream& os) const { return os << "Float"; }
+      bool innerEq(const Type& ) { return true; }
     };
 
     class DoubleType : public Type {
     public:
       DoubleType() : Type(TypeID::Double) {}
-      virtual std::size_t getSize() const { return 8; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Double"; }
-      virtual bool innerEq(const Type& ) { return false; }
+      std::size_t getSize() const { return 8; }
+      std::ostream& output(std::ostream& os) const { return os << "Double"; }
+      bool innerEq(const Type& ) { return false; }
     };
 
     class PointerType : public Type {
     public:
       PointerType() : Type(TypeID::Pointer) {}
-      virtual std::size_t getSize() const { return 8; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
-      virtual bool innerEq(const Type& ) { return true; }
+      std::size_t getSize() const { return 8; }
+      std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
+      bool innerEq(const Type& ) { return true; }
     };
 
     class BoolType : public Type {
     public:
       BoolType() : Type(TypeID::Bool) {}
-      virtual std::size_t getSize() const { return 1; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Bool"; }
-      virtual bool innerEq(const Type&) { return true; }
+      std::size_t getSize() const { return 1; }
+      std::ostream& output(std::ostream& os) const { return os << "Bool"; }
+      bool innerEq(const Type&) { return true; }
     };
 
     class VoidType : public Type {
     public:
       VoidType() : Type(TypeID::Void) {}
-      virtual std::size_t getSize() const { return 0; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Void"; }
-      virtual bool innerEq(const Type&) { return true; }
+      std::size_t getSize() const { return 0; }
+      std::ostream& output(std::ostream& os) const { return os << "Void"; }
+      bool innerEq(const Type&) { return true; }
     };
 
     class AggregateType : public Type {
     public:
       AggregateType(TypeID h, size_t size) : Type(h), size(size) {}
-      virtual std::size_t getSize() const { return size; }
-      virtual std::ostream& output(std::ostream& os) const { return os << "Aggr:" << size; }
-      virtual bool innerEq(const Type& t) { return size == static_cast<const AggregateType&>(t).size; }
+      std::size_t getSize() const { return size; }
+      std::ostream& output(std::ostream& os) const { return os << "Aggr:" << size; }
+      bool innerEq(const Type& t) { return size == static_cast<const AggregateType&>(t).size; }
 
     private:
       std::size_t size;
@@ -87,10 +87,10 @@ namespace MiniMC {
                 ft(new FloatType()),
                 bt(new BoolType()),
                 pt(new PointerType()),
-                i8(new IntegerType(1)),
-                i16(new IntegerType(2)),
-                i32(new IntegerType(4)),
-                i64(new IntegerType(8)) {}
+                i8(new IntegerType(1,TypeID::I8)),
+                i16(new IntegerType(2,TypeID::I16)),
+                i32(new IntegerType(4,TypeID::I32)),
+                i64(new IntegerType(8,TypeID::I64)) {}
       Type_ptr vt;
       Type_ptr dt;
       Type_ptr ft;

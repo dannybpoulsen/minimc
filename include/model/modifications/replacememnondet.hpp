@@ -175,33 +175,33 @@ namespace MiniMC {
 
               if (instr.getOpcode() == MiniMC::Model::InstructionCode::NonDet) {
                 auto& content = instr.getOps<MiniMC::Model::InstructionCode::NonDet> ();
-		assert(content.res->getType()->getTypeID() == MiniMC::Model::TypeID::Integer);
+		assert(content.res->getType()->isInteger ());
                 auto type = content.res->getType();
                 auto from = E->getFrom();
                 auto to = E->getTo();
                 MiniMC::uint64_t min = 0;
                 MiniMC::uint64_t max = 0;
 
-                switch (type->getSize()) {
-                  case 1:
+                switch (type->getTypeID()) {
+		case MiniMC::Model::TypeID::I8:
                     min = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.min)->getValue();
                     max = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.max)->getValue();
                     break;
-                  case 2:
+		case MiniMC::Model::TypeID::I16:
                     min = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.min)->getValue();
                     max = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.max)->getValue();
                     break;
-                  case 4:
+		case MiniMC::Model::TypeID::I32:
                     min = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.min)->getValue();
                     max = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.max)->getValue();
                     break;
-                  case 8:
+		case MiniMC::Model::TypeID::I64:
                     min = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.min)->getValue();
                     max = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.max)->getValue();
                     break;
                   default:
-                    assert(false);
-                }
+		    throw MiniMC::Support::Exception ("Error");
+		}
                 auto& fact = prgm.getConstantFactory();
                 MiniMC::uint64_t it = min;
 

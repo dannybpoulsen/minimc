@@ -71,8 +71,8 @@ namespace MiniMC {
 
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
-              ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!ftype->isInteger () ||
+              !ttype->isInteger () ) {
             mess.error(trunc_must_be_integer.format(MiniMC::Model::InstructionCode::Trunc));
             return false;
           } else if (ftype->getSize() <= ttype->getSize()) {
@@ -90,7 +90,7 @@ namespace MiniMC {
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
 
-          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
+          if (!ftype->isInteger () ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Bool) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToBool));
             return false;
@@ -106,8 +106,8 @@ namespace MiniMC {
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
 
-          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer ||
-              ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!ftype->isInteger () ||
+              !ttype->isInteger () ) {
             mess.error(must_be_integer.format(i));
             return false;
           } else if (ftype->getSize() > ttype->getSize()) {
@@ -128,7 +128,7 @@ namespace MiniMC {
           auto ttype = content.res->getType();
 
           if (ftype->getTypeID() != MiniMC::Model::TypeID::Bool ||
-              ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+              !ttype->isInteger () ) {
             mess.error(must_be_integer.format(i));
             return false;
           } else if (ftype->getSize() > ttype->getSize()) {
@@ -146,7 +146,7 @@ namespace MiniMC {
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
 
-          if (ftype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!ftype->isInteger ()) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToPtr));
             return false;
           }
@@ -175,10 +175,10 @@ namespace MiniMC {
           if (result->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;
-          } else if (skip->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          } else if (!skip->isInteger () ) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "SkipSize"));
             return false;
-          } else if (value->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          } else if (!value->isInteger ()) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "Value"));
             return false;
           } else if (value != skip) {
@@ -205,7 +205,7 @@ namespace MiniMC {
             return false;
           }
 
-          else if (ttype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          else if (!ttype->isInteger ()) {
             mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
             return false;
           }
@@ -225,8 +225,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
-              sizetype->getSize() != 8) {
+          if (sizetype->getTypeID () != MiniMC::Model::TypeID::I64 ) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
 	  }
@@ -252,8 +251,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
-              sizetype->getSize() != 8) {
+          if (sizetype->getTypeID() != MiniMC::Model::TypeID::I64) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::ExtendObj));
             return false;
           }
@@ -306,7 +304,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!sizetype->isInteger() ) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::FindSpace));
             return false;
           }
@@ -336,7 +334,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (content.res->getType()->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!content.res->getType()->isInteger () ) {
             mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Load));
             return false;
           }
@@ -430,7 +428,7 @@ namespace MiniMC {
         else if constexpr (i == InstructionCode::NonDet) {
           auto type = inst.getOps<i>().res->getType();
           MiniMC::Support::Localiser must_be_integer("'%1% must return Integers");
-          if (type->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!type->isInteger ()) {
             mess.error(must_be_integer.format(i));
             return false;
           }
@@ -445,7 +443,7 @@ namespace MiniMC {
 
           auto type = content.expr->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Bool &&
-              type->getTypeID() != MiniMC::Model::TypeID::Integer) {
+              !type->isInteger () ) {
             mess.error(must_be_bool.format(i));
             return false;
           }
@@ -477,7 +475,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (content.size->getType()->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!content.size->getType()->isInteger() ) {
             mess.error(must_be_integer.format(i));
             return false;
           }
@@ -514,7 +512,7 @@ namespace MiniMC {
             return false;
           }
 
-          if (content.res->getType()->getTypeID() != MiniMC::Model::TypeID::Integer) {
+          if (!content.res->getType()->isInteger ()) {
             mess.error(must_be_integer.format(i));
             return false;
           }

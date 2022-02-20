@@ -15,27 +15,29 @@ namespace MiniMC {
           auto type = val->getType();
 
           if (val->isConstant()) {
-            assert(type->getTypeID() == MiniMC::Model::TypeID::Integer);
+            assert(type->isInteger() );
             auto cfac = prgm.getConstantFactory();
             auto tfac = prgm.getTypeFactory();
-
+	    
             auto tt = cfac->makeIntegerConstant(1, tfac->makeBoolType());
             auto ff = cfac->makeIntegerConstant(0, tfac->makeBoolType());
 
             uint64_t value = 0;
-            switch (type->getSize()) {
-              case 1:
+            switch (type->getTypeID()) {
+	    case MiniMC::Model::TypeID::I8:
                 value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint8_t>>(val)->getValue();
                 break;
-              case 2:
+	    case MiniMC::Model::TypeID::I16:
                 value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint16_t>>(val)->getValue();
                 break;
-              case 4:
+	    case MiniMC::Model::TypeID::I32:
                 value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint32_t>>(val)->getValue();
                 break;
-              case 8:
+	    case MiniMC::Model::TypeID::I64:
                 value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint64_t>>(val)->getValue();
                 break;
+	    default:
+	      throw MiniMC::Support::Exception ("Error");
             }
 
 	    MiniMC::Model::Value_ptr resval;

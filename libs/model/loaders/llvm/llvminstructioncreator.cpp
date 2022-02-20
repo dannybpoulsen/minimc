@@ -145,7 +145,7 @@ namespace MiniMC {
           instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assert>({.expr = val}));
         }
 
-        else if (val->getType()->getTypeID() == MiniMC::Model::TypeID::Integer) {
+        else if (val->getType()->isInteger ()) {
           auto ntype = tt.tfac->makeBoolType();
           auto nvar = tt.stack->addVariable("BVar", ntype);
           instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::IntToBool>({.res = nvar, .op1 = val}));

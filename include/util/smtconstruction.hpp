@@ -202,7 +202,7 @@ namespace MiniMC {
       }
     }
 
-    inline SMTLib::Term_ptr buildSMTValue(SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
+    /*inline SMTLib::Term_ptr buildSMTValue(SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
       static std::size_t nb = 0;
       if (ptr->isConstant()) {
         return buildSMTConstant(builder, ptr);
@@ -237,7 +237,7 @@ namespace MiniMC {
       }
       throw MiniMC::Support::Exception("Error");
     }
-
+    */
     /*    SMTLib::Term_ptr buildSMTTerm(const SSAMap& map,  SMTLib::TermBuilder& builder, const MiniMC::Model::Value_ptr& ptr) {
       if (!ptr->isConstant()) {
           return map.lookup(ptr.get());
