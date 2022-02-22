@@ -124,7 +124,7 @@ namespace MiniMC {
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {
-                auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(content.function);
+                auto constant = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(content.function);
                 pointer_t loadPtr = constant->template getValue<MiniMC::pointer_t> ();
                 auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
                 nstate->pushLocation(id, func->getCFG()->getInitialLocation().get().get());

@@ -78,16 +78,14 @@ namespace MiniMC {
             return PointerValue(builder.makeBVIntConst(std::bit_cast<uint64_t> (std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue()),64));
           }
 
-          else if (constant->isBinaryBlobConstant()) {
-	    //throw MiniMC::Support::Exception("Not Implemented 2");
+          else if (constant->isAggregate()) {
 	    //We are dealing with byte vector here.
 	    // Run over all bytes, create their equivalent SMTLib structre
 	    // Concat them
 	    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-	    for (auto byte : *std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant> (constant)) {
+	    for (auto byte : *std::static_pointer_cast<MiniMC::Model::AggregateConstant> (constant)) {
 	      chainer >> (builder.makeBVIntConst (byte,8));
 	    }
-	    std::cerr << "Aggregate" << *chainer.getTerm () << std::endl;
 	    return AggregateValue (chainer.getTerm (),constant->getSize ());
 	    
 	  }

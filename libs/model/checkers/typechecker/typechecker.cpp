@@ -356,8 +356,8 @@ namespace MiniMC {
           }
 
           else {
-            auto constant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant>(func);
-            auto ptr = (*constant).template getValue<MiniMC::pointer_t>(); //MiniMC::Support::CastToPtr (constant->getValue());
+            auto constant = std::static_pointer_cast<MiniMC::Model::TConstant<pointer_t>>(func);
+            auto ptr = (*constant).template getValue (); //MiniMC::Support::CastToPtr (constant->getValue());
             bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
             if (!is_func) {

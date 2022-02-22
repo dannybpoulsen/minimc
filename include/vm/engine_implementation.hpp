@@ -138,7 +138,8 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
           auto value = readState.getValueLookup().lookupValue(content.storee);
-          auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
+	  std::cerr << readState.getValueLookup().lookupValue(content.addr) << std::endl;
+	  auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
           switch (content.storee->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::Pointer:
               writeState.getMemory().storeValue(addr, value.template as<typename T::Pointer>());
@@ -482,7 +483,8 @@ namespace MiniMC {
       auto end = instr.end();
       Status status = Status::Ok;
       for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
-        switch (it->getOpcode()) {
+	std::cerr << *it << std::endl;
+	switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
     status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, readstate, operations, caster); \

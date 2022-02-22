@@ -19,6 +19,10 @@ namespace MiniMC {
       Array(size_t s, const MiniMC::uint8_t* buffer) : buffer(new MiniMC::uint8_t[s]), size(s) {
         std::copy(buffer, buffer + size, this->buffer.get());
       }
+
+      Array(const MiniMC::uint8_t* begin,const MiniMC::uint8_t* end) : buffer(new MiniMC::uint8_t[end-begin]), size(end-begin) {
+        std::copy(begin, end, this->buffer.get());
+      }
       
       Array(const Array& a) {
         *this = a;

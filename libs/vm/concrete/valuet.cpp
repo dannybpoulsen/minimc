@@ -29,12 +29,13 @@ namespace MiniMC {
           }
 
           else if (constant->isPointer()) {
-            return PointerValue(std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue());
+	    std::cerr << "Create Pointer " << std::endl;
+	    return PointerValue(std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue());
           }
 
-	  else if (constant->isBinaryBlobConstant ()) {
-	    auto bconstant = std::static_pointer_cast<MiniMC::Model::BinaryBlobConstant> (constant);
-	    MiniMC::Util::Array val (bconstant->getSize (), bconstant->getData ());
+	  else if (constant->isAggregate ()) {
+	    auto bconstant = std::static_pointer_cast<MiniMC::Model::AggregateConstant> (constant);
+	    MiniMC::Util::Array val (bconstant->begin(),bconstant->end());
 	    return AggregateValue({val});
           
 	  }

@@ -36,12 +36,12 @@ namespace MiniMC {
         Infeasible,
         Unknown
       };
+
+      virtual ~Concretizer () {}
       
-      virtual Feasibility isFeasible() const { return Feasibility::Feasible; }
+      virtual Feasibility isFeasible() const  {return Feasibility::Unknown;}
       
-      virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr&, std::ostream& os) {
-        return os << "??";
-      }
+      virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr&, std::ostream& os)  {return os << "??";}
     };
 
     using Concretizer_ptr = std::shared_ptr<Concretizer>;
@@ -78,12 +78,14 @@ namespace MiniMC {
        */
       template <MiniMC::Model::Attributes att>
       bool hasLocationOf() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(att)); }
+
       virtual bool need2Store() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::NeededStore)); }
+      
       virtual bool assertViolated() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::AssertViolated)); }
 
       virtual bool ready2explore() const { return true; }
-
-      virtual const Concretizer_ptr getConcretizer() const { return std::make_shared<Concretizer>(); }
+      
+      virtual const Concretizer_ptr getConcretizer() const {return std::make_shared<Concretizer> ();}
     };
 
     using State_ptr = std::shared_ptr<State>;

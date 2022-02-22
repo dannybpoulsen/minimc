@@ -57,11 +57,11 @@ namespace MiniMC {
     public:
       virtual ~Constant() {}
       bool isConstant() const override { return true; }
-      virtual const MiniMC::uint8_t* getData() const  = 0;
+      //virtual const MiniMC::uint8_t* getData() const  = 0;
       virtual std::size_t getSize() { return 0; }
       virtual bool isInteger() const { return false; }
       virtual bool isPointer() const { return false; }
-      virtual bool isBinaryBlobConstant() const  { return false; }
+      virtual bool isAggregate() const  { return false; }
       virtual bool isBool() const  { return false; }
       virtual bool isUndef() const { return false; }
     };
@@ -69,13 +69,13 @@ namespace MiniMC {
     class Undef : public Constant {
     public:
       virtual bool isUndef() const override { return true; }
-      virtual std::ostream& output(std::ostream& os) const {
+      virtual std::ostream& output(std::ostream& os) const override {
         return os << "Undef";
       }
 
-      virtual const MiniMC::uint8_t* getData() const {
+      /*virtual const MiniMC::uint8_t* getData() const {
         throw MiniMC::Support::Exception("GetData should not be called on Undef");
-      }
+	}*/
     };
 
     
@@ -88,8 +88,7 @@ namespace MiniMC {
     template <typename T,bool is_bool = false>
     class TConstant : public Constant {
     protected:
-      TConstant(T val) : value(0) {
-        value =  val;
+      TConstant(T val) : value(val) {
       }
 
     public:
@@ -102,15 +101,15 @@ namespace MiniMC {
 
       std::size_t getSize() override { return sizeof(T); }
 
-      const MiniMC::uint8_t* getData() const override  {
+      /*const MiniMC::uint8_t* getData() const override  {
         return reinterpret_cast<const MiniMC::uint8_t*>(&value);
-      }
+	}*/
 
       bool isBool() const override { return is_bool; }
       bool isInteger() const override { return std::is_integral_v<T>; }
       bool isPointer() const override { return std::is_same_v<T,MiniMC::pointer_t>;; }
 
-      std::ostream& output(std::ostream& os) const {
+      std::ostream& output(std::ostream& os) const override {
         os << value << std::endl;
         if (getType())
           os << *getType();
@@ -137,9 +136,9 @@ namespace MiniMC {
 	 * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
 	 *
 	 */
-    class BinaryBlobConstant : public Constant {
+    class AggregateConstant : public Constant {
     protected:
-      BinaryBlobConstant(MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]), size(s) {
+      AggregateConstant(MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]), size(s) {
         std::copy(data, data + s, value.get());
       }
 
@@ -150,12 +149,12 @@ namespace MiniMC {
       auto& getValue() const {
         assert(sizeof(T) == size);
         return *reinterpret_cast<T*>(value.get());
-        ;
+
       }
 
-      virtual const MiniMC::uint8_t* getData() const override {
+      /*virtual const MiniMC::uint8_t* getData() const override {
         return value.get();
-      }
+	}*/
 
       auto begin () const {
 	return value.get ();
@@ -165,7 +164,7 @@ namespace MiniMC {
 	return value.get ()+size;
       }
 
-      virtual bool isBinaryBlobConstant() const override { return true; }
+      virtual bool isAggregate() const override { return true; }
 
       std::size_t getSize() override { return size; }
 

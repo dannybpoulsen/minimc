@@ -92,9 +92,11 @@ namespace MiniMC {
 	template <class T>
         T ExtractBaseValue(const AggregateValue&, const MiniMC::uint64_t);
 	AggregateValue ExtractAggregateValue(const AggregateValue&, const MiniMC::uint64_t, std::size_t);
-        template <class T>
+
+	template <class T>
         AggregateValue InsertBaseValue(const AggregateValue&, const MiniMC::uint64_t, const T&);
-        AggregateValue InsertAggregateValue(const AggregateValue&, const MiniMC::uint64_t, const AggregateValue&);
+
+	AggregateValue InsertAggregateValue(const AggregateValue&, const MiniMC::uint64_t, const AggregateValue&);
 	
       private:
 	SMTLib::TermBuilder& builder;

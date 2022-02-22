@@ -53,14 +53,6 @@ namespace MiniMC {
           Joiner,
           MiniMC::CPA::Storer,
           MiniMC::CPA::PrevalidateSetup>;
-
-      /*struct CPADef {
-	using Query = StateQuery; 
-	using Transfer = Transferer;
-	using Join = Joiner; 
-	using Storage = MiniMC::CPA::Storer<Join>; 
-	using PreValidate = PrevalidateSetup;  
-      };*/
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

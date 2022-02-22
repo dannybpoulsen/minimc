@@ -62,8 +62,8 @@ void addModelModule (py::module& m) {
       
   });
 
-  py::class_<MiniMC::Model::BinaryBlobConstant,std::shared_ptr<MiniMC::Model::BinaryBlobConstant> >  (submodule,"BinaryBlob",constant)
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::BinaryBlobConstant> ptr) {
+  py::class_<MiniMC::Model::AggregateConstant,std::shared_ptr<MiniMC::Model::AggregateConstant> >  (submodule,"BinaryBlob",constant)
+    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::AggregateConstant> ptr) {
       return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
     });
   

@@ -20,13 +20,14 @@ namespace MiniMC {
 	  auto& lookup = vars.at(id);
 	  return os <<lookup.lookupValue(var);
 	}
+
 	
         
       private:
         const std::vector<MiniMC::VMT::Concrete::ValueLookup>& vars;
       };
 
-      class State : public MiniMC::CPA::State, public MiniMC::CPA::Concretizer {
+      class State : public MiniMC::CPA::State {
       public:
         State( const std::vector<MiniMC::VMT::Concrete::ValueLookup>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
