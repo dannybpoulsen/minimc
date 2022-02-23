@@ -10,7 +10,7 @@ namespace MiniMC {
     namespace Modifications {
 
       template <class LocInserter>
-      void unrollLoop(MiniMC::Model::CFG_ptr cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
+      void unrollLoop(MiniMC::Model::CFA_ptr cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
         auto deadLoc = cfg->makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc)).get();

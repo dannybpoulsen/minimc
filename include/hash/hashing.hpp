@@ -25,4 +25,16 @@ namespace MiniMC {
   } // namespace Hash
 } // namespace MiniMC
 
+template <typename T>
+concept hasHash = requires (T a) {
+  a.hash ();
+};
+
+namespace std {
+  template<class T> requires hasHash<T> 
+  struct hash<T> {
+    auto operator() (const T& t) {return t.hash ();}
+  };
+}
+
 #endif

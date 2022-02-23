@@ -17,8 +17,6 @@ namespace MiniMC {
     namespace Location {
       struct StateQuery : public MiniMC::CPA::StateQuery {
         State_ptr makeInitialState(const MiniMC::Model::Program&);
-        size_t nbOfProcesses(const State_ptr&) override;
-        MiniMC::Model::Location_ptr getLocation(const State_ptr&, proc_id);
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
@@ -38,8 +36,8 @@ namespace MiniMC {
         }
 
         /** 
-		 *  \p l covers \p r if their hash values are the same 
-		 */
+	 *  \p l covers \p r if their hash values are the same 
+	 */
         bool covers(const State_ptr& l, const State_ptr& r) override {
           return std::hash<MiniMC::CPA::State>{}(*l) == std::hash<MiniMC::CPA::State>{}(*r);
         }
@@ -49,8 +47,7 @@ namespace MiniMC {
           StateQuery,
           Transferer,
           Joiner,
-          MiniMC::CPA::Storer,
-          MiniMC::CPA::PrevalidateSetup>;
+          MiniMC::CPA::Storer>;
 
     } // namespace Location
 
@@ -61,7 +58,7 @@ namespace MiniMC {
         MiniMC::Model::Location_ptr getLocation(const State_ptr&, proc_id);
       };
 
-      struct Transferer {
+      struct Transferer : public MiniMC::CPA::Transferer{
         State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
       };
 
@@ -82,12 +79,11 @@ namespace MiniMC {
       };
 
       using CPA = CPADef<
-          StateQuery,
-          Transferer,
-          Joiner,
-          MiniMC::CPA::Storer,
-          MiniMC::CPA::PrevalidateSetup>;
-
+	StateQuery,
+	Transferer,
+	Joiner,
+	MiniMC::CPA::Storer>;
+      
     } // namespace SingleLocation
 
   } // namespace CPA

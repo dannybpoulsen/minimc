@@ -21,6 +21,8 @@ namespace MiniMC {
                 return TValue<MiniMC::uint32_t>(std::static_pointer_cast<MiniMC::Model::I32Integer>(constant)->getValue());
               case 8:
                 return TValue<MiniMC::uint64_t>(std::static_pointer_cast<MiniMC::Model::I64Integer>(constant)->getValue());
+	    default:
+	      throw MiniMC::Support::Exception ("Error");
             }
           }
 
@@ -29,7 +31,6 @@ namespace MiniMC {
           }
 
           else if (constant->isPointer()) {
-	    std::cerr << "Create Pointer " << std::endl;
 	    return PointerValue(std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue());
           }
 
@@ -39,9 +40,13 @@ namespace MiniMC {
 	    return AggregateValue({val});
           
 	  }
-	  
-          throw MiniMC::Support::Exception("Not Implemented");
-        } else {
+	  else if (constant->isUndef ()) {
+	    throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA");
+	  }
+	  else 
+	    throw MiniMC::Support::Exception("Not Implemented");
+	}
+	else {
 	  return values[std::static_pointer_cast<MiniMC::Model::Register>(v)];
         }
       }

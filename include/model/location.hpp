@@ -45,21 +45,21 @@ namespace MiniMC {
       BaseIterator iter;
     };
 
-    class CFG;
-    using CFG_ptr = std::shared_ptr<CFG>;
-    using CFG_wptr = std::weak_ptr<CFG>;
+    class CFA;
+    using CFA_ptr = std::shared_ptr<CFA>;
+    using CFA_wptr = std::weak_ptr<CFA>;
     /** 
      * Location in a functions CFG
      * Locations can be assigned different attributes which can affect exploration algorithms, or the modification algorihtms on the CFG. 
      */
     class Location : public std::enable_shared_from_this<Location> {
     public:
-      friend class CFG;
+      friend class CFA;
       friend class Edge;
 
       using edge_iterator = SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>;
 
-      Location(const LocationInfo& n, MiniMC::offset_t id, const CFG_ptr& cfg) : info(n), id(id), cfg(cfg) {}
+      Location(const LocationInfo& n, MiniMC::offset_t id, const CFA_ptr& cfg) : info(n), id(id), cfg(cfg) {}
 
       void addEdge(gsl::not_null<Edge_ptr> e) { edges.push_back(e.get()); }
       void addIncomingEdge(gsl::not_null<Edge_ptr> e) { incomingEdges.push_back(e.get()); }
@@ -131,7 +131,7 @@ namespace MiniMC {
         return it != incomingEdges.end();
       }
 
-      CFG_ptr getCFG() const {
+      CFA_ptr getCFG() const {
         return cfg.lock();
       }
 
@@ -172,12 +172,12 @@ namespace MiniMC {
       std::vector<Edge_wptr> incomingEdges;
       LocationInfo info;
       MiniMC::offset_t id;
-      CFG_wptr cfg;
+      CFA_wptr cfg;
     };
 
     using Location_ptr = std::shared_ptr<Location>;
     using Location_wptr = std::weak_ptr<Location>;
-
+    
   } // namespace Model
 } // namespace MiniMC
 

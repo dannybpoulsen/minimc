@@ -30,7 +30,7 @@ namespace MiniMC {
 
       inline void copyEdgeAnd(const MiniMC::Model::Edge_ptr& edge,
                               const ReplaceMap<MiniMC::Model::Location>& locs,
-                              MiniMC::Model::CFG_ptr& cfg) {
+                              MiniMC::Model::CFA_ptr& cfg) {
 
         auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
         auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
@@ -53,7 +53,7 @@ namespace MiniMC {
       }
 
       template <class LocInsert, class LocInserter>
-      void copyLocation(MiniMC::Model::CFG_ptr to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, const std::string pref = "") {
+      void copyLocation(MiniMC::Model::CFA_ptr to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, const std::string pref = "") {
         MiniMC::Model::LocationInfoCreator linfo(pref);
         auto nloc = to->makeLocation(linfo.make(loc->getInfo()));
         inserter = std::make_pair(loc.get(), nloc);
@@ -72,7 +72,7 @@ namespace MiniMC {
       void copyEdgeAndReplace(const MiniMC::Model::Edge_ptr& edge,
                               const ReplaceMap<MiniMC::Model::Value>& val,
                               const ReplaceMap<MiniMC::Model::Location>& locs,
-                              MiniMC::Model::CFG_ptr& cfg,
+                              MiniMC::Model::CFA_ptr& cfg,
                               Inserter insertTo) {
         auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
         auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
@@ -102,9 +102,9 @@ namespace MiniMC {
       }
 
       template <class LocInsert, class EdgeInsert>
-      void copyCFG(const MiniMC::Model::CFG_ptr& from,
+      void copyCFG(const MiniMC::Model::CFA_ptr& from,
                    ReplaceMap<MiniMC::Model::Value>& val,
-                   MiniMC::Model::CFG_ptr to,
+                   MiniMC::Model::CFA_ptr to,
                    const std::string,
                    ReplaceMap<MiniMC::Model::Location>& locmap,
                    LocInsert lInsert,

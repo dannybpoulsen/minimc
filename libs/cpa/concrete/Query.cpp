@@ -11,28 +11,105 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
-      class MConcretizer : public MiniMC::CPA::Concretizer {
+      class MConcretizer : public MiniMC::CPA::Solver {
       public:
-        MConcretizer(const std::vector<MiniMC::VMT::Concrete::ValueLookup>& v) :  vars(v) {}
-        virtual MiniMC::CPA::Concretizer::Feasibility isFeasible() const override { return Feasibility::Feasible; }
-
-        virtual std::ostream& evaluate_str(proc_id id, const MiniMC::Model::Variable_ptr& var, std::ostream& os) override {
-	  auto& lookup = vars.at(id);
-	  return os <<lookup.lookupValue(var);
-	}
-
+        MConcretizer()  {}
+        virtual MiniMC::CPA::Solver::Feasibility isFeasible() const override { return Feasibility::Feasible; }
 	
-        
-      private:
-        const std::vector<MiniMC::VMT::Concrete::ValueLookup>& vars;
       };
 
+      using ConcreteByteVectorExpr = TByteVectorExpr<MiniMC::VMT::Concrete::ConcreteVMVal>;
+
+      struct StackFrame {
+	StackFrame (std::size_t size, const MiniMC::Model::Value_ptr& ret)  : values(size),ret(ret) {}
+	StackFrame (const StackFrame& ) = default;
+
+	MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const {
+	  MiniMC::Hash::hash_combine(seed, values);
+	  MiniMC::Hash::hash_combine(seed, ret.get());
+          return seed;
+	}
+
+	MiniMC::VMT::Concrete::ValueLookup values;
+	MiniMC::Model::Value_ptr ret;
+	
+      };
+
+      
+      struct CallStack  {
+	CallStack (StackFrame&& sf) {
+	  frames.push_back (std::move(sf));
+	}
+	CallStack (const CallStack&) = default;
+	
+	auto pop () {	  
+	  auto val = frames.back  ();
+	  frames.pop_back ();
+	  return val;
+	}
+	
+	auto push (StackFrame&& frame) {
+	  frames.push_back (std::move(frame));
+	}
+
+	auto& back () {return frames.back ();}
+	auto& back () const {return frames.back ();}
+
+	MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const {
+	  for (auto& vl : frames) {
+	    MiniMC::Hash::hash_combine(seed, vl);
+	  }
+	  return seed;
+	}
+	
+	std::vector<StackFrame> frames;
+      };
+
+      class StackControl : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
+      public:
+	StackControl (CallStack& s, MiniMC::Model::Program& p) : stack (s),prgm(p) {}
+	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Concrete::ConcreteVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
+
+	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
+	  auto& vstack = func->getVariableStackDescr();
+	  StackFrame sf {vstack->getTotalVariables (),ret};
+	  for (auto& v : vstack->getVariables()) {
+            sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
+          }
+
+	  auto it = params.begin ();
+	  for (auto& p : func->getParameters ()) {
+	    sf.values.saveValue  (p,std::move(*it));
+	    ++it;
+	      
+	  }
+	  
+	  stack.push (std::move(sf));
+	}
+	
+	void pop (MiniMC::VMT::Concrete::ConcreteVMVal&& val) override {
+	  auto ret = stack.back ().ret;
+	  stack.pop ();
+	  stack.back().values.saveValue (std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	}
+	
+	void popNoReturn () override {
+	  stack.pop ();
+	}
+	
+	
+      private:
+	CallStack& stack;
+	MiniMC::Model::Program& prgm;
+	
+      };
+      
       class State : public MiniMC::CPA::State {
       public:
-        State( const std::vector<MiniMC::VMT::Concrete::ValueLookup>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
+        State( const std::vector<CallStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
 
-	virtual std::ostream& output(std::ostream& os) const {
+	virtual std::ostream& output(std::ostream& os) const override {
           /*for (auto& vl : proc_vars) {
             os << "===\n";
             os << vl << "\n";
@@ -60,13 +137,19 @@ namespace MiniMC {
 
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
 
-	  std::vector<MiniMC::VMT::Concrete::ValueLookup> proc_vars2{proc_vars};
+	  std::vector<CallStack> proc_vars2{proc_vars};
 	  MiniMC::VMT::Concrete::Memory heap2(heap);
 	  auto copy = std::make_shared<State>(proc_vars2,heap2); 
 	  
 	  return copy;
         }
 
+	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Variable_ptr& val) const override {
+	  auto& lookup = proc_vars.at(id).back().values;
+	  return std::make_unique<ConcreteByteVectorExpr> (lookup.lookupValue(val),val->getType()->getSize ());
+	}
+      
+	
         auto& getProc(std::size_t i) { return proc_vars[i]; }
         auto& getHeap() { return heap; }
 	
@@ -74,26 +157,28 @@ namespace MiniMC {
         auto& getHeap() const { return heap; }
 
         virtual bool need2Store() const override { return false; }
-        virtual bool ready2explore() const override  { return true; }
         virtual bool assertViolated() const override  { return false; }
 
-        virtual const Concretizer_ptr getConcretizer() const override { return std::make_shared<MConcretizer> (proc_vars);}
+        virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
       private:
-        std::vector<MiniMC::VMT::Concrete::ValueLookup> proc_vars;
+        std::vector<CallStack> proc_vars;
 	MiniMC::VMT::Concrete::Memory heap;
         mutable MiniMC::Hash::hash_t hash_val = 0;
       };
 
       MiniMC::CPA::State_ptr StateQuery::makeInitialState(const MiniMC::Model::Program& p) {
         
-        std::vector<MiniMC::VMT::Concrete::ValueLookup> stack;
+        std::vector<CallStack> stack;
         for (auto& f : p.getEntryPoints()) {
           auto& vstack = f->getVariableStackDescr();
-          stack.push_back(MiniMC::VMT::Concrete::ValueLookup{vstack->getTotalVariables ()});
+	  StackFrame sf {vstack->getTotalVariables (),nullptr};
 	  for (auto& v : vstack->getVariables()) {
-            stack.back().saveValue  (v,stack.back ().unboundValue (v->getType ()));
+            sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
           }
+	  CallStack cs {std::move(sf)};
+          stack.push_back(cs);
+	  
         }
 	MiniMC::VMT::Concrete::Memory heap;
 	heap.createHeapLayout (p.getHeapLayout ());
@@ -110,16 +195,18 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-        if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-	  decltype(engine)::State newvm {nstate.getProc (id),nstate.getHeap (),control};
-	  decltype(engine)::ConstState convm {nstate.getProc (id),nstate.getHeap (),control};
+	StackControl scontrol {nstate.getProc (id),*e->getProgram ()};
+
+	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
+	  decltype(engine)::State newvm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};
+	  decltype(engine)::ConstState convm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
 	  if (!instr.isPhi ()) {
 	    status = engine.execute(instr,newvm,convm);
 	    
 	  }
 	  else{
-	    decltype(engine)::ConstState oldvm {ostate.getProc (id),ostate.getHeap (),control};
+	    decltype(engine)::ConstState oldvm {ostate.getProc (id).back().values,ostate.getHeap (),control,scontrol};
 	    status = engine.execute(instr,newvm,oldvm);
 	    
 	  }

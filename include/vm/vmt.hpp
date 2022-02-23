@@ -63,7 +63,16 @@ namespace MiniMC {
       virtual TriBool addAssert (const typename T::Bool&) {throw MiniMC::Support::Exception ("Not implemented");}
       
     };
+
     
+    template<class  T>
+    struct StackControl {
+      virtual ~StackControl ()  {}
+      virtual void  push (MiniMC::pointer_t, std::vector<T>&, const MiniMC::Model::Value_ptr& ) {throw MiniMC::Support::Exception ("Stack Push Not implemented");}
+      virtual void pop (T&&) {throw MiniMC::Support::Exception ("Stack Pop  implemented");}
+      virtual void popNoReturn () {throw MiniMC::Support::Exception ("Stack Pop implemented");}
+      
+    };
     
     
     template<class T, bool cons = false>  
@@ -71,17 +80,21 @@ namespace MiniMC {
       using VLookup  = typename std::conditional<!cons,ValueLookup<T>,const ValueLookup<T>>::type;
       using MLookup  = typename std::conditional<!cons,Memory<T>,const Memory<T>>::type;
       using PControl  = typename std::conditional<!cons,PathControl<T>,const PathControl<T>>::type;
+      using StControl  = typename std::conditional<!cons,StackControl<T>,const StackControl<T>>::type;
       
-      VMState (VLookup& p, MLookup& m, PControl& path) : lookup(p),memory(m),control(path) {}
+      
+      VMState (VLookup& p, MLookup& m, PControl& path, StControl& stack) : lookup(p),memory(m),control(path),scontrol(stack) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
       auto& getValueLookup () const {return lookup;}
       auto& getMemory () const {return memory;}
       auto& getPathControl () const {return control;}
+      auto& getStackControl () const {return scontrol;}
     private:
       VLookup& lookup;
       MLookup& memory;
       PControl& control;
+      StControl& scontrol;
     };
 
     enum class  Status{

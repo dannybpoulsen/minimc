@@ -36,7 +36,7 @@ namespace MiniMC {
         return loop;
       }
 
-      LoopInfo createLoopInfo(const MiniMC::Model::CFG_ptr& cfg) {
+      LoopInfo createLoopInfo(const MiniMC::Model::CFA_ptr& cfg) {
         assert(cfg->isIncomingOutgoingConsistent());
 
         auto dominatorinfo = MiniMC::Model::Analysis::calculateDominators(cfg);

@@ -142,7 +142,7 @@ namespace MiniMC {
         std::vector<Loop_ptr> loops;
       };
 
-      LoopInfo createLoopInfo(const MiniMC::Model::CFG_ptr& ptr);
+      LoopInfo createLoopInfo(const MiniMC::Model::CFA_ptr& ptr);
 
       class LoopAnalyser {
       public:

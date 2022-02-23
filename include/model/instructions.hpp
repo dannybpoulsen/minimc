@@ -497,6 +497,8 @@ ASSUMEASSERTS
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = true;
+      
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = CallContent;
@@ -645,11 +647,13 @@ ASSUMEASSERTS
       static const bool isTAC = false;
       static const bool isUnary = false;
       static const bool isComparison = false;
-      static const bool isMemory = true;
+      static const bool isMemory = false;
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = true;
+      
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = RetContent;
@@ -660,11 +664,13 @@ ASSUMEASSERTS
       static const bool isTAC = false;
       static const bool isUnary = false;
       static const bool isComparison = false;
-      static const bool isMemory = true;
+      static const bool isMemory = false;
       static const bool isCast = false;
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = true;
+      
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = int;
@@ -800,8 +806,7 @@ ASSUMEASSERTS
     struct Instruction {
     public:
       Instruction(InstructionCode code, Instruction_content content) : opcode(code),
-								       content(content),
-								       parent(nullptr) {}
+								       content(content) {}
 
       
       /**
@@ -835,7 +840,6 @@ ASSUMEASSERTS
     private:
       InstructionCode opcode;
       Instruction_content content;
-      Function_ptr parent;
     };
 
 

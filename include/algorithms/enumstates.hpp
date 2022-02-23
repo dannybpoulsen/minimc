@@ -21,9 +21,6 @@ namespace MiniMC {
 
       EnumStates(const Options& opt) : messager(MiniMC::Support::getMessager()), cpa(opt.cpa) {}
       virtual Result run(const MiniMC::Model::Program& prgm) {
-        if (!cpa->makeValidate()->validate(prgm, messager)) {
-          return Result::Error;
-        }
         messager.message("Initiating EnumStates");
 
         auto progresser = messager.makeProgresser();
@@ -36,7 +33,7 @@ namespace MiniMC {
             .transfer = cpa->makeTransfer()});
         simmanager.insert(initstate);
         simmanager.reachabilitySearch({.filter = [](const MiniMC::CPA::State_ptr& state) {
-          return state->getConcretizer()->isFeasible() == MiniMC::CPA::Concretizer::Feasibility::Feasible;
+          return state->getConcretizer()->isFeasible() == MiniMC::CPA::Solver::Feasibility::Feasible;
         }});
 
         messager.message("Finished EnumStates");

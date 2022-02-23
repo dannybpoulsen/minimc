@@ -29,7 +29,6 @@ namespace MiniMC {
         virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override { return wrappedState->hash(seed); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override  { return std::make_shared<State>(*this); }
         virtual bool need2Store() const override { return wrappedState->need2Store(); }
-        virtual bool ready2explore() const override { return wrappedState->ready2explore(); }
         virtual bool assertViolated() const override { return wrappedState->assertViolated(); }
         virtual MiniMC::Model::Location_ptr getLocation(proc_id id) const override {
           return wrappedState->getLocation(id);
@@ -43,10 +42,15 @@ namespace MiniMC {
           return wrappedState->nbOfProcesses();
         }
 
-        virtual const Concretizer_ptr getConcretizer() const override {
+	const Solver_ptr getConcretizer() const override {
           return wrappedState->getConcretizer();
         }
 
+	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Variable_ptr& v) const override  {
+	  return wrappedState->symbEvaluate (id,v);  
+	}
+	
+	
         auto parent_inserter() { return std::back_inserter(parents); }
         auto begin() { return parents.begin(); }
         auto end() { return parents.end(); }
@@ -190,12 +194,10 @@ namespace MiniMC {
         virtual Transferer_ptr makeTransfer() const { return std::make_shared<Transferer>(wrapped->makeTransfer()); }
         virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(wrapped->makeJoin()); }
         virtual Storer_ptr makeStore() const { return std::make_shared<MiniMC::CPA::Storer>(makeJoin()); }
-        virtual PrevalidateSetup_ptr makeValidate() const { return wrapped->makeValidate(); }
-
       private:
         MiniMC::CPA::CPA_ptr wrapped;
       };
-
+	
     } // namespace ARG
   }   // namespace CPA
 } // namespace MiniMC

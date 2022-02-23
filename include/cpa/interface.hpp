@@ -38,13 +38,6 @@ namespace MiniMC {
        * @return the create State
        */
       virtual State_ptr makeInitialState(const MiniMC::Model::Program&) { return nullptr; }
-
-      /** 
-       * Query the given state how many processes it has
-       *
-       * @return number of processes
-       */
-      virtual size_t nbOfProcesses(const State_ptr&) { return 0; }
     };
 
     using StateQuery_ptr = std::shared_ptr<StateQuery>;
@@ -88,15 +81,7 @@ namespace MiniMC {
 
     using Joiner_ptr = std::shared_ptr<Joiner>;
 
-    struct PrevalidateSetup {
-      /** 
-       * Check whether this CPA can be run on prgm
-       * without encountering runtime errors. 
-       */
-      virtual bool validate(const MiniMC::Model::Program&, MiniMC::Support::Messager&) { return true; }
-    };
-
-    using PrevalidateSetup_ptr = std::shared_ptr<PrevalidateSetup>;
+    
     class IStorer {
     public:
       using Iterator = std::vector<MiniMC::CPA::State_ptr>::iterator;
@@ -197,7 +182,6 @@ namespace MiniMC {
       virtual Transferer_ptr makeTransfer() const = 0;
       virtual Joiner_ptr makeJoin() const = 0;
       virtual Storer_ptr makeStore() const = 0;
-      virtual PrevalidateSetup_ptr makeValidate() const = 0;
     };
 
     using CPA_ptr = std::shared_ptr<ICPA>;
@@ -206,14 +190,12 @@ namespace MiniMC {
         class Query,
         class Transfer,
         class Joiner,
-        class Store,
-        class Prevalidate>
+        class Store>
     struct CPADef : public ICPA {
       virtual StateQuery_ptr makeQuery() const { return std::make_shared<Query>(); }
       virtual Transferer_ptr makeTransfer() const { return std::make_shared<Transfer>(); }
       virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
       virtual Storer_ptr makeStore() const { return std::make_shared<Store>(std::make_shared<Joiner>()); }
-      virtual PrevalidateSetup_ptr makeValidate() const { return std::make_shared<Prevalidate>(); }
     };
     
   } // namespace CPA

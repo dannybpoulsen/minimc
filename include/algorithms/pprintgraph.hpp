@@ -29,9 +29,6 @@ namespace MiniMC {
       }
       virtual Result run(const MiniMC::Model::Program& prgm) {
         messager.message("Initiating SMC");
-        if (!cpa->makeValidate()->validate(prgm, messager)) {
-          return Result::Error;
-        }
         auto initstate = cpa->makeQuery()->makeInitialState(prgm);
         try {
           while (smc.continueSampling()) {

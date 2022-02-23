@@ -32,17 +32,17 @@ namespace MiniMC {
 
     /**
 	 *
-	 * Representation of an Control Flow Automaton (despite the misleading name CFG). 
-	 * The CFG is responsible for creating( and deleting) edges and
+	 * Representation of an Control Flow Automaton. 
+	 * The CFA is responsible for creating( and deleting) edges and
 	 * locations of a function. It will also make sure that  the
 	 * incoming/outgoing edges of locations are properly update when
 	 * deleting edges. This 
 	 *
 	 */
-    class CFG : public std::enable_shared_from_this<CFG> {
+    class CFA : public std::enable_shared_from_this<CFA> {
     protected:
       friend class Program;
-      CFG(const Program_ptr& prgm) : prgm(prgm) {}
+      CFA(const Program_ptr& prgm) : prgm(prgm) {}
       void setFunction(const Function_ptr& func) { function = func; }
 
     public:
@@ -56,7 +56,6 @@ namespace MiniMC {
 	   *
 	   * @param from source of the edge
 	   * @param to target of the edge
-	   * @param p the program that the edge is associated to.
 	   *
 	   * @return 
 	   */
@@ -135,7 +134,7 @@ namespace MiniMC {
       Function_wptr function;
     };
 
-    using CFG_ptr = std::shared_ptr<CFG>;
+    using CFA_ptr = std::shared_ptr<CFA>;
 
     class Function : public std::enable_shared_from_this<Function> {
     public:
@@ -144,7 +143,7 @@ namespace MiniMC {
                const std::vector<gsl::not_null<Variable_ptr>>& params,
                const gsl::not_null<Type_ptr> rtype,
                const VariableStackDescr_ptr& variableStackDescr,
-               const gsl::not_null<CFG_ptr> cfg,
+               const gsl::not_null<CFA_ptr> cfg,
                const Program_ptr& prgm) : name(name),
                                           parameters(params),
                                           variableStackDescr(variableStackDescr),
@@ -169,7 +168,7 @@ namespace MiniMC {
       std::string name;
       std::vector<gsl::not_null<Variable_ptr>> parameters;
       VariableStackDescr_ptr variableStackDescr;
-      gsl::not_null<CFG_ptr> cfg;
+      gsl::not_null<CFA_ptr> cfg;
       MiniMC::func_t id;
       Program_wptr prgm;
       Type_ptr retType;
@@ -185,15 +184,15 @@ namespace MiniMC {
                                               const std::vector<gsl::not_null<Variable_ptr>>& params,
                                               const gsl::not_null<Type_ptr> retType,
                                               const VariableStackDescr_ptr& variableStackDescr,
-                                              const gsl::not_null<CFG_ptr> cfg) {
+                                              const gsl::not_null<CFA_ptr> cfg) {
         functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, variableStackDescr, cfg, shared_from_this()));
         function_map.insert(std::make_pair(name, functions.back()));
         cfg->setFunction(functions.back());
         return functions.back();
       }
 
-      gsl::not_null<CFG_ptr> makeCFG() {
-        return std::shared_ptr<CFG>(new CFG(this->shared_from_this()));
+      gsl::not_null<CFA_ptr> makeCFG() {
+        return std::shared_ptr<CFA>(new CFA(this->shared_from_this()));
       }
 
       auto& getFunctions() const { return functions; }

@@ -31,7 +31,7 @@ namespace MiniMC {
       struct Options {
         MiniMC::Algorithms::GoalFunction predicate = [](const MiniMC::CPA::State_ptr& state) { return state->assertViolated(); };
         MiniMC::Algorithms::FilterFunction filter = [](const MiniMC::CPA::State_ptr& state) {
-          return state->getConcretizer()->isFeasible() == MiniMC::CPA::Concretizer::Feasibility::Feasible;
+          return state->getConcretizer()->isFeasible() == MiniMC::CPA::Solver::Feasibility::Feasible;
         };
 
         MiniMC::CPA::CPA_ptr cpa = nullptr;
@@ -42,10 +42,6 @@ namespace MiniMC {
                                          cpa(opt.cpa) {}
 
       virtual Result run(const MiniMC::Model::Program& prgm) {
-        if (!cpa->makeValidate()->validate(prgm, messager)) {
-          return Result::Error;
-        }
-
         messager.message("Initiating Reachability");
         auto query = cpa->makeQuery();
         auto transfer = cpa->makeTransfer();

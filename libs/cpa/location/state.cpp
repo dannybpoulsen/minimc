@@ -59,7 +59,7 @@ namespace MiniMC {
 
         State(const State&) = default;
 
-        virtual std::ostream& output(std::ostream& os) const {
+        virtual std::ostream& output(std::ostream& os) const override {
           os << "[ ";
           for (auto l : locations) {
             assert(l.cur());
@@ -74,16 +74,16 @@ namespace MiniMC {
           return s;
         }
         virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy() const { return std::make_shared<State>(*this); }
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const { return lcopy(); }
+        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return locations.size(); }
-        MiniMC::Model::Location_ptr getLocation(size_t i) const { return locations[i].cur()->shared_from_this(); }
+        MiniMC::Model::Location_ptr getLocation(size_t i) const override { return locations[i].cur()->shared_from_this(); }
         void setLocation(size_t i, MiniMC::Model::Location* l) {
           locations[i].cur() = l;
         }
         void pushLocation(size_t i, MiniMC::Model::Location* l) { locations[i].push(l); }
         void popLocation(size_t i) { locations[i].pop(); }
-        bool need2Store() const {
+        bool need2Store() const override {
           for (auto& locState : locations) {
             if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::NeededStore>())
               return true;
@@ -91,7 +91,7 @@ namespace MiniMC {
           return false;
         }
 
-        virtual bool assertViolated() const {
+        virtual bool assertViolated() const override {
           for (auto& locState : locations) {
             if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::AssertViolated>())
               return true;
@@ -99,7 +99,7 @@ namespace MiniMC {
           return false;
         }
 
-        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const {
+        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override  {
           for (auto& locState : locations) {
             if (locState.cur()->getInfo().isFlagSet(tt))
               return true;
@@ -124,8 +124,8 @@ namespace MiniMC {
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {
-                auto constant = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(content.function);
-                pointer_t loadPtr = constant->template getValue<MiniMC::pointer_t> ();
+                auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(content.function);
+                pointer_t loadPtr = constant->getValue ();
                 auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
                 nstate->pushLocation(id, func->getCFG()->getInitialLocation().get().get());
               } else
@@ -152,16 +152,7 @@ namespace MiniMC {
         return std::make_shared<State>(locs);
       }
 
-      size_t MiniMC::CPA::Location::StateQuery::nbOfProcesses(const State_ptr& s) {
-        auto state = static_cast<const State*>(s.get());
-        return state->nbOfProcesses();
-      }
-
-      MiniMC::Model::Location_ptr MiniMC::CPA::Location::StateQuery::getLocation(const State_ptr& s, proc_id id) {
-        auto state = static_cast<const State*>(s.get());
-        return state->getLocation(id);
-      }
-
+      
     } // namespace Location
   }   // namespace CPA
 } // namespace MiniMC

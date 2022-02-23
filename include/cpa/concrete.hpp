@@ -19,12 +19,7 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-
         MiniMC::CPA::State_ptr makeInitialState(const MiniMC::Model::Program&);
-
-        size_t nbOfProcesses(const MiniMC::CPA::State_ptr&) { return 0; }
-
-        MiniMC::Model::Location_ptr getLocation(const MiniMC::CPA::State_ptr&, proc_id) { return nullptr; }
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
@@ -41,18 +36,13 @@ namespace MiniMC {
         }
       };
 
-      struct PrevalidateSetup : public MiniMC::CPA::PrevalidateSetup {
-        bool validate(const MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
-          return MiniMC::Model::Checkers::HasNoInstruction<MiniMC::Model::InstructionCode::Call>{mess, "This CPA does not support '%1%' instructions."}.run(prgm);
-        }
-      };
-
+      
       using CPA = CPADef<
           StateQuery,
           Transferer,
           Joiner,
-          MiniMC::CPA::Storer,
-          MiniMC::CPA::PrevalidateSetup>;
+          MiniMC::CPA::Storer
+	>;
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

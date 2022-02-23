@@ -15,7 +15,7 @@ namespace MiniMC {
 
         State(const State&) = default;
 
-        virtual std::ostream& output(std::ostream& os) const {
+        virtual std::ostream& output(std::ostream& os) const override {
           return os << "[" << location->getInfo() << "]";
         }
         virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
@@ -26,7 +26,7 @@ namespace MiniMC {
           return s;
         }
         virtual std::shared_ptr<MiniMC::CPA::SingleLocation::State> lcopy() const { return std::make_shared<State>(*this); }
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const { return lcopy(); }
+        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return 1; }
         MiniMC::Model::Location_ptr getLocation(proc_id ) const override {
@@ -36,21 +36,20 @@ namespace MiniMC {
           location = l;
           ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint>();
         }
-        bool need2Store() const {
+        bool need2Store() const override  {
           return location->getInfo().template is<MiniMC::Model::Attributes::NeededStore>();
         }
 
         
-        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const {
+        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override {
           return location->getInfo().isFlagSet(tt);
         }
-
-        bool ready2explore() const override { return ready; }
 
         std::shared_ptr<State> join(const State& oth) const {
           if (location == oth.location) {
             auto nstate = std::make_shared<State>(location->shared_from_this());
             nstate->ready = true;
+	    
             return nstate;
           }
           return nullptr;

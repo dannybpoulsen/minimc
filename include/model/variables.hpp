@@ -87,12 +87,10 @@ namespace MiniMC {
       
     template <typename T,bool is_bool = false>
     class TConstant : public Constant {
-    protected:
+    public:
       TConstant(T val) : value(val) {
       }
 
-    public:
-      friend class ConstantFactory64;
 
       T getValue() const  {
 	// auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
@@ -137,13 +135,10 @@ namespace MiniMC {
 	 *
 	 */
     class AggregateConstant : public Constant {
-    protected:
+    public:
       AggregateConstant(MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]), size(s) {
         std::copy(data, data + s, value.get());
       }
-
-    public:
-      friend class ConstantFactory64;
 
       template <class T>
       auto& getValue() const {

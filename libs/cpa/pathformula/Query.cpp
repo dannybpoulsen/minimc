@@ -24,12 +24,12 @@ namespace MiniMC {
 	  auto val = lookup.unboundValue (reg->getType ());
 	  lookup.saveValue (reg,std::move(val));
 	}
-
+	
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 	memory.createHeapLayout (prgm.getHeapLayout ());
 	
 	
-	return  std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(values),std::move(memory),std::move(term),*context);	
+	return  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values)},std::move(memory),std::move(term),*context);	
       }
 
       MiniMC::CPA::State_ptr Joiner::doJoin(const State_ptr& lstate, const State_ptr& rstate) {
@@ -76,13 +76,15 @@ namespace MiniMC {
 	  return l;
 
 	};
-	
-	ValueMap values = ValueMap::merge (lstate_.getValues (),rstate_.getValues (),breaker);
-	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 
 	
-	auto npath = termbuilder.buildTerm (SMTLib::Ops::Or,{lstate_.getPathformula (), rstate_.getPathformula ()});
-	return std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(values),std::move(memory),std::move(npath),*context);	
+	
+	//ValueMap values = ValueMap::merge (lstate_.getValues (),rstate_.getValues (),breaker);
+	//MiniMC::VMT::Pathformula::Memory memory{termbuilder};
+	
+	//auto npath = termbuilder.buildTerm (SMTLib::Ops::Or,{lstate_.getPathformula (), rstate_.getPathformula ()});
+	//return std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(values),std::move(memory),std::move(npath),*context);
+	return nullptr;
       }
       
       MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
@@ -94,23 +96,23 @@ namespace MiniMC {
 	auto& termbuilder = context->getBuilder ();
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getValues (),termbuilder};
-	
+	MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getStack().back().values,termbuilder};
+	StackControl stackcontrol{nstate.getStack (),*e->getProgram (),*context};
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 
 	  
 	  
-	  decltype(engine)::State newvm {nlookup,nstate.getMemory (),control};
-	  decltype(engine)::ConstState convm {nlookup,nstate.getMemory (),control};
+	  decltype(engine)::State newvm {nlookup,nstate.getMemory (),control,stackcontrol};
+	  decltype(engine)::ConstState convm {nlookup,nstate.getMemory (),control,stackcontrol};
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
 	  if (!instr.isPhi ()) {
 	    status = engine.execute(instr,newvm,convm);
 	    
 	  }
 	  else{
-	    MiniMC::VMT::Pathformula::ValueLookup olookup {const_cast<State&> (ostate).getValues (),termbuilder};
-	
-	    decltype(engine)::ConstState oldvm {olookup,const_cast<State&> (ostate).getMemory (),control};
+	    MiniMC::VMT::Pathformula::ValueLookup olookup {const_cast<State&> (ostate).getStack().back().values,termbuilder};
+	    
+	    decltype(engine)::ConstState oldvm {olookup,const_cast<State&> (ostate).getMemory (),control,stackcontrol};
 	    status = engine.execute(instr,newvm,oldvm);
 	    
 	  }

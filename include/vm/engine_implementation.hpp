@@ -138,8 +138,7 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
           auto value = readState.getValueLookup().lookupValue(content.storee);
-	  std::cerr << readState.getValueLookup().lookupValue(content.addr) << std::endl;
-	  auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
+          auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
           switch (content.storee->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::Pointer:
               writeState.getMemory().storeValue(addr, value.template as<typename T::Pointer>());
@@ -373,12 +372,38 @@ namespace MiniMC {
           return Status::Ok;
         }
 
+        else if constexpr (op == MiniMC::Model::InstructionCode::Call) {
+          auto& scontrol = writeState.getStackControl();
+	  assert(content.function->isConstant());
+	  
+	  auto func = std::static_pointer_cast<MiniMC::Model::Pointer> (content.function)->getValue ();
+          std::vector<T> params;
+          auto inserter = std::back_inserter(params);
+          std::for_each(content.params.begin(), content.params.end(), [&inserter, &readState](auto& v) { inserter = readState.getValueLookup().lookupValue(v); });
+
+          auto res = content.res;
+          scontrol.push(func, params, res);
+          return Status::Ok;
+        }
+
+        else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
+          auto ret = readState.getValueLookup().lookupValue(content.value);
+          writeState.getStackControl().pop(std::move(ret));
+          return Status::Ok;
+        }
+
+        else if constexpr (op == MiniMC::Model::InstructionCode::RetVoid) {
+          writeState.getStackControl().popNoReturn();
+          return Status::Ok;
+        }
+
         else if constexpr (op == MiniMC::Model::InstructionCode::Skip) {
           return Status::Ok;
         } else {
           throw NotImplemented<op>();
         }
       }
+
       template <MiniMC::Model::InstructionCode op, class T, class Caster>
       inline Status runInstruction(const MiniMC::Model::Instruction&, VMState<T>&, VMState<T, true>&, Caster&) requires MiniMC::Model::InstructionData<op>::isPredicate {
         throw NotImplemented<op>();
@@ -483,8 +508,7 @@ namespace MiniMC {
       auto end = instr.end();
       Status status = Status::Ok;
       for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
-	std::cerr << *it << std::endl;
-	switch (it->getOpcode()) {
+        switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
     status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, readstate, operations, caster); \

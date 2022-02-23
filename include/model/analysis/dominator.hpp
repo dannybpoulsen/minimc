@@ -36,7 +36,7 @@ namespace MiniMC {
         mutable std::unordered_map<const T*, std::set<T_ptr>> dominator_map;
       };
 
-      DominatorInfo<MiniMC::Model::Location> calculateDominators(const MiniMC::Model::CFG_ptr& cfg);
+      DominatorInfo<MiniMC::Model::Location> calculateDominators(const MiniMC::Model::CFA_ptr& cfg);
 
     } // namespace Analysis
   }   // namespace Model

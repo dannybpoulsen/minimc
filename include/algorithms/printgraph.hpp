@@ -28,15 +28,10 @@ namespace MiniMC {
 
       PrintCPA(const Options& opt) : messager(MiniMC::Support::getMessager()) {
         if (opt.filterSatis)
-          pwopt.filter = [](const MiniMC::CPA::State_ptr& s) { return s->getConcretizer()->isFeasible() == MiniMC::CPA::Concretizer::Feasibility::Feasible; };
-        if (!opt.delayTillConverge)
-          pwopt.delay = [](const MiniMC::CPA::State_ptr&) { return false; };
+          pwopt.filter = [](const MiniMC::CPA::State_ptr& s) { return s->getConcretizer()->isFeasible() == MiniMC::CPA::Solver::Feasibility::Feasible; };
         cpa = std::make_shared<MiniMC::CPA::ARG::CPA>(opt.cpa);
       }
       virtual Result run(const MiniMC::Model::Program& prgm) {
-        if (!cpa->makeValidate()->validate(prgm, messager)) {
-          return Result::Error;
-        }
         messager.message("Running PrintCPA");
         aresult.graph = MiniMC::Support::CreateGraph<MiniMC::Support::GraphType::DOT>("CPA");
 

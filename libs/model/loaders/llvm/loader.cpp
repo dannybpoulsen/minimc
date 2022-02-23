@@ -480,7 +480,7 @@ namespace MiniMC {
         return llvm::PreservedAnalyses::all();
       }
 
-      MiniMC::Model::Location_ptr buildPhiEdge(llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFG& cfg, Types& tt, std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr>& locmap, MiniMC::Model::LocationInfoCreator& locinfoc) {
+      MiniMC::Model::Location_ptr buildPhiEdge(llvm::BasicBlock* from, llvm::BasicBlock* to, MiniMC::Model::CFA& cfg, Types& tt, std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr>& locmap, MiniMC::Model::LocationInfoCreator& locinfoc) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 
         std::vector<MiniMC::Model::Instruction> insts;

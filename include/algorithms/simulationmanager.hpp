@@ -32,7 +32,6 @@ namespace MiniMC {
 
     struct SearchOptions {
       FilterFunction filter = [](const MiniMC::CPA::State_ptr&) { return true; };
-      DelaySearchPredicate delay = [](const MiniMC::CPA::State_ptr& s) { return !s->ready2explore(); };
       GoalFunction goal = [](const MiniMC::CPA::State_ptr&) { return false; };
     };
 
@@ -119,19 +118,14 @@ namespace MiniMC {
        *
        * @param ptr State to insert
        */
-      MiniMC::CPA::State_ptr _insert(gsl::not_null<MiniMC::CPA::State_ptr> ptr, const SearchOptions& soptions) {
+      MiniMC::CPA::State_ptr _insert(gsl::not_null<MiniMC::CPA::State_ptr> ptr, const SearchOptions&) {
         auto insert = [&](const MiniMC::CPA::State_ptr& inst) -> MiniMC::CPA::State_ptr {
-          if (soptions.delay(inst))
-            return nullptr;
-          else {
-            waiting.push_front(inst);
-            passed++;
-            return inst;
-          }
+	  waiting.push_front(inst);
+	  passed++;
+	  return inst;
         };
 
         auto repl_or_insert = [&](const typename MiniMC::CPA::IStorer::JoinPair& p) {
-          if (!soptions.delay(p.orig)) {
             auto it = waiting.begin();
             auto end = waiting.end();
             auto ff = std::find(it, end, p.orig);
@@ -142,10 +136,7 @@ namespace MiniMC {
               passed++;
             }
             return p.joined;
-
-          } else {
-            return insert(p.joined);
-          }
+	    
         };
 
         if (doStore(ptr)) {
