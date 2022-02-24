@@ -1,0 +1,27 @@
+name: C/C++ CI
+
+on: push
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    container: palanthal/minimc-build
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - name: BuildDep
+      run: mkdir /usr/lib/x86_64-linux-gnu/ && ln -s /usr/lib/libncurses.so /usr/lib/x86_64-linux-gnu/libtinfo.so
+    - name: Setup
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+    - name: build
+      run: cd build && make -j6
+    - name: test
+      run: cd build && ctest --output-on-failue
+    - name: package
+      run: cd build && make package
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build 
+        path: build/*.zip 

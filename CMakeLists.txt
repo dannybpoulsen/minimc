@@ -11,7 +11,6 @@ add_compile_options(-Wall -Wextra -Wpedantic)
 SET (ToolName minimc)
 SET (VERSION_MAJOR 0)
 SET (VERSION_MINOR "1")
-
 execute_process(COMMAND
   git describe --always --dirty
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -27,7 +26,7 @@ SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
+add_subdirectory (dependencies)
 
 add_subdirectory (external)
 add_subdirectory (libs)
