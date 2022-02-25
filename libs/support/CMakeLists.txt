@@ -1,11 +1,10 @@
 Find_Package (CGraph)
 
-option (BIG_ENDIAN "Use Big endian encoding")
 
 add_library (support STATIC  dotgraph.cpp base64encode.cpp feedback.cpp timing.cpp)
 
 if(ENABLE_SYMBOLIC)
-target_sources (support PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/smt.cpp) 
+target_sources (support PRIVATE smt.cpp) 
 target_link_libraries (support PUBLIC smtlib)
 endif (ENABLE_SYMBOLIC)
 
@@ -27,6 +26,3 @@ configure_file (
 target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
 
 target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} base64)
-if(BIG_ENDIAN)
-    target_compile_options (support PUBLIC -DMINIMC_USE_BIG_ENDIAN)
-endif(BIG_ENDIAN)

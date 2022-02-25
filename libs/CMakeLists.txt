@@ -10,7 +10,7 @@ add_subdirectory (util)
 add_subdirectory (vm)
 
 
-add_library (minimclib SHARED)
+add_library (minimclib SHARED dummy.cpp)
 target_link_libraries (minimclib PUBLIC model)
 target_link_libraries (minimclib PUBLIC support)
 target_link_libraries (minimclib PUBLIC hash)

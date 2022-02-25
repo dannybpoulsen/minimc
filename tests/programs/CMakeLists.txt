@@ -1,4 +1,4 @@
-find_program(CLANG clang )
+find_program(CLANG clang)
 
 if (CLANG)
 
