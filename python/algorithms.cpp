@@ -18,7 +18,6 @@ void addAlgorithmsModule (py::module& m) {
   py::class_<MiniMC::Algorithms::SearchOptions> (submodule,"SearchOptions")
     .def(py::init<> ())
     .def_readwrite ("filter",&MiniMC::Algorithms::SearchOptions::filter)
-    .def_readwrite ("delay",&MiniMC::Algorithms::SearchOptions::delay)
     .def_readwrite ("goal",&MiniMC::Algorithms::SearchOptions::goal);
 
   py::class_<MiniMC::Algorithms::SimulationManager> (submodule,"SimulationManager")

@@ -30,42 +30,18 @@ void addModelModule (py::module& m) {
   py::class_<MiniMC::Model::Constant,std::shared_ptr<MiniMC::Model::Constant> > constant (submodule,"Constant",value);
   constant
     .def_property ("isInteger",&MiniMC::Model::Constant::isInteger,nullptr)
-    .def_property ("isBinaryBlob",&MiniMC::Model::Constant::isBinaryBlobConstant,nullptr);
+    .def_property ("isAggregate",&MiniMC::Model::Constant::isAggregate,nullptr);
   
 
-  py::class_<MiniMC::Model::TConstant<MiniMC::uint64_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint64_t>> >  (submodule,"IntConstant64",constant)
-    .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint64_t>::getValue,nullptr )
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint64_t>> ptr) {
-      return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
-      
-    });
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint64_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint64_t>> >  (submodule,"IntConstant64",constant);
   
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint32_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint32_t>> >  (submodule,"IntConstant32",constant);
   
-  py::class_<MiniMC::Model::TConstant<MiniMC::uint32_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint32_t>> >  (submodule,"IntConstant32",constant)
-  .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint32_t>::getValue,nullptr )
-  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint32_t>> ptr) {
-    return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
-      
-    });
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint16_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint16_t>> >  (submodule,"IntConstant16",constant);
   
-  py::class_<MiniMC::Model::TConstant<MiniMC::uint16_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint16_t>> >  (submodule,"IntConstant16",constant)
-  .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint16_t>::getValue,nullptr )
-  .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint16_t>> ptr) {
-    return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
-      
-  });
-  
-  py::class_<MiniMC::Model::TConstant<MiniMC::uint8_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint8_t>> >  (submodule,"IntConstant8",constant)
-    .def_property ("int",&MiniMC::Model::TConstant<MiniMC::uint8_t>::getValue,nullptr )
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint8_t>> ptr) {
-      return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
-      
-  });
-
-  py::class_<MiniMC::Model::AggregateConstant,std::shared_ptr<MiniMC::Model::AggregateConstant> >  (submodule,"BinaryBlob",constant)
-    .def ("__bytes__",[](std::shared_ptr<MiniMC::Model::AggregateConstant> ptr) {
-      return py::bytes ( reinterpret_cast<const char*> (ptr->getData()),ptr->getSize ());
-    });
+  py::class_<MiniMC::Model::TConstant<MiniMC::uint8_t>,std::shared_ptr<MiniMC::Model::TConstant<MiniMC::uint8_t>> >  (submodule,"IntConstant8",constant),
+    
+    py::class_<MiniMC::Model::AggregateConstant,std::shared_ptr<MiniMC::Model::AggregateConstant> >  (submodule,"BinaryBlob",constant);
   
   py::class_<MiniMC::Model::VariableStackDescr,MiniMC::Model::VariableStackDescr_ptr> (submodule,"VariableStack")
     .def (py::init<const std::string> ())
@@ -143,20 +119,20 @@ void addModelModule (py::module& m) {
     });
     ;
 
-  py::class_<MiniMC::Model::CFG,MiniMC::Model::CFG_ptr> (submodule,"CFg")
-    .def ("makeEdge",&MiniMC::Model::CFG::makeEdge)
+  py::class_<MiniMC::Model::CFA,MiniMC::Model::CFA_ptr> (submodule,"CFA")
+    .def ("makeEdge",&MiniMC::Model::CFA::makeEdge)
     .def_property ("initialLocation",
-		   [] (MiniMC::Model::CFG_ptr& ptr) {return ptr->getInitialLocation ().get();},
-		   &MiniMC::Model::CFG::setInitial)
-    .def ("deleteEdge", &MiniMC::Model::CFG::deleteEdge)
-    .def ("deleteLocation",&MiniMC::Model::CFG::deleteLocation)
+		   [] (MiniMC::Model::CFA_ptr& ptr) {return ptr->getInitialLocation ().get();},
+		   &MiniMC::Model::CFA::setInitial)
+    .def ("deleteEdge", &MiniMC::Model::CFA::deleteEdge)
+    .def ("deleteLocation",&MiniMC::Model::CFA::deleteLocation)
     .def ("locations",
-		   [](const MiniMC::Model::CFG_ptr& ptr){
+		   [](const MiniMC::Model::CFA_ptr& ptr){
 		     return py::make_iterator (ptr->getLocations ().begin(),ptr->getLocations().end());},
 		   py::keep_alive<0,1> ()
       )  
     .def ("edges",
-		   [](const MiniMC::Model::CFG_ptr& ptr){
+		   [](const MiniMC::Model::CFA_ptr& ptr){
 		     return py::make_iterator (ptr->getEdges ().begin(),ptr->getEdges().end());},
 		   py::keep_alive<0,1> ()
 		   )

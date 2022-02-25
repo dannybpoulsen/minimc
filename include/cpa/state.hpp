@@ -53,6 +53,7 @@ namespace MiniMC {
       std::size_t size;
       T val;
     };
+    
     using ByteVectorExpr_ptr  = std::unique_ptr<ByteVectorExpr>;
     
     class CanntEvaluateException : public MiniMC::Support::VerificationException {
