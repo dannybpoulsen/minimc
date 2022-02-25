@@ -11,6 +11,9 @@ namespace MiniMC {
       public:
         SMTFactoryL(SMTLib::SMTBackendRegistrar* r) : r(r) {}
         virtual SMTLib::Context_ptr construct() {
+	  if (!r) {
+	    throw MiniMC::Support::ConfigurationException ("No SMT Solver available");
+	  }
           return r->getFunction()();
         }
 

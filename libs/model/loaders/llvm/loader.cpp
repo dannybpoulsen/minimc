@@ -275,7 +275,6 @@ namespace MiniMC {
           llvm::BasicBlock::iterator BE = BB.end();
           while (BI != BE) {
             auto& I = *BI++;
-            //WOrking here
             if (I.getOpcode() == llvm::Instruction::GetElementPtr) {
               llvm::GetElementPtrInst* inst = llvm::dyn_cast<llvm::GetElementPtrInst>(&I);
               llvm::Value* indexList[1] = {inst->getOperand(1)};
@@ -348,7 +347,7 @@ namespace MiniMC {
           MiniMC::Model::InstructionStream str(instr);
           prgm->setInitialiser(str);
         }
-
+	
         return llvm::PreservedAnalyses::all();
       }
 
@@ -373,10 +372,10 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         MiniMC::Model::LocationInfoCreator locinfoc(fname);
         auto cfg = prgm->makeCFG();
-        std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
+        std::vector<MiniMC::Model::Variable_ptr> params;
         auto variablestack = prgm->makeVariableStack(fname);
         tt.stack = variablestack;
-        using inserter = std::back_insert_iterator<std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
+        using inserter = std::back_insert_iterator<std::vector<MiniMC::Model::Variable_ptr>>;
         pickVariables<inserter>(F, variablestack, std::back_inserter(params));
         auto f = prgm->addFunction(F.getName().str(), params, tt.getType(F.getReturnType()), variablestack, cfg);
         std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr> locmap;

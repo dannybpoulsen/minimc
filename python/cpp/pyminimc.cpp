@@ -12,7 +12,7 @@ void addAlgorithmsModule (py::module& m);
 
 
 
-PYBIND11_MODULE(pyminimc, minimc) {
+PYBIND11_MODULE(minimc, minimc) {
   addModelModule (minimc);
   addLoaderModule (minimc);
   addCPAModule (minimc);

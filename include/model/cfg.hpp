@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <gsl/pointers>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -46,7 +45,7 @@ namespace MiniMC {
       void setFunction(const Function_ptr& func) { function = func; }
 
     public:
-      gsl::not_null<Location_ptr> makeLocation(const LocationInfo& info) {
+      Location_ptr makeLocation(const LocationInfo& info) {
         locations.emplace_back(new Location(info, locations.size(), this->shared_from_this()));
         return locations.back();
       }
@@ -59,20 +58,20 @@ namespace MiniMC {
 	   *
 	   * @return 
 	   */
-      gsl::not_null<Edge_ptr> makeEdge(gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to) {
+      Edge_ptr makeEdge(Location_ptr from, Location_ptr to) {
         edges.emplace_back(new Edge(from, to, prgm));
         to->addIncomingEdge(edges.back());
         from->addEdge(edges.back());
         return edges.back();
       }
 
-      gsl::not_null<Location_ptr> getInitialLocation() {
+      Location_ptr getInitialLocation() {
         assert(initial);
         return initial;
       }
 
-      void setInitial(gsl::not_null<Location_ptr> loc) {
-        initial = loc.get();
+      void setInitial(Location_ptr loc) {
+        initial = loc;
       }
 
       /** 
@@ -99,9 +98,6 @@ namespace MiniMC {
 
         std::for_each(wlist.begin(), wlist.end(), [&](const auto& e) { this->deleteEdge(e); });
 
-        //edge->getFrom ()->removeEdge (edge);
-        //edge->getTo ()->removeIncomingEdge (edge);
-
         auto it = std::find(locations.begin(), locations.end(), location);
         if (it != locations.end()) {
           locations.erase(it);
@@ -112,20 +108,11 @@ namespace MiniMC {
       auto& getLocations() { return locations; }
       auto& getEdges() { return edges; }
 
-      //Check if locations and edges are consistent
-      bool isIncomingOutgoingConsistent() const {
-        for (auto& e : edges) {
-          if (!e->getTo()->isIncoming(e) || !e->getFrom()->isOutgoing(e)) {
-            return false;
-          }
-        }
-        return true;
-      }
-
+  
       Function_ptr getFunction() const {
         return function.lock();
       }
-
+      
     private:
       std::vector<Location_ptr> locations;
       std::vector<Edge_ptr> edges;
@@ -140,10 +127,10 @@ namespace MiniMC {
     public:
       Function(MiniMC::func_t id,
                const std::string& name,
-               const std::vector<gsl::not_null<Variable_ptr>>& params,
-               const gsl::not_null<Type_ptr> rtype,
+               const std::vector<Variable_ptr>& params,
+               const Type_ptr rtype,
                const VariableStackDescr_ptr& variableStackDescr,
-               const gsl::not_null<CFA_ptr> cfg,
+               const CFA_ptr cfg,
                const Program_ptr& prgm) : name(name),
                                           parameters(params),
                                           variableStackDescr(variableStackDescr),
@@ -162,13 +149,13 @@ namespace MiniMC {
       auto& getCFG() const { return cfg; }
       auto& getID() const { return id; }
       auto& getReturnType() { return retType; }
-      gsl::not_null<Program_ptr> getPrgm() const { return prgm.lock(); }
+      Program_ptr getPrgm() const { return prgm.lock(); }
 
     private:
       std::string name;
-      std::vector<gsl::not_null<Variable_ptr>> parameters;
+      std::vector<Variable_ptr> parameters;
       VariableStackDescr_ptr variableStackDescr;
-      gsl::not_null<CFA_ptr> cfg;
+      CFA_ptr cfg;
       MiniMC::func_t id;
       Program_wptr prgm;
       Type_ptr retType;
@@ -180,23 +167,23 @@ namespace MiniMC {
               const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact), tfact(tfact) {
       }
 
-      gsl::not_null<Function_ptr> addFunction(const std::string& name,
-                                              const std::vector<gsl::not_null<Variable_ptr>>& params,
-                                              const gsl::not_null<Type_ptr> retType,
-                                              const VariableStackDescr_ptr& variableStackDescr,
-                                              const gsl::not_null<CFA_ptr> cfg) {
+      Function_ptr addFunction(const std::string& name,
+			       const std::vector<Variable_ptr>& params,
+			       const Type_ptr retType,
+			       const VariableStackDescr_ptr& variableStackDescr,
+			       const CFA_ptr cfg) {
         functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, variableStackDescr, cfg, shared_from_this()));
         function_map.insert(std::make_pair(name, functions.back()));
         cfg->setFunction(functions.back());
         return functions.back();
       }
-
-      gsl::not_null<CFA_ptr> makeCFG() {
+      
+      CFA_ptr makeCFG() {
         return std::shared_ptr<CFA>(new CFA(this->shared_from_this()));
       }
-
+      
       auto& getFunctions() const { return functions; }
-
+      
       void addEntryPoint(const std::string& str) {
         auto function = getFunction(str);
         entrypoints.push_back(function);
@@ -206,7 +193,7 @@ namespace MiniMC {
         return functions.at(id);
       }
 
-      gsl::not_null<Function_ptr> getFunction(const std::string& name) {
+      Function_ptr getFunction(const std::string& name) {
         if (function_map.count(name)) {
           return function_map.at(name);
         }
@@ -221,13 +208,13 @@ namespace MiniMC {
       auto& getEntryPoints() const { return entrypoints; }
 
       bool hasEntryPoints() const { return entrypoints.size(); }
-      gsl::not_null<VariableStackDescr_ptr> makeVariableStack(const std::string& name) {
+      VariableStackDescr_ptr makeVariableStack(const std::string& name) {
         return std::make_shared<VariableStackDescr>(name);
       }
 
       auto& getConstantFactory() { return cfact; }
       auto& getTypeFactory() { return tfact; }
-
+      
       const auto& getInitialisation() const { return initialiser; }
       void setInitialiser(const InstructionStream& instr) { initialiser = instr; }
 
@@ -237,7 +224,6 @@ namespace MiniMC {
     private:
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
-      std::size_t stacks = 0;
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
       InstructionStream initialiser;
@@ -245,7 +231,7 @@ namespace MiniMC {
       HeapLayout heaplayout;
     };
 
-    gsl::not_null<Function_ptr> createEntryPoint(Program_ptr& program, gsl::not_null<Function_ptr> function);
+    Function_ptr createEntryPoint(Program_ptr& program, Function_ptr function);
   } // namespace Model
 } // namespace MiniMC
 

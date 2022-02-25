@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.13)
 project(minimc)	
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
 set (CMAKE_CXX_STANDARD 20)
 
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
 option (ENABLE_PYTHON "Enable Symbolic Representations" OFF)
-
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 SET (ToolName minimc)
@@ -17,15 +17,8 @@ execute_process(COMMAND
   OUTPUT_VARIABLE GIT_HASH
   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+include (package/rpath.cmake)
 
-# when building, don't use the install RPATH already
-# (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
-
-set(CMAKE_INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_subdirectory (dependencies)
 
 add_subdirectory (external)
@@ -37,4 +30,4 @@ add_subdirectory(tests)
 if(ENABLE_PYTHON)	
   add_subdirectory (python)
 endif()
-add_subdirectory(package)
+include(package/package.cmake)

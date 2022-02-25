@@ -1,4 +1,3 @@
-find_package(pybind11 REQUIRED)
 
 
 pybind11_add_module(pyminimc pyminimc.cpp model/model.cpp
@@ -8,9 +7,10 @@ pybind11_add_module(pyminimc pyminimc.cpp model/model.cpp
 					  algorithms.cpp
 )
 
+set_target_properties(pyminimc PROPERTIES OUTPUT_NAME minimc)
 
 target_link_libraries(pyminimc
-PRIVATE	
-    minimclib  
+	PUBLIC 
+minimclib  
 )
 

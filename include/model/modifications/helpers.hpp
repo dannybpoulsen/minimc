@@ -57,7 +57,7 @@ namespace MiniMC {
         MiniMC::Model::LocationInfoCreator linfo(pref);
         auto nloc = to->makeLocation(linfo.make(loc->getInfo()));
         inserter = std::make_pair(loc.get(), nloc);
-        linserter = nloc.get();
+        linserter = nloc;
       }
       template <class T>
       auto lookupValue(std::shared_ptr<T> v, const ReplaceMap<T>& map) {

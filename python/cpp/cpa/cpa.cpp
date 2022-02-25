@@ -29,18 +29,26 @@ void addCPAModule(py::module& m) {
   state
       .def("assertViolated", &MiniMC::CPA::State::assertViolated)
       .def("getConcretizer", &MiniMC::CPA::State::getConcretizer)
+      .def("symbEvaluate",&MiniMC::CPA::State::symbEvaluate)
       .def("__str__", [](const MiniMC::CPA::State_ptr& state) {
         std::stringstream str;
         state->output(str);
         return str.str();
       });
 
-  py::class_<MiniMC::CPA::Concretizer, MiniMC::CPA::Concretizer_ptr> concr(submodule, "Concretize");
-  concr
-      .def("evaluate", [](MiniMC::CPA::Concretizer_ptr& ptr, MiniMC::proc_t id, const MiniMC::Model::Variable_ptr& var) {
-        auto arr = ptr->evaluate(id, var);
-        return py::bytes(reinterpret_cast<const char*>(arr.get_direct_access()), arr.getSize());
-      });
+
+  py::class_<MiniMC::CPA::ByteVectorExpr, MiniMC::CPA::ByteVectorExpr_ptr> bytevec(submodule, "ByteVectorExpr");
+  bytevec
+    .def("size", &MiniMC::CPA::ByteVectorExpr::getSize)
+  .def("__str__", [](const MiniMC::CPA::ByteVectorExpr& bvec) {
+        std::stringstream str;
+        bvec.output(str);
+        return str.str();
+    });
+  
+    
+  py::class_<MiniMC::CPA::Solver, MiniMC::CPA::Solver_ptr> concr(submodule, "Solver");
+  
 
   py::class_<MiniMC::CPA::StateQuery, MiniMC::CPA::StateQuery_ptr>(submodule, "StateQuery")
       .def("makeInitialState", &MiniMC::CPA::StateQuery::makeInitialState);

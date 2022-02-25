@@ -256,7 +256,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, doOp<op, T>(op1.template as<typename T::I64>(), caster, res->getType()));
               break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalid Trunc/Extenstion");
           }
           return MiniMC::VMT::Status::Ok;
         }
@@ -277,7 +277,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, caster.template BoolSExt<8>(op1));
               break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalid Extenstion");
           }
         }
 
@@ -297,7 +297,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, caster.template BoolZExt<8>(op1));
               break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalid Extenstion");
           }
         }
 
@@ -325,7 +325,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, caster.IntToPtr(op1));
             } break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalied IntToPtr");
           }
         }
 
@@ -352,7 +352,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, caster.IntToBool(op1));
             } break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalied IntToBool");
           }
         }
 
@@ -433,7 +433,7 @@ namespace MiniMC {
             offset = std::static_pointer_cast<MiniMC::Model::I64Integer>(offset_constant)->getValue();
             break;
           default:
-            throw MiniMC::Support::Exception("Error");
+            throw MiniMC::Support::Exception("Invalid Conversion");
         }
 
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
@@ -463,7 +463,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value.template as<typename T::Aggregate>()));
               break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalid Insert");
           }
         }
 
@@ -492,7 +492,7 @@ namespace MiniMC {
               writeState.getValueLookup().saveValue(res, operations.ExtractAggregateValue(aggr, offset, res->getType()->getSize()));
               break;
             default:
-              throw MiniMC::Support::Exception("Error");
+              throw MiniMC::Support::Exception("Invalid Extract");
           }
         } else
           throw NotImplemented<op>();
@@ -508,7 +508,7 @@ namespace MiniMC {
       auto end = instr.end();
       Status status = Status::Ok;
       for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
-        switch (it->getOpcode()) {
+	switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
     status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, readstate, operations, caster); \
