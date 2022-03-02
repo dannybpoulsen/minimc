@@ -24,7 +24,7 @@ namespace MiniMC {
     public:
       virtual ~ValueLookup ()  {}
       virtual T lookupValue (const MiniMC::Model::Value_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void saveValue (const MiniMC::Model::Variable_ptr&, T&&) {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual void saveValue (const MiniMC::Model::Register_ptr&, T&&) {throw MiniMC::Support::Exception ("Not implemented");};
       virtual T unboundValue (const MiniMC::Model::Type_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
     };
 

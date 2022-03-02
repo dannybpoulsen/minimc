@@ -97,7 +97,7 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
 	MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getStack().back().values,termbuilder};
-	StackControl stackcontrol{nstate.getStack (),*e->getProgram (),*context};
+	StackControl stackcontrol{nstate.getStack (),e->getProgram (),*context};
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 
 	  

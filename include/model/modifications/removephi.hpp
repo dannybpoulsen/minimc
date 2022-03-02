@@ -19,7 +19,7 @@ namespace MiniMC {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 auto& instrstream = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 InstructionStream stream;
-                std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Variable_ptr> replacemap;
+                std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
                 if (instrstream.isPhi ()) {
                   for (auto& inst : instrstream) {
                     auto& content = inst.getOps<InstructionCode::Assign>();

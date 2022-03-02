@@ -52,7 +52,7 @@ namespace MiniMC {
 	ValueLookup (const ValueLookup&) = default;
         PathFormulaVMVal lookupValue (const MiniMC::Model::Value_ptr& ) const override;
 	
-        void saveValue(const MiniMC::Model::Variable_ptr& v, PathFormulaVMVal&& value) override {
+        void saveValue(const MiniMC::Model::Register_ptr& v, PathFormulaVMVal&& value) override {
 	  values.set(*v,std::move(value));
         }
         PathFormulaVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;

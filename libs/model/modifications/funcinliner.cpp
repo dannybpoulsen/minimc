@@ -21,7 +21,7 @@ namespace MiniMC {
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
+	auto cfunc = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) {
           for (auto& v : stack->getVariables()) {
@@ -35,7 +35,7 @@ namespace MiniMC {
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
-        copyCFG(cfunc->getCFG().get(), valmap, func->getCFG().get(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
+        copyCFG(cfunc->getCFG(), valmap, func->getCFG(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
           if (ne->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
@@ -62,7 +62,7 @@ namespace MiniMC {
           }
         }
 
-        edge->setTo(locmap.at(cfunc->getCFG()->getInitialLocation().get().get()));
+        edge->setTo(locmap.at(cfunc->getCFG()->getInitialLocation().get()));
 
         auto& parameters = cfunc->getParameters();
         auto it = parameters.begin();
@@ -73,7 +73,7 @@ namespace MiniMC {
         for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
           str.addInstruction<InstructionCode::Assign> (
-					 {.res = valmap.at(it->get().get()),
+					 {.res = valmap.at(it->get()),
 					  .op1 = call_content.params.at(i)});  
         }
         edge->delAttribute<MiniMC::Model::AttributeType::Instructions>();

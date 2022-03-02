@@ -13,7 +13,7 @@ namespace MiniMC {
       void unrollLoop(MiniMC::Model::CFA_ptr cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
-        auto deadLoc = cfg->makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc)).get();
+        auto deadLoc = cfg->makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc));
         deadLoc->getInfo().set<MiniMC::Model::Attributes::UnrollFailed>();
         //linserter =deadLoc;
         for (size_t i = 0; i < amount; i++) {
@@ -63,13 +63,13 @@ namespace MiniMC {
           auto parent = l->getParent();
           if (parent) {
             
-            unrollLoop(cfg, l, maxAmount, parent->body_insert(), *func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, parent->body_insert(), func->getPrgm());
             parent->finalise();
           } else {
             struct Dummy {
               void operator=(MiniMC::Model::Location_ptr) {}
             } dummy;
-            unrollLoop(cfg, l, maxAmount, dummy, *func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, dummy, func->getPrgm());
           }
         }
         return true;

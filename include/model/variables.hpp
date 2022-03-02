@@ -226,7 +226,7 @@ namespace MiniMC {
       VariableStackDescr* owner;
     };
 
-    using Variable_ptr = std::shared_ptr<Register>;
+    using Register_ptr = std::shared_ptr<Register>;
 
     /**
 	 * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not 
@@ -236,7 +236,7 @@ namespace MiniMC {
     class VariableStackDescr : public std::enable_shared_from_this<VariableStackDescr> {
     public:
       VariableStackDescr(const std::string& pref) : pref(pref) {}
-      Variable_ptr addVariable(const std::string& name, const Type_ptr& type);
+      Register_ptr addVariable(const std::string& name, const Type_ptr& type);
       auto& getVariables() const { return variables; }
 
       /** 
@@ -245,9 +245,9 @@ namespace MiniMC {
        */
       auto getTotalSize() const { return totalSize; }
       auto getTotalVariables() const { return variables.size(); }
-
+      auto getPref () const {return pref;}
     private:
-      std::vector<Variable_ptr> variables;
+      std::vector<Register_ptr> variables;
       std::size_t totalSize = 0;
       const std::string pref;
     };
@@ -281,11 +281,11 @@ namespace MiniMC {
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 
     struct VariablePtrIndexer {
-      std::size_t operator()(const Variable_ptr& t) { return t->getId(); }
+      std::size_t operator()(const Register_ptr& t) { return t->getId(); }
     };
 
     template <class T>
-    using VariableMap = MiniMC::Util::FixedVector<Variable_ptr, T, VariablePtrIndexer>;
+    using VariableMap = MiniMC::Util::FixedVector<Register_ptr, T, VariablePtrIndexer>;
     
   } // namespace Model
 } // namespace MiniMC

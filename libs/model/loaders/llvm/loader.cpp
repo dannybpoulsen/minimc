@@ -126,7 +126,7 @@ namespace MiniMC {
       }
     }
 
-    MiniMC::Model::Variable_ptr makeVariable(const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack, Val2ValMap& values) {
+    MiniMC::Model::Register_ptr makeVariable(const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr_ptr& stack, Val2ValMap& values) {
       if (!values.count(val)) {
         auto newVar = stack->addVariable(name, type);
         values[val] = newVar;
@@ -373,10 +373,10 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         MiniMC::Model::LocationInfoCreator locinfoc(fname);
         auto cfg = prgm->makeCFG();
-        std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>> params;
+        std::vector<MiniMC::Model::Register_ptr> params;
         auto variablestack = prgm->makeVariableStack(fname);
         tt.stack = variablestack;
-        using inserter = std::back_insert_iterator<std::vector<gsl::not_null<MiniMC::Model::Variable_ptr>>>;
+        using inserter = std::back_insert_iterator<std::vector<MiniMC::Model::Register_ptr>>;
         pickVariables<inserter>(F, variablestack, std::back_inserter(params));
         auto f = prgm->addFunction(F.getName().str(), params, tt.getType(F.getReturnType()), variablestack, cfg);
         std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr> locmap;

@@ -1,12 +1,11 @@
 #include "model/cfg.hpp"
 #include "model/instructions.hpp"
-#include <gsl/pointers>
 
 #include "support/localisation.hpp"
 
 namespace MiniMC {
   namespace Model {
-    gsl::not_null<Function_ptr> createEntryPoint(Program_ptr& program, gsl::not_null<Function_ptr> function) {
+    Function_ptr createEntryPoint(Program_ptr& program, Function_ptr function) {
       auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 
       static std::size_t nb = 0;

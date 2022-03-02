@@ -1,7 +1,7 @@
 Find_Package (CGraph)
 
 
-add_library (support STATIC  dotgraph.cpp base64encode.cpp feedback.cpp timing.cpp)
+add_library (support STATIC   base64encode.cpp feedback.cpp timing.cpp)
 
 if(ENABLE_SYMBOLIC)
 target_sources (support PRIVATE smt.cpp) 

@@ -6,7 +6,7 @@
 
 namespace MiniMC {
   namespace Model {
-    Variable_ptr VariableStackDescr::addVariable(const std::string& name, const Type_ptr& type) {
+    Register_ptr VariableStackDescr::addVariable(const std::string& name, const Type_ptr& type) {
       variables.push_back(std::make_shared<Register>(pref + ":" + name));
       variables.back()->setType(type);
       variables.back()->setOwner(this->shared_from_this());

@@ -114,7 +114,7 @@ namespace MiniMC {
 
 	auto& getPathformula () const  {return pathformula;}
 	
-	ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Variable_ptr& v) const override  {
+	ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Register_ptr& v) const override  {
 	  return std::make_unique<SymbolicByteVectorExpr> (getStack().back().values.get(*v),v->getType()->getSize ());
 	}
 

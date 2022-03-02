@@ -58,7 +58,7 @@ namespace MiniMC {
     
     class CanntEvaluateException : public MiniMC::Support::VerificationException {
     public:
-      CanntEvaluateException(const MiniMC::Model::Variable_ptr& var) : VerificationException(MiniMC::Support::Localiser("Cannot Evaluate '%1%' to a value").format(var->getName())) {}
+      CanntEvaluateException(const MiniMC::Model::Register_ptr& var) : VerificationException(MiniMC::Support::Localiser("Cannot Evaluate '%1%' to a value").format(var->getName())) {}
     };
     
     class Solver {
@@ -91,7 +91,7 @@ namespace MiniMC {
 
       
       
-      virtual ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Variable_ptr& v) const  {
+      virtual ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Register_ptr& v) const  {
 	return std::make_unique<ByteVectorExpr> ( v->getType ()->getSize ());
       }
       

@@ -144,7 +144,7 @@ namespace MiniMC {
 	  return copy;
         }
 
-	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Variable_ptr& val) const override {
+	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Register_ptr& val) const override {
 	  auto& lookup = proc_vars.at(id).back().values;
 	  return std::make_unique<ConcreteByteVectorExpr> (lookup.lookupValue(val),val->getType()->getSize ());
 	}
@@ -195,7 +195,7 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	StackControl scontrol {nstate.getProc (id),*e->getProgram ()};
+	StackControl scontrol {nstate.getProc (id),e->getProgram ()};
 
 	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 	  decltype(engine)::State newvm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};

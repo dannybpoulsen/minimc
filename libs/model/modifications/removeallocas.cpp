@@ -13,7 +13,7 @@ namespace MiniMC {
 		
 
             auto ninitloc = cfg->makeLocation(MiniMC::Model::LocationInfo("StackAlloc", 0, *source_loc));
-            auto oinitloc = cfg->getInitialLocation().get();
+            auto oinitloc = cfg->getInitialLocation();
             auto edge = cfg->makeEdge(ninitloc, oinitloc);
             edge->template setAttribute<AttributeType::Instructions>(stream);
             cfg->setInitial(ninitloc);

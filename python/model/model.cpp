@@ -24,7 +24,7 @@ void addModelModule (py::module& m) {
     .def_property ("isRegister",&MiniMC::Model::Value::isRegister,nullptr)
     .def_property ("isConstant",&MiniMC::Model::Value::isConstant,nullptr);
     
-  py::class_<MiniMC::Model::Register,MiniMC::Model::Variable_ptr> (submodule,"Variable",value)
+  py::class_<MiniMC::Model::Register,MiniMC::Model::Register_ptr> (submodule,"Variable",value)
     .def_property ("name",&MiniMC::Model::Register::getName,nullptr);
 
   py::class_<MiniMC::Model::Constant,std::shared_ptr<MiniMC::Model::Constant> > constant (submodule,"Constant",value);

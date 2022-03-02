@@ -17,16 +17,16 @@ namespace MiniMC {
       public:
         LocationDefs(std::size_t nbVars) : map(nbVars) {}
         auto& getLocation() const { return location; }
-        auto getDefsOfVariables(const MiniMC::Model::Variable_ptr& var) const {
+        auto getDefsOfVariables(const MiniMC::Model::Register_ptr& var) const {
           auto id = var->getId();
           return std::make_pair(map.at(id).begin(), map.at(id).end());
         }
 
-        auto nbDefsForVariable(const MiniMC::Model::Variable_ptr& var) const {
+        auto nbDefsForVariable(const MiniMC::Model::Register_ptr& var) const {
           return map.at(var->getId()).size();
         }
 
-        bool insert(const MiniMC::Model::Variable_ptr& var, MiniMC::Model::Instruction* instr) {
+        bool insert(const MiniMC::Model::Register_ptr& var, MiniMC::Model::Instruction* instr) {
           auto& set = map.at(var->getId());
           if (set.count(instr))
             return false;

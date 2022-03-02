@@ -9,7 +9,7 @@ namespace MiniMC {
   namespace Model {
     namespace Checkers {
       template <MiniMC::Model::InstructionCode i>
-      bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program_ptr& prgm) {
+      bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
         auto& content = inst.getOps<i>();
         if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
@@ -347,7 +347,6 @@ namespace MiniMC {
         }
 
         else if constexpr (i == InstructionCode::Call) {
-          //auto prgm = inst.getFunction()->getPrgm ();;
           auto func = content.function;
           if (!func->isConstant()) {
             MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
@@ -358,14 +357,14 @@ namespace MiniMC {
           else {
             auto constant = std::static_pointer_cast<MiniMC::Model::TConstant<pointer_t>>(func);
             auto ptr = (*constant).template getValue (); //MiniMC::Support::CastToPtr (constant->getValue());
-            bool is_func = prgm->functionExists(MiniMC::Support::getFunctionId(ptr));
+            bool is_func = prgm.functionExists(MiniMC::Support::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
             if (!is_func) {
               mess.error(function_not_exists.format(MiniMC::Support::getFunctionId(ptr)));
               return false;
             }
 
-            auto func = prgm->getFunction(MiniMC::Support::getFunctionId(ptr));
+            auto func = prgm.getFunction(MiniMC::Support::getFunctionId(ptr));
             if (func->getParameters().size() != content.params.size()) {
               mess.error("Inconsistent number of parameters between call and function prototype");
               return false;
@@ -528,7 +527,6 @@ namespace MiniMC {
 
       bool TypeChecker::run(MiniMC::Model::Program& prgm) {
         messager.message("Initiating Typechecking");
-        Program_ptr prgm_ptr = prgm.shared_from_this();
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           for (auto& E : F->getCFG()->getEdges()) {
@@ -538,7 +536,7 @@ namespace MiniMC {
                 switch (I.getOpcode()) {
 #define X(OP)                                                                                      \
   case MiniMC::Model::InstructionCode::OP:                                                         \
-    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I, messager, F->getReturnType(), prgm_ptr)) { \
+    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I, messager, F->getReturnType(), prgm)) { \
       res = false;                                                                                 \
     }                                                                                              \
     break;

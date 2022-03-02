@@ -51,7 +51,7 @@ namespace MiniMC {
 	ValueLookup (std::size_t i) : values(i) {}
 	ValueLookup (const ValueLookup&) = default;
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
-        void saveValue(const MiniMC::Model::Variable_ptr& v, ConcreteVMVal&& value) override {
+        void saveValue(const MiniMC::Model::Register_ptr& v, ConcreteVMVal&& value) override {
 	  values[v] = std::move(value);
         }
         ConcreteVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;

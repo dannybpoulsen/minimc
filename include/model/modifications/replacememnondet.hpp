@@ -24,7 +24,7 @@ namespace MiniMC {
        **/
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
-          auto prgm = F->getPrgm();
+          auto& prgm = F->getPrgm();
           for (auto& E : F->getCFG()->getEdges()) {
             if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
@@ -34,20 +34,20 @@ namespace MiniMC {
 		  MiniMC::Model::Value_ptr  min = nullptr, max = nullptr;;
                   switch (content.res->getType()->getSize()) {
                     case 1:
-                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), content.res->getType());
-		      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), content.res->getType());
+		      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), content.res->getType());
                       break;
                     case 2:
-                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), content.res->getType());
-                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), content.res->getType());
                       break;
                     case 4:
-                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), content.res->getType());
-                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), content.res->getType());
                       break;
                     case 8:
-                      min = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), content.res->getType());
-                      max = prgm->getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), content.res->getType());
                       break;
                     default:
                       MiniMC::Support::Exception("Shouldnøt get here");
@@ -160,7 +160,7 @@ namespace MiniMC {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           ExpandUndefValues{}.runFunction(F);
           EnsureEdgesOnlyHasOne<MiniMC::Model::InstructionCode::NonDet>{}.runFunction(F);
-          auto& prgm = *F->getPrgm();
+          auto& prgm = F->getPrgm();
           auto cfg = F->getCFG();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
