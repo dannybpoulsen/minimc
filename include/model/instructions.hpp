@@ -893,8 +893,8 @@ ASSUMEASSERTS
 	 */
     struct InstructionStream {
       using iterator = std::vector<Instruction>::iterator;
-      InstructionStream() : phi(false) {}
-      InstructionStream(bool isPhi) : phi(isPhi) {}
+      InstructionStream() : InstructionStream(false) {}
+      InstructionStream(bool isPhi) : instr({Instruction{InstructionCode::Skip,0}}),phi(isPhi) {}
       
       InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
                                                                                  phi(isPhi) {

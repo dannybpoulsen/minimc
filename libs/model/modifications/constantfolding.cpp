@@ -56,7 +56,7 @@ namespace MiniMC {
       }
 
       void foldConstants(Function& F) {
-        auto prgm = F.getPrgm();
+        auto& prgm = F.getPrgm();
         auto cfg = F.getCFG();
         for (auto& e : cfg->getEdges()) {
           if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
@@ -64,7 +64,7 @@ namespace MiniMC {
               switch (i.getOpcode()) {
 #define X(INSTR)                                                \
   case MiniMC::Model::InstructionCode::INSTR:                   \
-    foldInstr<MiniMC::Model::InstructionCode::INSTR>(i, *prgm); \
+    foldInstr<MiniMC::Model::InstructionCode::INSTR>(i, prgm); \
     break;
 
                 OPERATIONS

@@ -17,7 +17,7 @@ namespace MiniMC {
           assert(edge->getFrom().get() == from.getLocation());
           assert(edge->getTo().get() == to.getLocation());
           bool changed = false;
-          std::unordered_set<MiniMC::Model::Variable_ptr> varsDef;
+          std::unordered_set<MiniMC::Model::Register_ptr> varsDef;
 
           if (edge->template hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
             auto& instrs = edge->template getAttribute<MiniMC::Model::AttributeType::Instructions>();
@@ -26,7 +26,7 @@ namespace MiniMC {
               auto valueDefined = valueDefinedBy(*iit);
 
               if (valueDefined) {
-                MiniMC::Model::Variable_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Register>(valueDefined);
+                MiniMC::Model::Register_ptr varDefined = std::static_pointer_cast<MiniMC::Model::Register>(valueDefined);
                 if (varsDef.count(varDefined))
                   continue;
                 varsDef.insert(varDefined);

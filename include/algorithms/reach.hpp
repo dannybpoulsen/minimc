@@ -33,7 +33,7 @@ namespace MiniMC {
         MiniMC::Algorithms::FilterFunction filter = [](const MiniMC::CPA::State_ptr& state) {
           return state->getConcretizer()->isFeasible() == MiniMC::CPA::Solver::Feasibility::Feasible;
         };
-
+	
         MiniMC::CPA::CPA_ptr cpa = nullptr;
       };
       Reachability(const Options& opt) : messager(MiniMC::Support::getMessager()),
@@ -57,7 +57,7 @@ namespace MiniMC {
         foundState = simmanager.reachabilitySearch({.filter = filter,
                                                     .goal = predicate
 
-        });
+	  });
        
         messager.message("Finished Reachability");
         if (foundState) {

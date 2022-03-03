@@ -85,7 +85,7 @@ namespace MiniMC {
           return this->get(0)->nbOfProcesses();
         }
 
-	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Variable_ptr& v) const override  {
+	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Register_ptr& v) const override  {
 	  return this->get(1)->symbEvaluate (id,v);  
 	}
 	

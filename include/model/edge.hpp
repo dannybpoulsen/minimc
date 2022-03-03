@@ -68,12 +68,18 @@ namespace MiniMC {
     class EdgeAttributesMixin {
     public:
       using ValType = typename AttributeValueType<k>::ValType;
+      void setValue( ValType&& v) {
+        assert(!isSet());
+        val = std::move(v);
+        is_set = true;
+      }
+
       void setValue(const ValType& v) {
         assert(!isSet());
         val = v;
         is_set = true;
       }
-
+      
       auto& getValue() const { return val; }
       auto& getValue() { return val; }
 
@@ -94,18 +100,23 @@ namespace MiniMC {
                  private EdgeAttributesMixin<AttributeType::Guard>,
                  public std::enable_shared_from_this<Edge> {
     public:
-      Edge(gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, const Program_wptr& prgm) : from(from.get()),
-                                                                                                         to(to.get()),
-                                                                                                         prgm(prgm) {
+      Edge(gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, Program& prgm) : from(from.get()),
+												    to(to.get()),
+												    prgm(prgm) {
       }
 
       Edge(const Edge&) = default;
 
       template <AttributeType k>
+      void setAttribute(const typename AttributeValueType<k>::ValType&& inp) {
+        static_cast<EdgeAttributesMixin<k>*>(this)->setValue(std::move(inp));
+      }
+
+      template <AttributeType k>
       void setAttribute(const typename AttributeValueType<k>::ValType& inp) {
         static_cast<EdgeAttributesMixin<k>*>(this)->setValue(inp);
       }
-
+      
       template <AttributeType k>
       void delAttribute() {
         static_cast<EdgeAttributesMixin<k>*>(this)->unSet();
@@ -141,7 +152,7 @@ namespace MiniMC {
         t->addIncomingEdge(this->shared_from_this());
       }
 
-      auto getProgram() const { return prgm.lock(); }
+      auto& getProgram() const { return prgm; }
 
       //void setProgram (const Program_ptr& p) {prgm = p;}
 
@@ -159,7 +170,7 @@ namespace MiniMC {
       Location_wptr from;
       Location_wptr to;
       Value_ptr value;
-      Program_wptr prgm;
+      Program& prgm;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Edge& e) {

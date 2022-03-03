@@ -126,7 +126,7 @@ namespace MiniMC {
 	      if (content.function->isConstant()) {
                 auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(content.function);
                 pointer_t loadPtr = constant->getValue ();
-                auto func = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
+                auto func = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
                 nstate->pushLocation(id, func->getCFG()->getInitialLocation().get());
               } else
                 return nullptr;

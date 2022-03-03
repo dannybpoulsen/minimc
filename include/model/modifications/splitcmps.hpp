@@ -68,8 +68,8 @@ namespace MiniMC {
                   auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());
                 };
-                auto cfac = F->getPrgm()->getConstantFactory();
-                auto tfac = F->getPrgm()->getTypeFactory();
+                auto cfac = F->getPrgm().getConstantFactory();
+                auto tfac = F->getPrgm().getTypeFactory();
                 auto boolT = tfac->makeBoolType();
                 auto tt = cfac->makeIntegerConstant(1, boolT);
                 auto ff = cfac->makeIntegerConstant(0, boolT);

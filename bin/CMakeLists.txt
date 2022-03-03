@@ -6,6 +6,6 @@ if(ENABLE_SYMBOLIC)
 endif(ENABLE_SYMBOLIC)
 
 
-add_executable (minimc minimc.cpp enum.cpp pgraph.cpp smc.cpp mc.cpp plugin.cpp )
+add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp )
 
 target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})

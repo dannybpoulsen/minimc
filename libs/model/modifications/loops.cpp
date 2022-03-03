@@ -63,13 +63,13 @@ namespace MiniMC {
           auto parent = l->getParent();
           if (parent) {
             
-            unrollLoop(cfg, l, maxAmount, parent->body_insert(), *func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, parent->body_insert(), func->getPrgm());
             parent->finalise();
           } else {
             struct Dummy {
               void operator=(MiniMC::Model::Location_ptr) {}
             } dummy;
-            unrollLoop(cfg, l, maxAmount, dummy, *func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, dummy, func->getPrgm());
           }
         }
         return true;

@@ -21,7 +21,7 @@ namespace MiniMC {
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = edge->getProgram()->getFunction(MiniMC::Support::getFunctionId(loadPtr));
+	auto cfunc = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::VariableStackDescr_ptr& stack) {
           for (auto& v : stack->getVariables()) {
