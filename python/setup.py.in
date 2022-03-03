@@ -1,0 +1,7 @@
+from distutils.core import setup
+
+setup(name='minimc',
+      version='${PACKAGE_VERSION}',
+      package_dir={ 'minimc': '${CMAKE_CURRENT_SOURCE_DIR}/minimc' },
+      package_data={"minimc" : ["${CMAKE_CURRENT_BINARY_DIR}/minimc/*.so"] },
+      packages=['minimc'])
