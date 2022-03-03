@@ -165,7 +165,7 @@ namespace MiniMC {
 
     private:
       std::string name;
-      std::vector<gsl::not_null<Variable_ptr>> parameters;
+      std::vector<Register_ptr> parameters;
       VariableStackDescr_ptr variableStackDescr;
       CFA_ptr cfg;
       MiniMC::func_t id;
