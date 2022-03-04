@@ -246,7 +246,7 @@ namespace MiniMC {
       HeapLayout heaplayout;
     };
 
-    gsl::not_null<Function_ptr> createEntryPoint(Program_ptr& program, gsl::not_null<Function_ptr> function);
+    Function_ptr createEntryPoint(Program_ptr& program, Function_ptr function);
   } // namespace Model
 } // namespace MiniMC
 

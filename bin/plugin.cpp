@@ -22,6 +22,10 @@ subcommandfunc getCommand (const std::string& s) {
   return getMap().at(s)->getFunction ();
 }
 
+CommandRegistrar* getRegistrar (const std::string& s) {
+  return getMap().at(s);
+}
+
 options_func getOptionsFunc (const std::string& s) {
     return getMap().at(s)->getOptions ();
 	
@@ -31,7 +35,7 @@ options_func getOptionsFunc (const std::string& s) {
 std::unordered_map<std::string,std::string> getCommandNameAndDescr () {
   std::unordered_map<std::string,std::string>res;
   for (auto& it : getMap ()) {
-	res.insert (std::make_pair(it.first,it.second->getDescritpion ()));
+    res.insert (std::make_pair(it.first,it.second->getDescritpion ()));
   }
   return res;
 }

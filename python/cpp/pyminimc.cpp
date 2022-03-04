@@ -22,21 +22,7 @@ PYBIND11_MODULE(minimc, minimc) {
 
   py::class_<MiniMC::Support::SMT::SMTDescr>  (submodule,"SMTDescr")
     .def("name",&MiniMC::Support::SMT::SMTDescr::name)
-    .def("description",&MiniMC::Support::SMT::SMTDescr::descr)
-    .def("createSolver",[](MiniMC::Support::SMT::SMTDescr& descr) {
-      return MiniMC::Support::SMT::getSMTFactory (&descr);
-    }
-      );
-
-  py::class_<MiniMC::Support::SMT::SMTFactory,MiniMC::Support::SMT::SMTFactory_ptr> (submodule,"SMTFactory");
-  
-  
-  submodule.
-    def ("smtsolvers",[]() {
-      std::vector<MiniMC::Support::SMT::SMTDescr> res;
-      MiniMC::Support::SMT::getSMTBackends (std::back_inserter (res));
-      return res;
-    });
+    .def("description",&MiniMC::Support::SMT::SMTDescr::descr);
   
   
 }
