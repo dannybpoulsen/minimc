@@ -40,13 +40,12 @@ namespace MiniMC {
       };
 
       struct CPA : public ICPA {
-	CPA (const MiniMC::Support::SMT::SMTFactory_ptr& fact) : context(fact->construct ()) {}
+	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(context); }
 	Transferer_ptr makeTransfer() const { return std::make_shared<Transferer>(context); }
 	Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(context); }
 	Storer_ptr makeStore() const { return std::make_shared<Storer>(std::make_shared<Joiner>(context)); }
       private:
-	MiniMC::Support::SMT::SMTFactory_ptr factory;
 	SMTLib::Context_ptr context;
       };
 

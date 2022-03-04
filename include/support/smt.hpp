@@ -8,22 +8,18 @@
 namespace MiniMC {
   namespace Support {
     namespace SMT {
-      class SMTFactory {
-      public:
-        virtual SMTLib::Context_ptr construct() = 0;
-      };
-
-      using SMTFactory_ptr = std::shared_ptr<SMTFactory>;
 
       
       struct SMTDescr {
-        SMTDescr(SMTLib::SMTBackendRegistrar* r) : r(r) {}
-        virtual const std::string& name() { return r->getName(); }
-        virtual const std::string& descr() { return r->getDescritpion(); }
-        SMTLib::SMTBackendRegistrar* r;
+        SMTDescr(SMTLib::SMTBackendRegistrar* r = nullptr) : r(r) {}
+	SMTDescr (const SMTDescr&) = default;
+        std::string name(); 
+        std::string descr(); 
+	SMTLib::Context_ptr makeContext () const;
+      private:
+	SMTLib::SMTBackendRegistrar* r;
       };
 
-      SMTFactory_ptr getSMTFactory(const SMTDescr* descr);
       
       
       template <class Iterator>
@@ -32,9 +28,7 @@ namespace MiniMC {
           it = itt;
         }
       }
-
-      void setSMTSolver(const SMTDescr*);
-
+      
     } // namespace SMT
   }   // namespace Support
 

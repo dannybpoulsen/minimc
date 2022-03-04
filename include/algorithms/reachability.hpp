@@ -35,7 +35,7 @@ namespace MiniMC {
       MiniMC::Algorithms::Generator generator(transfer);
       while (passed.hasWaiting()) {
         auto cur = passed.pull();
-        if (predicate(cur)) {
+	if (predicate(cur)) {
           return cur;
         }
         insert = cur;

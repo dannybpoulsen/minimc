@@ -7,28 +7,17 @@ namespace MiniMC {
   namespace Support {
     namespace SMT {
 
-      class SMTFactoryL : public SMTFactory {
-      public:
-        SMTFactoryL(SMTLib::SMTBackendRegistrar* r) : r(r) {}
-        virtual SMTLib::Context_ptr construct() {
-	  if (!r) {
-	    throw MiniMC::Support::ConfigurationException ("No SMT Solver available");
-	  }
-          return r->getFunction()();
-        }
-
-      private:
-        SMTLib::SMTBackendRegistrar* r;
-      };
-
-      SMTLib::SMTBackendRegistrar* r = 0;
-
-      SMTFactory_ptr getSMTFactory(const SMTDescr* descr) {
-	assert(descr);
-	return std::make_shared<SMTFactoryL>(descr->r);
-	  
+      SMTLib::Context_ptr SMTDescr::makeContext() const {
+	if (r)
+	  return r->getFunction()();
+	else
+	  throw MiniMC::Support::ConfigurationException ("No SMT Solver selected");
       }
 
+      std::string SMTDescr::name () { return ( r != nullptr) ? r->getName() : "None"; }
+      std::string SMTDescr::descr () { return (r != nullptr) ? r->getDescritpion() : "No SMT Solver selected"; }
+      
+      
     } // namespace SMT
   }   // namespace Support
 } // namespace MiniMC
