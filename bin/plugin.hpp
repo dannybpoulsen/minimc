@@ -6,35 +6,27 @@
 #include <unordered_map>
 #include <boost/program_options.hpp>
 #include "loaders/loader.hpp"
+#include "model/controller.hpp"
 #include "algorithms/algorithm.hpp"
 #include "support/host.hpp"
 #include "cpa/interface.hpp"
+#include "options.hpp"
 
-
-using subcommandfunc= std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Program_ptr&,MiniMC::Algorithms::SetupOptions&)>;
-using options_func = std::function<void(boost::program_options::options_description&,MiniMC::Algorithms::SetupOptions&)>;
-
-enum class CPASelector {
-  Automatic,
-  Location,
-  LocationConcrete,
-  LocationPathformula
-};
-
-
-MiniMC::CPA::CPA_ptr createUserDefinedCPA (CPASelector defaultSelector);
+using subcommandfunc= std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::CPA_ptr&)>;
+using options_func = std::function<void(boost::program_options::options_description&)>;
 
 
 struct CommandRegistrar;
 void registerCommand (const std::string&, CommandRegistrar&);
 bool isCommand (const std::string&);
 subcommandfunc getCommand (const std::string&);
+CommandRegistrar* getRegistrar (const std::string& s);
 options_func getOptionsFunc (const std::string&);
 std::unordered_map<std::string,std::string> getCommandNameAndDescr ();
 
 struct CommandRegistrar {
   CommandRegistrar (const std::string& s,subcommandfunc func, const std::string& desc, options_func ofunc) : s(s),func(func),desc(desc),opt(ofunc) {
-	registerCommand (s,*this);
+    registerCommand (s,*this);
   }
   std::string getName () const {return s;}
   std::string getDescritpion () const { return desc;}

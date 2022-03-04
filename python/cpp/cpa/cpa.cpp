@@ -18,10 +18,7 @@ void addCPAModule(py::module& m) {
       .def("Location", []() { return MiniMC::CPA::CPA_ptr(new MiniMC::CPA::Location::CPA()); })
 
       .def("Concrete", []() { return MiniMC::CPA::CPA_ptr(new MiniMC::CPA::Compounds::CPA(std::initializer_list<MiniMC::CPA::CPA_ptr>({std::make_shared<MiniMC::CPA::Location::CPA>(),
-                                                                                                                                       std::make_shared<MiniMC::CPA::Concrete::CPA>()}))); })
-
-    .def("Pathformula", [](MiniMC::Support::SMT::SMTFactory_ptr& smtfact) { return MiniMC::CPA::CPA_ptr(new MiniMC::CPA::Compounds::CPA(std::initializer_list<MiniMC::CPA::CPA_ptr>({std::make_shared<MiniMC::CPA::Location::CPA>(),
-		std::make_shared<MiniMC::CPA::PathFormula::CPA>(smtfact)}))); });
+		  std::make_shared<MiniMC::CPA::Concrete::CPA>()}))); })
 
   ;
 

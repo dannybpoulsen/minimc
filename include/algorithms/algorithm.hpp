@@ -38,21 +38,7 @@
 
 namespace MiniMC {
   namespace Algorithms {
-    enum class Result {
-      Success = 0,
-      Error = 1
-    };
-
-    /**
-	   Algorithm 
-	*/
-    class Algorithm {
-    public:
-      Algorithm() {}
-      Algorithm(const Algorithm&) = default;
-      virtual Result run(const MiniMC::Model::Program& prgm) = 0;
-    };
-
+    
     /**  
 	 *	Possible State space reductions. MiniMC can reduce the stored
 	 *  state space by storing states that are in locations marked as
@@ -63,7 +49,7 @@ namespace MiniMC {
       Conservative, /**< Mark states that are part of a loop*/
       Extreme       /**< Mark no states - effectively meaning we store absolutely no states. */
     };
-
+    
     struct SetupOptions {
       SpaceReduction reduction;
       bool isConcurrent = false;
@@ -80,7 +66,7 @@ namespace MiniMC {
       std::size_t inlinefunctions = 0;
       std::size_t unrollLoops = 0;
     };
-
+    
     template <class W, class... Args>
     using BaseAWrapper = MiniMC::Support::SequenceWrapper<MiniMC::Model::Program, W, Args...>;
 
@@ -101,7 +87,7 @@ namespace MiniMC {
         seq.template add<MiniMC::Model::Modifications::RemoveMemNondet>();
       }
       seq.template add<MiniMC::Model::Modifications::SplitAsserts>();
-
+      
       if (options.inlinefunctions) {
         seq.template add<MiniMC::Model::Modifications::InlineFunctions, std::size_t>(options.inlinefunctions);
       }
