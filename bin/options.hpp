@@ -45,7 +45,8 @@ struct SetupOptions {
   
   MiniMC::CPA::CPA_ptr cpa;
   CommandRegistrar* command = nullptr;
-};
+  bool help;
+  };
 
 
 bool parseOptions(int argc, char* argv[],SetupOptions&);

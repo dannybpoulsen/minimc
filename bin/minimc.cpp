@@ -1,4 +1,3 @@
-#include "config.h"
 #include "loaders/loader.hpp"
 #include "model/controller.hpp"
 #include "plugin.hpp"
@@ -21,11 +20,6 @@
 
 namespace po = boost::program_options;
 
-void printBanner(std::ostream& os) {
-  os << MiniMC::Support::Version::TOOLNAME << " " << MiniMC::Support::Version::VERSION_MAJOR << "." << MiniMC::Support::Version::VERSION_MINOR << " (" << __DATE__ << ")" << std::endl;
-  os << "Revision: " << MiniMC::Support::Version::GIT_HASH << std::endl;
-  os << std::endl;
-}
 
 
 int main(int argc, char* argv[]) {
@@ -35,8 +29,9 @@ int main(int argc, char* argv[]) {
   MiniMC::Support::setMessager(MiniMC::Support::MessagerType::Terminal);
 
   SetupOptions options;
-  parseOptions(argc, argv, options);
+  bool ok = parseOptions(argc, argv, options);
 
+  if (ok) {
   // Load Program
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
@@ -75,5 +70,9 @@ int main(int argc, char* argv[]) {
   }
   catch (MiniMC::Support::ConfigurationException& e) {
     std::cerr << e.what () << std::endl;
+  }
+  }
+  else  {
+    
   }
 }

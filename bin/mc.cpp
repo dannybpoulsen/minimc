@@ -2,7 +2,7 @@
 
 
 #include "loaders/loader.hpp"
-#include "algorithms/simulationmanager.hpp"
+#include "algorithms/reachability/reachability.hpp"
 
 
 #include "plugin.hpp"
@@ -63,49 +63,43 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& prgm,const MiniMC
   
   auto& messager = MiniMC::Support::getMessager ();
   messager.message("Initiating Reachability");
-
+  
   auto query = cpa->makeQuery();
   auto transfer = cpa->makeTransfer();
+  auto joiner = cpa->makeJoin ();
   auto initstate = query->makeInitialState(*prgm.getProgram ());
 
   auto goal = [](const MiniMC::CPA::State_ptr& state) {
     return state->assertViolated();
   };
-
-  auto filter = [](const MiniMC::CPA::State_ptr& state) {
-    return state->getConcretizer()->isFeasible() == MiniMC::CPA::Solver::Feasibility::Feasible;
-  };
   
   
   
-  MiniMC::CPA::State_ptr foundState = nullptr;
-  MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
-      .storer = cpa->makeStore(),
-      .transfer = cpa->makeTransfer()});
-
-  simmanager.insert(initstate);
-  foundState = simmanager.reachabilitySearch({
-      .filter = filter,
-      .goal = goal
-      
-    });
+  MiniMC::Algorithms::Reachability::Reachability reach {transfer,joiner};
   
+  auto verdict = reach.search (initstate,goal);
   messager.message("Finished Reachability");
-  if (foundState) {
+  
+  
+  if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Found Violation").format ());
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Support::ExitCodes::AllGood;
     else
       return MiniMC::Support::ExitCodes::UnexpectedResult;
   }
-  else {
-    
+
+  if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("No violation found").format ());
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Support::ExitCodes::UnexpectedResult;
     else
       return MiniMC::Support::ExitCodes::AllGood;
   }
+  
+  
+  
+  return MiniMC::Support::ExitCodes::AllGood;
 }
 
 static CommandRegistrar mc_reg ("mc",mc_main,"Check whether it is possible to reach an assert violation. Classic reachability analysis. ",addOptions);

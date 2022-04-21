@@ -148,7 +148,7 @@ namespace MiniMC {
           }
         }
         saveState(state);
-        return {.orig = nullptr, .joined = nullptr};
+        return {.orig = nullptr, .joined = state};
       }
 
       /** 

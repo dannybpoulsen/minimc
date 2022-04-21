@@ -1,3 +1,4 @@
+#include "config.h"
 #include "options.hpp"
 #include "support/smt.hpp"
 #include "plugin.hpp"
@@ -7,11 +8,17 @@
 #endif
 #include "cpa/compound.hpp"
 
-
 #include <boost/program_options.hpp>
 
 
 namespace po = boost::program_options;
+
+void printBanner(std::ostream& os) {
+  os << MiniMC::Support::Version::TOOLNAME << " " << MiniMC::Support::Version::VERSION_MAJOR << "." << MiniMC::Support::Version::VERSION_MINOR << " (" << __DATE__ << ")" << std::endl;
+  os << "Revision: " << MiniMC::Support::Version::GIT_HASH << std::endl;
+  os << std::endl;
+}
+
 
 po::options_description modificationOptions (SetupOptions& options) {
   po::options_description general("Modifications Options");
@@ -154,18 +161,22 @@ void addCommandOptions (po::options_description& general) {
 
 bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   
+  bool help;
 
-  po::options_description general("MiniMC");
-  
+  po::options_description options("MiniMC");
+  po::options_description general("General");
   general.add_options ()
-    ("config", boost::program_options::value<std::string>(), "Read configuration from config file");
+    ("config", boost::program_options::value<std::string>(), "Read configuration from config file")
+    ("help", boost::program_options::bool_switch(&help), "Show help");
   general.add(modificationOptions (opt));
   general.add(loadOptions (opt));
   general.add(smtOptions (opt));
-  general.add(defOptions (opt));
   CPASel cpasel;
   general.add(cpaOptions (cpasel));
   addCommandOptions (general);
+
+  options.add(defOptions (opt));
+  options.add (general);
   
   po::positional_options_description pos;
   pos.add("inputfile", 1).add("command", 1);
@@ -186,12 +197,27 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
       po::notify(vm);
     }
 
+    if (help){
+      printBanner(std::cerr);
+      std::cerr << "Usage: " << MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" << std::endl;
+      std::cerr << general << std::endl;
+      std::cerr << "Subcommands" << std::endl;
+      auto comms = getCommandNameAndDescr();
+      for (auto& it : comms) {
+	std::cerr << it.first << "\t" << it.second << std::endl;
+      }
+      
+      return false;
+    }
+    
     opt.cpa = createUserDefinedCPA (cpasel,opt);
     
     return true;
     
   }
 
+  
+  
   catch (po::error& e) {
     std::cerr << e.what () << std::endl;
     return false;
