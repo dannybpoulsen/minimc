@@ -1,6 +1,5 @@
 #include <unordered_map>
 #include <boost/program_options.hpp>
-#include "algorithms/algorithm.hpp"
 
 #include "plugin.hpp"
 

@@ -21,11 +21,8 @@ namespace MiniMC {
 
     using FilterFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
     using GoalFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
-    using DelaySearchPredicate = std::function<bool(const MiniMC::CPA::State_ptr&)>;
-    using StoreStatePredicate = std::function<bool(const MiniMC::CPA::State_ptr&)>;
-
+    
     struct SimManagerOptions {
-      StoreStatePredicate storage = [](const MiniMC::CPA::State_ptr& s) { return s->need2Store(); };
       MiniMC::CPA::Storer_ptr storer;
       MiniMC::CPA::Transferer_ptr transfer;
     };
@@ -37,8 +34,7 @@ namespace MiniMC {
 
     class SimulationManager {
     public:
-      SimulationManager(SimManagerOptions opt) : doStore(opt.storage),
-                                                 storage(opt.storer),
+      SimulationManager(SimManagerOptions opt) : storage(opt.storer),
                                                  generator(opt.transfer) {}
       
       std::size_t getWSize() const { return waiting.size(); }
@@ -51,7 +47,7 @@ namespace MiniMC {
       auto waiting_end() { return waiting.end(); }
 
       void insert(gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
-        _insert(ptr, SearchOptions{});
+        _insert(ptr);
       }
 
       MiniMC::CPA::State_ptr step_first(const SearchOptions& sopt) {
@@ -72,18 +68,6 @@ namespace MiniMC {
         return nullptr;
       }
 
-      MiniMC::CPA::State_ptr step_all(const SearchOptions& sopt) {
-        std::list<MiniMC::CPA::State_ptr> list;
-        std::swap(list, waiting);
-        for (auto& s : list) {
-          auto res = _step(s, sopt);
-          if (res)
-            return res;
-        }
-
-        return nullptr;
-      }
-
       MiniMC::CPA::State_ptr reachabilitySearch(const SearchOptions& sopt) {
         while (waiting.size()) {
           auto res = step_first(sopt);
@@ -95,14 +79,14 @@ namespace MiniMC {
       }
 
     private:
-      MiniMC::CPA::State_ptr _step(gsl::not_null<MiniMC::CPA::State_ptr> ptr, const SearchOptions& soptions) {
+      MiniMC::CPA::State_ptr _step(MiniMC::CPA::State_ptr ptr, const SearchOptions& soptions) {
         auto succs = generator.generate(ptr);
         for (auto it = succs.first; it != succs.second; ++it) {
           if (soptions.filter(it->state)) {
             if (soptions.goal(it->state)) {
               return it->state;
             } else {
-              _insert(it->state, soptions);
+              _insert(it->state);
             }
           }
         }
@@ -118,7 +102,7 @@ namespace MiniMC {
        *
        * @param ptr State to insert
        */
-      MiniMC::CPA::State_ptr _insert(gsl::not_null<MiniMC::CPA::State_ptr> ptr, const SearchOptions&) {
+      MiniMC::CPA::State_ptr _insert(MiniMC::CPA::State_ptr ptr) {
         auto insert = [&](const MiniMC::CPA::State_ptr& inst) -> MiniMC::CPA::State_ptr {
 	  waiting.push_front(inst);
 	  passed++;
@@ -126,37 +110,34 @@ namespace MiniMC {
         };
 
         auto repl_or_insert = [&](const typename MiniMC::CPA::IStorer::JoinPair& p) {
-            auto it = waiting.begin();
-            auto end = waiting.end();
-            auto ff = std::find(it, end, p.orig);
-            if (ff != end)
-              *ff = p.joined;
-            else {
-              waiting.push_front(p.joined);
-              passed++;
-            }
-            return p.joined;
-	    
+	  auto it = waiting.begin();
+	  auto end = waiting.end();
+	  auto ff = std::find(it, end, p.orig);
+	  if (ff != end)
+	    *ff = p.joined;
+	  else {
+	    waiting.push_front(p.joined);
+	    passed++;
+	  }
+	  return p.joined;
+	  
         };
 
-        if (doStore(ptr)) {
-          auto cover = storage->isCoveredByStore(ptr.get());
-          if (cover) {
-            return cover;
-          }
-          auto join = storage->joinState(ptr.get());
-          if (join.orig) {
-            return repl_or_insert(join);
-          }
-        }
-        return insert(ptr);
+        auto cover = storage->isCoveredByStore(ptr);
+	if (cover) {
+	  return cover;
+	}
+	auto join = storage->joinState(ptr);
+	if (join.orig) {
+	  return repl_or_insert(join);
+	}
+      
+	return insert(ptr);
       }
-
+      
       std::list<MiniMC::CPA::State_ptr> waiting;
       std::size_t passed = 0;
       FilterFunction filter;
-      DelaySearchPredicate delay;
-      StoreStatePredicate doStore;
       MiniMC::CPA::Storer_ptr storage;
       MiniMC::Algorithms::Generator generator;
     };

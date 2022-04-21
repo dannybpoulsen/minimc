@@ -29,6 +29,7 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& prgm, const Min
       .storer = cpa->makeStore(),
       .transfer = cpa->makeTransfer()});
   simmanager.insert(initstate);
+
   simmanager.reachabilitySearch({
       .filter = [](const MiniMC::CPA::State_ptr& state) {
 	auto res = state->getConcretizer()->isFeasible();
@@ -37,7 +38,7 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& prgm, const Min
 	  ;
       }}
     );
-
+  
   messager.message("Finished EnumStates");
   messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(simmanager.getPSize()));
   

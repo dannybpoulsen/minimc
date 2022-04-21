@@ -7,7 +7,6 @@
 #include <boost/program_options.hpp>
 #include "loaders/loader.hpp"
 #include "model/controller.hpp"
-#include "algorithms/algorithm.hpp"
 #include "support/host.hpp"
 #include "cpa/interface.hpp"
 #include "options.hpp"

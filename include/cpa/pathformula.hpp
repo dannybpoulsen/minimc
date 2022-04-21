@@ -44,7 +44,7 @@ namespace MiniMC {
 	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(context); }
 	Transferer_ptr makeTransfer() const { return std::make_shared<Transferer>(context); }
 	Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(context); }
-	Storer_ptr makeStore() const { return std::make_shared<Storer>(std::make_shared<Joiner>(context)); }
+	Storer_ptr makeStore() const { return std::make_shared<Storer>(makeJoin ()); }
       private:
 	SMTLib::Context_ptr context;
       };

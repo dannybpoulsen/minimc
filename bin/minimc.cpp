@@ -1,4 +1,3 @@
-#include "algorithms/algorithm.hpp"
 #include "config.h"
 #include "loaders/loader.hpp"
 #include "model/controller.hpp"

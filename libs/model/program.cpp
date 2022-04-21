@@ -30,9 +30,7 @@ namespace MiniMC {
 	    return vars.getVariables ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
 	};
 	std::vector<Instruction> instrs;
-	std::cerr << "===" << std::endl;
 	for (auto& t : instr) {
-	  std::cerr << t << std::endl;
 	  std::back_inserter (instrs) = MiniMC::Model::copyInstructionWithReplace (t, replacer);
 	}
 	return {instrs, instr.isPhi ()};
