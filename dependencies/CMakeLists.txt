@@ -1,3 +1,5 @@
 add_subdirectory (llvm)
 add_subdirectory (xxhash)
+if (ENABLE_PYTHON)
 add_subdirectory (pybind11)
+endif()
