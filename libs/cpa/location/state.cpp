@@ -143,9 +143,9 @@ namespace MiniMC {
         return nullptr;
       }
 
-      State_ptr MiniMC::CPA::Location::StateQuery::makeInitialState(const MiniMC::Model::Program& p) {
+      State_ptr MiniMC::CPA::Location::StateQuery::makeInitialState(const InitialiseDescr& p) {
         std::vector<LocationState> locs;
-        for (auto& f : p.getEntryPoints()) {
+        for (auto& f : p.getEntries()) {
           locs.emplace_back();
           locs.back().push(f->getCFG()->getInitialLocation().get());
         }

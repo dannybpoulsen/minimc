@@ -184,7 +184,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   try {
     po::variables_map vm;
     po::parsed_options parsed = po::command_line_parser(argc, argv)
-      .options(general)
+      .options(options)
       .positional(pos)
       .run();
     
@@ -192,7 +192,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
     po::notify(vm);
 
     if (vm.count("config")) {
-      auto parsed = parse_config_file(vm["config"].as<std::string>().c_str(), general, true);
+      auto parsed = parse_config_file(vm["config"].as<std::string>().c_str(), options, true);
       po::store(parsed, vm);
       po::notify(vm);
     }

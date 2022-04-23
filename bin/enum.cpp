@@ -17,13 +17,14 @@ namespace {
   }
 }
 
-MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& prgm, const MiniMC::CPA::CPA_ptr& cpa)  {
+MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::CPA_ptr& cpa)  {
   auto& messager = MiniMC::Support::getMessager ();
   messager.message("Initiating EnumStates");
 
   auto progresser = messager.makeProgresser();
   auto query = cpa->makeQuery();
-  auto initstate = query->makeInitialState(*prgm.getProgram ());
+  auto prgm = *controller.getProgram ();
+  auto initstate = query->makeInitialState({prgm.getEntryPoints (), prgm.getHeapLayout ()});
   
   MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
       .storer = cpa->makeStore(),

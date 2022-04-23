@@ -16,7 +16,7 @@ namespace MiniMC {
   namespace CPA {
     namespace Location {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        State_ptr makeInitialState(const MiniMC::Model::Program&);
+        State_ptr makeInitialState(const InitialiseDescr&) override;
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
@@ -53,7 +53,7 @@ namespace MiniMC {
 
     namespace SingleLocation {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        State_ptr makeInitialState(const MiniMC::Model::Program&);
+        State_ptr makeInitialState(const InitialiseDescr&);
         size_t nbOfProcesses(const State_ptr&) { return 1; }
         MiniMC::Model::Location_ptr getLocation(const State_ptr&, proc_id);
       };

@@ -8,8 +8,8 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      State_ptr StateQuery::makeInitialState(const MiniMC::Model::Program& prgm) {
-	auto& entrypoints = prgm.getEntryPoints ();
+      State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
+	auto& entrypoints = descr.getEntries ();
 	assert(entrypoints.size () == 1);
 
 	auto& func = entrypoints[0];
@@ -26,7 +26,7 @@ namespace MiniMC {
 	}
 	
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
-	memory.createHeapLayout (prgm.getHeapLayout ());
+	memory.createHeapLayout (descr.getHeap ());
 	
 	
 	return  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values)},std::move(memory),std::move(term),*context);	
