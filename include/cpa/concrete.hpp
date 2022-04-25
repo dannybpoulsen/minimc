@@ -19,7 +19,8 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        MiniMC::CPA::State_ptr makeInitialState(const MiniMC::Model::Program&);
+	virtual State_ptr makeInitialState(const MiniMC::CPA::InitialiseDescr& ) override;
+	
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {

@@ -96,12 +96,12 @@ namespace MiniMC {
       
       struct StateQuery : public MiniMC::CPA::StateQuery {
         StateQuery(std::vector<MiniMC::CPA::StateQuery_ptr> pts) : states(pts) {}
-        State_ptr makeInitialState(const MiniMC::Model::Program& prgm) {
+        State_ptr makeInitialState(const InitialiseDescr& descr) {
           //std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
           //return std::make_shared<State<sizeof... (args)>> (init);
           std::vector<MiniMC::CPA::State_ptr> statees;
           auto inserter = std::back_inserter(statees);
-          std::for_each(states.begin(), states.end(), [&inserter, &prgm](auto& it) { inserter = (it->makeInitialState(prgm)); });
+          std::for_each(states.begin(), states.end(), [&inserter, &descr](auto& it) { inserter = (it->makeInitialState(descr)); });
           return std::make_shared<State>(statees);
         }
 	

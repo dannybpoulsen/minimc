@@ -57,9 +57,9 @@ namespace {
 }
 
 
-MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& prgm,const MiniMC::CPA::CPA_ptr& cpa) {
+MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::CPA_ptr& cpa) {
 
-  prgm.expandNonDet();
+  controller.expandNonDet();
   
   auto& messager = MiniMC::Support::getMessager ();
   messager.message("Initiating Reachability");
@@ -67,7 +67,8 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& prgm,const MiniMC
   auto query = cpa->makeQuery();
   auto transfer = cpa->makeTransfer();
   auto joiner = cpa->makeJoin ();
-  auto initstate = query->makeInitialState(*prgm.getProgram ());
+  auto& prgm = *controller.getProgram ();
+  auto initstate = query->makeInitialState({prgm.getEntryPoints (), prgm.getHeapLayout ()});
 
   auto goal = [](const MiniMC::CPA::State_ptr& state) {
     return state->assertViolated();

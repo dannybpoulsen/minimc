@@ -167,10 +167,10 @@ namespace MiniMC {
         mutable MiniMC::Hash::hash_t hash_val = 0;
       };
 
-      MiniMC::CPA::State_ptr StateQuery::makeInitialState(const MiniMC::Model::Program& p) {
+      MiniMC::CPA::State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
         
         std::vector<CallStack> stack;
-        for (auto& f : p.getEntryPoints()) {
+        for (auto& f : descr.getEntries()) {
           auto& vstack = f->getVariableStackDescr();
 	  StackFrame sf {vstack->getTotalVariables (),nullptr};
 	  for (auto& v : vstack->getVariables()) {
@@ -181,7 +181,7 @@ namespace MiniMC {
 	  
         }
 	MiniMC::VMT::Concrete::Memory heap;
-	heap.createHeapLayout (p.getHeapLayout ());
+	heap.createHeapLayout (descr.getHeap ());
 	
         auto state = std::make_shared<State>(stack,heap);
         

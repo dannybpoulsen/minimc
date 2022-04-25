@@ -25,6 +25,21 @@
 namespace MiniMC {
   namespace CPA {
 
+    struct InitialiseDescr {
+    public:
+      InitialiseDescr (std::vector<MiniMC::Model::Function_ptr> entries,
+		       MiniMC::Model::HeapLayout heap) : entries (std::move(entries)),
+							  heap (std::move(heap)) {}
+
+      auto& getEntries () const {return entries;}
+      auto& getHeap () const {return heap;}
+      
+      
+    private:
+      std::vector<MiniMC::Model::Function_ptr> entries;
+      MiniMC::Model::HeapLayout heap;
+    };
+    
     /** 
      * The StateQuery "interface" is a CPAs way of creating the
      * initial state of a program and for algorithms to query a State
@@ -37,9 +52,9 @@ namespace MiniMC {
        *
        * @return the create State
        */
-      virtual State_ptr makeInitialState(const MiniMC::Model::Program&) { return nullptr; }
+      virtual State_ptr makeInitialState(const InitialiseDescr& ) = 0;
     };
-
+    
     using StateQuery_ptr = std::shared_ptr<StateQuery>;
 
     /** 

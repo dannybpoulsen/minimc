@@ -12,7 +12,7 @@ namespace MiniMC {
     namespace PathFormula {
       struct StateQuery : public MiniMC::CPA::StateQuery {
 	StateQuery (const SMTLib::Context_ptr& context) : context(context) {}
-        MiniMC::CPA::State_ptr makeInitialState(const MiniMC::Model::Program&);
+        MiniMC::CPA::State_ptr makeInitialState(const InitialiseDescr&) override;
       private:
 	SMTLib::Context_ptr context;
       };
