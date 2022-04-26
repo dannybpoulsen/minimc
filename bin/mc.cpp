@@ -61,23 +61,26 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
 
   controller.expandNonDet();
   
-  auto& messager = MiniMC::Support::getMessager ();
+  MiniMC::Support::Messager messager{};
   messager.message("Initiating Reachability");
   
   auto query = cpa->makeQuery();
   auto transfer = cpa->makeTransfer();
   auto joiner = cpa->makeJoin ();
   auto& prgm = *controller.getProgram ();
-  auto initstate = query->makeInitialState({prgm.getEntryPoints (), prgm.getHeapLayout ()});
+  auto initstate = query->makeInitialState({prgm.getEntryPoints (),
+	prgm.getHeapLayout (),
+	prgm.getInitialiser (),
+	prgm});
 
   auto goal = [](const MiniMC::CPA::State_ptr& state) {
-    return state->assertViolated();
+    return state->getLocationState().assertViolated();
   };
   
   
-  
+  auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
   MiniMC::Algorithms::Reachability::Reachability reach {transfer,joiner};
-  
+  reach.getPWProgresMeasure ().listen (notify);
   auto verdict = reach.search (initstate,goal);
   messager.message("Finished Reachability");
   

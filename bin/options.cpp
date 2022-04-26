@@ -36,13 +36,11 @@ po::options_description modificationOptions (SetupOptions& options) {
 }
 
 po::options_description loadOptions (SetupOptions& options) {
-  auto addTask = [&options](const std::string s) {
-    options.load.tasks.push_back (s);
-  };
+  
   po::options_description general("Load Options");
   general.add_options()
     ("inputfile", po::value<std::string>(&options.load.inputname), "Input file")
-    ("task", boost::program_options::value<std::string>()->notifier (addTask), "Add task as entrypoint");
+    ("task", boost::program_options::value<std::vector<std::string>>(&options.load.tasks), "Add task as entrypoint");
   
   return general;
 }
@@ -89,35 +87,13 @@ po::options_description defOptions (SetupOptions& options) {
   return general;
 }
 
-enum class CPASel {
-  Location,
-  LocationConcrete,
-  LocationPathformula
-};
 
 
-po::options_description cpaOptions (CPASel& select) {
-  auto selCPA = [&select](const std::size_t sel) {
-    switch (sel) {
-    case 1:
-      select = CPASel::Location;
-      break;
-    case 2:
-      select = CPASel::LocationConcrete;
-      break;
-    case 3:
-      select = CPASel::LocationPathformula;
-      break;
-    default:
-      select = CPASel::Location;
-      
-    }
-  };
 
-  
+po::options_description cpaOptions (std::vector<int>& select) {  
   po::options_description general("CPA Options");
   general.add_options ()
-    ("cpa", po::value<int>()->default_value(0)->notifier(selCPA), "CPA\n 0: Automatic\n\t 1: Location\n\t 2: Concrete\n"
+    ("cpa", po::value<std::vector<int>>(&select)->multitoken (), "CPA\n 0: Automatic\n\t 1: Location\n\t 2: Concrete\n"
 #ifdef MINIMC_SYMBOLIC
      "\t 3: PathFormula\n"
 #endif
@@ -126,28 +102,29 @@ po::options_description cpaOptions (CPASel& select) {
   return general;
 }
 
-MiniMC::CPA::CPA_ptr createUserDefinedCPA(CPASel sel,const SetupOptions& opt) {
-  switch (sel) {
-#ifdef MINIMC_SYMBOLIC
-
-    case CPASel::LocationPathformula:
-      return std::make_shared<MiniMC::CPA::Compounds::CPA>(std::initializer_list<MiniMC::CPA::CPA_ptr>({std::make_shared<MiniMC::CPA::Location::CPA>(),
-	    std::make_shared<MiniMC::CPA::PathFormula::CPA>(opt.smt.selsmt)}));
+MiniMC::CPA::CPA_ptr createUserDefinedCPA(std::vector<int> selected,const SetupOptions& opt) {
+  std::vector<MiniMC::CPA::CPA_ptr> cpas;
+  //always add LocationTracker
+  cpas.push_back (std::make_shared<MiniMC::CPA::Location::CPA> ());
+  
+  for (auto& sel : selected) {
+    switch (sel) {
+    case 3:
+      cpas.push_back (std::make_shared<MiniMC::CPA::PathFormula::CPA>(opt.smt.selsmt));
       break;
-
-#endif
-    case CPASel::LocationConcrete:
-      return std::make_shared<MiniMC::CPA::Compounds::CPA>(std::initializer_list<MiniMC::CPA::CPA_ptr>({std::make_shared<MiniMC::CPA::Location::CPA>(),
-                                                                                                        std::make_shared<MiniMC::CPA::Concrete::CPA>()}));
+    case 2:
+      cpas.push_back (std::make_shared<MiniMC::CPA::Concrete::CPA>());
       break;
-
-    case CPASel::Location:
-    default:
-
-      return std::make_shared<MiniMC::CPA::Location::CPA>();
-      // res = runAlgorithm<MiniMC::CPA::Location::CPADef> (*prgm,sopt,locoptions.filter);
-      break;
+   
+    }
   }
+  
+  if (cpas.size () == 1) {
+    return std::move (cpas.at(0));
+  }
+  else
+    return std::make_shared<MiniMC::CPA::Compounds::CPA> (std::move(cpas));
+  
 }
 
 
@@ -171,7 +148,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   general.add(modificationOptions (opt));
   general.add(loadOptions (opt));
   general.add(smtOptions (opt));
-  CPASel cpasel;
+  std::vector<int> cpasel;
   general.add(cpaOptions (cpasel));
   addCommandOptions (general);
 

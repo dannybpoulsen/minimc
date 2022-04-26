@@ -1,47 +1,72 @@
 #ifndef _FEEDBACK__
 #define _FEEDBACK__
 
-#include <gsl/pointers>
+
 #include <memory>
+#include <sstream>
+#include <type_traits>
 
 namespace MiniMC {
   namespace Support {
 
-    class Progresser {
+    enum class Severity {
+      Error,
+      Warning,
+      Info,
+      Progress
+    };
+    
+    
+    class MessageSink {
     public:
-      virtual ~Progresser() {}
-      virtual void progressMessage(const std::string&) {}
+      virtual ~MessageSink() {}
+      virtual void error(const std::string&) {}
+      virtual void warning(const std::string&) {}
+      virtual void message(const std::string&) {}
+      virtual void progress(const std::string&) {}
+    
     };
 
-    using Progresser_ptr = std::unique_ptr<Progresser>;
-
-    /**
-	 *
-	 * Messager objects is MiniMCs primary way of relaying messages
-	 * from  algorithms to the user interface. If an algorithms wishes
-	 * to do ProgressMessages then a Progresser object should be made
-	 * by the Messager.  
-	 * 
-	 */
+    
+    
+    MessageSink& getMessager();
+    
+    
     class Messager {
     public:
-      virtual ~Messager() {}
-      virtual Progresser_ptr makeProgresser() { return std::make_unique<Progresser>(); };
-      virtual void error(const std::string&) {}
-      virtual void warning(const std::string&){};
-      virtual void message(const std::string&){};
+      template<Severity severity = Severity::Info>
+      void message (const std::string& s) {
+	if constexpr (severity == Severity::Info) {
+	  getMessager ().message (s);
+	}
+	else if constexpr (severity == Severity::Warning) {
+	  getMessager ().warning (s);
+	}
+	else if constexpr (severity == Severity::Error) {
+	  getMessager ().error (s);
+	}
+
+	else if constexpr (severity == Severity::Progress) {
+	  getMessager ().progress (s);
+	}
+	
+      }
+
+      template<Severity s = Severity::Info, class T>   requires (!std::is_same_v<T,std::string>)
+      void message (const T& t) {
+	std::stringstream str;
+	str << t;
+	message<s> ( str.str ());
+      }
+	
     };
-
-    using Messager_ptr = std::unique_ptr<Messager>;
-
+    
     enum class MessagerType {
       Terminal
     };
-
-    void setMessager(MessagerType);
-
-    Messager& getMessager();
-
+    
+    void setMessageSink(MessagerType);
+    
   } // namespace Support
 } // namespace MiniMC
 

@@ -230,8 +230,8 @@ namespace MiniMC {
       auto& getConstantFactory() { return cfact; }
       auto& getTypeFactory() { return tfact; }
 
-      const auto& getInitialisation() const { return initialiser; }
-      void setInitialiser(const InstructionStream& instr) { initialiser = instr; }
+      const auto& getInitialiser () const { return initialiser; }
+      void setInitialiser (const InstructionStream& instr) { initialiser = instr; }
 
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}

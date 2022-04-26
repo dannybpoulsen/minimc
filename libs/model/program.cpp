@@ -56,7 +56,7 @@ namespace MiniMC {
 	}
 
 	ncfa->setInitial (locMap.at(cfa->getInitialLocation ()));
-
+	
 	for (auto& e : cfa->getEdges ()) {
 	  auto nedge = ncfa->makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
 
@@ -93,13 +93,14 @@ namespace MiniMC {
 				    cfa);
       }
 
+      
+      
       void copyProgram (const Program& p) {
 	auto vstack = program.makeVariableStack ("gg");
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f);
 	}
 	program.getHeapLayout () = p.getHeapLayout ();
-	program.setInitialiser (copyInstructionStream (p.getInitialisation (),*vstack));
 	
       }
       

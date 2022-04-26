@@ -3,7 +3,7 @@
 
 #include "cpa/concrete.hpp"
 #include "hash/hashing.hpp"
-#include "heap.hpp"
+//#include "heap.hpp"
 //#include "instructionimpl.hpp"
 //#include "util/vm.hpp"
 #include "vm/concrete/concrete.hpp"
@@ -67,7 +67,7 @@ namespace MiniMC {
 
       class StackControl : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
       public:
-	StackControl (CallStack& s, MiniMC::Model::Program& p) : stack (s),prgm(p) {}
+	StackControl (CallStack& s, const MiniMC::Model::Program& p) : stack (s),prgm(p) {}
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Concrete::ConcreteVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
@@ -100,7 +100,7 @@ namespace MiniMC {
 	
       private:
 	CallStack& stack;
-	MiniMC::Model::Program& prgm;
+	const MiniMC::Model::Program& prgm;
 	
       };
       
@@ -156,9 +156,6 @@ namespace MiniMC {
         auto& getProc(std::size_t i) const { return proc_vars[i]; }
         auto& getHeap() const { return heap; }
 
-        virtual bool need2Store() const override { return false; }
-        virtual bool assertViolated() const override  { return false; }
-
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
       private:
@@ -184,7 +181,14 @@ namespace MiniMC {
 	heap.createHeapLayout (descr.getHeap ());
 	
         auto state = std::make_shared<State>(stack,heap);
-        
+
+	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{}};
+	MiniMC::VMT::Concrete::PathControl control;
+	StackControl scontrol {state->getProc (0),descr.getProgram ()};
+	decltype(engine)::State newvm {state->getProc (0).back().values,state->getHeap (),control,scontrol};
+	decltype(engine)::ConstState oldvm {state->getProc (0).back().values,state->getHeap (),control,scontrol};
+	engine.execute(descr.getInit (),newvm,oldvm);
+	
         return state;
       }
 
@@ -196,7 +200,7 @@ namespace MiniMC {
 	  
 	MiniMC::VMT::Concrete::PathControl control;
 	StackControl scontrol {nstate.getProc (id),e->getProgram ()};
-
+	
 	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 	  decltype(engine)::State newvm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};
 	  decltype(engine)::ConstState convm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};

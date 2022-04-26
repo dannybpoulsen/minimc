@@ -10,8 +10,11 @@ namespace MiniMC {
 
       State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
 	auto& entrypoints = descr.getEntries ();
-	assert(entrypoints.size () == 1);
 
+	if (entrypoints.size () > 1) {
+	  throw MiniMC::Support::ConfigurationException ("Pathformula only supports one entry point");
+	}
+	
 	auto& func = entrypoints[0];
 	auto vstack = func->getVariableStackDescr ();
 	auto& termbuilder =  context->getBuilder ();
@@ -29,7 +32,17 @@ namespace MiniMC {
 	memory.createHeapLayout (descr.getHeap ());
 	
 	
-	return  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values)},std::move(memory),std::move(term),*context);	
+	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values)},std::move(memory),std::move(term),*context);	
+
+	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::Operations{termbuilder},MiniMC::VMT::Pathformula::Casts{termbuilder}};
+	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
+	MiniMC::VMT::Pathformula::ValueLookup nlookup {state->getStack().back().values,termbuilder};
+	StackControl stackcontrol{state->getStack (),descr.getProgram (),*context};
+        decltype(engine)::State newvm {nlookup,state->getMemory (),control,stackcontrol};
+	decltype(engine)::ConstState convm {nlookup,state->getMemory (),control,stackcontrol};
+	engine.execute(descr.getInit (),newvm,convm);
+	
+	return state;
       }
 
       MiniMC::CPA::State_ptr Joiner::doJoin(const State_ptr& lstate, const State_ptr& rstate) {

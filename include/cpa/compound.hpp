@@ -16,8 +16,7 @@ namespace MiniMC {
           std::copy(l.begin(), l.end(), std::back_inserter(states));
         }
 
-        State(std::vector<MiniMC::CPA::State_ptr>& l) {
-          std::copy(l.begin(), l.end(), std::back_inserter(states));
+        State(std::vector<MiniMC::CPA::State_ptr>&& l) : states(std::move(l)) {
         }
 
         virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
@@ -28,34 +27,11 @@ namespace MiniMC {
           }
           return hash;
         }
-
-        bool need2Store() const override {
-          for (auto& state : states) {
-            if (state->need2Store()) {
-              return true;
-            }
-          }
-          return false;
-        }
 	
-        virtual bool assertViolated() const override {
-          for (auto& state : states) {
-            if (state->assertViolated()) {
-              return true;
-            }
-          }
-          return false;
-        }
-
-        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override {
-          for (auto& state : states) {
-            if (state->hasLocationAttribute(tt)) {
-              return true;
-            }
-          }
-          return false;
-        }
-
+	const MiniMC::CPA::LocationInfo& getLocationState () const override {
+	  return states[0]->getLocationState ();
+	}
+        
         virtual std::ostream& output(std::ostream& os) const override {
           for (auto& state : states) {
             state->output(os);
@@ -66,6 +42,14 @@ namespace MiniMC {
 
         const State_ptr& get(size_t i) const { return states[i]; }
 
+	auto begin () const {
+	  return states.begin ();
+	}
+
+	auto end () const {
+	  return states.end ();
+	}
+	
         virtual const Solver_ptr getConcretizer() const override {
 
           return this->get(1)->getConcretizer();
@@ -74,15 +58,7 @@ namespace MiniMC {
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
           std::vector<MiniMC::CPA::State_ptr> copies;
           std::for_each(states.begin(), states.end(), [&](auto& s) { copies.push_back(s->copy()); });
-          return std::make_shared<State>(copies);
-        }
-
-        virtual MiniMC::Model::Location_ptr getLocation(proc_id id) const override {
-          return this->get(0)->getLocation(id);
-        }
-
-        size_t nbOfProcesses() const override {
-          return this->get(0)->nbOfProcesses();
+          return std::make_shared<State>(std::move(copies));
         }
 
 	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Register_ptr& v) const override  {
@@ -95,43 +71,48 @@ namespace MiniMC {
 
       
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        StateQuery(std::vector<MiniMC::CPA::StateQuery_ptr> pts) : states(pts) {}
+        StateQuery(std::vector<MiniMC::CPA::StateQuery_ptr>&& pts) : sub_queries(std::move(pts)) {}
         State_ptr makeInitialState(const InitialiseDescr& descr) {
           //std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
           //return std::make_shared<State<sizeof... (args)>> (init);
           std::vector<MiniMC::CPA::State_ptr> statees;
           auto inserter = std::back_inserter(statees);
-          std::for_each(states.begin(), states.end(), [&inserter, &descr](auto& it) { inserter = (it->makeInitialState(descr)); });
-          return std::make_shared<State>(statees);
+          std::for_each(sub_queries.begin(), sub_queries.end(), [&inserter, &descr](auto& it) { inserter = (it->makeInitialState(descr)); });
+          return std::make_shared<State>(std::move(statees));
         }
 	
       private:
-        std::vector<MiniMC::CPA::StateQuery_ptr> states;
+        std::vector<MiniMC::CPA::StateQuery_ptr> sub_queries;
       };
 
       
       struct Transferer : public MiniMC::CPA::Transferer {
-        Transferer(std::vector<MiniMC::CPA::Transferer_ptr> pts) : transfers(pts) {}
+        Transferer(std::vector<MiniMC::CPA::Transferer_ptr>&& pts) : transfers(std::move(pts)) {}
         State_ptr doTransfer(const State_ptr& a, const MiniMC::Model::Edge_ptr& e, proc_id id) {
           auto s = static_cast<State&>(*a);
-          auto n = transfers.size();
-          std::vector<MiniMC::CPA::State_ptr> vec;
-          for (size_t i = 0; i < n; i++) {
-            auto res = transfers[i]->doTransfer(s.get(i), e, id);
+          
+	  auto tit = transfers.begin ();
+	  auto tend = transfers.end ();
+	  auto sit = s.begin ();
+	  
+	  
+	  std::vector<MiniMC::CPA::State_ptr> vec;
+          for (; tit != tend; ++tit,++sit) {
+            auto res = (*tit)->doTransfer(*sit, e, id);
             if (!res) {
               return nullptr;
             }
             vec.push_back(res);
           }
-          return std::make_shared<State>(vec);
+          return std::make_shared<State>(std::move(vec));
         }
 
         std::vector<MiniMC::CPA::Transferer_ptr> transfers;
       };
 
       struct Joiner : public MiniMC::CPA::Joiner {
-        Joiner(std::vector<MiniMC::CPA::Joiner_ptr> pts) : joiners(pts) {}
-
+	Joiner(std::vector<MiniMC::CPA::Joiner_ptr>&& pts) : joiners(std::move(pts)) {}
+								     
         State_ptr doJoin(const State_ptr& l, const State_ptr& r) {
           auto left = static_cast<State&>(*l);
           auto right = static_cast<State&>(*r);
@@ -144,7 +125,8 @@ namespace MiniMC {
             }
             vec.push_back(res);
           }
-          return std::make_shared<State>(vec);
+          return std::make_shared<State>(std::move(vec)
+					 );
         }
 
         
@@ -169,32 +151,27 @@ namespace MiniMC {
 
       
       struct CPA : public MiniMC::CPA::ICPA {
-        CPA(std::vector<MiniMC::CPA::CPA_ptr>& p) : cpas(p) {
+        CPA(std::vector<MiniMC::CPA::CPA_ptr>&& p) : cpas(std::move(p)) {
         }
 
         CPA(std::initializer_list<MiniMC::CPA::CPA_ptr> p) {
           std::copy(p.begin(), p.end(), std::back_inserter(cpas));
         }
-        virtual MiniMC::CPA::StateQuery_ptr makeQuery() const {
+	MiniMC::CPA::StateQuery_ptr makeQuery() const override {
           std::vector<StateQuery_ptr> queries;
           std::for_each(cpas.begin(), cpas.end(), [&queries](auto& it) { queries.push_back(it->makeQuery()); });
-          return std::make_shared<StateQuery>(queries);
+          return std::make_shared<StateQuery>(std::move(queries));
         }
-        virtual MiniMC::CPA::Transferer_ptr makeTransfer() const {
+	MiniMC::CPA::Transferer_ptr makeTransfer() const override {
           std::vector<Transferer_ptr> transfers;
           std::for_each(cpas.begin(), cpas.end(), [&transfers](auto& it) { transfers.push_back(it->makeTransfer()); });
-          return std::make_shared<Transferer>(transfers);
+          return std::make_shared<Transferer>(std::move(transfers));
         }
-        virtual MiniMC::CPA::Joiner_ptr makeJoin() const {
+	MiniMC::CPA::Joiner_ptr makeJoin() const override {
           std::vector<Joiner_ptr> joiners;
           std::for_each(cpas.begin(), cpas.end(), [&joiners](auto& it) { joiners.push_back(it->makeJoin()); });
-          return std::make_shared<Joiner>(joiners);
+          return std::make_shared<Joiner>(std::move(joiners));
         }
-
-        virtual MiniMC::CPA::Storer_ptr makeStore() const {
-          return std::make_shared<MiniMC::CPA::Storer>(makeJoin());
-        }
-
         
       private:
         std::vector<MiniMC::CPA::CPA_ptr> cpas;

@@ -23,11 +23,12 @@ namespace po = boost::program_options;
 
 
 int main(int argc, char* argv[]) {
-
+  
   std::string input;
   std::string subcommand;
-  MiniMC::Support::setMessager(MiniMC::Support::MessagerType::Terminal);
-
+  MiniMC::Support::setMessageSink(MiniMC::Support::MessagerType::Terminal);
+  MiniMC::Support::Messager messager;
+  
   SetupOptions options;
   bool ok = parseOptions(argc, argv, options);
 
@@ -50,13 +51,13 @@ int main(int argc, char* argv[]) {
 	try {
 	  control.addEntryPoint(s, {});
 	} catch (MiniMC::Support::FunctionDoesNotExist&) {
-	  std::cerr << MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s) << std::endl;
+	  messager.message<MiniMC::Support::Severity::Error> (MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s));
 	  return -1;
 	}
       }
     }
     else {
-      std::cerr << "At least one entry point must be specified" << std::endl;
+      messager.message<MiniMC::Support::Severity::Error> ("At least one entry point must be specified");
       return -1;
     }
     if (options.command) {
@@ -64,15 +65,15 @@ int main(int argc, char* argv[]) {
     }
     
     else {
-      std::cerr << "No subcommand selected" << std::endl;
+      messager.message<MiniMC::Support::Severity::Error> ("No subcommand selected");
+      
       return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
     }
   }
   catch (MiniMC::Support::ConfigurationException& e) {
-    std::cerr << e.what () << std::endl;
+    messager.message<MiniMC::Support::Severity::Error> (e.what ());
+    return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError); 
   }
   }
-  else  {
-    
-  }
+  
 }

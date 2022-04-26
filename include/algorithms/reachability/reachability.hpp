@@ -2,11 +2,20 @@
 #include "algorithms/algorithms.hpp"
 #include "cpa/interface.hpp"
 
+#include <iosfwd>
 
 namespace MiniMC {
   namespace Algorithms {
     namespace Reachability {
+      
+      enum class StateStatus {
+	Keep,
+	Discard
+      };
       using GoalFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
+      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::State_ptr&)>;
+
+      StateStatus DefaultFilter (const MiniMC::CPA::State_ptr&);; 
       
       enum class Verdict {
 	Found,
@@ -23,7 +32,10 @@ namespace MiniMC {
 	Reachability (MiniMC::CPA::Transferer_ptr transfer,
 		      MiniMC::CPA::Joiner_ptr joiner) : transfer(transfer), joiner(joiner)  {}
 	
-	Verdict search (const MiniMC::CPA::State_ptr&, GoalFunction);
+	Verdict search (const MiniMC::CPA::State_ptr&,
+			GoalFunction,
+			FilterFunction = DefaultFilter
+			);
 	Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
 	
       private:
@@ -32,6 +44,13 @@ namespace MiniMC {
 	MiniMC::CPA::Joiner_ptr joiner;
 	
       };
+
+
+      inline std::ostream& operator<< (std::ostream& os, const Reachability::Progress& prgs) {
+	return os << "Passed: " << prgs.passed << " Waiting:" << prgs.waiting;
+	
+      }
+      
     }
   }
 }

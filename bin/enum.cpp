@@ -4,7 +4,7 @@
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include "support/host.hpp"
-#include "algorithms/simulationmanager.hpp"
+#include "algorithms/reachability/reachability.hpp"
 
 #include "plugin.hpp"
 
@@ -18,30 +18,31 @@ namespace {
 }
 
 MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::CPA_ptr& cpa)  {
-  auto& messager = MiniMC::Support::getMessager ();
+  MiniMC::Support::Messager messager;
   messager.message("Initiating EnumStates");
-
-  auto progresser = messager.makeProgresser();
+  
   auto query = cpa->makeQuery();
-  auto prgm = *controller.getProgram ();
-  auto initstate = query->makeInitialState({prgm.getEntryPoints (), prgm.getHeapLayout ()});
+  auto transfer = cpa->makeTransfer();
+  auto joiner = cpa->makeJoin ();
   
-  MiniMC::Algorithms::SimulationManager simmanager(MiniMC::Algorithms::SimManagerOptions{
-      .storer = cpa->makeStore(),
-      .transfer = cpa->makeTransfer()});
-  simmanager.insert(initstate);
+  auto& prgm = *controller.getProgram ();
+  auto initstate = query->makeInitialState(MiniMC::CPA::InitialiseDescr{
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm.getInitialiser (),
+      prgm});
+  
+  auto goal = [](const MiniMC::CPA::State_ptr&) {
+    return false;
+  };
+  
+  auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
+  MiniMC::Algorithms::Reachability::Reachability reach {transfer,joiner};
+  reach.getPWProgresMeasure ().listen (notify);
+  reach.search (initstate,goal);
 
-  simmanager.reachabilitySearch({
-      .filter = [](const MiniMC::CPA::State_ptr& state) {
-	auto res = state->getConcretizer()->isFeasible();
-	return (res == MiniMC::CPA::Solver::Feasibility::Feasible) ||
-	  (res == MiniMC::CPA::Solver::Feasibility::Unknown)
-	  ;
-      }}
-    );
-  
   messager.message("Finished EnumStates");
-  messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(simmanager.getPSize()));
+  messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(reach.getPWProgresMeasure ().get().passed));
   
   return MiniMC::Support::ExitCodes::AllGood;
 }

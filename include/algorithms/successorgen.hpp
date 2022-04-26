@@ -31,14 +31,14 @@ namespace MiniMC {
       public:
         static Iterator makeBegin(const MiniMC::CPA::State_ptr& pt,
                                   MiniMC::CPA::Transferer_ptr transfer) {
-          auto loc = pt->getLocation(0);
-          return Iterator(pt, 0, pt->nbOfProcesses(), loc->ebegin(), loc->eend(), transfer);
+          auto loc = pt->getLocationState().getLocation(0);
+          return Iterator(pt, 0, pt->getLocationState().nbOfProcesses(), loc->ebegin(), loc->eend(), transfer);
         }
 
         static Iterator makeEnd(const MiniMC::CPA::State_ptr& pt,
                                 MiniMC::CPA::Transferer_ptr transfer) {
-          auto proc = pt->nbOfProcesses();
-          auto loc = pt->getLocation(proc - 1);
+          auto proc = pt->getLocationState().nbOfProcesses();
+          auto loc = pt->getLocationState().getLocation(proc - 1);
           return Iterator(pt, proc - 1, proc, loc->eend(), loc->eend(), transfer);
         }
 
@@ -80,7 +80,7 @@ namespace MiniMC {
               if (proc >= last_proc)
                 break;
               assert(proc <= last_proc);
-              auto loc = curState->getLocation(proc); //
+              auto loc = curState->getLocationState ().getLocation(proc); //
               iter = loc->ebegin();
               end = loc->eend();
             }
@@ -122,7 +122,7 @@ namespace MiniMC {
       }
 
       auto begin_it(const MiniMC::CPA::State_ptr& state) {
-        if (state->nbOfProcesses() == 0) {
+        if (state->getLocationState().nbOfProcesses() == 0) {
           throw MiniMC::Support::Exception("No Processes to generate sucessors for");
         }
 	

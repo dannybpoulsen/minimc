@@ -17,6 +17,10 @@ namespace MiniMC {
 	for ( auto& o : observers)
 	  o (val);
       }
+
+      
+      const T& get () const {return val;}
+      
       
       void listen (observer obs) {observers.push_back (obs);}
     private:

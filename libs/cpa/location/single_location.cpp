@@ -7,7 +7,9 @@
 namespace MiniMC {
   namespace CPA {
     namespace SingleLocation {
-      class State : public MiniMC::CPA::State {
+      class State : public MiniMC::CPA::State,
+		    private MiniMC::CPA::LocationInfo
+      {
       public:
         State(const MiniMC::Model::Location_ptr& loc) : location(loc.get()) {
           ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint>();
@@ -55,6 +57,8 @@ namespace MiniMC {
           return nullptr;
         }
 
+	const LocationInfo& getLocationState () const override{return *this;}
+	
       private:
         MiniMC::Model::Location* location;
         bool ready;

@@ -21,11 +21,8 @@ namespace MiniMC {
 	   
 	   */
       struct TypeChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        TypeChecker() : messager(MiniMC::Support::getMessager()) {}
+        TypeChecker()  {}
         virtual bool run(MiniMC::Model::Program& prgm);
-
-      private:
-        MiniMC::Support::Messager& messager;
       };
 
     } // namespace Checkers

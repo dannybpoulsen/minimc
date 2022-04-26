@@ -25,7 +25,7 @@ namespace MiniMC {
       bool checkNoGuardAndInstructionStream(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
         if (e.hasAttribute<MiniMC::Model::AttributeType::Instructions>() &&
             e.hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
-          mess.error("Edges must not have both guards and Instructions");
+          mess.message<MiniMC::Support::Severity::Error>("Edges must not have both guards and Instructions");
           return false;
         }
         return true;
@@ -40,7 +40,7 @@ namespace MiniMC {
         if (e.hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
           auto guard = e.getAttribute<MiniMC::Model::AttributeType::Guard>();
           if (guard.guard->getType()->getTypeID() != MiniMC::Model::TypeID::Bool) {
-            mess.error("Edge guard must be booleans");
+            mess.message<MiniMC::Support::Severity::Error>("Edge guard must be booleans");
             return false;
           }
         }
@@ -58,7 +58,7 @@ namespace MiniMC {
           auto end = instr.rend();
           for (++it; it != end; ++it) {
             if (it->getOpcode() == MiniMC::Model::InstructionCode::Call) {
-              mess.error("Calls can only be last instruction of an instructionstream");
+              mess.message<MiniMC::Support::Severity::Error>("Calls can only be last instruction of an instructionstream");
               return false;
             }
           }
@@ -78,7 +78,7 @@ namespace MiniMC {
           if (instr.isPhi () ) {
             for (++it; it != end; ++it) {
               if (it->getOpcode() != MiniMC::Model::InstructionCode::Assign) {
-                mess.error("Phi edges can only have assignments");
+                mess.message<MiniMC::Support::Severity::Error>("Phi edges can only have assignments");
                 return false;
               }
             }
@@ -99,7 +99,7 @@ namespace MiniMC {
           auto end = instr.rend();
           for (++it; it != end; ++it) {
             if (it->getOpcode() != MiniMC::Model::InstructionCode::Assert) {
-              mess.error("Asserts can only be last instruction of an instructionstream");
+              mess.message<MiniMC::Support::Severity::Error>("Asserts can only be last instruction of an instructionstream");
               return false;
             }
           }
@@ -123,16 +123,12 @@ namespace MiniMC {
       }
 
       bool StructureChecker::run(MiniMC::Model::Program& prgm) {
-        messager.message("Initiating Structural Checks");
+	MiniMC::Support::Messager messager;
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           if (!checkFunction(*F, messager))
             res = false;
         }
-        if (!res) {
-          messager.error("Structural checks   not passing");
-        }
-        messager.message("Structural checks finished");
         return res;
       }
     } // namespace Checkers

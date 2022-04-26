@@ -72,12 +72,23 @@ namespace MiniMC {
       virtual ~Solver () {}
       
       virtual Feasibility isFeasible() const  {return Feasibility::Unknown;}
-      
-      /*virtual std::ostream& evaluate_str(proc_id, const MiniMC::Model::Variable_ptr&, std::ostream& os)  {return os << "??";}*/
     };
     
     using Solver_ptr = std::shared_ptr<Solver>;
 
+    struct LocationInfo {
+      template <MiniMC::Model::Attributes att>
+      bool hasLocationOf() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(att)); }
+
+      virtual bool need2Store() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::NeededStore)); }
+      virtual bool assertViolated() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::AssertViolated)); }
+      virtual bool hasLocationAttribute(MiniMC::Model::AttrType) const { return false; }
+      
+      virtual MiniMC::Model::Location_ptr getLocation(proc_id) const  = 0;
+      virtual size_t nbOfProcesses() const = 0;
+      
+    };
+    
     /** A general CPA state interface. It is deliberately kept minimal to relay no information to observers besides what is absolutely needed 
      * 
      */
@@ -95,32 +106,9 @@ namespace MiniMC {
 	return std::make_unique<ByteVectorExpr> ( v->getType ()->getSize ());
       }
       
-      /** 
-       * Get the current Location of process \p id 
-       * * 
-       *
-       * @return the Location of \p id or nullptr if there no process
-       * \p id
-       */
-      virtual MiniMC::Model::Location_ptr getLocation(proc_id) const {
-        throw MiniMC::Support::Exception("Should not be called");
-      }
-      
-      virtual size_t nbOfProcesses() const { return 0; }
-
-      virtual bool hasLocationAttribute(MiniMC::Model::AttrType) const { return false; }
-      /** 
-       * Function to tell whether it is deemed necessary to store this State during  explorations to guarantee termination. 
-       *
-       * @return 
-       */
-      template <MiniMC::Model::Attributes att>
-      bool hasLocationOf() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(att)); }
-
-      virtual bool need2Store() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::NeededStore)); }
-      
-      virtual bool assertViolated() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::AssertViolated)); }
-
+      virtual const LocationInfo& getLocationState () const {
+	throw MiniMC::Support::Exception ("LocationState should not be called");
+      } 
       virtual const Solver_ptr getConcretizer() const {return std::make_shared<Solver> ();}
     };
 

@@ -3,14 +3,14 @@
 namespace MiniMC {
   namespace Support {
 
-    Messager_ptr makeMessager(MessagerType);
-    Messager_ptr act_messager = std::make_unique<Messager>();
-
-    void setMessager(MessagerType term) {
+    std::unique_ptr<MessageSink> makeMessager(MessagerType);
+    std::unique_ptr<MessageSink> act_messager = std::make_unique<MessageSink>();
+    
+    void setMessageSink(MessagerType term) {
       act_messager = makeMessager(term);
     }
 
-    Messager& getMessager() { return *act_messager; }
+    MessageSink& getMessager() { return *act_messager; }
 
   } // namespace Support
 } // namespace MiniMC

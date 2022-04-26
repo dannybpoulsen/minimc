@@ -50,7 +50,7 @@ namespace MiniMC {
 
       class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-	StackControl (CallStack& stack, MiniMC::Model::Program& prgm,SMTLib::Context& context) : stack(stack),prgm(prgm),context(context) {}
+	StackControl (CallStack& stack,const MiniMC::Model::Program& prgm,SMTLib::Context& context) : stack(stack),prgm(prgm),context(context) {}
 	//StackControl API
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Pathformula::PathFormulaVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 	  
@@ -83,7 +83,7 @@ namespace MiniMC {
 	}
       private:
 	CallStack& stack;
-	MiniMC::Model::Program& prgm;
+	const MiniMC::Model::Program& prgm;
 	SMTLib::Context& context;
       };
       
@@ -99,9 +99,7 @@ namespace MiniMC {
         virtual std::ostream& output(std::ostream& os) const override { return os << "\nPathformula:" << *pathformula; }
         MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t  = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }
-        virtual bool need2Store() const override { return false; }
-        virtual bool assertViolated() const override { return false; }
-	
+        
         
         const Solver_ptr getConcretizer() const override;
 	auto& getStack () {return call_stack;}

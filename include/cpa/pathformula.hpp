@@ -38,7 +38,7 @@ namespace MiniMC {
 	SMTLib::Context_ptr context;
 
       };
-
+      
       struct CPA : public ICPA {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(context); }

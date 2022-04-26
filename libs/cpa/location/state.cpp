@@ -52,7 +52,9 @@ namespace std {
 namespace MiniMC {
   namespace CPA {
     namespace Location {
-      class State : public MiniMC::CPA::State {
+      class State : public MiniMC::CPA::State,
+		    private MiniMC::CPA::LocationInfo
+      {
       public:
         State(const std::vector<LocationState>& locations) : locations(locations) {
         }
@@ -107,6 +109,9 @@ namespace MiniMC {
           return false;
         }
 
+	virtual const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
+      
+	
       private:
         std::vector<LocationState> locations;
         std::vector<bool> ready;

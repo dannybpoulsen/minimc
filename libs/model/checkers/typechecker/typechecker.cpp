@@ -9,7 +9,8 @@ namespace MiniMC {
   namespace Model {
     namespace Checkers {
       template <MiniMC::Model::InstructionCode i>
-      bool doCheck(MiniMC::Model::Instruction& inst, MiniMC::Support::Messager& mess, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
+      bool doCheck(MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
+	MiniMC::Support::Messager mess;
         auto& content = inst.getOps<i>();
         if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
@@ -19,7 +20,7 @@ namespace MiniMC {
           if (resType != lType ||
               lType != rType ||
               rType != resType) {
-            mess.error(loc.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(loc.format(i));
             return false;
           }
           return true;
@@ -28,7 +29,7 @@ namespace MiniMC {
           auto lType = content.op1->getType();
           auto rType = content.op2->getType();
           if (lType != rType) {
-            mess.error(loc.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(loc.format(i));
             return false;
           }
           return true;
@@ -40,7 +41,7 @@ namespace MiniMC {
             auto resType = content.res->getType();
             auto lType = content.op1->getType();
             if (resType != lType) {
-              mess.error(loc.format(i));
+              mess.message<MiniMC::Support::Severity::Error>(loc.format(i));
               return false;
             }
             return true;
@@ -55,10 +56,10 @@ namespace MiniMC {
           auto lType = content.op1->getType();
           auto rType = content.op2->getType();
           if (lType != rType) {
-            mess.error(loc.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(loc.format(i));
             return false;
           } else if (resType->getTypeID() != MiniMC::Model::TypeID::Bool) {
-            mess.error(res_must_be_bool.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(res_must_be_bool.format(i));
             return false;
           }
 
@@ -73,10 +74,10 @@ namespace MiniMC {
           auto ttype = content.res->getType();
           if (!ftype->isInteger () ||
               !ttype->isInteger () ) {
-            mess.error(trunc_must_be_integer.format(MiniMC::Model::InstructionCode::Trunc));
+            mess.message<MiniMC::Support::Severity::Error>(trunc_must_be_integer.format(MiniMC::Model::InstructionCode::Trunc));
             return false;
           } else if (ftype->getSize() <= ttype->getSize()) {
-            mess.error(trunc_must_be_larger.format(MiniMC::Model::InstructionCode::Trunc));
+            mess.message<MiniMC::Support::Severity::Error>(trunc_must_be_larger.format(MiniMC::Model::InstructionCode::Trunc));
             return false;
           }
 
@@ -92,7 +93,7 @@ namespace MiniMC {
 
           if (!ftype->isInteger () ||
               ttype->getTypeID() != MiniMC::Model::TypeID::Bool) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToBool));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::IntToBool));
             return false;
           }
           return true;
@@ -108,10 +109,10 @@ namespace MiniMC {
 
           if (!ftype->isInteger () ||
               !ttype->isInteger () ) {
-            mess.error(must_be_integer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
             return false;
           } else if (ftype->getSize() > ttype->getSize()) {
-            mess.error(must_be_smaller.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_smaller.format(i));
             return false;
           }
 
@@ -129,10 +130,10 @@ namespace MiniMC {
 
           if (ftype->getTypeID() != MiniMC::Model::TypeID::Bool ||
               !ttype->isInteger () ) {
-            mess.error(must_be_integer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
             return false;
           } else if (ftype->getSize() > ttype->getSize()) {
-            mess.error(must_be_smaller.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_smaller.format(i));
             return false;
           }
 
@@ -147,12 +148,12 @@ namespace MiniMC {
           auto ttype = content.res->getType();
 
           if (!ftype->isInteger ()) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::IntToPtr));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::IntToPtr));
             return false;
           }
 
           else if (ttype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::IntToPtr));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::IntToPtr));
             return false;
           }
 
@@ -173,21 +174,21 @@ namespace MiniMC {
           auto result = content.res->getType();
 
           if (result->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;
           } else if (!skip->isInteger () ) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "SkipSize"));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "SkipSize"));
             return false;
           } else if (!value->isInteger ()) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "Value"));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "Value"));
             return false;
           } else if (value != skip) {
-            mess.error(must_be_same_type.format(MiniMC::Model::InstructionCode::PtrAdd, "Value"));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(MiniMC::Model::InstructionCode::PtrAdd, "Value"));
             return false;
           }
 
           else if (ptr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(base_must_be_pointer.format(MiniMC::Model::InstructionCode::PtrAdd));
+            mess.message<MiniMC::Support::Severity::Error>(base_must_be_pointer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;
           }
 
@@ -201,12 +202,12 @@ namespace MiniMC {
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
           if (ftype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
             return false;
           }
 
           else if (!ttype->isInteger ()) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
             return false;
           }
 
@@ -221,12 +222,12 @@ namespace MiniMC {
           auto sizetype = content.op1->getType();
 
           if (restype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Alloca));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
           }
 
           if (sizetype->getTypeID () != MiniMC::Model::TypeID::I64 ) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Alloca));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
 	  }
 
@@ -242,17 +243,17 @@ namespace MiniMC {
           auto sizetype = content.size->getType();
 
           if (restype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Alloca));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Alloca));
             return false;
           }
 
           if (pointertype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::ExtendObj));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::ExtendObj));
             return false;
           }
 
           if (sizetype->getTypeID() != MiniMC::Model::TypeID::I64) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::ExtendObj));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::ExtendObj));
             return false;
           }
 
@@ -266,13 +267,13 @@ namespace MiniMC {
           auto ptrtype = content.object->getType();
           auto sizetype = content.size->getType();
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Malloc));
             return false;
           }
 
           if (sizetype->getTypeID() != MiniMC::Model::TypeID::Integer ||
               sizetype->getSize() != 8) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Malloc));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::Malloc));
             return false;
           }
 
@@ -285,7 +286,7 @@ namespace MiniMC {
           auto ptrtype = content.object->getType();
   
           if (ptrtype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Free));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Free));
             return false;
           }
 
@@ -300,12 +301,12 @@ namespace MiniMC {
           auto sizetype = content.op1->getType();
 
           if (restype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::FindSpace));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::FindSpace));
             return false;
           }
 
           if (!sizetype->isInteger() ) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::FindSpace));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::FindSpace));
             return false;
           }
 
@@ -317,7 +318,7 @@ namespace MiniMC {
 
           auto addr = content.addr->getType();
           if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Store));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Store));
             return false;
           }
 
@@ -330,12 +331,12 @@ namespace MiniMC {
 
           auto addr = content.addr->getType();
           if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(MiniMC::Model::InstructionCode::Load));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Load));
             return false;
           }
 
           if (!content.res->getType()->isInteger () ) {
-            mess.error(must_be_integer.format(MiniMC::Model::InstructionCode::Load));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::Load));
             return false;
           }
 
@@ -350,7 +351,7 @@ namespace MiniMC {
           auto func = content.function;
           if (!func->isConstant()) {
             MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
-            mess.error(must_be_constant.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_constant.format(i));
             return false;
           }
 
@@ -360,13 +361,13 @@ namespace MiniMC {
             bool is_func = prgm.functionExists(MiniMC::Support::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
             if (!is_func) {
-              mess.error(function_not_exists.format(MiniMC::Support::getFunctionId(ptr)));
+              mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::Support::getFunctionId(ptr)));
               return false;
             }
 
             auto func = prgm.getFunction(MiniMC::Support::getFunctionId(ptr));
             if (func->getParameters().size() != content.params.size()) {
-              mess.error("Inconsistent number of parameters between call and function prototype");
+              mess.message<MiniMC::Support::Severity::Error>("Inconsistent number of parameters between call and function prototype");
               return false;
             }
 
@@ -377,7 +378,7 @@ namespace MiniMC {
               auto form_type = (*it)->getType();
               auto act_type = content.params.at(j)->getType();
               if (form_type != act_type) {
-                mess.error("Formal and actual parameters do not match typewise");
+                mess.message<MiniMC::Support::Severity::Error>("Formal and actual parameters do not match typewise");
                 return false;
               }
             }
@@ -385,7 +386,7 @@ namespace MiniMC {
             if (content.res) {
               auto resType = content.res->getType();
               if (resType != func->getReturnType()) {
-                mess.error("Result and return type of functions must match.");
+                mess.message<MiniMC::Support::Severity::Error>("Result and return type of functions must match.");
                 return false;
               }
             }
@@ -399,7 +400,7 @@ namespace MiniMC {
           auto valT = content.op1->getType();
           auto resT = content.res->getType();
           if (valT != resT) {
-            mess.error(must_be_same_type.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(i));
             return false;
           }
           return true;
@@ -409,7 +410,7 @@ namespace MiniMC {
           if (tt != content.value->getType()) {
             MiniMC::Support::Localiser must_be_same_type("Return value of '%1% must be the same as the function");
 
-            mess.error(must_be_same_type.format(MiniMC::Model::InstructionCode::Ret));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(MiniMC::Model::InstructionCode::Ret));
             return false;
           }
           return true;
@@ -418,7 +419,7 @@ namespace MiniMC {
         else if constexpr (i == InstructionCode::RetVoid) {
           if (tt->getTypeID() != MiniMC::Model::TypeID::Void) {
             MiniMC::Support::Localiser must_be_same_type("Return type of function with '%1%' must be void  ");
-            mess.error(must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
             return false;
           }
           return true;
@@ -428,7 +429,7 @@ namespace MiniMC {
           auto type = inst.getOps<i>().res->getType();
           MiniMC::Support::Localiser must_be_integer("'%1% must return Integers");
           if (!type->isInteger ()) {
-            mess.error(must_be_integer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
             return false;
           }
 
@@ -443,7 +444,7 @@ namespace MiniMC {
           auto type = content.expr->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Bool &&
               !type->isInteger () ) {
-            mess.error(must_be_bool.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_bool.format(i));
             return false;
           }
           return true;
@@ -453,7 +454,7 @@ namespace MiniMC {
           MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as inputs. ");
           auto type = content.stackobject->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(i));
             return false;
           }
           return true;
@@ -465,17 +466,17 @@ namespace MiniMC {
           MiniMC::Support::Localiser must_be_integer("'%1%' must take integer as size inputs. ");
 
           if (content.src->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer_source.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer_source.format(i));
             return false;
           }
 
           if (content.dst->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer_target.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer_target.format(i));
             return false;
           }
 
           if (!content.size->getType()->isInteger() ) {
-            mess.error(must_be_integer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
             return false;
           }
 
@@ -486,7 +487,7 @@ namespace MiniMC {
           MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as result. ");
           auto type = content.res->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.error(must_be_pointer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(i));
             return false;
           }
           return true;
@@ -496,7 +497,7 @@ namespace MiniMC {
                            i == InstructionCode::ExtractValue ||
                            i == InstructionCode::InsertValue) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
-          mess.warning(warning.format(i));
+          mess.message<MiniMC::Support::Severity::Warning> (warning.format(i));
           return true;
         }
 
@@ -507,12 +508,12 @@ namespace MiniMC {
           if (!MiniMC::Model::hasSameTypeID({content.res->getType(),
                                              content.max->getType(),
                                              content.min->getType()})) {
-            mess.error(must_be_same_type.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(i));
             return false;
           }
 
           if (!content.res->getType()->isInteger ()) {
-            mess.error(must_be_integer.format(i));
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
             return false;
           }
 
@@ -526,7 +527,6 @@ namespace MiniMC {
       }
 
       bool TypeChecker::run(MiniMC::Model::Program& prgm) {
-        messager.message("Initiating Typechecking");
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           for (auto& E : F->getCFG()->getEdges()) {
@@ -536,7 +536,7 @@ namespace MiniMC {
                 switch (I.getOpcode()) {
 #define X(OP)                                                                                      \
   case MiniMC::Model::InstructionCode::OP:                                                         \
-    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I, messager, F->getReturnType(), prgm)) { \
+    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I,  F->getReturnType(), prgm)) { \
       res = false;                                                                                 \
     }                                                                                              \
     break;
@@ -546,10 +546,6 @@ namespace MiniMC {
             }
           }
         }
-        if (!res) {
-          messager.error("Type check not passing");
-        }
-        messager.message("Typechecking finished");
         return res;
       }
     } // namespace Checkers

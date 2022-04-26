@@ -46,8 +46,7 @@ namespace MiniMC {
       using CPA = CPADef<
           StateQuery,
           Transferer,
-          Joiner,
-          MiniMC::CPA::Storer>;
+          Joiner>;
 
     } // namespace Location
 
@@ -81,8 +80,7 @@ namespace MiniMC {
       using CPA = CPADef<
 	StateQuery,
 	Transferer,
-	Joiner,
-	MiniMC::CPA::Storer>;
+	Joiner>;
       
     } // namespace SingleLocation
 

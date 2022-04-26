@@ -41,9 +41,8 @@ namespace MiniMC {
       using CPA = CPADef<
           StateQuery,
           Transferer,
-          Joiner,
-          MiniMC::CPA::Storer
-	>;
+          Joiner
+        >;
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

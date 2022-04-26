@@ -8,15 +8,32 @@
 namespace MiniMC {
   namespace Algorithms {
     namespace Reachability {
-      Verdict Reachability::search (const MiniMC::CPA::State_ptr& state, GoalFunction goal) {
+
+      
+      StateStatus DefaultFilter (const MiniMC::CPA::State_ptr& state) {
+	auto solver = state->getConcretizer ();
+	switch (solver->isFeasible ()) {
+	case MiniMC::CPA::Solver::Feasibility::Feasible:
+	case MiniMC::CPA::Solver::Feasibility::Unknown:
+	  return StateStatus::Keep;
+	default:
+	  return StateStatus::Discard;
+	}
+      }
+      
+      
+      Verdict Reachability::search (const MiniMC::CPA::State_ptr& state, GoalFunction goal,FilterFunction filter) {
 	MiniMC::CPA::Storer storage {joiner};
 	std::list<MiniMC::CPA::State_ptr> waiting;
 	MiniMC::Algorithms::Generator generator{transfer};
-
-	auto insert = [&storage,&waiting](auto& state) {
-	  if (!storage.isCoveredByStore (state)) {
-	    auto joinPair = storage.joinState (state);
-	    waiting.push_front (joinPair.joined);
+	
+        auto insert = [&storage,&waiting,filter](auto& state) {
+	  
+	  if (filter(state) == StateStatus::Keep) {
+	    if (!storage.isCoveredByStore (state)) {
+	      auto joinPair = storage.joinState (state);
+	      waiting.push_front (joinPair.joined);
+	    }
 	  }
 	};
 
@@ -31,6 +48,8 @@ namespace MiniMC {
 	  auto successors = generator.generate (searchee);
 	  auto end = successors.second;
 	  std::for_each (successors.first,end,[insert](auto& succ){insert(succ.state);});
+	  progress_indicator = Progress{.passed = storage.size (), .waiting = waiting.size ()};
+	  progress_indicator.notif_listeners ();
 	}
 
 	return Verdict::NotFound;
