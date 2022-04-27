@@ -10,8 +10,8 @@ namespace MiniMC {
       proc_id procs = locstate.nbOfProcesses();
       for (proc_id i = 0; i < procs; ++i) {
         os << "Process." << i << "@" << locstate.getLocation(i)->getInfo().getName() << "\n";
-        auto stackDescr = locstate.getLocation(i)->getCFG()->getFunction()->getVariableStackDescr();
-        for (auto v : stackDescr->getVariables()) {
+        auto& stackDescr = locstate.getLocation(i)->getCFG()->getFunction()->getVariableStackDescr();
+        for (auto v : stackDescr.getVariables()) {
           os << v->getName() << " : ";
 	  auto val = state.symbEvaluate (i,v);
 	  os << *val;

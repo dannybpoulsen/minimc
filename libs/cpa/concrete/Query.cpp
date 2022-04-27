@@ -72,8 +72,8 @@ namespace MiniMC {
 
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
 	  auto& vstack = func->getVariableStackDescr();
-	  StackFrame sf {vstack->getTotalVariables (),ret};
-	  for (auto& v : vstack->getVariables()) {
+	  StackFrame sf {vstack.getTotalVariables (),ret};
+	  for (auto& v : vstack.getVariables()) {
             sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
           }
 
@@ -169,8 +169,8 @@ namespace MiniMC {
         std::vector<CallStack> stack;
         for (auto& f : descr.getEntries()) {
           auto& vstack = f->getVariableStackDescr();
-	  StackFrame sf {vstack->getTotalVariables (),nullptr};
-	  for (auto& v : vstack->getVariables()) {
+	  StackFrame sf {vstack.getTotalVariables (),nullptr};
+	  for (auto& v : vstack.getVariables()) {
             sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
           }
 	  CallStack cs {std::move(sf)};

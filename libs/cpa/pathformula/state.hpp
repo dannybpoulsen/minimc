@@ -56,9 +56,9 @@ namespace MiniMC {
 	  
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
 	  auto& vstack = func->getVariableStackDescr();
-	  ValueMap sf {vstack->getTotalVariables ()};
+	  ValueMap sf {vstack.getTotalVariables ()};
 	  MiniMC::VMT::Pathformula::ValueLookup values{sf,context.getBuilder ()};
-	  for (auto& v : vstack->getVariables()) {
+	  for (auto& v : vstack.getVariables()) {
             values.saveValue  (v,values.unboundValue (v->getType ()));
           }
 

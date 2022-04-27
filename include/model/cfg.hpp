@@ -141,15 +141,15 @@ namespace MiniMC {
                const std::string& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
-               const VariableStackDescr_ptr& variableStackDescr,
+               VariableStackDescr& variableStackDescr,
                const CFA_ptr cfg,
                Program& prgm) : name(name),
-                                          parameters(params),
-                                          variableStackDescr(variableStackDescr),
-                                          cfg(cfg),
-                                          id(id),
-                                          prgm(prgm),
-					  retType(rtype)
+				parameters(params),
+				variableStackDescr(std::move(variableStackDescr)),
+				cfg(cfg),
+				id(id),
+				prgm(prgm),
+				retType(rtype)
                                           
       {
       }
@@ -166,7 +166,7 @@ namespace MiniMC {
     private:
       std::string name;
       std::vector<Register_ptr> parameters;
-      VariableStackDescr_ptr variableStackDescr;
+      VariableStackDescr variableStackDescr;
       CFA_ptr cfg;
       MiniMC::func_t id;
       Program& prgm;
@@ -185,7 +185,7 @@ namespace MiniMC {
       Function_ptr addFunction(const std::string& name,
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
-			       const VariableStackDescr_ptr& variableStackDescr,
+			       VariableStackDescr&& variableStackDescr,
 			       const CFA_ptr cfg) {
         functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, variableStackDescr, cfg, *this));
         function_map.insert(std::make_pair(name, functions.back()));
@@ -223,9 +223,7 @@ namespace MiniMC {
       auto& getEntryPoints() const { return entrypoints; }
 
       bool hasEntryPoints() const { return entrypoints.size(); }
-      VariableStackDescr_ptr makeVariableStack(const std::string& name) {
-        return std::make_shared<VariableStackDescr>(name);
-      }
+      
 
       auto& getConstantFactory() { return cfact; }
       auto& getTypeFactory() { return tfact; }

@@ -73,9 +73,6 @@ namespace MiniMC {
         return os << "Undef";
       }
 
-      /*virtual const MiniMC::uint8_t* getData() const {
-        throw MiniMC::Support::Exception("GetData should not be called on Undef");
-	}*/
     };
 
     
@@ -195,8 +192,7 @@ namespace MiniMC {
     };
 
     class VariableStackDescr;
-    using VariableStackDescr_ptr = std::shared_ptr<VariableStackDescr>;
-
+    
     /**
 	 * Representation of Variable in MiniMC. 
 	 * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution  
@@ -205,7 +201,7 @@ namespace MiniMC {
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const std::string& name) : name(name) {}
+      Register(const std::string& name, VariableStackDescr* owner) : name(name),owner(owner) {}
       const std::string& getName() const { return name; }
       virtual std::ostream& output(std::ostream& os) const {
         os << " < " << getName() << " ";
@@ -218,12 +214,11 @@ namespace MiniMC {
       }
 
       bool isRegister () const override { return true; }
-      void setOwner (const VariableStackDescr_ptr& descr) { owner = descr.get(); }
       auto& getOwner() const { return owner; }
 
     private:
       std::string name;
-      VariableStackDescr* owner;
+      const VariableStackDescr* owner{nullptr};
     };
 
     using Register_ptr = std::shared_ptr<Register>;
@@ -233,9 +228,11 @@ namespace MiniMC {
 	 * stack allocations). 
 	 *
 	 */
-    class VariableStackDescr : public std::enable_shared_from_this<VariableStackDescr> {
+    class VariableStackDescr  {
     public:
       VariableStackDescr(const std::string& pref) : pref(pref) {}
+      VariableStackDescr (const VariableStackDescr&) = delete;
+      VariableStackDescr (VariableStackDescr&& ) = default;
       Register_ptr addVariable(const std::string& name, const Type_ptr& type);
       auto& getVariables() const { return variables; }
 

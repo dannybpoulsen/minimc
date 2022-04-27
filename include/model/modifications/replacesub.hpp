@@ -28,7 +28,7 @@ namespace MiniMC {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
                     std::cerr << "Replace " << std::endl;
                     auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();
-                    auto nvar = F->getVariableStackDescr()->addVariable("", content.op1->getType());
+                    auto nvar = F->getVariableStackDescr().addVariable("", content.op1->getType());
                     auto one_constant = cfac->makeIntegerConstant(1, content.op1->getType());
                     std::vector<MiniMC::Model::Instruction> vec;
                     vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = content.op2}));

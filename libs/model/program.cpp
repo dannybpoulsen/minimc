@@ -10,10 +10,10 @@ namespace MiniMC {
   namespace Model {
     struct Copier {
       Copier (Program& program) : program(program) { }
-      MiniMC::Model::VariableStackDescr_ptr copyVariables ( const MiniMC::Model::VariableStackDescr& vars) {
-	auto stack = program.makeVariableStack (vars.getPref ());
+      MiniMC::Model::VariableStackDescr copyVariables ( const MiniMC::Model::VariableStackDescr& vars) {
+	MiniMC::Model::VariableStackDescr stack{vars.getPref()};
 	for (auto& v : vars.getVariables ())
-	  stack->addVariable (v->getName(),v->getType ());
+	  stack.addVariable (v->getName(),v->getType ());
 	return stack;
       }
 
@@ -78,25 +78,24 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function) {
-	auto varstack = copyVariables (*function->getVariableStackDescr ());
+	auto varstack = copyVariables (function->getVariableStackDescr ());
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
-		       [&](auto& vv) {parameters.push_back (varstack->getVariables ().at (vv->getId ()));}
+		       [&](auto& vv) {parameters.push_back (varstack.getVariables ().at (vv->getId ()));}
 		       );
-	auto cfa = copyCFA (function->getCFG (),*varstack);
+	auto cfa = copyCFA (function->getCFG (),varstack);
 	auto retType  = function->getReturnType ();
 	return program.addFunction (function->getName (),
 				    parameters,
 				    retType,
-				    varstack,
+				    std::move(varstack),
 				    cfa);
       }
 
       
       
       void copyProgram (const Program& p) {
-	auto vstack = program.makeVariableStack ("gg");
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f);
 	}

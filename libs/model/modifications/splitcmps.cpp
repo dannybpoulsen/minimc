@@ -43,7 +43,7 @@ namespace MiniMC {
         return false;
       }
       void killBranchingInFunction(const MiniMC::Model::Function_ptr& func) {
-        if (func->getVariableStackDescr()->getTotalVariables() <= 0) {
+        if (func->getVariableStackDescr().getTotalVariables() <= 0) {
           //No variables, so no point in doing anything here
 
           return;

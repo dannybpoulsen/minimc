@@ -17,10 +17,10 @@ namespace MiniMC {
     MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     uint32_t computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
     struct Types {
-      MiniMC::Model::VariableStackDescr_ptr stack;
+      MiniMC::Model::VariableStackDescr* stack;
       MiniMC::Model::TypeFactory_ptr tfac;
       MiniMC::Model::Type_ptr getType (llvm::Type* type) {
-		return  MiniMC::Loaders::getType (type,tfac);
+	return  MiniMC::Loaders::getType (type,tfac);
       }
       std::size_t getSizeInBytes (llvm::Type* type) {
 		return computeSizeInBytes (type,tfac);
