@@ -10,14 +10,14 @@ namespace MiniMC {
 
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
-      auto cfg = program->makeCFG();
+      MiniMC::Model::CFA cfg{*program};
       MiniMC::Model::VariableStackDescr vstack{name};
       auto funcpointer = program->getConstantFactory()->makeFunctionPointer(function->getID());
-      auto init = cfg->makeLocation(MiniMC::Model::LocationInfo("init", 0, *source_loc));
-      auto end = cfg->makeLocation(MiniMC::Model::LocationInfo("end", 0, *source_loc));
+      auto init = cfg.makeLocation(MiniMC::Model::LocationInfo("init", 0, *source_loc));
+      auto end = cfg.makeLocation(MiniMC::Model::LocationInfo("end", 0, *source_loc));
 
-      cfg->setInitial(init);
-      auto edge = cfg->makeEdge(init, end);
+      cfg.setInitial(init);
+      auto edge = cfg.makeEdge(init, end);
 
       Value_ptr result = nullptr;
       std::vector<Value_ptr> params;
@@ -37,7 +37,7 @@ namespace MiniMC {
       return program->addFunction(name, {},
                                   program->getTypeFactory()->makeVoidType(),
                                   std::move(vstack),
-                                  cfg);
+                                  std::move(cfg));
     }
   } // namespace Model
 } // namespace MiniMC

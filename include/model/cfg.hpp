@@ -39,15 +39,14 @@ namespace MiniMC {
 	 *
 	 */
     class CFA : public std::enable_shared_from_this<CFA> {
-    protected:
-      friend class Program;
-      CFA(Program& prgm) : prgm(prgm) {}
-      void setFunction(const Function_ptr& func) { function = func; }
-      
     public:
+      
+      CFA(Program& prgm) : prgm(prgm) {}
+      
       CFA (const CFA& ) = delete;
+      CFA (CFA&& ) = default;
       Location_ptr makeLocation(const LocationInfo& info) {
-        locations.emplace_back(new Location(info, locations.size(), this->shared_from_this()));
+        locations.emplace_back(new Location(info, locations.size(), this));
         return locations.back();
       }
 
@@ -122,32 +121,27 @@ namespace MiniMC {
         return true;
       }
 
-      Function_ptr getFunction() const {
-        return function.lock();
-      }
 
     private:
       std::vector<Location_ptr> locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;
       Program& prgm;
-      Function_wptr function;
     };
 
-    using CFA_ptr = std::shared_ptr<CFA>;
-
+    
     class Function : public std::enable_shared_from_this<Function> {
     public:
       Function(MiniMC::func_t id,
                const std::string& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
-               VariableStackDescr& variableStackDescr,
-               const CFA_ptr cfg,
+               VariableStackDescr&& variableStackDescr,
+	       CFA&& cfg,
                Program& prgm) : name(name),
 				parameters(params),
 				variableStackDescr(std::move(variableStackDescr)),
-				cfg(cfg),
+				cfg(std::move(cfg)),
 				id(id),
 				prgm(prgm),
 				retType(rtype)
@@ -159,7 +153,9 @@ namespace MiniMC {
       auto& getParameters() const { return parameters; }
       auto& getVariableStackDescr() const { return variableStackDescr; }
       auto& getVariableStackDescr() { return variableStackDescr; }
-      auto& getCFG() const { return *cfg; }
+      auto& getCFG() const { return cfg; }
+      auto& getCFG()  { return cfg; }
+      
       auto& getID() const { return id; }
       auto& getReturnType() { return retType; }
       Program& getPrgm() const { return prgm; }
@@ -168,7 +164,7 @@ namespace MiniMC {
       std::string name;
       std::vector<Register_ptr> parameters;
       VariableStackDescr variableStackDescr;
-      CFA_ptr cfg;
+      CFA cfg;
       MiniMC::func_t id;
       Program& prgm;
       Type_ptr retType;
@@ -187,15 +183,10 @@ namespace MiniMC {
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
 			       VariableStackDescr&& variableStackDescr,
-			       const CFA_ptr cfg) {
-        functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, variableStackDescr, cfg, *this));
+			       CFA&& cfg) {
+        functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, std::move(variableStackDescr), std::move(cfg), *this));
         function_map.insert(std::make_pair(name, functions.back()));
-        cfg->setFunction(functions.back());
         return functions.back();
-      }
-
-      CFA_ptr makeCFG() {
-        return std::shared_ptr<CFA>(new CFA(*this));
       }
 
       auto& getFunctions() const { return functions; }

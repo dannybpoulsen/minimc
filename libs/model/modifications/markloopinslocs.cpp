@@ -15,7 +15,7 @@ namespace MiniMC {
 
       struct InnerRun {
       public:
-        void mainSearch(MiniMC::Model::CFA& cfg) {
+        void mainSearch(const MiniMC::Model::CFA& cfg) {
           MiniMC::Support::WorkingList<MiniMC::Model::Location*> wlist;
           auto inserter = wlist.inserter();
           for (auto& l : cfg.getLocations()) {

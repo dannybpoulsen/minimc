@@ -48,17 +48,17 @@ namespace MiniMC {
 	    return vars.getVariables ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
 	};
 
-	auto ncfa = program.makeCFG ();
+	MiniMC::Model::CFA ncfa {program};
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
 
 	for (auto& loc : cfa.getLocations ()) {
-	  locMap.emplace (loc,ncfa->makeLocation (loc->getInfo ()));
+	  locMap.emplace (loc,ncfa.makeLocation (loc->getInfo ()));
 	}
 
-	ncfa->setInitial (locMap.at(cfa.getInitialLocation ()));
+	ncfa.setInitial (locMap.at(cfa.getInitialLocation ()));
 	
 	for (auto& e : cfa.getEdges ()) {
-	  auto nedge = ncfa->makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
+	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
 
 	  if (e->hasAttribute<AttributeType::Guard> ()) {
 	    auto& guard = e->getAttribute<AttributeType::Guard>  ();
@@ -90,7 +90,7 @@ namespace MiniMC {
 				    parameters,
 				    retType,
 				    std::move(varstack),
-				    cfa);
+				    std::move(cfa));
       }
 
       
