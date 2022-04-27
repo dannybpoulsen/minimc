@@ -34,11 +34,11 @@ namespace MiniMC {
                                                                       MiniMC::Model::InstructionCode::ICMP_ULT,
                                                                       MiniMC::Model::InstructionCode::ICMP_ULE>(inst); };
 
-          auto cfg = F->getCFG();
+          auto& cfg = F->getCFG();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
-          std::for_each(cfg->getEdges().begin(),
-                        cfg->getEdges().end(),
+          std::for_each(cfg.getEdges().begin(),
+                        cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
 
           for (auto E : wlist) {
@@ -48,18 +48,18 @@ namespace MiniMC {
                 auto buildEdge = [&]<MiniMC::Model::InstructionCode inst,
                                      MiniMC::Model::InstructionCode left>(auto& v) {
                   auto& origcontent = instrs.last().getOps<inst> ();
-                  auto loc = cfg->makeLocation(E->getTo()->getInfo());
+                  auto loc = cfg.makeLocation(E->getTo()->getInfo());
 
                   auto it = E->getTo()->ebegin();
                   auto end = E->getTo()->eend();
 
                   for (; it != end; ++it) {
-                    auto nedge = cfg->makeEdge(loc, it->getTo());
+                    auto nedge = cfg.makeEdge(loc, it->getTo());
                     nedge->copyAttributesFrom(**it);
                   }
                   std::vector<MiniMC::Model::Instruction> instr;
                   std::copy(instrs.begin(), instrs.end(), std::back_inserter(instr));
-                  auto tt = cfg->makeEdge(E->getFrom(), loc);
+                  auto tt = cfg.makeEdge(E->getFrom(), loc);
                   tt->setAttribute<MiniMC::Model::AttributeType::Instructions>(instr);
                   std::vector<MiniMC::Model::Instruction> ttI{
 		    MiniMC::Model::createInstruction<left>({.op1 = origcontent.op1, .op2 = origcontent.op2}),
@@ -128,9 +128,9 @@ namespace MiniMC {
 		  throw MiniMC::Support::Exception ("Not a  comparison");
 		};
                 if (E->getTo()->nbIncomingEdges() <= 1) {
-                  cfg->deleteLocation(E->getTo());
+                  cfg.deleteLocation(E->getTo());
                 } else {
-                  cfg->deleteEdge(E);
+                  cfg.deleteEdge(E);
                 }
               }
             }

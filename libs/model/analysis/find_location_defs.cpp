@@ -50,8 +50,8 @@ namespace MiniMC {
         auto& vStack = f.getVariableStackDescr();
         CFGDefs defs(cfg, vStack.getTotalVariables());
 
-        auto lit = cfg->getLocations().begin();
-        auto eit = cfg->getLocations().end();
+        auto lit = cfg.getLocations().begin();
+        auto eit = cfg.getLocations().end();
         auto res = MiniMC::Support::ForwardDataFlowAnalysis<MiniMC::Model::Location,
                                                             MiniMC::Model::Instruction*,
                                                             MiniMC::Model::Edge_ptr,

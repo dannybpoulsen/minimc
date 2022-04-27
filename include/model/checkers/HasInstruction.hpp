@@ -15,7 +15,7 @@ namespace MiniMC {
         HasNoInstruction(const std::string& s) : error_mess(s) {}
         virtual bool run(const MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG()->getEdges()) {
+            for (auto& E : F->getCFG().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (MiniMC::Model::isOneOf<codes...>(I)) {

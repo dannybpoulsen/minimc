@@ -30,7 +30,7 @@ namespace MiniMC {
       struct MarkAllStates : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
-            for (auto& l : F->getCFG()->getLocations()) {
+            for (auto& l : F->getCFG().getLocations()) {
               l->getInfo().template set<MiniMC::Model::Attributes::NeededStore>();
             }
           }

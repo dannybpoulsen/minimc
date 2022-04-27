@@ -57,8 +57,8 @@ namespace MiniMC {
 
       void foldConstants(Function& F) {
         auto& prgm = F.getPrgm();
-        auto cfg = F.getCFG();
-        for (auto& e : cfg->getEdges()) {
+        auto& cfg = F.getCFG();
+        for (auto& e : cfg.getEdges()) {
           if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
             for (auto& i : e->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               switch (i.getOpcode()) {

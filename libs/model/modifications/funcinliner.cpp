@@ -62,7 +62,7 @@ namespace MiniMC {
           }
         }
 
-        edge->setTo(locmap.at(cfunc->getCFG()->getInitialLocation().get()));
+        edge->setTo(locmap.at(cfunc->getCFG().getInitialLocation().get()));
 
         auto& parameters = cfunc->getParameters();
         auto it = parameters.begin();
@@ -86,9 +86,9 @@ namespace MiniMC {
         MiniMC::Model::LocationInfoCreator linfoc(F->getName());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
-        auto cfg = F->getCFG();
-        std::for_each(cfg->getEdges().begin(),
-                      cfg->getEdges().end(),
+        auto& cfg = F->getCFG();
+        std::for_each(cfg.getEdges().begin(),
+                      cfg.getEdges().end(),
                       [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
         for (auto& e : wlist) {
           if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>() &&

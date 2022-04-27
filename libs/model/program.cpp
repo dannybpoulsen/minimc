@@ -37,7 +37,7 @@ namespace MiniMC {
 
       }
       
-      auto copyCFA (const MiniMC::Model::CFA_ptr& cfa,
+      auto copyCFA (const MiniMC::Model::CFA& cfa,
 		    const MiniMC::Model::VariableStackDescr& vars
 		    ) {
 	auto replacer = [&vars](auto& v) -> MiniMC::Model::Value_ptr {
@@ -51,13 +51,13 @@ namespace MiniMC {
 	auto ncfa = program.makeCFG ();
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
 
-	for (auto& loc : cfa->getLocations ()) {
+	for (auto& loc : cfa.getLocations ()) {
 	  locMap.emplace (loc,ncfa->makeLocation (loc->getInfo ()));
 	}
 
-	ncfa->setInitial (locMap.at(cfa->getInitialLocation ()));
+	ncfa->setInitial (locMap.at(cfa.getInitialLocation ()));
 	
-	for (auto& e : cfa->getEdges ()) {
+	for (auto& e : cfa.getEdges ()) {
 	  auto nedge = ncfa->makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
 
 	  if (e->hasAttribute<AttributeType::Guard> ()) {

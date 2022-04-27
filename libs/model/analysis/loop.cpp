@@ -36,12 +36,12 @@ namespace MiniMC {
         return loop;
       }
 
-      LoopInfo createLoopInfo(const MiniMC::Model::CFA_ptr& cfg) {
+      LoopInfo createLoopInfo(const MiniMC::Model::CFA& cfg) {
         assert(cfg->isIncomingOutgoingConsistent());
 
         auto dominatorinfo = MiniMC::Model::Analysis::calculateDominators(cfg);
         std::unordered_map<MiniMC::Model::Location_ptr, Loop_ptr> loopData;
-        for (auto& edge : cfg->getEdges()) {
+        for (auto& edge : cfg.getEdges()) {
           if (dominatorinfo.dominates(edge->getFrom(), edge->getTo())) {
             auto loop = constructLoop(edge->getTo(), edge->getFrom());
             if (loopData.count(edge->getTo())) {

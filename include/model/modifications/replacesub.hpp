@@ -19,7 +19,7 @@ namespace MiniMC {
         virtual bool run(MiniMC::Model::Program& prgm) {
           auto& cfac = prgm.getConstantFactory();
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG()->getEdges()) {
+            for (auto& E : F->getCFG().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 auto& instrstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 auto it = instrstr.begin();

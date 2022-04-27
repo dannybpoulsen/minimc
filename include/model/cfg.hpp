@@ -43,8 +43,9 @@ namespace MiniMC {
       friend class Program;
       CFA(Program& prgm) : prgm(prgm) {}
       void setFunction(const Function_ptr& func) { function = func; }
-
+      
     public:
+      CFA (const CFA& ) = delete;
       Location_ptr makeLocation(const LocationInfo& info) {
         locations.emplace_back(new Location(info, locations.size(), this->shared_from_this()));
         return locations.back();
@@ -65,7 +66,7 @@ namespace MiniMC {
         return edges.back();
       }
 
-      Location_ptr getInitialLocation() {
+      Location_ptr getInitialLocation() const {
         assert(initial);
         return initial;
       }
@@ -109,8 +110,8 @@ namespace MiniMC {
 
       auto& getLocations() const { return locations; }
       auto& getLocations() { return locations; }
-      auto& getEdges() { return edges; }
-
+      auto& getEdges() const { return edges; }
+      
       //Check if locations and edges are consistent
       bool isIncomingOutgoingConsistent() const {
         for (auto& e : edges) {
@@ -158,7 +159,7 @@ namespace MiniMC {
       auto& getParameters() const { return parameters; }
       auto& getVariableStackDescr() const { return variableStackDescr; }
       auto& getVariableStackDescr() { return variableStackDescr; }
-      auto& getCFG() const { return cfg; }
+      auto& getCFG() const { return *cfg; }
       auto& getID() const { return id; }
       auto& getReturnType() { return retType; }
       Program& getPrgm() const { return prgm; }

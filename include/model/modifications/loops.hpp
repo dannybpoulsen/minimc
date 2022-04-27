@@ -12,7 +12,7 @@ namespace MiniMC {
         size_t maxAmount = 0;
       };
 
-      void unrollLoop(MiniMC::Model::CFA_ptr& cfg, const MiniMC::Model::Analysis::Loop_ptr& loop, std::size_t amount);
+      void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop_ptr& loop, std::size_t amount);
 
       struct UnrollLoops : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         UnrollLoops(std::size_t size) : maxAmount(size) {}

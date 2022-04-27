@@ -103,14 +103,14 @@ int main () {
   } ;
 
   auto function = prgm->getFunction ("main");
-  auto cfg = function->getCFG ();
-  auto lit = cfg->getLocations ().begin ();
-  auto eit =cfg->getLocations ().end ();
+  auto& cfg = function->getCFG ();
+  auto lit = cfg.getLocations ().begin ();
+  auto eit =cfg.getLocations ().end ();
   MiniMC::Support::ForwardDataFlowAnalysis<MiniMC::Model::Location,
-										   MiniMC::Model::Instruction*,
-										   MiniMC::Model::Edge_ptr,
-										   GenKillInterface,
-										   decltype(lit)> (lit,eit);
+					   MiniMC::Model::Instruction*,
+					   MiniMC::Model::Edge_ptr,
+					   GenKillInterface,
+					   decltype(lit)> (lit,eit);
 	
   
   

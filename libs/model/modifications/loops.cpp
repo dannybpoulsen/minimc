@@ -10,10 +10,10 @@ namespace MiniMC {
     namespace Modifications {
 
       template <class LocInserter>
-      void unrollLoop(MiniMC::Model::CFA_ptr cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
+      void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
-        auto deadLoc = cfg->makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc));
+        auto deadLoc = cfg.makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc));
         deadLoc->getInfo().set<MiniMC::Model::Attributes::UnrollFailed>();
         //linserter =deadLoc;
         for (size_t i = 0; i < amount; i++) {
@@ -45,7 +45,7 @@ namespace MiniMC {
               to = unrolledLocations[i + 1].at(loop->getHeader().get());
             } else
               to = deadLoc;
-            auto nedge = cfg->makeEdge(from, to);
+            auto nedge = cfg.makeEdge(from, to);
             nedge->copyAttributesFrom(*e);
           });
         }
@@ -53,7 +53,7 @@ namespace MiniMC {
 
       bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func) {
         MiniMC::Support::getMessager().message(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getName()));
-        auto cfg = func->getCFG();
+        auto& cfg = func->getCFG();
 
         auto loopinfo = MiniMC::Model::Analysis::createLoopInfo(cfg);
         std::vector<MiniMC::Model::Analysis::Loop*> loops;

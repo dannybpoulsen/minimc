@@ -25,7 +25,7 @@ namespace MiniMC {
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           auto& prgm = F->getPrgm();
-          for (auto& E : F->getCFG()->getEdges()) {
+          for (auto& E : F->getCFG().getEdges()) {
             if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 if (I.getOpcode() == MiniMC::Model::InstructionCode::Load) {
@@ -161,11 +161,11 @@ namespace MiniMC {
           ExpandUndefValues{}.runFunction(F);
           EnsureEdgesOnlyHasOne<MiniMC::Model::InstructionCode::NonDet>{}.runFunction(F);
           auto& prgm = F->getPrgm();
-          auto cfg = F->getCFG();
+          auto& cfg = F->getCFG();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
-          std::for_each(cfg->getEdges().begin(),
-                        cfg->getEdges().end(),
+          std::for_each(cfg.getEdges().begin(),
+                        cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
 
           for (auto& E : wlist) {
@@ -208,7 +208,7 @@ namespace MiniMC {
                 while (true) {
                   auto val = fact->makeIntegerConstant(it, type);
                   
-                  auto nedge = cfg->makeEdge(from, to);
+                  auto nedge = cfg.makeEdge(from, to);
                   nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(origstr);
                   nedge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().replace(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign> ({
 			.res = content.res,
@@ -220,7 +220,7 @@ namespace MiniMC {
                   if (it == max)
                     break;
                 }
-                cfg->deleteEdge(E);
+                cfg.deleteEdge(E);
               }
             }
           }

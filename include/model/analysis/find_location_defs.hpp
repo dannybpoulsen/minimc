@@ -48,9 +48,9 @@ namespace MiniMC {
 
       class CFGDefs {
       public:
-        CFGDefs(const MiniMC::Model::CFA_ptr& cfg, std::size_t nbVars) {
+        CFGDefs(const MiniMC::Model::CFA& cfg, std::size_t nbVars) {
           assert(nbVars);
-          std::for_each(cfg->getLocations().begin(), cfg->getLocations().end(), [&](auto& l) {
+          std::for_each(cfg.getLocations().begin(), cfg.getLocations().end(), [&](auto& l) {
             locDefs.insert(std::make_pair(l, LocationDefs(nbVars)));
           });
         }

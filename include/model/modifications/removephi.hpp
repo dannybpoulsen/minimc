@@ -15,7 +15,7 @@ namespace MiniMC {
       struct RemovePhi : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG()->getEdges()) {
+            for (auto& E : F->getCFG().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 auto& instrstream = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 InstructionStream stream;

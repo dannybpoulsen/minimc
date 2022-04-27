@@ -30,12 +30,12 @@ namespace MiniMC {
 
       inline void copyEdgeAnd(const MiniMC::Model::Edge_ptr& edge,
                               const ReplaceMap<MiniMC::Model::Location>& locs,
-                              MiniMC::Model::CFA_ptr& cfg) {
+                              MiniMC::Model::CFA& cfg) {
 
         auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
         auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
 
-        auto nedge = cfg->makeEdge(from, to);
+        auto nedge = cfg.makeEdge(from, to);
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
           auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard>();
           nedge->setAttribute<MiniMC::Model::AttributeType::Guard>(guard);
@@ -53,9 +53,9 @@ namespace MiniMC {
       }
 
       template <class LocInsert, class LocInserter>
-      void copyLocation(MiniMC::Model::CFA_ptr to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, const std::string pref = "") {
+      void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, const std::string pref = "") {
         MiniMC::Model::LocationInfoCreator linfo(pref);
-        auto nloc = to->makeLocation(linfo.make(loc->getInfo()));
+        auto nloc = to.makeLocation(linfo.make(loc->getInfo()));
         inserter = std::make_pair(loc.get(), nloc);
         linserter = nloc;
       }
@@ -72,12 +72,12 @@ namespace MiniMC {
       void copyEdgeAndReplace(const MiniMC::Model::Edge_ptr& edge,
                               const ReplaceMap<MiniMC::Model::Value>& val,
                               const ReplaceMap<MiniMC::Model::Location>& locs,
-                              MiniMC::Model::CFA_ptr& cfg,
+                              MiniMC::Model::CFA& cfg,
                               Inserter insertTo) {
         auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
         auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
 
-        auto nedge = cfg->makeEdge(from, to);
+        auto nedge = cfg.makeEdge(from, to);
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
           auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard>();
 
@@ -102,21 +102,21 @@ namespace MiniMC {
       }
 
       template <class LocInsert, class EdgeInsert>
-      void copyCFG(const MiniMC::Model::CFA_ptr& from,
+      void copyCFG(const MiniMC::Model::CFA& from,
                    ReplaceMap<MiniMC::Model::Value>& val,
-                   MiniMC::Model::CFA_ptr to,
+                   MiniMC::Model::CFA& to,
                    const std::string,
                    ReplaceMap<MiniMC::Model::Location>& locmap,
                    LocInsert lInsert,
                    EdgeInsert eInsert,
                    MiniMC::Model::LocationInfoCreator& locinfoc) {
-        for (auto& loc : from->getLocations()) {
-          auto nloc = to->makeLocation(locinfoc.make(loc->getInfo()));
+        for (auto& loc : from.getLocations()) {
+          auto nloc = to.makeLocation(locinfoc.make(loc->getInfo()));
           locmap.insert(std::pair(loc.get(), nloc));
           lInsert = loc;
         }
 
-        for (auto& e : from->getEdges()) {
+        for (auto& e : from.getEdges()) {
           copyEdgeAndReplace<EdgeInsert>(e, val, locmap, to, eInsert);
         }
       }

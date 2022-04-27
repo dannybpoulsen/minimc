@@ -457,8 +457,8 @@ namespace MiniMC {
 		
 		
 	      }
-              //splitloc->set<MiniMC::Model::Location::Attributes::LoopEntry> ();
-              auto nedge = cfg->makeEdge(loc, splitloc);
+
+	      auto nedge = cfg->makeEdge(loc, splitloc);
               nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(insts);
             }
 

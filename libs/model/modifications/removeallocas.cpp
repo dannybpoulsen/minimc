@@ -6,19 +6,19 @@ namespace MiniMC {
           auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
           for (auto& F : prgm.getFunctions()) {
             auto stackvar = F->getVariableStackDescr().addVariable("stack", prgm.getTypeFactory()->makePointerType());
-            auto cfg = F->getCFG();
+            auto& cfg = F->getCFG();
             auto size = prgm.getConstantFactory()->makeIntegerConstant(0, prgm.getTypeFactory()->makeIntegerType(64));
             InstructionStream stream({createInstruction<InstructionCode::FindSpace>({.res = stackvar, .op1 = size})});
 		//createInstruction<InstructionCode::Malloc>({.object = stackvar, .size = size})}
 		
 
-            auto ninitloc = cfg->makeLocation(MiniMC::Model::LocationInfo("StackAlloc", 0, *source_loc));
-            auto oinitloc = cfg->getInitialLocation();
-            auto edge = cfg->makeEdge(ninitloc, oinitloc);
+            auto ninitloc = cfg.makeLocation(MiniMC::Model::LocationInfo("StackAlloc", 0, *source_loc));
+            auto oinitloc = cfg.getInitialLocation();
+            auto edge = cfg.makeEdge(ninitloc, oinitloc);
             edge->template setAttribute<AttributeType::Instructions>(stream);
-            cfg->setInitial(ninitloc);
+            cfg.setInitial(ninitloc);
 
-            for (auto& E : F->getCFG()->getEdges()) {
+            for (auto& E : F->getCFG().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == InstructionCode::Alloca) {

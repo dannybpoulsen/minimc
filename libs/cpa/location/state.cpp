@@ -132,7 +132,7 @@ namespace MiniMC {
                 auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(content.function);
                 pointer_t loadPtr = constant->getValue ();
                 auto func = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
-                nstate->pushLocation(id, func->getCFG()->getInitialLocation().get());
+                nstate->pushLocation(id, func->getCFG().getInitialLocation().get());
               } else
                 return nullptr;
             }
@@ -152,7 +152,7 @@ namespace MiniMC {
         std::vector<LocationState> locs;
         for (auto& f : p.getEntries()) {
           locs.emplace_back();
-          locs.back().push(f->getCFG()->getInitialLocation().get());
+          locs.back().push(f->getCFG().getInitialLocation().get());
         }
         return std::make_shared<State>(locs);
       }

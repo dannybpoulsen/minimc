@@ -1,10 +1,10 @@
 /**
  * @file   simplify_cfg.hpp
  * @date   Mon Apr 20 17:09:28 2020
- * 
- * @brief  
- * 
- * 
+ *
+ * @brief
+ *
+ *
  */
 #ifndef _SIMPLIFYCFG__
 #define _SIMPLIFYCFG__
@@ -36,9 +36,9 @@ namespace MiniMC {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
-          auto cfg = F->getCFG();
-          std::for_each(cfg->getEdges().begin(),
-                        cfg->getEdges().end(),
+          auto& cfg = F->getCFG();
+          std::for_each(cfg.getEdges().begin(),
+                        cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
           for (auto& E : wlist) {
             if (E->getFrom()->getInfo().template is<MiniMC::Model::Attributes::CallPlace>() &&
@@ -66,16 +66,16 @@ namespace MiniMC {
           MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
           MiniMC::Support::WorkingList<MiniMC::Model::Location_ptr> wlist;
           auto inserter = wlist.inserter();
-          auto cfg = F->getCFG();
-          std::for_each(cfg->getLocations().begin(),
-                        cfg->getLocations().end(),
+          auto& cfg = F->getCFG();
+          std::for_each(cfg.getLocations().begin(),
+                        cfg.getLocations().end(),
                         [&](const MiniMC::Model::Location_ptr& l) { inserter = l; });
           while (!wlist.empty()) {
             MiniMC::Model::Location_ptr location = wlist.pop();
             if (location->nbIncomingEdges() == 2) {
               location->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint>();
             } else if (location->nbIncomingEdges() > 2) {
-              auto nlocation = cfg->makeLocation(locinfoc.make("", 0, *source_loc));
+              auto nlocation = cfg.makeLocation(locinfoc.make("", 0, *source_loc));
               nlocation->getInfo().set<MiniMC::Model::Attributes::ConvergencePoint>();
               auto it = location->ebegin();
               MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> elist;
@@ -83,11 +83,11 @@ namespace MiniMC {
                             location->eend(),
                             [&](const MiniMC::Model::Edge_ptr& l) { elist.inserter() = l; });
               for (auto& edge : elist) {
-                auto nedge = cfg->makeEdge(nlocation, edge->getTo());
+                auto nedge = cfg.makeEdge(nlocation, edge->getTo());
                 nedge->copyAttributesFrom(**it);
-                cfg->deleteEdge(edge);
+                cfg.deleteEdge(edge);
               }
-              cfg->makeEdge(location, nlocation);
+              cfg.makeEdge(location, nlocation);
               auto eit = location->iebegin();
               eit->setTo(nlocation);
               wlist.inserter() = location;
@@ -105,7 +105,7 @@ namespace MiniMC {
       };
 
       /**
-       * Simplify the CFG by merging edges that can be executed in succession. 
+       * Simplify the CFG by merging edges that can be executed in succession.
        * Careful if used with parallel programs, as it does break the interleaving semantics.
        *
        */
@@ -129,10 +129,10 @@ namespace MiniMC {
           do {
 
             modified = false;
-            auto cfg = F->getCFG();
+            auto& cfg = F->getCFG();
 
             MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
-            addToWorkingList(wlist, cfg->getEdges().begin(), cfg->getEdges().end());
+            addToWorkingList(wlist, cfg.getEdges().begin(), cfg.getEdges().end());
             bool inner_mod = false;
             for (auto& EW : wlist) {
               inner_mod = false;
@@ -148,19 +148,19 @@ namespace MiniMC {
                   for (auto rwedge : inner_wlist) {
                     if (auto remove_edge = rwedge.lock()) {
                       inner_mod = true;
-                      auto nedge = cfg->makeEdge(from, remove_edge->getTo());
+                      auto nedge = cfg.makeEdge(from, remove_edge->getTo());
 
                       copyInstrStream(nedge, edge);
                       copyInstrStream(nedge, remove_edge);
 
-                      cfg->deleteEdge(remove_edge);
+                      cfg.deleteEdge(remove_edge);
                     }
                   }
                 }
                 modified |= inner_mod;
               }
               if (inner_mod) {
-                cfg->deleteEdge(edge);
+                cfg.deleteEdge(edge);
               }
             }
 
@@ -185,9 +185,9 @@ namespace MiniMC {
           MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
           auto inserter = wlist.inserter();
-          auto cfg = F->getCFG();
-          std::for_each(cfg->getEdges().begin(),
-                        cfg->getEdges().end(),
+          auto& cfg = F->getCFG();
+          std::for_each(cfg.getEdges().begin(),
+                        cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
           for (auto& cwedge : wlist) {
             auto edge = cwedge.lock();
@@ -195,11 +195,11 @@ namespace MiniMC {
             std::vector<MiniMC::Model::Edge_ptr> newedges;
             if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               MiniMC::Model::InstructionStream str;
-              
+
               auto from = edge->getFrom();
               auto makeEdge = [&](MiniMC::Model::InstructionStream& str) {
-                auto nloc = cfg->makeLocation(locinfoc.make("", 0, *source_loc));
-                auto nedge = cfg->makeEdge(from, nloc);
+                auto nloc = cfg.makeLocation(locinfoc.make("", 0, *source_loc));
+                auto nedge = cfg.makeEdge(from, nloc);
                 nedge->template setAttribute<MiniMC::Model::AttributeType::Instructions>(str);
                 newedges.push_back(nedge);
                 from = nloc;
@@ -217,7 +217,7 @@ namespace MiniMC {
                 makeEdge(str);
               }
               newedges.back()->setTo(edge->getTo());
-              cfg->deleteEdge(edge);
+              cfg.deleteEdge(edge);
             }
           }
 

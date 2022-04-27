@@ -6,22 +6,22 @@ namespace MiniMC {
   namespace Model {
     namespace Analysis {
 
-      DominatorInfo<MiniMC::Model::Location> calculateDominators(const MiniMC::Model::CFA_ptr& cfg) {
+      DominatorInfo<MiniMC::Model::Location> calculateDominators(const MiniMC::Model::CFA& cfg) {
         assert(cfg->isIncomingOutgoingConsistent());
         DominatorInfo<MiniMC::Model::Location> domres;
         std::set<Location_ptr> init;
-        for (auto& cur : cfg->getLocations()) {
+        for (auto& cur : cfg.getLocations()) {
           init.insert(cur);
         }
 
-        for (auto& cur : cfg->getLocations()) {
+        for (auto& cur : cfg.getLocations()) {
           domres.setDominators(cur, init);
         }
 
         bool change = true;
         while (change) {
           change = false;
-          for (auto& cur : cfg->getLocations()) {
+          for (auto& cur : cfg.getLocations()) {
             std::set<MiniMC::Model::Location_ptr> dominators;
 
             for (auto it = cur->iebegin(); it != cur->ieend(); ++it) {
