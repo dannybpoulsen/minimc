@@ -377,7 +377,6 @@ namespace MiniMC {
         tt.stack = &variablestack;
         using inserter = std::back_insert_iterator<std::vector<MiniMC::Model::Register_ptr>>;
         pickVariables<inserter>(F, variablestack, std::back_inserter(params));
-        auto f = prgm->addFunction(F.getName().str(), params, tt.getType(F.getReturnType()), std::move(variablestack), cfg);
         std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr> locmap;
 
         for (llvm::BasicBlock& BB : F) {
@@ -476,6 +475,7 @@ namespace MiniMC {
             }
           }
         }
+	prgm->addFunction(F.getName().str(), params, tt.getType(F.getReturnType()), std::move(variablestack), cfg);
         return llvm::PreservedAnalyses::all();
       }
 
