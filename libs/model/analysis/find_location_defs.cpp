@@ -46,9 +46,9 @@ namespace MiniMC {
       };
 
       CFGDefs calculateDefs(MiniMC::Model::Function& f) {
-        auto& cfg = f.getCFG();
-        auto& vStack = f.getVariableStackDescr();
-        CFGDefs defs(cfg, vStack.getTotalVariables());
+        auto& cfg = f.getCFA();
+        auto& vStack = f.getRegisterStackDescr();
+        CFGDefs defs(cfg, vStack.getTotalRegisters());
 
         auto lit = cfg.getLocations().begin();
         auto eit = cfg.getLocations().end();

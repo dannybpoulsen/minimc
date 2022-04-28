@@ -36,7 +36,7 @@ namespace MiniMC {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
-          auto& cfg = F->getCFG();
+          auto& cfg = F->getCFA();
           std::for_each(cfg.getEdges().begin(),
                         cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
@@ -66,7 +66,7 @@ namespace MiniMC {
           MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
           MiniMC::Support::WorkingList<MiniMC::Model::Location_ptr> wlist;
           auto inserter = wlist.inserter();
-          auto& cfg = F->getCFG();
+          auto& cfg = F->getCFA();
           std::for_each(cfg.getLocations().begin(),
                         cfg.getLocations().end(),
                         [&](const MiniMC::Model::Location_ptr& l) { inserter = l; });
@@ -129,7 +129,7 @@ namespace MiniMC {
           do {
 
             modified = false;
-            auto& cfg = F->getCFG();
+            auto& cfg = F->getCFA();
 
             MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
             addToWorkingList(wlist, cfg.getEdges().begin(), cfg.getEdges().end());
@@ -185,7 +185,7 @@ namespace MiniMC {
           MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
           auto inserter = wlist.inserter();
-          auto& cfg = F->getCFG();
+          auto& cfg = F->getCFA();
           std::for_each(cfg.getEdges().begin(),
                         cfg.getEdges().end(),
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });

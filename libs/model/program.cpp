@@ -10,15 +10,15 @@ namespace MiniMC {
   namespace Model {
     struct Copier {
       Copier (Program& program) : program(program) { }
-      MiniMC::Model::VariableStackDescr copyVariables ( const MiniMC::Model::VariableStackDescr& vars) {
-	MiniMC::Model::VariableStackDescr stack{vars.getPref()};
-	for (auto& v : vars.getVariables ())
-	  stack.addVariable (v->getName(),v->getType ());
+      MiniMC::Model::RegisterDescr copyVariables ( const MiniMC::Model::RegisterDescr& vars) {
+	MiniMC::Model::RegisterDescr stack{vars.getPref()};
+	for (auto& v : vars.getRegisters ())
+	  stack.addRegister (v->getName(),v->getType ());
 	return stack;
       }
 
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
-							   const MiniMC::Model::VariableStackDescr& vars
+							   const MiniMC::Model::RegisterDescr& vars
 							   ) {
 	auto replacer = [&vars](auto& v) -> MiniMC::Model::Value_ptr {
 	  if (v == nullptr)
@@ -27,7 +27,7 @@ namespace MiniMC {
 	    return v;
 	  }
 	  else
-	    return vars.getVariables ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
+	    return vars.getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
 	};
 	std::vector<Instruction> instrs;
 	for (auto& t : instr) {
@@ -38,14 +38,14 @@ namespace MiniMC {
       }
       
       auto copyCFA (const MiniMC::Model::CFA& cfa,
-		    const MiniMC::Model::VariableStackDescr& vars
+		    const MiniMC::Model::RegisterDescr& vars
 		    ) {
 	auto replacer = [&vars](auto& v) -> MiniMC::Model::Value_ptr {
 	  if (v->isConstant ()) {
 	    return v;
 	  }
 	  else
-	    return vars.getVariables ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
+	    return vars.getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
 	};
 
 	MiniMC::Model::CFA ncfa {program};
@@ -78,13 +78,13 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function) {
-	auto varstack = copyVariables (function->getVariableStackDescr ());
+	auto varstack = copyVariables (function->getRegisterStackDescr ());
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
-		       [&](auto& vv) {parameters.push_back (varstack.getVariables ().at (vv->getId ()));}
+		       [&](auto& vv) {parameters.push_back (varstack.getRegisters ().at (vv->getId ()));}
 		       );
-	auto cfa = copyCFA (function->getCFG (),varstack);
+	auto cfa = copyCFA (function->getCFA (),varstack);
 	auto retType  = function->getReturnType ();
 	return program.addFunction (function->getName (),
 				    parameters,

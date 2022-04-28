@@ -55,10 +55,10 @@ namespace MiniMC {
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Pathformula::PathFormulaVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 	  
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
-	  auto& vstack = func->getVariableStackDescr();
-	  ValueMap sf {vstack.getTotalVariables ()};
+	  auto& vstack = func->getRegisterStackDescr();
+	  ValueMap sf {vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Pathformula::ValueLookup values{sf,context.getBuilder ()};
-	  for (auto& v : vstack.getVariables()) {
+	  for (auto& v : vstack.getRegisters()) {
             values.saveValue  (v,values.unboundValue (v->getType ()));
           }
 

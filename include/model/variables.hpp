@@ -74,9 +74,7 @@ namespace MiniMC {
       }
 
     };
-
     
-    //using NonCompileConstant_ptr = std::shared_ptr<NonCompileConstant>;
     using Constant_ptr = std::shared_ptr<Constant>;
 
     class ConstantFactory64;
@@ -191,7 +189,7 @@ namespace MiniMC {
       std::size_t id;
     };
 
-    class VariableStackDescr;
+    class RegisterDescr;
     
     /**
 	 * Representation of Variable in MiniMC. 
@@ -201,7 +199,7 @@ namespace MiniMC {
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const std::string& name, VariableStackDescr* owner) : name(name),owner(owner) {}
+      Register(const std::string& name, RegisterDescr* owner) : name(name),owner(owner) {}
       const std::string& getName() const { return name; }
       virtual std::ostream& output(std::ostream& os) const {
         os << " < " << getName() << " ";
@@ -218,7 +216,7 @@ namespace MiniMC {
 
     private:
       std::string name;
-      const VariableStackDescr* owner{nullptr};
+      const RegisterDescr* owner{nullptr};
     };
 
     using Register_ptr = std::shared_ptr<Register>;
@@ -228,20 +226,20 @@ namespace MiniMC {
 	 * stack allocations). 
 	 *
 	 */
-    class VariableStackDescr  {
+    class RegisterDescr  {
     public:
-      VariableStackDescr(const std::string& pref) : pref(pref) {}
-      VariableStackDescr (const VariableStackDescr&) = delete;
-      VariableStackDescr (VariableStackDescr&& ) = default;
-      Register_ptr addVariable(const std::string& name, const Type_ptr& type);
-      auto& getVariables() const { return variables; }
+      RegisterDescr(const std::string& pref) : pref(pref) {}
+      RegisterDescr (const RegisterDescr&) = delete;
+      RegisterDescr (RegisterDescr&& ) = default;
+      Register_ptr addRegister(const std::string& name, const Type_ptr& type);
+      auto& getRegisters() const { return variables; }
 
       /** 
        *
        * @return Total size in bytes of an activation record
        */
       auto getTotalSize() const { return totalSize; }
-      auto getTotalVariables() const { return variables.size(); }
+      auto getTotalRegisters() const { return variables.size(); }
       auto getPref () const {return pref;}
     private:
       std::vector<Register_ptr> variables;
@@ -255,7 +253,6 @@ namespace MiniMC {
       virtual ~ConstantFactory() {}
 
       using aggr_input = std::vector<Constant_ptr>;
-      using noncompile_aggr_input = std::vector<Value_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&) = 0;
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t) = 0;

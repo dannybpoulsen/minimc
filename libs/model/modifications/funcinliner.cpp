@@ -23,19 +23,19 @@ namespace MiniMC {
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
 	auto cfunc = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
-        auto copyVar = [&](MiniMC::Model::VariableStackDescr& stack) {
-          for (auto& v : stack.getVariables()) {
-            valmap.insert(std::make_pair(v.get(), func->getVariableStackDescr().addVariable(v->getName(), v->getType())));
+        auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
+          for (auto& v : stack.getRegisters()) {
+            valmap.insert(std::make_pair(v.get(), func->getRegisterStackDescr().addRegister(v->getName(), v->getType())));
           }
         };
 
-        copyVar(cfunc->getVariableStackDescr());
+        copyVar(cfunc->getRegisterStackDescr());
 
         ReplaceMap<MiniMC::Model::Location> locmap;
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
-        copyCFG(cfunc->getCFG(), valmap, func->getCFG(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
           if (ne->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
@@ -62,7 +62,7 @@ namespace MiniMC {
           }
         }
 
-        edge->setTo(locmap.at(cfunc->getCFG().getInitialLocation().get()));
+        edge->setTo(locmap.at(cfunc->getCFA().getInitialLocation().get()));
 
         auto& parameters = cfunc->getParameters();
         auto it = parameters.begin();
@@ -86,7 +86,7 @@ namespace MiniMC {
         MiniMC::Model::LocationInfoCreator linfoc(F->getName());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
-        auto& cfg = F->getCFG();
+        auto& cfg = F->getCFA();
         std::for_each(cfg.getEdges().begin(),
                       cfg.getEdges().end(),
                       [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });

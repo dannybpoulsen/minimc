@@ -24,7 +24,7 @@ namespace MiniMC {
       struct LowerGuards : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
-          for (auto& E : F->getCFG().getEdges()) {
+          for (auto& E : F->getCFA().getEdges()) {
             if (E->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
               auto& guard = E->getAttribute<MiniMC::Model::AttributeType::Guard>();
               assert(!E->hasAttribute<MiniMC::Model::AttributeType::Instructions>());

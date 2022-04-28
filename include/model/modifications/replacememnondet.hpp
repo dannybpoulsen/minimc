@@ -25,7 +25,7 @@ namespace MiniMC {
       struct RemoveMemNondet : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           auto& prgm = F->getPrgm();
-          for (auto& E : F->getCFG().getEdges()) {
+          for (auto& E : F->getCFA().getEdges()) {
             if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
               for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 if (I.getOpcode() == MiniMC::Model::InstructionCode::Load) {
@@ -161,7 +161,7 @@ namespace MiniMC {
           ExpandUndefValues{}.runFunction(F);
           EnsureEdgesOnlyHasOne<MiniMC::Model::InstructionCode::NonDet>{}.runFunction(F);
           auto& prgm = F->getPrgm();
-          auto& cfg = F->getCFG();
+          auto& cfg = F->getCFA();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
           std::for_each(cfg.getEdges().begin(),

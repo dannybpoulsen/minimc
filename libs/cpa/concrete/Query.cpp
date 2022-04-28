@@ -71,9 +71,9 @@ namespace MiniMC {
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Concrete::ConcreteVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
-	  auto& vstack = func->getVariableStackDescr();
-	  StackFrame sf {vstack.getTotalVariables (),ret};
-	  for (auto& v : vstack.getVariables()) {
+	  auto& vstack = func->getRegisterStackDescr();
+	  StackFrame sf {vstack.getTotalRegisters (),ret};
+	  for (auto& v : vstack.getRegisters()) {
             sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
           }
 
@@ -168,9 +168,9 @@ namespace MiniMC {
         
         std::vector<CallStack> stack;
         for (auto& f : descr.getEntries()) {
-          auto& vstack = f->getVariableStackDescr();
-	  StackFrame sf {vstack.getTotalVariables (),nullptr};
-	  for (auto& v : vstack.getVariables()) {
+          auto& vstack = f->getRegisterStackDescr();
+	  StackFrame sf {vstack.getTotalRegisters (),nullptr};
+	  for (auto& v : vstack.getRegisters()) {
             sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
           }
 	  CallStack cs {std::move(sf)};

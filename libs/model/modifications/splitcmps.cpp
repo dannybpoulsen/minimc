@@ -43,14 +43,14 @@ namespace MiniMC {
         return false;
       }
       void killBranchingInFunction(const MiniMC::Model::Function_ptr& func) {
-        if (func->getVariableStackDescr().getTotalVariables() <= 0) {
+        if (func->getRegisterStackDescr().getTotalRegisters() <= 0) {
           //No variables, so no point in doing anything here
 
           return;
         }
         auto cfgdefs = MiniMC::Model::Analysis::calculateDefs(*func); //manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);
         MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
-        auto& edges = func->getCFG().getEdges();
+        auto& edges = func->getCFA().getEdges();
         std::copy_if(edges.begin(), edges.end(), wlist.inserter(), [](auto& e) { return e->template hasAttribute<MiniMC::Model::AttributeType::Guard>() && !e->template hasAttribute<MiniMC::Model::AttributeType::Instructions>(); });
 
         std::unordered_set<MiniMC::Model::Location_ptr> loc_list;
@@ -68,10 +68,10 @@ namespace MiniMC {
             if (evalConst(*instr, guard.guard, constant)) {
               auto iconst = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint8_t>>(constant);
               if (iconst->getValue() && guard.negate) {
-                func->getCFG().deleteEdge(e);
+                func->getCFA().deleteEdge(e);
               }
               if (!iconst->getValue() && !guard.negate) {
-                func->getCFG().deleteEdge(e);
+                func->getCFA().deleteEdge(e);
               }
               loc_list.insert(e->getFrom());
             }
@@ -85,7 +85,7 @@ namespace MiniMC {
             auto in = loc->iebegin();
             auto out = loc->ebegin();
             in->setTo(out->getTo());
-            func->getCFG().deleteLocation(loc);
+            func->getCFA().deleteLocation(loc);
           }
         }
       }

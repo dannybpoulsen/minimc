@@ -6,7 +6,7 @@ namespace MiniMC {
       bool SplitAsserts::runFunction(const MiniMC::Model::Function_ptr& F) {
 	auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 	MiniMC::Model::LocationInfoCreator locc(F->getName());
-	auto& cfg = F->getCFG();
+	auto& cfg = F->getCFA();
 	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 	auto inserter = wlist.inserter();
 	std::for_each(cfg.getEdges().begin(),

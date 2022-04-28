@@ -6,7 +6,7 @@
 
 namespace MiniMC {
   namespace Model {
-    Register_ptr VariableStackDescr::addVariable(const std::string& name, const Type_ptr& type) {
+    Register_ptr RegisterDescr::addRegister(const std::string& name, const Type_ptr& type) {
       variables.push_back(std::make_shared<Register>(pref + ":" + name,this));
       variables.back()->setType(type);
       variables.back()->setPlace(totalSize);
@@ -42,11 +42,7 @@ namespace MiniMC {
       retval->setType(ty);
       return retval;
     }
-
-    /*const Value_ptr ConstantFactory64::makeBinaryBlobConstant(MiniMC::uint8_t* val, std::size_t s) {
-      return Value_ptr(new MiniMC::Model::BinaryBlobConstant(val, s));
-      }*/
-
+    
     const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id, MiniMC::offset_t block) {
       auto pptr = MiniMC::Support::makeLocationPointer(id, block);
       return Value_ptr(new MiniMC::Model::TConstant<pointer_t>(pptr));

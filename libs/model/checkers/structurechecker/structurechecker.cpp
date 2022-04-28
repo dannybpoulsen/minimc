@@ -115,7 +115,7 @@ namespace MiniMC {
       }
 
       bool checkFunction(const MiniMC::Model::Function& F, MiniMC::Support::Messager& messager) {
-        for (auto& E : F.getCFG().getEdges()) {
+        for (auto& E : F.getCFA().getEdges()) {
           if (!checkEdge(*E, messager))
             return false;
         }

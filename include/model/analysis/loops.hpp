@@ -150,7 +150,7 @@ namespace MiniMC {
         }
 
         LoopInfo getLoopsFunction(const MiniMC::Model::Function_ptr& func) {
-          return createLoopInfo(func->getCFG());
+          return createLoopInfo(func->getCFA());
         }
       };
 

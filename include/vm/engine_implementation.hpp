@@ -102,7 +102,7 @@ namespace MiniMC {
             return Status::Ok;
           };
           switch (content.skipsize->getType()->getSize()) {
-            case 1:
+	    case 1:
               return calc.template operator()<typename T::I8>();
             case 2:
               return calc.template operator()<typename T::I16>();

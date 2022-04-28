@@ -5,8 +5,8 @@ namespace MiniMC {
       bool RemoveAllocas::run(MiniMC::Model::Program& prgm) {
           auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
           for (auto& F : prgm.getFunctions()) {
-            auto stackvar = F->getVariableStackDescr().addVariable("stack", prgm.getTypeFactory()->makePointerType());
-            auto& cfg = F->getCFG();
+            auto stackvar = F->getRegisterStackDescr().addRegister("stack", prgm.getTypeFactory()->makePointerType());
+            auto& cfg = F->getCFA();
             auto size = prgm.getConstantFactory()->makeIntegerConstant(0, prgm.getTypeFactory()->makeIntegerType(64));
             InstructionStream stream({createInstruction<InstructionCode::FindSpace>({.res = stackvar, .op1 = size})});
 		//createInstruction<InstructionCode::Malloc>({.object = stackvar, .size = size})}
@@ -18,7 +18,7 @@ namespace MiniMC {
             edge->template setAttribute<AttributeType::Instructions>(stream);
             cfg.setInitial(ninitloc);
 
-            for (auto& E : F->getCFG().getEdges()) {
+            for (auto& E : F->getCFA().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == InstructionCode::Alloca) {

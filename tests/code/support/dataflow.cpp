@@ -103,7 +103,7 @@ int main () {
   } ;
 
   auto function = prgm->getFunction ("main");
-  auto& cfg = function->getCFG ();
+  auto& cfg = function->getCFA ();
   auto lit = cfg.getLocations ().begin ();
   auto eit =cfg.getLocations ().end ();
   MiniMC::Support::ForwardDataFlowAnalysis<MiniMC::Model::Location,

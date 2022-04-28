@@ -26,7 +26,7 @@ namespace MiniMC {
       struct ReplaceNonDetUniform : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG().getEdges()) {
+            for (auto& E : F->getCFA().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::NonDet) {

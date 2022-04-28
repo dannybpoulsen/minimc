@@ -126,9 +126,9 @@ namespace MiniMC {
       }
     }
 
-    MiniMC::Model::Register_ptr makeVariable(const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::VariableStackDescr& stack, Val2ValMap& values) {
+    MiniMC::Model::Register_ptr makeVariable(const llvm::Value* val, const std::string& name, MiniMC::Model::Type_ptr& type, MiniMC::Model::RegisterDescr& stack, Val2ValMap& values) {
       if (!values.count(val)) {
-        auto newVar = stack.addVariable(name, type);
+        auto newVar = stack.addRegister(name, type);
         values[val] = newVar;
       }
       return std::static_pointer_cast<MiniMC::Model::Register>(values[val]);
@@ -373,7 +373,7 @@ namespace MiniMC {
         MiniMC::Model::LocationInfoCreator locinfoc(fname);
 	MiniMC::Model::CFA cfg{*prgm};
         std::vector<MiniMC::Model::Register_ptr> params;
-	MiniMC::Model::VariableStackDescr variablestack{fname};
+	MiniMC::Model::RegisterDescr variablestack{fname};
         tt.stack = &variablestack;
         using inserter = std::back_insert_iterator<std::vector<MiniMC::Model::Register_ptr>>;
         pickVariables<inserter>(F, variablestack, std::back_inserter(params));
@@ -445,7 +445,7 @@ namespace MiniMC {
               for (std::size_t i = 0; i < dests; ++i) {
                 auto valComp = findValue(brterm->getDestination(i), values, tt, cfactory);
                 auto btype = tfactory->makeBoolType();
-                auto cond = variablestack.addVariable("", btype);
+                auto cond = variablestack.addRegister("", btype);
                 auto ttloc = buildPhiEdge(&BB, brterm->getDestination(i), cfg, tt, locmap, locinfoc);
                 auto edge = cfg.makeEdge(splitloc, ttloc);
                 edge->setAttribute<MiniMC::Model::AttributeType::Guard>(MiniMC::Model::Guard(cond, false));
@@ -500,7 +500,7 @@ namespace MiniMC {
       }
 
       template <class Inserter>
-      void pickVariables(const llvm::Function& func, MiniMC::Model::VariableStackDescr& stack, Inserter in) {
+      void pickVariables(const llvm::Function& func, MiniMC::Model::RegisterDescr& stack, Inserter in) {
         for (auto itt = func.arg_begin(); itt != func.arg_end(); itt++) {
           auto lltype = itt->getType();
           auto type = getType(lltype, tfactory);
@@ -519,7 +519,7 @@ namespace MiniMC {
         }
       }
 
-      void makeVar(const llvm::Value* op, MiniMC::Model::VariableStackDescr& stack) {
+      void makeVar(const llvm::Value* op, MiniMC::Model::RegisterDescr& stack) {
         const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant>(op);
         auto lltype = op->getType();
         if (lltype->isLabelTy() ||

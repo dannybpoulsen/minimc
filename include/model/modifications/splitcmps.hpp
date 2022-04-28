@@ -34,7 +34,7 @@ namespace MiniMC {
                                                                       MiniMC::Model::InstructionCode::ICMP_ULT,
                                                                       MiniMC::Model::InstructionCode::ICMP_ULE>(inst); };
 
-          auto& cfg = F->getCFG();
+          auto& cfg = F->getCFA();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
           std::for_each(cfg.getEdges().begin(),

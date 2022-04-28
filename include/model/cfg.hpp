@@ -136,12 +136,12 @@ namespace MiniMC {
                const std::string& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
-               VariableStackDescr&& variableStackDescr,
-	       CFA&& cfg,
+               RegisterDescr&& registerdescr,
+	       CFA&& cfa,
                Program& prgm) : name(name),
 				parameters(params),
-				variableStackDescr(std::move(variableStackDescr)),
-				cfg(std::move(cfg)),
+				registerdescr(std::move(registerdescr)),
+				cfa(std::move(cfa)),
 				id(id),
 				prgm(prgm),
 				retType(rtype)
@@ -151,10 +151,10 @@ namespace MiniMC {
 
       auto& getName() const { return name; }
       auto& getParameters() const { return parameters; }
-      auto& getVariableStackDescr() const { return variableStackDescr; }
-      auto& getVariableStackDescr() { return variableStackDescr; }
-      auto& getCFG() const { return cfg; }
-      auto& getCFG()  { return cfg; }
+      auto& getRegisterDescr() const { return registerdescr; }
+      auto& getRegisterStackDescr() { return registerdescr; }
+      auto& getCFA() const { return cfa; }
+      auto& getCFA()  { return cfa; }
       
       auto& getID() const { return id; }
       auto& getReturnType() { return retType; }
@@ -163,8 +163,8 @@ namespace MiniMC {
     private:
       std::string name;
       std::vector<Register_ptr> parameters;
-      VariableStackDescr variableStackDescr;
-      CFA cfg;
+      RegisterDescr registerdescr;
+      CFA cfa;
       MiniMC::func_t id;
       Program& prgm;
       Type_ptr retType;
@@ -182,9 +182,9 @@ namespace MiniMC {
       Function_ptr addFunction(const std::string& name,
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
-			       VariableStackDescr&& variableStackDescr,
+			       RegisterDescr&& registerdescr,
 			       CFA&& cfg) {
-        functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, std::move(variableStackDescr), std::move(cfg), *this));
+        functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, std::move(registerdescr), std::move(cfg), *this));
         function_map.insert(std::make_pair(name, functions.back()));
         return functions.back();
       }

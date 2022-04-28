@@ -15,7 +15,7 @@ namespace MiniMC {
       struct RemovePhi : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG().getEdges()) {
+            for (auto& E : F->getCFA().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 auto& instrstream = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 InstructionStream stream;
@@ -23,7 +23,7 @@ namespace MiniMC {
                 if (instrstream.isPhi ()) {
                   for (auto& inst : instrstream) {
                     auto& content = inst.getOps<InstructionCode::Assign>();
-                    auto nvar = F->getVariableStackDescr().addVariable(std::static_pointer_cast<Register>(content.res)->getName() + "PHI-tmp", content.res->getType());
+                    auto nvar = F->getRegisterStackDescr().addRegister(std::static_pointer_cast<Register>(content.res)->getName() + "PHI-tmp", content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 
                     stream.addInstruction<MiniMC::Model::InstructionCode::Assign>({.res = replacemap.at(content.res.get()), .op1 = content.op1});

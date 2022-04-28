@@ -92,7 +92,7 @@ namespace MiniMC {
       State_ptr StateQuery::makeInitialState(const InitialiseDescr& p) {
         std::vector<MiniMC::Model::Location_ptr> locs;
         for (auto& f : p.getEntries()) {
-          locs.push_back(f->getCFG().getInitialLocation());
+          locs.push_back(f->getCFA().getInitialLocation());
         }
         assert(locs.size() == 1);
         return std::make_shared<State>(locs[0]);

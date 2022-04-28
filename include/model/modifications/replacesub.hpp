@@ -19,7 +19,7 @@ namespace MiniMC {
         virtual bool run(MiniMC::Model::Program& prgm) {
           auto& cfac = prgm.getConstantFactory();
           for (auto& F : prgm.getFunctions()) {
-            for (auto& E : F->getCFG().getEdges()) {
+            for (auto& E : F->getCFA().getEdges()) {
               if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
                 auto& instrstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
                 auto it = instrstr.begin();
@@ -28,7 +28,7 @@ namespace MiniMC {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
                     std::cerr << "Replace " << std::endl;
                     auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();
-                    auto nvar = F->getVariableStackDescr().addVariable("", content.op1->getType());
+                    auto nvar = F->getRegisterStackDescr().addRegister("", content.op1->getType());
                     auto one_constant = cfac->makeIntegerConstant(1, content.op1->getType());
                     std::vector<MiniMC::Model::Instruction> vec;
                     vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = content.op2}));

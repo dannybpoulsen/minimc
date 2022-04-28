@@ -16,14 +16,14 @@ namespace MiniMC {
 	}
 	
 	auto& func = entrypoints[0];
-	auto& vstack = func->getVariableStackDescr ();
+	auto& vstack = func->getRegisterStackDescr ();
 	auto& termbuilder =  context->getBuilder ();
 	
 	auto term = termbuilder.makeBoolConst (true);
-	ValueMap values{vstack.getTotalVariables ()};
+	ValueMap values{vstack.getTotalRegisters ()};
 	
 	MiniMC::VMT::Pathformula::ValueLookup lookup{values,termbuilder};
-	for (auto& reg : vstack.getVariables ()) {
+	for (auto& reg : vstack.getRegisters ()) {
 	  auto val = lookup.unboundValue (reg->getType ());
 	  lookup.saveValue (reg,std::move(val));
 	}

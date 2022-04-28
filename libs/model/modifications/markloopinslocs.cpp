@@ -71,7 +71,7 @@ namespace MiniMC {
       bool MarkLoopStates::run(MiniMC::Model::Program& prgm) {
         for (auto& F : prgm.getFunctions()) {
           InnerRun runner;
-          runner.mainSearch(F->getCFG());
+          runner.mainSearch(F->getCFA());
         }
         return true;
       }
