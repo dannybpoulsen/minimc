@@ -1,3 +1,4 @@
+#include "model/valuevisitor.hpp"
 #include "smt/builder.hpp"
 #include "util/smtconstruction.hpp"
 #include "vm/pathformula/pathformua.hpp"
@@ -52,48 +53,27 @@ namespace MiniMC {
       }
 
       PathFormulaVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
-        if (v->isConstant()) {
-          auto constant = std::static_pointer_cast<MiniMC::Model::Constant>(v);
-          if (constant->isInteger()) {
-            switch (constant->getSize()) {
-              case 1:
-                return I8Value(builder.makeBVIntConst(std::static_pointer_cast<MiniMC::Model::I8Integer>(constant)->getValue(), 8));
-              case 2:
-                return I16Value(builder.makeBVIntConst(std::static_pointer_cast<MiniMC::Model::I16Integer>(constant)->getValue(), 16));
-              case 4:
-                return I32Value(builder.makeBVIntConst(std::static_pointer_cast<MiniMC::Model::I32Integer>(constant)->getValue(), 32));
-
-              case 8:
-                return I64Value(builder.makeBVIntConst(std::static_pointer_cast<MiniMC::Model::I64Integer>(constant)->getValue(), 64));
-            }
-          }
-
-          else if (constant->isBool()) {
-            return BoolValue(builder.makeBoolConst(std::static_pointer_cast<MiniMC::Model::Bool>(constant)->getValue()));
-          }
-
-          else if (constant->isPointer()) {
-            return PointerValue(builder.makeBVIntConst(std::bit_cast<uint64_t>(std::static_pointer_cast<MiniMC::Model::Pointer>(constant)->getValue()), 64));
-          }
-
-          else if (constant->isAggregate()) {
-            // We are dealing with byte vector here.
-            //  Run over all bytes, create their equivalent SMTLib structre
-            //  Concat them
-            MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-            for (auto byte : *std::static_pointer_cast<MiniMC::Model::AggregateConstant>(constant)) {
-              chainer >> (builder.makeBVIntConst(byte, 8));
-            }
-            return AggregateValue(chainer.getTerm(), constant->getSize());
-
-          } else if (constant->isUndef()) {
-            return unboundValue(constant->getType());
-          }
-          throw MiniMC::Support::Exception("error");
-
-        } else {
-          return values.get(*std::static_pointer_cast<MiniMC::Model::Register>(v));
-        }
+        return MiniMC::Model::visitValue(
+            MiniMC::Model::Overload{
+                [this](const MiniMC::Model::I8Integer& val) -> PathFormulaVMVal { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
+                [this](const MiniMC::Model::I16Integer& val) -> PathFormulaVMVal { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); },
+                [this](const MiniMC::Model::I32Integer& val) -> PathFormulaVMVal { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
+                [this](const MiniMC::Model::I64Integer& val) -> PathFormulaVMVal { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
+                [this](const MiniMC::Model::Bool& val) -> PathFormulaVMVal { return BoolValue(builder.makeBoolConst(val.getValue())); },
+                [this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { return PointerValue(builder.makeBVIntConst(std::bit_cast<uint64_t>(val.getValue()), 64)); },
+                [this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
+                  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+                  for (auto byte : val) {
+                    chainer >> (builder.makeBVIntConst(byte, 8));
+                  }
+                  return AggregateValue(chainer.getTerm(), val.getSize());
+                },
+                [this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(val.getType()); },
+                [this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
+                  return values.get(val);
+                },
+            },
+            *v);
       }
 
       PathControl::PathControl(SMTLib::TermBuilder& builder) : builder(builder) {

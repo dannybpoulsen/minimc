@@ -18,14 +18,23 @@
 namespace MiniMC {
   namespace Model {
 
+    using type_id_t = MiniMC::uint8_t;
+    const type_id_t untyped = std::numeric_limits<type_id_t>::max();
+
+    template <class T>
+    struct ValueInfo {
+      static constexpr type_id_t type_t() { return untyped; }
+    };
+
     /**
-	 * 
-	 * Abstract representation of values in MiniMC. 
-	 * A Value is associated to Type, and be either Variables or Constants.
-	 * Values can also be local or global to a given function. 
-	 */
+     *
+     * Abstract representation of values in MiniMC.
+     * A Value is associated to Type, and be either Variables or Constants.
+     * Values can also be local or global to a given function.
+     */
     class Value {
     public:
+      Value(type_id_t v) : val_type(v) {}
       virtual ~Value() {}
       const Type_ptr& getType() const { return type; }
       void setType(const Type_ptr& t) { type = t; }
@@ -43,8 +52,11 @@ namespace MiniMC {
         return this->string_repr();
       }
 
+      type_id_t type_t() const { return val_type; }
+
     private:
       Type_ptr type;
+      type_id_t val_type;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Value& v) {
@@ -55,52 +67,53 @@ namespace MiniMC {
 
     class Constant : public Value {
     public:
+      Constant(type_id_t val) : Value(val) {}
       virtual ~Constant() {}
       bool isConstant() const override { return true; }
-      //virtual const MiniMC::uint8_t* getData() const  = 0;
-      virtual std::size_t getSize() { return 0; }
+      // virtual const MiniMC::uint8_t* getData() const  = 0;
+      virtual std::size_t getSize() const { return 0; }
       virtual bool isInteger() const { return false; }
       virtual bool isPointer() const { return false; }
-      virtual bool isAggregate() const  { return false; }
-      virtual bool isBool() const  { return false; }
+      virtual bool isAggregate() const { return false; }
+      virtual bool isBool() const { return false; }
       virtual bool isUndef() const { return false; }
     };
 
     class Undef : public Constant {
     public:
+      Undef();
       virtual bool isUndef() const override { return true; }
       virtual std::ostream& output(std::ostream& os) const override {
         return os << "Undef";
       }
-
     };
-    
+
     using Constant_ptr = std::shared_ptr<Constant>;
 
     class ConstantFactory64;
 
-      
-    template <typename T,bool is_bool = false>
+    template <typename T, bool is_bool = false>
     class TConstant : public Constant {
     public:
-      TConstant(T val) : value(val) {
+      TConstant(T val);
+
+      T getValue() const {
+        // auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
+        return value;
       }
 
-
-      T getValue() const  {
-	// auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
-	return value;
-      }
-
-      std::size_t getSize() override { return sizeof(T); }
+      std::size_t getSize() const override { return sizeof(T); }
 
       /*const MiniMC::uint8_t* getData() const override  {
         return reinterpret_cast<const MiniMC::uint8_t*>(&value);
-	}*/
+        }*/
 
       bool isBool() const override { return is_bool; }
       bool isInteger() const override { return std::is_integral_v<T>; }
-      bool isPointer() const override { return std::is_same_v<T,MiniMC::pointer_t>;; }
+      bool isPointer() const override {
+        return std::is_same_v<T, MiniMC::pointer_t>;
+        ;
+      }
 
       std::ostream& output(std::ostream& os) const override {
         os << value << std::endl;
@@ -115,50 +128,44 @@ namespace MiniMC {
       T value;
     };
 
-    using Bool = TConstant<MiniMC::uint8_t,true>;
-    using I8Integer = TConstant<MiniMC::uint16_t>;
+    using Bool = TConstant<MiniMC::uint8_t, true>;
+    using I8Integer = TConstant<MiniMC::uint8_t>;
     using I16Integer = TConstant<MiniMC::uint16_t>;
     using I32Integer = TConstant<MiniMC::uint32_t>;
     using I64Integer = TConstant<MiniMC::uint64_t>;
     using Pointer = TConstant<MiniMC::pointer_t>;
 
-    
-    
-    
     /**
-	 * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
-	 *
-	 */
+     * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
+     *
+     */
     class AggregateConstant : public Constant {
     public:
-      AggregateConstant(MiniMC::uint8_t* data, std::size_t s) : value(new MiniMC::uint8_t[s]), size(s) {
-        std::copy(data, data + s, value.get());
-      }
+      AggregateConstant(MiniMC::uint8_t* data, std::size_t s);
 
       template <class T>
       auto& getValue() const {
         assert(sizeof(T) == size);
         return *reinterpret_cast<T*>(value.get());
-
       }
 
       /*virtual const MiniMC::uint8_t* getData() const override {
         return value.get();
-	}*/
+        }*/
 
-      auto begin () const {
-	return value.get ();
+      auto begin() const {
+        return value.get();
       }
 
-      auto end () const {
-	return value.get ()+size;
+      auto end() const {
+        return value.get() + size;
       }
 
       virtual bool isAggregate() const override { return true; }
 
-      std::size_t getSize() override { return size; }
+      std::size_t getSize() const override { return size; }
 
-      virtual std::ostream& output(std::ostream& os) const override  {
+      virtual std::ostream& output(std::ostream& os) const override {
         MiniMC::Support::Base64Encode encoder;
         os << encoder.encode(reinterpret_cast<const char*>(value.get()), size);
         if (getType())
@@ -190,16 +197,16 @@ namespace MiniMC {
     };
 
     class RegisterDescr;
-    
+
     /**
-	 * Representation of Variable in MiniMC. 
-	 * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution  
-	 */
+     * Representation of Variable in MiniMC.
+     * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution
+     */
     class Register : public Value,
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const std::string& name, RegisterDescr* owner) : name(name),owner(owner) {}
+      Register(const std::string& name, RegisterDescr* owner);
       const std::string& getName() const { return name; }
       virtual std::ostream& output(std::ostream& os) const {
         os << " < " << getName() << " ";
@@ -211,7 +218,7 @@ namespace MiniMC {
         return os << " >";
       }
 
-      bool isRegister () const override { return true; }
+      bool isRegister() const override { return true; }
       auto& getOwner() const { return owner; }
 
     private:
@@ -222,25 +229,26 @@ namespace MiniMC {
     using Register_ptr = std::shared_ptr<Register>;
 
     /**
-	 * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not 
-	 * stack allocations). 
-	 *
-	 */
-    class RegisterDescr  {
+     * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not
+     * stack allocations).
+     *
+     */
+    class RegisterDescr {
     public:
       RegisterDescr(const std::string& pref) : pref(pref) {}
-      RegisterDescr (const RegisterDescr&) = delete;
-      RegisterDescr (RegisterDescr&& ) = default;
+      RegisterDescr(const RegisterDescr&) = delete;
+      RegisterDescr(RegisterDescr&&) = default;
       Register_ptr addRegister(const std::string& name, const Type_ptr& type);
       auto& getRegisters() const { return variables; }
 
-      /** 
+      /**
        *
        * @return Total size in bytes of an activation record
        */
       auto getTotalSize() const { return totalSize; }
       auto getTotalRegisters() const { return variables.size(); }
-      auto getPref () const {return pref;}
+      auto getPref() const { return pref; }
+
     private:
       std::vector<Register_ptr> variables;
       std::size_t totalSize = 0;
@@ -275,23 +283,52 @@ namespace MiniMC {
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 
     struct VariablePtrIndexer {
-      std::size_t operator()(const Register_ptr& t) { return t->getId(); }
+
+      std::size_t operator()(const Register& t) { return t.getId(); }
     };
 
     template <class T>
-    using VariableMap = MiniMC::Util::FixedVector<Register_ptr, T, VariablePtrIndexer>;
-    
+    using VariableMap = MiniMC::Util::FixedVector<Register, T, VariablePtrIndexer>;
+
+    template <>
+    constexpr type_id_t ValueInfo<I8Integer>::type_t() { return 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<I16Integer>::type_t() { return ValueInfo<I8Integer>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<I32Integer>::type_t() { return ValueInfo<I16Integer>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<I64Integer>::type_t() { return ValueInfo<I32Integer>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<Bool>::type_t() { return ValueInfo<I64Integer>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<Pointer>::type_t() { return ValueInfo<Bool>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<AggregateConstant>::type_t() { return ValueInfo<Pointer>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<Register>::type_t() { return ValueInfo<AggregateConstant>::type_t() + 1; }
+
+    template <class T, bool is_bool>
+    inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo<TConstant<T, is_bool>>::type_t()),
+                                                     value(val) {
+    }
+
   } // namespace Model
 } // namespace MiniMC
 
 namespace MiniMC {
   namespace Util {
-    template<>
+    template <>
     struct GetIndex<MiniMC::Model::Register> {
-      auto operator () (const MiniMC::Model::Register& r) {return r.getId ();}
+      auto operator()(const MiniMC::Model::Register& r) { return r.getId(); }
     };
-  }
-}
-  
+  } // namespace Util
+} // namespace MiniMC
 
 #endif

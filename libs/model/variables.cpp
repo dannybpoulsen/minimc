@@ -7,7 +7,7 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(const std::string& name, const Type_ptr& type) {
-      variables.push_back(std::make_shared<Register>(pref + ":" + name,this));
+      variables.push_back(std::make_shared<Register>(pref + ":" + name, this));
       variables.back()->setType(type);
       variables.back()->setPlace(totalSize);
       variables.back()->setId(variables.size() - 1);
@@ -42,7 +42,7 @@ namespace MiniMC {
       retval->setType(ty);
       return retval;
     }
-    
+
     const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id, MiniMC::offset_t block) {
       auto pptr = MiniMC::Support::makeLocationPointer(id, block);
       return Value_ptr(new MiniMC::Model::TConstant<pointer_t>(pptr));
@@ -107,9 +107,18 @@ namespace MiniMC {
           default:
             throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
         }
-  
       }
       return Value_ptr(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::uint8_t*>(data.get()), size));
+    }
+
+    Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
+    Register::Register(const std::string& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),
+                                                                        name(name), owner(owner) {}
+
+    AggregateConstant::AggregateConstant(MiniMC::uint8_t* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),
+                                                                                 value(new MiniMC::uint8_t[s]),
+                                                                                 size(s) {
+      std::copy(data, data + s, value.get());
     }
 
   } // namespace Model

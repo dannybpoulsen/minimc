@@ -52,7 +52,7 @@ namespace MiniMC {
 	ValueLookup (const ValueLookup&) = default;
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
         void saveValue(const MiniMC::Model::Register_ptr& v, ConcreteVMVal&& value) override {
-	  values[v] = std::move(value);
+	  values[*v] = std::move(value);
         }
         ConcreteVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;
         MiniMC::Hash::hash_t hash() const { return values.hash(0); }
