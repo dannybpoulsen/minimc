@@ -32,8 +32,8 @@ namespace MiniMC {
                               const ReplaceMap<MiniMC::Model::Location>& locs,
                               MiniMC::Model::CFA& cfg) {
 
-        auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
-        auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
+        auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
+        auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
@@ -74,8 +74,8 @@ namespace MiniMC {
                               const ReplaceMap<MiniMC::Model::Location>& locs,
                               MiniMC::Model::CFA& cfg,
                               Inserter insertTo) {
-        auto to = (locs.count(edge->getTo().get().get())) ? locs.at(edge->getTo().get().get()) : edge->getTo().get();
-        auto from = (locs.count(edge->getFrom().get().get())) ? locs.at(edge->getFrom().get().get()) : edge->getFrom().get();
+        auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
+        auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
         if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {

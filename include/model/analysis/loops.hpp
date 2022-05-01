@@ -82,9 +82,9 @@ namespace MiniMC {
 
       private:
         void insertEdge(const MiniMC::Model::Edge_ptr& e) {
-          if (e->getTo().get() == header) {
+          if (e->getTo() == header) {
             back_edges.insert(e);
-          } else if (contains(e->getTo().get())) {
+          } else if (contains(e->getTo())) {
             internal.insert(e);
           } else {
             exiting.insert(e);

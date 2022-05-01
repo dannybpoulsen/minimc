@@ -50,7 +50,7 @@ namespace MiniMC {
               auto it = next.loc->ebegin();
               auto end = next.loc->eend();
               for (; it != end; ++it) {
-                auto to = it->getTo().get().get();
+                auto to = it->getTo().get();
                 if (colours.at(to) == Colour::OnStack) {
                   //We have a loop
                   to->getInfo().template set<MiniMC::Model::Attributes::NeededStore>();

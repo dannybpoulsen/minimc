@@ -1,7 +1,6 @@
 #ifndef __EDGE__
 #define __EDGE__
 
-#include <gsl/pointers>
 #include <memory>
 #include <ostream>
 
@@ -100,9 +99,9 @@ namespace MiniMC {
                  private EdgeAttributesMixin<AttributeType::Guard>,
                  public std::enable_shared_from_this<Edge> {
     public:
-      Edge(gsl::not_null<Location_ptr> from, gsl::not_null<Location_ptr> to, Program& prgm) : from(from.get()),
-												    to(to.get()),
-												    prgm(prgm) {
+      Edge(Location_ptr from, Location_ptr to, Program& prgm) : from(from),
+								to(to),
+								prgm(prgm) {
       }
 
       Edge(const Edge&) = default;
@@ -137,8 +136,8 @@ namespace MiniMC {
         return static_cast<const EdgeAttributesMixin<k>*>(this)->isSet();
       }
 
-      auto getFrom() const { return gsl::not_null<Location_ptr>(from.lock()); }
-      auto getTo() const { return gsl::not_null<Location_ptr>(to.lock()); }
+      auto getFrom() const { return from.lock(); }
+      auto getTo() const { return to.lock(); }
 
       /** 
 	   *  Set the to Location of this Edge. Also remove the edge
@@ -146,9 +145,9 @@ namespace MiniMC {
 	   *
 	   * @param t New target of the edge 
 	   */
-      void setTo(gsl::not_null<Location_ptr> t) {
+      void setTo(Location_ptr t) {
         to.lock()->removeIncomingEdge(this->shared_from_this());
-        to = t.get();
+        to = t;
         t->addIncomingEdge(this->shared_from_this());
       }
 

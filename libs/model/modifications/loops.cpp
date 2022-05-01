@@ -38,7 +38,7 @@ namespace MiniMC {
 
           std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
             auto& locmap = unrolledLocations[i];
-            MiniMC::Model::Location_ptr from = locmap.at(e->getFrom().get().get());
+            MiniMC::Model::Location_ptr from = locmap.at(e->getFrom().get());
             MiniMC::Model::Location_ptr to;
 
             if (i < amount - 1) {

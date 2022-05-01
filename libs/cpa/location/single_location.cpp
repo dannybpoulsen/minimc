@@ -67,9 +67,9 @@ namespace MiniMC {
       MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id) {
         auto state = static_cast<const MiniMC::CPA::SingleLocation::State*>(s.get());
         
-        if (edge->getFrom().get() == state->getLocation(0)) {
+        if (edge->getFrom() == state->getLocation(0)) {
           auto nstate = state->lcopy();
-          nstate->setLocation(edge->getTo().get().get());
+          nstate->setLocation(edge->getTo().get());
 
           if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
             auto& inst = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last();
