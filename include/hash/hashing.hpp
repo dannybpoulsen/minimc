@@ -18,6 +18,7 @@ namespace MiniMC {
 
     template <typename T>
     void hash_combine(seed_t& seed, const T& obj) {
+      static_assert(!std::is_pointer_v<T>);
       std::hash<T> hasher;
       seed ^= hasher(obj) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }

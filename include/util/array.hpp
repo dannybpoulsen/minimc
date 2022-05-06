@@ -80,8 +80,9 @@ namespace MiniMC {
         return os << encoder.encode(reinterpret_cast<const char*>(buffer.get()), size);
       }
 
-      MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t s) const {
-        return MiniMC::Hash::Hash(buffer.get(), size, s);
+      MiniMC::Hash::hash_t hash() const {
+	MiniMC::Hash::hash_t s{0};
+	return MiniMC::Hash::Hash(buffer.get(), size, s);
       }
 
     private:
@@ -95,15 +96,5 @@ namespace MiniMC {
     
   } // namespace Util
 } // namespace MiniMC
-
-namespace std {
-  template <>
-  struct hash<MiniMC::Util::Array> {
-    auto operator()(const MiniMC::Util::Array& arr) {
-      return arr.hash(0);
-    }
-  };
-
-} // namespace std
 
 #endif

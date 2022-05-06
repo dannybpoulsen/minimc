@@ -2,7 +2,7 @@
 #include "cpa/interface.hpp"
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
-
+#include "storage/storage.hpp"
 #include <algorithm>
 
 namespace MiniMC {
@@ -21,18 +21,17 @@ namespace MiniMC {
 	}
       }
       
-      
+
       Verdict Reachability::search (const MiniMC::CPA::State_ptr& state, GoalFunction goal,FilterFunction filter) {
-	MiniMC::CPA::Storer storage {joiner};
 	std::list<MiniMC::CPA::State_ptr> waiting;
 	MiniMC::Algorithms::Generator generator{transfer};
+	MiniMC::Storage::HashStorage storage;
 	
-        auto insert = [&storage,&waiting,filter](auto& state) {
-	  
+        auto insert = [&storage,&waiting,filter](auto& state) {  
 	  if (filter(state) == StateStatus::Keep) {
-	    if (!storage.isCoveredByStore (state)) {
-	      auto joinPair = storage.joinState (state);
-	      waiting.push_front (joinPair.joined);
+	    auto ins = storage.insert (state);
+	    if (ins) {
+	      waiting.push_back (std::move(ins));
 	    }
 	  }
 	};
@@ -55,8 +54,9 @@ namespace MiniMC {
 	return Verdict::NotFound;
 	
       }
-	
       
     }
   }
 }
+
+

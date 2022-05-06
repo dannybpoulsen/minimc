@@ -84,16 +84,16 @@ namespace MiniMC {
     // data pointer
     // location pointer
     // function pointer
-    seg_t segment;
+    seg_t segment{0};
     // pure padding
-    int8_t zero; //must be zero
+    int8_t zero{0}; //must be zero
     //base pointer
     //for function and location pointers base is the function_id
-    base_t base;
+    base_t base{0};
     // offset into base_object
     //for function pointer offset must be zero
     //for location pointer offset is the location inside the function jumped to
-    offset_t offset;
+    offset_t offset{0};
   };
 
   using pointer_t = pointer_struct;

@@ -27,15 +27,15 @@ namespace MiniMC {
         assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];
       }
-      T& operator[](const F& f) {
+      
+      /*T& operator[](const F& f) {
         assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];
-      }
+	}*/
 
-      T& operator[](const std::size_t f) {
-        return mem.get()[f];
-    }
-      
+      void set (const F& f, T&& t) {
+	mem.get()[Index{}(f)] = std::move(t);	
+      }
       
       const T& operator[](const F& f) const {
 	assert(Index{}(f) < size);
@@ -49,31 +49,23 @@ namespace MiniMC {
         return os;
       }
 
-      MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t s) const {
-	MiniMC::Hash::seed_t seed = s;
+      MiniMC::Hash::hash_t hash() const {
+	MiniMC::Hash::hash_t _hash{0};
 	for (size_t i = 0; i < size; i++) {
 	  constexpr bool has_get = requires(const T& t) {
 	    t.get();
 	  }; 
 	  if constexpr (has_get || std::is_pointer_v<T>) {
-	    MiniMC::Hash::hash_combine(seed, *mem[i]);
+	    MiniMC::Hash::hash_combine(_hash, *mem[i]);
 	  }
-	  else {
-	    
-	    MiniMC::Hash::hash_combine(seed, mem[i]);
+	  else {	    
+	    MiniMC::Hash::hash_combine(_hash, mem[i]);
 	  }
 	}
-        return seed;
+	return _hash;
       }
-
-      auto begin () {
-	return mem.get ();
-      }
-
-      auto end () {
-	return mem.get ()+size;
-      }
-
+      
+      
       auto begin () const {
 	return mem.get ();
       }

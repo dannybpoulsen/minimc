@@ -24,14 +24,15 @@ namespace MiniMC {
 	StackFrame (std::size_t size, const MiniMC::Model::Value_ptr& ret)  : values(size),ret(ret) {}
 	StackFrame (const StackFrame& ) = default;
 
-	MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const {
+	MiniMC::Hash::hash_t hash() const {
+	  MiniMC::Hash::seed_t seed{0};
 	  MiniMC::Hash::hash_combine(seed, values);
-	  MiniMC::Hash::hash_combine(seed, ret.get());
+	  //MiniMC::Hash::hash_combine(seed,*ret.get());
           return seed;
 	}
 
 	MiniMC::VMT::Concrete::ValueLookup values;
-	MiniMC::Model::Value_ptr ret;
+	MiniMC::Model::Value_ptr ret{nullptr};
 	
       };
 
@@ -74,12 +75,12 @@ namespace MiniMC {
 	  auto& vstack = func->getRegisterStackDescr();
 	  StackFrame sf {vstack.getTotalRegisters (),ret};
 	  for (auto& v : vstack.getRegisters()) {
-            sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
+            sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
           }
 
 	  auto it = params.begin ();
 	  for (auto& p : func->getParameters ()) {
-	    sf.values.saveValue  (p,std::move(*it));
+	    sf.values.saveValue  (*p,std::move(*it));
 	    ++it;
 	      
 	  }
@@ -90,7 +91,7 @@ namespace MiniMC {
 	void pop (MiniMC::VMT::Concrete::ConcreteVMVal&& val) override {
 	  auto ret = stack.back ().ret;
 	  stack.pop ();
-	  stack.back().values.saveValue (std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	  stack.back().values.saveValue (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
 	}
 	
 	void popNoReturn () override {
@@ -117,24 +118,15 @@ namespace MiniMC {
           return os << "==\n";
         }
 
-        virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
-          if (!hash_val) {
-            for (auto& vl : proc_vars) {
-              MiniMC::Hash::hash_combine(seed, vl);
-            }
-            MiniMC::Hash::hash_combine(seed, heap);
-            //uncommnented the update of this buffered hash value. It
-            //disables the buffering as it might be incorrect
-            //The State is really just a container and the parts
-            //making up its hash-values can actually change outside
-            //its knowledge....making it impossible to keep
-            //precomputed hash_value up to date
-            //hash_val = seed;
-            return seed;
-          }
-          return hash_val;
-        }
-
+        virtual MiniMC::Hash::hash_t hash() const override {
+	  MiniMC::Hash::hash_t seed{0};
+	  for (auto& vl : proc_vars) {
+	    MiniMC::Hash::hash_combine(seed, vl);
+	  }
+	  MiniMC::Hash::hash_combine(seed, heap);
+	  return seed;
+	}
+	
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
 
 	  std::vector<CallStack> proc_vars2{proc_vars};
@@ -161,7 +153,6 @@ namespace MiniMC {
       private:
         std::vector<CallStack> proc_vars;
 	MiniMC::VMT::Concrete::Memory heap;
-        mutable MiniMC::Hash::hash_t hash_val = 0;
       };
 
       MiniMC::CPA::State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
@@ -171,7 +162,7 @@ namespace MiniMC {
           auto& vstack = f->getRegisterStackDescr();
 	  StackFrame sf {vstack.getTotalRegisters (),nullptr};
 	  for (auto& v : vstack.getRegisters()) {
-            sf.values.saveValue  (v,sf.values.unboundValue (v->getType ()));
+            sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
           }
 	  CallStack cs {std::move(sf)};
           stack.push_back(cs);

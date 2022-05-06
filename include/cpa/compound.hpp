@@ -19,13 +19,13 @@ namespace MiniMC {
         State(std::vector<MiniMC::CPA::State_ptr>&& l) : states(std::move(l)) {
         }
 
-        virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
-          MiniMC::Hash::hash_t hash = seed;
-
+	MiniMC::Hash::hash_t hash() const override {
+          MiniMC::Hash::hash_t hash{0};
+	  
           for (auto& state : states) {
             MiniMC::Hash::hash_combine(hash, *state);
-          }
-          return hash;
+	  }
+	  return hash;
         }
 	
 	const MiniMC::CPA::LocationInfo& getLocationState () const override {
@@ -40,7 +40,7 @@ namespace MiniMC {
           return os;
         }
 
-        const State_ptr& get(size_t i) const { return states[i]; }
+        const State_ptr& get(size_t i) const { return states.at(i); }
 
 	auto begin () const {
 	  return states.begin ();
@@ -125,8 +125,7 @@ namespace MiniMC {
             }
             vec.push_back(res);
           }
-          return std::make_shared<State>(std::move(vec)
-					 );
+          return std::make_shared<State>(std::move(vec));
         }
 
         

@@ -12,7 +12,6 @@ namespace MiniMC {
       {
       public:
         State(const MiniMC::Model::Location_ptr& loc) : location(loc.get()) {
-          ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint>();
         }
 
         State(const State&) = default;
@@ -20,11 +19,10 @@ namespace MiniMC {
         virtual std::ostream& output(std::ostream& os) const override {
           return os << "[" << location->getInfo() << "]";
         }
-        virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
-          MiniMC::Hash::hash_t s = seed;
-
-          MiniMC::Hash::hash_combine(s, location);
-          MiniMC::Hash::hash_combine(s, ready);
+        virtual MiniMC::Hash::hash_t hash() const override {
+          MiniMC::Hash::hash_t s{0};
+	  
+          MiniMC::Hash::hash_combine(s, *location);
           return s;
         }
         virtual std::shared_ptr<MiniMC::CPA::SingleLocation::State> lcopy() const { return std::make_shared<State>(*this); }
@@ -36,7 +34,6 @@ namespace MiniMC {
         }
         void setLocation(MiniMC::Model::Location* l) {
           location = l;
-          ready = !location->getInfo().template is<MiniMC::Model::Attributes::ConvergencePoint>();
         }
         bool need2Store() const override  {
           return location->getInfo().template is<MiniMC::Model::Attributes::NeededStore>();
@@ -50,8 +47,6 @@ namespace MiniMC {
         std::shared_ptr<State> join(const State& oth) const {
           if (location == oth.location) {
             auto nstate = std::make_shared<State>(location->shared_from_this());
-            nstate->ready = true;
-	    
             return nstate;
           }
           return nullptr;
@@ -75,7 +70,7 @@ namespace MiniMC {
             auto& inst = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
               //throw NotImplemented<MiniMC::Model::InstructionCode::Call> ();
-
+	      
             }
 
             else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,

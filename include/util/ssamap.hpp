@@ -107,8 +107,8 @@ namespace MiniMC {
       SSAMap (std::size_t vars = 0) : entries(vars) {}
       
       void set (const  From& f, To&& to) {
-	entries[f].val = std::move(to);
-	entries[f].ssaindex++; 
+	const auto& cur= entries[f];
+	entries.set (f,{.val = std::move(to), .ssaindex = cur.ssaindex+1});
       }
 
       const To& get (const From& f) const {

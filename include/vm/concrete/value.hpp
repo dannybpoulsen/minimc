@@ -67,7 +67,7 @@ namespace MiniMC {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
         AggregateValue(const MiniMC::Util::Array&& array) : val(std::move(array)) {}
 
-        MiniMC::Hash::hash_t hash() const { return val.hash(0); }
+        MiniMC::Hash::hash_t hash() const { return val.hash(); }
         auto getValue() const { return val; }
 
       private:

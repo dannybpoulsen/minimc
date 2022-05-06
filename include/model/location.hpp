@@ -3,6 +3,7 @@
 
 #include "support/types.hpp"
 #include "model/source.hpp"
+#include "hash/hashing.hpp"
 
 #include <cassert>
 #include <gsl/pointers>
@@ -100,6 +101,10 @@ namespace MiniMC {
         return edges.size();
       }
 
+      MiniMC::Hash::hash_t hash () const {
+	return getID ();
+      }
+      
       const LocationInfo& getInfo() const { return info; }
       LocationInfo& getInfo() { return info; }
 
@@ -113,7 +118,7 @@ namespace MiniMC {
         return incomingEdges.size();
       }
 
-      auto getID() const { return id; }
+      MiniMC::offset_t getID() const { return id; }
 
       bool isOutgoing(const MiniMC::Model::Edge_ptr& e) {
         auto it = std::find_if(edges.begin(), edges.end(),
@@ -180,5 +185,6 @@ namespace MiniMC {
     
   } // namespace Model
 } // namespace MiniMC
+
 
 #endif

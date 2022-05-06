@@ -14,8 +14,6 @@ namespace MiniMC {
         static bool update(const MiniMC::Support::GenKillState<MiniMC::Model::Location_ptr, MiniMC::Model::Instruction*>& from,
                            const MiniMC::Model::Edge_ptr& edge,
                            MiniMC::Support::GenKillState<MiniMC::Model::Location_ptr, MiniMC::Model::Instruction*>& to) {
-          assert(edge->getFrom().get() == from.getLocation());
-          assert(edge->getTo().get() == to.getLocation());
           bool changed = false;
           std::unordered_set<MiniMC::Model::Register_ptr> varsDef;
 

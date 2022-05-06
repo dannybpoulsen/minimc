@@ -21,7 +21,7 @@ namespace MiniMC {
         HeapEntry(MiniMC::uint64_t size) : state(EntryState::InUse),
                                            content(size) {
         }
-
+	
         void write(const MiniMC::Util::Array& arr, MiniMC::uint64_t offset) {
           assert(state == EntryState::InUse);
           if (arr.getSize() + offset <= content.getSize()) {
@@ -130,7 +130,7 @@ namespace MiniMC {
       }
       // First parameter is address to store at, second is the value to state
       void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I8& v) {
-        auto pointer = p.getValue();
+	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
@@ -140,7 +140,7 @@ namespace MiniMC {
       }
 
       void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I16& v) {
-        auto pointer = p.getValue();
+	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
@@ -150,7 +150,7 @@ namespace MiniMC {
       }
 
       void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I32& v) {
-        auto pointer = p.getValue();
+	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
@@ -160,7 +160,7 @@ namespace MiniMC {
       }
 
       void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I64& v) {
-        auto pointer = p.getValue();
+	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
@@ -170,7 +170,7 @@ namespace MiniMC {
       }
 
       void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::Pointer& v) {
-        auto pointer = p.getValue();
+	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
@@ -181,7 +181,7 @@ namespace MiniMC {
 
       // PArameter is size to allocate
       ConcreteVMVal Memory::alloca(const ConcreteVMVal::I64& size) {
-        auto size_ = size.getValue();
+	auto size_ = size.getValue();
         auto pointer = MiniMC::Support::makeHeapPointer(_internal->entries.size(), 0);
         _internal->entries.emplace_back(size_);
 
@@ -192,17 +192,17 @@ namespace MiniMC {
       void Memory::free(const ConcreteVMVal::Pointer&) {
       }
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout) {
-        for (auto block : layout) {
+	for (auto block : layout) {
 
           _internal->entries.emplace_back(block.size);
         }
       }
       MiniMC::Hash::hash_t Memory::hash() const {
-        MiniMC::Hash::seed_t seed = 0;
-        for (auto& entryt : _internal->entries) {
-          MiniMC::Hash::hash_combine(seed, entryt);
-        }
-        return seed;
+	MiniMC::Hash::hash_t _hash{0};
+	for (auto& entryt : _internal->entries) {
+	  MiniMC::Hash::hash_combine(_hash, entryt);
+	}
+	return _hash;
       }
 
     } // namespace Concrete

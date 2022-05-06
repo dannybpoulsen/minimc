@@ -59,12 +59,12 @@ namespace MiniMC {
 	  ValueMap sf {vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Pathformula::ValueLookup values{sf,context.getBuilder ()};
 	  for (auto& v : vstack.getRegisters()) {
-            values.saveValue  (v,values.unboundValue (v->getType ()));
+            values.saveValue  (*v,values.unboundValue (v->getType ()));
           }
 
 	  auto it = params.begin ();
 	  for (auto& p : func->getParameters ()) {
-	    values.saveValue  (p,std::move(*it));
+	    values.saveValue  (*p,std::move(*it));
 	    ++it;
 	      
 	  }
@@ -75,7 +75,7 @@ namespace MiniMC {
 	void pop (MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
 	  auto ret = stack.back ().ret;
 	  stack.pop ();
-	  MiniMC::VMT::Pathformula::ValueLookup{stack.back().values,context.getBuilder  ()}.saveValue (std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	  MiniMC::VMT::Pathformula::ValueLookup{stack.back().values,context.getBuilder  ()}.saveValue (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
 	}
 	
 	void popNoReturn () override {
@@ -97,7 +97,7 @@ namespace MiniMC {
 	{}
 	State(const State& oth) = default;
         virtual std::ostream& output(std::ostream& os) const override { return os << "\nPathformula:" << *pathformula; }
-        MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t  = 0) const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
+        MiniMC::Hash::hash_t hash() const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }
         
         

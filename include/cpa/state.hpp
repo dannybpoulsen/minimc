@@ -97,7 +97,7 @@ namespace MiniMC {
       ~State() {}
 
       virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
-      virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t = 0) const { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
+      virtual MiniMC::Hash::hash_t hash() const = 0;
       virtual std::shared_ptr<State> copy() const = 0;
 
       

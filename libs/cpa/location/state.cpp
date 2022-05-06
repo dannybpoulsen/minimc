@@ -4,50 +4,44 @@
 #include "model/cfg.hpp"
 #include "support/pointer.hpp"
 
+
 namespace MiniMC {
   namespace CPA {
     namespace Location {
 
       struct LocationState {
         void push(gsl::not_null<MiniMC::Model::Location*> l) {
-          stack.push_back(l.get());
+	  stack.push_back(l.get());
         }
 
         void pop() {
-          if (stack.size() > 1)
+	  if (stack.size() > 1)
             stack.pop_back();
           assert(stack.back());
         }
 
-        auto& cur() {
-          assert(stack.size());
-          return stack.back();
-        }
+
+	void setLocation (MiniMC::Model::Location* l) {
+	  stack.back () = l;
+	}
+	
+	
         auto& cur() const {
           assert(stack.size());
           return stack.back();
         }
-        virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const {
-          MiniMC::Hash::hash_t s = seed;
-          for (auto& t : stack)
-            MiniMC::Hash::hash_combine(s, *t);
-          return s;
-        }
+        virtual MiniMC::Hash::hash_t hash() const {
+	  MiniMC::Hash::hash_t _hash{0};
+	  for (auto& t : stack)
+	    MiniMC::Hash::hash_combine(_hash, *t);
+	  return _hash;
+	}
 
         std::vector<MiniMC::Model::Location*> stack;
       };
     } // namespace Location
   }   // namespace CPA
 } // namespace MiniMC
-namespace std {
-  template <>
-  struct hash<MiniMC::CPA::Location::LocationState> {
-    std::size_t operator()(const MiniMC::CPA::Location::LocationState& s) {
-      return s.hash();
-    }
-  };
-
-} // namespace std
 
 namespace MiniMC {
   namespace CPA {
@@ -69,8 +63,8 @@ namespace MiniMC {
           }
           return os << "]";
         }
-        virtual MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const override {
-          MiniMC::Hash::hash_t s = seed;
+        virtual MiniMC::Hash::hash_t hash() const override {
+          MiniMC::Hash::hash_t s {0};
           for (auto& t : locations)
             MiniMC::Hash::hash_combine(s, t);
           return s;
@@ -80,8 +74,8 @@ namespace MiniMC {
 
         size_t nbOfProcesses() const override { return locations.size(); }
         MiniMC::Model::Location_ptr getLocation(size_t i) const override { return locations[i].cur()->shared_from_this(); }
-        void setLocation(size_t i, MiniMC::Model::Location* l) {
-          locations[i].cur() = l;
+        void setLocation(size_t i, MiniMC::Model::Location* l) { 
+	  locations[i].setLocation(l);
         }
         void pushLocation(size_t i, MiniMC::Model::Location* l) { locations[i].push(l); }
         void popLocation(size_t i) { locations[i].pop(); }
