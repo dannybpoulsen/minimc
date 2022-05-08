@@ -27,23 +27,27 @@ namespace MiniMC {
       
       class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
       public:
-	Memory (SMTLib::TermBuilder& b) : builder(b) {} 
+	Memory (SMTLib::TermBuilder& b);
+	Memory (const Memory&) = default;
+	
 	PathFormulaVMVal loadValue(const typename PathFormulaVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const override;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I8&) override {}
-	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I16&) override {}
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I32&) override {}
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I64&) override  {}
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Pointer&) override {}
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I8&) override;
+	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I16&) override;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I32&) override;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I64&) override;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Pointer&) override;
         
 	// PArameter is size to allocate
         PathFormulaVMVal alloca(const PathFormulaVMVal::I64&) override;
 	
         void free(const PathFormulaVMVal::Pointer&) override {}
-        void createHeapLayout(const MiniMC::Model::HeapLayout& ) override {}
+        void createHeapLayout(const MiniMC::Model::HeapLayout& ) override;
 	MiniMC::Hash::hash_t hash() const {return std::bit_cast<uint64_t> (this);}// }throw MiniMC::Support::Exception ("Not implemented");}
       private:
 	SMTLib::TermBuilder& builder;
+	MiniMC::base_t next_block = 0;
+	SMTLib::Term_ptr mem_var{nullptr};
       };
 
       class ValueLookup : public MiniMC::VMT::ValueLookup<PathFormulaVMVal> {

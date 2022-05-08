@@ -31,7 +31,7 @@
 
         return concat.getTerm();
       }
-
+      
       SMTLib::Term_ptr writeToArr(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, SMTLib::Term_ptr content) {
         auto carr = arr;
         for (size_t i = 0; i < bytes; ++i) {

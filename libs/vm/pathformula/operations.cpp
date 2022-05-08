@@ -72,12 +72,27 @@ namespace MiniMC {
 #undef X
 
       template <class T>
+      PointerValue Operations::PtrAdd(const PointerValue& ptrvalue, const T& addend) {
+	SMTLib::Term_ptr extended;
+	if constexpr (T::intbitsize () == 64) {
+	  extended = addend.getTerm ();
+	}
+	else 
+	  extended = builder.buildTerm(SMTLib::Ops::ZExt,{addend.getTerm ()},{64 - T::intbitsize ()});
+	auto res = builder.buildTerm(SMTLib::Ops::BVAdd,{ptrvalue.getTerm (),extended});
+	std::cerr << *res << std::endl;
+	return res;
+	
+      }
+	
+      
+      template <class T>
       T Operations::ExtractBaseValue(const AggregateValue& aggr, const MiniMC::uint64_t offset) {
 	auto aggrTerm = aggr.getTerm();
 	return BVHelper{builder,aggrTerm,aggr.size()}.extractBytes<NativeLoad ()> (offset,T::intbitsize () /8);
 	
       }
-
+      
       AggregateValue Operations::ExtractAggregateValue(const AggregateValue& aggr, const MiniMC::uint64_t offset, std::size_t size) {
 	auto aggrTerm = aggr.getTerm();
         
@@ -95,13 +110,19 @@ namespace MiniMC {
 	return {BVHelper{builder,aggr.getTerm (),aggr.size()}.storeBytes<LoadType::Straight> (offset,val.getTerm (),val.size()),aggr.size ()};
       }
 
+      template PointerValue Operations::PtrAdd (const PointerValue&,const Value<ValType::I8>&);
+      template PointerValue Operations::PtrAdd (const PointerValue&,const Value<ValType::I16>&);
+      template PointerValue Operations::PtrAdd (const PointerValue&,const Value<ValType::I32>&);
+      template PointerValue Operations::PtrAdd (const PointerValue&,const Value<ValType::I64>&);
+      
+      
       template Value<ValType::I8> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
       template Value<ValType::I16> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
       template Value<ValType::I32> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
       template Value<ValType::I64> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
       template Value<ValType::Pointer> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
       template Value<ValType::Bool> Operations::ExtractBaseValue(const AggregateValue&, MiniMC::uint64_t);
-
+      
       template AggregateValue Operations::InsertBaseValue(const AggregateValue&, MiniMC::uint64_t, const Value<ValType::I8>&);
       template AggregateValue Operations::InsertBaseValue(const AggregateValue&, MiniMC::uint64_t, const Value<ValType::I16>&);
       template AggregateValue Operations::InsertBaseValue(const AggregateValue&, MiniMC::uint64_t, const Value<ValType::I32>&);

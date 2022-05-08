@@ -308,12 +308,18 @@ namespace MiniMC {
     template <>
     constexpr type_id_t ValueInfo<Pointer>::type_t() { return ValueInfo<Bool>::type_t() + 1; }
 
+    
+    
     template <>
     constexpr type_id_t ValueInfo<AggregateConstant>::type_t() { return ValueInfo<Pointer>::type_t() + 1; }
 
     template <>
     constexpr type_id_t ValueInfo<Register>::type_t() { return ValueInfo<AggregateConstant>::type_t() + 1; }
 
+    template <>
+    constexpr type_id_t ValueInfo<Undef>::type_t() { return ValueInfo<Register>::type_t() + 1; }
+    
+    
     template <class T, bool is_bool>
     inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo<TConstant<T, is_bool>>::type_t()),
                                                      value(val) {

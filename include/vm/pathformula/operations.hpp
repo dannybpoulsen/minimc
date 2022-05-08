@@ -85,9 +85,7 @@ namespace MiniMC {
 	BoolValue  BoolNegate(const BoolValue&);
 	
         template <class T>
-        PointerValue PtrAdd(const PointerValue&, const T&) {
-	  throw MiniMC::Support::Exception ("Not Implemented");
-	}
+        PointerValue PtrAdd(const PointerValue& ptrvalue, const T& adddend);
 	
 	template <class T>
         T ExtractBaseValue(const AggregateValue&, const MiniMC::uint64_t);

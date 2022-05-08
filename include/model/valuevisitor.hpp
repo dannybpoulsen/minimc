@@ -2,6 +2,9 @@
 #define _VALUE_VISITOR__
 
 #include "model/variables.hpp"
+#ifndef NDEBUG
+#include "support/exceptions.hpp"
+#endif
 
 namespace MiniMC {
   namespace Model {
@@ -36,9 +39,16 @@ namespace MiniMC {
       case ValueInfo<Register>::type_t ():
 	return f (static_cast<const Register&> (v));
 	break;
+      case ValueInfo<Undef>::type_t ():
+	return f (static_cast<const Undef&> (v));
+	break;
       default:
+#ifdef NDEBUG
 	__builtin_unreachable();
-      }
+#else
+	throw MiniMC::Support::Exception ("Missing category");
+#endif
+        }
       
     }
       

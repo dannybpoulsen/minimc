@@ -30,9 +30,10 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 	memory.createHeapLayout (descr.getHeap ());
-	auto stack = MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer(termbuilder.makeVar(termbuilder.makeBVSort(64), "StackMemory"));
+	auto stacksize = std::make_shared<MiniMC::Model::I64Integer> (100);
+	auto stack = memory.alloca (lookup.lookupValue(stacksize).as<MiniMC::VMT::Pathformula::I64Value> ());
 	
-	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values),stack},
+	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values),stack.as<MiniMC::VMT::Pathformula::PointerValue> ()},
 									std::move(memory),
 									std::move(term),
 									*context);	
@@ -48,58 +49,7 @@ namespace MiniMC {
 	return state;
       }
 
-      MiniMC::CPA::State_ptr Joiner::doJoin(const State_ptr& lstate, const State_ptr& rstate) {
-	auto& termbuilder = context->getBuilder ();
-	auto& lstate_ = static_cast<const MiniMC::CPA::PathFormula::State&>(*lstate);
-        auto& rstate_ = static_cast<const MiniMC::CPA::PathFormula::State&>(*rstate);
-	auto& lpath = lstate_.getPathformula ();
-	auto breaker = [&termbuilder,&lpath](const MiniMC::VMT::Pathformula::PathFormulaVMVal& l, const MiniMC::VMT::Pathformula::PathFormulaVMVal& r ) {
-	  auto performMerge = [&termbuilder,&lpath]<typename T>(const T& ll, const T&  rr) {
-	    if constexpr (std::is_same<T,MiniMC::VMT::Pathformula::AggregateValue> ()) {
-		return MiniMC::VMT::Pathformula::PathFormulaVMVal{T{termbuilder.buildTerm (SMTLib::Ops::ITE,{lpath,ll.getTerm (),rr.getTerm ()}),ll.size()}};
-	  
-	      }
-	    else 
-	      return MiniMC::VMT::Pathformula::PathFormulaVMVal{T{termbuilder.buildTerm (SMTLib::Ops::ITE,{lpath,ll.getTerm (),rr.getTerm ()})}};
-	  };
-	  if (l.is<MiniMC::VMT::Pathformula::I8Value> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::I8Value> (),r.as<MiniMC::VMT::Pathformula::I8Value> ());
-	  }
-	  else if (l.is<MiniMC::VMT::Pathformula::I16Value> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::I16Value> (),r.as<MiniMC::VMT::Pathformula::I16Value> ());
-	  }
-
-	  else if (l.is<MiniMC::VMT::Pathformula::I32Value> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::I32Value> (),r.as<MiniMC::VMT::Pathformula::I32Value> ());
-	  }
-
-	  else if (l.is<MiniMC::VMT::Pathformula::I64Value> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::I64Value> (),r.as<MiniMC::VMT::Pathformula::I64Value> ());
-	  }
-
-	  else if (l.is<MiniMC::VMT::Pathformula::PointerValue> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::PointerValue> (),r.as<MiniMC::VMT::Pathformula::PointerValue> ());
-	  }
-
-	  else if (l.is<MiniMC::VMT::Pathformula::BoolValue> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::BoolValue> (),r.as<MiniMC::VMT::Pathformula::BoolValue> ());
-	  }
-
-	  else if (l.is<MiniMC::VMT::Pathformula::AggregateValue> ()) {
-	    return performMerge (l.as<MiniMC::VMT::Pathformula::AggregateValue> (),r.as<MiniMC::VMT::Pathformula::AggregateValue> ());
-	  }
-	  
-	  return l;
-
-	};
-
-	
-	
-	//ValueMap values = ValueMap::merge (lstate_.getValues (),rstate_.getValues (),breaker);
-	//MiniMC::VMT::Pathformula::Memory memory{termbuilder};
-	
-	//auto npath = termbuilder.buildTerm (SMTLib::Ops::Or,{lstate_.getPathformula (), rstate_.getPathformula ()});
-	//return std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(values),std::move(memory),std::move(npath),*context);
+      MiniMC::CPA::State_ptr Joiner::doJoin(const State_ptr&, const State_ptr&) {
 	return nullptr;
       }
       
@@ -115,9 +65,6 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getStack().back().values,termbuilder};
 	StackControl stackcontrol{nstate.getStack (),e->getProgram (),*context,termbuilder};
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-
-	  
-	  
 	  decltype(engine)::State newvm {nlookup,nstate.getMemory (),control,stackcontrol};
 	  decltype(engine)::ConstState convm {nlookup,nstate.getMemory (),control,stackcontrol};
           auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
@@ -137,11 +84,9 @@ namespace MiniMC {
 	if (status ==MiniMC::VMT::Status::Ok)  {
 	  if (control.getAssump ()) 
 	    nstate.addConstraints (control.getAssump ());
-	  
 	  return resstate;
 	}
-	else {
-	  
+	else {	  
 	  return nullptr;
 
 	}

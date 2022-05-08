@@ -86,8 +86,9 @@ namespace MiniMC {
 	}
 
 	virtual typename MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer alloc(const MiniMC::VMT::Pathformula::PathFormulaVMVal::I64& size) override {
+	  
 	  auto ret = stack.back().next_stack_alloc;
-	  stack.back().next_stack_alloc = builder.buildTerm(SMTLib::Ops::BVAdd,{ret.getTerm (),size.getTerm ()});   
+	  stack.back().next_stack_alloc = builder.buildTerm(SMTLib::Ops::BVAdd,{ret.getTerm (),size.getTerm ()});
 	  
 	  
 	  return ret;
