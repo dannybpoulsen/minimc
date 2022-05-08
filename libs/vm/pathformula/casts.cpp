@@ -45,13 +45,13 @@ namespace MiniMC {
 
       template <size_t bw, typename T>
       typename RetTyp<bw>::type Casts::ZExt(const T& t) const {
-        constexpr std::size_t bits = bw * 8;
+        constexpr std::size_t bits = bw * 8 - T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::ZExt, {t.getTerm()}, {bits});
       }
 
       template <size_t bw, typename T>
       typename RetTyp<bw>::type Casts::SExt(const T& t) const {
-        constexpr std::size_t bits = bw * 8;
+        constexpr std::size_t bits = bw * 8  -T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::SExt, {t.getTerm()}, {bits});
       }
 

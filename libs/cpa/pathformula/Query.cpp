@@ -30,14 +30,17 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 	memory.createHeapLayout (descr.getHeap ());
+	auto stack = MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer(termbuilder.makeVar(termbuilder.makeBVSort(64), "StackMemory"));
 	
-	
-	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values)},std::move(memory),std::move(term),*context);	
+	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(CallStack{std::move(values),stack},
+									std::move(memory),
+									std::move(term),
+									*context);	
 
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::Operations{termbuilder},MiniMC::VMT::Pathformula::Casts{termbuilder}};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	MiniMC::VMT::Pathformula::ValueLookup nlookup {state->getStack().back().values,termbuilder};
-	StackControl stackcontrol{state->getStack (),descr.getProgram (),*context};
+	StackControl stackcontrol{state->getStack (),descr.getProgram (),*context,termbuilder};
         decltype(engine)::State newvm {nlookup,state->getMemory (),control,stackcontrol};
 	decltype(engine)::ConstState convm {nlookup,state->getMemory (),control,stackcontrol};
 	engine.execute(descr.getInit (),newvm,convm);
@@ -110,7 +113,7 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
 	MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getStack().back().values,termbuilder};
-	StackControl stackcontrol{nstate.getStack (),e->getProgram (),*context};
+	StackControl stackcontrol{nstate.getStack (),e->getProgram (),*context,termbuilder};
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
 
 	  

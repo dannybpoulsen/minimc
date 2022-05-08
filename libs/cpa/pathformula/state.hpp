@@ -19,16 +19,19 @@ namespace MiniMC {
       using SymbolicByteVectorExpr = TByteVectorExpr<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
 
       struct StackFrame {
-	StackFrame (ValueMap&& map, const MiniMC::Model::Value_ptr& ret) : values(std::move(map)),ret(ret) {} 
+	StackFrame (ValueMap&& map, const MiniMC::Model::Value_ptr& ret,MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer pointer) : values(std::move(map)),ret(ret),next_stack_alloc(pointer) {} 
 	ValueMap values;
 	MiniMC::Model::Value_ptr ret;
+	MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer next_stack_alloc;
+	
       };
 
       struct CallStack  {
-	explicit CallStack (ValueMap&& map){frames.emplace_back (std::move(map),nullptr);}
+	explicit CallStack (ValueMap&& map,MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer pointer)
+	{frames.emplace_back (std::move(map),nullptr,pointer);}
 
 	void push  (ValueMap&& map, const MiniMC::Model::Value_ptr& ret) {
-	  frames.emplace_back(std::move(map),ret);
+	  frames.emplace_back(std::move(map),ret,frames.back().next_stack_alloc);
 	}
 
 	auto pop () {	  
@@ -41,7 +44,7 @@ namespace MiniMC {
 	auto& back ()  {return frames.back ();}
 	auto& back () const  {return frames.back ();}
 	std::vector<StackFrame> frames;
-
+	
 	
 	
       };
@@ -50,7 +53,7 @@ namespace MiniMC {
 
       class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-	StackControl (CallStack& stack,const MiniMC::Model::Program& prgm,SMTLib::Context& context) : stack(stack),prgm(prgm),context(context) {}
+	StackControl (CallStack& stack,const MiniMC::Model::Program& prgm,SMTLib::Context& context,SMTLib::TermBuilder& builder) : stack(stack),prgm(prgm),context(context),builder(builder) {}
 	//StackControl API
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Pathformula::PathFormulaVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 	  
@@ -81,10 +84,21 @@ namespace MiniMC {
 	void popNoReturn () override {
 	  stack.pop ();
 	}
+
+	virtual typename MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer alloc(const MiniMC::VMT::Pathformula::PathFormulaVMVal::I64& size) override {
+	  auto ret = stack.back().next_stack_alloc;
+	  stack.back().next_stack_alloc = builder.buildTerm(SMTLib::Ops::BVAdd,{ret.getTerm (),size.getTerm ()});   
+	  
+	  
+	  return ret;
+	}
+	
+	
       private:
 	CallStack& stack;
 	const MiniMC::Model::Program& prgm;
 	SMTLib::Context& context;
+	SMTLib::TermBuilder& builder;
       };
       
       class State : public MiniMC::CPA::State
@@ -147,7 +161,7 @@ namespace MiniMC {
       };
 
       const Solver_ptr State::getConcretizer() const {
-	auto solver = context.makeSolver ();
+	auto solver = context.makeSolver ();  
 	solver->assert_formula (getPathformula ());
 	return std::make_shared<Concretizer>(*this,std::move(solver));
       }

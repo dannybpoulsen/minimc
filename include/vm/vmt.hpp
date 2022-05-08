@@ -71,7 +71,7 @@ namespace MiniMC {
       virtual void  push (MiniMC::pointer_t, std::vector<T>&, const MiniMC::Model::Value_ptr& ) {throw MiniMC::Support::Exception ("Stack Push Not implemented");}
       virtual void pop (T&&) {throw MiniMC::Support::Exception ("Stack Pop  implemented");}
       virtual void popNoReturn () {throw MiniMC::Support::Exception ("Stack Pop implemented");}
-      
+      virtual typename T::Pointer alloc (const typename T::I64&) {throw MiniMC::Support::Exception ("Stack Allocation Not Implemented");}
     };
     
     

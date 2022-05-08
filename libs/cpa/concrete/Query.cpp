@@ -21,7 +21,7 @@ namespace MiniMC {
       using ConcreteByteVectorExpr = TByteVectorExpr<MiniMC::VMT::Concrete::ConcreteVMVal>;
 
       struct StackFrame {
-	StackFrame (std::size_t size, const MiniMC::Model::Value_ptr& ret)  : values(size),ret(ret) {}
+	StackFrame (std::size_t size, const MiniMC::Model::Value_ptr& ret,MiniMC::VMT::Concrete::ConcreteVMVal::Pointer top)  : values(size),ret(ret),next_stack_alloc(top) {}
 	StackFrame (const StackFrame& ) = default;
 
 	MiniMC::Hash::hash_t hash() const {
@@ -33,7 +33,7 @@ namespace MiniMC {
 
 	MiniMC::VMT::Concrete::ValueLookup values;
 	MiniMC::Model::Value_ptr ret{nullptr};
-	
+	MiniMC::VMT::Concrete::ConcreteVMVal::Pointer next_stack_alloc;
       };
 
       
@@ -71,9 +71,10 @@ namespace MiniMC {
 	StackControl (CallStack& s, const MiniMC::Model::Program& p) : stack (s),prgm(p) {}
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Concrete::ConcreteVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 
+	  auto& cur = stack.back ();
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
 	  auto& vstack = func->getRegisterStackDescr();
-	  StackFrame sf {vstack.getTotalRegisters (),ret};
+	  StackFrame sf {vstack.getTotalRegisters (),ret,cur.next_stack_alloc};
 	  for (auto& v : vstack.getRegisters()) {
             sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
           }
@@ -97,7 +98,12 @@ namespace MiniMC {
 	void popNoReturn () override {
 	  stack.pop ();
 	}
-	
+
+        virtual typename MiniMC::VMT::Concrete::ConcreteVMVal::Pointer alloc(const MiniMC::VMT::Concrete::ConcreteVMVal::I64& size) override {
+	  auto ret = stack.back().next_stack_alloc;
+	  stack.back().next_stack_alloc = MiniMC::Support::ptradd (ret.getValue (),size.getValue ());
+	  return ret;
+	}
 	
       private:
 	CallStack& stack;
@@ -156,11 +162,18 @@ namespace MiniMC {
       };
 
       MiniMC::CPA::State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
-        
+
+	MiniMC::VMT::Concrete::Memory heap;
+	heap.createHeapLayout (descr.getHeap ());
+	
+	
         std::vector<CallStack> stack;
         for (auto& f : descr.getEntries()) {
           auto& vstack = f->getRegisterStackDescr();
-	  StackFrame sf {vstack.getTotalRegisters (),nullptr};
+	  StackFrame sf {vstack.getTotalRegisters (),
+			 nullptr,
+			 heap.alloca (MiniMC::VMT::Concrete::ConcreteVMVal::I64{100}).as<MiniMC::VMT::Concrete::ConcreteVMVal::Pointer> ()
+	  };
 	  for (auto& v : vstack.getRegisters()) {
             sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
           }
@@ -168,8 +181,6 @@ namespace MiniMC {
           stack.push_back(cs);
 	  
         }
-	MiniMC::VMT::Concrete::Memory heap;
-	heap.createHeapLayout (descr.getHeap ());
 	
         auto state = std::make_shared<State>(stack,heap);
 

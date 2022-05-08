@@ -122,8 +122,13 @@ namespace MiniMC {
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
       inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations&, Caster&) requires MiniMC::Model::InstructionData<op>::isMemory {
         auto& content = instr.getOps<op>();
-
-        if constexpr (op == MiniMC::Model::InstructionCode::Alloca || op == MiniMC::Model::InstructionCode::FindSpace) {
+	if constexpr (op == MiniMC::Model::InstructionCode::Alloca ) {
+          auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+          auto size = readState.getValueLookup().lookupValue(content.op1);
+          writeState.getValueLookup().saveValue(res, writeState.getStackControl().alloc (size.template as<typename T::I64>()));
+          return Status::Ok;
+        } 
+        else if constexpr (op == MiniMC::Model::InstructionCode::FindSpace) {
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
           auto size = readState.getValueLookup().lookupValue(content.op1);
           writeState.getValueLookup().saveValue(res, writeState.getMemory().alloca(size.template as<typename T::I64>()));
