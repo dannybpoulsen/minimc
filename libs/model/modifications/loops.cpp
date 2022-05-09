@@ -51,7 +51,7 @@ namespace MiniMC {
         }
       }
 
-      bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func) {
+      bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func,std::size_t maxAmount) {
         MiniMC::Support::getMessager().message(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getName()));
         auto& cfg = func->getCFA();
 
@@ -75,12 +75,7 @@ namespace MiniMC {
         return true;
       }
 
-      bool UnrollLoops::run(MiniMC::Model::Program& prgm) {
-        for (auto& func : prgm.getEntryPoints()) {
-          runFunction(func);
-        }
-        return true;
-      }
+      
     }; // namespace Modifications
 
   } // namespace Model

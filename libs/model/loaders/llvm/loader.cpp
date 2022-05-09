@@ -637,7 +637,7 @@ namespace MiniMC {
         //funcmanagerllvm.addPass (llvm::LowerSwitch ());
 
         mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
-        mpm.addPass(llvm::PrintModulePass(llvm::errs()));
+        //mpm.addPass(llvm::PrintModulePass(llvm::errs()));
         mpm.addPass(GlobalConstructor(prgm, tfac, cfac, values));
 
         funcmanager.addPass(Constructor(prgm, tfac, cfac, values));

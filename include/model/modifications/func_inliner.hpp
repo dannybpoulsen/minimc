@@ -16,13 +16,12 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      struct InlineFunctions : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        InlineFunctions(std::size_t d) : depth(d) {}
-        virtual bool runFunction(const MiniMC::Model::Function_ptr& F);
-        virtual bool run(MiniMC::Model::Program& prgm);
-
+      struct InlineFunctions  {
+        InlineFunctions(MiniMC::Model::Program& prgm) : prgm(prgm) {}
+        virtual bool runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth);
+        
       private:
-        std::size_t depth = 0;
+	MiniMC::Model::Program& prgm;
       };
 
     } // namespace Modifications

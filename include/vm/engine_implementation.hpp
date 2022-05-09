@@ -512,7 +512,6 @@ namespace MiniMC {
       auto end = instr.end();
       Status status = Status::Ok;
       for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
-	std::cerr << *it << std::endl;
 	switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \

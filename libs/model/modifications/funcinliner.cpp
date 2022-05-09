@@ -11,7 +11,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      void inlineCallEdgeToFunction(const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc, size_t depth = 10) {
+      void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc, size_t depth = 10) {
         if (!depth)
           throw MiniMC::Support::Exception("Inlining Depth exceeded");
         auto from_loc = edge->getFrom();
@@ -21,7 +21,7 @@ namespace MiniMC {
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
+	auto cfunc = prgm.getFunction(MiniMC::Support::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {
@@ -41,7 +41,7 @@ namespace MiniMC {
           if (ne->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
             auto& ninstr = ne->getAttribute<MiniMC::Model::AttributeType::Instructions>();
             if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
-              inlineCallEdgeToFunction(func, ne, locinfoc, depth - 1);
+              inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
             }
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
@@ -82,7 +82,7 @@ namespace MiniMC {
         from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace>();
       }
 
-      bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F) {
+      bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
         MiniMC::Model::LocationInfoCreator linfoc(F->getName());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
@@ -94,19 +94,13 @@ namespace MiniMC {
           if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>() &&
               e->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().getOpcode() ==
                   MiniMC::Model::InstructionCode::Call) {
-            inlineCallEdgeToFunction(F, e, linfoc, depth);
+            inlineCallEdgeToFunction(prgm,F, e, linfoc, depth);
           }
         }
 
         return true;
       }
 
-      bool InlineFunctions::run(MiniMC::Model::Program& prgm) {
-        for (auto& F : prgm.getFunctions()) {
-          runFunction(F);
-        }
-        return true;
-      }
 
     } // namespace Modifications
   }   // namespace Model

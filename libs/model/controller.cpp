@@ -46,10 +46,11 @@ namespace MiniMC {
     }
     
     void Controller::inlineFunctions (std::size_t depth, const MiniMC::Model::Function_ptr& func){
-      MiniMC::Model::Modifications::InlineFunctions{depth}.runFunction (func);
+      MiniMC::Model::Modifications::InlineFunctions{*prgm}.runFunction (func,depth);
     }
+    
     void Controller::unrollLoops (std::size_t iterations,  const MiniMC::Model::Function_ptr& func){
-      MiniMC::Model::Modifications::UnrollLoops{iterations}.runFunction (func);
+      MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
     }
     void Controller::splitAtCMP (){
       MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar{}.run (*prgm);

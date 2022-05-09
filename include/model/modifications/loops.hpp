@@ -14,13 +14,9 @@ namespace MiniMC {
 
       void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop_ptr& loop, std::size_t amount);
 
-      struct UnrollLoops : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        UnrollLoops(std::size_t size) : maxAmount(size) {}
-        virtual bool run(MiniMC::Model::Program& prgm);
-        virtual bool runFunction(const MiniMC::Model::Function_ptr&);
+      struct UnrollLoops {
+        virtual bool runFunction(const MiniMC::Model::Function_ptr&,std::size_t amount);
 
-      private:
-        size_t maxAmount = 0;
       };
 
     } // namespace Modifications

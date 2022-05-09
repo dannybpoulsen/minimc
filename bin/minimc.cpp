@@ -74,6 +74,10 @@ int main(int argc, char* argv[]) {
     messager.message<MiniMC::Support::Severity::Error> (e.what ());
     return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError); 
   }
+  catch (MiniMC::Support::Exception& e) {
+    messager.message<MiniMC::Support::Severity::Error> (e.what ());
+    return static_cast<int>(MiniMC::Support::ExitCodes::RuntimeError); 
+  }
   }
   
 }

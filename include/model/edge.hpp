@@ -152,7 +152,7 @@ namespace MiniMC {
       }
 
       auto& getProgram() const { return prgm; }
-
+      
       //void setProgram (const Program_ptr& p) {prgm = p;}
 
       void copyAttributesFrom(const Edge& e) {
