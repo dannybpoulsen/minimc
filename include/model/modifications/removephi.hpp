@@ -12,7 +12,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      struct RemovePhi : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+      struct LowerPhi : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {

@@ -8,13 +8,15 @@ namespace MiniMC {
     //Helper class for running modifications on a Program
     class Controller {
     public:
-      Controller (const MiniMC::Model::Program& p) : prgm(std::make_shared<Program> (p)) {}
+      Controller (const MiniMC::Model::Program& p) : prgm(std::make_shared<Program> (p)) {
+	lowerPhi ();
+      }
       Controller (MiniMC::Model::Program&& p) : prgm(std::make_shared<Program> (std::move(p))) {}
       
       bool typecheck ();
       bool structuralcheck ();
       
-      void removePhi ();
+      void lowerPhi ();
       void makeMemNonDet ();
       void createAssertViolateLocations ();
       void inlineFunctions (std::size_t, const MiniMC::Model::Function_ptr&);

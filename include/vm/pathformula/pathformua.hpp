@@ -50,20 +50,15 @@ namespace MiniMC {
 	SMTLib::Term_ptr mem_var{nullptr};
       };
 
-      class ValueLookup : public MiniMC::VMT::ValueLookup<PathFormulaVMVal> {
+      class ValueLookup : public BaseValueLookup<PathFormulaVMVal> {
       public:
-	ValueLookup (MiniMC::Util::SSAMap<MiniMC::Model::Register,MiniMC::VMT::Pathformula::PathFormulaVMVal>& val, SMTLib::TermBuilder& b) : values(val),builder(b) {}
+	ValueLookup (std::size_t size, SMTLib::TermBuilder& b) : BaseValueLookup(size),builder(b) {}
 	ValueLookup (const ValueLookup&) = default;
         PathFormulaVMVal lookupValue (const MiniMC::Model::Value_ptr& ) const override;
-	
-        void saveValue(const MiniMC::Model::Register& v, PathFormulaVMVal&& value) override {
-	  values.set(v,std::move(value));
-        }
         PathFormulaVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;
         MiniMC::Hash::hash_t hash() const { return 0;}
 	
       private:
-	MiniMC::Util::SSAMap<MiniMC::Model::Register,MiniMC::VMT::Pathformula::PathFormulaVMVal>& values;
 	SMTLib::TermBuilder& builder;
       };
       

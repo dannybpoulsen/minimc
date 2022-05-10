@@ -23,10 +23,29 @@ namespace MiniMC {
     struct ValueLookup {
     public:
       virtual ~ValueLookup ()  {}
-      virtual T lookupValue (const MiniMC::Model::Value_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void saveValue (const MiniMC::Model::Register&, T&&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual T unboundValue (const MiniMC::Model::Type_ptr&) const {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual T lookupValue (const MiniMC::Model::Value_ptr&) const = 0;
+      virtual void saveValue (const MiniMC::Model::Register&, T&&)  = 0;
+      virtual T unboundValue (const MiniMC::Model::Type_ptr&) const = 0;
     };
+
+    template<class T>
+    struct BaseValueLookup : ValueLookup<T> {
+    public:
+      BaseValueLookup (std::size_t i) : values(i) {}
+      BaseValueLookup (const BaseValueLookup&) = default;
+      virtual  ~BaseValueLookup () {}
+      virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
+      void saveValue(const MiniMC::Model::Register& v, T&& value) override {
+	values.set (v,std::move(value));
+      }
+      T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      MiniMC::Hash::hash_t hash() const { return values.hash(); }
+    protected:
+      T lookupRegister (const MiniMC::Model::Register& reg) const  {return values[reg];}
+    private:
+      MiniMC::Model::VariableMap<T> values;
+    };
+    
 
     
     
@@ -230,7 +249,7 @@ namespace MiniMC {
       
       Engine (Operations&& ops, Caster&& caster)  : operations(std::move(ops)), caster(std::move(caster)){}
       ~Engine ()  {}
-      virtual Status execute (const MiniMC::Model::InstructionStream&, State&, ConstState&  ) ;
+      Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
     private:
       Operations operations;
       Caster caster;

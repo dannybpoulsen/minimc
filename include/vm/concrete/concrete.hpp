@@ -45,20 +45,12 @@ namespace MiniMC {
         struct internal;
         std::unique_ptr<internal> _internal;
       };
-
-      class ValueLookup : public MiniMC::VMT::ValueLookup<ConcreteVMVal> {
+      
+      class ValueLookup : public MiniMC::VMT::BaseValueLookup<ConcreteVMVal> {
       public:
-	ValueLookup (std::size_t i) : values(i) {}
-	ValueLookup (const ValueLookup&) = default;
+	ValueLookup (std::size_t i) : BaseValueLookup<ConcreteVMVal>(i) {}
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
-        void saveValue(const MiniMC::Model::Register& v, ConcreteVMVal&& value) override {
-	  values.set (v,std::move(value));
-	}
-        ConcreteVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;
-        MiniMC::Hash::hash_t hash() const { return values.hash(); }
-	
-      private:
-        MiniMC::Model::VariableMap<ConcreteVMVal> values;
+	ConcreteVMVal unboundValue (const MiniMC::Model::Type_ptr&) const override;
       };
       
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {

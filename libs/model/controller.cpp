@@ -30,8 +30,8 @@ namespace MiniMC {
       return MiniMC::Model::Checkers::StructureChecker{}.run (*prgm);
     }
 
-    void Controller::removePhi (){
-      MiniMC::Model::Modifications::RemovePhi{}.run (*prgm);
+    void Controller::lowerPhi (){
+      MiniMC::Model::Modifications::LowerPhi{}.run (*prgm);
     }
 
     void Controller::boolCasts (){

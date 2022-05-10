@@ -24,7 +24,7 @@ namespace MiniMC {
                 },
                 [](const MiniMC::Model::Undef&) -> ConcreteVMVal { throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA"); },
                 [this](const MiniMC::Model::Register& val) -> ConcreteVMVal {
-                  return values[val];
+                  return lookupRegister (val);
                 },
             },
             *v);

@@ -1,7 +1,7 @@
 #ifndef _pathSTATE__
 #define _pathSTATE__
 
-
+#include "cpa/common.hpp"
 #include "cpa/interface.hpp"
 #include "vm/pathformula/pathformua.hpp"
 #include "smt/context.hpp"
@@ -14,53 +14,22 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      using ValueMap = MiniMC::Util::SSAMap<MiniMC::Model::Register,MiniMC::VMT::Pathformula::PathFormulaVMVal>;
 
       using SymbolicByteVectorExpr = TByteVectorExpr<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
+      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::PathFormulaVMVal,MiniMC::VMT::Pathformula::ValueLookup>;
 
-      struct StackFrame {
-	StackFrame (ValueMap&& map, const MiniMC::Model::Value_ptr& ret,MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer pointer) : values(std::move(map)),ret(ret),next_stack_alloc(pointer) {} 
-	ValueMap values;
-	MiniMC::Model::Value_ptr ret;
-	MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer next_stack_alloc;
-	
-      };
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
 
-      struct CallStack  {
-	explicit CallStack (ValueMap&& map,MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer pointer)
-	{frames.emplace_back (std::move(map),nullptr,pointer);}
-
-	void push  (ValueMap&& map, const MiniMC::Model::Value_ptr& ret) {
-	  frames.emplace_back(std::move(map),ret,frames.back().next_stack_alloc);
-	}
-
-	auto pop () {	  
-	  auto val = frames.back  ();
-	  frames.pop_back ();
-	  return val;
-	}
-	
-	
-	auto& back ()  {return frames.back ();}
-	auto& back () const  {return frames.back ();}
-	std::vector<StackFrame> frames;
-	
-	
-	
-      };
-
-
-
+      
       class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-	StackControl (CallStack& stack,const MiniMC::Model::Program& prgm,SMTLib::Context& context,SMTLib::TermBuilder& builder) : stack(stack),prgm(prgm),context(context),builder(builder) {}
+	StackControl (ActivationStack& stack,const MiniMC::Model::Program& prgm,SMTLib::Context& context,SMTLib::TermBuilder& builder) : stack(stack),prgm(prgm),context(context),builder(builder) {}
 	//StackControl API
 	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Pathformula::PathFormulaVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
 	  
 	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
 	  auto& vstack = func->getRegisterStackDescr();
-	  ValueMap sf {vstack.getTotalRegisters ()};
-	  MiniMC::VMT::Pathformula::ValueLookup values{sf,context.getBuilder ()};
+	  MiniMC::VMT::Pathformula::ValueLookup values{vstack.getTotalRegisters (),context.getBuilder ()};
 	  for (auto& v : vstack.getRegisters()) {
             values.saveValue  (*v,values.unboundValue (v->getType ()));
           }
@@ -72,13 +41,13 @@ namespace MiniMC {
 	      
 	  }
 	  
-	  stack.push (std::move(sf),ret);
+	  stack.push ({std::move(values),ret,stack.back().next_stack_alloc});
 	}
 	
 	void pop (MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
 	  auto ret = stack.back ().ret;
 	  stack.pop ();
-	  MiniMC::VMT::Pathformula::ValueLookup{stack.back().values,context.getBuilder  ()}.saveValue (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	  stack.back().values.saveValue (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
 	}
 	
 	void popNoReturn () override {
@@ -96,7 +65,7 @@ namespace MiniMC {
 	
 	
       private:
-	CallStack& stack;
+	ActivationStack& stack;
 	const MiniMC::Model::Program& prgm;
 	SMTLib::Context& context;
 	SMTLib::TermBuilder& builder;
@@ -105,14 +74,21 @@ namespace MiniMC {
       class State : public MiniMC::CPA::State
       {
       public:
-	State (CallStack&& vals,  MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula,SMTLib::Context& ctxt) : call_stack(std::move(vals)),
+	State (ActivationStack&& vals,  MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula,SMTLib::Context& ctxt) : call_stack(std::move(vals)),
 																memory(std::move(memory)),
 																pathformula(std::move(formula)),
 																context(ctxt)
 	{}
-	State(const State& oth) = default;
+	State(const State& oth) : call_stack(oth.call_stack),memory(oth.memory),pathformula(oth.pathformula),context(oth.context),_hash(0) {}
         virtual std::ostream& output(std::ostream& os) const override { return os << "\nPathformula:" << *pathformula; }
-        MiniMC::Hash::hash_t hash() const override { return reinterpret_cast<MiniMC::Hash::hash_t>(this); }
+        MiniMC::Hash::hash_t hash() const override {
+	  //Hashes for pathformula states makes no sense 
+	  //Since they should be usable by all algorithms we just makes a fake hash that increments with each invocation of the hash function
+				     static MiniMC::Hash::hash_t nextHash {0};
+	  if (!_hash)
+	    _hash = ++nextHash;
+	  return _hash;
+	}
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }
         
         
@@ -127,16 +103,18 @@ namespace MiniMC {
 
 	auto& getPathformula () const  {return pathformula;}
 	
-	ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Register_ptr& v) const override  {
-	  return std::make_unique<SymbolicByteVectorExpr> (getStack().back().values.get(*v),v->getType()->getSize ());
+	ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Register_ptr&) const override  {
+	  //return std::make_unique<SymbolicByteVectorExpr> (getStack().back().values.get(*v),v->getType()->getSize ());
+	  return nullptr;
 	}
 
 		
       private:
-	CallStack  call_stack;
+	ActivationStack  call_stack;
 	MiniMC::VMT::Pathformula::Memory memory;
         SMTLib::Term_ptr pathformula;
 	SMTLib::Context& context;
+	mutable MiniMC::Hash::hash_t _hash = 0;
       };
 
       class Concretizer : public MiniMC::CPA::Solver {

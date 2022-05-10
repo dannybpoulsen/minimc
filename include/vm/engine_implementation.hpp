@@ -8,17 +8,17 @@ namespace MiniMC {
   namespace VMT {
     namespace Impl {
       template <MiniMC::Model::InstructionCode opc, typename T, typename IntOps, typename Caster>
-      Status runInstruction(const MiniMC::Model::Instruction&, VMState<T>&, VMState<T, true>&, IntOps&, Caster&) {
+      Status runInstruction(const MiniMC::Model::Instruction&, VMState<T>&,  IntOps&, Caster&) {
         throw NotImplemented<opc>();
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Value, class Operation>
-      inline Status runCMPAdd(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operation& operations) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
+      inline Status runCMPAdd(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
-        auto lval = readState.getValueLookup().lookupValue(content.op1).template as<Value>();
-        auto rval = readState.getValueLookup().lookupValue(content.op2).template as<Value>();
+        auto lval = writeState.getValueLookup().lookupValue(content.op1).template as<Value>();
+        auto rval = writeState.getValueLookup().lookupValue(content.op2).template as<Value>();
         if constexpr (op == MiniMC::Model::InstructionCode::Add)
           writeState.getValueLookup().saveValue(res, operations.Add(lval, rval));
         else if constexpr (op == MiniMC::Model::InstructionCode::Sub)
@@ -69,33 +69,33 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, typename Operations, typename Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations& ops, Caster&) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& ops, Caster&) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
         auto& content = instr.getOps<op>();
         auto op1 = content.op1;
 
         switch (op1->getType()->getSize()) {
           case 1:
-            return runCMPAdd<op, T, typename T::I8>(instr, writeState, readState, ops);
+            return runCMPAdd<op, T, typename T::I8>(instr, writeState,  ops);
           case 2:
-            return runCMPAdd<op, T, typename T::I16>(instr, writeState, readState, ops);
+            return runCMPAdd<op, T, typename T::I16>(instr, writeState, ops);
           case 4:
-            return runCMPAdd<op, T, typename T::I32>(instr, writeState, readState, ops);
+            return runCMPAdd<op, T, typename T::I32>(instr, writeState, ops);
           case 8:
-            return runCMPAdd<op, T, typename T::I64>(instr, writeState, readState, ops);
+            return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops);
         }
         throw NotImplemented<op>();
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isPointer {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isPointer {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
         if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
-          auto ptr = readState.getValueLookup().lookupValue(content.ptr).template as<typename T::Pointer>();
+          auto ptr = writeState.getValueLookup().lookupValue(content.ptr).template as<typename T::Pointer>();
           auto calc = [&]<typename ValT>() {
-            auto skipsize = readState.getValueLookup().lookupValue(content.skipsize).template as<ValT>();
-            auto nbskips = readState.getValueLookup().lookupValue(content.nbSkips).template as<ValT>();
+            auto skipsize = writeState.getValueLookup().lookupValue(content.skipsize).template as<ValT>();
+            auto nbskips = writeState.getValueLookup().lookupValue(content.nbSkips).template as<ValT>();
             auto totalskip = operations.Mul(skipsize, nbskips);
             writeState.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
             return Status::Ok;
@@ -111,8 +111,8 @@ namespace MiniMC {
               return calc.template operator()<typename T::I64>();
           }
         } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
-          auto lval = readState.getValueLookup().lookupValue(content.op1).template as<typename T::Pointer>();
-          auto rval = readState.getValueLookup().lookupValue(content.op2).template as<typename T::Pointer>();
+          auto lval = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::Pointer>();
+          auto rval = writeState.getValueLookup().lookupValue(content.op2).template as<typename T::Pointer>();
           writeState.getValueLookup().saveValue(res, operations.PtrEq(lval, rval));
           return Status::Ok;
         }
@@ -120,29 +120,29 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations&, Caster&) requires MiniMC::Model::InstructionData<op>::isMemory {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster&) requires MiniMC::Model::InstructionData<op>::isMemory {
         auto& content = instr.getOps<op>();
 	if constexpr (op == MiniMC::Model::InstructionCode::Alloca ) {
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-          auto size = readState.getValueLookup().lookupValue(content.op1);
+          auto size = writeState.getValueLookup().lookupValue(content.op1);
           writeState.getValueLookup().saveValue(res, writeState.getStackControl().alloc (size.template as<typename T::I64>()));
           return Status::Ok;
         } 
         else if constexpr (op == MiniMC::Model::InstructionCode::FindSpace) {
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-          auto size = readState.getValueLookup().lookupValue(content.op1);
+          auto size = writeState.getValueLookup().lookupValue(content.op1);
           writeState.getValueLookup().saveValue(res, writeState.getMemory().alloca(size.template as<typename T::I64>()));
           return Status::Ok;
         } else if constexpr (op == MiniMC::Model::InstructionCode::Load) {
 	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-	  auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
+	  auto addr = writeState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
 
-          writeState.getValueLookup().saveValue(res, readState.getMemory().loadValue(addr, res.getType()));
+          writeState.getValueLookup().saveValue(res, writeState.getMemory().loadValue(addr, res.getType()));
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
-          auto value = readState.getValueLookup().lookupValue(content.storee);
-          auto addr = readState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
+          auto value = writeState.getValueLookup().lookupValue(content.storee);
+          auto addr = writeState.getValueLookup().lookupValue(content.addr).template as<typename T::Pointer>();
           switch (content.storee->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::Pointer:
               writeState.getMemory().storeValue(addr, value.template as<typename T::Pointer>());
@@ -165,7 +165,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Free) {
-          auto obj = readState.getValueLookup().lookupValue(content.object).template as<typename T::Pointer>();
+          auto obj = writeState.getValueLookup().lookupValue(content.object).template as<typename T::Pointer>();
           writeState.getMemory().free(obj);
         }
 
@@ -176,10 +176,10 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isAssertAssume {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,  Operations& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isAssertAssume {
         auto& content = instr.getOps<op>();
         auto& pathcontrol = writeState.getPathControl();
-        auto obj = readState.getValueLookup().lookupValue(content.expr).template as<typename T::Bool>();
+        auto obj = writeState.getValueLookup().lookupValue(content.expr).template as<typename T::Bool>();
         if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
           auto res = pathcontrol.addAssumption(obj);
           return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
@@ -237,14 +237,14 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations&, Caster& caster) requires MiniMC::Model::InstructionData<op>::isCast {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,  Operations&, Caster& caster) requires MiniMC::Model::InstructionData<op>::isCast {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
         if constexpr (op == MiniMC::Model::InstructionCode::Trunc ||
                       op == MiniMC::Model::InstructionCode::ZExt ||
                       op == MiniMC::Model::InstructionCode::SExt) {
-          auto op1 = readState.getValueLookup().lookupValue(content.op1);
+          auto op1 = writeState.getValueLookup().lookupValue(content.op1);
           switch (content.op1->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, doOp<op, T>(op1.template as<typename T::I8>(), caster, res.getType()));
@@ -266,7 +266,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolSExt) {
-          auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::Bool>();
+          auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::Bool>();
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, caster.template BoolSExt<1>(op1));
@@ -286,7 +286,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolZExt) {
-          auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::Bool>();
+          auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::Bool>();
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, caster.template BoolZExt<1>(op1));
@@ -306,25 +306,25 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToPtr) {
-          auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::Pointer>();
+          auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::Pointer>();
           switch (content.op1->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I8>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I8>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToPtr(op1));
             } break;
             case MiniMC::Model::TypeID::I16: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I16>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I16>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToPtr(op1));
             } break;
             case MiniMC::Model::TypeID::I32: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I32>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I32>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToPtr(op1));
             } break;
             case MiniMC::Model::TypeID::I64: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I64>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I64>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToPtr(op1));
             } break;
@@ -336,22 +336,22 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {
           switch (content.op1->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I8>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I8>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToBool(op1));
             } break;
             case MiniMC::Model::TypeID::I16: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I16>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I16>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToBool(op1));
             } break;
             case MiniMC::Model::TypeID::I32: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I32>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I32>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToBool(op1));
             } break;
             case MiniMC::Model::TypeID::I64: {
-              auto op1 = readState.getValueLookup().lookupValue(content.op1).template as<typename T::I64>();
+              auto op1 = writeState.getValueLookup().lookupValue(content.op1).template as<typename T::I64>();
 
               writeState.getValueLookup().saveValue(res, caster.IntToBool(op1));
             } break;
@@ -366,12 +366,12 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operations&, Caster&) requires MiniMC::Model::InstructionData<op>::isInternal {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster&) requires MiniMC::Model::InstructionData<op>::isInternal {
         auto& content = instr.getOps<op>();
 
         if constexpr (op == MiniMC::Model::InstructionCode::Assign) {
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-          auto op1 = readState.getValueLookup().lookupValue(content.op1);
+          auto op1 = writeState.getValueLookup().lookupValue(content.op1);
           writeState.getValueLookup().saveValue(res, std::move(op1));
           return Status::Ok;
         }
@@ -383,7 +383,7 @@ namespace MiniMC {
 	  auto func = std::static_pointer_cast<MiniMC::Model::Pointer> (content.function)->getValue ();
           std::vector<T> params;
           auto inserter = std::back_inserter(params);
-          std::for_each(content.params.begin(), content.params.end(), [&inserter, &readState](auto& v) { inserter = readState.getValueLookup().lookupValue(v); });
+          std::for_each(content.params.begin(), content.params.end(), [&inserter, &writeState](auto& v) { inserter = writeState.getValueLookup().lookupValue(v); });
 
           auto res = content.res;
           scontrol.push(func, params, res);
@@ -391,7 +391,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
-          auto ret = readState.getValueLookup().lookupValue(content.value);
+          auto ret = writeState.getValueLookup().lookupValue(content.value);
           writeState.getStackControl().pop(std::move(ret));
           return Status::Ok;
         }
@@ -409,13 +409,13 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction&, VMState<T>&, VMState<T, true>&, Caster&) requires MiniMC::Model::InstructionData<op>::isPredicate {
+      inline Status runInstruction(const MiniMC::Model::Instruction&, VMState<T>&, Caster&) requires MiniMC::Model::InstructionData<op>::isPredicate {
         throw NotImplemented<op>();
         return Status::Ok;
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operation, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, VMState<T, true>& readState, Operation& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isAggregate {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operation& operations, Caster&) requires MiniMC::Model::InstructionData<op>::isAggregate {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
         assert(content.offset->isConstant());
@@ -443,8 +443,8 @@ namespace MiniMC {
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
           auto val_v = content.insertee;
 
-          auto aggr = readState.getValueLookup().lookupValue(content.aggregate).template as<typename T::Aggregate>();
-          auto value = readState.getValueLookup().lookupValue(val_v);
+          auto aggr = writeState.getValueLookup().lookupValue(content.aggregate).template as<typename T::Aggregate>();
+          auto value = writeState.getValueLookup().lookupValue(val_v);
 
           switch (val_v->getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
@@ -472,7 +472,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::ExtractValue) {
-          auto aggr = readState.getValueLookup().lookupValue(content.aggregate).template as<typename T::Aggregate>();
+          auto aggr = writeState.getValueLookup().lookupValue(content.aggregate).template as<typename T::Aggregate>();
 
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
@@ -507,15 +507,14 @@ namespace MiniMC {
 
     template <class T, class Operations, class Caster>
     Status Engine<T, Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
-                                                  VMState<T>& wstate,
-                                                  VMState<T, true>& readstate) {
+                                                  VMState<T>& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
       for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
 	switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
-    status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, readstate, operations, caster); \
+    status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, operations, caster); \
     break;
           OPERATIONS
 
