@@ -50,19 +50,19 @@ namespace MiniMC {
       }
 
       MiniMC::Hash::hash_t hash() const {
-	MiniMC::Hash::hash_t _hash{0};
+	MiniMC::Hash::Hasher hash;
 	for (size_t i = 0; i < size; i++) {
 	  constexpr bool has_get = requires(const T& t) {
 	    t.get();
 	  }; 
 	  if constexpr (has_get || std::is_pointer_v<T>) {
-	    MiniMC::Hash::hash_combine(_hash, *mem[i]);
+	    hash << *mem[i];
 	  }
 	  else {	    
-	    MiniMC::Hash::hash_combine(_hash, mem[i]);
+	    hash << mem[i];
 	  }
 	}
-	return _hash;
+	return hash;
       }
       
       

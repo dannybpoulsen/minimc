@@ -49,9 +49,9 @@ namespace MiniMC {
         }
 
         auto hash() const {
-          MiniMC::Hash::seed_t seed = static_cast<MiniMC::Hash::seed_t>(state);
-          MiniMC::Hash::hash_combine(seed, content);
-          return seed;
+	  MiniMC::Hash::Hasher hash;
+	  hash << static_cast<MiniMC::Hash::seed_t>(state) << content;
+	  return hash;
         }
 
         auto size() const { return content.getSize(); }
@@ -198,11 +198,11 @@ namespace MiniMC {
         }
       }
       MiniMC::Hash::hash_t Memory::hash() const {
-	MiniMC::Hash::hash_t _hash{0};
+	MiniMC::Hash::Hasher hash;
 	for (auto& entryt : _internal->entries) {
-	  MiniMC::Hash::hash_combine(_hash, entryt);
+	  hash << entryt;
 	}
-	return _hash;
+	return hash;
       }
 
     } // namespace Concrete

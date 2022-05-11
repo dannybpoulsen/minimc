@@ -20,10 +20,9 @@ namespace MiniMC {
           return os << "[" << location->getInfo() << "]";
         }
         virtual MiniMC::Hash::hash_t hash() const override {
-          MiniMC::Hash::hash_t s{0};
-	  
-          MiniMC::Hash::hash_combine(s, *location);
-          return s;
+          MiniMC::Hash::Hasher  hash;
+	  hash << *location;
+          return hash;;
         }
         virtual std::shared_ptr<MiniMC::CPA::SingleLocation::State> lcopy() const { return std::make_shared<State>(*this); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }

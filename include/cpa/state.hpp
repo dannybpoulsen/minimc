@@ -23,43 +23,6 @@ namespace MiniMC {
   namespace CPA {
 
     using proc_id = std::size_t;
-
-
-    /* Values returned by states when looking up Variable Values.
-       CFA-implmenentations should implement this structure
-    */
-    class ByteVectorExpr {
-    public:
-      ByteVectorExpr (std::size_t s) : size(s) {}
-      virtual ~ByteVectorExpr () {}
-      virtual std::ostream& output (std::ostream& os) const {return os << "??";}
-      std::size_t getSize () const {return size;}
-    private:
-      std::size_t size;
-    };
-
-    inline std::ostream& operator<< (std::ostream& os, const ByteVectorExpr&  expr) {
-      return expr.output (os);
-    }
-    
-    template<class T>
-    class TByteVectorExpr :  public ByteVectorExpr {
-    public:
-      TByteVectorExpr (T&& t, std::size_t s) : ByteVectorExpr(s),val(std::move(t)) {}
-      TByteVectorExpr (const T& t, std::size_t s) : ByteVectorExpr(s),val(t) {}
-      
-      std::ostream& output (std::ostream& os ) const override {return os << val;}
-    private:
-      std::size_t size;
-      T val;
-    };
-    
-    using ByteVectorExpr_ptr  = std::unique_ptr<ByteVectorExpr>;
-    
-    class CanntEvaluateException : public MiniMC::Support::VerificationException {
-    public:
-      CanntEvaluateException(const MiniMC::Model::Register_ptr& var) : VerificationException(MiniMC::Support::Localiser("Cannot Evaluate '%1%' to a value").format(var->getName())) {}
-    };
     
     class Solver {
     public:
@@ -101,14 +64,10 @@ namespace MiniMC {
       virtual std::shared_ptr<State> copy() const = 0;
 
       
-      
-      virtual ByteVectorExpr_ptr symbEvaluate (proc_id, const MiniMC::Model::Register_ptr& v) const  {
-	return std::make_unique<ByteVectorExpr> ( v->getType ()->getSize ());
-      }
-      
       virtual const LocationInfo& getLocationState () const {
 	throw MiniMC::Support::Exception ("LocationState should not be called");
-      } 
+      }
+      
       virtual const Solver_ptr getConcretizer() const {return std::make_shared<Solver> ();}
     };
 

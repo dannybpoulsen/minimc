@@ -19,32 +19,16 @@ namespace MiniMC {
 	
       };
 
-      using ConcreteByteVectorExpr = TByteVectorExpr<MiniMC::VMT::Concrete::ConcreteVMVal>;
-
+      
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal,MiniMC::VMT::Concrete::ValueLookup>;
 
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
       
       class StackControl : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
       public:
-	StackControl (ActivationStack& s, const MiniMC::Model::Program& p) : stack (s),prgm(p) {}
-	void  push (MiniMC::pointer_t funcpointer, std::vector<MiniMC::VMT::Concrete::ConcreteVMVal>& params, const MiniMC::Model::Value_ptr& ret) override {
-	  
-	  auto& cur = stack.back ();
-	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
-	  auto& vstack = func->getRegisterStackDescr();
-	  ActivationRecord sf {{vstack.getTotalRegisters ()},ret,cur.next_stack_alloc};
-	  for (auto& v : vstack.getRegisters()) {
-            sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
-          }
-
-	  auto it = params.begin ();
-	  for (auto& p : func->getParameters ()) {
-	    sf.values.saveValue  (*p,std::move(*it));
-	    ++it;
-	      
-	  }
-	  
+	StackControl (ActivationStack& s) : stack (s) {}
+	void  push (std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
+	  ActivationRecord sf {{registers},ret,stack.back().next_stack_alloc};
 	  stack.push (std::move(sf));
 	}
 	
@@ -63,10 +47,11 @@ namespace MiniMC {
 	  stack.back().next_stack_alloc = MiniMC::Support::ptradd (ret.getValue (),size.getValue ());
 	  return ret;
 	}
+
+	MiniMC::VMT::ValueLookup<MiniMC::VMT::Concrete::ConcreteVMVal>& getValueLookup () override {return stack.back().values;}
 	
       private:
 	ActivationStack& stack;
-	const MiniMC::Model::Program& prgm;
 	
       };
       
@@ -84,12 +69,12 @@ namespace MiniMC {
         }
 
         virtual MiniMC::Hash::hash_t hash() const override {
-	  MiniMC::Hash::hash_t seed{0};
+	  MiniMC::Hash::Hasher hash;
 	  for (auto& vl : proc_vars) {
-	    MiniMC::Hash::hash_combine(seed, vl);
+	    hash << vl;
 	  }
-	  MiniMC::Hash::hash_combine(seed, heap);
-	  return seed;
+	  hash << heap;
+	  return hash;
 	}
 	
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
@@ -100,12 +85,6 @@ namespace MiniMC {
 	  
 	  return copy;
         }
-
-	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Register_ptr& val) const override {
-	  auto& lookup = proc_vars.at(id).back().values;
-	  return std::make_unique<ConcreteByteVectorExpr> (lookup.lookupValue(val),val->getType()->getSize ());
-	}
-      
 	
         auto& getProc(std::size_t i) { return proc_vars[i]; }
         auto& getHeap() { return heap; }
@@ -143,10 +122,10 @@ namespace MiniMC {
 	
         auto state = std::make_shared<State>(stack,heap);
 
-	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{}};
+	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{},descr.getProgram ()};
 	MiniMC::VMT::Concrete::PathControl control;
-	StackControl scontrol {state->getProc (0),descr.getProgram ()};
-	decltype(engine)::State newvm {state->getProc (0).back().values,state->getHeap (),control,scontrol};
+	StackControl scontrol {state->getProc (0)};
+	decltype(engine)::State newvm {state->getHeap (),control,scontrol};
 	engine.execute(descr.getInit (),newvm);
 	
         return state;
@@ -158,10 +137,10 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	StackControl scontrol {nstate.getProc (id),e->getProgram ()};
+	StackControl scontrol {nstate.getProc (id)};
 	
 	if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-	  decltype(engine)::State newvm {nstate.getProc (id).back().values,nstate.getHeap (),control,scontrol};
+	  decltype(engine)::State newvm {nstate.getHeap (),control,scontrol};
 	  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
 	  status = engine.execute(instr,newvm);
 	  

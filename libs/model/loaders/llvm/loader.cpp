@@ -371,7 +371,7 @@ namespace MiniMC {
         tt.tfac = tfactory;
         std::string fname = F.getName().str();
         MiniMC::Model::LocationInfoCreator locinfoc(fname);
-	MiniMC::Model::CFA cfg{*prgm};
+	MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
 	MiniMC::Model::RegisterDescr variablestack{fname};
         tt.stack = &variablestack;
@@ -635,9 +635,9 @@ namespace MiniMC {
         funcmanagerllvm.addPass(GetElementPtrSimplifier());
         funcmanagerllvm.addPass(InstructionNamer());
         //funcmanagerllvm.addPass (llvm::LowerSwitch ());
-
+	
         mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
-        //mpm.addPass(llvm::PrintModulePass(llvm::errs()));
+        mpm.addPass(llvm::PrintModulePass(llvm::errs()));
         mpm.addPass(GlobalConstructor(prgm, tfac, cfac, values));
 
         funcmanager.addPass(Constructor(prgm, tfac, cfac, values));

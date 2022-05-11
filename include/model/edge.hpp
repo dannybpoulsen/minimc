@@ -99,10 +99,9 @@ namespace MiniMC {
                  private EdgeAttributesMixin<AttributeType::Guard>,
                  public std::enable_shared_from_this<Edge> {
     public:
-      Edge(Location_ptr from, Location_ptr to, Program& prgm) : from(from),
-								to(to),
-								prgm(prgm) {
-      }
+      Edge(Location_ptr from, Location_ptr to) : from(from),
+						 to(to)
+						  { }
 
       Edge(const Edge&) = default;
 
@@ -151,8 +150,6 @@ namespace MiniMC {
         t->addIncomingEdge(this->shared_from_this());
       }
 
-      auto& getProgram() const { return prgm; }
-      
       //void setProgram (const Program_ptr& p) {prgm = p;}
 
       void copyAttributesFrom(const Edge& e) {
@@ -169,7 +166,6 @@ namespace MiniMC {
       Location_wptr from;
       Location_wptr to;
       Value_ptr value;
-      Program& prgm;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Edge& e) {

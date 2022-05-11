@@ -20,12 +20,11 @@ namespace MiniMC {
         }
 
 	MiniMC::Hash::hash_t hash() const override {
-          MiniMC::Hash::hash_t hash{0};
-	  
+	  MiniMC::Hash::Hasher hashing;
           for (auto& state : states) {
-            MiniMC::Hash::hash_combine(hash, *state);
+	    hashing << *state;
 	  }
-	  return hash;
+	  return hashing;
         }
 	
 	const MiniMC::CPA::LocationInfo& getLocationState () const override {
@@ -61,10 +60,6 @@ namespace MiniMC {
           return std::make_shared<State>(std::move(copies));
         }
 
-	ByteVectorExpr_ptr symbEvaluate (proc_id id, const MiniMC::Model::Register_ptr& v) const override  {
-	  return this->get(1)->symbEvaluate (id,v);  
-	}
-	
       private:
         std::vector<MiniMC::CPA::State_ptr> states;
       };
@@ -73,8 +68,6 @@ namespace MiniMC {
       struct StateQuery : public MiniMC::CPA::StateQuery {
         StateQuery(std::vector<MiniMC::CPA::StateQuery_ptr>&& pts) : sub_queries(std::move(pts)) {}
         State_ptr makeInitialState(const InitialiseDescr& descr) {
-          //std::initializer_list<MiniMC::CPA::State_ptr> init ( {(args::Query::makeInitialState (prgm)) ...});
-          //return std::make_shared<State<sizeof... (args)>> (init);
           std::vector<MiniMC::CPA::State_ptr> statees;
           auto inserter = std::back_inserter(statees);
           std::for_each(sub_queries.begin(), sub_queries.end(), [&inserter, &descr](auto& it) { inserter = (it->makeInitialState(descr)); });
@@ -161,9 +154,10 @@ namespace MiniMC {
           std::for_each(cpas.begin(), cpas.end(), [&queries](auto& it) { queries.push_back(it->makeQuery()); });
           return std::make_shared<StateQuery>(std::move(queries));
         }
-	MiniMC::CPA::Transferer_ptr makeTransfer() const override {
+	
+	MiniMC::CPA::Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const override {
           std::vector<Transferer_ptr> transfers;
-          std::for_each(cpas.begin(), cpas.end(), [&transfers](auto& it) { transfers.push_back(it->makeTransfer()); });
+          std::for_each(cpas.begin(), cpas.end(), [&transfers,&prgm](auto& it) { transfers.push_back(it->makeTransfer(prgm)); });
           return std::make_shared<Transferer>(std::move(transfers));
         }
 	MiniMC::CPA::Joiner_ptr makeJoin() const override {

@@ -40,9 +40,7 @@ namespace MiniMC {
 	 */
     class CFA : public std::enable_shared_from_this<CFA> {
     public:
-      
-      CFA(Program& prgm) : prgm(prgm) {}
-      
+      CFA () {}
       CFA (const CFA& ) = delete;
       CFA (CFA&& ) = default;
       Location_ptr makeLocation(const LocationInfo& info) {
@@ -59,7 +57,7 @@ namespace MiniMC {
 	   * @return 
 	   */
       Edge_ptr makeEdge(Location_ptr from, Location_ptr to) {
-        edges.emplace_back(new Edge(from, to, prgm));
+        edges.emplace_back(new Edge(from, to));
         to->addIncomingEdge(edges.back());
         from->addEdge(edges.back());
         return edges.back();
@@ -97,10 +95,7 @@ namespace MiniMC {
         std::for_each(location->iebegin(), location->ieend(), [&](const auto& e) { insert = e; });
 
         std::for_each(wlist.begin(), wlist.end(), [&](const auto& e) { this->deleteEdge(e); });
-
-        //edge->getFrom ()->removeEdge (edge);
-        //edge->getTo ()->removeIncomingEdge (edge);
-
+	
         auto it = std::find(locations.begin(), locations.end(), location);
         if (it != locations.end()) {
           locations.erase(it);
@@ -126,7 +121,6 @@ namespace MiniMC {
       std::vector<Location_ptr> locations;
       std::vector<Edge_ptr> edges;
       Location_ptr initial = nullptr;
-      Program& prgm;
     };
 
     

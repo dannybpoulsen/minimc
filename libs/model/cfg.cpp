@@ -10,7 +10,7 @@ namespace MiniMC {
 
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
-      MiniMC::Model::CFA cfg{*program};
+      MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack{name};
       auto funcpointer = program->getConstantFactory()->makeFunctionPointer(function->getID());
       auto init = cfg.makeLocation(MiniMC::Model::LocationInfo("init", 0, *source_loc));

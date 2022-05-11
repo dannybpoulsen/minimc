@@ -24,10 +24,10 @@ namespace MiniMC {
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
-
+	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{},prgm) {}
         MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id);
       private:
-	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{}};
+	MiniMC::VMT::Concrete::ConcreteEngine engine;
       };
       
       struct Joiner : public MiniMC::CPA::Joiner {

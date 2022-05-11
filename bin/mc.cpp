@@ -65,9 +65,10 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
   messager.message("Initiating Reachability");
   
   auto query = cpa->makeQuery();
-  auto transfer = cpa->makeTransfer();
   auto joiner = cpa->makeJoin ();
   auto& prgm = *controller.getProgram ();
+  auto transfer = cpa->makeTransfer(prgm);
+  
   auto initstate = query->makeInitialState({prgm.getEntryPoints (),
 	prgm.getHeapLayout (),
 	prgm.getInitialiser (),

@@ -90,108 +90,10 @@ namespace MiniMC {
 
     using Joiner_ptr = std::shared_ptr<Joiner>;
 
-    class IStorer {
-    public:
-      using Iterator = std::vector<MiniMC::CPA::State_ptr>::iterator;
-      using StorageTag = MiniMC::Hash::hash_t;
-
-      virtual ~IStorer() {}
-      virtual bool saveState(const State_ptr& state, StorageTag* tag = nullptr) = 0;
-      virtual State_ptr loadState(StorageTag st) = 0;
-      struct JoinPair {
-        State_ptr orig;
-        State_ptr joined;
-      };
-      virtual IStorer::JoinPair joinState(const State_ptr& state) = 0;
-      virtual State_ptr isCoveredByStore(const State_ptr& state) = 0;
-      // THese breeak the interfacec
-      virtual Iterator stored_begin() = 0;
-      virtual Iterator stored_end() = 0;
-      virtual std::size_t size () const  = 0;
-    };
-    
-    using Storer_ptr = std::shared_ptr<IStorer>;
-
-    class Storer : public IStorer {
-    public:
-      Storer(const Joiner_ptr& join) : JoinOperation(join) {}
-      virtual ~Storer() {}
-
-      /**
-       * Insert a State into the store. It must be the case that
-       * isCoveredByStore(\pstate) is false.
-       *
-       * @param state State to insert
-       * @param[out] tag will be set to a tag that can be used to load
-       * the state (see \ref loadState)
-       *
-       * @return
-       */
-      bool saveState(const State_ptr& state, StorageTag* tag = nullptr) {
-        assert(!isCoveredByStore(state));
-        if (tag)
-          *tag = actualStore.size();
-        actualStore.emplace_back(state);
-
-        return true;
-      }
-
-      State_ptr loadState(StorageTag st) {
-        return actualStore.at(st);
-      }
-
-      /**
-       * Try to join \p state into a state states already stored
-       *
-       * @param state the State we try to join with
-       *
-       * @return Merged State or nullptr if unsuccessful
-       */
-      IStorer::JoinPair joinState(const State_ptr& state) {
-        for (auto& it : actualStore) {
-          auto res = JoinOperation->doJoin(it, state);
-          if (res) {
-            auto orig = it;
-            it = res;
-            return {.orig = orig, .joined = res};
-          }
-        }
-        saveState(state);
-        return {.orig = nullptr, .joined = state};
-      }
-
-      /**
-       * Check whether a state is covered by some state already in
-       * this storage.
-       *
-       * @param state the state to check for
-       *
-       * @return state covering state
-       */
-      State_ptr isCoveredByStore(const State_ptr& state) {
-        for (auto& it : actualStore) {
-          if (JoinOperation->covers(it, state)) {
-            return it;
-          }
-        }
-        return nullptr;
-      }
-
-      IStorer::Iterator stored_begin() { return actualStore.begin(); }
-      IStorer::Iterator stored_end() { return actualStore.end(); }
-
-      virtual std::size_t size () const  {return actualStore.size ();}
-      
-      
-    private:
-      std::vector<State_ptr> actualStore;
-      Joiner_ptr JoinOperation;
-    };
-
     struct ICPA {
       virtual ~ICPA() {}
       virtual StateQuery_ptr makeQuery() const = 0;
-      virtual Transferer_ptr makeTransfer() const = 0;
+      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
       virtual Joiner_ptr makeJoin() const = 0;
     };
 
@@ -203,7 +105,7 @@ namespace MiniMC {
         class Joiner>
     struct CPADef : public ICPA {
       virtual StateQuery_ptr makeQuery() const { return std::make_shared<Query>(); }
-      virtual Transferer_ptr makeTransfer() const { return std::make_shared<Transfer>(); }
+      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transfer>(prgm); }
       virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
     };
     

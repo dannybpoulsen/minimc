@@ -10,10 +10,9 @@ namespace MiniMC {
       ActivationRecord(const ActivationRecord&) = default;
 
       MiniMC::Hash::hash_t hash() const {
-        MiniMC::Hash::seed_t seed{0};
-        MiniMC::Hash::hash_combine(seed, values);
-        MiniMC::Hash::hash_combine(seed, ret.get());
-        return seed;
+	MiniMC::Hash::Hasher hash;
+	hash << values << ret.get();
+	return hash;
       }
 
       Lookup values;
@@ -41,11 +40,12 @@ namespace MiniMC {
       auto& back () {return frames.back ();}
       auto& back () const {return frames.back ();}
       
-      MiniMC::Hash::hash_t hash(MiniMC::Hash::seed_t seed = 0) const {
+      MiniMC::Hash::hash_t hash() const {
+	MiniMC::Hash::Hasher hash;
 	for (auto& vl : frames) {
-	  MiniMC::Hash::hash_combine(seed, vl);
+	  hash << vl;
 	}
-	return seed;
+	return hash;
       }
       
       std::vector<ActRecord> frames;

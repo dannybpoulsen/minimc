@@ -22,10 +22,9 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& controller, con
   messager.message("Initiating EnumStates");
   
   auto query = cpa->makeQuery();
-  auto transfer = cpa->makeTransfer();
-  auto joiner = cpa->makeJoin ();
-  
+  auto joiner = cpa->makeJoin ();  
   auto& prgm = *controller.getProgram ();
+  auto transfer = cpa->makeTransfer(prgm);
   auto initstate = query->makeInitialState(MiniMC::CPA::InitialiseDescr{
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),

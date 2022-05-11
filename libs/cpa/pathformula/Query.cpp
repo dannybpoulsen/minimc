@@ -37,11 +37,11 @@ namespace MiniMC {
 									std::move(term),
 									*context);	
 
-	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::Operations{termbuilder},MiniMC::VMT::Pathformula::Casts{termbuilder}};
+	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::Operations{termbuilder},MiniMC::VMT::Pathformula::Casts{termbuilder},descr.getProgram ()};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	StackControl stackcontrol{state->getStack (),descr.getProgram (),*context,termbuilder};
-        decltype(engine)::State newvm {state->getStack().back().values,state->getMemory (),control,stackcontrol};
-
+	StackControl stackcontrol{state->getStack (),*context,termbuilder};
+        decltype(engine)::State newvm {state->getMemory (),control,stackcontrol};
+	
 	engine.execute(descr.getInit (),newvm);
 	
 	return state;
@@ -58,15 +58,12 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = context->getBuilder ();
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	
-	//MiniMC::VMT::Pathformula::ValueLookup nlookup {nstate.getStack().back().values,termbuilder};
-	StackControl stackcontrol{nstate.getStack (),e->getProgram (),*context,termbuilder};
+      
+	StackControl stackcontrol{nstate.getStack (),*context,termbuilder};
         if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-	  decltype(engine)::State newvm {nstate.getStack().back().values,nstate.getMemory (),control,stackcontrol};
+	  decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
 	  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
-	  
 	  status = engine.execute(instr,newvm);
-	  
 	}
 	
 	if (status ==MiniMC::VMT::Status::Ok)  {

@@ -48,7 +48,7 @@ namespace MiniMC {
 	    return vars.getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
 	};
 
-	MiniMC::Model::CFA ncfa {program};
+	MiniMC::Model::CFA ncfa;
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
 
 	for (auto& loc : cfa.getLocations ()) {

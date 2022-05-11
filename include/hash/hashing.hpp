@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <vector>
 
 uint64_t hash_impl(const void* addr, std::size_t len, uint64_t seed);
 
@@ -16,11 +17,23 @@ namespace MiniMC {
       return hash_impl(data, size * sizeof(T), seed);
     }
 
-    template <typename T>
-    void hash_combine(seed_t& seed, const T& obj) {
-      std::hash<T> hasher;
-      seed ^= hasher(obj) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
+    
+    struct Hasher {
+
+      operator hash_t () {
+	return Hash (hashes.data(),hashes.size (),0);
+      }
+      
+      template<class T>
+      auto& operator<< (const T& obj) {
+	std::hash<T> hasher;
+	std::back_inserter (hashes) = hasher(obj);
+	return *this;
+      }
+    private:
+      std::vector<hash_t> hashes;
+    };
+    
 
   } // namespace Hash
 } // namespace MiniMC

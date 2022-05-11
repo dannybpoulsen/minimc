@@ -31,10 +31,10 @@ namespace MiniMC {
           return stack.back();
         }
         virtual MiniMC::Hash::hash_t hash() const {
-	  MiniMC::Hash::hash_t _hash{0};
+	  MiniMC::Hash::Hasher hash;
 	  for (auto& t : stack)
-	    MiniMC::Hash::hash_combine(_hash, *t);
-	  return _hash;
+	    hash << *t;
+	  return hash;
 	}
 
         std::vector<MiniMC::Model::Location*> stack;
@@ -64,12 +64,13 @@ namespace MiniMC {
           return os << "]";
         }
         virtual MiniMC::Hash::hash_t hash() const override {
-          MiniMC::Hash::hash_t s {0};
-          for (auto& t : locations)
-            MiniMC::Hash::hash_combine(s, t);
-          return s;
-        }
-        virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy() const { return std::make_shared<State>(*this); }
+	  MiniMC::Hash::Hasher hash;
+	  for (auto& t : locations)
+            hash << t;
+	  return hash;
+	}
+
+	virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy() const { return std::make_shared<State>(*this); }
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return locations.size(); }
@@ -125,7 +126,7 @@ namespace MiniMC {
 	      if (content.function->isConstant()) {
                 auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(content.function);
                 pointer_t loadPtr = constant->getValue ();
-                auto func = edge->getProgram().getFunction(MiniMC::Support::getFunctionId(loadPtr));
+                auto func = prgm.getFunction(MiniMC::Support::getFunctionId(loadPtr));
                 nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
               } else
                 return nullptr;

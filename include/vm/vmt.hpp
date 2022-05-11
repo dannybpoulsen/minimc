@@ -8,6 +8,9 @@
 #include <type_traits>
 
 namespace MiniMC {
+  namespace Model {
+    class Program;
+  }
   namespace VMT {
     
     template<MiniMC::Model::InstructionCode c>
@@ -87,9 +90,10 @@ namespace MiniMC {
     template<class  T>
     struct StackControl {
       virtual ~StackControl ()  {}
-      virtual void  push (MiniMC::pointer_t, std::vector<T>&, const MiniMC::Model::Value_ptr& ) {throw MiniMC::Support::Exception ("Stack Push Not implemented");}
+      virtual void  push (std::size_t,  const MiniMC::Model::Value_ptr& ) {throw MiniMC::Support::Exception ("Stack Push Not implemented");}
       virtual void pop (T&&) {throw MiniMC::Support::Exception ("Stack Pop  implemented");}
       virtual void popNoReturn () {throw MiniMC::Support::Exception ("Stack Pop implemented");}
+      virtual ValueLookup<T>& getValueLookup () = 0;
       virtual typename T::Pointer alloc (const typename T::I64&) {throw MiniMC::Support::Exception ("Stack Allocation Not Implemented");}
     };
     
@@ -102,15 +106,14 @@ namespace MiniMC {
       using StControl  = typename std::conditional<!cons,StackControl<T>,const StackControl<T>>::type;
       
       
-      VMState (VLookup& p, MLookup& m, PControl& path, StControl& stack) : lookup(p),memory(m),control(path),scontrol(stack) {}
-      auto& getValueLookup () {return lookup;}
+      VMState (MLookup& m, PControl& path, StControl& stack) : memory(m),control(path),scontrol(stack) {}
+      //auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
-      auto& getValueLookup () const {return lookup;}
+      //auto& getValueLookup () const {return lookup;}
       auto& getMemory () const {return memory;}
       auto& getPathControl () const {return control;}
       auto& getStackControl () const {return scontrol;}
     private:
-      VLookup& lookup;
       MLookup& memory;
       PControl& control;
       StControl& scontrol;
@@ -247,12 +250,13 @@ namespace MiniMC {
       using State = VMState<T,false>;
       using ConstState = VMState<T,true>;
       
-      Engine (Operations&& ops, Caster&& caster)  : operations(std::move(ops)), caster(std::move(caster)){}
+      Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
       Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
     private:
       Operations operations;
       Caster caster;
+      const MiniMC::Model::Program& prgm;
     };
     
     

@@ -20,7 +20,10 @@ namespace MiniMC {
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
+	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
         State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id) override;
+      private:
+	const MiniMC::Model::Program& prgm;
       };
 
       struct Joiner : public MiniMC::CPA::Joiner {

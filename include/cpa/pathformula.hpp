@@ -18,12 +18,12 @@ namespace MiniMC {
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
-	Transferer (const SMTLib::Context_ptr& context) : context(context),
-							  engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},MiniMC::VMT::Pathformula::Casts{context->getBuilder()}) {}
+	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm) : context(context),
+											      engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},MiniMC::VMT::Pathformula::Casts{context->getBuilder()},prgm) {}
 	MiniMC::CPA::State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
       private:
 	SMTLib::Context_ptr context;
-		MiniMC::VMT::Pathformula::PathFormulaEngine engine;
+	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
       };
       
       struct Joiner : public MiniMC::CPA::Joiner {
@@ -36,15 +36,13 @@ namespace MiniMC {
         }
       private:
 	SMTLib::Context_ptr context;
-
       };
       
       struct CPA : public ICPA {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(context); }
-	Transferer_ptr makeTransfer() const { return std::make_shared<Transferer>(context); }
+	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
 	Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(context); }
-	Storer_ptr makeStore() const { return std::make_shared<Storer>(makeJoin ()); }
       private:
 	SMTLib::Context_ptr context;
       };
