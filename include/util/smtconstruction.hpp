@@ -4,7 +4,6 @@
 #include "model/cfg.hpp"
 #include "smt/builder.hpp"
 #include "support/exceptions.hpp"
-#include "util/ssamap.hpp"
 
 namespace MiniMC {
   namespace Util {

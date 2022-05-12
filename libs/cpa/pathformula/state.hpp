@@ -7,7 +7,6 @@
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
-#include "util/ssamap.hpp"
 #include <memory>
 
 namespace MiniMC {

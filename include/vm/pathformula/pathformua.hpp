@@ -9,7 +9,6 @@
 #include "vm/vmt.hpp"
 #include "vm/pathformula/value.hpp"
 #include "vm/pathformula/operations.hpp"
-#include "util/ssamap.hpp"
 
 #include <memory>
 
