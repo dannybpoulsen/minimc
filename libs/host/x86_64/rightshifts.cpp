@@ -1,18 +1,18 @@
-#include "support/rightshifts.hpp"
+#include "host/rightshifts.hpp"
 #include <cstdint>
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
 #ifdef __x86_64__
     template <>
     uint8_t ashr<uint8_t>(uint8_t l, uint8_t r) {
-      uint8_t res;
-      ;
+      uint8_t res{0};
       asm("sarb %%cl,%%al;"
           : "=a"(res) /* output */
           : "a"(l),   /* input */
             "c"(r));
       return res;
+      
     }
 
     template <>

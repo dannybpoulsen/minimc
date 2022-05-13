@@ -19,7 +19,7 @@
 #include "model/location.hpp"
 #include "model/variables.hpp"
 #include "model/heaplayout.hpp"
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include "support/workinglist.hpp"
 
 namespace MiniMC {

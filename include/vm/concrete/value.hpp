@@ -79,10 +79,10 @@ namespace MiniMC {
       template <class T>
       inline std::ostream& operator<<(std::ostream& os, const TValue<T>& v) { return os << v.getValue(); }
 
-      using ConcreteVMVal = MiniMC::VMT::GenericVal<TValue<MiniMC::uint8_t>,
-                                                    TValue<MiniMC::uint16_t>,
-                                                    TValue<MiniMC::uint32_t>,
-                                                    TValue<MiniMC::uint64_t>,
+      using ConcreteVMVal = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
+                                                    TValue<MiniMC::BV16>,
+                                                    TValue<MiniMC::BV32>,
+                                                    TValue<MiniMC::BV64>,
                                                     PointerValue,
                                                     BoolValue,
                                                     AggregateValue>;

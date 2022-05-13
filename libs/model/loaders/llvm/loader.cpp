@@ -135,7 +135,7 @@ namespace MiniMC {
     }
 
     MiniMC::Model::Type_ptr getType(llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
-    uint32_t computeSizeInBytes(llvm::Type* ty, MiniMC::Model::TypeFactory_ptr& tfactory) {
+    BV32 computeSizeInBytes(llvm::Type* ty, MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (ty->isArrayTy()) {
         return ty->getArrayNumElements() * computeSizeInBytes(ty->getArrayElementType(), tfactory);
       }

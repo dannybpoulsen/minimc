@@ -15,26 +15,26 @@ namespace MiniMC {
       return variables.back();
     }
 
-    const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::uint64_t val, const Type_ptr& ty) {
+    const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::BV64 val, const Type_ptr& ty) {
       assert(ty->isInteger() ||
              ty->getTypeID() == MiniMC::Model::TypeID::Bool);
       Value_ptr retval;
 
       switch (ty->getTypeID()) {
         case MiniMC::Model::TypeID::Bool:
-          retval.reset(new Bool(static_cast<MiniMC::uint8_t>(val)));
+          retval.reset(new Bool(static_cast<MiniMC::BV8>(val)));
           break;
         case MiniMC::Model::TypeID::I8:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::uint8_t>(static_cast<MiniMC::uint8_t>(val)));
+          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV8>(static_cast<MiniMC::BV8>(val)));
           break;
         case MiniMC::Model::TypeID::I16:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::uint16_t>(static_cast<MiniMC::uint16_t>(val)));
+          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV16>(static_cast<MiniMC::BV16>(val)));
           break;
         case MiniMC::Model::TypeID::I32:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::uint32_t>(static_cast<MiniMC::uint32_t>(val)));
+          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV32>(static_cast<MiniMC::BV32>(val)));
           break;
         case MiniMC::Model::TypeID::I64:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::uint64_t>(static_cast<MiniMC::uint64_t>(val)));
+          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV64>(static_cast<MiniMC::BV64>(val)));
           break;
         default:
           throw MiniMC::Support::Exception("Error");
@@ -69,7 +69,7 @@ namespace MiniMC {
         size += v->getType()->getSize();
       }
       assert(size);
-      std::unique_ptr<MiniMC::uint8_t[]> data(new MiniMC::uint8_t[size]);
+      std::unique_ptr<MiniMC::BV8[]> data(new MiniMC::BV8[size]);
       auto out = data.get();
       for (auto& v : inp) {
         assert(v->isConstant());
@@ -77,7 +77,7 @@ namespace MiniMC {
         auto type = v->getType();
         auto addType = [&out](auto& value) {
           auto value_insert = value.getValue();
-          out = std::copy(reinterpret_cast<MiniMC::uint8_t*>(&value_insert), reinterpret_cast<MiniMC::uint8_t*>(&value_insert) + sizeof(value_insert), out);
+          out = std::copy(reinterpret_cast<MiniMC::BV8*>(&value_insert), reinterpret_cast<MiniMC::BV8*>(&value_insert) + sizeof(value_insert), out);
         };
 
         switch (type->getTypeID()) {
@@ -108,15 +108,15 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
         }
       }
-      return Value_ptr(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::uint8_t*>(data.get()), size));
+      return Value_ptr(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::BV8*>(data.get()), size));
     }
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
     Register::Register(const std::string& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),
                                                                         name(name), owner(owner) {}
 
-    AggregateConstant::AggregateConstant(MiniMC::uint8_t* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),
-                                                                                 value(new MiniMC::uint8_t[s]),
+    AggregateConstant::AggregateConstant(MiniMC::BV8* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),
+                                                                                 value(new MiniMC::BV8[s]),
                                                                                  size(s) {
       std::copy(data, data + s, value.get());
     }

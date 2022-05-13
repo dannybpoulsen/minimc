@@ -3,7 +3,7 @@
 
 #include "cpa/interface.hpp"
 #include "support/exceptions.hpp"
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include <gsl/pointers>
 
 namespace MiniMC {
@@ -16,7 +16,7 @@ namespace MiniMC {
       MiniMC::CPA::State_ptr state;
       MiniMC::Model::Edge_ptr edge;
       MiniMC::CPA::proc_id proc;
-      MiniMC::uint8_t eflags;
+      MiniMC::BV8 eflags;
       bool hasErrors() const { return eflags; }
     };
 
@@ -93,7 +93,7 @@ namespace MiniMC {
                 succ.state = transfer->doTransfer(curState, succ.edge, succ.proc);
               } catch (MiniMC::Support::AssertViolated& e) {
                 succ.state = nullptr;
-                succ.eflags = static_cast<MiniMC::uint8_t>(ErrorFlags::AssertViolated);
+                succ.eflags = static_cast<MiniMC::BV8>(ErrorFlags::AssertViolated);
               }
 
               if (succ.state || succ.eflags) {

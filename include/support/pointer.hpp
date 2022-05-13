@@ -2,7 +2,7 @@
 #define _POINTER__
 #include <cassert>
 
-#include "support/types.hpp"
+#include "host/types.hpp"
 
 namespace MiniMC {
   namespace Support {

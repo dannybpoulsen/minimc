@@ -1,6 +1,6 @@
 add_compile_options(-Wall -Wextra )
 
-
+add_subdirectory (host)
 add_subdirectory (model)
 add_subdirectory (support)
 add_subdirectory (hash)	
@@ -18,4 +18,5 @@ target_link_libraries (minimclib PUBLIC vm)
 target_link_libraries (minimclib PUBLIC cpa)
 target_link_libraries (minimclib PUBLIC algorithms)
 target_link_libraries (minimclib PUBLIC util)
+target_link_libraries (minimclib PUBLIC host)
 

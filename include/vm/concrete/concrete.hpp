@@ -2,8 +2,8 @@
 #define _CONCRETE_VM__
 
 #include "hash/hashing.hpp"
-#include "support/casts.hpp"
-#include "support/operataions.hpp"
+#include "host/casts.hpp"
+#include "host/operataions.hpp"
 #include "support/pointer.hpp"
 
 #include "vm/vmt.hpp"

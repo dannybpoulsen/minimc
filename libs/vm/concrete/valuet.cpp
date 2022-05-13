@@ -1,6 +1,6 @@
 #include "model/valuevisitor.hpp"
-#include "support/casts.hpp"
-#include "support/operataions.hpp"
+#include "host/casts.hpp"
+#include "host/operataions.hpp"
 #include "support/pointer.hpp"
 #include "vm/concrete/concrete.hpp"
 
@@ -12,10 +12,10 @@ namespace MiniMC {
 
         return MiniMC::Model::visitValue(
             MiniMC::Model::Overload{
-                [](const MiniMC::Model::I8Integer& val) -> ConcreteVMVal { return TValue<MiniMC::uint8_t>{val.getValue()}; },
-                [](const MiniMC::Model::I16Integer& val) -> ConcreteVMVal { return TValue<MiniMC::uint16_t>{val.getValue()}; },
-                [](const MiniMC::Model::I32Integer& val) -> ConcreteVMVal { return TValue<MiniMC::uint32_t>{val.getValue()}; },
-                [](const MiniMC::Model::I64Integer& val) -> ConcreteVMVal { return TValue<MiniMC::uint64_t>{val.getValue()}; },
+                [](const MiniMC::Model::I8Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV8>{val.getValue()}; },
+                [](const MiniMC::Model::I16Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV16>{val.getValue()}; },
+                [](const MiniMC::Model::I32Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV32>{val.getValue()}; },
+                [](const MiniMC::Model::I64Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV64>{val.getValue()}; },
                 [](const MiniMC::Model::Bool& val) -> ConcreteVMVal { return BoolValue{static_cast<bool>(val.getValue())}; },
                 [](const MiniMC::Model::Pointer& val) -> ConcreteVMVal { return PointerValue{val.getValue()}; },
                 [](const MiniMC::Model::AggregateConstant& val) -> ConcreteVMVal {
@@ -38,13 +38,13 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::Pointer:
             return PointerValue(MiniMC::Support::null_pointer());
           case MiniMC::Model::TypeID::I8:
-            return TValue<MiniMC::uint8_t>(0);
+            return TValue<MiniMC::BV8>(0);
           case MiniMC::Model::TypeID::I16:
-            return TValue<MiniMC::uint16_t>(0);
+            return TValue<MiniMC::BV16>(0);
           case MiniMC::Model::TypeID::I32:
-            return TValue<MiniMC::uint32_t>(0);
+            return TValue<MiniMC::BV32>(0);
           case MiniMC::Model::TypeID::I64:
-            return TValue<MiniMC::uint64_t>(0);
+            return TValue<MiniMC::BV64>(0);
 
           case MiniMC::Model::TypeID::Array:
           case MiniMC::Model::TypeID::Struct:

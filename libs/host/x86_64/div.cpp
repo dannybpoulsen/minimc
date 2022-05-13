@@ -1,14 +1,14 @@
-#include "support/operataions.hpp"
-#include "support/types.hpp"
+#include "host/operataions.hpp"
+#include "host/types.hpp"
 #include <cstdint>
 #include <iostream>
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
 #ifdef __x86_64__
     template <>
-    uint8_t udivimpl<uint8_t>(uint8_t l, uint8_t r) {
-      uint8_t res;
+    BV8 udivimpl<BV8>(BV8 l, BV8 r) {
+      BV8 res;
       ;
       asm("divb %%cl;"
           : "=a"(res) /* output */
@@ -18,8 +18,8 @@ namespace MiniMC {
     }
 
     template <>
-    uint16_t udivimpl<uint16_t>(uint16_t l, uint16_t r) {
-      uint16_t res;
+    BV16 udivimpl<BV16>(BV16 l, BV16 r) {
+      BV16 res;
       asm("xor %%dx,%%dx;"
           "divw %%cx;"
           : "=a"(res) /* output */
@@ -53,8 +53,8 @@ namespace MiniMC {
       return res;
     }
     template <>
-    uint8_t sdivimpl<uint8_t>(uint8_t l, uint8_t r) {
-      uint8_t res;
+    BV8 sdivimpl<BV8>(BV8 l, BV8 r) {
+      BV8 res;
       asm("cbw;"
           "idivb %%cl;"
           : "=a"(res) /* output */
@@ -64,8 +64,8 @@ namespace MiniMC {
     }
 
     template <>
-    uint16_t sdivimpl<uint16_t>(uint16_t l, uint16_t r) {
-      uint16_t res;
+    BV16 sdivimpl<BV16>(BV16 l, BV16 r) {
+      BV16 res;
       asm("cwd;"
           "idivw %%cx;"
           : "=a"(res) /* output */
@@ -101,8 +101,8 @@ namespace MiniMC {
 
     //
 
-    uint8_t rem(uint8_t l, uint8_t r) {
-      uint8_t res;
+    BV8 rem(BV8 l, BV8 r) {
+      BV8 res;
       ;
       asm("divb %%cl;"
           "mov %%ah, %[res];"
@@ -112,8 +112,8 @@ namespace MiniMC {
       return res;
     }
 
-    uint16_t rem(uint16_t l, uint16_t r) {
-      uint16_t res;
+    BV16 rem(BV16 l, BV16 r) {
+      BV16 res;
       asm("xor %%dx,%%dx;"
           "divw %%cx;"
           : "=d"(res) /* output */
@@ -142,8 +142,8 @@ namespace MiniMC {
       return res;
     }
 
-    uint8_t irem(uint8_t l, uint8_t r) {
-      uint8_t res;
+    BV8 irem(BV8 l, BV8 r) {
+      BV8 res;
       asm("cbw;"
           "idivb %%cl;"
           "mov %%ah,%[res];"
@@ -154,8 +154,8 @@ namespace MiniMC {
       return res;
     }
 
-    uint16_t irem(uint16_t l, uint16_t r) {
-      uint16_t res;
+    BV16 irem(BV16 l, BV16 r) {
+      BV16 res;
       asm("cwd;"
           "idivw %%cx;"
           : "=d"(res) /* output */

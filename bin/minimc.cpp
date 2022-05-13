@@ -3,7 +3,6 @@
 #include "plugin.hpp"
 #include "support/localisation.hpp"
 #include "support/smt.hpp"
-#include "support/timing.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>

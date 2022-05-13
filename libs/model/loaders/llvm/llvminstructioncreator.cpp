@@ -170,20 +170,20 @@ namespace MiniMC {
 
           switch (bitwidth) {
             case 8:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), type);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), type);
               break;
             case 16:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), type);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), type);
               break;
             case 32:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), type);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), type);
               break;
             case 64:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), type);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), type);
               break;
             default:
               throw MiniMC::Support::Exception("Error");

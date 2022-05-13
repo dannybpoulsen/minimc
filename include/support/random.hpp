@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "support/types.hpp"
+#include "host/types.hpp"
 
 namespace MiniMC {
   namespace Support {

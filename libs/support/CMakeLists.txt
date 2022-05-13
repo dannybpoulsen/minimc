@@ -1,7 +1,7 @@
 Find_Package (CGraph)
 
 
-add_library (support STATIC   base64encode.cpp feedback.cpp timing.cpp)
+add_library (support STATIC   base64encode.cpp feedback.cpp)
 
 if(ENABLE_SYMBOLIC)
 target_sources (support PRIVATE smt.cpp) 
@@ -13,10 +13,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	target_link_libraries (support PUBLIC linuxsupport)
 endif()	       
 
-if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-	add_subdirectory (x86_64)
-	target_link_libraries (support PUBLIC x86_64support)
-endif()
 
 configure_file (
  "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"

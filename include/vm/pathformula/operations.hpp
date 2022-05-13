@@ -88,13 +88,13 @@ namespace MiniMC {
         PointerValue PtrAdd(const PointerValue& ptrvalue, const T& adddend);
 	
 	template <class T>
-        T ExtractBaseValue(const AggregateValue&, const MiniMC::uint64_t);
-	AggregateValue ExtractAggregateValue(const AggregateValue&, const MiniMC::uint64_t, std::size_t);
+        T ExtractBaseValue(const AggregateValue&, const MiniMC::BV64);
+	AggregateValue ExtractAggregateValue(const AggregateValue&, const MiniMC::BV64, std::size_t);
 
 	template <class T>
-        AggregateValue InsertBaseValue(const AggregateValue&, const MiniMC::uint64_t, const T&);
+        AggregateValue InsertBaseValue(const AggregateValue&, const MiniMC::BV64, const T&);
 
-	AggregateValue InsertAggregateValue(const AggregateValue&, const MiniMC::uint64_t, const AggregateValue&);
+	AggregateValue InsertAggregateValue(const AggregateValue&, const MiniMC::BV64, const AggregateValue&);
 	
       private:
 	SMTLib::TermBuilder& builder;
@@ -106,26 +106,26 @@ namespace MiniMC {
       template <>
       struct RetTyp<1> {
         using type = Value<ValType::I8>;
-	using underlying_type = MiniMC::uint8_t;
+	using underlying_type = MiniMC::BV8;
       };
 
       template <>
       struct RetTyp<2> {
         using type = Value<ValType::I16>;
-	using underlying_type = MiniMC::uint16_t;
+	using underlying_type = MiniMC::BV16;
       };
 
       template <>
       struct RetTyp<4> {
         using type = Value<ValType::I32>;
-	using underlying_type = MiniMC::uint32_t;
+	using underlying_type = MiniMC::BV32;
 	
       };
 
       template <>
       struct RetTyp<8> {
         using type = Value<ValType::I64>;
-	using underlying_type = MiniMC::uint64_t;
+	using underlying_type = MiniMC::BV64;
 	
       };
       

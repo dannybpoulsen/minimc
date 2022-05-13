@@ -1,7 +1,7 @@
 #ifndef _BINARY_ENCODE__
 #define _BINARY_ENCODE__
 
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include <memory>
 #include <string>
 
@@ -9,7 +9,7 @@ namespace MiniMC {
   namespace Support {
     struct DecodeResult {
       std::size_t size;
-      std::shared_ptr<MiniMC::uint8_t[]> buffer;
+      std::shared_ptr<MiniMC::BV8[]> buffer;
     };
 
     class BinaryEncoder {

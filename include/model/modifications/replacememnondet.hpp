@@ -34,20 +34,20 @@ namespace MiniMC {
 		  MiniMC::Model::Value_ptr  min = nullptr, max = nullptr;;
                   switch (content.res->getType()->getSize()) {
                     case 1:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::min(), content.res->getType());
-		      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint8_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), content.res->getType());
+		      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), content.res->getType());
                       break;
                     case 2:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint16_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), content.res->getType());
                       break;
                     case 4:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint32_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), content.res->getType());
                       break;
                     case 8:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::uint64_t>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), content.res->getType());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), content.res->getType());
                       break;
                     default:
                       MiniMC::Support::Exception("Shouldnøt get here");
@@ -179,31 +179,31 @@ namespace MiniMC {
                 auto type = content.res->getType();
                 auto from = E->getFrom();
                 auto to = E->getTo();
-                MiniMC::uint64_t min = 0;
-                MiniMC::uint64_t max = 0;
+                MiniMC::BV64 min = 0;
+                MiniMC::BV64 max = 0;
 
                 switch (type->getTypeID()) {
 		case MiniMC::Model::TypeID::I8:
-                    min = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<TConstant<MiniMC::uint8_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::BV8>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::BV8>>(content.max)->getValue();
                     break;
 		case MiniMC::Model::TypeID::I16:
-                    min = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<TConstant<MiniMC::uint16_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::BV16>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::BV16>>(content.max)->getValue();
                     break;
 		case MiniMC::Model::TypeID::I32:
-                    min = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<TConstant<MiniMC::uint32_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::BV32>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::BV32>>(content.max)->getValue();
                     break;
 		case MiniMC::Model::TypeID::I64:
-                    min = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.min)->getValue();
-                    max = std::static_pointer_cast<TConstant<MiniMC::uint64_t>>(content.max)->getValue();
+                    min = std::static_pointer_cast<TConstant<MiniMC::BV64>>(content.min)->getValue();
+                    max = std::static_pointer_cast<TConstant<MiniMC::BV64>>(content.max)->getValue();
                     break;
                   default:
 		    throw MiniMC::Support::Exception ("Error");
 		}
                 auto& fact = prgm.getConstantFactory();
-                MiniMC::uint64_t it = min;
+                MiniMC::BV64 it = min;
 
                 while (true) {
                   auto val = fact->makeIntegerConstant(it, type);

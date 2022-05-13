@@ -1,7 +1,7 @@
 #ifndef __LOCATION__
 #define __LOCATION__
 
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include "model/source.hpp"
 #include "hash/hashing.hpp"
 

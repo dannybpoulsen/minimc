@@ -5,7 +5,7 @@
 #include "support/binary_encode.hpp"
 #include "support/exceptions.hpp"
 #include "support/storehelp.hpp"
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include "util/valuemap.hpp"
 #include <algorithm>
 #include <limits>
@@ -18,7 +18,7 @@
 namespace MiniMC {
   namespace Model {
 
-    using type_id_t = MiniMC::uint8_t;
+    using type_id_t = MiniMC::BV8;
     const type_id_t untyped = std::numeric_limits<type_id_t>::max();
 
     template <class T>
@@ -128,11 +128,11 @@ namespace MiniMC {
       T value;
     };
 
-    using Bool = TConstant<MiniMC::uint8_t, true>;
-    using I8Integer = TConstant<MiniMC::uint8_t>;
-    using I16Integer = TConstant<MiniMC::uint16_t>;
-    using I32Integer = TConstant<MiniMC::uint32_t>;
-    using I64Integer = TConstant<MiniMC::uint64_t>;
+    using Bool = TConstant<MiniMC::BV8, true>;
+    using I8Integer = TConstant<MiniMC::BV8>;
+    using I16Integer = TConstant<MiniMC::BV16>;
+    using I32Integer = TConstant<MiniMC::BV32>;
+    using I64Integer = TConstant<MiniMC::BV64>;
     using Pointer = TConstant<MiniMC::pointer_t>;
 
     /**
@@ -141,7 +141,7 @@ namespace MiniMC {
      */
     class AggregateConstant : public Constant {
     public:
-      AggregateConstant(MiniMC::uint8_t* data, std::size_t s);
+      AggregateConstant(MiniMC::BV8* data, std::size_t s);
 
       template <class T>
       auto& getValue() const {
@@ -176,7 +176,7 @@ namespace MiniMC {
       }
 
     private:
-      std::unique_ptr<MiniMC::uint8_t[]> value;
+      std::unique_ptr<MiniMC::BV8[]> value;
       std::size_t size;
     };
 
@@ -262,7 +262,7 @@ namespace MiniMC {
 
       using aggr_input = std::vector<Constant_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
-      virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&) = 0;
+      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, const Type_ptr&) = 0;
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
       virtual const Value_ptr makePointer(MiniMC::pointer_t) = 0;
@@ -273,7 +273,7 @@ namespace MiniMC {
     public:
       ConstantFactory64() {}
       virtual ~ConstantFactory64() {}
-      virtual const Value_ptr makeIntegerConstant(MiniMC::uint64_t, const Type_ptr&);
+      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, const Type_ptr&);
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool);
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);

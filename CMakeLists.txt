@@ -5,7 +5,9 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}"
 set (CMAKE_CXX_STANDARD 20)
 
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
-option (ENABLE_PYTHON "Enable Symbolic Representations" OFF)
+option (ENABLE_PYTHON "Enable Python Binding" OFF)
+enable_testing()
+
 add_compile_options(-Wall -Wextra -Wpedantic)
 
 SET (ToolName minimc)
@@ -24,7 +26,6 @@ add_subdirectory (dependencies)
 add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)
-enable_testing()
 add_subdirectory(tests)
 
 if(ENABLE_PYTHON)	

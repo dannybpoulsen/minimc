@@ -22,19 +22,19 @@ namespace MiniMC {
             auto tt = cfac->makeIntegerConstant(1, tfac->makeBoolType());
             auto ff = cfac->makeIntegerConstant(0, tfac->makeBoolType());
 
-            uint64_t value = 0;
+            BV64 value = 0;
             switch (type->getTypeID()) {
 	    case MiniMC::Model::TypeID::I8:
-                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint8_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::BV8>>(val)->getValue();
                 break;
 	    case MiniMC::Model::TypeID::I16:
-                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint16_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::BV16>>(val)->getValue();
                 break;
 	    case MiniMC::Model::TypeID::I32:
-                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint32_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::BV32>>(val)->getValue();
                 break;
 	    case MiniMC::Model::TypeID::I64:
-                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::uint64_t>>(val)->getValue();
+                value = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::BV64>>(val)->getValue();
                 break;
 	    default:
 	      throw MiniMC::Support::Exception ("Error");

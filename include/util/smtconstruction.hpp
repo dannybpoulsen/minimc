@@ -58,7 +58,7 @@ namespace MiniMC {
       SMTLib::Term_ptr makeHeapPointer(MiniMC::base_t base, MiniMC::offset_t offset) {
 
         auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::Support::PointerType::Heap), 8 * sizeof(MiniMC::seg_t));
-        auto zero_term = builder->makeBVIntConst(0, 8 * sizeof(MiniMC::int8_t));
+        auto zero_term = builder->makeBVIntConst(0, 8 * sizeof(MiniMC::BV8));
 
         auto base_term = builder->makeBVIntConst(base, 8 * sizeof(MiniMC::base_t));
         auto offset_term = builder->makeBVIntConst(offset, 8 * sizeof(MiniMC::offset_t));

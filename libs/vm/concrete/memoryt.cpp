@@ -4,12 +4,12 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
       struct ReadBuffer {
-        MiniMC::uint8_t* buffer;
+        MiniMC::BV8* buffer;
         std::size_t size;
       };
 
       struct WriteBuffer {
-        const MiniMC::uint8_t* buffer;
+        const MiniMC::BV8* buffer;
         std::size_t size;
       };
 
@@ -18,11 +18,11 @@ namespace MiniMC {
         Freed = 4
       };
       struct HeapEntry {
-        HeapEntry(MiniMC::uint64_t size) : state(EntryState::InUse),
+        HeapEntry(std::size_t size) : state(EntryState::InUse),
                                            content(size) {
         }
 	
-        void write(const MiniMC::Util::Array& arr, MiniMC::uint64_t offset) {
+        void write(const MiniMC::Util::Array& arr, std::size_t offset) {
           assert(state == EntryState::InUse);
           if (arr.getSize() + offset <= content.getSize()) {
             // Copy the existing memory
@@ -32,7 +32,7 @@ namespace MiniMC {
           }
         }
 
-        void write(WriteBuffer&& buffer, MiniMC::uint64_t offset) {
+        void write(WriteBuffer&& buffer, std::size_t offset) {
           assert(state == EntryState::InUse);
           if (buffer.size + offset <= content.getSize()) {
             content.set_block(offset, buffer.size, buffer.buffer);
@@ -41,7 +41,7 @@ namespace MiniMC {
           }
         }
 
-        void read(ReadBuffer&& buffer, MiniMC::uint64_t offset) const {
+        void read(ReadBuffer&& buffer, std::size_t offset) const {
           if (buffer.size + offset <= content.getSize()) {
             content.get_block(offset, buffer.size, buffer.buffer);
           } else
@@ -94,7 +94,7 @@ namespace MiniMC {
         if (base < _internal->entries.size()) {
           auto performRead = [&]<typename T>() {
             T readVal;
-            _internal->entries.at(base).read({.buffer = reinterpret_cast<MiniMC::uint8_t*>(&readVal), .size = sizeof(T)}, offset);
+            _internal->entries.at(base).read({.buffer = reinterpret_cast<MiniMC::BV8*>(&readVal), .size = sizeof(T)}, offset);
             if constexpr (std::is_integral<T>::value)
               return ConcreteVMVal{TValue<T>(readVal)};
             else if constexpr (std::is_same<T, pointer_t>::value)
@@ -103,17 +103,17 @@ namespace MiniMC {
 
           switch (readType->getTypeID()) {
             case MiniMC::Model::TypeID::Bool:
-              MiniMC::uint8_t readVal;
-              _internal->entries.at(base).read({.buffer = &readVal, .size = sizeof(MiniMC::uint8_t)}, offset);
+              MiniMC::BV8 readVal;
+              _internal->entries.at(base).read({.buffer = &readVal, .size = sizeof(MiniMC::BV8)}, offset);
               return ConcreteVMVal{BoolValue(readVal)};
 	  case MiniMC::Model::TypeID::I8: 
-	    return performRead.template operator()<MiniMC::uint8_t>();
+	    return performRead.template operator()<MiniMC::BV8>();
 	  case MiniMC::Model::TypeID::I16:
-	    return performRead.template operator()<MiniMC::uint16_t>();
+	    return performRead.template operator()<MiniMC::BV16>();
 	  case MiniMC::Model::TypeID::I32:
-	    return performRead.template operator()<MiniMC::uint32_t>();
+	    return performRead.template operator()<MiniMC::BV32>();
 	  case MiniMC::Model::TypeID::I64:
-	    return performRead.template operator()<MiniMC::uint64_t>();
+	    return performRead.template operator()<MiniMC::BV64>();
 	
 	  case MiniMC::Model::TypeID::Pointer:
 	    return performRead.template operator()<MiniMC::pointer_t>();
@@ -145,7 +145,7 @@ namespace MiniMC {
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
         if (base < _internal->entries.size()) {
-          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::uint8_t*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
       }
 
@@ -155,7 +155,7 @@ namespace MiniMC {
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
         if (base < _internal->entries.size()) {
-          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::uint8_t*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
       }
 
@@ -165,7 +165,7 @@ namespace MiniMC {
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
         if (base < _internal->entries.size()) {
-          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::uint8_t*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
       }
 
@@ -175,7 +175,7 @@ namespace MiniMC {
         auto base = MiniMC::Support::getBase(pointer);
         auto offset = MiniMC::Support::getOffset(pointer);
         if (base < _internal->entries.size()) {
-          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::uint8_t*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
       }
 

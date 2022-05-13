@@ -438,7 +438,7 @@ namespace MiniMC {
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
         assert(content.offset->isConstant());
         auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
-        MiniMC::int64_t offset{0};
+        MiniMC::BV64 offset{0};
 
         /* This is nasty. We should update the typechecker to ensure onæy I64 bit integers are allowed as offsets*/
         switch (offset_constant->getSize()) {

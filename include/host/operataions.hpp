@@ -1,11 +1,11 @@
 #ifndef _OPERATIONS__
 #define _OPERATIONS__
-#include "support/types.hpp"
+#include "host/types.hpp"
 #include "support/exceptions.hpp"
 
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
     enum class TAC {
       Add,
       Sub,
@@ -38,6 +38,12 @@ namespace MiniMC {
 
     template<typename T>
     T sdivimpl (T,T);
+
+    template<typename T>
+    T ashr (T,T);
+
+    template<typename T>
+    T lshr (T,T);
     
 
     template< TAC o,typename T>
@@ -67,6 +73,14 @@ namespace MiniMC {
 	return l << r;
       }
 
+      else if constexpr (o == TAC::AShr) {
+	return ashr (l,r);
+      }
+
+      else if constexpr (o == TAC::LShr) {
+	return lshr (l,r);
+      }
+      
       else if constexpr (o == TAC::And) {
 	return l& r;
       }
@@ -90,29 +104,29 @@ namespace MiniMC {
     bool Op (T l, T r) {
       
       if constexpr (o == CMP::SGT) {
-	  using stype = typename EquivSigned<T>::type;
-	  return bit_cast<T, stype>(l) > bit_cast<T, stype>(r);
+	using stype = typename HostType<sizeof(T)*8>::Signed;//typename EquivSigned<T>::type;
+	return bit_cast<T, stype>(l) > bit_cast<T, stype>(r);
       }
       else if constexpr (o == CMP::UGT) {
 	return l > r;  
       }
       else if constexpr (o == CMP::SGE) {
-	  using stype = typename EquivSigned<T>::type;
-	  return bit_cast<T, stype>(l) >= bit_cast<T, stype>(r);
+	using stype = typename HostType<sizeof(T)*8>::Signed;
+	return bit_cast<T, stype>(l) >= bit_cast<T, stype>(r);
       
       }
       else if constexpr (o == CMP::UGE) {
 	return l >= r;  
       }
       else if constexpr (o == CMP::SLT) {
-	using stype = typename EquivSigned<T>::type;
+	using stype = typename HostType<sizeof(T)*8>::Signed;
 	return bit_cast<T, stype>(l) < bit_cast<T, stype>(r);
       }
       else if constexpr (o == CMP::ULT) {
 	return l < r;  
       }
       else if constexpr (o == CMP::SLE) {
-	using stype = typename EquivSigned<T>::type;
+	using stype = typename HostType<sizeof(T)*8>::Signed;
 	return bit_cast<T, stype>(l) <= bit_cast<T, stype>(r);
       }
 

@@ -1,13 +1,13 @@
-#include "support/casts.hpp"
-#include "support/types.hpp"
+#include "host/casts.hpp"
+#include "host/types.hpp"
 #include <iostream>
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
 #ifdef __x86_64__
     template <>
-    uint16_t zext<uint8_t, uint16_t>(const uint8_t l) {
-      uint16_t res;
+    BV16 zext<BV8, BV16>(const BV8 l) {
+      BV16 res;
       ;
       asm("movzbw %%al, %%bx "
           : "=b"(res) /* output */
@@ -16,7 +16,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t zext<uint16_t, uint32_t>(const uint16_t l) {
+    uint32_t zext<BV16, uint32_t>(const BV16 l) {
       uint32_t res;
       ;
       asm("movzwl %%ax, %%ebx"
@@ -37,30 +37,30 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t zext<uint8_t, uint32_t>(const uint8_t l) {
-      uint16_t temp = zext<uint8_t, uint16_t>(l);
-      return zext<uint16_t, uint32_t>(temp);
+    uint32_t zext<BV8, uint32_t>(const BV8 l) {
+      BV16 temp = zext<BV8, BV16>(l);
+      return zext<BV16, uint32_t>(temp);
     }
 
     template <>
-    uint64_t zext<uint8_t, uint64_t>(const uint8_t l) {
-      uint32_t temp = zext<uint8_t, uint32_t>(l);
+    uint64_t zext<BV8, uint64_t>(const BV8 l) {
+      uint32_t temp = zext<BV8, uint32_t>(l);
       return zext<uint32_t, uint64_t>(temp);
     }
 
     template <>
-    uint64_t zext<uint16_t, uint64_t>(const uint16_t l) {
-      uint32_t temp = zext<uint16_t, uint32_t>(l);
+    uint64_t zext<BV16, uint64_t>(const BV16 l) {
+      uint32_t temp = zext<BV16, uint32_t>(l);
       return zext<uint32_t, uint64_t>(temp);
     }
 
     template <>
-    uint8_t zext<uint8_t, uint8_t>(const uint8_t l) {
+    BV8 zext<BV8, BV8>(const BV8 l) {
       return l;
     }
 
     template <>
-    uint16_t zext<uint16_t, uint16_t>(const uint16_t l) {
+    BV16 zext<BV16, BV16>(const BV16 l) {
       return l;
     }
 

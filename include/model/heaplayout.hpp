@@ -2,7 +2,7 @@
 #define _HEAP_LAYOUT__
 
 #include "support/pointer.hpp"
-#include "support/types.hpp"
+#include "host/types.hpp"
 
 #include <vector>
 

@@ -15,7 +15,7 @@
 #include "model/cfg.hpp"
 #include "model/variables.hpp"
 #include "support/sequencer.hpp"
-#include "support/types.hpp"
+#include "host/types.hpp"
 
 namespace MiniMC {
   namespace Model {

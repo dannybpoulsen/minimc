@@ -13,7 +13,7 @@ namespace MiniMC {
       std::string dec = base64_decode(str);
       DecodeResult res;
       res.size = dec.length();
-      res.buffer.reset(new MiniMC::uint8_t[dec.length()]);
+      res.buffer.reset(new MiniMC::BV8[dec.length()]);
       std::copy(dec.c_str(), dec.c_str() + dec.length(), res.buffer.get());
       return res;
     }

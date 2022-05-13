@@ -1,13 +1,13 @@
-#include "support/casts.hpp"
-#include "support/types.hpp"
+#include "host/casts.hpp"
+#include "host/types.hpp"
 #include <iostream>
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
 #ifdef __x86_64__
     template <>
-    uint16_t sext<uint8_t, uint16_t>(const uint8_t l) {
-      uint16_t res;
+    BV16 sext<BV8, BV16>(const BV8 l) {
+      BV16 res;
       ;
       asm("cbw"
           : "=a"(res) /* output */
@@ -16,7 +16,7 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t sext<uint16_t, uint32_t>(const uint16_t l) {
+    uint32_t sext<BV16, uint32_t>(const BV16 l) {
       uint32_t res;
       ;
       asm("cwde"
@@ -36,30 +36,30 @@ namespace MiniMC {
     }
 
     template <>
-    uint32_t sext<uint8_t, uint32_t>(const uint8_t l) {
-      uint16_t temp = sext<uint8_t, uint16_t>(l);
-      return sext<uint16_t, uint32_t>(temp);
+    uint32_t sext<BV8, uint32_t>(const BV8 l) {
+      BV16 temp = sext<BV8, BV16>(l);
+      return sext<BV16, uint32_t>(temp);
     }
 
     template <>
-    uint64_t sext<uint8_t, uint64_t>(const uint8_t l) {
-      uint32_t temp = sext<uint8_t, uint32_t>(l);
+    uint64_t sext<BV8, uint64_t>(const BV8 l) {
+      uint32_t temp = sext<BV8, uint32_t>(l);
       return sext<uint32_t, uint64_t>(temp);
     }
 
     template <>
-    uint64_t sext<uint16_t, uint64_t>(const uint16_t l) {
-      uint32_t temp = sext<uint16_t, uint32_t>(l);
+    uint64_t sext<BV16, uint64_t>(const BV16 l) {
+      uint32_t temp = sext<BV16, uint32_t>(l);
       return sext<uint32_t, uint64_t>(temp);
     }
 
     template <>
-    uint8_t sext<uint8_t, uint8_t>(const uint8_t l) {
+    BV8 sext<BV8, BV8>(const BV8 l) {
       return l;
     }
 
     template <>
-    uint16_t sext<uint16_t, uint16_t>(const uint16_t l) {
+    BV16 sext<BV16, BV16>(const BV16 l) {
       return l;
     }
 

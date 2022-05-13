@@ -1,6 +1,5 @@
 #include "support/feedback.hpp"
 #include "colormod.hpp"
-#include "support/timing.hpp"
 #include <iostream>
 #include <iomanip>
 namespace MiniMC {

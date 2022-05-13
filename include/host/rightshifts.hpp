@@ -2,7 +2,7 @@
 #define __SHIFTS__
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
     template <typename T>
     T ashr(T l, T r);
 
