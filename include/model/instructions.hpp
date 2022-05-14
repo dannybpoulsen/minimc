@@ -65,12 +65,8 @@ namespace MiniMC {
   X(IntToBool)
 
 #define MEMORY \
-  X(Alloca)    \
-  X(FindSpace) \
-  X(Free)      \
   X(Store)     \
-  X(Load)      \
-  X(ExtendObj)
+  X(Load)      
 
     
 #define INTERNAL  \
@@ -336,38 +332,13 @@ namespace MiniMC {
       using Content = TACContent;
     };
 
-    template <>
-    struct InstructionData<InstructionCode::Alloca> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = true;
-      static const bool isCast = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = true;
-      using Content = UnaryContent;
-    };
-
     struct ExtendObjContent {
       Value_ptr res;
       Value_ptr object;
       Value_ptr size;
     };
     
-    template <>
-    struct InstructionData<InstructionCode::ExtendObj> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = true;
-      static const bool isCast = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 2;
-      static const bool hasResVar = true;
-      using Content = ExtendObjContent;
-    };
-
+    
     struct MallocContent {
       Value_ptr object;
       Value_ptr size;
@@ -377,35 +348,6 @@ namespace MiniMC {
       Value_ptr object;
     };
     
-    
-    template <>
-    struct InstructionData<InstructionCode::Free> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = true;
-      static const bool isCast = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = false;
-      using Content = FreeContent;
-    };
-
-    
-    
-    template <>
-    struct InstructionData<InstructionCode::FindSpace> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = true;
-      static const bool isCast = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = true;
-      using Content = UnaryContent;
-    };
-
     template <>
     struct InstructionData<InstructionCode::Skip> {
       static const bool isTAC = false;

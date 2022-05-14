@@ -41,23 +41,6 @@ namespace MiniMC {
         iter = content.storee;
       }
 
-      else if constexpr (c == MiniMC::Model::InstructionCode::Alloca) {
-        iter = content.size;
-      }
-
-      else if constexpr (c == MiniMC::Model::InstructionCode::FindSpace) {
-        iter = content.size;
-      }
-
-      /*else if constexpr (c == MiniMC::Model::InstructionCode::Malloc) {
-        iter = content.size;
-	iter = content.addr;
-	}*/
-
-      else if constexpr (c == MiniMC::Model::InstructionCode::Free) {
-        iter = content.object;
-      }
-
       else if constexpr (c == MiniMC::Model::InstructionCode::ExtractValue) {
         iter = content.aggregate;
         iter = content.offset;

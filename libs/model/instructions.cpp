@@ -21,29 +21,7 @@ namespace MiniMC {
       else if constexpr (InstructionData<i>::isCast) {
 	return os << *content.res << " = " << i << *content.op1;
       }
-
-      else if constexpr (i == InstructionCode::Alloca) {
-	return os << InstructionCode::Alloca << " (" << *content.res << ", " << *content.op1 << " )";  
-      }
-
-      else if constexpr (i == InstructionCode::ExtendObj) {
-	return os << InstructionCode::ExtendObj << " (" << *content.res << ", " << *content.object << " by " << *content.size << " )";
       
-      }
-
-      /*else if constexpr (i == InstructionCode::Malloc) {
-	return os << InstructionCode::Malloc << " (" << *content.object << ", " << *content.size << " )";
-	}*/
-
-      else if constexpr ( i == InstructionCode::Free) {
-	return os << InstructionCode::Free << " (" << *content.object << " )";
-      }
-
-      else if constexpr (i == InstructionCode::FindSpace) {
-	return os << *content.res << " = " << InstructionCode::FindSpace << *content.op1;
-      
-      }
-
       else if constexpr (i == InstructionCode::Skip) {
 	return os << InstructionCode::Skip;
       }

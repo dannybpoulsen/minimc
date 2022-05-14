@@ -9,7 +9,7 @@ namespace MiniMC {
             auto& cfg = F->getCFA();
             auto size = prgm.getConstantFactory()->makeIntegerConstant(0, prgm.getTypeFactory()->makeIntegerType(64));
             InstructionStream stream({createInstruction<InstructionCode::FindSpace>({.res = stackvar, .op1 = size})});
-		//createInstruction<InstructionCode::Malloc>({.object = stackvar, .size = size})}
+	    //createInstruction<InstructionCode::Malloc>({.object = stackvar, .size = size})}
 		
 
             auto ninitloc = cfg.makeLocation(MiniMC::Model::LocationInfo("StackAlloc", 0, *source_loc));

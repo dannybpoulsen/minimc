@@ -80,7 +80,6 @@ namespace MiniMC {
 	else 
 	  extended = builder.buildTerm(SMTLib::Ops::ZExt,{addend.getTerm ()},{64 - T::intbitsize ()});
 	auto res = builder.buildTerm(SMTLib::Ops::BVAdd,{ptrvalue.getTerm (),extended});
-	std::cerr << *res << std::endl;
 	return res;
 	
       }

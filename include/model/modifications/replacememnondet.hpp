@@ -56,12 +56,7 @@ namespace MiniMC {
 		  assert(max);
                   I.replace(createInstruction<InstructionCode::NonDet> ({.res = content.res, .min = min, .max = max}));
                 }
-                if (I.getOpcode() == MiniMC::Model::InstructionCode::Alloca ||
-                    //I.getOpcode() == MiniMC::Model::InstructionCode::Malloc ||
-                    I.getOpcode() == MiniMC::Model::InstructionCode::ExtendObj ||
-                    I.getOpcode() == MiniMC::Model::InstructionCode::Store
-
-                ) {
+                if (I.getOpcode() == MiniMC::Model::InstructionCode::Store) {
                   I.replace(createInstruction<InstructionCode::Skip> (0));
                 }
               }

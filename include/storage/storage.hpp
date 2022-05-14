@@ -22,13 +22,11 @@ namespace MiniMC {
       MiniMC::CPA::State_ptr insert (const MiniMC::CPA::State_ptr& s)  override{
 	auto hash = std::hash<MiniMC::CPA::State>{}(*s);
 	if (stored.find (hash)==stored.end ()) {
-	  std::cerr << "Insert" << hash << std::endl;
 	  
 	  stored.insert (hash);
 	  return s;
 	}
 	else {
-	  std::cerr << "Non Insert" << hash << std::endl;
 	  return nullptr;
 	}
       }

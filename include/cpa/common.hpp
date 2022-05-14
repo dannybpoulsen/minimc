@@ -6,7 +6,7 @@ namespace MiniMC {
   namespace Common {
     template<class Value,class Lookup>
     struct ActivationRecord {
-      ActivationRecord(Lookup&& values, const MiniMC::Model::Value_ptr& ret, typename Value::Pointer top) : values(std::move(values)), ret(ret), next_stack_alloc(top) {}
+      ActivationRecord(Lookup&& values, const MiniMC::Model::Value_ptr& ret) : values(std::move(values)), ret(ret) {}
       ActivationRecord(const ActivationRecord&) = default;
 
       MiniMC::Hash::hash_t hash() const {
@@ -17,7 +17,6 @@ namespace MiniMC {
 
       Lookup values;
       MiniMC::Model::Value_ptr ret{nullptr};
-      typename Value::Pointer next_stack_alloc;
     };
 
     template <class ActRecord>

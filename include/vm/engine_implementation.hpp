@@ -123,18 +123,7 @@ namespace MiniMC {
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
       inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster&, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isMemory {
         auto& content = instr.getOps<op>();
-	if constexpr (op == MiniMC::Model::InstructionCode::Alloca ) {
-          auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-          auto size = writeState.getStackControl().getValueLookup ().lookupValue(content.op1);
-          writeState.getStackControl().getValueLookup ().saveValue(res, writeState.getStackControl().alloc (size.template as<typename T::I64>()));
-          return Status::Ok;
-        } 
-        else if constexpr (op == MiniMC::Model::InstructionCode::FindSpace) {
-          auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-          auto size = writeState.getStackControl().getValueLookup ().lookupValue(content.op1);
-          writeState.getStackControl().getValueLookup ().saveValue(res, writeState.getMemory().alloca(size.template as<typename T::I64>()));
-          return Status::Ok;
-        } else if constexpr (op == MiniMC::Model::InstructionCode::Load) {
+	if constexpr (op == MiniMC::Model::InstructionCode::Load) {
 	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 	  auto addr = writeState.getStackControl().getValueLookup ().lookupValue(content.addr).template as<typename T::Pointer>();
 
@@ -165,11 +154,7 @@ namespace MiniMC {
           }
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::Free) {
-          auto obj = writeState.getStackControl().getValueLookup ().lookupValue(content.object).template as<typename T::Pointer>();
-          writeState.getMemory().free(obj);
-        }
-
+        
         else
           throw NotImplemented<op>();
 

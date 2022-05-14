@@ -21,11 +21,11 @@ namespace MiniMC {
       
       class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-	StackControl (ActivationStack& stack,SMTLib::Context& context,SMTLib::TermBuilder& builder) : stack(stack),context(context),builder(builder) {}
+	StackControl (ActivationStack& stack,SMTLib::Context& context) : stack(stack),context(context) {}
 	//StackControl API
 	void  push (std::size_t registers,  const MiniMC::Model::Value_ptr& ret) override {
 	  MiniMC::VMT::Pathformula::ValueLookup values{registers,context.getBuilder ()};
-	  stack.push ({std::move(values),ret,stack.back().next_stack_alloc});
+	  stack.push ({std::move(values),ret});
 	}
 	
 	void pop (MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
@@ -38,31 +38,12 @@ namespace MiniMC {
 	  stack.pop ();
 	}
 	
-	virtual typename MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer alloc(const MiniMC::VMT::Pathformula::PathFormulaVMVal::I64& size) override {
-	  
-	  auto ret = stack.back().next_stack_alloc;
-	  stack.back().next_stack_alloc = builder.buildTerm(SMTLib::Ops::BVAdd,{ret.getTerm (),size.getTerm ()});
-	  
-	  
-	  return ret;
-	}
-
-	MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer StackPointer () override
-	{
-	  return stack.back().next_stack_alloc;
-	}
-	
-	void RestoreStackPointer (MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&& next) override {
-	  stack.back ().next_stack_alloc = std::move(next);
-	}
-	
 	MiniMC::VMT::ValueLookup<MiniMC::VMT::Pathformula::PathFormulaVMVal>& getValueLookup () override {return stack.back().values;}
 	
 	
       private:
 	ActivationStack& stack;
 	SMTLib::Context& context;
-	SMTLib::TermBuilder& builder;
       };
       
       class State : public MiniMC::CPA::State
@@ -81,7 +62,6 @@ namespace MiniMC {
 	  static MiniMC::Hash::hash_t nextHash {0};
 	  if (!_hash)
 	    _hash = ++nextHash;
-	  std::cerr << _hash << std::endl;
 	  return _hash;
 	}
         virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }

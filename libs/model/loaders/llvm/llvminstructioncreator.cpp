@@ -159,15 +159,7 @@ namespace MiniMC {
 	  instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assert>({.expr = nvar}));
 	}
       }
-      if (func->getName() == "malloc") {
-        assert(cinst->arg_size() == 1);
-        auto val = findValue(*cinst->arg_begin(), values, tt, cfac);
-        auto res = findValue(inst, values, tt, cfac);
-        instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::FindSpace>({.res = res,
-                                                                                                     .op1 = val}));
-        //instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Malloc>({.object = res,
-        //                                                                                          .size = val}));
-      } else if (func->isDeclaration()) {
+       else if (func->isDeclaration()) {
         //We don't know what to do for this function
         if (inst->getType()->isIntegerTy()) {
           std::size_t bitwidth = inst->getType()->getIntegerBitWidth();

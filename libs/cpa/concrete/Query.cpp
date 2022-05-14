@@ -28,7 +28,7 @@ namespace MiniMC {
       public:
 	StackControl (ActivationStack& s) : stack (s) {}
 	void  push (std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
-	  ActivationRecord sf {{registers},ret,stack.back().next_stack_alloc};
+	  ActivationRecord sf {{registers},ret};
 	  stack.push (std::move(sf));
 	}
 	
@@ -42,22 +42,8 @@ namespace MiniMC {
 	  stack.pop ();
 	}
 
-        virtual typename MiniMC::VMT::Concrete::ConcreteVMVal::Pointer alloc(const MiniMC::VMT::Concrete::ConcreteVMVal::I64& size) override {
-	  auto ret = stack.back().next_stack_alloc;
-	  stack.back().next_stack_alloc = MiniMC::Support::ptradd (ret.getValue (),size.getValue ());
-	  return ret;
-	}
-
 	MiniMC::VMT::ValueLookup<MiniMC::VMT::Concrete::ConcreteVMVal>& getValueLookup () override {return stack.back().values;}
 
-	MiniMC::VMT::Concrete::ConcreteVMVal::Pointer StackPointer () override
-	{
-	  return stack.back().next_stack_alloc;
-	}
-	
-	void RestoreStackPointer (MiniMC::VMT::Concrete::ConcreteVMVal::Pointer&& next) override {
-	  stack.back ().next_stack_alloc = std::move(next);
-	}
 	
       private:
 	ActivationStack& stack;
@@ -118,9 +104,7 @@ namespace MiniMC {
         for (auto& f : descr.getEntries()) {
           auto& vstack = f->getRegisterStackDescr();
 	  ActivationRecord sf {{vstack.getTotalRegisters ()},
-			 nullptr,
-			 heap.alloca (MiniMC::VMT::Concrete::ConcreteVMVal::I64{100}).as<MiniMC::VMT::Concrete::ConcreteVMVal::Pointer> ()
-	  };
+			 nullptr};
 	  for (auto& v : vstack.getRegisters()) {
             sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
           }

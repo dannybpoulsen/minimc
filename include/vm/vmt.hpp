@@ -94,9 +94,6 @@ namespace MiniMC {
       virtual void pop (T&&) = 0;
       virtual void popNoReturn () = 0;
       virtual ValueLookup<T>& getValueLookup () = 0;
-      virtual typename T::Pointer alloc (const typename T::I64&) = 0;
-      virtual typename T::Pointer StackPointer () = 0;
-      virtual void RestoreStackPointer (typename T::Pointer&&) = 0;
     };
     
     
