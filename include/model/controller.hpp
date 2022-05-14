@@ -3,15 +3,19 @@
 
 #include "model/cfg.hpp"
 
+#include <functional>
+#include <vector>
+
 namespace MiniMC {
   namespace Model {
+    using entry_creator = std::function<MiniMC::Model::Function_ptr(MiniMC::Model::Program&, MiniMC::Model::Function_ptr,std::vector<MiniMC::Model::Value_ptr>&&)>;
+    
     //Helper class for running modifications on a Program
     class Controller {
     public:
-      Controller (const MiniMC::Model::Program& p) : prgm(std::make_shared<Program> (p)) {
+      Controller (const MiniMC::Model::Program& p,entry_creator entry) : prgm(std::make_shared<Program> (p)),createEntry(entry) {
 	lowerPhi ();
       }
-      Controller (MiniMC::Model::Program&& p) : prgm(std::make_shared<Program> (std::move(p))) {}
       
       bool typecheck ();
       bool structuralcheck ();
@@ -35,6 +39,7 @@ namespace MiniMC {
       
     private:
       MiniMC::Model::Program_ptr prgm;
+      entry_creator createEntry;
     };
   }
 }

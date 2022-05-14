@@ -46,6 +46,15 @@ namespace MiniMC {
 	  
 	  return ret;
 	}
+
+	MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer StackPointer () override
+	{
+	  return stack.back().next_stack_alloc;
+	}
+	
+	void RestoreStackPointer (MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&& next) override {
+	  stack.back ().next_stack_alloc = std::move(next);
+	}
 	
 	MiniMC::VMT::ValueLookup<MiniMC::VMT::Pathformula::PathFormulaVMVal>& getValueLookup () override {return stack.back().values;}
 	

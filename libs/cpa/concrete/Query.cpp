@@ -49,6 +49,15 @@ namespace MiniMC {
 	}
 
 	MiniMC::VMT::ValueLookup<MiniMC::VMT::Concrete::ConcreteVMVal>& getValueLookup () override {return stack.back().values;}
+
+	MiniMC::VMT::Concrete::ConcreteVMVal::Pointer StackPointer () override
+	{
+	  return stack.back().next_stack_alloc;
+	}
+	
+	void RestoreStackPointer (MiniMC::VMT::Concrete::ConcreteVMVal::Pointer&& next) override {
+	  stack.back ().next_stack_alloc = std::move(next);
+	}
 	
       private:
 	ActivationStack& stack;

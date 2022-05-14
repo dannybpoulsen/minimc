@@ -45,8 +45,15 @@ namespace MiniMC {
       auto res = findValue(inst, values, tt, cfac);
       auto type = tt.tfac->makeIntegerType(64);
       auto size = cfac->makeIntegerConstant(outalltype->getSize(), type);
-      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Alloca>({.res = res,
-                                                                                                .op1 = size}));
+      auto skipsize = cfac->makeIntegerConstant(1, type);
+      
+      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = res,
+	    .op1 = tt.sp}));
+      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::PtrAdd>({.res = res,
+	    .ptr = tt.sp,
+	    .skipsize = size,
+	    .nbSkips = skipsize
+	  }));
     }
 
     template <>
@@ -91,13 +98,13 @@ namespace MiniMC {
       auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
       assert(cinst->arg_size() == 1);
       auto value = findValue(*cinst->arg_begin(), values, tt, cfac);
-      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::StackRestore>({.stackobject = value}));
+      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = tt.sp, .op1 = value}));
     }
 
     template <>
     void translateIntrinsicCall<llvm::Intrinsic::stacksave>(llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       assert(inst->getType()->isPointerTy());
-      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::StackSave>({.res = findValue(inst, values, tt, cfac)}));
+      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = findValue(inst, values, tt, cfac),.op1 = tt.sp}));
     }
 
     template <>
@@ -108,7 +115,7 @@ namespace MiniMC {
       auto target = findValue((*arg++), values, tt, cfac);
       auto source = findValue((*arg++), values, tt, cfac);
       auto size = findValue((*arg++), values, tt, cfac);
-
+      
       instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::MemCpy>({.dst = target,
                                                                                                 .src = source,
                                                                                                 .size = size}));
@@ -199,6 +206,7 @@ namespace MiniMC {
           res = findValue(inst, values, tt, cfac);
         }
         auto type = tt.tfac->makeIntegerType(64);
+	params.push_back (tt.sp);
         for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
           params.push_back(findValue(*it, values, tt, cfac));
         }

@@ -51,12 +51,10 @@ int main () {
   	//Load Program
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
-  MiniMC::Model::Program_ptr prgm = MiniMC::Loaders::loadFromString<MiniMC::Loaders::Type::LLVM> (ir, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac,
-																																												  .cfactory =cfac}
-	);
+  MiniMC::Loaders::LoadResult result = MiniMC::Loaders::loadFromString<MiniMC::Loaders::Type::LLVM> (ir, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac, .cfactory =cfac});
   
-  prgm->addEntryPoint ("main");
+  result.program->addEntryPoint ("main");
 
-  MiniMC::Model::Analysis::calculateDefs (*prgm->getFunction("main").get());
+  MiniMC::Model::Analysis::calculateDefs (*result.program->getFunction("main").get());
   
 }

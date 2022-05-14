@@ -25,6 +25,7 @@ namespace MiniMC {
       std::size_t getSizeInBytes (llvm::Type* type) {
 		return computeSizeInBytes (type,tfac);
       }
+      MiniMC::Model::Register_ptr sp;
     };
 
     MiniMC::Model::Value_ptr findValue (llvm::Value* val, Val2ValMap& values, Types& tt, MiniMC::Model::ConstantFactory_ptr& );

@@ -56,18 +56,18 @@ namespace MiniMC {
     struct Memory {
     public:
       virtual ~Memory ()  {}
-      virtual T loadValue (const typename T::Pointer&, const MiniMC::Model::Type_ptr& ) const  {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual T loadValue (const typename T::Pointer&, const MiniMC::Model::Type_ptr& ) const  = 0;
       //First parameter is address to store at, second is the value to state
-      virtual void storeValue (const typename T::Pointer&, const typename T::I8&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void storeValue (const typename T::Pointer&, const typename T::I16&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void storeValue (const typename T::Pointer&, const typename T::I32&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void storeValue (const typename T::Pointer&, const typename T::I64&) {throw MiniMC::Support::Exception ("Not implemented");};
-      virtual void storeValue (const typename T::Pointer&, const typename T::Pointer&) {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual void storeValue (const typename T::Pointer&, const typename T::I8&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::I16&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::I32&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::I64&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::Pointer&) = 0;
       
       //PArameter is size to allocate
-      virtual T alloca (const typename T::I64& ) {throw MiniMC::Support::Exception ("Not implemented");};
+      virtual T alloca (const typename T::I64& ) = 0;
       
-      virtual void free (const typename T::Pointer&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual void free (const typename T::Pointer&) = 0;
       virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
     };
 
@@ -81,8 +81,8 @@ namespace MiniMC {
     template<class  T>
     struct PathControl {
       virtual ~PathControl ()  {}
-      virtual TriBool addAssumption (const typename T::Bool&) {throw MiniMC::Support::Exception ("Not implemented");}
-      virtual TriBool addAssert (const typename T::Bool&) {throw MiniMC::Support::Exception ("Not implemented");}
+      virtual TriBool addAssumption (const typename T::Bool&) = 0;
+      virtual TriBool addAssert (const typename T::Bool&) = 0;
       
     };
 
@@ -90,11 +90,13 @@ namespace MiniMC {
     template<class  T>
     struct StackControl {
       virtual ~StackControl ()  {}
-      virtual void  push (std::size_t,  const MiniMC::Model::Value_ptr& ) {throw MiniMC::Support::Exception ("Stack Push Not implemented");}
-      virtual void pop (T&&) {throw MiniMC::Support::Exception ("Stack Pop  implemented");}
-      virtual void popNoReturn () {throw MiniMC::Support::Exception ("Stack Pop implemented");}
+      virtual void  push (std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
+      virtual void pop (T&&) = 0;
+      virtual void popNoReturn () = 0;
       virtual ValueLookup<T>& getValueLookup () = 0;
-      virtual typename T::Pointer alloc (const typename T::I64&) {throw MiniMC::Support::Exception ("Stack Allocation Not Implemented");}
+      virtual typename T::Pointer alloc (const typename T::I64&) = 0;
+      virtual typename T::Pointer StackPointer () = 0;
+      virtual void RestoreStackPointer (typename T::Pointer&&) = 0;
     };
     
     

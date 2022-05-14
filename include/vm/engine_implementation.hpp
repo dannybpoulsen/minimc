@@ -421,7 +421,22 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Skip) {
           return Status::Ok;
-        } else {
+        }
+	else if constexpr (op == MiniMC::Model::InstructionCode::StackSave) {
+	  auto& stackControl = writeState.getStackControl ();
+	  
+	  stackControl.saveValue (content.res,stackControl.StackPointer());
+	  return Status::Ok;
+	}
+
+	else if constexpr (op == MiniMC::Model::InstructionCode::StackRestore) {
+	  auto& stackControl = writeState.getStackControl ();
+	  auto res = stackControl.getValueLookup (content.stackobject);
+	  stackControl.RestoreStackPointer (res);
+	  return Status::Ok;
+	}
+	
+	else {
           throw NotImplemented<op>();
         }
       }

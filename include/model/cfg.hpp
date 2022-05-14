@@ -164,6 +164,7 @@ namespace MiniMC {
       Type_ptr retType;
     };
 
+    
     class Program  {
    
     public:
@@ -229,8 +230,8 @@ namespace MiniMC {
       std::unordered_map<std::string, Function_ptr> function_map;
       HeapLayout heaplayout;
     };
-
-    Function_ptr createEntryPoint(Program_ptr& program, Function_ptr function);
+    
+    Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);
   } // namespace Model
 } // namespace MiniMC
 

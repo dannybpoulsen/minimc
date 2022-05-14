@@ -373,19 +373,6 @@ namespace MiniMC {
       Value_ptr size;
     };
     
-    /*template <>
-    struct InstructionData<InstructionCode::Malloc> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = true;
-      static const bool isCast = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 2;
-      static const bool hasResVar = false;
-      using Content = MallocContent;
-    };
-    */
     struct FreeContent {
       Value_ptr object;
     };

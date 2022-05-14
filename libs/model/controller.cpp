@@ -82,9 +82,9 @@ namespace MiniMC {
     
     }
       
-    void Controller::addEntryPoint (std::string& name, std::vector<MiniMC::Model::Value_ptr>&&) {
+    void Controller::addEntryPoint (std::string& name, std::vector<MiniMC::Model::Value_ptr>&& params) {
       auto func = prgm->getFunction(name);
-      auto entry = createEntryPoint(prgm, func);
+      auto entry = createEntry(*prgm, func,std::move(params));
       prgm->addEntryPoint(entry->getName());
     }
     

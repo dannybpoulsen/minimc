@@ -35,10 +35,10 @@ int main(int argc, char* argv[]) {
   // Load Program
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
-  MiniMC::Model::Program_ptr prgm = MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM>(options.load.inputname, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt{.tfactory = tfac,
-                                                                                                                                                                                               .cfactory = cfac});
-
-  MiniMC::Model::Controller control(*prgm);
+  MiniMC::Loaders::LoadResult loadresult= MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM>(options.load.inputname, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt{.tfactory = tfac,.cfactory = cfac});
+    
+  
+  MiniMC::Model::Controller control(*loadresult.program,loadresult.entrycreator);
   control.boolCasts();
   control.makeLoopAllLocations();
   control.createAssertViolateLocations();
