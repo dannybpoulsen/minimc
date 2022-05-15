@@ -44,10 +44,10 @@ namespace MiniMC {
     }
     
     void writeFunction (std::ostream& os, const MiniMC::Model::Function& F) {
-      os << "#" << F.getName () <<"\n";
+      os << "## " << F.getName () <<"\n";
       os << "  .registers" << "\n";
       for (auto& reg : F.getRegisterDescr ().getRegisters()) {
-	os << "    " <<reg->getName () << " " << *reg->getType () << "\n";
+	os << "    " << *reg << "\n";
       }
       os << "  .parameters" << "\n";
       for (auto& reg : F.getParameters ()) {
@@ -59,9 +59,27 @@ namespace MiniMC {
     }
     
     void writeProgram (std::ostream& os, const MiniMC::Model::Program& p) {
+      os << "# Functions" << "\n";
       for (auto& F : p.getFunctions ()) {
 	writeFunction (os,*F);
       }
+      
+      os << "# Entrypoints" <<"\n";
+      for (auto& F : p.getEntryPoints ()) {
+	os << "  " << F->getName () << "\n";
+      }
+
+      os << "# Heap" <<"\n";
+      for (auto b : p.getHeapLayout ()) {
+	os << b.pointer << " : " << b.size << "\n"; 
+      }
+      
+      os << "# Initialiser" <<"\n";
+      for (auto i : p.getInitialiser ()) {
+	i.output (os <<"  ") << "\n";
+      }
+      
+      
     }
   }
 }

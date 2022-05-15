@@ -8,11 +8,15 @@ namespace MiniMC {
     public:
       IntegerType(size_t b,TypeID id) : Type(id),
                               bytes(b) {}
-      std::size_t getSize() const { return bytes; }
-      std::ostream& output(std::ostream& os) const { return os << "Int" << bytes * 8; }
+      std::size_t getSize() const override { return bytes; }
+      std::ostream& output(std::ostream& os) const override  {
+	std::ostream copy (os.rdbuf());
+	copy << std::dec << std::noshowbase <<  "Int" << bytes * 8;
+	return os;
+      }
       bool isInteger () const override {return true;}
     protected:
-      virtual bool innerEq(const Type& t) {
+      virtual bool innerEq(const Type& t) override {
         return bytes == static_cast<const IntegerType&>(t).bytes;
       }
 
@@ -64,7 +68,11 @@ namespace MiniMC {
     public:
       AggregateType(TypeID h, size_t size) : Type(h), size(size) {}
       std::size_t getSize() const { return size; }
-      std::ostream& output(std::ostream& os) const { return os << "Aggr:" << size; }
+      std::ostream& output(std::ostream& os) const { 
+	std::ostream copy (os.rdbuf());  
+	copy << "Aggr" << std::dec << std::noshowbase << size;
+	return os;
+      }
       bool innerEq(const Type& t) { return size == static_cast<const AggregateType&>(t).size; }
 
     private:

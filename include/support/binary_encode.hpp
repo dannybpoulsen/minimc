@@ -2,8 +2,11 @@
 #define _BINARY_ENCODE__
 
 #include "host/types.hpp"
+#include "support/exceptions.hpp"
 #include <memory>
 #include <string>
+#include <sstream>
+#include <iomanip>
 
 namespace MiniMC {
   namespace Support {
@@ -23,6 +26,23 @@ namespace MiniMC {
       std::string encode(const char* buf, std::size_t);
       DecodeResult decode(const std::string& str);
     };
+
+    class STDEncode : public BinaryEncoder {
+    public:
+      std::string encode(const char* buf, std::size_t size) override {
+	std::stringstream str;
+	for (size_t i = 0; i < size; ++i) {
+	  str << std::hex << std::setw(2) << std::setfill('0');
+	  str << static_cast<int> (buf[i] & 0xFF )<< " ";
+	}
+	return str.str ();
+      }
+      
+      DecodeResult decode(const std::string&) override {
+	throw MiniMC::Support::Exception ("Decode not implemented");
+      }
+    };
+    
   } // namespace Support
 } // namespace MiniMC
 

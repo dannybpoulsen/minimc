@@ -83,7 +83,7 @@ namespace MiniMC {
       }
 
       else if constexpr ( i == InstructionCode::Load) {
-	return os << *content.res << " = " << InstructionCode::Load << " " << *content.addr;
+	return os << *content.res << " = " << InstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
       }
 
       else {

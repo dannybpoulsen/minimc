@@ -114,9 +114,14 @@ namespace MiniMC {
         return std::is_same_v<T, MiniMC::pointer_t>;
         ;
       }
-
+      
       std::ostream& output(std::ostream& os) const override {
-        return os << "<" << value << " " << *getType () <<">";;
+	std::ostream copy (os.rdbuf());
+	if constexpr (!std::is_same_v<T,MiniMC::pointer_t>) {
+	    copy << std::showbase << std::hex ;
+	}
+        copy << "<" <<  value << " " << *getType () <<">";;
+	return os;
       }
 
     private:
@@ -161,13 +166,8 @@ namespace MiniMC {
       std::size_t getSize() const override { return size; }
 
       virtual std::ostream& output(std::ostream& os) const override {
-        MiniMC::Support::Base64Encode encoder;
-        os << encoder.encode(reinterpret_cast<const char*>(value.get()), size);
-        if (getType())
-          os << *getType();
-        else
-          os << "??";
-        return os << " >";
+        MiniMC::Support::STDEncode encoder;
+        return os << "< $" << encoder.encode(reinterpret_cast<const char*>(value.get()), size) << "$ " << *getType () << " >";
       }
 
     private:

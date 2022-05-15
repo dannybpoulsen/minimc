@@ -45,8 +45,7 @@ int main(int argc, char* argv[]) {
   control.makeLoopAllLocations();
   control.createAssertViolateLocations();
   control.lowerGuards();
-  MiniMC::Model::writeProgram (std::cout,*control.getProgram ());
-	
+  
   try {
     if (options.load.tasks.size()) {
       for (std::string& s : options.load.tasks) {
@@ -65,9 +64,10 @@ int main(int argc, char* argv[]) {
     if (options.command) {
       auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
       if (options.outputname != "") {
-	std::fstream stream;
-	stream.open (options.outputname);
-	MiniMC::Model::writeProgram (std::cout,*control.getProgram ());
+	std::ofstream stream;
+	stream.open (options.outputname, std::ofstream::out);
+	MiniMC::Model::writeProgram (stream,*control.getProgram ());
+	stream.close ();
       }
       return res;
     }
