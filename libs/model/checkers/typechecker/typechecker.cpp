@@ -351,49 +351,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::StackRestore) {
-          MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as inputs. ");
-          auto type = content.stackobject->getType();
-          if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(i));
-            return false;
-          }
-          return true;
-        }
-
-        else if constexpr (i == InstructionCode::MemCpy) {
-          MiniMC::Support::Localiser must_be_pointer_source("'%1%' must take pointer as source inputs. ");
-          MiniMC::Support::Localiser must_be_pointer_target("'%1%' must take pointer as target inputs. ");
-          MiniMC::Support::Localiser must_be_integer("'%1%' must take integer as size inputs. ");
-
-          if (content.src->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer_source.format(i));
-            return false;
-          }
-
-          if (content.dst->getType()->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer_target.format(i));
-            return false;
-          }
-
-          if (!content.size->getType()->isInteger() ) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
-            return false;
-          }
-
-          return true;
-        }
-
-        else if constexpr (i == InstructionCode::StackSave) {
-          MiniMC::Support::Localiser must_be_pointer("'%1%' must take pointer as result. ");
-          auto type = content.res->getType();
-          if (type->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(i));
-            return false;
-          }
-          return true;
-        }
-
+        
         else if constexpr (i == InstructionCode::BitCast ||
                            i == InstructionCode::ExtractValue ||
                            i == InstructionCode::InsertValue) {

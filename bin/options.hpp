@@ -29,12 +29,12 @@ struct Modifications {
   bool removephi = false;
   std::size_t inlinefunctions = 0;
   std::size_t unrollLoops = 0;
-};
+  };
 
 struct load_options{
   std::string inputname;
   std::vector<std::string> tasks;
-  };
+};
 
 
 
@@ -46,7 +46,8 @@ struct SetupOptions {
   MiniMC::CPA::CPA_ptr cpa;
   CommandRegistrar* command = nullptr;
   bool help;
-  };
+  std::string outputname = "";
+};
 
 
 bool parseOptions(int argc, char* argv[],SetupOptions&);

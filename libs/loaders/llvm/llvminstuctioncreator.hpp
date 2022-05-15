@@ -14,16 +14,22 @@ namespace MiniMC {
 
     using Val2ValMap = std::unordered_map<const llvm::Value*, MiniMC::Model::Value_ptr>;
     
-    MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
+    MiniMC::Model::TypeID getTypeID (llvm::Type* type);
+    MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr&);
     BV32 computeSizeInBytes (llvm::Type* ty,MiniMC::Model::TypeFactory_ptr& tfactory);
     struct Types {
       MiniMC::Model::RegisterDescr* stack;
       MiniMC::Model::TypeFactory_ptr tfac;
-      MiniMC::Model::Type_ptr getType (llvm::Type* type) {
+      MiniMC::Model::TypeID getTypeID (llvm::Type* type) {
+	return  MiniMC::Loaders::getTypeID (type);
+      }
+
+      MiniMC::Model::Type_ptr getType  (llvm::Type* type) {
 	return  MiniMC::Loaders::getType (type,tfac);
       }
+      
       std::size_t getSizeInBytes (llvm::Type* type) {
-		return computeSizeInBytes (type,tfac);
+	return computeSizeInBytes (type,tfac);
       }
       MiniMC::Model::Register_ptr sp;
     };

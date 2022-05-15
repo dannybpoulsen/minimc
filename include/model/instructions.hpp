@@ -76,9 +76,6 @@ namespace MiniMC {
   X(Ret)          \
   X(RetVoid)      \
   X(NonDet)       \
-  X(StackRestore) \
-  X(StackSave)    \
-  X(MemCpy)       \
   X(Uniform)
 
 #define ASSUMEASSERTS				\
@@ -438,63 +435,8 @@ ASSUMEASSERTS
     };
     
     
-    template <>
-    struct InstructionData<InstructionCode::StackSave> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 0;
-      static const bool hasResVar = true;
-      using Content = StackSaveContent;
-    };
-
-    struct StackRestoreContent {
-      Value_ptr stackobject;
-    };
     
     
-    template <>
-    struct InstructionData<InstructionCode::StackRestore> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 1;
-      static const bool hasResVar = false;
-      using Content = StackRestoreContent ;
-    };
-
-    struct MemCpyContent {
-      Value_ptr dst;
-      Value_ptr src;
-      Value_ptr size;
-      
-    };
-    
-    template <>
-    struct InstructionData<InstructionCode::MemCpy> {
-      static const bool isTAC = false;
-      static const bool isUnary = false;
-      static const bool isComparison = false;
-      static const bool isMemory = false;
-      static const bool isCast = false;
-      static const bool isPointer = false;
-      static const bool isAggregate = false;
-      static const bool isPredicate = false;
-      static const std::size_t operands = 3;
-      static const bool hasResVar = false;
-      using Content = MemCpyContent;
-    };
-
     struct LoadContent {
       Value_ptr res;
       Value_ptr addr;
@@ -616,9 +558,6 @@ ASSUMEASSERTS
 					     FreeContent,
 					     NonDetContent,
 					     AssertAssumeContent,
-					     StackSaveContent,
-					     StackRestoreContent,
-					     MemCpyContent,
 					     LoadContent,
 					     StoreContent,
 					     RetContent,
@@ -675,18 +614,6 @@ ASSUMEASSERTS
 
       else if constexpr (std::is_same<AssertAssumeContent,T> ()) {
 	return {.expr = replace(t.expr)};
-      }
-
-      else if constexpr (std::is_same<StackSaveContent,T> ()) {
-	return {.res = replace(t.res)};
-      }
-
-      else if constexpr (std::is_same<StackRestoreContent,T> ()) {
-	return {.stackobject = replace(t.stackobject)};
-      }
-
-      else if constexpr (std::is_same<MemCpyContent,T> ()) {
-	return {.dst = replace(t.dst), .src = replace(t.src), .size = replace(t.size)};
       }
 
       else if constexpr (std::is_same<LoadContent,T> ()) {

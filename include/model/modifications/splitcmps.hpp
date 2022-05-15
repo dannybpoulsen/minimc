@@ -69,10 +69,8 @@ namespace MiniMC {
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());
                 };
                 auto cfac = F->getPrgm().getConstantFactory();
-                auto tfac = F->getPrgm().getTypeFactory();
-                auto boolT = tfac->makeBoolType();
-                auto tt = cfac->makeIntegerConstant(1, boolT);
-                auto ff = cfac->makeIntegerConstant(0, boolT);
+                auto tt = cfac->makeIntegerConstant(1, TypeID::Bool);
+                auto ff = cfac->makeIntegerConstant(0, TypeID::Bool);
 
                 switch (instrs.last().getOpcode()) {
                   case MiniMC::Model::InstructionCode::ICMP_SGT:

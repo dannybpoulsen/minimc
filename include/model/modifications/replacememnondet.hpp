@@ -34,20 +34,20 @@ namespace MiniMC {
 		  MiniMC::Model::Value_ptr  min = nullptr, max = nullptr;;
                   switch (content.res->getType()->getSize()) {
                     case 1:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), content.res->getType());
-		      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), content.res->getType()->getTypeID ());
+		      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), content.res->getType()->getTypeID ());
                       break;
                     case 2:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), content.res->getType()->getTypeID ());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), content.res->getType()->getTypeID ());
                       break;
                     case 4:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), content.res->getType()->getTypeID ());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), content.res->getType()->getTypeID ());
                       break;
                     case 8:
-                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), content.res->getType());
-                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), content.res->getType());
+                      min = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), content.res->getType()->getTypeID ());
+                      max = prgm.getConstantFactory()->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), content.res->getType()->getTypeID ());
                       break;
                     default:
                       MiniMC::Support::Exception("Shouldnøt get here");
@@ -201,7 +201,7 @@ namespace MiniMC {
                 MiniMC::BV64 it = min;
 
                 while (true) {
-                  auto val = fact->makeIntegerConstant(it, type);
+                  auto val = fact->makeIntegerConstant(it, type->getTypeID ());
                   
                   auto nedge = cfg.makeEdge(from, to);
                   nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(origstr);

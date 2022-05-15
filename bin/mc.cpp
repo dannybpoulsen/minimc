@@ -60,6 +60,7 @@ namespace {
 MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::CPA_ptr& cpa) {
 
   controller.expandNonDet();
+  controller.typecheck ();
   
   MiniMC::Support::Messager messager{};
   messager.message("Initiating Reachability");

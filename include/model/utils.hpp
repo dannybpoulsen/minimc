@@ -107,17 +107,6 @@ namespace MiniMC {
 
       }
 
-      else if constexpr (c == MiniMC::Model::InstructionCode::StackRestore) {
-        iter = content.stackobject;
-
-      } else if constexpr (c == MiniMC::Model::InstructionCode::StackSave) {
-
-      } else if constexpr (c == MiniMC::Model::InstructionCode::MemCpy) {
-        iter = content.src;
-        iter = content.dst;
-        iter = content.size;
-      }
-
       else if constexpr (c == MiniMC::Model::InstructionCode::Uniform) {
         iter = content.min;
         iter = content.max;

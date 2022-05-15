@@ -151,7 +151,7 @@ namespace MiniMC {
       auto& getCFA()  { return cfa; }
       
       auto& getID() const { return id; }
-      auto& getReturnType() { return retType; }
+      auto& getReturnType() const { return retType; }
       Program& getPrgm() const { return prgm; }
 
     private:

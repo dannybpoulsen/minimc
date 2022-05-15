@@ -19,8 +19,8 @@ namespace MiniMC {
             auto cfac = prgm.getConstantFactory();
             auto tfac = prgm.getTypeFactory();
 	    
-            auto tt = cfac->makeIntegerConstant(1, tfac->makeBoolType());
-            auto ff = cfac->makeIntegerConstant(0, tfac->makeBoolType());
+            auto tt = cfac->makeIntegerConstant(1, TypeID::Bool);
+            auto ff = cfac->makeIntegerConstant(0, TypeID::Bool);
 
             BV64 value = 0;
             switch (type->getTypeID()) {

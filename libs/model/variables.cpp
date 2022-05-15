@@ -15,55 +15,97 @@ namespace MiniMC {
       return variables.back();
     }
 
-    const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::BV64 val, const Type_ptr& ty) {
-      assert(ty->isInteger() ||
-             ty->getTypeID() == MiniMC::Model::TypeID::Bool);
+    const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::BV64 val, TypeID ty) {
       Value_ptr retval;
-
-      switch (ty->getTypeID()) {
+      Type_ptr type;
+      switch (ty) {
         case MiniMC::Model::TypeID::Bool:
           retval.reset(new Bool(static_cast<MiniMC::BV8>(val)));
-          break;
+	  type = typefact->makeBoolType ();
+	  break;
         case MiniMC::Model::TypeID::I8:
           retval.reset(new MiniMC::Model::TConstant<MiniMC::BV8>(static_cast<MiniMC::BV8>(val)));
-          break;
+	  type = typefact->makeIntegerType (8);
+	  break;
         case MiniMC::Model::TypeID::I16:
           retval.reset(new MiniMC::Model::TConstant<MiniMC::BV16>(static_cast<MiniMC::BV16>(val)));
-          break;
+	  type = typefact->makeIntegerType (16);
+	  break;
         case MiniMC::Model::TypeID::I32:
           retval.reset(new MiniMC::Model::TConstant<MiniMC::BV32>(static_cast<MiniMC::BV32>(val)));
-          break;
+	  type = typefact->makeIntegerType (32);
+	  break;
         case MiniMC::Model::TypeID::I64:
           retval.reset(new MiniMC::Model::TConstant<MiniMC::BV64>(static_cast<MiniMC::BV64>(val)));
-          break;
-        default:
-          throw MiniMC::Support::Exception("Error");
+	  type = typefact->makeIntegerType (64);
+	  break;
+      default:
+	throw MiniMC::Support::Exception("Error");
       }
-      retval->setType(ty);
+      retval->setType(type);
       return retval;
     }
 
-    const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id, MiniMC::offset_t block) {
-      auto pptr = MiniMC::Support::makeLocationPointer(id, block);
-      return Value_ptr(new MiniMC::Model::TConstant<pointer_t>(pptr));
-    }
 
     const Value_ptr ConstantFactory64::makeFunctionPointer(MiniMC::func_t id) {
       auto pptr = MiniMC::Support::makeFunctionPointer(id);
-      return Value_ptr(new MiniMC::Model::TConstant<pointer_t>(pptr));
+      Value_ptr v(new MiniMC::Model::TConstant<pointer_t>(pptr));
+      v->setType (typefact->makePointerType ());
+      return v;
     }
 
+    const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id,MiniMC::base_t lid) {
+      auto pptr = MiniMC::Support::makeLocationPointer(id,lid);
+      Value_ptr v(new MiniMC::Model::TConstant<pointer_t>(pptr));
+      v->setType (typefact->makePointerType ());
+      return v;
+    }
+    
+    
     const Value_ptr ConstantFactory64::makePointer(MiniMC::pointer_t pptr) {
-      return Value_ptr(new MiniMC::Model::TConstant<pointer_t>(pptr));
+      Value_ptr v (new MiniMC::Model::TConstant<pointer_t>(pptr));
+      v->setType (typefact->makePointerType ());
+      return v;
     }
 
-    const Value_ptr ConstantFactory64::makeUndef(const Type_ptr& ty) {
+    const Value_ptr ConstantFactory64::makeUndef(TypeID ty,std::size_t size) {
       Value_ptr val(new MiniMC::Model::Undef());
-      val->setType(ty);
+      Type_ptr type;
+
+      switch (ty) {
+      case TypeID::I8:
+	type = typefact->makeIntegerType (8);
+	break;
+      case TypeID::I16:
+	type = typefact->makeIntegerType (16);
+	break;
+      case TypeID::I32:
+	type = typefact->makeIntegerType (32);
+	break;
+      case TypeID::I64:
+	type = typefact->makeIntegerType (64);
+	break;
+      case TypeID::Bool:
+	type = typefact->makeBoolType ();
+	break;
+      case TypeID::Pointer:
+	type = typefact->makePointerType ();
+	break;
+      case TypeID::Struct:
+	type = typefact->makeStructType (size);
+	break;
+      case TypeID::Array:
+	type = typefact->makeArrayType (size);
+	break;
+      default:
+	throw MiniMC::Support::Exception ("Errror");
+      }
+      
+      val->setType(type);
       return val;
     }
 
-    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp, bool) {
+    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp, bool isArray) {
       std::size_t size = 0;
       for (auto& v : inp) {
         size += v->getType()->getSize();
@@ -108,8 +150,16 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
         }
       }
-      return Value_ptr(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::BV8*>(data.get()), size));
-    }
+      Type_ptr type;
+      if (isArray)
+	type = typefact->makeArrayType (size);
+      else
+	type = typefact->makeStructType (size);
+      
+      Value_ptr v(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::BV8*>(data.get()), size));
+      v->setType (type);
+      return v;
+  }
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
     Register::Register(const std::string& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),

@@ -144,7 +144,9 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   po::options_description general("General");
   general.add_options ()
     ("config", boost::program_options::value<std::string>(), "Read configuration from config file")
-    ("help", boost::program_options::bool_switch(&help), "Show help");
+    ("help", boost::program_options::bool_switch(&help), "Show help")
+    ("outputfile", boost::program_options::value<std::string> (&opt.outputname), "Output verified program to file");
+    
   general.add(modificationOptions (opt));
   general.add(loadOptions (opt));
   general.add(smtOptions (opt));

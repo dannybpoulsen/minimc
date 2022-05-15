@@ -84,7 +84,7 @@ namespace MiniMC {
       Undef();
       virtual bool isUndef() const override { return true; }
       virtual std::ostream& output(std::ostream& os) const override {
-        return os << "Undef";
+        return os << "<Undef " << *getType () << ">";
       }
     };
 
@@ -116,12 +116,7 @@ namespace MiniMC {
       }
 
       std::ostream& output(std::ostream& os) const override {
-        os << value << std::endl;
-        if (getType())
-          os << *getType();
-        else
-          os << "??";
-        return os << " >";
+        return os << "<" << value << " " << *getType () <<">";;
       }
 
     private:
@@ -209,13 +204,7 @@ namespace MiniMC {
       Register(const std::string& name, RegisterDescr* owner);
       const std::string& getName() const { return name; }
       virtual std::ostream& output(std::ostream& os) const {
-        os << " < " << getName() << " ";
-        if (getType())
-          os << *getType();
-        else {
-          os << " ___ ";
-        }
-        return os << " >";
+        return os << "<" << getName() << " " << *getType ()  << ">";
       }
 
       bool isRegister() const override { return true; }
@@ -257,29 +246,33 @@ namespace MiniMC {
 
     class ConstantFactory {
     public:
-      ConstantFactory() {}
+      ConstantFactory(TypeFactory_ptr tfac) : typefact(tfac) {}
       virtual ~ConstantFactory() {}
 
       using aggr_input = std::vector<Constant_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
-      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, const Type_ptr&) = 0;
-      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t) = 0;
+      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
       virtual const Value_ptr makePointer(MiniMC::pointer_t) = 0;
-      virtual const Value_ptr makeUndef(const Type_ptr&) = 0;
+      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) = 0;
+      virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
+    protected:
+      TypeFactory_ptr typefact;
     };
 
     class ConstantFactory64 : public ConstantFactory {
     public:
-      ConstantFactory64() {}
+      ConstantFactory64(TypeFactory_ptr tfac) : ConstantFactory(tfac) {}
       virtual ~ConstantFactory64() {}
-      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, const Type_ptr&);
+      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID);
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool);
-      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::offset_t);
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);
+      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t);
+      
       virtual const Value_ptr makePointer(MiniMC::pointer_t);
-      virtual const Value_ptr makeUndef(const Type_ptr&);
+      virtual const Value_ptr makeUndef(TypeID,std::size_t = 0);
     };
+    
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 
     struct VariablePtrIndexer {

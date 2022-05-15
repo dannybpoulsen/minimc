@@ -5,6 +5,8 @@
 
 namespace MiniMC {
   namespace Support {
+    
+    
     class Localiser {
     public:
       Localiser(const std::string& str) : formatter(str) {}

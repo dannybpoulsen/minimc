@@ -41,11 +41,10 @@ namespace MiniMC {
     void translateAndAddInstruction<llvm::Instruction::Alloca>(llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       auto alinst = llvm::dyn_cast<llvm::AllocaInst>(inst);
       auto llalltype = alinst->getAllocatedType();
-      auto outalltype = tt.getType(llalltype);
+      auto outallsize = tt.getSizeInBytes(llalltype);
       auto res = findValue(inst, values, tt, cfac);
-      auto type = tt.tfac->makeIntegerType(64);
-      auto size = cfac->makeIntegerConstant(outalltype->getSize(), type);
-      auto skipsize = cfac->makeIntegerConstant(1, type);
+      auto size = cfac->makeIntegerConstant(outallsize, MiniMC::Model::TypeID::I64);
+      auto skipsize = cfac->makeIntegerConstant(1, MiniMC::Model::TypeID::I64);
       
       instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = res,
 	    .op1 = tt.sp}));
@@ -89,7 +88,7 @@ namespace MiniMC {
     }
 
     template <unsigned>
-    void translateIntrinsicCall(llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
+    void translateIntrinsicCall(llvm::Instruction*, Val2ValMap&, std::vector<MiniMC::Model::Instruction>&, Types&, MiniMC::Model::ConstantFactory_ptr&) {
       throw MiniMC::Support::Exception("Unsupported Intrinsic");
     }
 
@@ -105,20 +104,6 @@ namespace MiniMC {
     void translateIntrinsicCall<llvm::Intrinsic::stacksave>(llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
       assert(inst->getType()->isPointerTy());
       instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = findValue(inst, values, tt, cfac),.op1 = tt.sp}));
-    }
-
-    template <>
-    void translateIntrinsicCall<llvm::Intrinsic::memcpy>(llvm::Instruction* inst, Val2ValMap& values, std::vector<MiniMC::Model::Instruction>& instr, Types& tt, MiniMC::Model::ConstantFactory_ptr& cfac) {
-      auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
-      assert(cinst->arg_size() == 4);
-      auto arg = cinst->arg_begin();
-      auto target = findValue((*arg++), values, tt, cfac);
-      auto source = findValue((*arg++), values, tt, cfac);
-      auto size = findValue((*arg++), values, tt, cfac);
-      
-      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::MemCpy>({.dst = target,
-                                                                                                .src = source,
-                                                                                                .size = size}));
     }
 
 #define SUPPORTEDINTRIN            \
@@ -169,20 +154,20 @@ namespace MiniMC {
 
           switch (bitwidth) {
             case 8:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
               break;
             case 16:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
               break;
             case 32:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
               break;
             case 64:
-              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), type);
-              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), type);
+              min = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
+              max = cfac->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
               break;
             default:
               throw MiniMC::Support::Exception("Error");
@@ -248,8 +233,8 @@ namespace MiniMC {
         for (auto i : extractinst->getIndices()) {
           skip += calcSkip(cur, i, tt);
         }
-        auto type = tt.tfac->makeIntegerType(32);
-        auto skipee = cfac->makeIntegerConstant(skip, type);
+
+        auto skipee = cfac->makeIntegerConstant(skip, MiniMC::Model::TypeID::I32);
         auto res = findValue(inst, values, tt, cfac);
 
         instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::ExtractValue>({
@@ -275,8 +260,8 @@ namespace MiniMC {
       for (auto i : insertinst->getIndices()) {
 	skip += calcSkip(cur, i, tt);
       }
-      auto type = tt.tfac->makeIntegerType(32);
-      auto skipee = cfac->makeIntegerConstant(skip, type);
+
+      auto skipee = cfac->makeIntegerConstant(skip, MiniMC::Model::TypeID::I32);
 
       instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::InsertValue>({.res = findValue(inst, values, tt, cfac),
 	    .aggregate = aggre,
@@ -297,16 +282,15 @@ namespace MiniMC {
       if (gep->getNumIndices() == 1) {
         nbSkips = findValue(gep->getOperand(1), values, tt, cfac);
         auto size = tt.getSizeInBytes(source);
-        skipsize = cfac->makeIntegerConstant(size, nbSkips->getType());
+        skipsize = cfac->makeIntegerConstant(size, nbSkips->getType()->getTypeID ());
 
       } else {
-        auto i64 = tt.tfac->makeIntegerType(64);
-        auto one = cfac->makeIntegerConstant(1, i64);
+        auto one = cfac->makeIntegerConstant(1, MiniMC::Model::TypeID::I64);
 
         if (source->isArrayTy()) {
-          auto elemType = tt.getType(static_cast<llvm::ArrayType*>(source)->getElementType());
+          auto elemSize = tt.getSizeInBytes(static_cast<llvm::ArrayType*>(source)->getElementType());
           nbSkips = findValue(gep->getOperand(2), values, tt, cfac);
-          skipsize = cfac->makeIntegerConstant(elemType->getSize(), nbSkips->getType());
+          skipsize = cfac->makeIntegerConstant(elemSize, nbSkips->getType()->getTypeID());
         } else if (source->isStructTy()) {
           auto strucTy = static_cast<llvm::StructType*>(source);
           size_t size = 0;
@@ -316,7 +300,7 @@ namespace MiniMC {
           for (size_t i = 0; i < t; ++i) {
             size += tt.getSizeInBytes(strucTy->getElementType(i));
           }
-          skipsize = cfac->makeIntegerConstant(size, i64);
+          skipsize = cfac->makeIntegerConstant(size, MiniMC::Model::TypeID::I64);
           nbSkips = one;
         }
       }

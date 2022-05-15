@@ -54,12 +54,12 @@ namespace MiniMC {
 
       auto cst_undef = llvm::dyn_cast<llvm::UndefValue>(val);
       if (cst_undef) {
-        auto type = tt.getType(constant->getType());
+        auto type = tt.getTypeID(constant->getType());
         return fac->makeUndef(type);
       } else if (ltype->isIntegerTy()) {
         llvm::ConstantInt* csti = llvm::dyn_cast<llvm::ConstantInt>(constant);
         if (csti) {
-          auto type = tt.getType(csti->getType());
+          auto type = tt.getTypeID(csti->getType());
           auto cst = fac->makeIntegerConstant(csti->getZExtValue(), type);
           return cst;
         }
@@ -74,9 +74,8 @@ namespace MiniMC {
             assert(nconstant->isConstant());
             vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
           }
-          auto type = tt.getType(constant->getType());
           auto cst = fac->makeAggregateConstant(vals, ltype->isArrayTy());
-          cst->setType(type);
+          
           return cst;
         }
 
@@ -89,9 +88,7 @@ namespace MiniMC {
             auto nconstant = makeConstant(elem, tt, fac, map);
             const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
           }
-          auto type = tt.getType(constant->getType());
           auto cst = fac->makeAggregateConstant(const_vals, ltype->isArrayTy());
-          cst->setType(type);
           return cst;
         }
         // assert(false && "FAil");
@@ -132,7 +129,6 @@ namespace MiniMC {
       return std::static_pointer_cast<MiniMC::Model::Register>(values[val]);
     }
 
-    MiniMC::Model::Type_ptr getType(llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory);
     BV32 computeSizeInBytes(llvm::Type* ty, MiniMC::Model::TypeFactory_ptr& tfactory) {
       if (ty->isArrayTy()) {
         return ty->getArrayNumElements() * computeSizeInBytes(ty->getArrayElementType(), tfactory);
@@ -145,43 +141,79 @@ namespace MiniMC {
           size += computeSizeInBytes(it->getElementType(i), tfactory);
         }
         return size;
-      } else {
-        return getType(ty, tfactory)->getSize();
+      }
+
+      else if (ty->isIntegerTy ()) {
+	return tfactory->makeIntegerType (ty->getIntegerBitWidth())->getSize ();
+      }
+      else if (ty->isPointerTy ()) {
+	return tfactory->makePointerType ()->getSize ();
       }
       throw MiniMC::Support::Exception("Can't calculate size of type");
     }
 
-    MiniMC::Model::Type_ptr getType(llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory) {
+    MiniMC::Model::TypeID getTypeID(llvm::Type* type) {
       if (type->isVoidTy()) {
-        return tfactory->makeVoidType();
+        return MiniMC::Model::TypeID::Void;
       } else if (type->isPointerTy()) {
-        return tfactory->makePointerType();
+        return MiniMC::Model::TypeID::Pointer;
       }
 
       else if (type->isIntegerTy()) {
         unsigned bits = type->getIntegerBitWidth();
         if (bits == 1) {
-          return tfactory->makeBoolType();
+          return MiniMC::Model::TypeID::Bool;
         } else if (bits <= 8)
-          return tfactory->makeIntegerType(8);
+          return MiniMC::Model::TypeID::I8;
         else if (bits <= 16)
-          return tfactory->makeIntegerType(16);
+          return MiniMC::Model::TypeID::I16;
         else if (bits <= 32)
-          return tfactory->makeIntegerType(32);
+          return MiniMC::Model::TypeID::I32;
         else if (bits <= 64)
-          return tfactory->makeIntegerType(64);
+          return MiniMC::Model::TypeID::I64;
       } else if (type->isStructTy()) {
-        return tfactory->makeStructType(computeSizeInBytes(type, tfactory));
+        return MiniMC::Model::TypeID::Struct;
       }
 
       else if (type->isArrayTy()) {
-        return tfactory->makeArrayType(computeSizeInBytes(type, tfactory));
+        return MiniMC::Model::TypeID::Array;
       }
 
       throw MiniMC::Support::Exception("Unknown Type");
-      return nullptr;
     }
 
+    MiniMC::Model::Type_ptr getType (llvm::Type* type, MiniMC::Model::TypeFactory_ptr& tfactory) {
+      auto type_id = getTypeID (type); 
+      switch  (type_id) {
+      case MiniMC::Model::TypeID::Bool:
+	return tfactory->makeBoolType ();
+      case MiniMC::Model::TypeID::I8:
+	return tfactory->makeIntegerType (8);
+      case MiniMC::Model::TypeID::I16:
+	return tfactory->makeIntegerType (16);
+      case MiniMC::Model::TypeID::I32:
+	return tfactory->makeIntegerType (32);
+      case MiniMC::Model::TypeID::I64:
+	return tfactory->makeIntegerType (64);
+      case MiniMC::Model::TypeID::Pointer:
+	return tfactory->makePointerType ();
+      case MiniMC::Model::TypeID::Array:
+	return tfactory->makeArrayType (computeSizeInBytes (type,tfactory));
+      case MiniMC::Model::TypeID::Struct:
+	return tfactory->makeStructType (computeSizeInBytes (type,tfactory));
+      case MiniMC::Model::TypeID::Void:
+	  return tfactory->makeVoidType ();
+      case MiniMC::Model::TypeID::Float:
+	  return tfactory->makeFloatType ();
+      case MiniMC::Model::TypeID::Double:
+	  return tfactory->makeDoubleType ();
+	  
+      default:
+	throw MiniMC::Support::Exception ("Unsupported type");
+      }
+      
+    }
+    
     struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager&) {
         for (auto& Arg : F.args())
@@ -325,12 +357,9 @@ namespace MiniMC {
         }
 
         for (auto& g : F.getGlobalList()) {
-          auto lltype = g.getType();
-          auto type = getType(lltype, tfactory);
-          auto pointTy = getType(g.getValueType(), tfactory);
+          auto pointTySize = computeSizeInBytes(g.getValueType(), tfactory);
 
-          auto gvar = cfactory->makePointer(prgm->getHeapLayout().addBlock(pointTy->getSize()));
-          gvar->setType(type);
+          auto gvar = cfactory->makePointer(prgm->getHeapLayout().addBlock(pointTySize));
           values.emplace(&g, gvar);
           if (g.hasInitializer()) {
             auto val = findValue(g.getInitializer(), values, tt, cfactory);
@@ -496,7 +525,7 @@ namespace MiniMC {
       void pickVariables(const llvm::Function& func, MiniMC::Model::RegisterDescr& stack, Inserter in) {
         for (auto itt = func.arg_begin(); itt != func.arg_end(); itt++) {
           auto lltype = itt->getType();
-          auto type = getType(lltype, tfactory);
+          auto type = getType (lltype, tfactory);
           in = makeVariable(itt, itt->getName().str(), type, stack, values);
         }
 
@@ -518,7 +547,7 @@ namespace MiniMC {
         if (lltype->isLabelTy() ||
             lltype->isVoidTy())
           return;
-        auto type = getType(op->getType(), tfactory);
+        auto type = getType (op->getType(), tfactory);
         if (oop) {
           return;
         } else {
@@ -650,15 +679,17 @@ namespace MiniMC {
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack{name};
       auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
+      funcpointer->setType (program.getTypeFactory ()->makePointerType ());
       auto init = cfg.makeLocation(MiniMC::Model::LocationInfo("init", 0, *source_loc));
       auto end = cfg.makeLocation(MiniMC::Model::LocationInfo("end", 0, *source_loc));
-
+      
       cfg.setInitial(init);
       auto edge = cfg.makeEdge(init, end);
 
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
       MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makePointer(program.getHeapLayout().addBlock(stacksize));
+      sp->setType (program.getTypeFactory ()->makePointerType ());
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
@@ -668,7 +699,7 @@ namespace MiniMC {
       edge->setAttribute<MiniMC::Model::AttributeType::Instructions>(MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
                                                                                                                                                                                .function = funcpointer,
                                                                                                                                                                                .params = params})}));
-
+      
       return program.addFunction(name, {},
                                  program.getTypeFactory()->makeVoidType(),
                                  std::move(vstack),

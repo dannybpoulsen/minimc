@@ -1,5 +1,6 @@
 #include "loaders/loader.hpp"
 #include "model/controller.hpp"
+#include "model/output.hpp"
 #include "plugin.hpp"
 #include "support/localisation.hpp"
 #include "support/smt.hpp"
@@ -8,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <fstream>
 
 #include "cpa/location.hpp"
 #ifdef MINIMC_SYMBOLIC
@@ -34,16 +36,17 @@ int main(int argc, char* argv[]) {
   if (ok) {
   // Load Program
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Loaders::LoadResult loadresult= MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM>(options.load.inputname, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt{.tfactory = tfac,.cfactory = cfac});
-    
+  
   
   MiniMC::Model::Controller control(*loadresult.program,loadresult.entrycreator);
   control.boolCasts();
   control.makeLoopAllLocations();
   control.createAssertViolateLocations();
   control.lowerGuards();
-
+  MiniMC::Model::writeProgram (std::cout,*control.getProgram ());
+	
   try {
     if (options.load.tasks.size()) {
       for (std::string& s : options.load.tasks) {
@@ -60,7 +63,13 @@ int main(int argc, char* argv[]) {
       return -1;
     }
     if (options.command) {
-      return static_cast<int>(options.command->getFunction()(control,options.cpa));
+      auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
+      if (options.outputname != "") {
+	std::fstream stream;
+	stream.open (options.outputname);
+	MiniMC::Model::writeProgram (std::cout,*control.getProgram ());
+      }
+      return res;
     }
     
     else {

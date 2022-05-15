@@ -52,7 +52,7 @@ attributes #0 = { noinline nounwind optnone sspstrong uwtable "correctly-rounded
 int main () {
   //Load Program
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64> ();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> ();
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64> (tfac);
   MiniMC::Loaders::LoadResult result = MiniMC::Loaders::loadFromString<MiniMC::Loaders::Type::LLVM> (ir, typename MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt {.tfactory = tfac,														   .cfactory =cfac}
     );
   

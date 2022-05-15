@@ -1,15 +1,13 @@
-add_library (model STATIC types.cpp variables.cpp program.cpp cfg.cpp instructions.cpp controller.cpp)
+add_library (model STATIC types.cpp variables.cpp program.cpp cfg.cpp instructions.cpp controller.cpp output.cpp)
 target_include_directories (model PUBLIC ${PROJECT_SOURCE_DIR}/include )
 target_link_libraries (model  util support )
 
-add_subdirectory(loaders)
-#add_subdirectory(savers)
 add_subdirectory (analysis)
 add_subdirectory (checkers)
 add_subdirectory (modifications)
 
 
-target_link_libraries (model checkers loader modifications modelanalysis )
+target_link_libraries (model checkers modifications modelanalysis )
 
 	
 	
