@@ -38,7 +38,7 @@ namespace MiniMC {
 	 * deleting edges. This 
 	 *
 	 */
-    class CFA : public std::enable_shared_from_this<CFA> {
+    class CFA  {
     public:
       CFA () {}
       CFA (const CFA& ) = delete;

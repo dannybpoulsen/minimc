@@ -10,10 +10,10 @@ namespace MiniMC {
     namespace Modifications {
 
       template <class LocInserter>
-      void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::Program& ) {
+      void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::LocationInfoCreator& locInf ) {
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
-        auto deadLoc = cfg.makeLocation(MiniMC::Model::LocationInfo("DEAD", 0, *source_loc));
+        auto deadLoc = cfg.makeLocation(locInf.make ("DEAD", 0, *source_loc));
         deadLoc->getInfo().set<MiniMC::Model::Attributes::UnrollFailed>();
         //linserter =deadLoc;
         for (size_t i = 0; i < amount; i++) {
@@ -21,9 +21,9 @@ namespace MiniMC {
           str << "L" << i;
           ReplaceMap<MiniMC::Model::Location> map;
           auto inserter = std::inserter(map, map.begin());
-          copyLocation(cfg, loop->getHeader(), inserter, linserter, str.str());
+          copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf);
 
-          std::for_each(loop->body_begin(), loop->body_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, str.str()); });
+          std::for_each(loop->body_begin(), loop->body_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, locInf); });
           unrolledLocations.push_back(map);
         }
 
@@ -54,7 +54,7 @@ namespace MiniMC {
       bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func,std::size_t maxAmount) {
         MiniMC::Support::getMessager().message(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getName()));
         auto& cfg = func->getCFA();
-
+	MiniMC::Model::LocationInfoCreator locc {func->getName(),&func->getRegisterDescr ()};
         auto loopinfo = MiniMC::Model::Analysis::createLoopInfo(cfg);
         std::vector<MiniMC::Model::Analysis::Loop*> loops;
         loopinfo.enumerate_loops(std::back_inserter(loops));
@@ -63,13 +63,13 @@ namespace MiniMC {
           auto parent = l->getParent();
           if (parent) {
             
-            unrollLoop(cfg, l, maxAmount, parent->body_insert(), func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, parent->body_insert(), locc);
             parent->finalise();
           } else {
             struct Dummy {
               void operator=(MiniMC::Model::Location_ptr) {}
             } dummy;
-            unrollLoop(cfg, l, maxAmount, dummy, func->getPrgm());
+            unrollLoop(cfg, l, maxAmount, dummy, locc);
           }
         }
         return true;

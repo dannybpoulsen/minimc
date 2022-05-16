@@ -63,7 +63,7 @@ namespace MiniMC {
 
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-          MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
+          MiniMC::Model::LocationInfoCreator locinfoc(F->getName(),&F->getRegisterDescr ());
           MiniMC::Support::WorkingList<MiniMC::Model::Location_ptr> wlist;
           auto inserter = wlist.inserter();
           auto& cfg = F->getCFA();
@@ -182,7 +182,7 @@ namespace MiniMC {
       struct EnsureEdgesOnlyHasOne : public MiniMC::Support::Sink<MiniMC::Model::Program> {
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-          MiniMC::Model::LocationInfoCreator locinfoc(F->getName());
+          MiniMC::Model::LocationInfoCreator locinfoc(F->getName(),&F->getRegisterDescr ());
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_wptr> wlist;
           auto inserter = wlist.inserter();
           auto& cfg = F->getCFA();

@@ -53,8 +53,7 @@ namespace MiniMC {
       }
 
       template <class LocInsert, class LocInserter>
-      void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, const std::string pref = "") {
-        MiniMC::Model::LocationInfoCreator linfo(pref);
+      void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, MiniMC::Model::LocationInfoCreator& linfo) {
         auto nloc = to.makeLocation(linfo.make(loc->getInfo()));
         inserter = std::make_pair(loc.get(), nloc);
         linserter = nloc;

@@ -36,13 +36,17 @@ namespace MiniMC {
 			GoalFunction,
 			FilterFunction = DefaultFilter
 			);
+
+
+	MiniMC::CPA::State_ptr foundState () const {return found;}
+	
 	Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
 	
       private:
 	Observable<Progress> progress_indicator;
 	MiniMC::CPA::Transferer_ptr transfer;
 	MiniMC::CPA::Joiner_ptr joiner;
-	
+	MiniMC::CPA::State_ptr found;
       };
 
 

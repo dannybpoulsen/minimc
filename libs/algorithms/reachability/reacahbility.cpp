@@ -42,6 +42,7 @@ namespace MiniMC {
 	  waiting.pop_back ();
 
 	  if (goal(searchee)) {
+	    found = searchee;
 	    return Verdict::Found;
 	  }
 	  auto successors = generator.generate (searchee);

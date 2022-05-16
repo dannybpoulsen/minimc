@@ -89,6 +89,10 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
   
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Found Violation").format ());
+
+    auto foundState = reach.foundState ();
+  
+    
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Support::ExitCodes::AllGood;
     else

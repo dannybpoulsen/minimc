@@ -394,11 +394,12 @@ namespace MiniMC {
         Types tt;
         tt.tfac = tfactory;
         std::string fname = F.getName().str();
-        MiniMC::Model::LocationInfoCreator locinfoc(fname);
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
         MiniMC::Model::RegisterDescr variablestack{fname};
-        tt.stack = &variablestack;
+	MiniMC::Model::LocationInfoCreator locinfoc(fname,&variablestack);
+        
+	tt.stack = &variablestack;
         tt.sp = variablestack.addRegister("__minimc.sp", tfactory->makePointerType());
         using inserter = std::back_insert_iterator<std::vector<MiniMC::Model::Register_ptr>>;
         params.push_back(tt.sp);
@@ -678,10 +679,12 @@ namespace MiniMC {
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack{name};
+      MiniMC::Model::LocationInfoCreator locinf (function->getName(),&vstack);
+      
       auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ()->makePointerType ());
-      auto init = cfg.makeLocation(MiniMC::Model::LocationInfo("init", 0, *source_loc));
-      auto end = cfg.makeLocation(MiniMC::Model::LocationInfo("end", 0, *source_loc));
+      auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
+      auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
       
       cfg.setInitial(init);
       auto edge = cfg.makeEdge(init, end);
