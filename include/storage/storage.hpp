@@ -12,22 +12,22 @@ namespace MiniMC {
   namespace Storage {
     class Store  {
     public:
-      virtual MiniMC::CPA::State_ptr insert (const MiniMC::CPA::State_ptr& s) = 0;
+      virtual bool insert (const MiniMC::CPA::AnalysisState& s) = 0;
       virtual std::size_t size () const =  0;
       
     };
 
     class HashStorage : public Store {
     public:
-      MiniMC::CPA::State_ptr insert (const MiniMC::CPA::State_ptr& s)  override{
-	auto hash = std::hash<MiniMC::CPA::State>{}(*s);
+      bool insert (const MiniMC::CPA::AnalysisState& s)  override{
+	auto hash = std::hash<MiniMC::CPA::AnalysisState>{}(s);
 	if (stored.find (hash)==stored.end ()) {
 	  
 	  stored.insert (hash);
-	  return s;
+	  return true;
 	}
 	else {
-	  return nullptr;
+	  return false;
 	}
       }
       std::size_t size () const override {return stored.size ();};

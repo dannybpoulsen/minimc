@@ -46,7 +46,7 @@ namespace MiniMC {
 	SMTLib::Context& context;
       };
       
-      class State : public MiniMC::CPA::State
+      class State : public MiniMC::CPA::DataState
       {
       public:
 	State (ActivationStack&& vals,  MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula,SMTLib::Context& ctxt) : call_stack(std::move(vals)),
@@ -64,7 +64,7 @@ namespace MiniMC {
 	    _hash = ++nextHash;
 	  return _hash;
 	}
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return std::make_shared<State>(*this); }
+        virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return std::make_shared<State>(*this); }
         
         
         const Solver_ptr getConcretizer() const override;

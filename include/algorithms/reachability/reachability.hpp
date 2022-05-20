@@ -12,10 +12,10 @@ namespace MiniMC {
 	Keep,
 	Discard
       };
-      using GoalFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
-      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::State_ptr&)>;
+      using GoalFunction = std::function<bool(const MiniMC::CPA::AnalysisState&)>;
+      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::AnalysisState&)>;
 
-      StateStatus DefaultFilter (const MiniMC::CPA::State_ptr&);; 
+      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState&);; 
       
       enum class Verdict {
 	Found,
@@ -29,26 +29,22 @@ namespace MiniMC {
 	  std::size_t waiting{0};
 	};
 	
-	Reachability (MiniMC::CPA::Transferer_ptr transfer,
-		      MiniMC::CPA::Joiner_ptr joiner) : transfer(transfer), joiner(joiner)  {}
+	Reachability (MiniMC::CPA::AnalysisTransfer transfer) : transfer(transfer)  {}
 	
-	Verdict search (const MiniMC::CPA::State_ptr&,
+	Verdict search (const MiniMC::CPA::AnalysisState&,
 			GoalFunction,
 			FilterFunction = DefaultFilter
 			);
 
 
-	MiniMC::CPA::State_ptr foundState () const {return found;}
-	
 	Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
 	
       private:
 	Observable<Progress> progress_indicator;
-	MiniMC::CPA::Transferer_ptr transfer;
+	MiniMC::CPA::AnalysisTransfer transfer;
 	MiniMC::CPA::Joiner_ptr joiner;
-	MiniMC::CPA::State_ptr found;
-      };
-
+};
+      
 
       inline std::ostream& operator<< (std::ostream& os, const Reachability::Progress& prgs) {
 	return os << "Passed: " << prgs.passed << " Waiting:" << prgs.waiting;

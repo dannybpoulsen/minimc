@@ -50,7 +50,7 @@ namespace MiniMC {
 	
       };
       
-      class State : public MiniMC::CPA::State {
+      class State : public MiniMC::CPA::DataState {
       public:
         State( const std::vector<ActivationStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
@@ -72,7 +72,7 @@ namespace MiniMC {
 	  return hash;
 	}
 	
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override {
+        virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override {
 
 	  std::vector<ActivationStack> proc_vars2{proc_vars};
 	  MiniMC::VMT::Concrete::Memory heap2(heap);
@@ -94,7 +94,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::Memory heap;
       };
 
-      MiniMC::CPA::State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
+      MiniMC::CPA::CommonState_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
 
 	MiniMC::VMT::Concrete::Memory heap;
 	heap.createHeapLayout (descr.getHeap ());
@@ -124,7 +124,7 @@ namespace MiniMC {
         return state;
       }
 
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const MiniMC::CPA::CommonState_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
 	auto resstate = s->copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;

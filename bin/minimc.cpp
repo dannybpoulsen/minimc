@@ -15,7 +15,6 @@
 #ifdef MINIMC_SYMBOLIC
 #include "cpa/pathformula.hpp"
 #endif
-#include "cpa/compound.hpp"
 #include "cpa/concrete.hpp"
 #include "options.hpp"
 

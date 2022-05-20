@@ -46,7 +46,7 @@ namespace MiniMC {
 namespace MiniMC {
   namespace CPA {
     namespace Location {
-      class State : public MiniMC::CPA::State,
+      class State : public MiniMC::CPA::CFAState,
 		    private MiniMC::CPA::LocationInfo
       {
       public:
@@ -71,10 +71,10 @@ namespace MiniMC {
 	}
 
 	virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy() const { return std::make_shared<State>(*this); }
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }
+        virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return locations.size(); }
-        MiniMC::Model::Location_ptr getLocation(size_t i) const override { return locations[i].cur()->shared_from_this(); }
+        MiniMC::Model::Location_ptr getLocation(size_t i) const override { return locations.at(i).cur()->shared_from_this(); }
         void setLocation(size_t i, MiniMC::Model::Location* l) { 
 	  locations[i].setLocation(l);
         }
@@ -112,7 +112,7 @@ namespace MiniMC {
         std::vector<bool> ready;
       };
 
-      MiniMC::CPA::State_ptr MiniMC::CPA::Location::Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id id) {
+      MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id id) {
         auto state = static_cast<const State*>(s.get());
         assert(id < state->nbOfProcesses());
         if (edge->getFrom() == state->getLocation(id)) {
@@ -143,7 +143,7 @@ namespace MiniMC {
         return nullptr;
       }
 
-      State_ptr MiniMC::CPA::Location::StateQuery::makeInitialState(const InitialiseDescr& p) {
+      CommonState_ptr MiniMC::CPA::Location::StateQuery::makeInitialState(const InitialiseDescr& p) {
         std::vector<LocationState> locs;
         for (auto& f : p.getEntries()) {
           locs.emplace_back();

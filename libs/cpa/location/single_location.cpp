@@ -7,7 +7,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace SingleLocation {
-      class State : public MiniMC::CPA::State,
+      class State : public MiniMC::CPA::CFAState,
 		    private MiniMC::CPA::LocationInfo
       {
       public:
@@ -25,7 +25,7 @@ namespace MiniMC {
           return hash;;
         }
         virtual std::shared_ptr<MiniMC::CPA::SingleLocation::State> lcopy() const { return std::make_shared<State>(*this); }
-        virtual std::shared_ptr<MiniMC::CPA::State> copy() const override { return lcopy(); }
+        virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return 1; }
         MiniMC::Model::Location_ptr getLocation(proc_id ) const override {
@@ -58,7 +58,7 @@ namespace MiniMC {
         bool ready;
       };
 
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id) {
         auto state = static_cast<const MiniMC::CPA::SingleLocation::State*>(s.get());
         
         if (edge->getFrom() == state->getLocation(0)) {
@@ -83,7 +83,7 @@ namespace MiniMC {
         return nullptr;
       }
 
-      State_ptr StateQuery::makeInitialState(const InitialiseDescr& p) {
+      CommonState_ptr StateQuery::makeInitialState(const InitialiseDescr& p) {
         std::vector<MiniMC::Model::Location_ptr> locs;
         for (auto& f : p.getEntries()) {
           locs.push_back(f->getCFA().getInitialLocation());
@@ -92,7 +92,7 @@ namespace MiniMC {
         return std::make_shared<State>(locs[0]);
       }
 
-      State_ptr Joiner::doJoin(const State_ptr& l, const State_ptr& r) {
+      CommonState_ptr Joiner::doJoin(const CommonState_ptr& l, const CommonState_ptr& r) {
         auto lstate = std::static_pointer_cast<const State>(l);
         auto rstate = std::static_pointer_cast<const State>(r);
         return lstate->join(*rstate);

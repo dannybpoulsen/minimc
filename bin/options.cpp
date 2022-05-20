@@ -6,7 +6,7 @@
 #ifdef MINIMC_SYMBOLIC
 #include "cpa/pathformula.hpp"
 #endif
-#include "cpa/compound.hpp"
+#include "cpa/concrete.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -102,28 +102,21 @@ po::options_description cpaOptions (std::vector<int>& select) {
   return general;
 }
 
-MiniMC::CPA::CPA_ptr createUserDefinedCPA(std::vector<int> selected,const SetupOptions& opt) {
-  std::vector<MiniMC::CPA::CPA_ptr> cpas;
-  //always add LocationTracker
-  cpas.push_back (std::make_shared<MiniMC::CPA::Location::CPA> ());
+MiniMC::CPA::AnalysisBuilder createUserDefinedCPA(std::vector<int> selected,const SetupOptions& opt) {
+  MiniMC::CPA::AnalysisBuilder builder{std::make_shared<MiniMC::CPA::Location::CPA> ()};
   
   for (auto& sel : selected) {
     switch (sel) {
     case 3:
-      cpas.push_back (std::make_shared<MiniMC::CPA::PathFormula::CPA>(opt.smt.selsmt));
+      builder.addDataCPA(std::make_shared<MiniMC::CPA::PathFormula::CPA>(opt.smt.selsmt));
       break;
     case 2:
-      cpas.push_back (std::make_shared<MiniMC::CPA::Concrete::CPA>());
+      builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA>());
       break;
-   
+      
     }
   }
-  
-  if (cpas.size () == 1) {
-    return std::move (cpas.at(0));
-  }
-  else
-    return std::make_shared<MiniMC::CPA::Compounds::CPA> (std::move(cpas));
+  return builder;
   
 }
 

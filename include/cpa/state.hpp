@@ -33,7 +33,6 @@ namespace MiniMC {
       };
 
       virtual ~Solver () {}
-      
       virtual Feasibility isFeasible() const  {return Feasibility::Unknown;}
     };
     
@@ -55,33 +54,58 @@ namespace MiniMC {
     /** A general CPA state interface. It is deliberately kept minimal to relay no information to observers besides what is absolutely needed 
      * 
      */
-    class State : public std::enable_shared_from_this<State> {
+    class CommonState  {
     public:
-      ~State() {}
+      ~CommonState() {}
 
       virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
       virtual MiniMC::Hash::hash_t hash() const = 0;
-      virtual std::shared_ptr<State> copy() const = 0;
-
-      
-      virtual const LocationInfo& getLocationState () const {
-	throw MiniMC::Support::Exception ("LocationState should not be called");
-      }
-      
-      virtual const Solver_ptr getConcretizer() const {return std::make_shared<Solver> ();}
+      virtual std::shared_ptr<CommonState> copy() const = 0;
     };
 
-    using State_ptr = std::shared_ptr<State>;
+    class CFAState : public CommonState {
+    public:
+      virtual ~CFAState () {}
+      virtual const LocationInfo& getLocationState () const  = 0;
+    };
 
-    std::ostream& operator<<(std::ostream& os, const State& state);
+    using CFAState_ptr = std::shared_ptr<CFAState>;
+    
+    class DataState : public CommonState {
+    public:
+      virtual ~DataState () {}
+      virtual const Solver_ptr getConcretizer() const {return std::make_shared<Solver> ();}  
+    };
+    
+    using DataState_ptr = std::shared_ptr<DataState>;
+    
+    
+    class AnalysisState  {
+    public:
+      AnalysisState () {}
+      AnalysisState (CFAState_ptr&& cfa, std::vector<DataState_ptr>&& datastates) : cfastate(std::move(cfa)),datastates(std::move(datastates)) {}
+      auto& getCFAState () const {return cfastate;}
+      auto& getDataState (std::size_t i) const {return datastates.at(i);}
+      std::size_t nbDataStates () const {return datastates.size ();}
+      MiniMC::Hash::hash_t hash() const;
+    private:
+      CFAState_ptr cfastate;
+      std::vector<DataState_ptr> datastates;   
+    };
+
+    using AnalysisState_ptr = std::unique_ptr<AnalysisState>;
+    
+    using CommonState_ptr = std::shared_ptr<CommonState>;
+    
+    std::ostream& operator<<(std::ostream& os, const CommonState& state);
 
   } // namespace CPA
 } // namespace MiniMC
 
 namespace std {
   template <>
-  struct hash<MiniMC::CPA::State> {
-    std::size_t operator()(const MiniMC::CPA::State& s) const noexcept {
+  struct hash<MiniMC::CPA::CommonState> {
+    std::size_t operator()(const MiniMC::CPA::CommonState& s) const noexcept {
       return s.hash();
     }
   };

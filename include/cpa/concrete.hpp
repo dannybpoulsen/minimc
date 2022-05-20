@@ -19,20 +19,20 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-	virtual State_ptr makeInitialState(const MiniMC::CPA::InitialiseDescr& ) override;
+	virtual CommonState_ptr makeInitialState(const MiniMC::CPA::InitialiseDescr& ) override;
 	
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{},prgm) {}
-        MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id);
+        MiniMC::CPA::CommonState_ptr doTransfer(const MiniMC::CPA::CommonState_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id);
       private:
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
       };
       
       struct Joiner : public MiniMC::CPA::Joiner {
-        MiniMC::CPA::State_ptr doJoin(const MiniMC::CPA::State_ptr&, const MiniMC::CPA::State_ptr&) { return nullptr; }
-        bool covers(const MiniMC::CPA::State_ptr& l, const MiniMC::CPA::State_ptr& r) {
+        MiniMC::CPA::CommonState_ptr doJoin(const MiniMC::CPA::CommonState_ptr&, const MiniMC::CPA::CommonState_ptr&) { return nullptr; }
+        bool covers(const MiniMC::CPA::CommonState_ptr& l, const MiniMC::CPA::CommonState_ptr& r) {
           return l->hash() == r->hash();
         }
       };

@@ -48,7 +48,7 @@ namespace MiniMC {
     };
 
     struct StateQuery {
-      virtual State_ptr makeInitialState(const InitialiseDescr&) = 0;
+      virtual CommonState_ptr makeInitialState(const InitialiseDescr&) = 0;
     };
 
     using StateQuery_ptr = std::shared_ptr<StateQuery>;
@@ -67,7 +67,7 @@ namespace MiniMC {
        * performed (which may happen for instance) when a guard is
        * false)
        */
-      virtual State_ptr doTransfer(const State_ptr&, const MiniMC::Model::Edge_ptr&, proc_id) = 0;
+      virtual CommonState_ptr doTransfer(const CommonState_ptr&, const MiniMC::Model::Edge_ptr&, proc_id) = 0;
     };
 
     using Transferer_ptr = std::shared_ptr<Transferer>;
@@ -79,13 +79,13 @@ namespace MiniMC {
        * @return  the joined state of nullptr if the states cannot be
        * merged.
        */
-      virtual State_ptr doJoin(const State_ptr&, const State_ptr&) = 0;
+      virtual CommonState_ptr doJoin(const CommonState_ptr&, const CommonState_ptr&) = 0;
 
       /**
        * Test if \p l covers \p r i.e. whether the behaviour of \l
        * includes that of \p r
        */
-      virtual bool covers(const State_ptr&, const State_ptr&) = 0;
+      virtual bool covers(const CommonState_ptr&, const CommonState_ptr&) = 0;
     };
 
     using Joiner_ptr = std::shared_ptr<Joiner>;
@@ -107,6 +107,41 @@ namespace MiniMC {
       virtual StateQuery_ptr makeQuery() const { return std::make_shared<Query>(); }
       virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transfer>(prgm); }
       virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
+    };
+
+    
+    class AnalysisTransfer {
+    public:
+      AnalysisTransfer (Transferer_ptr&& locTransfer, std::vector<Transferer_ptr>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
+      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge_ptr&, proc_id,AnalysisState&);
+    private:
+      Transferer_ptr locTransfer;
+      std::vector<Transferer_ptr> dataTransfers;
+    
+    };
+    
+
+    class AnalysisBuilder {
+    public:
+      AnalysisBuilder (CPA_ptr&& cpa) : cfa_cpa(std::move(cpa)) {}
+      void addDataCPA (CPA_ptr&& cpa) {data_cpa.push_back (std::move(cpa));}
+      AnalysisTransfer makeTransfer (const MiniMC::Model::Program& prgm) const  {
+	std::vector<Transferer_ptr> datas;
+	for (auto& d : data_cpa)
+	  datas.push_back (d->makeTransfer (prgm));
+	return AnalysisTransfer (cfa_cpa->makeTransfer (prgm),std::move(datas));
+      }
+
+      AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
+	std::vector<DataState_ptr> datas;
+	for (auto& d : data_cpa) 
+	  datas.push_back (std::static_pointer_cast<DataState> (d->makeQuery ()->makeInitialState (descr)));
+	return AnalysisState (std::static_pointer_cast<CFAState> (cfa_cpa->makeQuery()->makeInitialState(descr)),std::move(datas));
+      }
+      
+    private:
+      CPA_ptr cfa_cpa;
+      std::vector<CPA_ptr> data_cpa;
     };
     
   } // namespace CPA

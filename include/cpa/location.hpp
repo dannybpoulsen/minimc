@@ -16,12 +16,12 @@ namespace MiniMC {
   namespace CPA {
     namespace Location {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        State_ptr makeInitialState(const InitialiseDescr&) override;
+        CommonState_ptr makeInitialState(const InitialiseDescr&) override;
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
-        State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id) override;
+        CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id) override;
       private:
 	const MiniMC::Model::Program& prgm;
       };
@@ -32,8 +32,8 @@ namespace MiniMC {
 	 *
 	 * @return 
 	 */
-        State_ptr doJoin(const State_ptr& l, const State_ptr& r) override {
-          if (std::hash<MiniMC::CPA::State>{}(*l) == std::hash<MiniMC::CPA::State>{}(*r))
+        CommonState_ptr doJoin(const CommonState_ptr& l, const CommonState_ptr& r) override {
+          if (std::hash<MiniMC::CPA::CommonState>{}(*l) == std::hash<MiniMC::CPA::CommonState>{}(*r))
             return l;
           return nullptr;
         }
@@ -41,8 +41,8 @@ namespace MiniMC {
         /** 
 	 *  \p l covers \p r if their hash values are the same 
 	 */
-        bool covers(const State_ptr& l, const State_ptr& r) override {
-          return std::hash<MiniMC::CPA::State>{}(*l) == std::hash<MiniMC::CPA::State>{}(*r);
+        bool covers(const CommonState_ptr& l, const CommonState_ptr& r) override {
+          return std::hash<MiniMC::CPA::CommonState>{}(*l) == std::hash<MiniMC::CPA::CommonState>{}(*r);
         }
       };
 
@@ -55,13 +55,13 @@ namespace MiniMC {
 
     namespace SingleLocation {
       struct StateQuery : public MiniMC::CPA::StateQuery {
-        State_ptr makeInitialState(const InitialiseDescr&);
-        size_t nbOfProcesses(const State_ptr&) { return 1; }
-        MiniMC::Model::Location_ptr getLocation(const State_ptr&, proc_id);
+        CommonState_ptr makeInitialState(const InitialiseDescr&);
+        size_t nbOfProcesses(const CommonState_ptr&) { return 1; }
+        MiniMC::Model::Location_ptr getLocation(const CommonState_ptr&, proc_id);
       };
 
       struct Transferer : public MiniMC::CPA::Transferer{
-        State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
+        CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
       };
 
       struct Joiner : public MiniMC::CPA::Joiner {
@@ -70,13 +70,13 @@ namespace MiniMC {
 	 *
 	 * @return 
 	 */
-        State_ptr doJoin(const State_ptr& l, const State_ptr& r);
+        CommonState_ptr doJoin(const CommonState_ptr& l, const CommonState_ptr& r);
 
         /** 
 	 *  \p l covers \p r if their hash values are the same 
 	 */
-        bool covers(const State_ptr& l, const State_ptr& r) {
-          return std::hash<MiniMC::CPA::State>{}(*l) == std::hash<MiniMC::CPA::State>{}(*r);
+        bool covers(const CommonState_ptr& l, const CommonState_ptr& r) {
+          return std::hash<MiniMC::CPA::CommonState>{}(*l) == std::hash<MiniMC::CPA::CommonState>{}(*r);
         }
       };
 

@@ -12,7 +12,7 @@ namespace MiniMC {
     namespace PathFormula {
       struct StateQuery : public MiniMC::CPA::StateQuery {
 	StateQuery (const SMTLib::Context_ptr& context) : context(context) {}
-        MiniMC::CPA::State_ptr makeInitialState(const InitialiseDescr&) override;
+        MiniMC::CPA::CommonState_ptr makeInitialState(const InitialiseDescr&) override;
       private:
 	SMTLib::Context_ptr context;
       };
@@ -20,7 +20,7 @@ namespace MiniMC {
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm) : context(context),
 											      engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},MiniMC::VMT::Pathformula::Casts{context->getBuilder()},prgm) {}
-	MiniMC::CPA::State_ptr doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
+	MiniMC::CPA::CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
       private:
 	SMTLib::Context_ptr context;
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
@@ -29,9 +29,9 @@ namespace MiniMC {
       struct Joiner : public MiniMC::CPA::Joiner {
 	Joiner (const SMTLib::Context_ptr& context) : context(context)
 	{}
-	MiniMC::CPA::State_ptr doJoin(const State_ptr& l, const State_ptr& r);
+	MiniMC::CPA::CommonState_ptr doJoin(const CommonState_ptr& l, const CommonState_ptr& r);
 
-        bool covers(const State_ptr&, const State_ptr&) {
+        bool covers(const CommonState_ptr&, const CommonState_ptr&) {
           return false;
         }
       private:

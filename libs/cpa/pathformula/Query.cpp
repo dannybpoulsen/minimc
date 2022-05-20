@@ -8,7 +8,7 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      State_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
+      CommonState_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
 	auto& entrypoints = descr.getEntries ();
 
 	if (entrypoints.size () > 1) {
@@ -47,11 +47,11 @@ namespace MiniMC {
 	return state;
       }
 
-      MiniMC::CPA::State_ptr Joiner::doJoin(const State_ptr&, const State_ptr&) {
+      MiniMC::CPA::CommonState_ptr Joiner::doJoin(const CommonState_ptr&, const CommonState_ptr&) {
 	return nullptr;
       }
       
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const State_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
         assert(id == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s->copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);

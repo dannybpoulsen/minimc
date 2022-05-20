@@ -57,7 +57,7 @@ namespace {
 }
 
 
-MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::CPA_ptr& cpa) {
+MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa) {
 
   controller.expandNonDet();
   controller.typecheck ();
@@ -65,23 +65,20 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
   MiniMC::Support::Messager messager{};
   messager.message("Initiating Reachability");
   
-  auto query = cpa->makeQuery();
-  auto joiner = cpa->makeJoin ();
   auto& prgm = *controller.getProgram ();
-  auto transfer = cpa->makeTransfer(prgm);
   
-  auto initstate = query->makeInitialState({prgm.getEntryPoints (),
+  auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
 	prgm.getHeapLayout (),
 	prgm.getInitialiser (),
 	prgm});
 
-  auto goal = [](const MiniMC::CPA::State_ptr& state) {
-    return state->getLocationState().assertViolated();
+  auto goal = [](const MiniMC::CPA::AnalysisState& state) {
+    return state.getCFAState ()->getLocationState ().assertViolated ();
   };
   
   
   auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
-  MiniMC::Algorithms::Reachability::Reachability reach {transfer,joiner};
+  MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
   reach.getPWProgresMeasure ().listen (notify);
   auto verdict = reach.search (initstate,goal);
   messager.message("Finished Reachability");
@@ -90,8 +87,6 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Found Violation").format ());
 
-    auto foundState = reach.foundState ();
-  
     
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Support::ExitCodes::AllGood;

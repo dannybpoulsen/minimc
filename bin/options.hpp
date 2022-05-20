@@ -3,7 +3,7 @@
 
 #include "support/smt.hpp"
 #include "cpa/interface.hpp"
-#include "cpa/concrete.hpp"
+#include "cpa/location.hpp"
 
 struct CommandRegistrar;
 
@@ -43,7 +43,7 @@ struct SetupOptions {
   SMTOption smt;
   load_options load;
   
-  MiniMC::CPA::CPA_ptr cpa;
+  MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
   CommandRegistrar* command = nullptr;
   bool help;
   std::string outputname = "";

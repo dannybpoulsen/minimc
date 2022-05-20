@@ -8,34 +8,28 @@
 
 namespace MiniMC {
   namespace Algorithms {
-    enum class ErrorFlags {
+    /*    enum class ErrorFlags {
       AssertViolated = 1,
     };
 
     struct Successor {
-      MiniMC::CPA::State_ptr state;
+      MiniMC::CPA::CommonState_ptr state;
       MiniMC::Model::Edge_ptr edge;
       MiniMC::CPA::proc_id proc;
       MiniMC::BV8 eflags;
       bool hasErrors() const { return eflags; }
     };
 
-    /** 
-     * Generator of successor states. 
-     * This class takes a State as input, and exposes an iterator interface to generate all possible successors.
-     * \tparam StateQuery class used for Querying the state for location and successors
-     * \tparam Transfer Transfer relation for executing an Edge in a state
-     */
     class Generator {
       class Iterator {
       public:
-        static Iterator makeBegin(const MiniMC::CPA::State_ptr& pt,
+        static Iterator makeBegin(const MiniMC::CPA::CommonState_ptr& pt,
                                   MiniMC::CPA::Transferer_ptr transfer) {
           auto loc = pt->getLocationState().getLocation(0);
           return Iterator(pt, 0, pt->getLocationState().nbOfProcesses(), loc->ebegin(), loc->eend(), transfer);
         }
 
-        static Iterator makeEnd(const MiniMC::CPA::State_ptr& pt,
+        static Iterator makeEnd(const MiniMC::CPA::CommonState_ptr& pt,
                                 MiniMC::CPA::Transferer_ptr transfer) {
           auto proc = pt->getLocationState().nbOfProcesses();
           auto loc = pt->getLocationState().getLocation(proc - 1);
@@ -62,7 +56,7 @@ namespace MiniMC {
         }
 
       private:
-        Iterator(const MiniMC::CPA::State_ptr& st, MiniMC::CPA::proc_id proc, MiniMC::CPA::proc_id lproc, MiniMC::Model::Location::edge_iterator beg, MiniMC::Model::Location::edge_iterator end,
+        Iterator(const MiniMC::CPA::CommonState_ptr& st, MiniMC::CPA::proc_id proc, MiniMC::CPA::proc_id lproc, MiniMC::Model::Location::edge_iterator beg, MiniMC::Model::Location::edge_iterator end,
                  const MiniMC::CPA::Transferer_ptr& transfer) : curState(st),
                                                                 proc(proc),
                                                                 last_proc(lproc),
@@ -107,7 +101,7 @@ namespace MiniMC {
           }
         }
 
-        MiniMC::CPA::State_ptr curState;
+        MiniMC::CPA::CommonState_ptr curState;
         MiniMC::CPA::proc_id proc;
         MiniMC::CPA::proc_id last_proc;
         MiniMC::Model::Location::edge_iterator iter;
@@ -121,7 +115,7 @@ namespace MiniMC {
       Generator(MiniMC::CPA::Transferer_ptr& transfer) : transfer(transfer) {
       }
 
-      auto begin_it(const MiniMC::CPA::State_ptr& state) {
+      auto begin_it(const MiniMC::CPA::CommonState_ptr& state) {
         if (state->getLocationState().nbOfProcesses() == 0) {
           throw MiniMC::Support::Exception("No Processes to generate sucessors for");
         }
@@ -129,16 +123,75 @@ namespace MiniMC {
         return Iterator::makeBegin(state, transfer);
       }
 
-      auto end_it(const MiniMC::CPA::State_ptr& state) { return Iterator::makeEnd(state, transfer); }
+      auto end_it(const MiniMC::CPA::CommonState_ptr& state) { return Iterator::makeEnd(state, transfer); }
 
-      auto generate(const MiniMC::CPA::State_ptr& state) {
+      auto generate(const MiniMC::CPA::CommonState_ptr& state) {
         return std::make_pair(begin_it(state), end_it(state));
       }
 
     private:
       MiniMC::CPA::Transferer_ptr transfer;
     };
+    */
+    struct EnumResult {
+      MiniMC::Model::Edge_ptr edge;
+      MiniMC::proc_t proc; 
+    };
+    
+    class EdgeEnumerator {
+    public:
+      EdgeEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state),
+								 iter(orig.getCFAState ()->getLocationState().getLocation(0)->ebegin ()),
+								 end(orig.getCFAState ()->getLocationState().getLocation(0)->eend ())
+	
+      {
+	hasOne = next ();
+      }
 
+      bool getNext (EnumResult& res) {
+	if (hasOne) {
+	  res.edge = *iter;
+	  res.proc = proc;
+	  hasOne = next ();
+	  return true;
+	}
+	return false;
+      }
+      
+    private:
+
+      bool next () {
+	if (init ) {
+	  iter = orig.getCFAState ()->getLocationState().getLocation(proc)->ebegin ();
+	  end = orig.getCFAState ()->getLocationState().getLocation(proc)->eend ();
+	  init = false;
+	  return iter!=end;
+	}
+	
+	else {
+	  ++iter;
+	  if (iter == end) {
+	    proc++;
+	    if (proc >=orig.getCFAState ()->getLocationState().nbOfProcesses ())
+	      return false;
+	    iter = orig.getCFAState ()->getLocationState().getLocation(proc)->ebegin ();
+	    end = orig.getCFAState ()->getLocationState().getLocation(proc)->eend ();
+	    return iter != end;
+	  }
+	  return true;
+	  
+	}
+	  
+      }
+
+      const MiniMC::CPA::AnalysisState& orig;
+      proc_t proc{0};
+      bool init{true};
+      bool hasOne = false;
+      MiniMC::Model::Location::edge_iterator iter;
+      MiniMC::Model::Location::edge_iterator end;
+    };
+    
   } // namespace Algorithms
 } // namespace MiniMC
 

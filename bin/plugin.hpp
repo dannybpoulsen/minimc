@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_map>
 
-using subcommandfunc = std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::CPA_ptr&)>;
+using subcommandfunc = std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::AnalysisBuilder&)>;
 using options_func = std::function<void(boost::program_options::options_description&)>;
 
 struct CommandRegistrar;

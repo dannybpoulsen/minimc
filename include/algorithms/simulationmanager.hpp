@@ -19,8 +19,8 @@
 namespace MiniMC {
   namespace Algorithms {
 
-    using FilterFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
-    using GoalFunction = std::function<bool(const MiniMC::CPA::State_ptr&)>;
+    using FilterFunction = std::function<bool(const MiniMC::CPA::CommonState_ptr&)>;
+    using GoalFunction = std::function<bool(const MiniMC::CPA::CommonState_ptr&)>;
     
     struct SimManagerOptions {
       MiniMC::CPA::Storer_ptr storer;
@@ -28,8 +28,8 @@ namespace MiniMC {
     };
 
     struct SearchOptions {
-      FilterFunction filter = [](const MiniMC::CPA::State_ptr&) { return true; };
-      GoalFunction goal = [](const MiniMC::CPA::State_ptr&) { return false; };
+      FilterFunction filter = [](const MiniMC::CPA::CommonState_ptr&) { return true; };
+      GoalFunction goal = [](const MiniMC::CPA::CommonState_ptr&) { return false; };
     };
 
     class SimulationManager {
@@ -46,11 +46,11 @@ namespace MiniMC {
       auto waiting_begin() { return waiting.begin(); }
       auto waiting_end() { return waiting.end(); }
 
-      void insert(gsl::not_null<MiniMC::CPA::State_ptr> ptr) {
+      void insert(gsl::not_null<MiniMC::CPA::CommonState_ptr> ptr) {
         _insert(ptr);
       }
 
-      MiniMC::CPA::State_ptr step_first(const SearchOptions& sopt) {
+      MiniMC::CPA::CommonState_ptr step_first(const SearchOptions& sopt) {
         if (waiting.size()) {
           auto search = waiting.front();
           waiting.pop_front();
@@ -59,7 +59,7 @@ namespace MiniMC {
         return nullptr;
       }
 
-      MiniMC::CPA::State_ptr step_last(const SearchOptions& sopt) {
+      MiniMC::CPA::CommonState_ptr step_last(const SearchOptions& sopt) {
         if (waiting.size()) {
           auto search = waiting.back();
           waiting.pop_back();
@@ -68,7 +68,7 @@ namespace MiniMC {
         return nullptr;
       }
 
-      MiniMC::CPA::State_ptr reachabilitySearch(const SearchOptions& sopt) {
+      MiniMC::CPA::CommonState_ptr reachabilitySearch(const SearchOptions& sopt) {
         while (waiting.size()) {
           auto res = step_first(sopt);
           if (res) {
@@ -79,7 +79,7 @@ namespace MiniMC {
       }
 
     private:
-      MiniMC::CPA::State_ptr _step(MiniMC::CPA::State_ptr ptr, const SearchOptions& soptions) {
+      MiniMC::CPA::CommonState_ptr _step(MiniMC::CPA::CommonState_ptr ptr, const SearchOptions& soptions) {
         auto succs = generator.generate(ptr);
         for (auto it = succs.first; it != succs.second; ++it) {
           if (soptions.filter(it->state)) {
@@ -102,8 +102,8 @@ namespace MiniMC {
        *
        * @param ptr State to insert
        */
-      MiniMC::CPA::State_ptr _insert(MiniMC::CPA::State_ptr ptr) {
-        auto insert = [&](const MiniMC::CPA::State_ptr& inst) -> MiniMC::CPA::State_ptr {
+      MiniMC::CPA::CommonState_ptr _insert(MiniMC::CPA::CommonState_ptr ptr) {
+        auto insert = [&](const MiniMC::CPA::CommonState_ptr& inst) -> MiniMC::CPA::CommonState_ptr {
 	  waiting.push_front(inst);
 	  passed++;
 	  return inst;
@@ -135,7 +135,7 @@ namespace MiniMC {
 	return insert(ptr);
       }
       
-      std::list<MiniMC::CPA::State_ptr> waiting;
+      std::list<MiniMC::CPA::CommonState_ptr> waiting;
       std::size_t passed = 0;
       FilterFunction filter;
       MiniMC::CPA::Storer_ptr storage;
