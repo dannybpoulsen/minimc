@@ -3,7 +3,7 @@
 
 #include "util/array.hpp"
 #include "model/variables.hpp"
-
+#include "vm/concrete/concrete.hpp"
 
 #include <iosfwd>
 #include <memory>
@@ -30,7 +30,7 @@ namespace MiniMC {
     class QueryEvaluator {
       public:
       virtual ~QueryEvaluator () {}
-      virtual MiniMC::Util::Array evaluate (const QueryExpr&) const = 0;
+      virtual MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr&) const = 0;
     };
 
     inline std::ostream& operator<< (std::ostream& os, const QueryExpr& e) {

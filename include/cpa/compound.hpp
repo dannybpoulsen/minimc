@@ -9,6 +9,7 @@
 
 namespace MiniMC {
   namespace CPA {
+    } // namespace Compounds
   }   // namespace CPA
 } // namespace MiniMC
 

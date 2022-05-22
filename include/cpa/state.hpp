@@ -16,6 +16,7 @@
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "util/array.hpp"
+#include "cpa/query.hpp"
 #include <iosfwd>
 #include <memory>
 
@@ -24,7 +25,7 @@ namespace MiniMC {
 
     using proc_id = std::size_t;
     
-    class Solver {
+    class Solver : public QueryEvaluator {
     public:
       enum class Feasibility {
         Feasible,
@@ -33,7 +34,10 @@ namespace MiniMC {
       };
 
       virtual ~Solver () {}
+      
       virtual Feasibility isFeasible() const  {return Feasibility::Unknown;}
+      virtual MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr&) const override = 0;
+      
     };
     
     using Solver_ptr = std::shared_ptr<Solver>;
@@ -74,7 +78,8 @@ namespace MiniMC {
     class DataState : public CommonState {
     public:
       virtual ~DataState () {}
-      virtual const Solver_ptr getConcretizer() const {return std::make_shared<Solver> ();}  
+      virtual const Solver_ptr getConcretizer() const = 0;
+      virtual const QueryBuilder& getBuilder () const = 0;
     };
     
     using DataState_ptr = std::shared_ptr<DataState>;
@@ -92,13 +97,16 @@ namespace MiniMC {
       CFAState_ptr cfastate;
       std::vector<DataState_ptr> datastates;   
     };
-
+    
     using AnalysisState_ptr = std::unique_ptr<AnalysisState>;
     
     using CommonState_ptr = std::shared_ptr<CommonState>;
     
     std::ostream& operator<<(std::ostream& os, const CommonState& state);
-
+    std::ostream& operator<<(std::ostream& os, const AnalysisState& state);
+    
+    
+    
   } // namespace CPA
 } // namespace MiniMC
 

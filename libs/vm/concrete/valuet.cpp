@@ -11,7 +11,7 @@ namespace MiniMC {
       ConcreteVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
 
         return MiniMC::Model::visitValue(
-            MiniMC::Model::Overload{
+	     MiniMC::Model::Overload{
                 [](const MiniMC::Model::I8Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV8>{val.getValue()}; },
                 [](const MiniMC::Model::I16Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV16>{val.getValue()}; },
                 [](const MiniMC::Model::I32Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV32>{val.getValue()}; },

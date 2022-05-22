@@ -76,7 +76,7 @@ namespace MiniMC {
       std::size_t getSize() const { return size; }
 
       std::ostream& output(std::ostream& os) const {
-        MiniMC::Support::Base64Encode encoder;
+        MiniMC::Support::STDEncode encoder;
         return os << encoder.encode(reinterpret_cast<const char*>(buffer.get()), size);
       }
 

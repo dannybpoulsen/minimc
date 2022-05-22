@@ -12,10 +12,28 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
+      class QExpr : public MiniMC::CPA::QueryExpr {
+      public:
+	QExpr (MiniMC::VMT::Concrete::ConcreteVMVal&& val) : value(std::move(val)) {}
+	std::ostream& output (std::ostream& os) const override {
+	  return os << value; 
+	}
+
+	auto getValue () const {return value;}
+	
+      private:
+	MiniMC::VMT::Concrete::ConcreteVMVal value;
+      };
+
       class MConcretizer : public MiniMC::CPA::Solver {
       public:
         MConcretizer()  {}
-        virtual MiniMC::CPA::Solver::Feasibility isFeasible() const override { return Feasibility::Feasible; }
+	MiniMC::CPA::Solver::Feasibility isFeasible() const override { return Feasibility::Feasible; }
+	MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr& expr) const override {
+	  auto& ref = static_cast<const QExpr&> (expr);
+	  return ref.getValue ();
+	}
+      
 	
       };
 
@@ -50,7 +68,9 @@ namespace MiniMC {
 	
       };
       
-      class State : public MiniMC::CPA::DataState {
+      class State : public MiniMC::CPA::DataState,
+		    private MiniMC::CPA::QueryBuilder
+      {
       public:
         State( const std::vector<ActivationStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
@@ -89,6 +109,18 @@ namespace MiniMC {
 
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
+	//QueryBuilder
+	QueryExpr_ptr buildValue (MiniMC::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+	  if (p >= proc_vars.size ()) {
+	    throw MiniMC::Support::Exception ("Not enough processes");
+	  }
+	  return std::make_unique<QExpr> (proc_vars.at(p).back ().values.lookupValue (val));
+	}
+
+	const QueryBuilder& getBuilder () const override  {return *this;}
+	
+	
+	
       private:
         std::vector<ActivationStack> proc_vars;
 	MiniMC::VMT::Concrete::Memory heap;

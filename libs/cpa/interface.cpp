@@ -5,11 +5,39 @@
 
 namespace MiniMC {
   namespace CPA {
-    std::ostream& operator<<(std::ostream& os, const CommonState& state) {
+    std::ostream& operator<<(std::ostream& os, const CommonState&) {
       
       return os;
     }
 
+    std::ostream& operator<<(std::ostream& os, const AnalysisState& state) {
+      auto& cfastate = state.getCFAState ();
+      auto nbProcs = cfastate->getLocationState ().nbOfProcesses ();
+      os << "[";
+      for (std::size_t i = 0; i < nbProcs; i++) {	
+	os <<  cfastate->getLocationState ().getLocation (i)->getInfo().getName ()  << ",";
+      }
+      os << "]\n";
+
+      auto nbDataStates = state.nbDataStates ();
+      for (std::size_t p = 0; p < nbProcs; p++) {
+	auto& vstack = cfastate->getLocationState().getLocation(p)->getInfo().getRegisters ();
+	for (auto& reg : vstack.getRegisters ()) {
+	  os << reg->getName () << "\n";
+
+	  for (std::size_t dstate = 0; dstate < nbDataStates; dstate++) {
+	    auto& datastate = state.getDataState (dstate);
+	    auto symbval = datastate->getBuilder ().buildValue (p,reg);
+	    os << "  " << datastate->getConcretizer ()->evaluate (*symbval);
+	  }
+	  os << std::endl;
+	}
+      }
+      
+      
+      return os << std::endl;;
+    }
+    
     MiniMC::Hash::hash_t AnalysisState::hash() const {
       MiniMC::Hash::Hasher hashing;
       hashing << *cfastate;

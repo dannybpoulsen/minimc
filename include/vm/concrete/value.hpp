@@ -74,7 +74,7 @@ namespace MiniMC {
         MiniMC::Util::Array val;
       };
 
-      inline std::ostream& operator<<(std::ostream& os, const AggregateValue&) { return os << "Aggre"; }
+      inline std::ostream& operator<<(std::ostream& os, const AggregateValue& aggr) { return os << aggr.getValue (); }
 
       template <class T>
       inline std::ostream& operator<<(std::ostream& os, const TValue<T>& v) { return os << v.getValue(); }

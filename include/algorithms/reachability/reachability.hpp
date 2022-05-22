@@ -38,12 +38,14 @@ namespace MiniMC {
 
 
 	Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
+	MiniMC::CPA::AnalysisState foundState () const {return found;}
 	
       private:
 	Observable<Progress> progress_indicator;
 	MiniMC::CPA::AnalysisTransfer transfer;
 	MiniMC::CPA::Joiner_ptr joiner;
-};
+	MiniMC::CPA::AnalysisState found;
+      };
       
 
       inline std::ostream& operator<< (std::ostream& os, const Reachability::Progress& prgs) {

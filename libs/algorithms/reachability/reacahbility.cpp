@@ -45,10 +45,10 @@ namespace MiniMC {
 	  waiting.pop_back ();
 
 	  if (goal(searchee)) {
+	    found = std::move(searchee);
 	    return Verdict::Found;
 	  }
-	  //std::for_each (successors.first,end,[insert](auto& succ){insert(succ.state);});
-
+	  
 	  MiniMC::CPA::AnalysisState newstate;
 	  MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
 	  MiniMC::Algorithms::EnumResult res;

@@ -7,12 +7,27 @@
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
+#include "support/pointer.hpp"
 #include <memory>
+#include <cstring>
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
+
+      class QExpr : public MiniMC::CPA::QueryExpr {
+      public:
+	QExpr (MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) : value(std::move(val)) {}
+	std::ostream& output (std::ostream& os) const override {
+	  return os << value; 
+	}
+
+	auto getValue () const {return value;}
+	
+      private:
+	MiniMC::VMT::Pathformula::PathFormulaVMVal value;
+      };
 
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::PathFormulaVMVal,MiniMC::VMT::Pathformula::ValueLookup>;
 
@@ -46,7 +61,8 @@ namespace MiniMC {
 	SMTLib::Context& context;
       };
       
-      class State : public MiniMC::CPA::DataState
+      class State : public MiniMC::CPA::DataState,
+		    private MiniMC::CPA::QueryBuilder
       {
       public:
 	State (ActivationStack&& vals,  MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula,SMTLib::Context& ctxt) : call_stack(std::move(vals)),
@@ -77,8 +93,14 @@ namespace MiniMC {
 	}
 
 	auto& getPathformula () const  {return pathformula;}
-	
-		
+
+	virtual const QueryBuilder& getBuilder () const {return *this;}
+	QueryExpr_ptr buildValue (MiniMC::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+	  if (p > 0) {
+	    throw MiniMC::Support::Exception ("Not enough processes");
+	  }
+	  return std::make_unique<QExpr> (call_stack.back ().values.lookupValue (val));
+	}
       private:
 	ActivationStack  call_stack;
 	MiniMC::VMT::Pathformula::Memory memory;
@@ -93,7 +115,7 @@ namespace MiniMC {
 	  this->solver->assert_formula (state.getPathformula ());
         }
 
-        virtual Feasibility isFeasible() const {
+	Feasibility isFeasible() const override {
 	  switch (solver->check_sat ()) {
 	  case SMTLib::Result::Satis:
 	    return  Feasibility::Feasible;
@@ -103,6 +125,27 @@ namespace MiniMC {
 	    return Feasibility::Unknown;
 	  }
 	}
+
+	MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr& expr) const override {
+	  auto& myexpr = static_cast<const QExpr&> (expr);
+	  if (isFeasible () == Feasibility::Feasible) {
+	    return myexpr.getValue ().visit([this](auto& t) -> MiniMC::VMT::Concrete::ConcreteVMVal{
+	      auto& term = t.getTerm ();
+	      if constexpr (std::is_same_v<decltype(t),MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&>) {
+		MiniMC::pointer_t pointer;
+		//std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
+		
+		auto pointerres = std::get<SMTLib::bitvector> (solver->getModelValue (term));
+		assert(sizeof(MiniMC::pointer_t) == pointerres.size () / 8);
+		MiniMC::Support::SMT::extractBytes (pointerres.begin(),pointerres.end(),reinterpret_cast<MiniMC::BV8*> (&pointer));
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer{pointer};
+	      }
+
+	      return MiniMC::VMT::Concrete::ConcreteVMVal::I64 (10);
+	    });
+	  }
+	}
+	
 	
       private:
 	const State& state;
