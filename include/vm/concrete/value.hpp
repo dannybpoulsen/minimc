@@ -77,7 +77,13 @@ namespace MiniMC {
       inline std::ostream& operator<<(std::ostream& os, const AggregateValue& aggr) { return os << aggr.getValue (); }
 
       template <class T>
-      inline std::ostream& operator<<(std::ostream& os, const TValue<T>& v) { return os << v.getValue(); }
+      inline std::ostream& operator<<(std::ostream& os, const TValue<T>& v) {
+	if constexpr (!std::is_same_v<MiniMC::BV8,T>) 
+	  return os << v.getValue();
+	else {
+	  return os << (0xFF & static_cast<MiniMC::BV32> (v.getValue()));
+	}
+      }
 
       using ConcreteVMVal = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
                                                     TValue<MiniMC::BV16>,
