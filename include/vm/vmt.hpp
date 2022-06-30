@@ -133,7 +133,7 @@ namespace MiniMC {
       {op.template Mul<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template UDiv<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template SDiv<Int> (left,left) } -> std::convertible_to<Int>;
-      {op.template Shl<Int> (left,left) } -> std::convertible_to<Int>;
+      {op.template LShl<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template LShr<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template AShr<Int> (left,left)  } -> std::convertible_to<Int>;
       {op.template And<Int> (left,left) } -> std::convertible_to<Int>;
@@ -158,8 +158,8 @@ namespace MiniMC {
       
     };
     
-    template<class Int, class Index,class Aggregate,class Operation>
-    concept AggregateCompatible = requires (Operation op, const Aggregate& aggr, const Index& index, const Int& insertee,size_t s) {
+    template<class Int, class Aggregate,class Operation>
+    concept AggregateCompatible = requires (Operation op, const Aggregate& aggr, MiniMC::BV64 index, const Int& insertee,size_t s) {
       {op.template ExtractBaseValue<Int> (aggr,index)} -> std::convertible_to<Int>;
       {op.ExtractAggregateValue (aggr,index,s)} -> std::convertible_to<Aggregate>;
       {op.template InsertBaseValue<Int> (aggr,index, insertee)} -> std::convertible_to<Aggregate>;
@@ -227,19 +227,19 @@ namespace MiniMC {
 
     template<class T,class Operations,class Caster>
     concept VMCompatible = requires {
-      IntOperationCompatible<typename T::I8,typename T::Bool,Operations>;
-      IntOperationCompatible<typename T::I16,typename T::Bool,Operations>;
-      IntOperationCompatible<typename T::I32,typename T::Bool,Operations>;
-      IntOperationCompatible<typename T::I64,typename T::Bool,Operations>;
-      AggregateCompatible<typename T::I8,typename T::I64,typename T::Aggregate,Operations>; 
-      AggregateCompatible<typename T::I16,typename T::I64,typename T::Aggregate,Operations>;
-      AggregateCompatible<typename T::I32,typename T::I64,typename T::Aggregate,Operations>;
-      AggregateCompatible<typename T::I64,typename T::I64,typename T::Aggregate,Operations>;
-      PointerOperationCompatible<typename T::I8,typename T::Pointer,typename T::Bool,Operations>;
-      PointerOperationCompatible<typename T::I16,typename T::Pointer,typename T::Bool,Operations>;
-      PointerOperationCompatible<typename T::I32,typename T::Pointer,typename T::Bool,Operations>;
-      PointerOperationCompatible<typename T::I64,typename T::Pointer,typename T::Bool,Operations>;
-      CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,Caster>;
+      requires IntOperationCompatible<typename T::I8,typename T::Bool,Operations>;
+      requires IntOperationCompatible<typename T::I16,typename T::Bool,Operations>;
+      requires IntOperationCompatible<typename T::I32,typename T::Bool,Operations>;
+      requires IntOperationCompatible<typename T::I64,typename T::Bool,Operations>;
+      requires AggregateCompatible<typename T::I8,typename T::Aggregate,Operations>; 
+      requires AggregateCompatible<typename T::I16,typename T::Aggregate,Operations>;
+      requires AggregateCompatible<typename T::I32,typename T::Aggregate,Operations>;
+      requires AggregateCompatible<typename T::I64,typename T::Aggregate,Operations>;
+      requires PointerOperationCompatible<typename T::I8,typename T::Pointer,typename T::Bool,Operations>;
+      requires PointerOperationCompatible<typename T::I16,typename T::Pointer,typename T::Bool,Operations>;
+      requires PointerOperationCompatible<typename T::I32,typename T::Pointer,typename T::Bool,Operations>;
+      requires PointerOperationCompatible<typename T::I64,typename T::Pointer,typename T::Bool,Operations>;
+      requires CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,Caster>;
     };
 
     template<class T,class Operations,class Caster>

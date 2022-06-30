@@ -35,6 +35,16 @@ namespace MiniMC {
         using type = TValue<MiniMC::BV64>;
       };
 
+      template <MiniMC::Host::TAC op, typename T>
+      T performOp(T l, T r) {
+        return (MiniMC::Host::Op<op>(l, r));
+      }
+
+      template <MiniMC::Host::CMP op, typename T>
+      bool performOp(T l, T r) {
+        return MiniMC::Host::Op<op>(l, r);
+      }
+      
       struct Operations {
 
         template <typename T>
@@ -152,7 +162,7 @@ namespace MiniMC {
         }
 
         template <class T>
-        auto ExtractBaseValue(const AggregateValue& value, const MiniMC::BV64 offset) {
+        T ExtractBaseValue(const AggregateValue& value, const MiniMC::BV64 offset) {
           if constexpr (std::is_same_v<T, TValue<MiniMC::BV8>>) {
             return TValue<MiniMC::BV8>(value.getValue().read<MiniMC::BV8>(offset));
           }
@@ -201,15 +211,7 @@ namespace MiniMC {
 	
       };
 
-      template <MiniMC::Host::TAC op, typename T>
-      T performOp(T l, T r) {
-        return (MiniMC::Host::Op<op>(l, r));
-      }
-
-      template <MiniMC::Host::CMP op, typename T>
-      bool performOp(T l, T r) {
-        return MiniMC::Host::Op<op>(l, r);
-      }
+  
 
       struct Caster {
         template <std::size_t bw>

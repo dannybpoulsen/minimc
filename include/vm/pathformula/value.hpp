@@ -82,13 +82,13 @@ namespace MiniMC {
       using BoolValue = Value<ValType::Bool>;
       using PointerValue = Value<ValType::Pointer>;
 
-      using PathFormulaVMVal = MiniMC::VMT::GenericVal<Value<ValType::I8>,
-                                                       Value<ValType::I16>,
-                                                       Value<ValType::I32>,
-                                                       Value<ValType::I64>,
-                                                       Value<ValType::Pointer>,
-                                                       Value<ValType::Bool>,
-                                                       Value<ValType::Aggregate>>;
+      using PathFormulaVMVal = MiniMC::VMT::GenericVal<I8Value,
+                                                       I16Value,
+                                                       I32Value,
+                                                       I64Value,
+                                                       PointerValue,
+                                                       BoolValue,
+                                                       AggregateValue>;
 
     } // namespace Pathformula
   }   // namespace VMT

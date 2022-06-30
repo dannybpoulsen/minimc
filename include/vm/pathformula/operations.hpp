@@ -49,34 +49,34 @@ namespace MiniMC {
 	T Xor (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> SGt (const T&, const T&);
+	BoolValue SGt (const T&, const T&);
 
 	template<class T>
 	Value<ValType::Bool> SGe (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> SLt (const T&, const T&);
+	BoolValue SLt (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> SLe (const T&, const T&);
+	BoolValue SLe (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> UGt (const T&, const T&);
+	BoolValue UGt (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> UGe (const T&, const T&);
+	BoolValue UGe (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> ULt (const T&, const T&);
+	BoolValue ULt (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> ULe (const T&, const T&);
+	BoolValue ULe (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> Eq (const T&, const T&);
+	BoolValue Eq (const T&, const T&);
 
 	template<class T>
-	Value<ValType::Bool> NEq (const T&, const T&);
+	BoolValue NEq (const T&, const T&);
 
 	BoolValue PtrEq(const PointerValue&, const PointerValue&) {
 	    throw MiniMC::Support::Exception ("Not Implemented");
@@ -89,6 +89,7 @@ namespace MiniMC {
 	
 	template <class T>
         T ExtractBaseValue(const AggregateValue&, const MiniMC::BV64);
+	
 	AggregateValue ExtractAggregateValue(const AggregateValue&, const MiniMC::BV64, std::size_t);
 
 	template <class T>
@@ -133,13 +134,13 @@ namespace MiniMC {
 	Casts (SMTLib::TermBuilder& builder) : builder(builder) {}
 
 	template <std::size_t bw>
-	typename RetTyp<bw>::type BoolZExt(const Value<ValType::Bool>& val);
+	typename RetTyp<bw>::type BoolZExt(const BoolValue& val);
 
 	template <std::size_t bw>
-	typename RetTyp<bw>::type BoolSExt(const Value<ValType::Bool>& val);
+	typename RetTyp<bw>::type BoolSExt(const BoolValue& val);
 
 	template <class T>
-        Value<ValType::Bool> IntToBool(const T& t);
+        BoolValue IntToBool(const T& t);
 
 	template <class T>
         Value<ValType::Pointer> IntToPtr(const T& t);

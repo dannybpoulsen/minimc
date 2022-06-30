@@ -1,6 +1,5 @@
 
-find_package(LLVM 13.0 CONFIG		  
-)
+find_package(LLVM 13.0 CONFIG)
 
 
 
@@ -27,6 +26,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 llvm_map_components_to_libnames(llvm_libs core irreader transformutils passes)
 message (STATUS "${llvm_libs}")
+message (STATUS ${LLVM_INCLUDE_DIRS})
 add_library (llvm13 INTERFACE)
-target_include_directories(llvm13 INTERFACE ${llvmext13_SOURCE_DIR}/include)
+target_include_directories(llvm13 INTERFACE ${LLVM_INCLUDE_DIRS})
 target_link_libraries(llvm13 INTERFACE ${llvm_libs})
