@@ -23,8 +23,8 @@ namespace MiniMC {
 	   * @return true if the check passes false otherwise 
 	   */
       bool checkNoGuardAndInstructionStream(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.hasAttribute<MiniMC::Model::AttributeType::Instructions>() &&
-            e.hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
+        if (e.getInstructions () &&
+            e.getGuard ()) {
           mess.message<MiniMC::Support::Severity::Error>("Edges must not have both guards and Instructions");
           return false;
         }
@@ -37,8 +37,9 @@ namespace MiniMC {
 	   * @return true if the check passes false otherwise 
 	   */
       bool checkGuardIsBoolean(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
-          auto guard = e.getAttribute<MiniMC::Model::AttributeType::Guard>();
+	auto guardkeep = e.getGuard ();
+        if (guardkeep) {
+          auto& guard = guardkeep.get ();
           if (guard.guard->getType()->getTypeID() != MiniMC::Model::TypeID::Bool) {
             mess.message<MiniMC::Support::Severity::Error>("Edge guard must be booleans");
             return false;
@@ -52,8 +53,8 @@ namespace MiniMC {
 	   * @return true if the check passes false otherwise 
 	   */
       bool checkCallIsLast(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-          auto instr = e.getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        if (e.getInstructions ()) {
+          auto& instr = e.getInstructions ().get ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           for (++it; it != end; ++it) {
@@ -71,8 +72,8 @@ namespace MiniMC {
 	   * @return true if the check passes false otherwise 
 	   */
       bool checkPhiIsOnlyAssign(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-          auto instr = e.getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        if (e.getInstructions ()) {
+          auto& instr = e.getInstructions ().get ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           if (instr.isPhi () ) {
@@ -93,8 +94,8 @@ namespace MiniMC {
 	   */
 
       bool checkAssertIsLast(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-          auto instr = e.getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        if (e.getInstructions ()) {
+          auto& instr = e.getInstructions ().get ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           for (++it; it != end; ++it) {

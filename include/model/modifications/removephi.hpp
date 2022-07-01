@@ -5,7 +5,6 @@
 
 #include "model/cfg.hpp"
 #include "model/instructions.hpp"
-#include "model/modifications/simplify_cfg.hpp"
 #include "support/sequencer.hpp"
 
 namespace MiniMC {
@@ -16,8 +15,8 @@ namespace MiniMC {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
-              if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-                auto& instrstream = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+              if (E->getInstructions () ) {
+                auto& instrstream = E->getInstructions ().get () ;
                 InstructionStream stream;
                 std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
                 if (instrstream.isPhi ()) {
@@ -36,9 +35,8 @@ namespace MiniMC {
                     stream.addInstruction<MiniMC::Model::InstructionCode::Assign>({.res = replacemap.at(content.res.get()), .op1 = val});
                   }
 
-                  E->delAttribute<MiniMC::Model::AttributeType::Instructions>();
-                  E->setAttribute<MiniMC::Model::AttributeType::Instructions>(stream);
-                }
+		  E->getInstructions () = stream;
+		}
               }
             }
           }

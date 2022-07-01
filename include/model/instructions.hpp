@@ -710,7 +710,7 @@ ASSUMEASSERTS
 
 
     template <InstructionCode op, InstructionCode... tail>
-    inline static bool isOneOf(MiniMC::Model::Instruction& instr) {
+    inline static bool isOneOf(const MiniMC::Model::Instruction& instr) {
       if constexpr (sizeof...(tail) == 0)
         return instr.getOpcode() == op;
       else {
@@ -790,11 +790,17 @@ ASSUMEASSERTS
 	return instr.empty ();
       }
       
-      auto& last() {
+      auto& last() const {
         assert(instr.size());
         return instr.back();
       }
 
+            
+      auto& last()  {
+        assert(instr.size());
+        return instr.back();
+      }
+      
       template <class Iterator>
       auto erase(Iterator iter) {
         auto res = instr.erase(iter);

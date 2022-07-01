@@ -48,7 +48,7 @@ namespace MiniMC {
     }
     
     
-    bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge_ptr& e,  proc_id proc,AnalysisState& res) {
+    bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge* e,  proc_id proc,AnalysisState& res) {
       auto locTrans = std::static_pointer_cast<CFAState> (locTransfer->doTransfer (state.getCFAState (),e,proc));
       if (!locTrans)
 	return false;

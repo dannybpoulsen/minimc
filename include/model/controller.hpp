@@ -29,7 +29,6 @@ namespace MiniMC {
       void splitAtCMP ();
       void lowerGuards ();
       void expandNonDet ();
-      void simplifyCFA ();
       void onlyOneMemAccessPerEdge ();
 
       void markLoopLocations ();

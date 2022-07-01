@@ -20,7 +20,7 @@ namespace MiniMC {
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm) : context(context),
 											      engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},MiniMC::VMT::Pathformula::Casts{context->getBuilder()},prgm) {}
-	MiniMC::CPA::CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id);
+	MiniMC::CPA::CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge*, proc_id);
       private:
 	SMTLib::Context_ptr context;
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine;

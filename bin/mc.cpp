@@ -59,7 +59,6 @@ namespace {
 
 MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa) {
 
-  controller.expandNonDet();
   controller.typecheck ();
   
   MiniMC::Support::Messager messager{};

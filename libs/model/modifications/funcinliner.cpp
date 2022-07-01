@@ -16,7 +16,7 @@ namespace MiniMC {
           throw MiniMC::Support::Exception("Inlining Depth exceeded");
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
-        auto& instrs = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        auto& instrs = edge->getInstructions().get ();
         assert(instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Call);
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
@@ -38,8 +38,8 @@ namespace MiniMC {
         copyCFG(cfunc->getCFA(), valmap, func->getCFA(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
-          if (ne->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-            auto& ninstr = ne->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+          if (ne->getInstructions ()) {
+            auto& ninstr = ne->getInstructions ().get ();
             if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
               inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
             }
@@ -76,9 +76,9 @@ namespace MiniMC {
 					 {.res = valmap.at(it->get()),
 					  .op1 = call_content.params.at(i)});  
         }
-        edge->delAttribute<MiniMC::Model::AttributeType::Instructions>();
+        edge->getInstructions ().unset ();
         if (str.begin() != str.end())
-          edge->setAttribute<MiniMC::Model::AttributeType::Instructions>(str);
+          edge->getInstructions () = str;
         from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace>();
       }
 
@@ -91,8 +91,8 @@ namespace MiniMC {
                       cfg.getEdges().end(),
                       [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
         for (auto& e : wlist) {
-          if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>() &&
-              e->getAttribute<MiniMC::Model::AttributeType::Instructions>().last().getOpcode() ==
+          if (e->getInstructions () &&
+              e->getInstructions().get().last().getOpcode() ==
                   MiniMC::Model::InstructionCode::Call) {
             inlineCallEdgeToFunction(prgm,F, e, linfoc, depth);
           }

@@ -16,8 +16,8 @@ namespace MiniMC {
 	eloc->getInfo().set<MiniMC::Model::Attributes::AssertViolated>();
 	
 	for (auto E : wlist) {
-	  if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-	    auto& instrs = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+	  if (E->getInstructions ()) {
+	    auto& instrs = E->getInstructions ().get ();
 	    if (instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Assert) {
 	      E->getFrom()->getInfo().unset<MiniMC::Model::Attributes::CallPlace>();
 	      assert(!E->getFrom()->getInfo().is<MiniMC::Model::Attributes::CallPlace>());
@@ -28,9 +28,9 @@ namespace MiniMC {
 	      auto ttloc = E->getTo();
                 E->setTo(nloc);
                 auto ff_edge = cfg.makeEdge(nloc, eloc);
-                ff_edge->setAttribute<MiniMC::Model::AttributeType::Guard>(MiniMC::Model::Guard(val, true));
+                ff_edge->getGuard () = MiniMC::Model::Guard(val, true);
                 auto tt_edge = cfg.makeEdge(nloc, ttloc);
-                tt_edge->setAttribute<MiniMC::Model::AttributeType::Guard>(MiniMC::Model::Guard(val, false));
+                tt_edge->getGuard () = MiniMC::Model::Guard(val, false);
 	    }
 	  }
 	}

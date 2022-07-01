@@ -134,7 +134,7 @@ namespace MiniMC {
     };
     */
     struct EnumResult {
-      MiniMC::Model::Edge_ptr edge;
+      MiniMC::Model::Edge* edge;
       MiniMC::proc_t proc; 
     };
     

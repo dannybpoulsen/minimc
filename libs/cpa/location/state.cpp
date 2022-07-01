@@ -112,15 +112,15 @@ namespace MiniMC {
         std::vector<bool> ready;
       };
 
-      MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id id) {
+      MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* edge, proc_id id) {
         auto state = static_cast<const State*>(s.get());
         assert(id < state->nbOfProcesses());
         if (edge->getFrom() == state->getLocation(id)) {
           auto nstate = state->lcopy();
           nstate->setLocation(id, edge->getTo().get());
 
-          if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-            auto& inst = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>().last();
+          if (edge->getInstructions () ) {
+            auto& inst = edge->getInstructions ().get().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {

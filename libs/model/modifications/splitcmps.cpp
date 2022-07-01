@@ -3,7 +3,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "model/analysis/find_location_defs.hpp"
 #include "model/cfg.hpp"
 #include "model/modifications/splitcmps.hpp"
 #include "support/sequencer.hpp"
@@ -13,90 +12,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      template <MiniMC::Model::InstructionCode i>
-      bool evaluateConst(const MiniMC::Model::Instruction& instr,
-                         const MiniMC::Model::Value_ptr& val,
-                         MiniMC::Model::Value_ptr& cval) {
-        cval = nullptr;
-        assert(i == instr.getOpcode());
-        if constexpr (MiniMC::Model::InstructionData<i>::hasResVar && i == MiniMC::Model::InstructionCode::Assign) {
-	  auto& content = instr.getOps<i> ();
-	  if (content.res == val) {
-	    cval = content.op1;
-	    return true;
-	  }
-	}
-        return false;
-      }
-
-      bool evalConst(const MiniMC::Model::Instruction& instr,
-                     const MiniMC::Model::Value_ptr& val,
-                     MiniMC::Model::Value_ptr& cval) {
-        switch (instr.getOpcode()) {
-#define X(OP)                                                                   \
-  case MiniMC::Model::InstructionCode::OP:                                      \
-    return evaluateConst<MiniMC::Model::InstructionCode::OP>(instr, val, cval); \
-                                                                                \
-    break;
-          OPERATIONS
-        }
-        return false;
-      }
-      void killBranchingInFunction(const MiniMC::Model::Function_ptr& func) {
-        if (func->getRegisterStackDescr().getTotalRegisters() <= 0) {
-          //No variables, so no point in doing anything here
-
-          return;
-        }
-        auto cfgdefs = MiniMC::Model::Analysis::calculateDefs(*func); //manager->template getAnalysis<MiniMC::Model::Analysis::AnalysisType::UseDef> ().getFunctionDefs(func);
-        MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
-        auto& edges = func->getCFA().getEdges();
-        std::copy_if(edges.begin(), edges.end(), wlist.inserter(), [](auto& e) { return e->template hasAttribute<MiniMC::Model::AttributeType::Guard>() && !e->template hasAttribute<MiniMC::Model::AttributeType::Instructions>(); });
-
-        std::unordered_set<MiniMC::Model::Location_ptr> loc_list;
-        for (auto& e : wlist) {
-
-          auto guard = e->template getAttribute<MiniMC::Model::AttributeType::Guard>();
-          assert(!e->template hasAttribute<MiniMC::Model::AttributeType::Instructions>());
-          //Grab definitions of predecessor location (as that must be the definitions used when moving along this edge)
-          auto& locdefs = cfgdefs.getDefs(e->getFrom());
-          auto guard_var = std::static_pointer_cast<MiniMC::Model::Register>(guard.guard);
-          if (locdefs.nbDefsForVariable(guard_var) == 1) {
-            auto instr_tup = locdefs.getDefsOfVariables(guard_var);
-            auto instr = *instr_tup.first;
-            MiniMC::Model::Value_ptr constant;
-            if (evalConst(*instr, guard.guard, constant)) {
-              auto iconst = std::static_pointer_cast<MiniMC::Model::TConstant<MiniMC::BV8>>(constant);
-              if (iconst->getValue() && guard.negate) {
-                func->getCFA().deleteEdge(e);
-              }
-              if (!iconst->getValue() && !guard.negate) {
-                func->getCFA().deleteEdge(e);
-              }
-              loc_list.insert(e->getFrom());
-            }
-          }
-        }
-
-        for (auto& loc : loc_list) {
-          if (loc->nbOutgoingEdges() == 1) {
-            //At this point the only edge left is always satisfied... Just delete it.
-            assert(loc->nbIncomingEdges() == 1);
-            auto in = loc->iebegin();
-            auto out = loc->ebegin();
-            in->setTo(out->getTo());
-            func->getCFA().deleteLocation(loc);
-          }
-        }
-      }
-
-      bool KillUnneededBranching::run(MiniMC::Model::Program& prgm) {
-        for (auto& F : prgm.getFunctions()) {
-          killBranchingInFunction(F);
-        }
-        return true;
-      }
-
+    
     } // namespace Modifications
   }   // namespace Model
 } // namespace MiniMC

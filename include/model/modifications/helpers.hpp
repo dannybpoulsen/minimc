@@ -28,7 +28,7 @@ namespace MiniMC {
         insert = MiniMC::Model::copyInstructionWithReplace (inst,replaceFunction);
       }
 
-      inline void copyEdgeAnd(const MiniMC::Model::Edge_ptr& edge,
+      inline void copyEdgeAnd(const MiniMC::Model::Edge* edge,
                               const ReplaceMap<MiniMC::Model::Location>& locs,
                               MiniMC::Model::CFA& cfg) {
 
@@ -36,19 +36,19 @@ namespace MiniMC {
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
-        if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
-          auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard>();
-          nedge->setAttribute<MiniMC::Model::AttributeType::Guard>(guard);
+        if (edge->getGuard  ()) {
+	  auto& guard = edge->getGuard ().get ();
+	  nedge->getGuard () =  guard;
         }
 
-        if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-          auto& orig = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        if (edge->getInstructions ()) {
+          auto& orig = edge->getInstructions ().get ();
           MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
             nstr.addInstruction (inst); 
           });
 
-          nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(nstr);
+          nedge->getInstructions () = nstr;
         }
       }
 
@@ -77,14 +77,14 @@ namespace MiniMC {
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
-        if (edge->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
-          auto& guard = edge->getAttribute<MiniMC::Model::AttributeType::Guard>();
+        if (edge->getGuard ()) {
+          auto& guard = edge->getGuard ().get ();
 
-          nedge->setAttribute<MiniMC::Model::AttributeType::Guard>(MiniMC::Model::Guard(lookupValue(guard.guard, val), guard.negate));
+          nedge->getGuard () = MiniMC::Model::Guard{lookupValue(guard.guard, val), guard.negate};
         }
 
-        if (edge->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-          auto& orig = edge->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+        if (edge->getInstructions ()) {
+          auto& orig = edge->getInstructions ().get ();
           MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
 	    auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
@@ -94,7 +94,7 @@ namespace MiniMC {
 	    nstr.addInstruction(copyInstructionWithReplace (inst,replaceF));
           });
 
-          nedge->setAttribute<MiniMC::Model::AttributeType::Instructions>(nstr);
+          nedge->getInstructions () = std::move(nstr);
         }
 
         insertTo = nedge;

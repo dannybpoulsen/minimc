@@ -389,8 +389,9 @@ namespace MiniMC {
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           for (auto& E : F->getCFA().getEdges()) {
-            if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-              for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
+	    auto& instrkeeper = E->getInstructions ();
+            if (instrkeeper) {
+              for (auto& I : instrkeeper.get ()) {
 
                 switch (I.getOpcode()) {
 #define X(OP)                                                                                      \

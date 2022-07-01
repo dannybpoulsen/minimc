@@ -62,18 +62,18 @@ namespace MiniMC {
     template <class Loc, class T, class Edge, class Interface, class Iter>
     auto ForwardDataFlowAnalysis(Iter begin, Iter end) {
       using Loc_ptr = std::shared_ptr<Loc>;
-      std::unordered_map<Loc_ptr, GenKillState<Loc_ptr, T>> states;
+      std::unordered_map<Loc_ptr, GenKillState<Loc_ptr, const T>> states;
       MiniMC::Support::Queue<Loc> waiting;
       for (auto it = begin; it != end; ++it) {
-        states.insert(std::make_pair(*it, GenKillState<Loc_ptr, T>(*it)));
+        states.insert(std::make_pair(*it, GenKillState<Loc_ptr, const T>(*it)));
         waiting.insert(*it);
       }
 
       while (!waiting.empty()) {
         Loc_ptr fromLoc = waiting.pull();
-        GenKillState<Loc_ptr, T>& cur = states.at(fromLoc);
+        GenKillState<Loc_ptr, const T>& cur = states.at(fromLoc);
         for (auto eit = fromLoc->ebegin(); eit != fromLoc->eend(); ++eit) {
-          GenKillState<Loc_ptr, T>& to = states.at(eit->getTo());
+          GenKillState<Loc_ptr, const T>& to = states.at((*eit)->getTo());
           if (Interface::update(cur, *eit, to)) {
             waiting.insert(eit->getTo());
           }

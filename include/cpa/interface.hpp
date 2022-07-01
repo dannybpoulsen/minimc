@@ -67,7 +67,7 @@ namespace MiniMC {
        * performed (which may happen for instance) when a guard is
        * false)
        */
-      virtual CommonState_ptr doTransfer(const CommonState_ptr&, const MiniMC::Model::Edge_ptr&, proc_id) = 0;
+      virtual CommonState_ptr doTransfer(const CommonState_ptr&, const MiniMC::Model::Edge*, proc_id) = 0;
     };
 
     using Transferer_ptr = std::shared_ptr<Transferer>;
@@ -113,7 +113,7 @@ namespace MiniMC {
     class AnalysisTransfer {
     public:
       AnalysisTransfer (Transferer_ptr&& locTransfer, std::vector<Transferer_ptr>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
-      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge_ptr&, proc_id,AnalysisState&);
+      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge*, proc_id,AnalysisState&);
     private:
       Transferer_ptr locTransfer;
       std::vector<Transferer_ptr> dataTransfers;

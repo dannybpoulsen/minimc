@@ -20,13 +20,12 @@ namespace MiniMC {
           auto& cfac = prgm.getConstantFactory();
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
-              if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-                auto& instrstr = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+              if (E->getInstructions ()) {
+                auto& instrstr = E->getInstructions () .get () ;
                 auto it = instrstr.begin();
                 auto end = instrstr.end();
                 for (; it != end; ++it) {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
-                    std::cerr << "Replace " << std::endl;
                     auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();
                     auto nvar = F->getRegisterStackDescr().addRegister("", content.op1->getType());
                     auto one_constant = cfac->makeIntegerConstant(1, content.op1->getType()->getTypeID ());

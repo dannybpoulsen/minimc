@@ -42,8 +42,8 @@ namespace MiniMC {
                         [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
 
           for (auto E : wlist) {
-            if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-              auto& instrs = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+            if (E->getInstructions ()) {
+              auto& instrs = E->getInstructions ().get ();
               if (isCMP(instrs.last())) {
                 auto buildEdge = [&]<MiniMC::Model::InstructionCode inst,
                                      MiniMC::Model::InstructionCode left>(auto& v) {
@@ -54,18 +54,18 @@ namespace MiniMC {
                   auto end = E->getTo()->eend();
 
                   for (; it != end; ++it) {
-                    auto nedge = cfg.makeEdge(loc, it->getTo());
+                    auto nedge = cfg.makeEdge(loc, (*it)->getTo());
                     nedge->copyAttributesFrom(**it);
                   }
                   std::vector<MiniMC::Model::Instruction> instr;
                   std::copy(instrs.begin(), instrs.end(), std::back_inserter(instr));
                   auto tt = cfg.makeEdge(E->getFrom(), loc);
-                  tt->setAttribute<MiniMC::Model::AttributeType::Instructions>(instr);
+                  tt->getInstructions () = instr;
                   std::vector<MiniMC::Model::Instruction> ttI{
 		    MiniMC::Model::createInstruction<left>({.op1 = origcontent.op1, .op2 = origcontent.op2}),
 		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = origcontent.res, .op1 = v})
 		  };
-                  auto& llnew = tt->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+                  auto& llnew = tt->getInstructions ().get ();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());
                 };
                 auto cfac = F->getPrgm().getConstantFactory();
@@ -128,7 +128,7 @@ namespace MiniMC {
                 if (E->getTo()->nbIncomingEdges() <= 1) {
                   cfg.deleteLocation(E->getTo());
                 } else {
-                  cfg.deleteEdge(E);
+                  cfg.deleteEdge(E.get());
                 }
               }
             }

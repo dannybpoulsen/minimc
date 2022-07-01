@@ -25,20 +25,20 @@ namespace MiniMC {
         
         virtual bool runFunction(const MiniMC::Model::Function_ptr& F) {
           for (auto& E : F->getCFA().getEdges()) {
-            if (E->hasAttribute<MiniMC::Model::AttributeType::Guard>()) {
-              auto& guard = E->getAttribute<MiniMC::Model::AttributeType::Guard>();
-              assert(!E->hasAttribute<MiniMC::Model::AttributeType::Instructions>());
+            if (E->getGuard ()) {
+              auto& guard = E->getGuard ().get ();
+              assert(!E->getInstructions ());
               MiniMC::Model::InstructionStream m;
-              E->setAttribute<MiniMC::Model::AttributeType::Instructions>(m);
-              auto& instr = E->getAttribute<MiniMC::Model::AttributeType::Instructions>();
               if (guard.negate) {
-                instr.addInstruction<MiniMC::Model::InstructionCode::NegAssume>({.expr = guard.guard});
+                m.addInstruction<MiniMC::Model::InstructionCode::NegAssume>({.expr = guard.guard});
               }
 
               else {
-		instr.addInstruction<MiniMC::Model::InstructionCode::Assume>({.expr = guard.guard});
+		m.addInstruction<MiniMC::Model::InstructionCode::Assume>({.expr = guard.guard});
 	      }
-              E->delAttribute<MiniMC::Model::AttributeType::Guard>();
+	      E->getInstructions () = m;
+              
+              E->getGuard ().unset ();
               E->getFrom()->getInfo().template set<MiniMC::Model::Attributes::AssumptionPlace>();
             }
           }

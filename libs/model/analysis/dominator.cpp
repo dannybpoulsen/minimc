@@ -27,7 +27,7 @@ namespace MiniMC {
             for (auto it = cur->iebegin(); it != cur->ieend(); ++it) {
               std::set<MiniMC::Model::Location_ptr> dominator_tmp;
 
-              auto parent = it->getFrom();
+              auto parent = (*it)->getFrom();
               if (it == cur->iebegin()) {
                 std::copy(domres.dombegin(parent), domres.domend(parent), std::inserter(dominator_tmp, dominator_tmp.begin()));
               } else {

@@ -229,7 +229,7 @@ namespace MiniMC {
       RegisterDescr(RegisterDescr&&) = default;
       Register_ptr addRegister(const std::string& name, const Type_ptr& type);
       auto& getRegisters() const { return variables; }
-
+      
       /**
        *
        * @return Total size in bytes of an activation record

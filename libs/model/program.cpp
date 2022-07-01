@@ -60,14 +60,15 @@ namespace MiniMC {
 	for (auto& e : cfa.getEdges ()) {
 	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
 
-	  if (e->hasAttribute<AttributeType::Guard> ()) {
-	    auto& guard = e->getAttribute<AttributeType::Guard>  ();
-	    nedge->setAttribute<AttributeType::Guard> ({replacer(guard.guard),guard.negate});
+	  if (e->getGuard ()) {
+	    auto& guard = e->getGuard ().get ();
+	    nedge->getGuard () = {replacer(guard.guard),guard.negate};
 	  }
 
-	  else if (e->hasAttribute<AttributeType::Instructions> ()) {
-	    auto& instrs = e->getAttribute<AttributeType::Instructions>  ();
-	    nedge->setAttribute<AttributeType::Instructions> (copyInstructionStream (instrs,vars));
+	  else if (e->getInstructions ()) {
+	    auto& instrs = e->getInstructions().get();
+	    nedge->getInstructions () = copyInstructionStream (instrs,vars)
+	      ;
 	      
 	  }
 	  

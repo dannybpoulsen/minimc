@@ -5,13 +5,9 @@
 #include "model/modifications/loops.hpp"
 #include "model/modifications/lower_guards.hpp"
 #include "model/modifications/markinglooplocations.hpp"
-#include "model/modifications/removealloca.hpp"
 #include "model/modifications/removephi.hpp"
-#include "model/modifications/replacememnondet.hpp"
-#include "model/modifications/replacenondetuniform.hpp"
 #include "model/modifications/replacesub.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
-#include "model/modifications/simplify_cfg.hpp"
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/splitcmps.hpp"
 
@@ -38,9 +34,6 @@ namespace MiniMC {
       MiniMC::Model::Modifications::InsertBoolCasts{}.run (*prgm);
     }
 
-    void Controller::makeMemNonDet (){
-      MiniMC::Model::Modifications::RemoveMemNondet{}.run (*prgm);
-    }
     void Controller::createAssertViolateLocations (){
       MiniMC::Model::Modifications::SplitAsserts{}.run (*prgm);
     }
@@ -52,25 +45,9 @@ namespace MiniMC {
     void Controller::unrollLoops (std::size_t iterations,  const MiniMC::Model::Function_ptr& func){
       MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
     }
-    void Controller::splitAtCMP (){
-      MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneCompar{}.run (*prgm);
-      MiniMC::Model::Modifications::SplitCompares{}.run(*prgm);
-    }
-
+    
     void Controller::lowerGuards (){
       MiniMC::Model::Modifications::LowerGuards{}.run (*prgm) ;
-    }
-    
-    void Controller::expandNonDet (){
-      MiniMC::Model::Modifications::ExpandNondet{}.run (*prgm) ;
-    
-    }
-    void Controller::simplifyCFA (){
-      MiniMC::Model::Modifications::SimplifyCFG{}.run (*prgm);
-    }
-    
-    void Controller::onlyOneMemAccessPerEdge (){
-      MiniMC::Model::Modifications::EnsureEdgesOnlyHasOneMemAccess {}.run (*prgm);
     }
     
     void Controller::markLoopLocations (){

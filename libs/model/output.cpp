@@ -9,8 +9,8 @@
 namespace MiniMC {
   namespace Model {
     void writeEdge (std::ostream& os, const MiniMC::Model::Edge& edge) {
-      if (edge.template hasAttribute<MiniMC::Model::AttributeType::Instructions> ()){
-	for (auto& i : edge.template getAttribute<MiniMC::Model::AttributeType::Instructions> ()) {
+      if (edge.getInstructions () ){
+	for (auto& i : edge.getInstructions ().get () ) {
 	  i.output (os << "      ") << "\n";
 	}
       }
@@ -31,10 +31,10 @@ namespace MiniMC {
 	auto end = cur->eend ();
 	for (; it != end; ++it) {
 	  writeEdge (os, **it);
-	  os << "      ->" << "BB" << it->getTo ()->getID () << "\n";
-	  if (!seen.count (it->getTo ())) {
-	    seen.insert (it->getTo ());
-	    waiting.push_back (it->getTo ());
+	  os << "      ->" << "BB" << (*it)->getTo ()->getID () << "\n";
+	  if (!seen.count ((*it)->getTo ())) {
+	    seen.insert ((*it)->getTo ());
+	    waiting.push_back ((*it)->getTo ());
 	  }
 	}
 	os << "    ]" << "\n";

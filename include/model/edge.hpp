@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <ostream>
+#include <utility>
 
 #include "model/location.hpp"
 #include "model/variables.hpp"
@@ -95,9 +96,32 @@ namespace MiniMC {
       bool is_set = false;
     };
 
-    class Edge : private EdgeAttributesMixin<AttributeType::Instructions>,
-                 private EdgeAttributesMixin<AttributeType::Guard>,
-                 public std::enable_shared_from_this<Edge> {
+    template<class T>
+    struct Keeper {
+      Keeper () : isSet (false) {}
+      Keeper (T&& set ) : value(std::forward(set)), isSet(true) {}
+      void operator= (T set) {value= std::move(set); isSet = true; };
+      
+      void unset () {isSet = false;}
+      auto& get () {return value;}
+      const auto& get () const {return value;}
+      
+      operator bool () const {return isSet;}
+    private:
+      T value;
+      bool isSet;
+
+    };
+
+    template<class T>
+    inline std::ostream& operator<< (std::ostream& os, const Keeper<T>& s) {
+      if (s) {
+	return os << s.get ();
+      }
+      return os;
+    }
+    
+    class Edge : public std::enable_shared_from_this<Edge> {
     public:
       Edge(Location_ptr from, Location_ptr to) : from(from),
 						 to(to)
@@ -105,7 +129,7 @@ namespace MiniMC {
 
       Edge(const Edge&) = default;
 
-      template <AttributeType k>
+      /*template <AttributeType k>
       void setAttribute(const typename AttributeValueType<k>::ValType&& inp) {
         static_cast<EdgeAttributesMixin<k>*>(this)->setValue(std::move(inp));
       }
@@ -134,7 +158,15 @@ namespace MiniMC {
       auto hasAttribute() const {
         return static_cast<const EdgeAttributesMixin<k>*>(this)->isSet();
       }
+      */
 
+      auto& getGuard () {return guard;}
+      auto& getInstructions () {return instructions;}
+
+      auto& getGuard () const {return guard;}
+      auto& getInstructions () const  {return instructions;}
+      
+      
       auto getFrom() const { return from.lock(); }
       auto getTo() const { return to.lock(); }
 
@@ -145,35 +177,29 @@ namespace MiniMC {
 	   * @param t New target of the edge 
 	   */
       void setTo(Location_ptr t) {
-        to.lock()->removeIncomingEdge(this->shared_from_this());
+        to.lock()->removeIncomingEdge(this);
         to = t;
-        t->addIncomingEdge(this->shared_from_this());
+        t->addIncomingEdge(this);
       }
 
       //void setProgram (const Program_ptr& p) {prgm = p;}
 
       void copyAttributesFrom(const Edge& e) {
-        if (e.hasAttribute<AttributeType::Guard>()) {
-          this->setAttribute<AttributeType::Guard>(e.getAttribute<AttributeType::Guard>());
-        }
-
-        if (e.hasAttribute<AttributeType::Instructions>()) {
-          this->setAttribute<AttributeType::Instructions>(e.getAttribute<AttributeType::Instructions>());
-        }
+        guard = e.guard;
+	instructions = e.instructions;
       }
 
     private:
       Location_wptr from;
       Location_wptr to;
       Value_ptr value;
+      Keeper<Guard> guard;
+      Keeper<InstructionStream> instructions;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Edge& e) {
-      if (e.hasAttribute<AttributeType::Guard>()) {
-        os << e.getAttribute<AttributeType::Guard>();
-      } else if (e.hasAttribute<AttributeType::Instructions>()) {
-        os << e.getAttribute<AttributeType::Instructions>();
-      }
+      os << e.getGuard ();
+      os << e.getInstructions ();
       return os;
     }
 

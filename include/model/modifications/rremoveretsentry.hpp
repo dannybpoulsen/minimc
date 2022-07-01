@@ -23,8 +23,8 @@ namespace MiniMC {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getEntryPoints()) {
             for (auto& E : F->getCFA().getEdges()) {
-              if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-                for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
+              if (E->getInstructions () ) {
+                for (auto& I : E->getInstructions () .get ()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::Ret ||
                       I.getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
                     I.replace(createInstruction<InstructionCode::Skip> (0));

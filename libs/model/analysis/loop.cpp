@@ -27,8 +27,8 @@ namespace MiniMC {
           if (!loop->contains(search)) {
             loop->insertBody(search);
             for (auto it = search->iebegin(); it != search->ieend(); ++it) {
-              if (it->getFrom() != head) {
-                stack.push(it->getFrom());
+              if ((*it)->getFrom() != head) {
+                stack.push((*it)->getFrom());
               }
             }
           }

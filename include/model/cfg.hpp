@@ -27,8 +27,7 @@ namespace MiniMC {
 
     class Function;
     using Function_ptr = std::shared_ptr<Function>;
-    using Function_wptr = std::weak_ptr<Function>;
-
+    
     /**
 	 *
 	 * Representation of an Control Flow Automaton. 
@@ -58,8 +57,8 @@ namespace MiniMC {
 	   */
       Edge_ptr makeEdge(Location_ptr from, Location_ptr to) {
         edges.emplace_back(new Edge(from, to));
-        to->addIncomingEdge(edges.back());
-        from->addEdge(edges.back());
+        to->addIncomingEdge(edges.back().get());
+        from->addEdge(edges.back().get());
         return edges.back();
       }
 
@@ -78,18 +77,18 @@ namespace MiniMC {
 	   *
 	   * @param edge The edge to delete
 	   */
-      void deleteEdge(const Edge_ptr& edge) {
+      void deleteEdge(const Edge* edge) {
         edge->getFrom()->removeEdge(edge);
         edge->getTo()->removeIncomingEdge(edge);
 
-        auto it = std::find(edges.begin(), edges.end(), edge);
+        auto it = std::find_if(edges.begin(), edges.end(), [edge](auto& e) {return e.get() == edge;});
         if (it != edges.end()) {
           edges.erase(it);
         }
       }
-
+      
       void deleteLocation(const Location_ptr& location) {
-        MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
+        MiniMC::Support::WorkingList<MiniMC::Model::Edge*> wlist;
         auto insert = wlist.inserter();
         std::for_each(location->ebegin(), location->eend(), [&](const auto& e) { insert = e; });
         std::for_each(location->iebegin(), location->ieend(), [&](const auto& e) { insert = e; });

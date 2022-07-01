@@ -51,7 +51,7 @@ namespace MiniMC {
 	return nullptr;
       }
       
-      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& e, proc_id id) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id) {
         assert(id == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s->copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
@@ -60,9 +60,9 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
       
 	StackControl stackcontrol{nstate.getStack (),*context};
-        if (e->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
+        if (e->getInstructions()) {
 	  decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
-	  auto& instr = e->getAttribute<MiniMC::Model::AttributeType::Instructions>();
+	  auto& instr = e->getInstructions().get();
 	  status = engine.execute(instr,newvm);
 	}
 	

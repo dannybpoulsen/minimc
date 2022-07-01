@@ -16,8 +16,8 @@ namespace MiniMC {
         virtual bool run(const MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
-              if (E->hasAttribute<MiniMC::Model::AttributeType::Instructions>()) {
-                for (auto& I : E->getAttribute<MiniMC::Model::AttributeType::Instructions>()) {
+              if (E->getInstructions ()) {
+                for (auto& I : E->getInstructions().get()) {
                   if (MiniMC::Model::isOneOf<codes...>(I)) {
 		    MiniMC::Support::Messager{}.message (error_mess.format(I.getOpcode()));
                     return false;

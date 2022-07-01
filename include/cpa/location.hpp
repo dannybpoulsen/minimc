@@ -21,7 +21,7 @@ namespace MiniMC {
 
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
-        CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr&, proc_id) override;
+        CommonState_ptr doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge*, proc_id) override;
       private:
 	const MiniMC::Model::Program& prgm;
       };

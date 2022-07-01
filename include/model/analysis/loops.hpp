@@ -81,7 +81,7 @@ namespace MiniMC {
         }
 
       private:
-        void insertEdge(const MiniMC::Model::Edge_ptr& e) {
+        void insertEdge(MiniMC::Model::Edge* e) {
           if (e->getTo() == header) {
             back_edges.insert(e);
           } else if (contains(e->getTo())) {
@@ -94,9 +94,9 @@ namespace MiniMC {
         MiniMC::Model::Location_ptr header;
         std::set<MiniMC::Model::Location_ptr> latches;
         std::set<MiniMC::Model::Location_ptr> body;
-        std::set<MiniMC::Model::Edge_ptr> exiting;
-        std::set<MiniMC::Model::Edge_ptr> internal;
-        std::set<MiniMC::Model::Edge_ptr> back_edges;
+        std::set<MiniMC::Model::Edge*> exiting;
+        std::set<MiniMC::Model::Edge*> internal;
+        std::set<MiniMC::Model::Edge*> back_edges;
 
         std::vector<std::unique_ptr<Loop>> child;
         Loop* parent = nullptr;

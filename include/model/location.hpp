@@ -16,7 +16,7 @@ namespace MiniMC {
     using Edge_ptr = std::shared_ptr<Edge>;
     using Edge_wptr = std::weak_ptr<Edge>;
 
-    template <class Obj, class BaseIterator>
+    /*template <class Obj, class BaseIterator>
     class SmartIterator {
     public:
       SmartIterator(BaseIterator iter) : iter(iter) {}
@@ -44,8 +44,9 @@ namespace MiniMC {
 
     private:
       BaseIterator iter;
-    };
-
+      };
+    */
+    
     class CFA;
     using CFA_ptr = std::shared_ptr<CFA>;
     using CFA_wptr = std::weak_ptr<CFA>;
@@ -58,35 +59,35 @@ namespace MiniMC {
       friend class CFA;
       friend class Edge;
 
-      using edge_iterator = SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>;
+      using edge_iterator = std::vector<Edge*>::iterator;
 
       Location(const LocationInfo& n, MiniMC::offset_t id, CFA* cfg) : info(n), id(id), cfg(cfg) {}
 
-      void addEdge(gsl::not_null<Edge_ptr> e) { edges.push_back(e.get()); }
-      void addIncomingEdge(gsl::not_null<Edge_ptr> e) { incomingEdges.push_back(e.get()); }
+      void addEdge(Edge* e) { edges.push_back(e); }
+      void addIncomingEdge(Edge* e) { incomingEdges.push_back(e); }
       /** 
        *
        * @return begin iterator for outgoing edges
        */
-      edge_iterator ebegin() { return SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>(edges.begin()); }
+      edge_iterator ebegin() { return edges.begin(); }
 
       /** 
        *
        * @return end iterator for outgoing edges
        */
-      edge_iterator eend() { return SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>(edges.end()); }
+      edge_iterator eend() { return edges.end(); }
 
       /** 
        *
        * @return begin iterator for incoming edges
        */
-      edge_iterator iebegin() { return SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>(incomingEdges.begin()); }
+      edge_iterator iebegin() { return incomingEdges.begin(); }
 
       /** 
        *
        * @return end iterator for incoming edges
        */
-      edge_iterator ieend() { return SmartIterator<Edge_ptr, std::vector<Edge_wptr>::iterator>(incomingEdges.end()); }
+      edge_iterator ieend() { return incomingEdges.end(); }
 
       /** 
        * Check if this location has outoing edges
@@ -122,16 +123,16 @@ namespace MiniMC {
 
       bool isOutgoing(const MiniMC::Model::Edge_ptr& e) {
         auto it = std::find_if(edges.begin(), edges.end(),
-                               [&e](const Edge_wptr& ptr1) {
-                                 return ptr1.lock() == e;
+                               [&e](auto& ptr1) {
+                                 return ptr1 == e.get ();
                                });
         return it != edges.end();
       }
 
       bool isIncoming(const MiniMC::Model::Edge_ptr& e) {
         auto it = std::find_if(incomingEdges.begin(), incomingEdges.end(),
-                               [&e](const Edge_wptr& ptr1) {
-                                 return ptr1.lock() == e;
+                               [&e](auto& ptr1) {
+                                 return ptr1  == e.get();
                                });
         return it != incomingEdges.end();
       }
@@ -147,10 +148,10 @@ namespace MiniMC {
        *
        * @param e The edge to search for
        */
-      void removeEdge(const Edge_ptr e) {
+      void removeEdge(const Edge* e) {
         auto it = std::find_if(edges.begin(), edges.end(),
-                               [&e](const Edge_wptr& ptr1) {
-                                 return ptr1.lock() == e;
+                               [&e](auto& ptr1) {
+                                 return ptr1 == e;
                                });
 
         assert(it != edges.end());
@@ -163,18 +164,18 @@ namespace MiniMC {
        *
        * @param e The edge to search for
        */
-      void removeIncomingEdge(const Edge_ptr e) {
+      void removeIncomingEdge(const Edge* e) {
         auto it = std::find_if(incomingEdges.begin(), incomingEdges.end(),
-                               [&e](const Edge_wptr& ptr1) {
-                                 return ptr1.lock() == e;
+                               [&e](auto& ptr1) {
+                                 return ptr1== e;
                                });
         assert(it != incomingEdges.end());
         incomingEdges.erase(it);
       }
 
     private:
-      std::vector<Edge_wptr> edges;
-      std::vector<Edge_wptr> incomingEdges;
+      std::vector<Edge*> edges;
+      std::vector<Edge*> incomingEdges;
       LocationInfo info;
       MiniMC::offset_t id;
       CFA* cfg;
