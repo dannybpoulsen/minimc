@@ -28,7 +28,7 @@ namespace MiniMC {
       void boolCasts ();
       void splitAtCMP ();
       void lowerGuards ();
-      void expandNonDet ();
+      void expandNonDeterministic ();
       void onlyOneMemAccessPerEdge ();
 
       void markLoopLocations ();

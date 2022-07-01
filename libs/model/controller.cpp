@@ -10,6 +10,7 @@
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/splitcmps.hpp"
+#include "model/modifications/expandnondet.hpp"
 
 #include "model/checkers/structure.hpp"
 #include "model/checkers/typechecker.hpp"
@@ -54,6 +55,11 @@ namespace MiniMC {
       MiniMC::Model::Modifications::MarkLoopStates{}.run (*prgm);
     }
 
+    void Controller::expandNonDeterministic (){
+      MiniMC::Model::Modifications::expandNonDet (*prgm);
+    }
+
+    
     void Controller::makeLoopAllLocations (){
       MiniMC::Model::Modifications::MarkAllStates{}.run (*prgm);
     
