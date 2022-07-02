@@ -51,6 +51,8 @@ namespace MiniMC {
 	ValueLookup (std::size_t i) : BaseValueLookup<ConcreteVMVal>(i) {}
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
 	ConcreteVMVal unboundValue (const MiniMC::Model::Type_ptr&) const override;
+	ConcreteVMVal defaultValue(const MiniMC::Model::Type_ptr&) const override;
+	
       };
       
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {

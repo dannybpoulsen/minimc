@@ -379,7 +379,7 @@ namespace MiniMC {
           
 	  
 	  for (auto& v : vstack.getRegisters()) {
-            writeState.getStackControl().getValueLookup().saveValue  (*v,writeState.getStackControl().getValueLookup().unboundValue (v->getType ()));
+            writeState.getStackControl().getValueLookup().saveValue  (*v,writeState.getStackControl().getValueLookup().defaultValue (v->getType ()));
           }
 	  
 	  auto it = params.begin ();
@@ -405,6 +405,13 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Skip) {
+          return Status::Ok;
+        }
+	
+	else if constexpr (op == MiniMC::Model::InstructionCode::NonDet) {
+	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+	  auto ret = writeState.getStackControl().getValueLookup ().unboundValue(content.res->getType ());
+          writeState.getStackControl().getValueLookup ().saveValue(res,std::move(ret));
           return Status::Ok;
         }
 	

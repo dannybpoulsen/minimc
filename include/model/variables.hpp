@@ -117,11 +117,15 @@ namespace MiniMC {
       
       std::ostream& output(std::ostream& os) const override {
 	std::ostream copy (os.rdbuf());
-	if constexpr (!std::is_same_v<T,MiniMC::pointer_t>) {
-	    copy << std::showbase << std::hex ;
+	if constexpr (std::is_integral_v<T>) {
+	  MiniMC::BV64 val = value;
+	  copy << std::showbase << std::hex ;
+	  copy << "<" <<  val << " " << *getType () <<">";;
 	}
-        copy << "<" <<  value << " " << *getType () <<">";;
-	return os;
+	else {
+	  copy << "<" <<  value << " " << *getType () <<">";;
+	}
+        return os;
       }
 
     private:

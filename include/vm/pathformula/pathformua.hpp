@@ -53,7 +53,9 @@ namespace MiniMC {
 	ValueLookup (const ValueLookup&) = default;
         PathFormulaVMVal lookupValue (const MiniMC::Model::Value_ptr& ) const override;
         PathFormulaVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;
-        MiniMC::Hash::hash_t hash() const { return 0;}
+	PathFormulaVMVal defaultValue(const MiniMC::Model::Type_ptr&) const override;
+      
+	MiniMC::Hash::hash_t hash() const { return 0;}
 	
       private:
 	SMTLib::TermBuilder& builder;

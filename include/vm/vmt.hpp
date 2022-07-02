@@ -29,6 +29,8 @@ namespace MiniMC {
       virtual T lookupValue (const MiniMC::Model::Value_ptr&) const = 0;
       virtual void saveValue (const MiniMC::Model::Register&, T&&)  = 0;
       virtual T unboundValue (const MiniMC::Model::Type_ptr&) const = 0;
+      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const  = 0;
+      
     };
 
     template<class T>
@@ -41,7 +43,9 @@ namespace MiniMC {
       void saveValue(const MiniMC::Model::Register& v, T&& value) override {
 	values.set (v,std::move(value));
       }
-      T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      virtual T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      
       MiniMC::Hash::hash_t hash() const { return values.hash(); }
     protected:
       T lookupRegister (const MiniMC::Model::Register& reg) const  {return values[reg];}

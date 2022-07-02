@@ -2,7 +2,9 @@
 #include "host/casts.hpp"
 #include "host/operataions.hpp"
 #include "support/pointer.hpp"
+#include "support/feedback.hpp"
 #include "vm/concrete/concrete.hpp"
+
 
 namespace MiniMC {
   namespace VMT {
@@ -30,8 +32,8 @@ namespace MiniMC {
             *v);
       }
 
-      ConcreteVMVal ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
-        switch (t->getTypeID()) {
+      ConcreteVMVal ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
+	switch (t->getTypeID()) {
           case MiniMC::Model::TypeID::Bool:
             return BoolValue(false);
 
@@ -52,8 +54,14 @@ namespace MiniMC {
           default:
             break;
         }
-
+	
         throw MiniMC::Support::Exception("Erro");
+      }
+      
+      
+      ConcreteVMVal ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
+	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting Nondeterministic values for concrete values....using default value");
+	return defaultValue (t);
       }
 
     } // namespace Concrete

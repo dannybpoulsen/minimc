@@ -23,7 +23,7 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::ValueLookup lookup{vstack.getTotalRegisters (),termbuilder};
 	for (auto& reg : vstack.getRegisters ()) {
-	  auto val = lookup.unboundValue (reg->getType ());
+	  auto val = lookup.defaultValue (reg->getType ());
 	  lookup.saveValue (*reg,std::move(val));
 	}
 	

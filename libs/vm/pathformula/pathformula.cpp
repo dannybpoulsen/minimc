@@ -41,6 +41,10 @@ namespace MiniMC {
         return unboundVal(t, builder);
       }
 
+      PathFormulaVMVal ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
+        return unboundValue(t);
+      }
+
       
       
       PathFormulaVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {

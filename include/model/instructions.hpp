@@ -377,6 +377,7 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = true;
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
       using Content = NonDetContent;

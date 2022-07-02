@@ -138,7 +138,7 @@ namespace MiniMC {
 	  ActivationRecord sf {{vstack.getTotalRegisters ()},
 			 nullptr};
 	  for (auto& v : vstack.getRegisters()) {
-            sf.values.saveValue  (*v,sf.values.unboundValue (v->getType ()));
+            sf.values.saveValue  (*v,sf.values.defaultValue (v->getType ()));
           }
 	  ActivationStack cs {std::move(sf)};
           stack.push_back(cs);
