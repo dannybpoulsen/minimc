@@ -391,7 +391,7 @@ namespace MiniMC {
           for (auto& E : F->getCFA().getEdges()) {
 	    auto& instrkeeper = E->getInstructions ();
             if (instrkeeper) {
-              for (auto& I : instrkeeper.get ()) {
+              for (auto& I : instrkeeper) {
 
                 switch (I.getOpcode()) {
 #define X(OP)                                                                                      \

@@ -10,7 +10,7 @@ namespace MiniMC {
   namespace Model {
     void writeEdge (std::ostream& os, const MiniMC::Model::Edge& edge) {
       if (edge.getInstructions () ){
-	for (auto& i : edge.getInstructions ().get () ) {
+	for (auto& i : edge.getInstructions () ) {
 	  i.output (os << "      ") << "\n";
 	}
       }

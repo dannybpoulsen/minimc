@@ -60,11 +60,10 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
       
 	StackControl stackcontrol{nstate.getStack (),*context};
-        if (e->getInstructions()) {
-	  decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
-	  auto& instr = e->getInstructions().get();
-	  status = engine.execute(instr,newvm);
-	}
+        
+	decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
+	auto& instr = e->getInstructions();
+	status = engine.execute(instr,newvm);
 	
 	if (status ==MiniMC::VMT::Status::Ok)  {
 	  if (control.getAssump ()) 

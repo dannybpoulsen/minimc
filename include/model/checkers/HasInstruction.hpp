@@ -17,7 +17,7 @@ namespace MiniMC {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
               if (E->getInstructions ()) {
-                for (auto& I : E->getInstructions().get()) {
+                for (auto& I : E->getInstructions()) {
                   if (MiniMC::Model::isOneOf<codes...>(I)) {
 		    MiniMC::Support::Messager{}.message (error_mess.format(I.getOpcode()));
                     return false;

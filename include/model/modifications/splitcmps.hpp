@@ -43,7 +43,7 @@ namespace MiniMC {
 
           for (auto E : wlist) {
             if (E->getInstructions ()) {
-              auto& instrs = E->getInstructions ().get ();
+              auto& instrs = E->getInstructions ();
               if (isCMP(instrs.last())) {
                 auto buildEdge = [&]<MiniMC::Model::InstructionCode inst,
                                      MiniMC::Model::InstructionCode left>(auto& v) {
@@ -65,7 +65,7 @@ namespace MiniMC {
 		    MiniMC::Model::createInstruction<left>({.op1 = origcontent.op1, .op2 = origcontent.op2}),
 		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = origcontent.res, .op1 = v})
 		  };
-                  auto& llnew = tt->getInstructions ().get ();
+                  auto& llnew = tt->getInstructions ();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());
                 };
                 auto cfac = F->getPrgm().getConstantFactory();

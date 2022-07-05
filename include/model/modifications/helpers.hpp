@@ -36,13 +36,9 @@ namespace MiniMC {
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
-        if (edge->getGuard  ()) {
-	  auto& guard = edge->getGuard ().get ();
-	  nedge->getGuard () =  guard;
-        }
-
+        
         if (edge->getInstructions ()) {
-          auto& orig = edge->getInstructions ().get ();
+          auto& orig = edge->getInstructions ();
           MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
             nstr.addInstruction (inst); 
@@ -77,14 +73,9 @@ namespace MiniMC {
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
         auto nedge = cfg.makeEdge(from, to);
-        if (edge->getGuard ()) {
-          auto& guard = edge->getGuard ().get ();
-
-          nedge->getGuard () = MiniMC::Model::Guard{lookupValue(guard.guard, val), guard.negate};
-        }
-
+        
         if (edge->getInstructions ()) {
-          auto& orig = edge->getInstructions ().get ();
+          auto& orig = edge->getInstructions ();
           MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
 	    auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {

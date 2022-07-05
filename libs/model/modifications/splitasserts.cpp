@@ -17,7 +17,7 @@ namespace MiniMC {
 	
 	for (auto E : wlist) {
 	  if (E->getInstructions ()) {
-	    auto& instrs = E->getInstructions ().get ();
+	    auto& instrs = E->getInstructions ();
 	    if (instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Assert) {
 	      E->getFrom()->getInfo().unset<MiniMC::Model::Attributes::CallPlace>();
 	      assert(!E->getFrom()->getInfo().is<MiniMC::Model::Attributes::CallPlace>());
@@ -26,11 +26,14 @@ namespace MiniMC {
 	      
 	      auto nloc = cfg.makeLocation(locc.make("Assert", 0, *source_loc));
 	      auto ttloc = E->getTo();
-                E->setTo(nloc);
-                auto ff_edge = cfg.makeEdge(nloc, eloc);
-                ff_edge->getGuard () = MiniMC::Model::Guard(val, true);
-                auto tt_edge = cfg.makeEdge(nloc, ttloc);
-                tt_edge->getGuard () = MiniMC::Model::Guard(val, false);
+	      E->setTo(nloc);
+	      auto ff_edge = cfg.makeEdge(nloc, eloc);
+	      ff_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::NegAssume> ({
+			.expr = val})},false);
+		  
+	      auto tt_edge = cfg.makeEdge(nloc, ttloc);
+	      tt_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assume> ({
+			.expr = val})},false);
 	    }
 	  }
 	}

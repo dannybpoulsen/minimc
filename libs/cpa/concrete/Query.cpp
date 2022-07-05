@@ -164,12 +164,10 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::PathControl control;
 	StackControl scontrol {nstate.getProc (id)};
 	
-	if (e->getInstructions () ) {
-	  decltype(engine)::State newvm {nstate.getHeap (),control,scontrol};
-	  auto& instr = e->getInstructions().get();
-	  status = engine.execute(instr,newvm);
-	  
-	}
+	decltype(engine)::State newvm {nstate.getHeap (),control,scontrol};
+	auto& instr = e->getInstructions();
+	status = engine.execute(instr,newvm);
+	
 	if (status ==MiniMC::VMT::Status::Ok)
 	  return resstate;
 	else {

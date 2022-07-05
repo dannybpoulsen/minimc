@@ -751,7 +751,7 @@ ASSUMEASSERTS
     struct InstructionStream {
       using iterator = std::vector<Instruction>::iterator;
       InstructionStream() : InstructionStream(false) {}
-      InstructionStream(bool isPhi) : instr({Instruction{InstructionCode::Skip,0}}),phi(isPhi) {}
+      InstructionStream(bool isPhi) : phi(isPhi) {}
       
       InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
                                                                                  phi(isPhi) {
@@ -771,14 +771,15 @@ ASSUMEASSERTS
       auto rbegin() { return instr.rbegin(); }
       auto rend() { return instr.rend(); }
 
+      operator bool () const {return instr.size ();}
 
       template<InstructionCode c>
-      InstructionStream addInstruction (const typename InstructionData<c>::Content  content) {
+      InstructionStream& addInstruction (const typename InstructionData<c>::Content  content) {
 	instr.emplace_back (createInstruction<c> (content));
 	return *this;
       }
 
-      InstructionStream addInstruction (const Instruction& i) {
+      InstructionStream& addInstruction (const Instruction& i) {
 	instr.emplace_back (i);
 	return *this;
       }
@@ -805,7 +806,6 @@ ASSUMEASSERTS
       template <class Iterator>
       auto erase(Iterator iter) {
         auto res = instr.erase(iter);
-        assert(instr.size() > 0);
         return res;
       }
 

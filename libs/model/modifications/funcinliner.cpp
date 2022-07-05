@@ -16,7 +16,7 @@ namespace MiniMC {
           throw MiniMC::Support::Exception("Inlining Depth exceeded");
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
-        auto& instrs = edge->getInstructions().get ();
+        auto& instrs = edge->getInstructions();
         assert(instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Call);
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
@@ -39,7 +39,7 @@ namespace MiniMC {
 
         for (auto& ne : wlist) {
           if (ne->getInstructions ()) {
-            auto& ninstr = ne->getInstructions ().get ();
+            auto& ninstr = ne->getInstructions ();
             if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
               inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
             }
@@ -76,7 +76,7 @@ namespace MiniMC {
 					 {.res = valmap.at(it->get()),
 					  .op1 = call_content.params.at(i)});  
         }
-        edge->getInstructions ().unset ();
+        edge->getInstructions ().clear ();
         if (str.begin() != str.end())
           edge->getInstructions () = str;
         from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace>();
@@ -92,7 +92,7 @@ namespace MiniMC {
                       [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
         for (auto& e : wlist) {
           if (e->getInstructions () &&
-              e->getInstructions().get().last().getOpcode() ==
+              e->getInstructions().last().getOpcode() ==
                   MiniMC::Model::InstructionCode::Call) {
             inlineCallEdgeToFunction(prgm,F, e, linfoc, depth);
           }

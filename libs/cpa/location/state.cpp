@@ -120,7 +120,7 @@ namespace MiniMC {
           nstate->setLocation(id, edge->getTo().get());
 
           if (edge->getInstructions () ) {
-            auto& inst = edge->getInstructions ().get().last();
+            auto& inst = edge->getInstructions ().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {

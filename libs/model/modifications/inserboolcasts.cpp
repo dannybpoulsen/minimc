@@ -17,7 +17,7 @@ namespace MiniMC {
       bool InsertBoolCasts::runFunction(const MiniMC::Model::Function_ptr& F) {
 	for (auto& E : F->getCFA().getEdges()) {
 	  if (E->getInstructions () ) {
-	    for (auto& I : E->getInstructions().get()) {
+	    for (auto& I : E->getInstructions()) {
 	      modifyExt<MiniMC::Model::InstructionCode::ZExt, MiniMC::Model::InstructionCode::BoolZExt>(I);
 	      modifyExt<MiniMC::Model::InstructionCode::SExt, MiniMC::Model::InstructionCode::BoolSExt>(I);
 	    }

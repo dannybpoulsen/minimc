@@ -16,7 +16,7 @@ namespace MiniMC {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
               if (E->getInstructions () ) {
-                auto& instrstream = E->getInstructions ().get () ;
+                auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
                 std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
                 if (instrstream.isPhi ()) {

@@ -21,7 +21,7 @@ namespace MiniMC {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
               if (E->getInstructions ()) {
-                auto& instrstr = E->getInstructions () .get () ;
+                auto& instrstr = E->getInstructions ();
                 auto it = instrstr.begin();
                 auto end = instrstr.end();
                 for (; it != end; ++it) {

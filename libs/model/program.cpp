@@ -60,13 +60,8 @@ namespace MiniMC {
 	for (auto& e : cfa.getEdges ()) {
 	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
 
-	  if (e->getGuard ()) {
-	    auto& guard = e->getGuard ().get ();
-	    nedge->getGuard () = {replacer(guard.guard),guard.negate};
-	  }
-
-	  else if (e->getInstructions ()) {
-	    auto& instrs = e->getInstructions().get();
+	  if (e->getInstructions ()) {
+	    auto& instrs = e->getInstructions();
 	    nedge->getInstructions () = copyInstructionStream (instrs,vars)
 	      ;
 	      

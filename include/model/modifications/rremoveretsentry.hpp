@@ -24,7 +24,7 @@ namespace MiniMC {
           for (auto& F : prgm.getEntryPoints()) {
             for (auto& E : F->getCFA().getEdges()) {
               if (E->getInstructions () ) {
-                for (auto& I : E->getInstructions () .get ()) {
+                for (auto& I : E->getInstructions ()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::Ret ||
                       I.getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
                     I.replace(createInstruction<InstructionCode::Skip> (0));

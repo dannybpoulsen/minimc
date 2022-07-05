@@ -66,7 +66,7 @@ namespace MiniMC {
           nstate->setLocation(edge->getTo().get());
 
           if (edge->getInstructions()) {
-            auto& inst = edge->getInstructions().get().last();
+            auto& inst = edge->getInstructions().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
               //throw NotImplemented<MiniMC::Model::InstructionCode::Call> ();
 	      

@@ -31,7 +31,7 @@ namespace MiniMC {
       void expandEdge (MiniMC::Model::CFA& cfa, MiniMC::Model::ConstantFactory& cfac, const MiniMC::Model::Edge* edge) {
 	if (edge->getInstructions ()) {
 	  // Only bother if we have instructions to deala with
-	  auto& instr = edge->getInstructions().get ();
+	  auto& instr = edge->getInstructions();
 	  MiniMC::Model::InstructionStream nstr{instr.isPhi ()};
 	  auto prev =  edge->getFrom ();
 	  auto goal =  edge->getTo ();

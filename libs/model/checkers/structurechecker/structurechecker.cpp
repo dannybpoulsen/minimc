@@ -17,44 +17,14 @@
 namespace MiniMC {
   namespace Model {
     namespace Checkers {
-      /** 
-	   * Make sure that \p e does not have both Guard and InstructionStream
-	   *
-	   * @return true if the check passes false otherwise 
-	   */
-      bool checkNoGuardAndInstructionStream(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        if (e.getInstructions () &&
-            e.getGuard ()) {
-          mess.message<MiniMC::Support::Severity::Error>("Edges must not have both guards and Instructions");
-          return false;
-        }
-        return true;
-      }
-
-      /** 
-	   * Make sure that if \p e has a guard, then it is boolean. 
-	   *
-	   * @return true if the check passes false otherwise 
-	   */
-      bool checkGuardIsBoolean(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-	auto guardkeep = e.getGuard ();
-        if (guardkeep) {
-          auto& guard = guardkeep.get ();
-          if (guard.guard->getType()->getTypeID() != MiniMC::Model::TypeID::Bool) {
-            mess.message<MiniMC::Support::Severity::Error>("Edge guard must be booleans");
-            return false;
-          }
-        }
-        return true;
-      }
-
+      
       /** 
 	   * Check that a (possible) call is last in the InstructionStream.
 	   * @return true if the check passes false otherwise 
 	   */
       bool checkCallIsLast(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
         if (e.getInstructions ()) {
-          auto& instr = e.getInstructions ().get ();
+          auto& instr = e.getInstructions ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           for (++it; it != end; ++it) {
@@ -73,7 +43,7 @@ namespace MiniMC {
 	   */
       bool checkPhiIsOnlyAssign(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
         if (e.getInstructions ()) {
-          auto& instr = e.getInstructions ().get ();
+          auto& instr = e.getInstructions ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           if (instr.isPhi () ) {
@@ -95,7 +65,7 @@ namespace MiniMC {
 
       bool checkAssertIsLast(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
         if (e.getInstructions ()) {
-          auto& instr = e.getInstructions ().get ();
+          auto& instr = e.getInstructions ();
           auto it = instr.rbegin();
           auto end = instr.rend();
           for (++it; it != end; ++it) {
@@ -109,8 +79,7 @@ namespace MiniMC {
       }
 
       bool checkEdge(const MiniMC::Model::Edge& e, MiniMC::Support::Messager& mess) {
-        return checkNoGuardAndInstructionStream(e, mess) &&
-               checkGuardIsBoolean(e, mess) &&
+        return 
                checkCallIsLast(e, mess) &&
                checkPhiIsOnlyAssign(e, mess);
       }
