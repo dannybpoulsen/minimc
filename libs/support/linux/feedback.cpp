@@ -25,7 +25,7 @@ namespace MiniMC {
       }
 
       void message(const std::string& s) override {
-        std::cout << "\x1b[2K\r" << defaultC << s << '\r' << std::flush;
+        std::cout << "\x1b[2K\r" << defaultC << s << '\n';
       }
 
       void progress(const std::string& s) override {

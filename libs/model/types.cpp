@@ -74,7 +74,8 @@ namespace MiniMC {
 	return os;
       }
       bool innerEq(const Type& t) { return size == static_cast<const AggregateType&>(t).size; }
-
+      bool isAggregate () const override {return true;}
+      
     private:
       std::size_t size;
     };

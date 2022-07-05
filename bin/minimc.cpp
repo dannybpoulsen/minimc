@@ -44,6 +44,9 @@ int main(int argc, char* argv[]) {
   control.makeLoopAllLocations();
   control.createAssertViolateLocations();
   control.lowerGuards();
+  if (!control.typecheck ()) {
+    return -1;
+  }
   
   try {
     if (options.load.tasks.size()) {

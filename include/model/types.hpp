@@ -58,8 +58,9 @@ namespace MiniMC {
         return (&t == this) ||
                (getTypeID() == t.getTypeID() && innerEq(t));
       }
-
+      
       virtual bool isInteger () const {return false;}
+      virtual bool isAggregate () const {return false;}
       
     protected:
       virtual bool innerEq(const Type& t) = 0;

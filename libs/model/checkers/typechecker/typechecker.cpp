@@ -351,12 +351,36 @@ namespace MiniMC {
           return true;
         }
 
-        
-        else if constexpr (i == InstructionCode::BitCast ||
-                           i == InstructionCode::ExtractValue ||
-                           i == InstructionCode::InsertValue) {
+	else if constexpr (i == InstructionCode::ExtractValue ||
+                           i == InstructionCode::InsertValue
+			   ) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
-          mess.message<MiniMC::Support::Severity::Warning> (warning.format(i));
+	  MiniMC::Support::Localiser must_be_aggregate("%2% must be aggregate '%1%'");
+	  MiniMC::Support::Localiser must_be_integer("offset must be integer '%1%'");
+	  
+	  if (!content.offset->getType ()->isInteger ()) {
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
+            return false;
+          }
+
+	  if (!content.aggregate->getType ()->isAggregate ()) {
+            mess.message<MiniMC::Support::Severity::Error>(must_be_aggregate.format(i,"aggregate"));
+            return false;
+          }
+
+	  if constexpr (i == InstructionCode::InsertValue) {
+	    if (!content.res->getType ()->isAggregate ()) {
+	      mess.message<MiniMC::Support::Severity::Error>(must_be_aggregate.format(i,"res"));
+	      return false;
+	    }
+	  }
+	  
+	  return true;
+        }
+        
+        else if constexpr (i == InstructionCode::BitCast) {
+          MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
+	  mess.message<MiniMC::Support::Severity::Warning> (warning.format(i));
           return true;
         }
 
