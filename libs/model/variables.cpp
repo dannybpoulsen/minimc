@@ -145,7 +145,8 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::Array: {
             auto aggr = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(c);
             out = std::copy(aggr->begin(), aggr->end(), out);
-          }
+	    break;
+	  }
           default:
             throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
         }

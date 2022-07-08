@@ -40,14 +40,6 @@ namespace MiniMC {
       auto copyCFA (const MiniMC::Model::CFA& cfa,
 		    const MiniMC::Model::RegisterDescr& vars
 		    ) {
-	auto replacer = [&vars](auto& v) -> MiniMC::Model::Value_ptr {
-	  if (v->isConstant ()) {
-	    return v;
-	  }
-	  else
-	    return vars.getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
-	};
-
 	MiniMC::Model::CFA ncfa;
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
 
@@ -62,8 +54,7 @@ namespace MiniMC {
 
 	  if (e->getInstructions ()) {
 	    auto& instrs = e->getInstructions();
-	    nedge->getInstructions () = copyInstructionStream (instrs,vars)
-	      ;
+	    nedge->getInstructions () = copyInstructionStream (instrs,vars);
 	      
 	  }
 	  

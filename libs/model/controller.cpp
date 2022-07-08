@@ -3,7 +3,6 @@
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/insertboolcasts.hpp"
 #include "model/modifications/loops.hpp"
-#include "model/modifications/lower_guards.hpp"
 #include "model/modifications/markinglooplocations.hpp"
 #include "model/modifications/removephi.hpp"
 #include "model/modifications/replacesub.hpp"
@@ -45,10 +44,6 @@ namespace MiniMC {
     
     void Controller::unrollLoops (std::size_t iterations,  const MiniMC::Model::Function_ptr& func){
       MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
-    }
-    
-    void Controller::lowerGuards (){
-      MiniMC::Model::Modifications::LowerGuards{}.run (*prgm) ;
     }
     
     void Controller::markLoopLocations (){

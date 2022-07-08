@@ -27,7 +27,6 @@ namespace MiniMC {
       void unrollLoops (std::size_t, const MiniMC::Model::Function_ptr&);
       void boolCasts ();
       void splitAtCMP ();
-      void lowerGuards ();
       void expandNonDeterministic ();
       void onlyOneMemAccessPerEdge ();
 

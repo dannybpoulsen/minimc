@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
   control.boolCasts();
   control.makeLoopAllLocations();
   control.createAssertViolateLocations();
-  control.lowerGuards();
   if (!control.typecheck ()) {
     return -1;
   }
