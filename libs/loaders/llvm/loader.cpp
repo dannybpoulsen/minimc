@@ -298,7 +298,9 @@ namespace MiniMC {
         llvm::SMDiagnostic diag;
         std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
         std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag, *context);
-
+	if (!module) {
+	  throw LoadError{};
+	}
         lpm.add(llvm::createLowerSwitchPass());
         lpm.run(*module);
 
@@ -381,13 +383,15 @@ namespace MiniMC {
     
     template <>
     MiniMC::Loaders::LoadResult loadFromFile<MiniMC::Loaders::Type::LLVM, MiniMC::Loaders::BaseLoadOptions>(const std::string& file, MiniMC::Loaders::BaseLoadOptions loadOptions) {
-      return {.program = LLVMLoader{}.loadFromFile(file, loadOptions.tfactory, loadOptions.cfactory),
+      return {
+	.program = LLVMLoader{}.loadFromFile(file, loadOptions.tfactory, loadOptions.cfactory),
 	.entrycreator = std::bind(createEntryPoint,loadOptions.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)};
     }
     
     template <>
     MiniMC::Loaders::LoadResult loadFromString<MiniMC::Loaders::Type::LLVM, MiniMC::Loaders::BaseLoadOptions>(const std::string& inp, MiniMC::Loaders::BaseLoadOptions loadOptions) {
-      return {.program = LLVMLoader{}.loadFromString(inp, loadOptions.tfactory, loadOptions.cfactory),
+      return {
+	.program = LLVMLoader{}.loadFromString(inp, loadOptions.tfactory, loadOptions.cfactory),
 	.entrycreator = std::bind(createEntryPoint,loadOptions.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)};
     }
     

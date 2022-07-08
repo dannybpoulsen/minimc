@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "support/exceptions.hpp"
 #include "model/cfg.hpp"
 #include "model/controller.hpp"
 
@@ -33,7 +34,11 @@ namespace MiniMC {
 	  using Opt = BaseLoadOptions;
 	};
     
-
+    class LoadError : public MiniMC::Support::ConfigurationException {
+    public:
+      LoadError () : ConfigurationException("Failed to load program") {}
+    };
+    
     struct LoadResult {
       MiniMC::Model::Program_ptr program;
       MiniMC::Model::entry_creator entrycreator;
