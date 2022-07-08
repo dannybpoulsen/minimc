@@ -220,7 +220,7 @@ namespace MiniMC {
     };
 
     using Register_ptr = std::shared_ptr<Register>;
-
+    
     /**
      * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not
      * stack allocations).
@@ -248,6 +248,9 @@ namespace MiniMC {
       const std::string pref;
     };
 
+    using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
+    
+    
     class ConstantFactory {
     public:
       ConstantFactory(TypeFactory_ptr tfac) : typefact(tfac) {}

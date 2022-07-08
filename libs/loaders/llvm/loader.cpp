@@ -113,10 +113,10 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
-        MiniMC::Model::RegisterDescr variablestack{fname};
-	MiniMC::Model::LocationInfoCreator locinfoc(fname,&variablestack);
+        auto variablestack = std::make_unique<MiniMC::Model::RegisterDescr> (fname);
+	MiniMC::Model::LocationInfoCreator locinfoc(fname,variablestack.get());
 
-	LoadContext load{context,variablestack,variablestack.addRegister ("__minimc.sp",context.getTypeFactory().makePointerType ())};
+	LoadContext load{context,*variablestack,variablestack->addRegister ("__minimc.sp",context.getTypeFactory().makePointerType ())};
 
 	auto makeVariable = [&load,this](auto val) {
 	  if (!load.hasValue (val)) {
@@ -349,8 +349,8 @@ namespace MiniMC {
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
       MiniMC::Model::CFA cfg;
-      MiniMC::Model::RegisterDescr vstack{name};
-      MiniMC::Model::LocationInfoCreator locinf (function->getName(),&vstack);
+      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (name);
+      MiniMC::Model::LocationInfoCreator locinf (function->getName(),vstack.get());
       
       auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ()->makePointerType ());
@@ -367,7 +367,7 @@ namespace MiniMC {
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack.addRegister("_", restype);
+        result = vstack->addRegister("_", restype);
       }
 
       edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,

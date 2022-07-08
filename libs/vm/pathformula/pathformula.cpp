@@ -52,10 +52,18 @@ namespace MiniMC {
             MiniMC::Model::Overload{
                 [this](const MiniMC::Model::I8Integer& val) -> PathFormulaVMVal { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
                 [this](const MiniMC::Model::I16Integer& val) -> PathFormulaVMVal { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); },
-                [this](const MiniMC::Model::I32Integer& val) -> PathFormulaVMVal { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
+		[this](const MiniMC::Model::I32Integer& val) -> PathFormulaVMVal { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
                 [this](const MiniMC::Model::I64Integer& val) -> PathFormulaVMVal { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
                 [this](const MiniMC::Model::Bool& val) -> PathFormulaVMVal { return BoolValue(builder.makeBoolConst(val.getValue())); },
-                [this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { return PointerValue(builder.makeBVIntConst(std::bit_cast<uint64_t>(val.getValue()), 64)); },
+		  [this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { 
+		    auto pointer = val.getValue ();
+		    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+		    chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+			    << builder.makeBVIntConst(pointer.zero, sizeof(pointer.zero)*8)
+			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+		    return PointerValue(chainer.getTerm ());
+		},
                 [this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
                   MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
                   for (auto byte : val) {
