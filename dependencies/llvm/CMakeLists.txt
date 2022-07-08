@@ -1,5 +1,5 @@
 
-find_package(LLVM 14.0 CONFIG)
+find_package(LLVM CONFIG)
 
 
 

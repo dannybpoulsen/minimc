@@ -152,11 +152,22 @@ namespace MiniMC {
               if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&>) {
                 MiniMC::pointer_t pointer;
                 // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
-
+		
                 auto pointerres = std::get<SMTLib::bitvector>(solver->getModelValue(term));
                 assert(sizeof(MiniMC::pointer_t) == pointerres.size() / 8);
-                MiniMC::Support::SMT::extractBytes(pointerres.begin(), pointerres.end(), reinterpret_cast<MiniMC::BV8*>(&pointer));
-                return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer{pointer};
+		std::cerr << offsetof(MiniMC::pointer_t,offset) << std::endl;
+		auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
+		auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
+		auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;
+		auto zerooff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,zero)-sizeof(pointer.zero)))*8;
+		
+		
+		MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
+		MiniMC::Support::SMT::extractBytes(segoff, segoff+sizeof(pointer.segment)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.segment));
+                MiniMC::Support::SMT::extractBytes(baseoff, baseoff+sizeof(pointer.base)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.base));
+                MiniMC::Support::SMT::extractBytes(zerooff, zerooff+sizeof(pointer.zero)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.zero));
+                
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer{pointer};
               }
 
               if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Aggregate&>) {
