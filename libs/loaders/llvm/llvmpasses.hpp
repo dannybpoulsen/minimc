@@ -92,14 +92,11 @@ struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
             if (I.getOpcode() == llvm::Instruction::GetElementPtr) {
               llvm::GetElementPtrInst* inst = llvm::dyn_cast<llvm::GetElementPtrInst>(&I);
               llvm::Value* indexList[1] = {inst->getOperand(1)};
-              auto prev = llvm::GetElementPtrInst::Create(nullptr, inst->getOperand(0), llvm::ArrayRef<llvm::Value*>(indexList, 1), "_gep__", inst);
-
-              auto type_iter = llvm::gep_type_begin(*inst);
-              ++type_iter;
+              auto prev = llvm::GetElementPtrInst::Create(inst->getSourceElementType (), inst->getOperand(0), llvm::ArrayRef<llvm::Value*>(indexList, 1), "_gep__", inst);
               const std::size_t E = inst->getNumOperands();
-              for (std::size_t oper = 2; oper < E; ++oper, ++type_iter) {
+              for (std::size_t oper = 2; oper < E; ++oper) {
                 llvm::Value* indexList[2] = {zero, inst->getOperand(oper)};
-                prev = llvm::GetElementPtrInst::Create(nullptr, prev, llvm::ArrayRef<llvm::Value*>(indexList, 2), "_gep__", inst);
+                prev = llvm::GetElementPtrInst::Create(prev->getResultElementType (), prev, llvm::ArrayRef<llvm::Value*>(indexList, 2), "_gep__", inst);
               }
               I.replaceAllUsesWith(prev);
               I.eraseFromParent();
