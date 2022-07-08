@@ -74,16 +74,18 @@ namespace MiniMC {
         auto& content = instr.getOps<op>();
         auto op1 = content.op1;
 
-        switch (op1->getType()->getSize()) {
-          case 1:
+        switch (op1->getType()->getTypeID ()) {
+	case MiniMC::Model::TypeID::I8:
             return runCMPAdd<op, T, typename T::I8>(instr, writeState,  ops);
-          case 2:
+          case MiniMC::Model::TypeID::I16:
             return runCMPAdd<op, T, typename T::I16>(instr, writeState, ops);
-          case 4:
+          case MiniMC::Model::TypeID::I32:
             return runCMPAdd<op, T, typename T::I32>(instr, writeState, ops);
-          case 8:
+          case MiniMC::Model::TypeID::I64:
             return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops);
-        }
+	default:
+	  throw MiniMC::Support::Exception ("Throw");
+	}
         throw NotImplemented<op>();
       }
 
@@ -101,16 +103,18 @@ namespace MiniMC {
             writeState.getStackControl().getValueLookup ().saveValue(res, operations.PtrAdd(ptr, totalskip));
             return Status::Ok;
           };
-          switch (content.skipsize->getType()->getSize()) {
-	    case 1:
+          switch (content.skipsize->getType()->getTypeID ()) {
+	  case MiniMC::Model::TypeID::I8:
               return calc.template operator()<typename T::I8>();
-            case 2:
+	  case MiniMC::Model::TypeID::I16:
               return calc.template operator()<typename T::I16>();
-            case 4:
+	  case MiniMC::Model::TypeID::I32:
               return calc.template operator()<typename T::I32>();
-            case 8:
+	  case MiniMC::Model::TypeID::I64:
               return calc.template operator()<typename T::I64>();
-          }
+	  default:
+	    throw MiniMC::Support::Exception ("Invalid Skip-type type");
+	  }
         } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
           auto lval = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::Pointer>();
           auto rval = writeState.getStackControl().getValueLookup ().lookupValue(content.op2).template as<typename T::Pointer>();
