@@ -1,4 +1,3 @@
-#include "loaders/loader.hpp"
 #include "model/controller.hpp"
 #include "model/output.hpp"
 #include "plugin.hpp"
@@ -37,7 +36,8 @@ int main(int argc, char* argv[]) {
       // Load Program
       MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
       MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
-      MiniMC::Loaders::LoadResult loadresult= MiniMC::Loaders::loadFromFile<MiniMC::Loaders::Type::LLVM>(options.load.inputname, MiniMC::Loaders::OptionsLoad<MiniMC::Loaders::Type::LLVM>::Opt{.tfactory = tfac,.cfactory = cfac});
+      auto loader = options.load.registrar->makeLoader  (tfac,cfac);
+      MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname, MiniMC::Loaders::BaseLoadOptions {});
       
       
       

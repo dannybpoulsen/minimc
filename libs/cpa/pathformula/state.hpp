@@ -155,7 +155,6 @@ namespace MiniMC {
 		
                 auto pointerres = std::get<SMTLib::bitvector>(solver->getModelValue(term));
                 assert(sizeof(MiniMC::pointer_t) == pointerres.size() / 8);
-		std::cerr << offsetof(MiniMC::pointer_t,offset) << std::endl;
 		auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
 		auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
 		auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;

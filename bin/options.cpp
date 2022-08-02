@@ -7,7 +7,7 @@
 #include "cpa/pathformula.hpp"
 #endif
 #include "cpa/concrete.hpp"
-
+#include "loaders/loader.hpp"
 #include <boost/program_options.hpp>
 
 
@@ -20,27 +20,31 @@ void printBanner(std::ostream& os) {
 }
 
 
-po::options_description modificationOptions (SetupOptions& options) {
-  po::options_description general("Modifications Options");
-  general.add_options()
-    ("simplifycfg", boost::program_options::bool_switch(&options.modifications.simplifyCFG), "Simplify the CFG structure")
-    ("constfold", boost::program_options::bool_switch(&options.modifications.foldConstants), "Constant Folding")
-    ("replacesub", boost::program_options::bool_switch(&options.modifications.replaceSub), "Replace sub instructions")
-    ("inlinefunctions", po::value<std::size_t>(&options.modifications.inlinefunctions), "Inline function calls")
-    ("unrollloops", po::value<std::size_t>(&options.modifications.unrollLoops), "Unroll Loops")
-    ("removeallocas", po::bool_switch(&options.modifications.removeAllocs), "Remove Alloca (replace them with equivalent construction)")
-    ("replacememnondet", po::bool_switch(&options.modifications.replacememnodet), "Remove Alloca (replace them with equivalent construction)")
-    ("removephi", po::bool_switch(&options.modifications.removephi), "Removephi");
-    
-  return general;
-}
 
 po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
+
+  auto setLoader = [&options](std::size_t val) {
+    if (val < MiniMC::Loaders::getLoaders ().size ()) {
+      options.load.registrar = MiniMC::Loaders::getLoaders ().at (val);
+    }
+    else
+      throw MiniMC::Support::ConfigurationException ("Can't find specificed Loader");
+  };
+  
   general.add_options()
     ("inputfile", po::value<std::string>(&options.load.inputname), "Input file")
     ("task", boost::program_options::value<std::vector<std::string>>(&options.load.tasks), "Add task as entrypoint");
+  std::stringstream str;
+  str << "Model Loader\n";
+  int i = 0;
+  for (auto& loader : MiniMC::Loaders::getLoaders ()) {
+    str << "\t " << i << ": " << loader->getName () << "\n";
+    i++;
+  }
+  general.add_options ()
+    ("loader",po::value<std::size_t> ()->default_value(0)->notifier (setLoader),str.str().c_str());
   
   return general;
 }
@@ -65,7 +69,7 @@ po::options_description smtOptions (SetupOptions& options) {
       str << "\t " << i << ": " << ss.name() << "\n";
       i++;
     }
-
+    
     smt.add_options()("smt.solver", po::value<std::size_t>()->default_value(0)->notifier(setSMTSolver), str.str().c_str());
   }
 
@@ -93,7 +97,7 @@ po::options_description defOptions (SetupOptions& options) {
 po::options_description cpaOptions (std::vector<int>& select) {  
   po::options_description general("CPA Options");
   general.add_options ()
-    ("cpa", po::value<std::vector<int>>(&select)->multitoken (), "CPA\n 0: Automatic\n\t 1: Location\n\t 2: Concrete\n"
+    ("cpa", po::value<std::vector<int>>(&select)->multitoken (), "CPA\n 2: Concrete\n"
 #ifdef MINIMC_SYMBOLIC
      "\t 3: PathFormula\n"
 #endif
@@ -139,8 +143,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
     ("config", boost::program_options::value<std::string>(), "Read configuration from config file")
     ("help", boost::program_options::bool_switch(&help), "Show help")
     ("outputfile", boost::program_options::value<std::string> (&opt.outputname), "Output verified program to file");
-    
-  general.add(modificationOptions (opt));
+  
   general.add(loadOptions (opt));
   general.add(smtOptions (opt));
   std::vector<int> cpasel;

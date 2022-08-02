@@ -272,22 +272,68 @@ namespace MiniMC {
       const GLoadContext& context;
     };
 
-    class LLVMLoader {
+    MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&) {
+      auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
+      
+      static std::size_t nb = 0;
+      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
+      MiniMC::Model::CFA cfg;
+      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (name);
+      MiniMC::Model::LocationInfoCreator locinf (function->getName(),vstack.get());
+      
+      auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
+      funcpointer->setType (program.getTypeFactory ()->makePointerType ());
+      auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
+      auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
+      
+      cfg.setInitial(init);
+      auto edge = cfg.makeEdge(init, end);
+
+      std::vector<MiniMC::Model::Value_ptr> params;
+      MiniMC::Model::Value_ptr result = nullptr;
+      MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makePointer(program.getHeapLayout().addBlock(stacksize));
+      sp->setType (program.getTypeFactory ()->makePointerType ());
+      params.push_back(sp);
+      auto restype = function->getReturnType();
+      if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
+        result = vstack->addRegister("_", restype);
+      }
+
+      edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
+                                                                                                                                                                               .function = funcpointer,
+                                                                                                                                                                               .params = params})});
+      
+      return program.addFunction(name, {},
+                                 program.getTypeFactory()->makeVoidType(),
+                                 std::move(vstack),
+                                 std::move(cfg));
+    }
+    
+
+    
+    class LLVMLoader : public Loader {
     public:
-      virtual MiniMC::Model::Program_ptr loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+      LLVMLoader (MiniMC::Model::TypeFactory_ptr& tfac,
+		  Model::ConstantFactory_ptr& cfac) : Loader (tfac,cfac) {}
+      LoadResult loadFromFile(const std::string& file, BaseLoadOptions&& options) override {
         std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfac, cfac);
+	return {.program = readFromBuffer(buffer, tfactory, cfactory),
+		.entrycreator = std::bind(createEntryPoint,options.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
+	};
       }
 
-      virtual MiniMC::Model::Program_ptr loadFromString(const std::string& inp, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+      LoadResult loadFromString(const std::string& inp, BaseLoadOptions&& options ) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfac, cfac);
+        return {.program = readFromBuffer(buffer, tfactory, cfactory),
+		.entrycreator = std::bind(createEntryPoint,options.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
+	};
+	
       }
 
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
@@ -327,8 +373,7 @@ namespace MiniMC {
         funcmanager.addPass(llvm::PromotePass());
         funcmanagerllvm.addPass(GetElementPtrSimplifier());
         funcmanagerllvm.addPass(InstructionNamer());
-        // funcmanagerllvm.addPass (llvm::LowerSwitch ());
-
+        
         mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
 	// mpm.addPass(llvm::PrintModulePass(llvm::errs()));
 	GLoadContext lcontext {*cfac,*tfac};
@@ -343,59 +388,20 @@ namespace MiniMC {
       }
     };
 
-    MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&) {
-      auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-      
-      static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
-      MiniMC::Model::CFA cfg;
-      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (name);
-      MiniMC::Model::LocationInfoCreator locinf (function->getName(),vstack.get());
-      
-      auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
-      funcpointer->setType (program.getTypeFactory ()->makePointerType ());
-      auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
-      auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
-      
-      cfg.setInitial(init);
-      auto edge = cfg.makeEdge(init, end);
 
-      std::vector<MiniMC::Model::Value_ptr> params;
-      MiniMC::Model::Value_ptr result = nullptr;
-      MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makePointer(program.getHeapLayout().addBlock(stacksize));
-      sp->setType (program.getTypeFactory ()->makePointerType ());
-      params.push_back(sp);
-      auto restype = function->getReturnType();
-      if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack->addRegister("_", restype);
+    class LLVMLoadRegistrar : public LoaderRegistrar {
+    public:
+      LLVMLoadRegistrar () : LoaderRegistrar("LLVM") {
       }
-
-      edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
-                                                                                                                                                                               .function = funcpointer,
-                                                                                                                                                                               .params = params})});
       
-      return program.addFunction(name, {},
-                                 program.getTypeFactory()->makeVoidType(),
-                                 std::move(vstack),
-                                 std::move(cfg));
-    }
+      Loader_ptr makeLoader (MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) override {
+	return std::make_unique<LLVMLoader> (tfac,cfac);
+      }
+    };
+
+    static LLVMLoadRegistrar llvmloadregistrar;
     
     
-    template <>
-    MiniMC::Loaders::LoadResult loadFromFile<MiniMC::Loaders::Type::LLVM, MiniMC::Loaders::BaseLoadOptions>(const std::string& file, MiniMC::Loaders::BaseLoadOptions loadOptions) {
-      return {
-	.program = LLVMLoader{}.loadFromFile(file, loadOptions.tfactory, loadOptions.cfactory),
-	.entrycreator = std::bind(createEntryPoint,loadOptions.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)};
-    }
-    
-    template <>
-    MiniMC::Loaders::LoadResult loadFromString<MiniMC::Loaders::Type::LLVM, MiniMC::Loaders::BaseLoadOptions>(const std::string& inp, MiniMC::Loaders::BaseLoadOptions loadOptions) {
-      return {
-	.program = LLVMLoader{}.loadFromString(inp, loadOptions.tfactory, loadOptions.cfactory),
-	.entrycreator = std::bind(createEntryPoint,loadOptions.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)};
-    }
-    
-    
-     
   } // namespace Loaders
 } // namespace MiniMC
+

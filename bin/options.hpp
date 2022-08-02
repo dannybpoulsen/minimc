@@ -4,6 +4,7 @@
 #include "support/smt.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/location.hpp"
+#include "loaders/loader.hpp"
 
 struct CommandRegistrar;
 
@@ -15,31 +16,15 @@ struct SMTOption {
 };
 
 
-
-struct Modifications {
-  bool expandNonDet = false;
-  bool replaceNonDetUniform = false;
-  bool simplifyCFG = false;
-  bool replaceSub = false;
-  bool splitCMPS = false;
-  bool foldConstants = false;
-  bool convergencePoints = false;
-  bool removeAllocs = false;
-  bool replacememnodet = false;
-  bool removephi = false;
-  std::size_t inlinefunctions = 0;
-  std::size_t unrollLoops = 0;
-  };
-
 struct load_options{
   std::string inputname;
   std::vector<std::string> tasks;
+  MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
 };
 
 
 
 struct SetupOptions {
-  Modifications modifications;
   SMTOption smt;
   load_options load;
   
