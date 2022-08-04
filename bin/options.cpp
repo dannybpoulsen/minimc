@@ -24,7 +24,7 @@ void printBanner(std::ostream& os) {
 po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
-
+  
   auto setLoader = [&options](std::size_t val) {
     if (val < MiniMC::Loaders::getLoaders ().size ()) {
       options.load.registrar = MiniMC::Loaders::getLoaders ().at (val);
@@ -45,6 +45,24 @@ po::options_description loadOptions (SetupOptions& options) {
   }
   general.add_options ()
     ("loader",po::value<std::size_t> ()->default_value(0)->notifier (setLoader),str.str().c_str());
+
+  for (auto& loader : MiniMC::Loaders::getLoaders ()) {
+    
+    po::options_description opt_arr(loader->getName ());
+    for (auto& opt : loader->getOptions ()) {
+      
+      std::visit ([loader,&opt_arr](auto& t){
+	std::stringstream str;
+	str << loader->getName() <<"."<<t.name;
+    
+	opt_arr.add_options ()
+	  (str.str().c_str (),boost::program_options::value(&t.value),t.description.c_str());
+      },
+	opt
+	);
+      general.add (opt_arr);
+    }
+  }
   
   return general;
 }

@@ -1,5 +1,6 @@
 add_subdirectory (llvm)
 add_subdirectory (xxhash)
+add_subdirectory (smtlib)
 
 add_subdirectory (doctest)
 if (ENABLE_PYTHON)

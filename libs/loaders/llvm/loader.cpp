@@ -35,6 +35,8 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <functional>
+#include <variant>
+#include <type_traits>
 
 #include "llvmpasses.hpp"
 #include "loaders/loader.hpp"
@@ -314,26 +316,29 @@ namespace MiniMC {
     class LLVMLoader : public Loader {
     public:
       LLVMLoader (MiniMC::Model::TypeFactory_ptr& tfac,
-		  Model::ConstantFactory_ptr& cfac) : Loader (tfac,cfac) {}
-      LoadResult loadFromFile(const std::string& file, BaseLoadOptions&& options) override {
+		  Model::ConstantFactory_ptr& cfac,
+		  std::size_t stacksize
+		  ) : Loader (tfac,cfac),stacksize(stacksize) {}
+      LoadResult loadFromFile(const std::string& file) override {
         std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
 	return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,options.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
+		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
       }
 
-      LoadResult loadFromString(const std::string& inp, BaseLoadOptions&& options ) override {
+      LoadResult loadFromString(const std::string& inp) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
         return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,options.stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
+		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
-	
+
+
       }
 
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
@@ -386,16 +391,33 @@ namespace MiniMC {
 
         return prgm;
       }
+
+    private:
+      std::size_t stacksize;
     };
 
 
     class LLVMLoadRegistrar : public LoaderRegistrar {
     public:
-      LLVMLoadRegistrar () : LoaderRegistrar("LLVM") {
+      LLVMLoadRegistrar () : LoaderRegistrar("LLVM",{IntOption{.name="stack",
+							       .description ="StackSize",
+							       .value = 200
+	}
+	}) {
       }
       
       Loader_ptr makeLoader (MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) override {
-	return std::make_unique<LLVMLoader> (tfac,cfac);
+	auto stacksize = std::visit([](auto& t)->std::size_t {
+	  using T = std::decay_t<decltype(t)>;
+	  if constexpr (std::is_same_v<T,IntOption>)
+	    return t.value;
+	  else {
+	    throw MiniMC::Support::Exception ("Horrendous error");
+	  }
+	},
+	  getOptions().at(0)
+	  );
+	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize);
       }
     };
 

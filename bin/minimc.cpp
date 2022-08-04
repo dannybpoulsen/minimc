@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
       MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
       MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
       auto loader = options.load.registrar->makeLoader  (tfac,cfac);
-      MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname, MiniMC::Loaders::BaseLoadOptions {});
+      MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname);
       
       
       

@@ -194,11 +194,9 @@ namespace MiniMC {
               }
 
               if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Bool&>)
-
 		{
-		  MiniMC::Support::Messager mess{};
-		  mess.message<MiniMC::Support::Severity::Error> ("Evaluation for Boolean values not properly implemented. Don't trust this value");
-                return MiniMC::VMT::Concrete::ConcreteVMVal::I64(100);
+		  auto bres = std::get<bool>(solver->getModelValue(term));
+		  return MiniMC::VMT::Concrete::ConcreteVMVal::Bool(bres);
               }
 
               throw MiniMC::Support::Exception("Shouldn't get here ");
