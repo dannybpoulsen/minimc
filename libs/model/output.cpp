@@ -71,7 +71,7 @@ namespace MiniMC {
 
       os << "# Heap" <<"\n";
       for (auto b : p.getHeapLayout ()) {
-	os << b.pointer << " : " << b.size << "\n"; 
+	os << b.baseobj << " : " << b.size << "\n"; 
       }
       
       os << "# Initialiser" <<"\n";

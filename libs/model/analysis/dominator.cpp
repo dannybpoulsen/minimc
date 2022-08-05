@@ -7,7 +7,6 @@ namespace MiniMC {
     namespace Analysis {
 
       DominatorInfo<MiniMC::Model::Location> calculateDominators(const MiniMC::Model::CFA& cfg) {
-        assert(cfg.isIncomingOutgoingConsistent());
         DominatorInfo<MiniMC::Model::Location> domres;
         std::set<Location_ptr> init;
         for (auto& cur : cfg.getLocations()) {
@@ -43,7 +42,6 @@ namespace MiniMC {
               change = true;
           }
         }
-        assert(cfg.isIncomingOutgoingConsistent());
         return domres;
       }
 

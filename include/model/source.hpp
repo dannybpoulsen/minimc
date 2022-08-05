@@ -16,6 +16,7 @@ namespace MiniMC {
 	 */
 
     struct SourceInfo : public std::enable_shared_from_this<SourceInfo> {
+      virtual ~SourceInfo () {}
       virtual std::ostream& out(std::ostream& os) {
         return os << "[?]";
       }
@@ -25,15 +26,8 @@ namespace MiniMC {
 
     enum class Attributes : AttrType {
       AssertViolated = 1,  /**< Indicates an assert was violated */
-      NeededStore = 2,     /**< Indicates this location is part of loop, and must be stored for guaranteeing termination*/
-      CallPlace = 4,       /**< Indicates a call takes place on an edge leaving this location */
-      AssumptionPlace = 8, /**< Indicates an assumption is made on an edge leaving this location  */
-      ConvergencePoint = 16,
+      
       UnrollFailed = 32 /** Indicates loop unrolling was unsufficient **/
-    };
-
-    struct SourcePlace {
-      const std::string filename;
     };
 
     struct LocationInfo {

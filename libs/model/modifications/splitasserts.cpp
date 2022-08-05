@@ -19,8 +19,6 @@ namespace MiniMC {
 	  if (E->getInstructions ()) {
 	    auto& instrs = E->getInstructions ();
 	    if (instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Assert) {
-	      E->getFrom()->getInfo().unset<MiniMC::Model::Attributes::CallPlace>();
-	      assert(!E->getFrom()->getInfo().is<MiniMC::Model::Attributes::CallPlace>());
 	      auto val = instrs.last().getOps<MiniMC::Model::InstructionCode::Assert> ().expr;
 	      instrs.erase((instrs.rbegin() + 1).base());
 	      

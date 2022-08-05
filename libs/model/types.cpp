@@ -1,6 +1,7 @@
 #include <unordered_map>
 
 #include "model/types.hpp"
+#include "host/types.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -43,7 +44,7 @@ namespace MiniMC {
     class PointerType : public Type {
     public:
       PointerType() : Type(TypeID::Pointer) {}
-      std::size_t getSize() const { return 8; }
+      std::size_t getSize() const { return sizeof(MiniMC::pointer_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
       bool innerEq(const Type& ) { return true; }
     };

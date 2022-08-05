@@ -33,7 +33,7 @@ namespace MiniMC {
         else if constexpr (t == ValType::I64)
           return 64;
         else if constexpr (t == ValType::Pointer)
-          return 64;
+          return sizeof(MiniMC::Support::PtrBV)*8;
         else if constexpr (t == ValType::Bool)
           return 8;
         else

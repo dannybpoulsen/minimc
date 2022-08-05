@@ -3,7 +3,6 @@
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/insertboolcasts.hpp"
 #include "model/modifications/loops.hpp"
-#include "model/modifications/markinglooplocations.hpp"
 #include "model/modifications/removephi.hpp"
 #include "model/modifications/replacesub.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
@@ -46,19 +45,11 @@ namespace MiniMC {
       MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
     }
     
-    void Controller::markLoopLocations (){
-      MiniMC::Model::Modifications::MarkLoopStates{}.run (*prgm);
-    }
-
+    
     void Controller::expandNonDeterministic (){
       MiniMC::Model::Modifications::expandNonDet (*prgm);
     }
 
-    
-    void Controller::makeLoopAllLocations (){
-      MiniMC::Model::Modifications::MarkAllStates{}.run (*prgm);
-    
-    }
       
     void Controller::addEntryPoint (std::string& name, std::vector<MiniMC::Model::Value_ptr>&& params) {
       auto func = prgm->getFunction(name);

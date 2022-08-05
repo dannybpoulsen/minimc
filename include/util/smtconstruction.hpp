@@ -58,20 +58,17 @@ namespace MiniMC {
       SMTLib::Term_ptr makeHeapPointer(MiniMC::base_t base, MiniMC::offset_t offset) {
 
         auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::Support::PointerType::Heap), 8 * sizeof(MiniMC::seg_t));
-        auto zero_term = builder->makeBVIntConst(0, 8 * sizeof(MiniMC::BV8));
-
         auto base_term = builder->makeBVIntConst(base, 8 * sizeof(MiniMC::base_t));
         auto offset_term = builder->makeBVIntConst(offset, 8 * sizeof(MiniMC::offset_t));
 
-        return (Chainer<SMTLib::Ops::Concat>{builder} << stack_term << zero_term << base_term << offset_term).getTerm();
+        return (Chainer<SMTLib::Ops::Concat>{builder} << stack_term <<  base_term << offset_term).getTerm();
       }
 
       SMTLib::Term_ptr makePointer(const MiniMC::pointer_t& pointer) {
         auto seg_term = builder->makeBVIntConst(pointer.segment, 8 * sizeof(pointer.segment));
-        auto zero_term = builder->makeBVIntConst(pointer.zero, 8 * sizeof(pointer.zero));
         auto base_term = builder->makeBVIntConst(pointer.base, 8 * sizeof(pointer.base));
         auto offset_term = builder->makeBVIntConst(pointer.offset, 8 * sizeof(pointer.offset));
-        return (Chainer<SMTLib::Ops::Concat>{builder} << seg_term << zero_term << base_term << offset_term).getTerm();
+        return (Chainer<SMTLib::Ops::Concat>{builder} << seg_term <<  base_term << offset_term).getTerm();
       }
 
       SMTLib::TermBuilder* builder;

@@ -83,7 +83,7 @@ namespace MiniMC {
         for (auto& g : F.getGlobalList()) {
           auto pointTySize = context.computeSizeInBytes(g.getValueType());
 
-          auto gvar = context.getConstantFactory().makePointer(prgm->getHeapLayout().addBlock(pointTySize));
+          auto gvar = context.getConstantFactory().makeHeapPointer(prgm->getHeapLayout().addBlock(pointTySize));
           context.addValue (&g, gvar);
           if (g.hasInitializer()) {
             auto val = context.findValue(g.getInitializer());
@@ -293,7 +293,7 @@ namespace MiniMC {
 
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
-      MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makePointer(program.getHeapLayout().addBlock(stacksize));
+      MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
       sp->setType (program.getTypeFactory ()->makePointerType ());
       params.push_back(sp);
       auto restype = function->getReturnType();

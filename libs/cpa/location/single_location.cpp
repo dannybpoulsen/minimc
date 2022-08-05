@@ -34,10 +34,7 @@ namespace MiniMC {
         void setLocation(MiniMC::Model::Location* l) {
           location = l;
         }
-        bool need2Store() const override  {
-          return location->getInfo().template is<MiniMC::Model::Attributes::NeededStore>();
-        }
-
+        
         
         virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override {
           return location->getInfo().isFlagSet(tt);

@@ -74,11 +74,14 @@ namespace MiniMC {
       template <class T>
       PointerValue Operations::PtrAdd(const PointerValue& ptrvalue, const T& addend) {
 	SMTLib::Term_ptr extended;
-	if constexpr (T::intbitsize () == 64) {
+	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
+	if constexpr (T::intbitsize () == ptrsize) {
 	  extended = addend.getTerm ();
 	}
-	else 
-	  extended = builder.buildTerm(SMTLib::Ops::ZExt,{addend.getTerm ()},{64 - T::intbitsize ()});
+	else if constexpr (T::intbitsize () <= ptrsize)
+	  extended = builder.buildTerm(SMTLib::Ops::ZExt,{addend.getTerm ()},{ptrsize - T::intbitsize ()});
+	else
+	  extended = builder.buildTerm(SMTLib::Ops::Extract,{addend.getTerm ()},{ptrsize-1,0});
 	auto res = builder.buildTerm(SMTLib::Ops::BVAdd,{ptrvalue.getTerm (),extended});
 	return res;
 	
@@ -96,7 +99,7 @@ namespace MiniMC {
 	auto aggrTerm = aggr.getTerm();
         
 	return {BVHelper{builder,aggrTerm,aggr.size()}.extractBytes<LoadType::Straight> (offset,size),size};
-
+	
       }
 
 

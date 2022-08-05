@@ -46,7 +46,7 @@ namespace MiniMC {
       template <MiniMC::Model::Attributes att>
       bool hasLocationOf() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(att)); }
 
-      virtual bool need2Store() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::NeededStore)); }
+
       virtual bool assertViolated() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::AssertViolated)); }
       virtual bool hasLocationAttribute(MiniMC::Model::AttrType) const { return false; }
       

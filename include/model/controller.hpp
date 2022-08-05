@@ -30,8 +30,6 @@ namespace MiniMC {
       void expandNonDeterministic ();
       void onlyOneMemAccessPerEdge ();
 
-      void markLoopLocations ();
-      void makeLoopAllLocations ();
       void addEntryPoint (std::string& name, std::vector<MiniMC::Model::Value_ptr>&&);
       auto& getProgram () const {return prgm;}
       

@@ -79,7 +79,6 @@ namespace MiniMC {
         edge->getInstructions ().clear ();
         if (str.begin() != str.end())
           edge->getInstructions () = str;
-        from_loc->getInfo().template unset<MiniMC::Model::Attributes::CallPlace>();
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {

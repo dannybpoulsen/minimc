@@ -376,8 +376,8 @@ namespace MiniMC {
 	 auto llalltype = alinst->getAllocatedType();
 	 auto outallsize = context.computeSizeInBytes(llalltype);
 	 auto res = context.findValue(inst);
-	 auto size = context.getConstantFactory ().makeIntegerConstant(outallsize, MiniMC::Model::TypeID::I64);
-	 auto skipsize = context.getConstantFactory ().makeIntegerConstant(1, MiniMC::Model::TypeID::I64);
+	 auto size = context.getConstantFactory ().makeIntegerConstant(outallsize, MiniMC::Model::TypeID::I32);
+	 auto skipsize = context.getConstantFactory ().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
 	 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({
 	     .res = res,
@@ -408,7 +408,7 @@ namespace MiniMC {
 	  skipsize = context.getConstantFactory().makeIntegerConstant(size, nbSkips->getType()->getTypeID());
 	  
 	} else {
-	  auto one = context.getConstantFactory().makeIntegerConstant(1, MiniMC::Model::TypeID::I64);
+	  auto one = context.getConstantFactory().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
 	  
 	  if (source->isArrayTy()) {
 	    auto elemSize = context.computeSizeInBytes(static_cast<llvm::ArrayType*>(source)->getElementType());
@@ -423,7 +423,7 @@ namespace MiniMC {
 	    for (size_t i = 0; i < t; ++i) {
 	      size += context.computeSizeInBytes(strucTy->getElementType(i));
 	    }
-	    skipsize = context.getConstantFactory ().makeIntegerConstant(size, MiniMC::Model::TypeID::I64);
+	    skipsize = context.getConstantFactory ().makeIntegerConstant(size, MiniMC::Model::TypeID::I32);
 	    nbSkips = one;
 	  }
 	}

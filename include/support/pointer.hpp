@@ -1,6 +1,7 @@
 #ifndef _POINTER__
 #define _POINTER__
 #include <cassert>
+#include <cstdlib>
 
 #include "host/types.hpp"
 
@@ -15,36 +16,32 @@ namespace MiniMC {
     };
 
     inline pointer_t makeStackPointer(proc_t b, offset_t o) {
-      pointer_t ptr;
+      pointer_t ptr{};
       ptr.segment = static_cast<seg_t>(PointerType::Stack);
-      ptr.zero = 0;
       ptr.base = b;
       ptr.offset = o;
       return ptr;
     }
 
     inline pointer_t makeHeapPointer(base_t b, offset_t o) {
-      pointer_t ptr;
+      pointer_t ptr{};
       ptr.segment = static_cast<seg_t>(PointerType::Heap);
-      ptr.zero = 0;
       ptr.base = b;
       ptr.offset = o;
       return ptr;
     }
 
     inline pointer_t makeLocationPointer(func_t b, offset_t o) {
-      pointer_t ptr;
+      pointer_t ptr{};
       ptr.segment = static_cast<seg_t>(PointerType::Location);
-      ptr.zero = 0;
       ptr.base = b;
       ptr.offset = o;
       return ptr;
     }
 
     inline pointer_t makeFunctionPointer(func_t b) {
-      pointer_t ptr;
+      pointer_t ptr{};
       ptr.segment = static_cast<seg_t>(PointerType::Function);
-      ptr.zero = 0;
       ptr.base = b;
       ptr.offset = 0;
       return ptr;
@@ -74,21 +71,22 @@ namespace MiniMC {
       return p.base;
     }
 
-    inline base_t getOffset(const pointer_t& p) {
+    inline offset_t getOffset(const pointer_t& p) {
       assert((IsA<PointerType::Heap>::check(p)));
       return p.offset;
     }
 
     inline pointer_t ptradd(const pointer_t& ptr, offset_t off) {
-      return pointer_t{.segment = ptr.segment,
-                       .zero = ptr.zero,
-                       .base = ptr.base,
-                       .offset = ptr.offset + off};
+      pointer_t ptr2;
+      ptr2.segment = ptr.segment;
+      ptr2.base = ptr.base;
+      ptr2.offset = ptr.offset + off;
+      return ptr2;
     }
 
     template <typename T>
     T CastPtr(const pointer_t& ptr) {
-      return MiniMC::bit_cast<pointer_struct, T>(ptr);
+      return MiniMC::bit_cast<pointer_t, T>(ptr);
     }
 
     template <typename T>
@@ -99,16 +97,19 @@ namespace MiniMC {
     inline pointer_t null_pointer() {
       pointer_t t;
       t.segment = 0;
-      t.zero = 0;
       t.base = 0;
       t.offset = 0;
       return t;
     }
-
+    
     inline bool is_null(const pointer_t& t) {
       return ::MiniMC::is_null(t);
     }
 
+    using PtrBV = std::conditional<sizeof(pointer_t) == sizeof(MiniMC::BV64), MiniMC::BV64,
+      std::conditional<sizeof(pointer_t) == sizeof(MiniMC::BV32),MiniMC::BV32,void>::type
+      >::type;
+    
   } // namespace Support
 } // namespace MiniMC
 

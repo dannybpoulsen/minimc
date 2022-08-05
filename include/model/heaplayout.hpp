@@ -9,15 +9,15 @@
 namespace MiniMC {
   namespace Model {
     struct HeapBlock {
-      MiniMC::pointer_t pointer;
+      MiniMC::base_t baseobj;
       MiniMC::offset_t size;
     };
 
     class HeapLayout {
     public:
-      pointer_t addBlock (MiniMC::offset_t size) {
-	blocks.push_back ({MiniMC::Support::makeHeapPointer (blocks.size (),0),size});
-	return blocks.back().pointer;
+      auto addBlock (MiniMC::offset_t size) {
+	blocks.push_back ({static_cast<MiniMC::base_t>(blocks.size ()),size});
+	return blocks.back().baseobj;
       }
 
       auto begin () const {

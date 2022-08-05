@@ -80,14 +80,7 @@ namespace MiniMC {
         }
         void pushLocation(size_t i, MiniMC::Model::Location* l) { locations[i].push(l); }
         void popLocation(size_t i) { locations[i].pop(); }
-        bool need2Store() const override {
-          for (auto& locState : locations) {
-            if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::NeededStore>())
-              return true;
-          }
-          return false;
-        }
-
+        
         virtual bool assertViolated() const override {
           for (auto& locState : locations) {
             if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::AssertViolated>())

@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
       
       MiniMC::Model::Controller control(*loadresult.program,loadresult.entrycreator);
       control.boolCasts();
-      control.makeLoopAllLocations();
       control.createAssertViolateLocations();
       if (!control.typecheck ()) {
 	return -1;

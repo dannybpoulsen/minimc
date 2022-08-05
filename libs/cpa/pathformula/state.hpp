@@ -130,9 +130,10 @@ namespace MiniMC {
       class Concretizer : public MiniMC::CPA::Solver {
       public:
         Concretizer(const State& s, SMTLib::Solver_ptr&& solver) : state(s), solver(std::move(solver)) {
-          this->solver->assert_formula(state.getPathformula());
-        }
+	  this->solver->assert_formula(state.getPathformula());
 
+	}
+	
         Feasibility isFeasible() const override {
           switch (solver->check_sat()) {
             case SMTLib::Result::Satis:
@@ -147,9 +148,9 @@ namespace MiniMC {
         MiniMC::VMT::Concrete::ConcreteVMVal evaluate(const QueryExpr& expr) const override {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
-            return myexpr.getValue().visit([this](auto& t) -> MiniMC::VMT::Concrete::ConcreteVMVal {
-              auto& term = t.getTerm();
-              if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&>) {
+	    return myexpr.getValue().visit([this](auto& t) -> MiniMC::VMT::Concrete::ConcreteVMVal {
+              auto& term = t.getTerm(); 
+	      if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&>) {
                 MiniMC::pointer_t pointer;
                 // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
 		
@@ -158,13 +159,11 @@ namespace MiniMC {
 		auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
 		auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
 		auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;
-		auto zerooff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,zero)-sizeof(pointer.zero)))*8;
 		
 		
 		MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
 		MiniMC::Support::SMT::extractBytes(segoff, segoff+sizeof(pointer.segment)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.segment));
                 MiniMC::Support::SMT::extractBytes(baseoff, baseoff+sizeof(pointer.base)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.base));
-                MiniMC::Support::SMT::extractBytes(zerooff, zerooff+sizeof(pointer.zero)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.zero));
                 
 		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer{pointer};
               }
@@ -211,7 +210,7 @@ namespace MiniMC {
 
       const Solver_ptr State::getConcretizer() const {
         auto solver = context.makeSolver();
-        solver->assert_formula(getPathformula());
+	solver->assert_formula(getPathformula());
         return std::make_shared<Concretizer>(*this, std::move(solver));
       }
 

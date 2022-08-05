@@ -36,7 +36,7 @@ namespace MiniMC {
         auto getValue() const { return val; }
 
         MiniMC::Hash::hash_t hash() const {
-          return std::bit_cast<MiniMC::Hash::hash_t>(val);
+          return std::bit_cast<MiniMC::Support::PtrBV>(val);
         }
 
       protected:

@@ -76,34 +76,49 @@ namespace MiniMC {
   using BV64 = HostType<64>::Unsigned;
   using proba_t = double;
 
-  using seg_t = BV8;
-  using base_t = BV16;
-  using proc_t = BV16;
-  using offset_t = BV32;
-  using func_t = base_t;
-
-  struct __attribute__((packed)) pointer_struct {
+  
+  struct __attribute__((packed)) pointer64_struct {
     //Used for identifying if the pointer is a
     // data pointer
     // location pointer
     // function pointer
-    seg_t segment{0};
-    // pure padding
-    int8_t zero{0}; //must be zero
+    BV16 segment{0};
     //base pointer
     //for function and location pointers base is the function_id
-    base_t base{0};
+    BV16 base{0};
     // offset into base_object
     //for function pointer offset must be zero
     //for location pointer offset is the location inside the function jumped to
-    offset_t offset{0};
+    BV32 offset{0};
   };
-
-  using pointer_t = pointer_struct;
-
+  
+  struct __attribute__((packed)) pointer32_struct {
+    //Used for identifying if the pointer is a
+    // data pointer
+    // location pointer
+    // function pointer
+    BV8 segment{0};
+    //base pointer
+    //for function and location pointers base is the function_id
+    BV8 base{0};
+    // offset into base_object
+    //for function pointer offset must be zero
+    //for location pointer offset is the location inside the function jumped to
+    BV16 offset{0};
+  };
+  
+  
+  
+  using pointer_t = pointer64_struct;
+  using seg_t = decltype(pointer_t::segment);
+  using base_t = decltype(pointer_t::base);
+  using func_t = base_t;
+  using proc_t = base_t;
+  using offset_t = decltype(pointer_t::offset);
+  
+  
   inline bool is_null(const pointer_t& t) {
     return t.segment == 0 &&
-           t.zero == 0 &&
            t.base == 0 &&
            t.offset == 0;
   }
@@ -113,12 +128,11 @@ namespace MiniMC {
     if (is_null(p)) {
       return os << std::string("nullptr", 7);
     }
-    return os << p.segment << ":" << static_cast<int64_t>(p.base) << "+" << p.offset;
+    return os << static_cast<BV8> (p.segment) << ":" << static_cast<int64_t>(p.base) << "+" << p.offset;
   }
 
   inline bool operator==(const pointer_t& l, const pointer_t& r) {
     return l.segment == r.segment &&
-           l.zero == r.zero &&
            l.base == r.base &&
            l.offset == r.offset;
   }

@@ -62,12 +62,15 @@ namespace MiniMC {
     }
     
     
-    const Value_ptr ConstantFactory64::makePointer(MiniMC::pointer_t pptr) {
+    
+    const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base) {
+      auto pptr = MiniMC::Support::makeHeapPointer(base,0);
+      
       Value_ptr v (new MiniMC::Model::TConstant<pointer_t>(pptr));
       v->setType (typefact->makePointerType ());
       return v;
     }
-
+    
     const Value_ptr ConstantFactory64::makeUndef(TypeID ty,std::size_t size) {
       Value_ptr val(new MiniMC::Model::Undef());
       Type_ptr type;

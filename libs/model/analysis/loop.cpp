@@ -37,7 +37,6 @@ namespace MiniMC {
       }
 
       LoopInfo createLoopInfo(const MiniMC::Model::CFA& cfg) {
-        assert(cfg.isIncomingOutgoingConsistent());
 
         auto dominatorinfo = MiniMC::Model::Analysis::calculateDominators(cfg);
         std::unordered_map<MiniMC::Model::Location_ptr, Loop_ptr> loopData;
@@ -61,7 +60,6 @@ namespace MiniMC {
           info.addLoop(it.second);
           info.nestLoops();
         }
-        assert(cfg.isIncomingOutgoingConsistent());
         return info;
       }
 

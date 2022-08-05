@@ -231,9 +231,15 @@ namespace MiniMC {
 
         template <class T>
         PointerValue IntToPtr(const T& t) {
-          MiniMC::BV64 n = MiniMC::Host::zext<typename T::underlying_type, MiniMC::BV64>(t.getValue());
-          return std::bit_cast<pointer_t>(n);
-        }
+	  MiniMC::Support::PtrBV n;
+	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(MiniMC::Support::PtrBV)) {
+	    n = MiniMC::Host::zext<typename T::underlying_type, MiniMC::Support::PtrBV>(t.getValue());
+	  }
+	  else {
+	    n = MiniMC::Host::trunc<typename T::underlying_type, MiniMC::Support::PtrBV>(t.getValue());
+	  }
+	  return std::bit_cast<pointer_t>(n);
+	}
 
         template <size_t bw, typename T>
         typename RetTyp<bw>::type Trunc(const T& t) const {

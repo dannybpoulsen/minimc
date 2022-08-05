@@ -105,16 +105,7 @@ namespace MiniMC {
       auto& getLocations() { return locations; }
       auto& getEdges() const { return edges; }
       
-      //Check if locations and edges are consistent
-      bool isIncomingOutgoingConsistent() const {
-        for (auto& e : edges) {
-          if (!e->getTo()->isIncoming(e) || !e->getFrom()->isOutgoing(e)) {
-            return false;
-          }
-        }
-        return true;
-      }
-
+      
 
     private:
       std::vector<Location_ptr> locations;

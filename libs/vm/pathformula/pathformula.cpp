@@ -22,7 +22,7 @@ namespace MiniMC {
             return I8Value(builder.makeVar(builder.makeBVSort(8), str.str()));
           case MiniMC::Model::TypeID::I16:
             return I16Value(builder.makeVar(builder.makeBVSort(16), str.str()));
-          case MiniMC::Model::TypeID::I32:
+	  case MiniMC::Model::TypeID::I32:
             return I32Value(builder.makeVar(builder.makeBVSort(32), str.str()));
           case MiniMC::Model::TypeID::I64:
             return I64Value(builder.makeVar(builder.makeBVSort(64), str.str()));
@@ -59,7 +59,6 @@ namespace MiniMC {
 		    auto pointer = val.getValue ();
 		    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 		    chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
-			    << builder.makeBVIntConst(pointer.zero, sizeof(pointer.zero)*8)
 			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
 		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
 		    return PointerValue(chainer.getTerm ());
@@ -128,9 +127,8 @@ namespace MiniMC {
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl) {
 	//For now we don't need to do anything special...except run thorough all blocks and ensure out start block number is less than the one used by the heap
 	for (auto& block : hl) {
-	  auto base = MiniMC::Support::getBase (block.pointer);
-	  if (next_block <= base) {
-	    next_block = base +1;
+	  if (next_block <= block.baseobj) {
+	    next_block = block.baseobj +1;
 	  }
 	}
 

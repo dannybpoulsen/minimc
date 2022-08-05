@@ -167,12 +167,13 @@ namespace MiniMC {
 
           MiniMC::Support::Localiser must_be_pointer("Return type has to be pointer for '%1%'");
           MiniMC::Support::Localiser base_must_be_pointer("Base  has to be pointer for '%1%'");
-
+	  
+	  
           auto ptr = content.ptr->getType();
           auto skip = content.skipsize->getType();
           auto value = content.nbSkips->getType();
           auto result = content.res->getType();
-
+	  
           if (result->getTypeID() != MiniMC::Model::TypeID::Pointer) {
             mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;

@@ -260,7 +260,8 @@ namespace MiniMC {
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
-      virtual const Value_ptr makePointer(MiniMC::pointer_t) = 0;
+      virtual const Value_ptr makeHeapPointer(MiniMC::base_t) = 0;
+      
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) = 0;
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
     protected:
@@ -276,7 +277,7 @@ namespace MiniMC {
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t);
       
-      virtual const Value_ptr makePointer(MiniMC::pointer_t);
+      virtual const Value_ptr makeHeapPointer(MiniMC::base_t);
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0);
     };
     

@@ -34,7 +34,15 @@ namespace MiniMC {
 
       template <class T>
       Value<ValType::Pointer> Casts::IntToPtr(const T& t) {
-        return builder.buildTerm (SMTLib::Ops::ZExt,{t.getTerm()},{64});
+	constexpr std::size_t ptrsize = Value<ValType::Pointer>::intbitsize ();
+	constexpr std::size_t tsize = T::intbitsize ();
+	if constexpr (ptrsize >= tsize) {
+	  return builder.buildTerm (SMTLib::Ops::ZExt,{t.getTerm()},{ptrsize - tsize});
+	}
+	
+	return builder.buildTerm (SMTLib::Ops::Extract,{t.getTerm()},{ptrsize-1,0});
+      
+
       }
 
       template <size_t bw, class T>
