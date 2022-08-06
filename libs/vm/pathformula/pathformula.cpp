@@ -82,7 +82,7 @@ namespace MiniMC {
 	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
         for (size_t i = 0; i < t->getSize (); ++i) {
-          auto ones = builder.makeBVIntConst(i, 64);
+          auto ones = builder.makeBVIntConst(i, PathFormulaVMVal::Pointer::intbitsize());
           auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
           concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
         }
@@ -119,7 +119,7 @@ namespace MiniMC {
 
       Memory::Memory (SMTLib::TermBuilder& b) : builder(b) {
 	auto arr_sort = builder.makeSort(
-					 SMTLib::SortKind::Array, {builder.makeBVSort(64),
+					 SMTLib::SortKind::Array, {builder.makeBVSort(PathFormulaVMVal::Pointer::intbitsize()),
 								   builder.makeBVSort(8)});
 	mem_var = builder.makeVar(arr_sort, "Mem");
       }
@@ -133,11 +133,12 @@ namespace MiniMC {
 	}
 
       }
-      
+
+      template<std::size_t PtrWidth=32>
       SMTLib::Term_ptr write(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, const SMTLib::Term_ptr& content) {
         auto carr = arr;
         for (size_t i = 0; i < bytes; ++i) {
-          auto ones = t.makeBVIntConst(bytes - 1 - i, 64);
+          auto ones = t.makeBVIntConst(bytes - 1 - i,  PtrWidth);
           auto curind = t.buildTerm(SMTLib::Ops::BVAdd, {startInd, ones});
           auto curbyte = t.buildTerm(SMTLib::Ops::Extract, {content}, {i * 8 + 7, i * 8});
 	  
@@ -148,23 +149,23 @@ namespace MiniMC {
       }
       
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I8& val)  {
-	mem_var = write (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I16& val) {
-	mem_var = write (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I32& val)  {
-	mem_var = write (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I64& val)  {
-	mem_var = write (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer& val) {
-	mem_var = write (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
         
       

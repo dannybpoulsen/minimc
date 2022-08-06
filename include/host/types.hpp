@@ -76,8 +76,8 @@ namespace MiniMC {
   using BV64 = HostType<64>::Unsigned;
   using proba_t = double;
 
-  
-  struct __attribute__((packed)) pointer64_struct {
+#ifndef MINIMC_32
+  struct __attribute__((packed)) pointer_struct {
     //Used for identifying if the pointer is a
     // data pointer
     // location pointer
@@ -91,8 +91,10 @@ namespace MiniMC {
     //for location pointer offset is the location inside the function jumped to
     BV32 offset{0};
   };
+
   
-  struct __attribute__((packed)) pointer32_struct {
+#else 
+  struct __attribute__((packed)) pointer_struct {
     //Used for identifying if the pointer is a
     // data pointer
     // location pointer
@@ -106,10 +108,11 @@ namespace MiniMC {
     //for location pointer offset is the location inside the function jumped to
     BV16 offset{0};
   };
+#endif
   
   
+  using pointer_t = pointer_struct;
   
-  using pointer_t = pointer64_struct;
   using seg_t = decltype(pointer_t::segment);
   using base_t = decltype(pointer_t::base);
   using func_t = base_t;

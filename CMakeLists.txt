@@ -5,10 +5,15 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}"
 set (CMAKE_CXX_STANDARD 20)
 
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
-option (ENABLE_PYTHON "Enable Python Binding" OFF)
+ option (ENABLE_PYTHON "Enable Python Binding" OFF)
+option (MINIMC32PTr "Use 32Bit pointers" OFF)
+
 enable_testing()
 
 add_compile_options(-Wall -Wextra -Wpedantic)
+if(MINIMC32PTr)
+	add_compile_definition(MINIMC_32)
+endif()
 
 SET (ToolName minimc)
 SET (VERSION_MAJOR 0)
