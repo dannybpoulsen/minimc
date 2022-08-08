@@ -1,7 +1,7 @@
 Find_Package (CGraph)
 
 
-add_library (support STATIC   base64encode.cpp feedback.cpp)
+add_library (support STATIC feedback.cpp)
 
 if(ENABLE_SYMBOLIC)
 target_sources (support PRIVATE smt.cpp) 
@@ -21,4 +21,4 @@ configure_file (
 
 target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
 
-target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} base64)
+target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} )
