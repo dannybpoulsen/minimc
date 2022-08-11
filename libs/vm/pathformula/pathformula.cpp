@@ -3,6 +3,8 @@
 #include "util/smtconstruction.hpp"
 #include "vm/pathformula/pathformua.hpp"
 #include "vm/pathformula/value.hpp"
+#include "smt/solver.hpp"
+#include "support/smt.hpp"
 #include <sstream>
 
 namespace MiniMC {
@@ -186,18 +188,71 @@ namespace MiniMC {
         return TriBool::Unk;
       }
 
-      template <ValType v>
+      template <typename v>
       std::ostream& Value<v>::output(std::ostream& os) const {
         return term->output(os);
       }
 
-      template class Value<ValType::Bool>;
-      template class Value<ValType::Pointer>;
-      template class Value<ValType::I8>;
-      template class Value<ValType::I16>;
-      template class Value<ValType::I32>;
-      template class Value<ValType::I64>;
-      template class Value<ValType::Aggregate>;
+      template<class T>
+      T Value<T>::interpretValue (const SMTLib::Solver& solver) const {
+	if constexpr (std::is_same_v<T,MiniMC::pointer_t>) {
+	  MiniMC::pointer_t pointer;
+	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
+	  
+	  auto pointerres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
+	  assert(sizeof(MiniMC::pointer_t) == pointerres.size() / 8);
+	  auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
+	  auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
+	  auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;
+	  
+	  
+	  MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
+	  MiniMC::Support::SMT::extractBytes(segoff, segoff+sizeof(pointer.segment)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.segment));
+	  MiniMC::Support::SMT::extractBytes(baseoff, baseoff+sizeof(pointer.base)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.base));
+                
+	  return pointer;
+	}
+	else if constexpr (std::is_same_v<T,MiniMC::Util::Array>) {
+	  MiniMC::Util::Array res{size()};
+	  
+	  auto aggrres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
+	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.get_direct_access());
+	  return res;
+	  
+	}
+
+	else if constexpr (std::is_same_v<T,MiniMC::BV8> ||
+			   std::is_same_v<T,MiniMC::BV16> ||
+			   std::is_same_v<T,MiniMC::BV32> ||
+			   std::is_same_v<T,MiniMC::BV64>) {
+
+	  T res{0};
+	  
+	  auto ires = std::get<SMTLib::bitvector>(solver.getModelValue(term));
+	  assert(sizeof(T) == ires.size() / 8);
+	  MiniMC::Support::SMT::extractBytes(ires.begin(), ires.end(), reinterpret_cast<MiniMC::BV8*>(&res));
+	  return res;
+	}
+
+	if constexpr (std::is_same_v<T, bool>)
+	  {
+	    auto bres = std::get<bool>(solver.getModelValue(term));
+	    return bres;
+	  }
+
+	else 
+	  throw MiniMC::Support::Exception ("Not Implemented yet");
+	
+      }
+      
+      
+      template class Value<bool>;
+      template class Value<MiniMC::pointer_t>;
+      template class Value<MiniMC::BV8>;
+      template class Value<MiniMC::BV16>;
+      template class Value<MiniMC::BV32>;
+      template class Value<MiniMC::BV64>;
+      template class Value<MiniMC::Util::Array>;
 
     } // namespace Pathformula
   }   // namespace VMT

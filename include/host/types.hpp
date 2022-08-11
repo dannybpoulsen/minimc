@@ -76,48 +76,48 @@ namespace MiniMC {
   using BV64 = HostType<64>::Unsigned;
   using proba_t = double;
 
-#ifndef MINIMC_32
+  template <typename seg_t = BV16,
+            typename base_t = BV16,
+            typename offset_t = BV32,
+            typename Ptrbv = BV64>
   struct __attribute__((packed)) pointer_struct {
     //Used for identifying if the pointer is a
     // data pointer
     // location pointer
     // function pointer
-    BV16 segment{0};
+    seg_t segment{0};
     //base pointer
     //for function and location pointers base is the function_id
-    BV16 base{0};
+    base_t base{0};
     // offset into base_object
     //for function pointer offset must be zero
     //for location pointer offset is the location inside the function jumped to
-    BV32 offset{0};
+    offset_t offset{0};
+    using PtrBV = Ptrbv;  
+    pointer_struct add (offset_t off) const  {
+      return pointer_struct {.segment = segment,.base = base,.offset = offset+off};
+    }
+
+    bool is_null () const {return base == 0 && segment == 0 && offset == 0;}
   };
 
   
-#else 
-  struct __attribute__((packed)) pointer_struct {
-    //Used for identifying if the pointer is a
-    // data pointer
-    // location pointer
-    // function pointer
-    BV8 segment{0};
-    //base pointer
-    //for function and location pointers base is the function_id
-    BV8 base{0};
-    // offset into base_object
-    //for function pointer offset must be zero
-    //for location pointer offset is the location inside the function jumped to
-    BV16 offset{0};
-  };
+  
+  
+  using pointer64_t = pointer_struct<BV16,BV16,BV32,BV64>;
+  using pointer32_t = pointer_struct<BV8,BV8,BV16,BV32>;
+
+#ifndef MINIMC32
+  using pointer_t = pointer64_t;
+#else
+  using pointer_t = pointer64_t;
 #endif
   
-  
-  using pointer_t = pointer_struct;
-  
-  using seg_t = decltype(pointer_t::segment);
-  using base_t = decltype(pointer_t::base);
+  using seg_t = BV8;//decltype(pointer_t::segment);
+  using base_t = BV16;//decltype(pointer_t::base);
   using func_t = base_t;
   using proc_t = base_t;
-  using offset_t = decltype(pointer_t::offset);
+  using offset_t = BV32; // decltype(pointer_t::offset);
   
   
   inline bool is_null(const pointer_t& t) {
@@ -141,12 +141,19 @@ namespace MiniMC {
   }
 
   
-  template <class From, class To>
-  const To& bit_cast(const From& f) {
-    static_assert(sizeof(From) == sizeof(To));
-    return reinterpret_cast<const To&>(f);
-  }
+  template<typename T>
+  struct is_pointer : public std::false_type {};
 
+  template<>
+  struct is_pointer<pointer32_t> : public std::true_type {};
+
+    template<>
+  struct is_pointer<pointer64_t> : public std::true_type {};
+
+  
+  template<typename T>
+  constexpr bool is_pointer_v = is_pointer<T>::value;
+  
 } // namespace MiniMC
 
 #endif

@@ -99,7 +99,7 @@ namespace MiniMC {
 
       void expandNonDet (MiniMC::Model::Program& prgm) {
 	for (auto& function : prgm.getFunctions ()) {
-	  expandNonDetCFAEdges (function->getCFA (),*prgm.getConstantFactory ());
+	  expandNonDetCFAEdges (function->getCFA (),prgm.getConstantFactory ());
 	}
       }
       

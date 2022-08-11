@@ -147,7 +147,7 @@ namespace MiniMC {
 	
         auto state = std::make_shared<State>(stack,heap);
 
-	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{},descr.getProgram ()};
+	  MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},descr.getProgram ()};
 	MiniMC::VMT::Concrete::PathControl control;
 	StackControl scontrol {state->getProc (0)};
 	decltype(engine)::State newvm {state->getHeap (),control,scontrol};

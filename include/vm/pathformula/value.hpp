@@ -7,12 +7,13 @@
 namespace SMTLib {
   class Term;
   using Term_ptr = std::shared_ptr<Term>;
-} // namespace SMTLib
+  class Solver;
+  } // namespace SMTLib
 
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
-      enum class ValType {
+      /*enum class ValType {
         I8,
         I16,
         I32,
@@ -20,9 +21,9 @@ namespace MiniMC {
         Bool,
         Pointer,
         Aggregate
-      };
-
-      template <ValType t>
+	};*/
+      
+      /*template <ValType t>
       constexpr auto intbitsize_v() {
         if constexpr (t == ValType::I8)
           return 8;
@@ -40,47 +41,56 @@ namespace MiniMC {
           []<bool b = false>() { static_assert(b); }
         ();
       }
-
-      template <ValType v>
+      */
+      
+      template <typename v>
       class Value {
       public:
         Value() = default;
-
-        Value(SMTLib::Term_ptr&& term) requires (v != ValType::Aggregate) : term(std::move(term)),
-							      bytesize(intbitsize<v>() / 8) {}
+	
+        Value(SMTLib::Term_ptr&& term) requires (std::is_integral_v<v> ||
+						 MiniMC::is_pointer_v<v>
+						 ) :
+						     term(std::move(term)),
+						     bytesize(intbitsize<v>() / 8) {}
 
 	
-        Value(SMTLib::Term_ptr&& term,std::size_t b) requires (v == ValType::Aggregate) : term(std::move(term)),
+        Value(SMTLib::Term_ptr&& term,std::size_t b) requires (
+							       !std::is_integral_v<v> &&
+							       !MiniMC::is_pointer_v<v>
+							       ) : term(std::move(term)),
 							      bytesize(b) {}
-	
+		
 	auto& getTerm() const { return term; }
 
         std::ostream& output(std::ostream& os) const;
-
-        template <ValType t = v>
-        static constexpr std::enable_if_t<t != ValType::Aggregate, std::size_t> intbitsize() { return intbitsize_v<v>(); }
+	
+        template <typename t = v>
+        static constexpr std::size_t intbitsize() requires (std::is_integral_v<v> || MiniMC::is_pointer_v<v>) { return sizeof(v)*8; }
 
         bool operator==(const Value& vv) const { return term.get() == vv.term.get(); }
 
 	std::size_t size () const {return bytesize;}
+
+	v interpretValue (const SMTLib::Solver&) const;
 	
       private:
         SMTLib::Term_ptr term{nullptr};
 	std::size_t bytesize;
       };
 
-      template <ValType v>
+      template <typename v>
       auto& operator<<(std::ostream& o, const Value<v>& val) {
         return val.output(o);
       }
 
-      using AggregateValue = Value<ValType::Aggregate>;
-      using I64Value = Value<ValType::I64>;
-      using I32Value = Value<ValType::I32>;
-      using I16Value = Value<ValType::I16>;
-      using I8Value = Value<ValType::I8>;
-      using BoolValue = Value<ValType::Bool>;
-      using PointerValue = Value<ValType::Pointer>;
+      using AggregateValue = Value<MiniMC::Util::Array>;
+      using I64Value = Value<MiniMC::BV64>;
+      using I32Value = Value<MiniMC::BV32>;
+      using I16Value = Value<MiniMC::BV16>;
+      using I8Value = Value<MiniMC::BV8>;
+      using BoolValue = Value<bool>;
+      using PointerValue = Value<MiniMC::pointer_t>;
 
       using PathFormulaVMVal = MiniMC::VMT::GenericVal<I8Value,
                                                        I16Value,
@@ -95,7 +105,7 @@ namespace MiniMC {
 } // namespace MiniMC
 
 namespace std {
-  template <MiniMC::VMT::Pathformula::ValType T>
+  template <typename T>
   struct hash<MiniMC::VMT::Pathformula::Value<T>> {
     auto operator()(const MiniMC::VMT::Pathformula::Value<T>& t) { return bit_cast<MiniMC::Hash::hash_t>(&t); }
   };

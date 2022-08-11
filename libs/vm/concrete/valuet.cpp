@@ -10,47 +10,47 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
 
-      ConcreteVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
+      ValueLookup::Value ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
 
         return MiniMC::Model::visitValue(
 	     MiniMC::Model::Overload{
-                [](const MiniMC::Model::I8Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV8>{val.getValue()}; },
-                [](const MiniMC::Model::I16Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV16>{val.getValue()}; },
-                [](const MiniMC::Model::I32Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV32>{val.getValue()}; },
-                [](const MiniMC::Model::I64Integer& val) -> ConcreteVMVal { return TValue<MiniMC::BV64>{val.getValue()}; },
-                [](const MiniMC::Model::Bool& val) -> ConcreteVMVal { return BoolValue{static_cast<bool>(val.getValue())}; },
-                [](const MiniMC::Model::Pointer& val) -> ConcreteVMVal { return PointerValue{val.getValue()}; },
-                [](const MiniMC::Model::AggregateConstant& val) -> ConcreteVMVal {
+	       [](const MiniMC::Model::I8Integer& val) -> Value { return Value::I8{val.getValue()}; },
+                [](const MiniMC::Model::I16Integer& val) -> Value { return Value::I16{val.getValue()}; },
+                [](const MiniMC::Model::I32Integer& val) -> Value { return Value::I32{val.getValue()}; },
+                [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
+		[](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{static_cast<bool>(val.getValue())}; },
+                [](const MiniMC::Model::Pointer& val) -> Value { return Value::Pointer{val.getValue()}; },
+		[](const MiniMC::Model::AggregateConstant& val) -> Value {
                   MiniMC::Util::Array res(val.begin(), val.end());
                   return AggregateValue({res});
                 },
-                [](const MiniMC::Model::Undef&) -> ConcreteVMVal { throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA"); },
-                [this](const MiniMC::Model::Register& val) -> ConcreteVMVal {
+                [](const MiniMC::Model::Undef&) ->  Value { throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA"); },
+                [this](const MiniMC::Model::Register& val) -> Value {
                   return lookupRegister (val);
                 },
             },
             *v);
       }
 
-      ConcreteVMVal ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
+      ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
 	switch (t->getTypeID()) {
           case MiniMC::Model::TypeID::Bool:
             return BoolValue(false);
 
           case MiniMC::Model::TypeID::Pointer:
-            return PointerValue(MiniMC::Support::null_pointer());
+            return Value::Pointer{PointerValue::underlying_type {}};
           case MiniMC::Model::TypeID::I8:
-            return TValue<MiniMC::BV8>(0);
+            return Value::I8(0);
           case MiniMC::Model::TypeID::I16:
-            return TValue<MiniMC::BV16>(0);
+            return Value::I16(0);
           case MiniMC::Model::TypeID::I32:
-            return TValue<MiniMC::BV32>(0);
+            return Value::I32(0);
           case MiniMC::Model::TypeID::I64:
-            return TValue<MiniMC::BV64>(0);
+            return Value::I64(0);
 
           case MiniMC::Model::TypeID::Array:
           case MiniMC::Model::TypeID::Struct:
-            return AggregateValue{MiniMC::Util::Array{t->getSize()}};
+            return Value::Aggregate{MiniMC::Util::Array{t->getSize()}};
           default:
             break;
         }
@@ -59,7 +59,7 @@ namespace MiniMC {
       }
       
       
-      ConcreteVMVal ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
+      ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
 	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting Nondeterministic values for concrete values....using default value");
 	return defaultValue (t);
       }

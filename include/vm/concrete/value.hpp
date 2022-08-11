@@ -9,7 +9,6 @@ namespace MiniMC {
 
       class BoolValue {
       public:
-        friend struct Caster;
         BoolValue(bool val = false) : val(val) {}
         BoolValue BoolNegate() const { return BoolValue(!val); }
         MiniMC::Hash::hash_t hash() const {
@@ -23,36 +22,19 @@ namespace MiniMC {
       };
 
       inline std::ostream& operator<<(std::ostream& os, const BoolValue& v) { return os << v.getValue(); }
-
+      
       template <typename T>
-      requires std::is_integral_v<T>
-      struct TValue;
-
-      class PointerValue {
-      public:
-        friend struct Caster;
-        PointerValue(MiniMC::pointer_t val) : val(val) {}
-
-        auto getValue() const { return val; }
-
-        MiniMC::Hash::hash_t hash() const {
-          return std::bit_cast<MiniMC::Support::PtrBV>(val);
-        }
-
-      protected:
-        MiniMC::pointer_t val;
-      };
-
-      inline std::ostream& operator<<(std::ostream& os, const PointerValue& v) { return os << v.getValue(); }
-
-      template <typename T>
-      requires std::is_integral_v<T>
+      requires std::is_integral_v<T> || MiniMC::is_pointer_v<T>
       struct TValue {
         using underlying_type = T;
         TValue(T val) : value(val) {}
 
         MiniMC::Hash::hash_t hash() const {
-          return value;
+	  if constexpr (std::is_integral_v<T>) 
+	    return value;
+	  else if constexpr (MiniMC::is_pointer_v<T>)  {
+	    return std::bit_cast<typename T::PtrBV>(value);  
+	  }
         }
 
         static constexpr std::size_t intbitsize() { return sizeof(T) * 8; }
@@ -63,6 +45,8 @@ namespace MiniMC {
         T value;
       };
 
+      using PointerValue = TValue<MiniMC::pointer_t>;
+      
       struct AggregateValue {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
         AggregateValue(const MiniMC::Util::Array&& array) : val(std::move(array)) {}
@@ -92,7 +76,7 @@ namespace MiniMC {
                                                     PointerValue,
                                                     BoolValue,
                                                     AggregateValue>;
-
+      
     } // namespace Concrete
   }   // namespace VMT
 } // namespace MiniMC

@@ -30,9 +30,11 @@ namespace MiniMC {
       virtual void saveValue (const MiniMC::Model::Register&, T&&)  = 0;
       virtual T unboundValue (const MiniMC::Model::Type_ptr&) const = 0;
       virtual T defaultValue(const MiniMC::Model::Type_ptr&) const  = 0;
+
+      using Value = T;
       
     };
-
+    
     template<class T>
     struct BaseValueLookup : ValueLookup<T> {
     public:
@@ -47,6 +49,7 @@ namespace MiniMC {
       virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
       
       MiniMC::Hash::hash_t hash() const { return values.hash(); }
+      using Value = T;
     protected:
       T lookupRegister (const MiniMC::Model::Register& reg) const  {return values[reg];}
     private:
@@ -73,6 +76,7 @@ namespace MiniMC {
       
       virtual void free (const typename T::Pointer&) = 0;
       virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
+      using Value = T;
     };
 
     enum class TriBool {
@@ -87,7 +91,7 @@ namespace MiniMC {
       virtual ~PathControl ()  {}
       virtual TriBool addAssumption (const typename T::Bool&) = 0;
       virtual TriBool addAssert (const typename T::Bool&) = 0;
-      
+      using Value = T;
     };
 
     
@@ -98,6 +102,7 @@ namespace MiniMC {
       virtual void pop (T&&) = 0;
       virtual void popNoReturn () = 0;
       virtual ValueLookup<T>& getValueLookup () = 0;
+      using Value = T;
     };
     
     
@@ -256,6 +261,8 @@ namespace MiniMC {
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
       Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
+      using OperationsT = Operations;
+      using CasterT = Caster;
     private:
       Operations operations;
       Caster caster;

@@ -149,57 +149,30 @@ namespace MiniMC {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
 	    return myexpr.getValue().visit([this](auto& t) -> MiniMC::VMT::Concrete::ConcreteVMVal {
-              auto& term = t.getTerm(); 
-	      if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer&>) {
-                MiniMC::pointer_t pointer;
-                // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
-		
-                auto pointerres = std::get<SMTLib::bitvector>(solver->getModelValue(term));
-                assert(sizeof(MiniMC::pointer_t) == pointerres.size() / 8);
-		auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
-		auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
-		auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;
-		
-		
-		MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
-		MiniMC::Support::SMT::extractBytes(segoff, segoff+sizeof(pointer.segment)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.segment));
-                MiniMC::Support::SMT::extractBytes(baseoff, baseoff+sizeof(pointer.base)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.base));
-                
-		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer{pointer};
-              }
-
-              if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Aggregate&>) {
-                MiniMC::Util::Array res{t.size()};
-
-                auto aggrres = std::get<SMTLib::bitvector>(solver->getModelValue(term));
-                MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.get_direct_access());
-                return MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate{std::move(res)};
-              }
-
-              if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::I64&> ||
-                            std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::I32&> ||
-                            std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::I16&> ||
-                            std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::I8&>)
-
-              {
-                using ConcreteVMType = MapToConcrete<std::remove_reference_t<decltype(t)>>::Concrete;
-                typename ConcreteVMType::underlying_type res{0};
-                // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
-
-                auto ires = std::get<SMTLib::bitvector>(solver->getModelValue(term));
-                assert(sizeof(typename ConcreteVMType::underlying_type) == ires.size() / 8);
-                MiniMC::Support::SMT::extractBytes(ires.begin(), ires.end(), reinterpret_cast<MiniMC::BV8*>(&res));
-                return ConcreteVMType{res};
-              }
-
-              if constexpr (std::is_same_v<decltype(t), MiniMC::VMT::Pathformula::PathFormulaVMVal::Bool&>)
-		{
-		  auto bres = std::get<bool>(solver->getModelValue(term));
-		  return MiniMC::VMT::Concrete::ConcreteVMVal::Bool(bres);
-              }
-
-              throw MiniMC::Support::Exception("Shouldn't get here ");
-            });
+	      auto res =  t.interpretValue (*solver);
+	      if constexpr (std::is_same_v<decltype(res),MiniMC::BV8>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::I8 {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV16>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::I16 {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV32>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::I32 {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV64>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::I64 {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),bool>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Bool {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),pointer_t>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),MiniMC::Util::Array>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate {res};
+	      }
+	    });
+	      
           }
         }
 

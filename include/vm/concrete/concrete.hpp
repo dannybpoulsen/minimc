@@ -15,11 +15,8 @@
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-
-
       
-      
-      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Operations, Caster >;
+      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Operations<ConcreteVMVal>, Caster >;
       
       class Memory : public MiniMC::VMT::Memory<ConcreteVMVal> {
       public:
@@ -28,19 +25,18 @@ namespace MiniMC {
 	~Memory ();
         ConcreteVMVal loadValue(const typename ConcreteVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const override;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I8&) override;
-	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I16&) override;
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I32&) override;
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I64&) override;
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Pointer&) override;
+        void storeValue(const Value::Pointer&, const ConcreteVMVal::I8&) override;
+	void storeValue(const Value::Pointer&, const Value::I16&) override;
+        void storeValue(const Value::Pointer&, const Value::I32&) override;
+        void storeValue(const Value::Pointer&, const Value::I64&) override;
+        void storeValue(const Value::Pointer&, const Value::Pointer&) override;
         
 	// PArameter is size to allocate
-        ConcreteVMVal alloca(const ConcreteVMVal::I64&) override;
-
-        void free(const ConcreteVMVal::Pointer&) override;
+        Value alloca(const Value::I64&) override;
+	
+        void free(const Value::Pointer&) override;
         void createHeapLayout(const MiniMC::Model::HeapLayout& layout) override;
         MiniMC::Hash::hash_t hash() const;
-	
       private:
         struct internal;
         std::unique_ptr<internal> _internal;
@@ -50,19 +46,19 @@ namespace MiniMC {
       public:
 	ValueLookup (std::size_t i) : BaseValueLookup<ConcreteVMVal>(i) {}
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
-	ConcreteVMVal unboundValue (const MiniMC::Model::Type_ptr&) const override;
-	ConcreteVMVal defaultValue(const MiniMC::Model::Type_ptr&) const override;
-	
+	Value unboundValue (const MiniMC::Model::Type_ptr&) const override;
+	Value defaultValue(const MiniMC::Model::Type_ptr&) const override;
       };
       
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {
       public:
-        TriBool addAssumption(const ConcreteVMVal::Bool& b) override{
+        TriBool addAssumption(const Value::Bool& b) override{
 	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
-        TriBool addAssert(const ConcreteVMVal::Bool& b) override {
-	    return b.getValue () ? TriBool::True : TriBool::False;
+        TriBool addAssert(const Value::Bool& b) override {
+	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
+
       };
 
       

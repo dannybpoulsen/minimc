@@ -283,8 +283,8 @@ namespace MiniMC {
       auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (name);
       MiniMC::Model::LocationInfoCreator locinf (function->getName(),vstack.get());
       
-      auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
-      funcpointer->setType (program.getTypeFactory ()->makePointerType ());
+      auto funcpointer = program.getConstantFactory().makeFunctionPointer(function->getID());
+      funcpointer->setType (program.getTypeFactory ().makePointerType ());
       auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
       auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
       
@@ -293,8 +293,8 @@ namespace MiniMC {
 
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
-      MiniMC::Model::Value_ptr sp = program.getConstantFactory()->makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
-      sp->setType (program.getTypeFactory ()->makePointerType ());
+      MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
+      sp->setType (program.getTypeFactory ().makePointerType ());
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
@@ -306,7 +306,7 @@ namespace MiniMC {
                                                                                                                                                                                .params = params})});
       
       return program.addFunction(name, {},
-                                 program.getTypeFactory()->makeVoidType(),
+                                 program.getTypeFactory().makeVoidType(),
                                  std::move(vstack),
                                  std::move(cfg));
     }

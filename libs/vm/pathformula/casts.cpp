@@ -6,25 +6,29 @@
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
-
+      
+      template<class Value>
       template <std::size_t bw>
-      typename RetTyp<bw>::type Casts::BoolZExt(const Value<ValType::Bool>& val) {
+      typename RetTyp<Value,bw>::type Casts<Value>::BoolZExt(const BoolValue& val) {
         constexpr std::size_t bitsize = bw * 8;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(1, bitsize);
         return builder.buildTerm(SMTLib::Ops::ITE, {val.getTerm(), ones, zeros});
       }
 
+      template<class Value>
       template <std::size_t bw>
-      typename RetTyp<bw>::type Casts::BoolSExt(const Value<ValType::Bool>& val) {
+      typename RetTyp<Value,bw>::type Casts<Value>::BoolSExt(const BoolValue& val) {
         constexpr std::size_t bitsize = bw * 8;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(~0, bitsize);
         return builder.buildTerm(SMTLib::Ops::ITE, {val.getTerm(), ones, zeros});
       }
 
+
+      template<class Value>
       template <class T>
-      Value<ValType::Bool> Casts::IntToBool(const T& t) {
+      Value::Bool Casts<Value>::IntToBool(const T& t) {
         auto tt = builder.makeBoolConst(true);
         auto ff = builder.makeBoolConst(false);
         auto zeros = builder.makeBVIntConst(0,  T::intbitsize());
@@ -32,9 +36,10 @@ namespace MiniMC {
         return builder.buildTerm(SMTLib::Ops::ITE, {eq, ff,tt});
       }
 
+      template<class Value>
       template <class T>
-      Value<ValType::Pointer> Casts::IntToPtr(const T& t) {
-	constexpr std::size_t ptrsize = Value<ValType::Pointer>::intbitsize ();
+      Value::Pointer Casts<Value>::IntToPtr(const T& t) {
+	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
 	if constexpr (ptrsize >= tsize) {
 	  return builder.buildTerm (SMTLib::Ops::ZExt,{t.getTerm()},{ptrsize - tsize});
@@ -45,80 +50,83 @@ namespace MiniMC {
 
       }
 
+      template<class Value>
       template <size_t bw, class T>
-      typename RetTyp<bw>::type Casts::Trunc (const T& t) const {
+      typename RetTyp<Value,bw>::type Casts<Value>::Trunc (const T& t) const {
         constexpr std::size_t highbit = bw * 8 - 1;
         return builder.buildTerm(SMTLib::Ops::Extract, {t.getTerm()}, {highbit, 0});
       }
 
+      template<class Value>
       template <size_t bw, typename T>
-      typename RetTyp<bw>::type Casts::ZExt(const T& t) const {
+      typename RetTyp<Value,bw>::type Casts<Value>::ZExt(const T& t) const {
         constexpr std::size_t bits = bw * 8 - T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::ZExt, {t.getTerm()}, {bits});
       }
 
+      template<class Value>
       template <size_t bw, typename T>
-      typename RetTyp<bw>::type Casts::SExt(const T& t) const {
+      typename RetTyp<Value,bw>::type Casts<Value>::SExt(const T& t) const {
         constexpr std::size_t bits = bw * 8  -T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::SExt, {t.getTerm()}, {bits});
       }
 
-
-      template RetTyp<1>::type Casts::BoolZExt<1> (const Value<ValType::Bool>&);
-      template RetTyp<2>::type Casts::BoolZExt<2> (const Value<ValType::Bool>&);
-      template RetTyp<4>::type Casts::BoolZExt<4> (const Value<ValType::Bool>&);
-      template RetTyp<8>::type Casts::BoolZExt<8> (const Value<ValType::Bool>&);
-
-      template RetTyp<1>::type Casts::BoolSExt<1> (const Value<ValType::Bool>&);
-      template RetTyp<2>::type Casts::BoolSExt<2> (const Value<ValType::Bool>&);
-      template RetTyp<4>::type Casts::BoolSExt<4> (const Value<ValType::Bool>&);
-      template RetTyp<8>::type Casts::BoolSExt<8> (const Value<ValType::Bool>&);
       
-      template Value<ValType::Bool> Casts::IntToBool (const Value<ValType::I8>&);
-      template Value<ValType::Bool> Casts::IntToBool (const Value<ValType::I16>&);
-      template Value<ValType::Bool> Casts::IntToBool (const Value<ValType::I32>&);
-      template Value<ValType::Bool> Casts::IntToBool (const Value<ValType::I64>&);
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::BoolZExt<1> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::BoolZExt<2> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::BoolZExt<4> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::BoolZExt<8> (const PathFormulaVMVal::Bool&);
 
-      template Value<ValType::Pointer> Casts::IntToPtr (const Value<ValType::I8>&);
-      template Value<ValType::Pointer> Casts::IntToPtr (const Value<ValType::I16>&);
-      template Value<ValType::Pointer> Casts::IntToPtr (const Value<ValType::I32>&);
-      template Value<ValType::Pointer> Casts::IntToPtr (const Value<ValType::I64>&);
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::BoolSExt<1> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::BoolSExt<2> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::BoolSExt<4> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::BoolSExt<8> (const PathFormulaVMVal::Bool&);
+      
+      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
+
+      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
       
       
-      template typename RetTyp<1>::type Casts::Trunc<1,Value<ValType::I8>> (const Value<ValType::I8>&) const;
-      template RetTyp<1>::type Casts::Trunc<1> (const Value<ValType::I16>&) const;
-      template RetTyp<2>::type Casts::Trunc<2> (const Value<ValType::I16>&) const;
-      template RetTyp<1>::type Casts::Trunc<1> (const Value<ValType::I32>&) const ;
-      template RetTyp<2>::type Casts::Trunc<2> (const Value<ValType::I32>&) const;
-      template RetTyp<4>::type Casts::Trunc<4> (const Value<ValType::I32>&) const;
-      template RetTyp<1>::type Casts::Trunc<1> (const Value<ValType::I64>&) const ;
-      template RetTyp<2>::type Casts::Trunc<2> (const Value<ValType::I64>&) const;
-      template RetTyp<4>::type Casts::Trunc<4> (const Value<ValType::I64>&) const;
-      template RetTyp<8>::type Casts::Trunc<8> (const Value<ValType::I64>&) const;
+      template typename RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::Trunc<1,I8Value> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::Trunc<1> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::Trunc<2> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::Trunc<1> (const PathFormulaVMVal::I32&) const ;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::Trunc<2> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::Trunc<4> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::Trunc<1> (const PathFormulaVMVal::I64&) const ;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::Trunc<2> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::Trunc<4> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::Trunc<8> (const PathFormulaVMVal::I64&) const;
 
-      template RetTyp<8>::type Casts::ZExt<8> (const Value<ValType::I64>&) const;
-      template RetTyp<4>::type Casts::ZExt<4> (const Value<ValType::I32>&) const;
-      template RetTyp<8>::type Casts::ZExt<8> (const Value<ValType::I32>&) const;
-      template RetTyp<2>::type Casts::ZExt<2> (const Value<ValType::I16>&) const;
-      template RetTyp<4>::type Casts::ZExt<4> (const Value<ValType::I16>&) const;
-      template RetTyp<8>::type Casts::ZExt<8> (const Value<ValType::I16>&) const ;      
-      template RetTyp<1>::type Casts::ZExt<1> (const Value<ValType::I8>&) const ;
-      template RetTyp<2>::type Casts::ZExt<2> (const Value<ValType::I8>&) const;
-      template RetTyp<4>::type Casts::ZExt<4> (const Value<ValType::I8>&) const;
-      template RetTyp<8>::type Casts::ZExt<8> (const Value<ValType::I8>&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::ZExt<8> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::ZExt<4> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::ZExt<8> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::ZExt<2> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::ZExt<4> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::ZExt<8> (const PathFormulaVMVal::I16&) const ;      
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::ZExt<1> (const PathFormulaVMVal::I8&) const ;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::ZExt<2> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::ZExt<4> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::ZExt<8> (const PathFormulaVMVal::I8&) const;
 
-      template RetTyp<8>::type Casts::SExt<8> (const Value<ValType::I64>&) const;
-      template RetTyp<4>::type Casts::SExt<4> (const Value<ValType::I32>&) const;
-      template RetTyp<8>::type Casts::SExt<8> (const Value<ValType::I32>&) const;
-      template RetTyp<2>::type Casts::SExt<2> (const Value<ValType::I16>&) const;
-      template RetTyp<4>::type Casts::SExt<4> (const Value<ValType::I16>&) const;
-      template RetTyp<8>::type Casts::SExt<8> (const Value<ValType::I16>&) const ;      
-      template RetTyp<1>::type Casts::SExt<1> (const Value<ValType::I8>&) const ;
-      template RetTyp<2>::type Casts::SExt<2> (const Value<ValType::I8>&) const;
-      template RetTyp<4>::type Casts::SExt<4> (const Value<ValType::I8>&) const;
-      template RetTyp<8>::type Casts::SExt<8> (const Value<ValType::I8>&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::SExt<8> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::SExt<4> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::SExt<8> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::SExt<2> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::SExt<4> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::SExt<8> (const PathFormulaVMVal::I16&) const ;      
+      template RetTyp<PathFormulaVMVal,1>::type Casts<PathFormulaVMVal>::SExt<1> (const PathFormulaVMVal::I8&) const ;
+      template RetTyp<PathFormulaVMVal,2>::type Casts<PathFormulaVMVal>::SExt<2> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,4>::type Casts<PathFormulaVMVal>::SExt<4> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,8>::type Casts<PathFormulaVMVal>::SExt<8> (const PathFormulaVMVal::I8&) const;
 
-      //template Value<ValType::Pointer> Casts::Trunc (const Value<ValType::I64>&);
+      //template Value<ValType::Pointer> Casts::Trunc (const I64Value&);
       
       
     } // namespace Pathformula

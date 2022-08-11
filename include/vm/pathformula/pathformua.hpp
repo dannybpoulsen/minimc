@@ -20,25 +20,25 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {      
       
-      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal, Operations, Casts >;
+      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal, Operations<PathFormulaVMVal>, Casts<PathFormulaVMVal>> ;
       
       class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
       public:
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
 	
-	PathFormulaVMVal loadValue(const typename PathFormulaVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const override;
+	PathFormulaVMVal loadValue(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const override;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I8&) override;
-	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I16&) override;
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I32&) override;
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I64&) override;
-        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Pointer&) override;
+        void storeValue(const Value::Pointer&, const Value::I8&) override;
+	void storeValue(const Value::Pointer&, const Value::I16&) override;
+        void storeValue(const Value::Pointer&, const Value::I32&) override;
+        void storeValue(const Value::Pointer&, const Value::I64&) override;
+        void storeValue(const Value::Pointer&, const Value::Pointer&) override;
         
 	// PArameter is size to allocate
-        PathFormulaVMVal alloca(const PathFormulaVMVal::I64&) override;
+        PathFormulaVMVal alloca(const Value::I64&) override;
 	
-        void free(const PathFormulaVMVal::Pointer&) override {}
+        void free(const Value::Pointer&) override {}
         void createHeapLayout(const MiniMC::Model::HeapLayout& ) override;
 	MiniMC::Hash::hash_t hash() const {return std::bit_cast<uint64_t> (this);}// }throw MiniMC::Support::Exception ("Not implemented");}
       private:
@@ -64,8 +64,8 @@ namespace MiniMC {
       class PathControl : public MiniMC::VMT::PathControl<PathFormulaVMVal> {
       public:
 	PathControl (SMTLib::TermBuilder& builder);
-        TriBool addAssumption(const PathFormulaVMVal::Bool&) override;
-        TriBool addAssert(const PathFormulaVMVal::Bool&) override;
+        TriBool addAssumption(const Value::Bool&) override;
+        TriBool addAssert(const Value::Bool&) override;
 	auto& getAssump () {return assump;}
 	auto& getAsserts () {return asserts;}
 	

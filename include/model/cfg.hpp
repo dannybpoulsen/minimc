@@ -153,12 +153,10 @@ namespace MiniMC {
       Program& prgm;
       Type_ptr retType;
     };
-
     
     class Program  {
-   
     public:
-      Program(const MiniMC::Model::TypeFactory_ptr& tfact,
+      Program(const MiniMC::Model::TypeFactory_ptr &tfact,
               const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact), tfact(tfact) {
       }
 
@@ -202,8 +200,8 @@ namespace MiniMC {
       bool hasEntryPoints() const { return entrypoints.size(); }
       
 
-      auto& getConstantFactory() { return cfact; }
-      auto& getTypeFactory() { return tfact; }
+      auto& getConstantFactory() { return *cfact; }
+      auto& getTypeFactory() { return *tfact; }
 
       const auto& getInitialiser () const { return initialiser; }
       void setInitialiser (const InstructionStream& instr) { initialiser = instr; }

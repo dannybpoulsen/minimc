@@ -12,7 +12,7 @@ enable_testing()
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 if(MINIMC32PTr)
-	add_compile_definition(MINIMC_32)
+	add_compile_definitions(MINIMC32)
 endif()
 
 SET (ToolName minimc)

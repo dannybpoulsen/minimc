@@ -111,8 +111,7 @@ namespace MiniMC {
       bool isBool() const override { return is_bool; }
       bool isInteger() const override { return std::is_integral_v<T>; }
       bool isPointer() const override {
-        return std::is_same_v<T, MiniMC::pointer_t>;
-        ;
+        return MiniMC::is_pointer_v<T>;
       }
       
       std::ostream& output(std::ostream& os) const override {
@@ -138,7 +137,8 @@ namespace MiniMC {
     using I32Integer = TConstant<MiniMC::BV32>;
     using I64Integer = TConstant<MiniMC::BV64>;
     using Pointer = TConstant<MiniMC::pointer_t>;
-
+    
+    
     /**
      * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
      *

@@ -18,10 +18,10 @@ namespace MiniMC {
       using uns_from = typename HostType<sizeof(T)*8>::Unsigned;
       using uns_to = typename HostType<sizeof(P)*8>::Unsigned;
 
-      uns_from casted = bit_cast<T, uns_from>(t);
+      uns_from casted = std::bit_cast<uns_from>(t);
       uns_to res = static_cast<uns_to>(casted);
 
-      return bit_cast<uns_to, P>(res);
+      return std::bit_cast<P>(res);
     }
 
   } // namespace Support

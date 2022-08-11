@@ -105,14 +105,14 @@ namespace MiniMC {
       
       if constexpr (o == CMP::SGT) {
 	using stype = typename HostType<sizeof(T)*8>::Signed;//typename EquivSigned<T>::type;
-	return bit_cast<T, stype>(l) > bit_cast<T, stype>(r);
+	return std::bit_cast<stype>(l) > std::bit_cast<stype>(r);
       }
       else if constexpr (o == CMP::UGT) {
 	return l > r;  
       }
       else if constexpr (o == CMP::SGE) {
 	using stype = typename HostType<sizeof(T)*8>::Signed;
-	return bit_cast<T, stype>(l) >= bit_cast<T, stype>(r);
+	return std::bit_cast<stype>(l) >= std::bit_cast<stype>(r);
       
       }
       else if constexpr (o == CMP::UGE) {
@@ -120,14 +120,14 @@ namespace MiniMC {
       }
       else if constexpr (o == CMP::SLT) {
 	using stype = typename HostType<sizeof(T)*8>::Signed;
-	return bit_cast<T, stype>(l) < bit_cast<T, stype>(r);
+	return std::bit_cast<stype>(l) < std::bit_cast<stype>(r);
       }
       else if constexpr (o == CMP::ULT) {
 	return l < r;  
       }
       else if constexpr (o == CMP::SLE) {
 	using stype = typename HostType<sizeof(T)*8>::Signed;
-	return bit_cast<T, stype>(l) <= bit_cast<T, stype>(r);
+	return std::bit_cast<stype>(l) <= std::bit_cast<stype>(r);
       }
 
       else if constexpr (o == CMP::ULE) {

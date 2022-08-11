@@ -24,7 +24,7 @@ namespace MiniMC {
       };
 
       struct Transferer : public MiniMC::CPA::Transferer {
-	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::Operations{},MiniMC::VMT::Concrete::Caster{},prgm) {}
+	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm) {}
         MiniMC::CPA::CommonState_ptr doTransfer(const MiniMC::CPA::CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id);
       private:
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
