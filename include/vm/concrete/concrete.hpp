@@ -16,7 +16,7 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
       
-      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Operations<ConcreteVMVal>, Caster >;
+      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Operations, Caster >;
       
       class Memory : public MiniMC::VMT::Memory<ConcreteVMVal> {
       public:
@@ -30,7 +30,9 @@ namespace MiniMC {
         void storeValue(const Value::Pointer&, const Value::I32&) override;
         void storeValue(const Value::Pointer&, const Value::I64&) override;
         void storeValue(const Value::Pointer&, const Value::Pointer&) override;
+	void storeValue(const Value::Pointer&, const Value::Pointer32&) override;
         
+	
 	// PArameter is size to allocate
         Value alloca(const Value::I64&) override;
 	

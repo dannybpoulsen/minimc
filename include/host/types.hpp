@@ -118,21 +118,10 @@ namespace MiniMC {
   using func_t = base_t;
   using proc_t = base_t;
   using offset_t = BV32; // decltype(pointer_t::offset);
-  
-  
-  inline bool is_null(const pointer_t& t) {
-    return t.segment == 0 &&
-           t.base == 0 &&
-           t.offset == 0;
-  }
 
-  template <class T>
-  T& operator<<(T& os, const pointer_t& p) {
-    if (is_null(p)) {
-      return os << std::string("nullptr", 7);
-    }
-    return os << static_cast<BV8> (p.segment) << ":" << static_cast<int64_t>(p.base) << "+" << p.offset;
-  }
+  
+
+  
 
   inline bool operator==(const pointer_t& l, const pointer_t& r) {
     return l.segment == r.segment &&
@@ -153,6 +142,23 @@ namespace MiniMC {
   
   template<typename T>
   constexpr bool is_pointer_v = is_pointer<T>::value;
+
+  template<class P>
+  bool is_null(const P& t) requires (is_pointer_v<P>) {
+    return t.segment == 0 &&
+           t.base == 0 &&
+           t.offset == 0;
+  }
+
+  
+  template <class T, class P>
+  T& operator<<(T& os, const P& p)  requires (is_pointer_v<P>) {
+    if (is_null(p)) {
+      return os << std::string("nullptr", 7);
+    }
+    return os << static_cast<BV8> (p.segment) << ":" << static_cast<int64_t>(p.base) << "+" << p.offset;
+  }
+  
   
 } // namespace MiniMC
 

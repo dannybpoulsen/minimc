@@ -78,11 +78,11 @@ namespace MiniMC {
 	return os << InstructionCode::Uniform;
       }
 
-      else if constexpr ( i == InstructionCode::Store) {
+      else if constexpr ( i == InstructionCode::Store ) {
 	return os << InstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
       }
 
-      else if constexpr ( i == InstructionCode::Load) {
+      else if constexpr ( i == InstructionCode::Load ) {
 	return os << *content.res << " = " << InstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
       }
 

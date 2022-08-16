@@ -33,6 +33,9 @@ namespace MiniMC {
       case ValueInfo<Pointer>::type_t ():
 	return f (static_cast<const Pointer&> (v));
 	break;
+      case ValueInfo<Pointer32>::type_t ():
+	return f (static_cast<const Pointer32&> (v));
+	break;
       case ValueInfo<AggregateConstant>::type_t ():
 	return f (static_cast<const AggregateConstant&> (v));
 	break;

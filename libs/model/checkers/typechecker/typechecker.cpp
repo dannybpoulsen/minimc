@@ -160,7 +160,7 @@ namespace MiniMC {
           return true;
 
         }
-
+	
         else if constexpr (i == InstructionCode::PtrAdd) {
           MiniMC::Support::Localiser must_be_integer("'%2%' has to be an integer for '%1%'. ");
           MiniMC::Support::Localiser must_be_same_type("'value and skipeSize must be same type '%1%'. ");
@@ -174,8 +174,10 @@ namespace MiniMC {
           auto value = content.nbSkips->getType();
           auto result = content.res->getType();
 	  
-          if (result->getTypeID() != MiniMC::Model::TypeID::Pointer) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd));
+          if (result->getTypeID() != MiniMC::Model::TypeID::Pointer &&
+	      result->getTypeID() != MiniMC::Model::TypeID::Pointer32
+	      ) {
+            mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;
           } else if (!skip->isInteger () ) {
             mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::PtrAdd, "SkipSize"));
@@ -188,21 +190,31 @@ namespace MiniMC {
             return false;
           }
 
-          else if (ptr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
+          else if (ptr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
+		   ptr->getTypeID() != MiniMC::Model::TypeID::Pointer32
+		   ) {
             mess.message<MiniMC::Support::Severity::Error>(base_must_be_pointer.format(MiniMC::Model::InstructionCode::PtrAdd));
             return false;
           }
 
+	  if (ptr->getTypeID () != result->getTypeID ()) {
+	    mess.message<MiniMC::Support::Severity::Error>("Must be ssame pointer type");
+            return false;
+          
+	  }
+	  
           return true;
         }
 
         else if constexpr (i == InstructionCode::PtrToInt) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only be applied to pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Return type has to be integer for '%1%'");
-
+	  
           auto ftype = content.op1->getType();
           auto ttype = content.res->getType();
-          if (ftype->getTypeID() != MiniMC::Model::TypeID::Pointer) {
+          if (ftype->getTypeID() != MiniMC::Model::TypeID::Pointer &&
+ 	      ftype->getTypeID() != MiniMC::Model::TypeID::Pointer32
+	      ) {
             mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::PtrToInt));
             return false;
           }
@@ -219,20 +231,24 @@ namespace MiniMC {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
 
           auto addr = content.addr->getType();
-          if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
+          if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
+	      addr->getTypeID() != MiniMC::Model::TypeID::Pointer32
+	      ) {
             mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Store));
             return false;
           }
 
           return true;
         }
-
+	
+	
         else if constexpr (i == InstructionCode::Load) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only load from pointer types. ");
           MiniMC::Support::Localiser must_be_integer("'%1%' can only load integers. ");
 
           auto addr = content.addr->getType();
-          if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer) {
+          if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
+	      addr->getTypeID() != MiniMC::Model::TypeID::Pointer32) {
             mess.message<MiniMC::Support::Severity::Error>(must_be_pointer.format(MiniMC::Model::InstructionCode::Load));
             return false;
           }
@@ -249,6 +265,11 @@ namespace MiniMC {
           return true;
         }
 
+	
+        else if constexpr (i == InstructionCode::Skip) {
+          return true;
+        }
+	
         else if constexpr (i == InstructionCode::Call) {
           auto func = content.function;
           if (!func->isConstant()) {

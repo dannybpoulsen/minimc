@@ -34,7 +34,8 @@ namespace MiniMC {
         void storeValue(const Value::Pointer&, const Value::I32&) override;
         void storeValue(const Value::Pointer&, const Value::I64&) override;
         void storeValue(const Value::Pointer&, const Value::Pointer&) override;
-        
+	void storeValue(const Value::Pointer&, const Value::Pointer32&) override;
+	
 	// PArameter is size to allocate
         PathFormulaVMVal alloca(const Value::I64&) override;
 	

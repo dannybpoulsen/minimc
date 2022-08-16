@@ -148,6 +148,15 @@ namespace MiniMC {
 	template <class T>
         Value::Pointer IntToPtr(const T& t);
 
+	template <class T>
+        Value::Pointer32 IntToPtr32(const T& t);
+	
+	
+	Value::Pointer32 PtrToPtr32 (const Value::Pointer&);
+
+	Value::Pointer Ptr32ToPtr (const Value::Pointer32&);
+	
+	
 	template <size_t bw, class T>
         typename RetTyp<Value,bw>::type Trunc(const T& t) const;
 

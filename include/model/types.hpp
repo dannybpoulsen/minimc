@@ -30,6 +30,7 @@ namespace MiniMC {
       Float,
       Double,
       Pointer,
+      Pointer32,
       Struct,
       Array
     };

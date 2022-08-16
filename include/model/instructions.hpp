@@ -47,8 +47,8 @@ namespace MiniMC {
 
 #define POINTEROPS \
   X(PtrAdd)        \
-  X(PtrEq)
-
+  X(PtrEq)	   
+    
 #define AGGREGATEOPS \
   X(ExtractValue)    \
   X(InsertValue)     \
@@ -66,7 +66,8 @@ namespace MiniMC {
 
 #define MEMORY \
   X(Store)     \
-  X(Load)      
+  X(Load)      \
+  
 
     
 #define INTERNAL  \
@@ -478,6 +479,7 @@ ASSUMEASSERTS
       using Content = StoreContent;
     };
 
+        
     template <>
     struct InstructionData<InstructionCode::Uniform> {
       static const bool isTAC = false;

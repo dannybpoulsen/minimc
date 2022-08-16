@@ -45,7 +45,7 @@ namespace MiniMC {
         T value;
       };
 
-      using PointerValue = TValue<MiniMC::pointer_t>;
+      using PointerValue = TValue<MiniMC::pointer64_t>;
       
       struct AggregateValue {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
@@ -73,7 +73,8 @@ namespace MiniMC {
                                                     TValue<MiniMC::BV16>,
                                                     TValue<MiniMC::BV32>,
                                                     TValue<MiniMC::BV64>,
-                                                    PointerValue,
+						    PointerValue,
+						    TValue<MiniMC::pointer32_t>,
                                                     BoolValue,
                                                     AggregateValue>;
       

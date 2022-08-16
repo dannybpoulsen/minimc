@@ -136,7 +136,8 @@ namespace MiniMC {
     using I16Integer = TConstant<MiniMC::BV16>;
     using I32Integer = TConstant<MiniMC::BV32>;
     using I64Integer = TConstant<MiniMC::BV64>;
-    using Pointer = TConstant<MiniMC::pointer_t>;
+    using Pointer = TConstant<MiniMC::pointer64_t>;
+    using Pointer32 = TConstant<MiniMC::pointer32_t>;
     
     
     /**
@@ -313,12 +314,15 @@ namespace MiniMC {
     
     template <>
     constexpr type_id_t ValueInfo<AggregateConstant>::type_t() { return ValueInfo<Pointer>::type_t() + 1; }
-
+    
     template <>
     constexpr type_id_t ValueInfo<Register>::type_t() { return ValueInfo<AggregateConstant>::type_t() + 1; }
 
     template <>
     constexpr type_id_t ValueInfo<Undef>::type_t() { return ValueInfo<Register>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<Pointer32>::type_t() { return ValueInfo<Undef>::type_t() + 1; }
     
     
     template <class T, bool is_bool>

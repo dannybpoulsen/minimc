@@ -70,11 +70,15 @@ namespace MiniMC {
       virtual void storeValue (const typename T::Pointer&, const typename T::I32&) = 0;
       virtual void storeValue (const typename T::Pointer&, const typename T::I64&) = 0;
       virtual void storeValue (const typename T::Pointer&, const typename T::Pointer&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::Pointer32&) = 0;
+      
+      virtual void free (const typename T::Pointer&) = 0;
+      
       
       //PArameter is size to allocate
       virtual T alloca (const typename T::I64& ) = 0;
       
-      virtual void free (const typename T::Pointer&) = 0;
+      
       virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
       using Value = T;
     };
@@ -175,8 +179,8 @@ namespace MiniMC {
       {op.InsertAggregateValue (aggr,index,aggr)} -> std::convertible_to<Aggregate>;
     };
 
-    template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Caster>
-    concept CastCompatible = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p) {
+    template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Caster>
+    concept CastCompatible = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
       {op.template ZExt<1> (i8)} -> std::convertible_to<I8>;
       {op.template ZExt<2> (i8)} -> std::convertible_to<I16>;
       {op.template ZExt<4> (i8)} -> std::convertible_to<I32>;
@@ -230,6 +234,13 @@ namespace MiniMC {
       {op.template IntToPtr<I16> (i16)} -> std::convertible_to<Pointer>;
       {op.template IntToPtr<I32> (i32)} -> std::convertible_to<Pointer>;
       {op.template IntToPtr<I64> (i64)} -> std::convertible_to<Pointer>;
+      {op.template IntToPtr32<I8> (i8)} -> std::convertible_to<Pointer32>;
+      {op.template IntToPtr32<I16> (i16)} -> std::convertible_to<Pointer32>;
+      {op.template IntToPtr32<I32> (i32)} -> std::convertible_to<Pointer32>;
+      {op.template IntToPtr32<I64> (i64)} -> std::convertible_to<Pointer32>;
+      
+      {op.template PtrToPtr32 (p)} -> std::convertible_to<Pointer32>;
+      {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;
       
     };
 
@@ -248,7 +259,7 @@ namespace MiniMC {
       requires PointerOperationCompatible<typename T::I16,typename T::Pointer,typename T::Bool,Operations>;
       requires PointerOperationCompatible<typename T::I32,typename T::Pointer,typename T::Bool,Operations>;
       requires PointerOperationCompatible<typename T::I64,typename T::Pointer,typename T::Bool,Operations>;
-      requires CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,Caster>;
+      requires CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,typename T::Pointer32, Caster>;
     };
 
     template<class T,class Operations,class Caster>

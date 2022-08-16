@@ -122,42 +122,47 @@ namespace MiniMC {
           return Status::Ok;
         }
         throw NotImplemented<op>();
-      }
-
+      
+}
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster&, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isMemory {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isMemory {
         auto& content = instr.getOps<op>();
+
+	auto addrConverter = [&caster](const auto& addrVal) {
+	  return addrVal.visit ([&caster](const auto& value) -> T::Pointer{
+	    if constexpr (std::is_same_v<const typename  T::Pointer&,decltype(value)>) {
+	      return value;
+	    }
+
+	    else if constexpr (std::is_same_v<const typename T::Pointer32&,decltype(value)>) {
+	      return caster.Ptr32ToPtr (value); 
+	    }
+	    else {
+	      throw MiniMC::Support::Exception ("SHouldn't get here");
+	    }
+	  }
+	    );
+	   
+	};
+	
 	if constexpr (op == MiniMC::Model::InstructionCode::Load) {
 	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-	  auto addr = writeState.getStackControl().getValueLookup ().lookupValue(content.addr).template as<typename T::Pointer>();
-
+	  auto addr = addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.addr));
+	  
           writeState.getStackControl().getValueLookup ().saveValue(res, writeState.getMemory().loadValue(addr, res.getType()));
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
           auto value = writeState.getStackControl().getValueLookup ().lookupValue(content.storee);
-          auto addr = writeState.getStackControl().getValueLookup ().lookupValue(content.addr).template as<typename T::Pointer>();
-          switch (content.storee->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::Pointer:
-              writeState.getMemory().storeValue(addr, value.template as<typename T::Pointer>());
-              break;
-            case MiniMC::Model::TypeID::I8:
-              writeState.getMemory().storeValue(addr, value.template as<typename T::I8>());
-              break;
-            case MiniMC::Model::TypeID::I16:
-              writeState.getMemory().storeValue(addr, value.template as<typename T::I16>());
-              break;
-            case MiniMC::Model::TypeID::I32:
-              writeState.getMemory().storeValue(addr, value.template as<typename T::I32>());
-              break;
-            case MiniMC::Model::TypeID::I64:
-              writeState.getMemory().storeValue(addr, value.template as<typename T::I64>());
-              break;
-            default:
-              throw NotImplemented<op>();
-          }
-        }
+          auto addr =  addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.addr));
 
+	  value.visit ([&writeState,&addr](const auto& t) {
+	    if constexpr (!std::is_same_v<const typename T::Bool&,decltype(t)> &&
+			  !std::is_same_v<const typename T::Aggregate&,decltype(t)>
+			  )
+	      writeState.getMemory().storeValue(addr, t);  
+	  });
+	}
         
         else
           throw NotImplemented<op>();
@@ -276,7 +281,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolZExt) {
-          auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::Bool>();
+          auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::Bool> ();
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getStackControl().getValueLookup ().saveValue(res, caster.template BoolZExt<1>(op1));
@@ -296,31 +301,42 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToPtr) {
-          auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::Pointer>();
-          switch (content.op1->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8: {
-              auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::I8>();
+          auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1);
+	  T result;
+	  if (res.getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer) {
+	    result = op1.visit ([&caster](const auto& val) -> T {
+	      if constexpr (std::is_same_v<const typename T::I8&,decltype(val)> ||
+			    std::is_same_v<const typename T::I16&,decltype(val)> ||
+			    std::is_same_v<const typename T::I32&,decltype(val)> ||
+			    std::is_same_v<const typename T::I64&,decltype(val)>
+			    ) {
+		return T{caster.IntToPtr (val)};
+	      }
+	      else {
+		throw MiniMC::Support::Exception ("Shouldn't get her");
+	      }
+	    });
+	    
+	  }
 
-              writeState.getStackControl().getValueLookup ().saveValue(res, caster.IntToPtr(op1));
-            } break;
-            case MiniMC::Model::TypeID::I16: {
-              auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::I16>();
-
-              writeState.getStackControl().getValueLookup ().saveValue(res, caster.IntToPtr(op1));
-            } break;
-            case MiniMC::Model::TypeID::I32: {
-              auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::I32>();
-
-              writeState.getStackControl().getValueLookup ().saveValue(res, caster.IntToPtr(op1));
-            } break;
-            case MiniMC::Model::TypeID::I64: {
-              auto op1 = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::I64>();
-
-              writeState.getStackControl().getValueLookup ().saveValue(res, caster.IntToPtr(op1));
-            } break;
-            default:
-              throw MiniMC::Support::Exception("Invalied IntToPtr");
-          }
+	  else {
+	    result = op1.visit ([&caster](const auto& val) -> T {
+	      if constexpr (std::is_same_v<const typename T::I8&,decltype(val)> ||
+			    std::is_same_v<const typename T::I16&,decltype(val)> ||
+			    std::is_same_v<const typename T::I32&,decltype(val)> ||
+			    std::is_same_v<const typename T::I64&,decltype(val)>
+			    ) {
+		return T{caster.IntToPtr32 (val)};
+	      }
+	      else {
+		throw MiniMC::Support::Exception ("Shouldn't get her");
+	      }
+	     
+	    });
+	    
+	  }
+	  writeState.getStackControl().getValueLookup ().saveValue(res, std::move(result));
+            
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {

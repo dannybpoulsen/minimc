@@ -97,7 +97,7 @@ namespace MiniMC {
 	return BVHelper{builder,aggrTerm,aggr.size()}.extractBytes<NativeLoad ()> (offset,T::intbitsize () /8);
 	
       }
-
+      
       template<class Value>
       Value::Aggregate Operations<Value>::ExtractAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, std::size_t size) {
 	auto aggrTerm = aggr.getTerm();

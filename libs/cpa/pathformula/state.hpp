@@ -165,8 +165,11 @@ namespace MiniMC {
 	      else if constexpr (std::is_same_v<decltype(res),bool>) {
 		return MiniMC::VMT::Concrete::ConcreteVMVal::Bool {res};
 	      }
-	      else if constexpr (std::is_same_v<decltype(res),pointer_t>) {
+	      else if constexpr (std::is_same_v<decltype(res),pointer64_t>) {
 		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer {res};
+	      }
+	      else if constexpr (std::is_same_v<decltype(res),pointer32_t>) {
+		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer32 {res};
 	      }
 	      else if constexpr (std::is_same_v<decltype(res),MiniMC::Util::Array>) {
 		return MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate {res};

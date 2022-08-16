@@ -176,6 +176,16 @@ namespace MiniMC {
         }
       }
 
+      void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer32& v) {
+	auto pointer = p.getValue();
+        auto value = v.getValue();
+        auto base = MiniMC::Support::getBase(pointer);
+        auto offset = MiniMC::Support::getOffset(pointer);
+        if (base < _internal->entries.size()) {
+          _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+        }
+      }
+      
       // PArameter is size to allocate
       Memory::Value Memory::alloca(const Memory::Value::I64& size) {
 	auto size_ = size.getValue();

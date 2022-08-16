@@ -73,6 +73,8 @@ namespace MiniMC {
 	std::size_t size () const {return bytesize;}
 
 	v interpretValue (const SMTLib::Solver&) const;
+
+	using underlying_type = v;
 	
       private:
         SMTLib::Term_ptr term{nullptr};
@@ -90,14 +92,15 @@ namespace MiniMC {
       using I16Value = Value<MiniMC::BV16>;
       using I8Value = Value<MiniMC::BV8>;
       using BoolValue = Value<bool>;
-      using PointerValue = Value<MiniMC::pointer_t>;
+      using PointerValue = Value<MiniMC::pointer64_t>;
 
       using PathFormulaVMVal = MiniMC::VMT::GenericVal<I8Value,
                                                        I16Value,
                                                        I32Value,
                                                        I64Value,
-                                                       PointerValue,
-                                                       BoolValue,
+						       PointerValue,
+						       Value<MiniMC::pointer32_t>,
+						       BoolValue,
                                                        AggregateValue>;
 
     } // namespace Pathformula

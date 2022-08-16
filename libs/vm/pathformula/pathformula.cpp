@@ -64,7 +64,16 @@ namespace MiniMC {
 			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
 		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
 		    return PointerValue(chainer.getTerm ());
-		},
+		  }
+		  ,
+		  [this](const MiniMC::Model::Pointer32& val) -> PathFormulaVMVal { 
+		    auto pointer = val.getValue ();
+		    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+		    chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+		    return Value::Pointer32(chainer.getTerm ());
+		  },
                 [this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
                   MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
                   for (auto byte : val) {
@@ -90,20 +99,22 @@ namespace MiniMC {
         }
 	switch (t->getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
-	  return BoolValue{concat.getTerm()};
+	  return Value::Bool{concat.getTerm()};
 	case MiniMC::Model::TypeID::I8:
-	  return I8Value{concat.getTerm()};
+	  return Value::I8{concat.getTerm()};
 	case MiniMC::Model::TypeID::I16:
-	  return I16Value{concat.getTerm()};
+	  return Value::I16{concat.getTerm()};
 	case MiniMC::Model::TypeID::I32:
-	  return I32Value{concat.getTerm()};
+	  return Value::I32{concat.getTerm()};
 	case MiniMC::Model::TypeID::I64:
-	  return I64Value{concat.getTerm()};
+	  return Value::I64{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer:
-	  return PointerValue{concat.getTerm()};
+	  return Value::Pointer{concat.getTerm()};
+	case MiniMC::Model::TypeID::Pointer32:
+	  return Value::Pointer32{concat.getTerm()};
 	case MiniMC::Model::TypeID::Struct:
 	case MiniMC::Model::TypeID::Array:
-	  return AggregateValue{concat.getTerm(),t->getSize ()};
+	  return Value::Aggregate{concat.getTerm(),t->getSize ()};
 	case MiniMC::Model::TypeID::Float:
 	case MiniMC::Model::TypeID::Double:
 	case MiniMC::Model::TypeID::Void:
@@ -116,7 +127,7 @@ namespace MiniMC {
       PathFormulaVMVal Memory::alloca(const PathFormulaVMVal::I64&) {
 	MiniMC::Util::PointerHelper helper {&builder};
 	auto stack_pointer = helper.makeHeapPointer (++next_block,0);
-        return PointerValue(std::move(stack_pointer));
+        return Value::Pointer(std::move(stack_pointer));
       }
 
       Memory::Memory (SMTLib::TermBuilder& b) : builder(b) {
@@ -136,7 +147,7 @@ namespace MiniMC {
 
       }
 
-      template<std::size_t PtrWidth=32>
+      template<std::size_t PtrWidth>
       SMTLib::Term_ptr write(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, const SMTLib::Term_ptr& content) {
         auto carr = arr;
         for (size_t i = 0; i < bytes; ++i) {
@@ -169,9 +180,13 @@ namespace MiniMC {
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer& val) {
 	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
-        
-      
 
+      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer32& val) {
+	mem_var = write<PathFormulaVMVal::Pointer32::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      }
+      
+      
+      
       PathControl::PathControl(SMTLib::TermBuilder& builder) : builder(builder) {
         assump = nullptr;
       }
@@ -195,15 +210,15 @@ namespace MiniMC {
 
       template<class T>
       T Value<T>::interpretValue (const SMTLib::Solver& solver) const {
-	if constexpr (std::is_same_v<T,MiniMC::pointer_t>) {
-	  MiniMC::pointer_t pointer;
+	if constexpr (MiniMC::is_pointer_v<T>) {
+	  T pointer;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
 	  
 	  auto pointerres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
 	  assert(sizeof(MiniMC::pointer_t) == pointerres.size() / 8);
-	  auto beginoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,offset)-sizeof(pointer.offset)))*8;
-	  auto segoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,segment)-sizeof(pointer.segment)))*8;
-	  auto baseoff = pointerres.begin()+((sizeof(MiniMC::pointer_t)-offsetof(MiniMC::pointer_t,base)-sizeof(pointer.base)))*8;
+	  auto beginoff = pointerres.begin()+((sizeof(T)-offsetof(T,offset)-sizeof(pointer.offset)))*8;
+	  auto segoff = pointerres.begin()+((sizeof(T)-offsetof(T,segment)-sizeof(pointer.segment)))*8;
+	  auto baseoff = pointerres.begin()+((sizeof(T)-offsetof(T,base)-sizeof(pointer.base)))*8;
 	  
 	  
 	  MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
@@ -247,7 +262,8 @@ namespace MiniMC {
       
       
       template class Value<bool>;
-      template class Value<MiniMC::pointer_t>;
+      template class Value<MiniMC::pointer64_t>;
+      template class Value<MiniMC::pointer32_t>;
       template class Value<MiniMC::BV8>;
       template class Value<MiniMC::BV16>;
       template class Value<MiniMC::BV32>;
