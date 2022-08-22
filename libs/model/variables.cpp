@@ -48,26 +48,53 @@ namespace MiniMC {
 
 
     const Value_ptr ConstantFactory64::makeFunctionPointer(MiniMC::func_t id) {
-      auto pptr = MiniMC::Support::makeFunctionPointer(id);
-      Value_ptr v(new MiniMC::Model::TConstant<pointer_t>(pptr));
-      v->setType (typefact->makePointerType ());
+      auto ptrtype = typefact->makePointerType ();
+      Value_ptr v;
+      
+      if (ptrtype->getSize () == 4) {
+	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeFunctionPointer (id)));  
+      }
+
+      else {
+	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeFunctionPointer (id)));  
+      }
+      
+      
+      v->setType (ptrtype);
       return v;
     }
 
     const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id,MiniMC::base_t lid) {
-      auto pptr = MiniMC::Support::makeLocationPointer(id,lid);
-      Value_ptr v(new MiniMC::Model::TConstant<pointer_t>(pptr));
-      v->setType (typefact->makePointerType ());
+      auto ptrtype = typefact->makePointerType ();
+      Value_ptr v;
+
+      if (ptrtype->getSize () == 4) {
+	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeLocationPointer (id,lid)));  
+      }
+
+      else {
+	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeLocationPointer (id,lid)));  
+      }
+      
+
+      v->setType (ptrtype);
       return v;
     }
     
     
     
     const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base) {
-      auto pptr = MiniMC::Support::makeHeapPointer(base,0);
-      
-      Value_ptr v (new MiniMC::Model::TConstant<pointer_t>(pptr));
-      v->setType (typefact->makePointerType ());
+      auto ptrtype = typefact->makePointerType ();
+      Value_ptr v;
+
+      if (ptrtype->getSize () == 4) {
+	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeHeapPointer (base,0)));  
+      }
+
+      else {
+	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeHeapPointer (base,0)));  
+      }
+      v->setType (ptrtype);
       return v;
     }
     

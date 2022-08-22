@@ -43,8 +43,8 @@ namespace MiniMC {
 
     class PointerType : public Type {
     public:
-      PointerType() : Type(TypeID::Pointer) {}
-      std::size_t getSize() const { return sizeof(MiniMC::pointer_t); }
+      PointerType() : Type(TypeID::Pointer32) {}
+      std::size_t getSize() const { return sizeof(MiniMC::pointer32_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
       bool innerEq(const Type& ) { return true; }
     };

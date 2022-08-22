@@ -155,6 +155,13 @@ namespace MiniMC {
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer&);
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32&);
+
+	template<class T>
+	T PtrToInt (const Value::Pointer&);
+
+	template<class T>
+	T Ptr32ToInt (const Value::Pointer32&);
+	
 	
 	
 	template <size_t bw, class T>

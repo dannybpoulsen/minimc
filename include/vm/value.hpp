@@ -77,7 +77,10 @@ namespace MiniMC {
       std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag> content;
     };
 
-    template<class G> 
+    template<class G>
+    concept Outputtable = requires (std::ostream& os, const G&g) {g.output (os);};
+    
+    template<Outputtable G> 
     inline std::ostream& operator<< (std::ostream&  os, const G& val) {
       return val.output (os);
     }

@@ -281,7 +281,8 @@ namespace MiniMC {
       virtual const Value_ptr makeHeapPointer(MiniMC::base_t);
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0);
     };
-    
+
+
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 
     struct VariablePtrIndexer {

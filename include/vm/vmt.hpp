@@ -238,6 +238,16 @@ namespace MiniMC {
       {op.template IntToPtr32<I16> (i16)} -> std::convertible_to<Pointer32>;
       {op.template IntToPtr32<I32> (i32)} -> std::convertible_to<Pointer32>;
       {op.template IntToPtr32<I64> (i64)} -> std::convertible_to<Pointer32>;
+
+      {op.template PtrToInt<I8> (p)} -> std::convertible_to<I8>;
+      {op.template PtrToInt<I16> (p)} -> std::convertible_to<I16>;
+      {op.template PtrToInt<I32> (p)} -> std::convertible_to<I32>;
+      {op.template PtrToInt<I64> (p)} -> std::convertible_to<I64>;
+      {op.template Ptr32ToInt<I8> (p32)} -> std::convertible_to<I8>;
+      {op.template Ptr32ToInt<I16> (p32)} -> std::convertible_to<I16>;
+      {op.template Ptr32ToInt<I32> (p32)} -> std::convertible_to<I32>;
+      {op.template Ptr32ToInt<I64> (p32)} -> std::convertible_to<I64>;
+      
       
       {op.template PtrToPtr32 (p)} -> std::convertible_to<Pointer32>;
       {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;

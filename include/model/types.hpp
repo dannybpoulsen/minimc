@@ -146,7 +146,7 @@ namespace MiniMC {
       struct Inner;
       std::unique_ptr<Inner> impl;
     };
-
+    
     inline bool hasSameTypeID(std::initializer_list<Type_ptr> inp) {
       auto it = inp.begin();
       auto end = inp.end();

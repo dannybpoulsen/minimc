@@ -90,12 +90,31 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isPointer {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& operations, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isPointer {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
+
+	auto addrConverter = [&caster](const auto& addrVal) {
+	  return addrVal.visit ([&caster](const auto& value) -> T::Pointer{
+	    if constexpr (std::is_same_v<const typename  T::Pointer&,decltype(value)>) {
+	      return value;
+	    }
+
+	    else if constexpr (std::is_same_v<const typename T::Pointer32&,decltype(value)>) {
+	      return caster.Ptr32ToPtr (value); 
+	    }
+	    else {
+	      throw MiniMC::Support::Exception ("SHouldn't get here");
+	    }
+	  }
+	    );
+	   
+	};
+
+	
         if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
-          auto ptr = writeState.getStackControl().getValueLookup ().lookupValue(content.ptr).template as<typename T::Pointer>();
+	  auto ptr = addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.ptr));
           auto calc = [&]<typename ValT>() {
             auto skipsize = writeState.getStackControl().getValueLookup ().lookupValue(content.skipsize).template as<ValT>();
             auto nbskips = writeState.getStackControl().getValueLookup ().lookupValue(content.nbSkips).template as<ValT>();
@@ -116,14 +135,14 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Invalid Skip-type type");
 	  }
         } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
-          auto lval = writeState.getStackControl().getValueLookup ().lookupValue(content.op1).template as<typename T::Pointer>();
-          auto rval = writeState.getStackControl().getValueLookup ().lookupValue(content.op2).template as<typename T::Pointer>();
+          auto lval = addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.op1));
+          auto rval = addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.op2));
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.PtrEq(lval, rval));
           return Status::Ok;
         }
         throw NotImplemented<op>();
-      
-}
+	
+      }
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
       inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isMemory {
         auto& content = instr.getOps<op>();
@@ -154,8 +173,8 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
           auto value = writeState.getStackControl().getValueLookup ().lookupValue(content.storee);
-          auto addr =  addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.addr));
-
+	  auto addr =  addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.addr));
+	  
 	  value.visit ([&writeState,&addr](const auto& t) {
 	    if constexpr (!std::is_same_v<const typename T::Bool&,decltype(t)> &&
 			  !std::is_same_v<const typename T::Aggregate&,decltype(t)>
@@ -542,7 +561,8 @@ namespace MiniMC {
                                                   VMState<T>& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
-      for (auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
+      
+      for ( auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
 	switch (it->getOpcode()) {
 #define X(OP)                                                                                                                             \
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
@@ -555,7 +575,7 @@ namespace MiniMC {
             status = Status::UnsupportedOperation;
         }
       }
-
+      
       return status;
     }
 

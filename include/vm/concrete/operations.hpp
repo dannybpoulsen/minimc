@@ -222,6 +222,32 @@ namespace MiniMC {
 	}
 
 	template <class T>
+        T PtrToInt(const ConcreteVMVal::Pointer& t) {
+	  typename T::underlying_type n;
+	  auto ptrval = std::bit_cast<ConcreteVMVal::Pointer::underlying_type::PtrBV> (t.getValue());
+	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
+	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
+	  }
+	  else {
+	    n = MiniMC::Host::trunc<decltype(ptrval), decltype(n)>(ptrval);
+	  }
+	  return T{n};
+	}
+
+	template <class T>
+        T Ptr32ToInt(const ConcreteVMVal::Pointer32& t) {
+	  typename T::underlying_type n;
+	  auto ptrval = std::bit_cast<ConcreteVMVal::Pointer32::underlying_type::PtrBV> (t.getValue());
+	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
+	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
+	  }
+	  else {
+	    n = MiniMC::Host::trunc<decltype(ptrval), decltype(n)>(ptrval);
+	  }
+	  return T{n};
+	}
+	
+	template <class T>
         ConcreteVMVal::Pointer32 IntToPtr32(const T& t) {
 	  ConcreteVMVal::Pointer32::underlying_type::PtrBV n;
 	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(decltype(n))) {
@@ -248,7 +274,6 @@ namespace MiniMC {
 	  p.base = p32.getValue().base;
 	  p.offset = p32.getValue().offset;
 	  p.segment = p32.getValue().segment;
-
 	  return p;
 	}
 	

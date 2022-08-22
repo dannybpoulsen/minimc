@@ -17,7 +17,10 @@ namespace MiniMC {
         switch (t->getTypeID()) {
           case MiniMC::Model::TypeID::Bool:
             return BoolValue(builder.makeVar(builder.makeSort(SMTLib::SortKind::Bool, {}), str.str()));
-
+	case MiniMC::Model::TypeID::Pointer32:
+	  return Pointer32Value(builder.makeVar(builder.makeBVSort(32), str.str()));
+          
+	  
           case MiniMC::Model::TypeID::Pointer:
             return PointerValue(builder.makeVar(builder.makeBVSort(64), str.str()));
           case MiniMC::Model::TypeID::I8:

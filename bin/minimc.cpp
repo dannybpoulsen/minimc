@@ -62,14 +62,15 @@ int main(int argc, char* argv[]) {
 	messager.message<MiniMC::Support::Severity::Error> ("At least one entry point must be specified");
 	return -1;
       }
-      if (options.command) {
-	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
       if (options.outputname != "") {
 	std::ofstream stream;
 	stream.open (options.outputname, std::ofstream::out);
 	MiniMC::Model::writeProgram (stream,*control.getProgram ());
 	stream.close ();
       }
+      if (options.command) {
+	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
+      
       return res;
       }
       

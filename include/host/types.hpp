@@ -76,6 +76,22 @@ namespace MiniMC {
   using BV64 = HostType<64>::Unsigned;
   using proba_t = double;
 
+  enum class PointerType {
+    Stack = 'D',
+    Heap = 'H',
+    Location = 'L',
+    Function = 'F'
+  };
+
+  using seg_t = BV8;//decltype(pointer_t::segment);
+  using base_t = BV16;//decltype(pointer_t::base);
+  using func_t = base_t;
+  using proc_t = base_t;
+  using offset_t = BV32; // decltype(pointer_t::offset);
+
+  
+
+  
   template <typename seg_t = BV16,
             typename base_t = BV16,
             typename offset_t = BV32,
@@ -99,6 +115,39 @@ namespace MiniMC {
     }
 
     bool is_null () const {return base == 0 && segment == 0 && offset == 0;}
+
+    static auto makeFunctionPointer (MiniMC::func_t f) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerType::Function);
+      ptr.base = f;
+      ptr.offset = 0;
+      return ptr;
+    }
+
+    static auto makeLocationPointer (MiniMC::func_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerType::Location);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+
+    static auto makeHeapPointer (MiniMC::base_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerType::Heap);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+
+    static auto makeStackPointer (MiniMC::base_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerType::Stack);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+    
   };
 
   
@@ -112,13 +161,6 @@ namespace MiniMC {
 #else
   using pointer_t = pointer64_t;
 #endif
-  
-  using seg_t = BV8;//decltype(pointer_t::segment);
-  using base_t = BV16;//decltype(pointer_t::base);
-  using func_t = base_t;
-  using proc_t = base_t;
-  using offset_t = BV32; // decltype(pointer_t::offset);
-
   
 
   

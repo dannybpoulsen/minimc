@@ -93,7 +93,8 @@ namespace MiniMC {
       using I8Value = Value<MiniMC::BV8>;
       using BoolValue = Value<bool>;
       using PointerValue = Value<MiniMC::pointer64_t>;
-
+      using Pointer32Value = Value<MiniMC::pointer32_t>;
+      
       using PathFormulaVMVal = MiniMC::VMT::GenericVal<I8Value,
                                                        I16Value,
                                                        I32Value,

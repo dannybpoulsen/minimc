@@ -52,6 +52,34 @@ namespace MiniMC {
 
       template<class Value>
       template <class T>
+      T Casts<Value>::PtrToInt(const typename Value::Pointer& ptr) {
+	constexpr std::size_t ptrsize = Value::Pointer::intbitsize ();
+	constexpr std::size_t tsize = T::intbitsize ();
+	if constexpr (ptrsize < tsize) {
+	  return builder.buildTerm (SMTLib::Ops::ZExt,{ptr.getTerm()},{tsize - ptrsize});
+	}
+	
+	return builder.buildTerm (SMTLib::Ops::Extract,{ptr.getTerm()},{tsize-1,0});
+      
+
+      }
+
+      template<class Value>
+      template <class T>
+      T Casts<Value>::Ptr32ToInt(const typename Value::Pointer32& ptr) {
+	constexpr std::size_t ptrsize =  Value::Pointer32::intbitsize ();
+	constexpr std::size_t tsize = T::intbitsize ();
+	if constexpr (ptrsize < tsize) {
+	  return builder.buildTerm (SMTLib::Ops::ZExt,{ptr.getTerm()},{tsize - ptrsize});
+	}
+	
+	return builder.buildTerm (SMTLib::Ops::Extract,{ptr.getTerm()},{tsize-1,0});
+      
+
+      }
+      
+      template<class Value>
+      template <class T>
       Value::Pointer32 Casts<Value>::IntToPtr32(const T& t) {
 	constexpr std::size_t ptrsize = Value::Pointer32::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
@@ -171,6 +199,19 @@ namespace MiniMC {
       template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
       template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
 
+      template PathFormulaVMVal::I8 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I16 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I32 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I64 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer&);
+
+      template PathFormulaVMVal::I8 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I16 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I32 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I64 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer32&);
+      
+      
+
+      
       template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::PtrToPtr32 (const PathFormulaVMVal::Pointer&);
       template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::Ptr32ToPtr (const PathFormulaVMVal::Pointer32&);
       
