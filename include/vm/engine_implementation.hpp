@@ -4,6 +4,7 @@
 #include "vm/value.hpp"
 #include "vm/vmt.hpp"
 #include "model/cfg.hpp"
+#include "model/valuevisitor.hpp"
 
 namespace MiniMC {
   namespace VMT {
@@ -44,8 +45,9 @@ namespace MiniMC {
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.Xor(lval, rval));
         else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.SGt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE)
-          writeState.getStackControl().getValueLookup ().saveValue(res, operations.SGe(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
+	  writeState.getStackControl().getValueLookup ().saveValue(res, operations.SGe(lval, rval));
+	}
         else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.SLe(lval, rval));
         else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
@@ -405,8 +407,22 @@ namespace MiniMC {
           auto& scontrol = writeState.getStackControl();
 	  assert(content.function->isConstant());
 	  
-	  auto funcpointer = std::static_pointer_cast<MiniMC::Model::Pointer> (content.function)->getValue ();
-	  auto func = prgm.getFunction(MiniMC::Support::getFunctionId(funcpointer));
+	  auto func = MiniMC::Model::visitValue (
+						 MiniMC::Model::Overload {
+						   [&prgm](auto& t) -> MiniMC::Model::Function_ptr {
+						     using TP = std::decay_t<decltype(t)>;
+						     if constexpr (std::is_same_v<TP,MiniMC::Model::Pointer> ||
+								   std::is_same_v<TP,MiniMC::Model::Pointer32>) {
+						       auto loadPtr = t.getValue ();
+						       auto func = prgm.getFunction(loadPtr.base);
+						       return func;
+						     }
+						     else
+						       throw MiniMC::Support::Exception("Shouldn't happen");
+						   }}
+						 ,*content.function
+						 );
+	  
 	  auto& vstack = func->getRegisterStackDescr();
 	  
 	  std::vector<T> params;
@@ -561,10 +577,11 @@ namespace MiniMC {
                                                   VMState<T>& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
-      
-      for ( auto it = instr.begin(); it != end && status == Status::Ok; ++it) {
+      auto it = instr.begin ();
+      for ( it = instr.begin(); it != end && status == Status::Ok; ++it) {
 	switch (it->getOpcode()) {
-#define X(OP)                                                                                                                             \
+	  
+#define X(OP)								\
   case MiniMC::Model::InstructionCode::OP:                                                                                                \
     status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, operations, caster,prgm); \
     break;
@@ -575,6 +592,7 @@ namespace MiniMC {
             status = Status::UnsupportedOperation;
         }
       }
+
       
       return status;
     }

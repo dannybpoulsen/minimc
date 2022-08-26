@@ -34,6 +34,7 @@ namespace MiniMC {
 	}*/
 
       void set (const F& f, T&& t) {
+	assert(Index{}(f) < size);
 	mem.get()[Index{}(f)] = std::move(t);	
       }
       

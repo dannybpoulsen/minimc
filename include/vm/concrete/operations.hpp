@@ -109,7 +109,7 @@ namespace MiniMC {
 
         template <typename T>
         ConcreteVMVal::Bool SGe(const T& l, const T& r) const {
-          return performOp<MiniMC::Host::CMP::SGE>(l.getValue(), r.getValue());
+	  return performOp<MiniMC::Host::CMP::SGE>(l.getValue(), r.getValue());
         }
 
         template <typename T>

@@ -2,6 +2,7 @@
 #include "cpa/location.hpp"
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
+#include "model/valuevisitor.hpp"
 #include "support/pointer.hpp"
 
 
@@ -117,16 +118,30 @@ namespace MiniMC {
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {
-                auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(content.function);
-                pointer_t loadPtr = constant->getValue ();
-                auto func = prgm.getFunction(MiniMC::Support::getFunctionId(loadPtr));
-                nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
-              } else
+                auto func = MiniMC::Model::visitValue (
+					MiniMC::Model::Overload {
+					  [this](auto& t) -> MiniMC::Model::Function_ptr {
+					    using T = std::decay_t<decltype(t)>;
+					    if constexpr (std::is_same_v<T,MiniMC::Model::Pointer> ||
+						std::is_same_v<T,MiniMC::Model::Pointer32>) {
+					      auto loadPtr = t.getValue ();
+					      auto func = prgm.getFunction(loadPtr.base);
+					      return func;
+					    }
+					    else
+					      throw MiniMC::Support::Exception("Shouldn't happen");
+					  }}
+					,*content.function);
+		  
+		nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
+		
+	      }
+	      else
                 return nullptr;
             }
 
             else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
-                                            MiniMC::Model::InstructionCode::Ret>(inst)) {
+		     MiniMC::Model::InstructionCode::Ret>(inst)) {
               nstate->popLocation(id);
             }
           }
