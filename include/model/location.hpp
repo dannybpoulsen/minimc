@@ -6,7 +6,6 @@
 #include "hash/hashing.hpp"
 
 #include <cassert>
-#include <gsl/pointers>
 
 
 namespace MiniMC {

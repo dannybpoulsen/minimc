@@ -2,7 +2,6 @@
 #define _VALUEMAP__
 
 #include <functional>
-#include <gsl/pointers>
 #include <memory>
 #include <ostream>
 

@@ -1,4 +1,3 @@
-Find_Package (CGraph)
 
 
 add_library (support STATIC feedback.cpp)
@@ -19,6 +18,5 @@ configure_file (
  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
 )
 
-target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE ${CGRAPH_INCLUDE_DIRS} )
+target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE  )
 
-target_link_libraries (support PRIVATE ${CGRAPH_LIBRARIES} )

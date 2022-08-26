@@ -11,8 +11,8 @@ namespace MiniMC {
     namespace Location {
 
       struct LocationState {
-        void push(gsl::not_null<MiniMC::Model::Location*> l) {
-	  stack.push_back(l.get());
+        void push(MiniMC::Model::Location* l) {
+	  stack.push_back(l);
         }
 
         void pop() {
