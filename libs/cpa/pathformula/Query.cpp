@@ -2,7 +2,6 @@
 #include "smt/context.hpp"
 #include "state.hpp"
 #include "support/smt.hpp"
-#include <gsl/pointers>
 
 namespace MiniMC {
   namespace CPA {

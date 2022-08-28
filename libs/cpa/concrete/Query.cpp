@@ -1,4 +1,3 @@
-#include <gsl/pointers>
 #include <memory>
 
 #include "cpa/concrete.hpp"

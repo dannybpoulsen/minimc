@@ -4,7 +4,6 @@
 #include "cpa/interface.hpp"
 #include "support/exceptions.hpp"
 #include "host/types.hpp"
-#include <gsl/pointers>
 
 namespace MiniMC {
   namespace Algorithms {
