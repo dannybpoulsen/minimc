@@ -6,6 +6,6 @@ if(ENABLE_SYMBOLIC)
 endif(ENABLE_SYMBOLIC)
 
 
-add_executable (mini-interpreter miniinterpreter.cpp)
+add_executable (mini-interpreter miniinterpreter.cpp guihelper.cpp guihelper.hpp)
 
 target_link_libraries  (mini-interpreter minimclib ${Boost_LIBRARIES})

@@ -7,6 +7,7 @@
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include "vm/concrete/concrete.hpp"
+#include "guihelper.hpp"
 #include <boost/program_options/options_description.hpp>
 
 namespace po = boost::program_options;
@@ -27,15 +28,12 @@ int main(int argc, char *argv[]) {
       std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   auto loader = MiniMC::Loaders::getLoaders()[0]->makeLoader(tfac, cfac);
   MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile(inputname);
+
   MiniMC::Model::Controller control(*loadresult.program,
                                     loadresult.entrycreator);
-
-
   control.addEntryPoint(task,{});
 
   MiniMC::Model::Program &prgm = *control.getProgram();
-
-  MiniMC::CPA::Concrete::CPA cpa;
 
   // AnalysisBuilder
   MiniMC::CPA::AnalysisBuilder builder{std::make_shared<MiniMC::CPA::Location::CPA> ()};
@@ -43,35 +41,37 @@ int main(int argc, char *argv[]) {
 
   auto transferer = builder.makeTransfer(prgm);
 
-
-  auto state = builder.makeInitialState(
+  // Build Initial state
+  auto initialstate = builder.makeInitialState(
       MiniMC::CPA::InitialiseDescr{prgm.getEntryPoints(), prgm.getHeapLayout(),
                                    prgm.getInitialiser(), prgm});
 
   std::list<MiniMC::CPA::AnalysisState> waiting;
 
+  MiniMC::proc_t proc{0};
 
-  MiniMC::CPA::AnalysisState found;
-
-  waiting.push_back(state);
+  waiting.push_back(initialstate);
 
   while (waiting.size ()) {
-    std::vector<MiniMC::Model::Edge> edges;
-    auto searchee = std::move(waiting.back());
+
+    auto state = std::move(waiting.back());
     waiting.pop_back();
 
+    printState(state);
+
     MiniMC::CPA::AnalysisState newstate;
-    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
-    MiniMC::Algorithms::EnumResult res;
 
-    while (enumerator.getNext(res)) {
-      edges.push_back(*res.edge);
-    }
+    // Print current state
+    std::cout << state.getCFAState()->getLocationState().getLocation(proc)->getInfo().getName() << std::endl;
 
-    std::cout << searchee.getCFAState()->getLocationState().getLocation(res.proc);
-    if (transferer.Transfer(searchee, res.edge, res.proc, newstate)) {
-      waiting.push_back(newstate);
+    // Choose edge
+    MiniMC::Model::Edge* edge = promptForEdge(state);
+
+    // Process chosen edge
+    if (transferer.Transfer(state, edge, proc, newstate)) {
+      waiting.push_front(newstate);
     }
   }
 }
+
 
