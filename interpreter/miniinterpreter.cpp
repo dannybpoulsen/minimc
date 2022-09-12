@@ -7,10 +7,11 @@
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include "vm/concrete/concrete.hpp"
-#include "guihelper.hpp"
 #include <boost/program_options/options_description.hpp>
 
 namespace po = boost::program_options;
+
+MiniMC::Model::Edge *promptForEdge(MiniMC::CPA::AnalysisState state);
 
 int main(int argc, char *argv[]) {
 
@@ -74,4 +75,31 @@ int main(int argc, char *argv[]) {
   std::cout << "Reached the end";
 }
 
+MiniMC::Model::Edge *promptForEdge(MiniMC::CPA::AnalysisState state) {
+  int index = -1;
+  int n = 0;
+
+  std::vector<MiniMC::Model::Edge*> edges;
+
+  std::cout << "Folowing edges can be picked" << std::endl ;
+  MiniMC::Algorithms::EdgeEnumerator enumerator{state};
+  MiniMC::Algorithms::EnumResult res;
+
+  // Print outgoing edges
+  while (enumerator.getNext(res)) {
+    n++;
+    std::cout << n <<". ";
+    std::cout << *res.edge;
+    std::cout << std::endl;
+    edges.push_back(res.edge);
+  }
+
+  // Choose edge by index
+  while ((0 >= index && index > edges.size())) {
+    std::cin >> index;
+  }
+
+  return edges[index-1];
+
+};
 
