@@ -14,8 +14,11 @@ namespace MiniMC {
       auto& cfastate = state.getCFAState ();
       auto nbProcs = cfastate->getLocationState ().nbOfProcesses ();
       os << "[";
-      for (std::size_t i = 0; i < nbProcs; i++) {	
-	os <<  cfastate->getLocationState ().getLocation (i)->getInfo().getName ()  << ",";
+      for (std::size_t i = 0; i < nbProcs; i++) {
+        if(i != 0){
+          os << ",";
+        }
+	os <<  cfastate->getLocationState ().getLocation (i)->getInfo().getName ();
       }
       os << "]\n";
 
@@ -23,7 +26,7 @@ namespace MiniMC {
       for (std::size_t p = 0; p < nbProcs; p++) {
 	auto& vstack = cfastate->getLocationState().getLocation(p)->getInfo().getRegisters ();
 	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg->getName () << "\n";
+	  os << reg->getName () << ":\t";
 
 	  for (std::size_t dstate = 0; dstate < nbDataStates; dstate++) {
 	    auto& datastate = state.getDataState (dstate);

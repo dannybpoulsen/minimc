@@ -52,17 +52,15 @@ int main(int argc, char *argv[]) {
 
   waiting.push_back(initialstate);
 
+  // Step through the CFG
   while (waiting.size ()) {
 
     auto state = std::move(waiting.back());
     waiting.pop_back();
 
-    printState(state);
+    std::cout << state;
 
     MiniMC::CPA::AnalysisState newstate;
-
-    // Print current state
-    std::cout << state.getCFAState()->getLocationState().getLocation(proc)->getInfo().getName() << std::endl;
 
     // Choose edge
     MiniMC::Model::Edge* edge = promptForEdge(state);
@@ -72,6 +70,8 @@ int main(int argc, char *argv[]) {
       waiting.push_front(newstate);
     }
   }
+
+  std::cout << "Reached the end";
 }
 
 
