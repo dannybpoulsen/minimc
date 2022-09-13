@@ -36,6 +36,12 @@ int main(int argc, char *argv[]) {
 
   MiniMC::Model::Controller control(*loadresult.program,
                                     loadresult.entrycreator);
+
+  control.boolCasts();
+  control.createAssertViolateLocations();
+  if (!control.typecheck ()) {
+    return -1;
+  }
   control.addEntryPoint(task,{});
 
   MiniMC::Model::Program &prgm = *control.getProgram();
