@@ -32,7 +32,6 @@ add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)
 add_subdirectory (tests)
-add_subdirectory (interpreter)
 
 if(ENABLE_PYTHON)	
   add_subdirectory (python)
