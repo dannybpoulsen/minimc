@@ -65,7 +65,7 @@ namespace MiniMC {
     };
 
     const std::vector<LoaderRegistrar*>& getLoaders();
-
+    
   } // namespace Loaders
 } // namespace MiniMC
 
