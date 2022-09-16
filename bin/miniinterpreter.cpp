@@ -14,6 +14,8 @@ namespace po = boost::program_options;
 MiniMC::Model::Edge *promptForEdge(MiniMC::CPA::AnalysisState state, int lookahead, std::ostream& os);
 void stepThroughCFG(MiniMC::CPA::AnalysisState initialstate, MiniMC::CPA::AnalysisTransfer transferer, int lookahead, std::ostream& os);
 void doLookAhead(MiniMC::Model::Edge* edge, int lookahead, std::ostream& os);
+void readInput();
+void doTask();
 
 void addOptions (po::options_description& op) {
 
@@ -21,13 +23,8 @@ void addOptions (po::options_description& op) {
 
 MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder) {
   int lookahead = 1;
-
-  controller.expandNonDeterministic ();
-
   auto& prgm = *controller.getProgram ();
-
   auto transferer = builder.makeTransfer(prgm);
-
   // Build Initial state
   auto initialstate = builder.makeInitialState(
       MiniMC::CPA::InitialiseDescr{prgm.getEntryPoints(), prgm.getHeapLayout(),
