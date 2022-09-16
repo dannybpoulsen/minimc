@@ -26,12 +26,6 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
 
   auto& prgm = *controller.getProgram ();
 
-  auto initialState = builder.makeInitialState({prgm.getEntryPoints (),
-                                         prgm.getHeapLayout (),
-                                         prgm.getInitialiser (),
-                                         prgm});
-
-
   auto transferer = builder.makeTransfer(prgm);
 
   // Build Initial state
@@ -59,6 +53,10 @@ void stepThroughCFG(MiniMC::CPA::AnalysisState initialstate,
 
     os << state;
     MiniMC::Model::Edge* edge = promptForEdge(state,lookahead,os);
+    if(!edge){
+      os << "Seems like there is no outgoing edges.";
+      return ;
+    }
     if(transferer.Transfer(state,edge,proc,newstate)) {
       waiting.push_front(newstate);
     }
@@ -84,13 +82,19 @@ MiniMC::Model::Edge *promptForEdge(MiniMC::CPA::AnalysisState state, int lookahe
     doLookAhead(res.edge, lookahead, os);
   }
 
-  // Choose edge by index
-  while ((0 >= index && index > edges.size())) {
-    std::cin >> index;
+  if(edges.size() == 0 ){
+    return 0;
   }
 
-  return edges[index-1];
-
+  // Choose edge by index
+  while (index <= 0) {
+    std::cin >> index;
+    if(edges[index-1]){
+      return edges[index-1];
+    }
+    os << "The chosen index is not possible, please choose a index under "<< edges.size();
+  }
+  return 0;
 };
 
 void doLookAhead(MiniMC::Model::Edge* edge, int lookahead, std::ostream& os){
