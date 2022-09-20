@@ -13,12 +13,6 @@
 
 namespace po = boost::program_options;
 
-MiniMC::Model::Edge *promptForEdge(MiniMC::CPA::AnalysisState state, int lookahead, std::ostream& os);
-void stepThroughCFG(MiniMC::CPA::AnalysisState initialstate, MiniMC::CPA::AnalysisTransfer transferer, int lookahead, std::ostream& os);
-void doLookAhead(MiniMC::Model::Edge* edge, int lookahead, std::ostream& os);
-void readInput();
-void doTask();
-
 void addOptions (po::options_description& op) {
 
 }
@@ -35,10 +29,10 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
   statemap["current"] = builder.makeInitialState(
       MiniMC::CPA::InitialiseDescr{prgm.getEntryPoints(), prgm.getHeapLayout(),
                                    prgm.getInitialiser(), prgm});
-
+  // Command Line
   while(true){
     std::cin >> s;
-    queue.push(factory.createTask(s, statemap, transferer));
+    queue.push(factory.createTask(s, &statemap, transferer));
     if (!queue.empty()){
       MiniMC::Interpreter::Task* task = queue.front();
       queue.pop();

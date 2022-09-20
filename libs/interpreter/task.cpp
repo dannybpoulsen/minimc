@@ -7,17 +7,20 @@
 namespace MiniMC {
 namespace Interpreter {
 Task *InterpreterTaskFactory::createTask(
-    std::string s, std::unordered_map<std::string, CPA::AnalysisState> statemap,
+    std::string s, std::unordered_map<std::string, CPA::AnalysisState>* statemap,
     CPA::AnalysisTransfer transfer) {
-  if (s == "printState" || s == "p") {
-    return new PrintStateTask(statemap["current"]);
-  } else if (s == "step" || s == "s") {
-    return new SingleStepTask(statemap["current"],
-                              promptForEdge(statemap["current"]), transfer);
-  } else if () {
 
+  if (s == "printState" || s == "p") {
+    return new PrintStateTask((*statemap)["current"]);
+  } else if (s == "step" || s == "s") {
+    return new SingleStepTask((*statemap)["current"],
+                              promptForEdge((*statemap)["current"]), transfer);
+  } else if(s == "bookmark") {
+    return new SetBookmarkTask(statemap);
+  } else if(s == "jump") {
+    return new JumpToBookmarkTask(statemap);
   } else {
-    return nullptr;
+    return new NoMatchTask((*statemap)["current"]);
   }
 }
 
