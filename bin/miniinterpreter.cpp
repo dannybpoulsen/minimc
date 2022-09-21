@@ -10,11 +10,25 @@
 #include "vm/concrete/concrete.hpp"
 #include <boost/program_options/options_description.hpp>
 #include <queue>
+#include <utility>
 
 namespace po = boost::program_options;
 
-void addOptions (po::options_description& op) {
+struct LocalOptions {
+  std::string path{""};
+};
 
+LocalOptions locoptions;
+
+void addOptions (po::options_description& op) {
+  auto setPath = [&](std::string val) { locoptions.path = std::move(val); };
+
+  po::options_description desc("MC Options");
+  desc.add_options()("intp.path",
+                     po::value<std::string>()->default_value("")->notifier(setPath),
+                     "The indexes of the edges needed to form a path");
+
+  op.add(desc);
 }
 
 MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder) {

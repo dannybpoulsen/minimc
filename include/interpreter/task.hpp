@@ -105,9 +105,9 @@ public:
 };
 
 class InterpreterTaskFactory : public TaskFactory {
-public:
-  InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState>*, CPA::AnalysisTransfer transfer);
-  void pushTask(std::string, std::queue<Task *> *) override;
+  public:
+    InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState>*, CPA::AnalysisTransfer transfer);
+    void pushTask(std::string, std::queue<Task *> *) override;
   private:
     std::unordered_map<std::string,std::vector<Task*>> commands;
 };
