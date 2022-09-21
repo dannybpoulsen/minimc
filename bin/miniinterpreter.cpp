@@ -21,7 +21,6 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
   std::queue<MiniMC::Interpreter::Task*> queue;
   std::string s;
   std::unordered_map<std::string,MiniMC::CPA::AnalysisState> statemap;
-  MiniMC::Interpreter::InterpreterTaskFactory factory;
 
   auto& prgm = *controller.getProgram ();
   auto transferer = builder.makeTransfer(prgm);
@@ -29,15 +28,17 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
   statemap["current"] = builder.makeInitialState(
       MiniMC::CPA::InitialiseDescr{prgm.getEntryPoints(), prgm.getHeapLayout(),
                                    prgm.getInitialiser(), prgm});
+
+  MiniMC::Interpreter::InterpreterTaskFactory factory(&statemap, transferer);
+
   // Command Line
   while(true){
     std::cin >> s;
-    factory.pushTask(s, &statemap, transferer, &queue);
+    factory.pushTask(s, &queue);
     while (!queue.empty()){
       MiniMC::Interpreter::Task* task = queue.front();
       queue.pop();
       task->performTask();
-      delete task;
     }
   }
 
