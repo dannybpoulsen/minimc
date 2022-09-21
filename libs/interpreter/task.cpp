@@ -1,30 +1,41 @@
 #include "interpreter/task.hpp"
-#include "cpa/interface.hpp"
-#include "model/edge.hpp"
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
+#include "cpa/interface.hpp"
+#include "model/edge.hpp"
+#include <queue>
 
 namespace MiniMC {
 namespace Interpreter {
-Task *InterpreterTaskFactory::createTask(
-    std::string s, std::unordered_map<std::string, CPA::AnalysisState>* statemap,
-    CPA::AnalysisTransfer transfer) {
+void InterpreterTaskFactory::pushTask(
+    std::string  s,
+    std::unordered_map<std::string, CPA::AnalysisState> *statemap,
+    CPA::AnalysisTransfer transfer,
+    std::queue<Task*>* queue) {
 
   if (s == "printState" || s == "p") {
-    return new PrintStateTask((*statemap)["current"]);
+    queue->push(new PrintStateTask(statemap));
   } else if (s == "step" || s == "s") {
-    return new SingleStepTask((*statemap)["current"],
-                              promptForEdge((*statemap)["current"]), transfer);
-  } else if(s == "bookmark") {
-    return new SetBookmarkTask(statemap);
-  } else if(s == "jump") {
-    return new JumpToBookmarkTask(statemap);
+    queue->push(new SingleStepTask(statemap, transfer));
+  } else if (s == "bookmark") {
+    queue->push(new SetBookmarkTask(statemap));
+  } else if (s == "jump") {
+    queue->push(new JumpToBookmarkTask(statemap));
   } else {
-    return new NoMatchTask((*statemap)["current"]);
+    queue->push(new NoMatchTask(statemap));
   }
 }
+Model::Edge* SingleStepTask::haveNoInstructionEdge(CPA::AnalysisState state) {
+  Algorithms::EdgeEnumerator enumerator{state};
+  Algorithms::EnumResult res;
 
-Model::Edge *InterpreterTaskFactory::promptForEdge(CPA::AnalysisState state) {
+  while (enumerator.getNext(res)) {
+    if(!res.edge->getInstructions()) return res.edge;
+  }
+  return nullptr;
+}
+
+Model::Edge *SingleStepTask::promptForEdge(CPA::AnalysisState state) {
   int index = -1;
   int n = 0;
 
@@ -33,13 +44,14 @@ Model::Edge *InterpreterTaskFactory::promptForEdge(CPA::AnalysisState state) {
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
 
-  std::cout << "Folowing edges can be picked" << std::endl;
+  std::cout << "Following edges can be picked" << std::endl;
 
   // Print outgoing edges
   while (enumerator.getNext(res)) {
     edges.push_back(res.edge);
     n++;
     std::cout << n << ". " << std::endl;
+    std::cout << *res.edge;
   }
 
   if (edges.size() == 0) {

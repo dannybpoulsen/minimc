@@ -1,33 +1,32 @@
 #ifndef MINIMC_TASK_HPP
 #define MINIMC_TASK_HPP
-#include "cpa/state.hpp"
 #include "cpa/interface.hpp"
+#include "cpa/state.hpp"
+#include <queue>
 
 namespace MiniMC {
 namespace Interpreter {
 
 class Task {
 public:
-  virtual MiniMC::CPA::AnalysisState performTask() = 0;
+  virtual void performTask() = 0;
 };
 class NoMatchTask : public Task {
   public:
-    NoMatchTask(MiniMC::CPA::AnalysisState state) : state(state){};
-    CPA::AnalysisState performTask() {
+    NoMatchTask(std::unordered_map<std::string,CPA::AnalysisState> *statemap) : statemap(statemap){};
+    void performTask() {
       std::cout << "Does not recognise command"<< std::endl;
-      return state;
     }
 
 private:
-  MiniMC::CPA::AnalysisState state;
+  std::unordered_map<std::string,CPA::AnalysisState> *statemap;
 };
 
 class SetBookmarkTask : public Task {
   public:
     SetBookmarkTask(std::unordered_map<std::string,CPA::AnalysisState>* statemap) : statemap(statemap){};
-    CPA::AnalysisState performTask(){
+    void performTask(){
       (*statemap)["bookmark"] = (*statemap)["current"];
-      return (*statemap)["current"];
     };
 
   private:
@@ -37,8 +36,8 @@ class SetBookmarkTask : public Task {
 class JumpToBookmarkTask : public Task {
   public:
     JumpToBookmarkTask(std::unordered_map<std::string,CPA::AnalysisState> *statemap) : statemap(statemap){};
-    CPA::AnalysisState performTask(){
-      return (*statemap)["bookmark"];
+    void performTask(){
+      (*statemap)["current"] = (*statemap)["bookmark"];
     };
   private:
     std::unordered_map<std::string,CPA::AnalysisState> *statemap;
@@ -46,49 +45,58 @@ class JumpToBookmarkTask : public Task {
 
 class PrintStateTask : public Task {
 public:
-  PrintStateTask(MiniMC::CPA::AnalysisState state) : state(state){};
-  CPA::AnalysisState performTask() {
-    std::cout << this->state;
-    return state;
+  PrintStateTask(std::unordered_map<std::string,CPA::AnalysisState> *statemap) : statemap(statemap){};
+   void performTask() {
+    std::cout << (*statemap)["current"];
   }
 
 private:
-  MiniMC::CPA::AnalysisState state;
+  std::unordered_map<std::string,CPA::AnalysisState> *statemap;
 };
 
 class SingleStepTask : public Task {
 public:
-  SingleStepTask(CPA::AnalysisState state, Model::Edge *edge,
+  SingleStepTask(std::unordered_map<std::string,CPA::AnalysisState> *statemap,
                  const CPA::AnalysisTransfer &transfer)
-      : state(state), edge(edge), transfer(transfer) {}
-  CPA::AnalysisState performTask() override {
+      : statemap(statemap), transfer(transfer) {}
+  void performTask() override {
     CPA::AnalysisState newstate;
     MiniMC::proc_t proc{0};
 
-    if(transfer.Transfer(state, edge, proc, newstate)){
-      return newstate;
+    if(auto edge = haveNoInstructionEdge((*statemap)["current"])){
+      if(transfer.Transfer((*statemap)["current"], edge, proc, newstate)){
+        (*statemap)["current"]=newstate;
+      };
+    }
+    if(transfer.Transfer((*statemap)["current"], promptForEdge((*statemap)["current"]), proc, newstate)){
+      (*statemap)["current"]=newstate;
     };
 
-    return state;
+
   }
 
 private:
-  CPA::AnalysisState state;
-  Model::Edge *edge;
+  std::unordered_map<std::string,CPA::AnalysisState> *statemap;
   CPA::AnalysisTransfer transfer;
+
+  Model::Edge *promptForEdge(CPA::AnalysisState);
+  Model::Edge *haveNoInstructionEdge(CPA::AnalysisState);
 };
 
 class TaskFactory {
 public:
-  virtual Task* createTask(std::string,std::unordered_map<std::string, CPA::AnalysisState> *statemap,MiniMC::CPA::AnalysisTransfer) = 0;
+  virtual void pushTask(std::string,
+                          std::unordered_map<std::string, CPA::AnalysisState> *,
+                          MiniMC::CPA::AnalysisTransfer,
+                          std::queue<Task *> *) = 0;
 };
 
-class InterpreterTaskFactory : public TaskFactory{
+class InterpreterTaskFactory : public TaskFactory {
 public:
-  Task *createTask(std::string string,
-                   std::unordered_map<std::string,CPA::AnalysisState> *statemap, MiniMC::CPA::AnalysisTransfer transfer) override;
-private:
-  Model::Edge *promptForEdge(CPA::AnalysisState state);
+  void pushTask(std::string,
+                  std::unordered_map<std::string, CPA::AnalysisState> *,
+                  MiniMC::CPA::AnalysisTransfer, std::queue<Task *> *) override;
+
 };
 
 } // namespace Interpreter

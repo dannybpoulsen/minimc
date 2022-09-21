@@ -32,11 +32,11 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
   // Command Line
   while(true){
     std::cin >> s;
-    queue.push(factory.createTask(s, &statemap, transferer));
-    if (!queue.empty()){
+    factory.pushTask(s, &statemap, transferer, &queue);
+    while (!queue.empty()){
       MiniMC::Interpreter::Task* task = queue.front();
       queue.pop();
-      statemap["current"] = task->performTask();
+      task->performTask();
       delete task;
     }
   }
