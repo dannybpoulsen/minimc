@@ -2,6 +2,8 @@
 #define MINIMC_TASK_HPP
 #include "cpa/interface.hpp"
 #include "cpa/state.hpp"
+#include "algorithms/algorithms.hpp"
+#include "algorithms/successorgen.hpp"
 #include <queue>
 #include <unordered_map>
 
@@ -98,6 +100,37 @@ private:
   Model::Edge *haveNoInstructionEdge(CPA::AnalysisState);
 };
 
+class RunPathTask : public Task {
+  public:
+    RunPathTask(
+        std::unordered_map<std::string, CPA::AnalysisState> *statemap,
+        const CPA::AnalysisTransfer &transfer, std::vector<int>* indexes)
+        : statemap(statemap), transfer(transfer), indexes(indexes) {}
+
+    void performTask(){
+      CPA::AnalysisState newstate;
+      MiniMC::proc_t proc{0};
+
+      std::for_each((*indexes).begin(), (*indexes).end(), [&](const int i){
+        Algorithms::EdgeEnumerator enumerator{(*statemap)["current"]};
+        Algorithms::EnumResult res;
+        for(int j = 0; j < i; j++){
+          enumerator.getNext(res);
+        }
+
+        if(transfer.Transfer((*statemap)["current"], res.edge, proc, newstate)){
+          (*statemap)["current"]=newstate;
+        };
+      });
+    }
+
+
+  private:
+    std::unordered_map<std::string,CPA::AnalysisState> *statemap;
+    CPA::AnalysisTransfer transfer;
+    std::vector<int>* indexes;
+};
+
 class TaskFactory {
 public:
   virtual void pushTask(std::string,
@@ -106,10 +139,13 @@ public:
 
 class InterpreterTaskFactory : public TaskFactory {
   public:
-    InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState>*, CPA::AnalysisTransfer transfer);
+    InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState>* statemap, CPA::AnalysisTransfer transfer);
     void pushTask(std::string, std::queue<Task *> *) override;
+    void queueRun(std::vector<int>*, std::queue<Task*>*);
   private:
     std::unordered_map<std::string,std::vector<Task*>> commands;
+    std::unordered_map<std::string, CPA::AnalysisState>* statemap;
+    CPA::AnalysisTransfer transfer;
 };
 
 } // namespace Interpreter

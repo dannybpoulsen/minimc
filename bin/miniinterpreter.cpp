@@ -33,8 +33,19 @@ void addOptions (po::options_description& op) {
 
 MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder) {
   std::queue<MiniMC::Interpreter::Task*> queue;
+  char* tok;
+  char delim[] = " ";
   std::string s;
+  std::vector<int> path;
   std::unordered_map<std::string,MiniMC::CPA::AnalysisState> statemap;
+
+  if(locoptions.path != ""){
+    tok = std::strtok(const_cast<char *>(locoptions.path.c_str()), delim);
+    while(tok != NULL){
+      path.push_back(std::stoi(tok));
+      tok = std::strtok(NULL,delim);
+    }
+  }
 
   auto& prgm = *controller.getProgram ();
   auto transferer = builder.makeTransfer(prgm);
@@ -44,6 +55,8 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
                                    prgm.getInitialiser(), prgm});
 
   MiniMC::Interpreter::InterpreterTaskFactory factory(&statemap, transferer);
+
+  factory.queueRun(&path, &queue);
 
   // Command Line
   while(true){

@@ -19,7 +19,7 @@ void InterpreterTaskFactory::pushTask(
   std::for_each(tasks.begin(), tasks.end(), [queue](auto& task) { queue->push(task); });
 }
 
-InterpreterTaskFactory::InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState> *statemap, CPA::AnalysisTransfer transfer) {
+InterpreterTaskFactory::InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState> *statemap, CPA::AnalysisTransfer transfer) :statemap(statemap),transfer(transfer) {
   auto printcurrent = new PrintStateTask(statemap);
   auto printbookmark = new PrintStateTask(statemap, "bookmark");
   auto setbookmark = new SetBookmarkTask(statemap);
@@ -47,6 +47,9 @@ InterpreterTaskFactory::InterpreterTaskFactory(std::unordered_map<std::string, C
 
   // Default case
   commands["nomatch"] = {nomatch};
+}
+void InterpreterTaskFactory::queueRun(std::vector<int> *path, std::queue<Task*>* queue) {
+  queue->push(new RunPathTask(statemap,transfer,path));
 }
 
 Model::Edge* SingleStepTask::haveNoInstructionEdge(CPA::AnalysisState state) {
