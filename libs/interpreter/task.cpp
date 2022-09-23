@@ -7,51 +7,6 @@
 
 namespace MiniMC {
 namespace Interpreter {
-void InterpreterTaskFactory::pushTask(
-    std::string  s,
-    std::queue<Task*>* queue) {
-  std::vector<Task*> tasks;
-  if (commands.contains(s)){
-    tasks = commands[s];
-  } else {
-    tasks = commands["nomatch"];
-  }
-  std::for_each(tasks.begin(), tasks.end(), [queue](auto& task) { queue->push(task); });
-}
-
-InterpreterTaskFactory::InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState> *statemap, CPA::AnalysisTransfer transfer) :statemap(statemap),transfer(transfer) {
-  auto printcurrent = new PrintStateTask(statemap);
-  auto printbookmark = new PrintStateTask(statemap, "bookmark");
-  auto setbookmark = new SetBookmarkTask(statemap);
-  auto jumpbookmark = new JumpToBookmarkTask(statemap);
-  auto jumpprevious = new JumpToPreviousStateTask(statemap);
-  auto singlestep = new SingleStepTask(statemap, transfer);
-  auto nomatch = new NoMatchTask();
-
-  // Print state
-  commands["print"] = {printcurrent};
-  commands["p"] = {printcurrent};
-  commands["pb"] = {printbookmark};
-
-  // Single step
-  commands["step"] = {singlestep, printcurrent};
-  commands["s"] = {singlestep, printcurrent};
-
-  // Bookmarks
-  commands["bookmark"] = {setbookmark};
-  commands["b"] = {setbookmark};
-
-  commands["jump"] = {jumpbookmark, printcurrent};
-  commands["jb"] = {jumpbookmark, printcurrent};
-  commands["prev"] = {jumpprevious, printcurrent};
-
-  // Default case
-  commands["nomatch"] = {nomatch};
-}
-void InterpreterTaskFactory::queueRun(std::vector<int> *path, std::queue<Task*>* queue) {
-  queue->push(new RunPathTask(statemap,transfer,path));
-}
-
 Model::Edge* SingleStepTask::haveNoInstructionEdge(CPA::AnalysisState state) {
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
@@ -102,6 +57,52 @@ Model::Edge *SingleStepTask::promptForEdge(CPA::AnalysisState state) {
   }
   return nullptr;
 };
+
+void InterpreterTaskFactory::pushTask(
+    std::string  s,
+    std::queue<Task*>* queue) {
+  std::vector<Task*> tasks;
+  if (commands.contains(s)){
+    tasks = commands[s];
+  } else {
+    tasks = commands["nomatch"];
+  }
+  std::for_each(tasks.begin(), tasks.end(), [queue](auto& task) { queue->push(task); });
+}
+
+InterpreterTaskFactory::InterpreterTaskFactory(std::unordered_map<std::string, CPA::AnalysisState> *statemap, CPA::AnalysisTransfer transfer) :statemap(statemap),transfer(transfer) {
+  auto printcurrent = new PrintStateTask(statemap);
+  auto printbookmark = new PrintStateTask(statemap, "bookmark");
+  auto setbookmark = new SetBookmarkTask(statemap);
+  auto jumpbookmark = new JumpToBookmarkTask(statemap);
+  auto jumpprevious = new JumpToPreviousStateTask(statemap);
+  auto singlestep = new SingleStepTask(statemap, transfer);
+  auto nomatch = new NoMatchTask();
+
+  // Print state
+  commands["print"] = {printcurrent};
+  commands["p"] = {printcurrent};
+  commands["pb"] = {printbookmark};
+
+  // Single step
+  commands["step"] = {singlestep, printcurrent};
+  commands["s"] = {singlestep, printcurrent};
+
+  // Bookmarks
+  commands["bookmark"] = {setbookmark,printcurrent};
+  commands["b"] = {setbookmark};
+
+  commands["jump"] = {jumpbookmark, printcurrent};
+  commands["jb"] = {jumpbookmark, printcurrent};
+  commands["prev"] = {jumpprevious, printcurrent};
+
+  // Default case
+  commands["nomatch"] = {nomatch};
+}
+
+void InterpreterTaskFactory::queueRun(std::vector<int> *path, std::queue<Task*>* queue) {
+  queue->push(new RunPathTask(statemap,transfer,path));
+}
 
 }// namespace Interpreter
 } // namespace MiniMC

@@ -57,16 +57,17 @@ MiniMC::Support::ExitCodes intp_main(MiniMC::Model::Controller& controller, cons
   MiniMC::Interpreter::InterpreterTaskFactory factory(&statemap, transferer);
 
   factory.queueRun(&path, &queue);
+  factory.pushTask("print", &queue);
 
   // Command Line
   while(true){
-    std::cin >> s;
-    factory.pushTask(s, &queue);
     while (!queue.empty()){
       MiniMC::Interpreter::Task* task = queue.front();
       queue.pop();
       task->performTask();
     }
+    std::cin >> s;
+    factory.pushTask(s, &queue);
   }
 
   return MiniMC::Support::ExitCodes::AllGood;
