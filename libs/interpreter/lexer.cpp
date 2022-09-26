@@ -16,6 +16,17 @@ Token Lexer::get_token() {
   if (!in)
     return Token::EOL;
 
+  if (isdigit(c)) {
+    buffer = c;
+    c = in->get();
+    while (isdigit(c)) {
+      buffer += c;
+      c = in->get();
+    }
+    return Token::NUMBER;
+  }
+
+
   if (isalpha(c)) {
     buffer = c;
     c = in->get();
@@ -29,6 +40,7 @@ Token Lexer::get_token() {
     else
       return Token::ID;
   }
+
   return Token::EOL;
 }
 

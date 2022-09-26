@@ -2,6 +2,7 @@
 #include "interpreter/lexer.hpp"
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
+#include <stdlib.h>
 
 namespace MiniMC {
 namespace Interpreter {
@@ -10,6 +11,9 @@ void Parser::command() {
   switch (lexer->token()) {
   case Token::PRINT:
     print();
+    break;
+  case Token::EDGES:
+    edges();
     break;
   case Token::JUMP:
     jump();
@@ -37,6 +41,25 @@ void Parser::print() {
   std::cout << (*statemap)[value];
 }
 
+void Parser::edges(){
+  MiniMC::CPA::AnalysisState state = statemap->get("current");
+  int n = 0;
+  Algorithms::EdgeEnumerator enumerator{state};
+  Algorithms::EnumResult res;
+
+  // Print outgoing edges
+  if (enumerator.getNext(res)) {
+    n++;
+    std::cout << n << ". " << std::endl;
+    std::cout << *res.edge;
+    while (enumerator.getNext(res)) {
+      n++;
+      std::cout << n << ". " << std::endl;
+      std::cout << *res.edge;
+    }
+  }
+}
+
 void Parser::jump() {
   std::string value = get_id();
 
@@ -54,18 +77,19 @@ void Parser::step() {
   MiniMC::proc_t proc{0};
   statemap->set("prev","current");
 
-  if (auto noinsedge = haveNoInstructionEdge((*statemap)["current"])) {
-    if (transfer.Transfer((*statemap)["current"], noinsedge, proc, newstate)) {
+  if (auto edge = get_edge(get_nr())) {
+    if (transfer.Transfer(statemap->get("current"), edge, proc, newstate)) {
       statemap->set("current",newstate);
     };
-  }
-
-  if (auto edge = promptForEdge((*statemap)["current"])) {
-    if (transfer.Transfer((*statemap)["current"], edge, proc, newstate)) {
-      statemap->set("current",newstate);
-    };
+    if (auto noinsedge = haveNoInstructionEdge(statemap->get("current"))) {
+      if (transfer.Transfer(statemap->get("current"), noinsedge, proc, newstate)) {
+        statemap->set("current",newstate);
+      };
+    }
   } else {
-    std::cout << "Current location have no outgoing edges" << std::endl;
+    std::cout << "Either does the current location have no outgoing edges "
+                 << "or the chosen index is invalid. Show valid edges by"
+                 << "entering: 'edges'" << std::endl;
   }
 }
 
@@ -97,6 +121,16 @@ std::string Parser::get_id() {
   }
 }
 
+int Parser::get_nr(){
+  lexer->advance();
+  switch (lexer->token()) {
+  case Token::NUMBER:
+    return stoi(lexer->getTokenAsText());
+  default:
+    return -1;
+  }
+}
+
 Model::Edge* Parser::haveNoInstructionEdge(CPA::AnalysisState state) {
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
@@ -107,44 +141,29 @@ Model::Edge* Parser::haveNoInstructionEdge(CPA::AnalysisState state) {
   return nullptr;
 }
 
-Model::Edge *Parser::promptForEdge(CPA::AnalysisState state) {
-  int index = -1;
-  int n = 0;
+Model::Edge *Parser::get_edge(int i) {
+  if (i == -1){
+    return nullptr;
+  }
 
   std::vector<Model::Edge *> edges;
+  CPA::AnalysisState state = statemap->get("current");
 
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
 
   // Print outgoing edges
-  if (enumerator.getNext(res)) {
-    std::cout << "Following edges can be picked" << std::endl;
+  while (enumerator.getNext(res)) {
     edges.push_back(res.edge);
-    n++;
-    std::cout << n << ". " << std::endl;
-    std::cout << *res.edge;
-    while (enumerator.getNext(res)) {
-      edges.push_back(res.edge);
-      n++;
-      std::cout << n << ". " << std::endl;
-      std::cout << *res.edge;
-    }
   }
 
   if (edges.size() == 0) {
     return nullptr;
   }
 
-  // Choose edge by index
-  while (index <= 0) {
-    std::cin >> index;
-    if (edges[index - 1]) {
-      return edges[index - 1];
-    }
-    std::cout
-        << "The chosen index is not possible, please choose a index under "
-        << edges.size();
-  }
+ if (edges[i - 1]) {
+   return edges[i - 1];
+ }
   return nullptr;
 }
 

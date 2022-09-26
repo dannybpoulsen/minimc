@@ -28,16 +28,18 @@ private:
   CPA::AnalysisTransfer transfer;
 
   void print();
+  void edges();
   void jump();
   void step();
   void bookmark();
   void nonrecognizable();
   void help();
   std::string get_id();
+  int get_nr();
 
   void command();
 
-  MiniMC::Model::Edge* promptForEdge(MiniMC::CPA::AnalysisState);
+  MiniMC::Model::Edge* get_edge(int i);
   Model::Edge* haveNoInstructionEdge(CPA::AnalysisState);
 };
 

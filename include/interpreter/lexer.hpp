@@ -8,7 +8,7 @@
 namespace MiniMC {
 namespace Interpreter {
 enum class Token {
-  BOOKMARK, JUMP, PRINT, STEP, ID, EOL, HELP
+  BOOKMARK, JUMP, PRINT, STEP, ID, EOL, HELP, EDGES, EDGE, NUMBER
 };
 
 class Lexer {
@@ -24,6 +24,7 @@ class Lexer {
         {"jump", Token::JUMP},
         {"bookmark", Token::BOOKMARK},
         {"step", Token::STEP},
+        {"edges", Token::EDGES},
         {"help", Token::HELP}
     };
 
