@@ -6,6 +6,6 @@ if(ENABLE_SYMBOLIC)
 endif(ENABLE_SYMBOLIC)
 
 
-add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp miniinterpreter.cpp)
+add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp miniinterpreter.cpp ../libs/interpreter/lexer.cpp ../include/interpreter/lexer.hpp)
 
 target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})
