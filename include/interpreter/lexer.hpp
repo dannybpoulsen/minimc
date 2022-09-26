@@ -1,15 +1,14 @@
-//
-// Created by OA82HX on 23-09-2022.
-//
-
 #ifndef MINIMC_LEXER_HPP
 #define MINIMC_LEXER_HPP
 
 #include <istream>
+#include <map>
+#include <iterator>
+
 namespace MiniMC {
 namespace Interpreter {
 enum class Token {
-  BOOKMARK, JUMP, PRINT, STEP, ID, EOL
+  BOOKMARK, JUMP, PRINT, STEP, ID, EOL, HELP
 };
 
 class Lexer {
@@ -19,10 +18,20 @@ class Lexer {
     Token token() const {return cur_token; }
     void advance() {cur_token = get_token(); }
     std::string getTokenAsText(){ return buffer;}
+
+    std::map<std::string,Token> commandMap = {
+        {"print", Token::PRINT},
+        {"jump", Token::JUMP},
+        {"bookmark", Token::BOOKMARK},
+        {"step", Token::STEP},
+        {"help", Token::HELP}
+    };
+
   private:
     std::istream* in;
     Token cur_token;
     std::string buffer;
+
 
     Token get_token();
 };

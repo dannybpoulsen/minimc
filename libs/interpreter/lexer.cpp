@@ -1,7 +1,3 @@
-//
-// Created by OA82HX on 23-09-2022.
-//
-
 #include "interpreter/lexer.hpp"
 #include <istream>
 
@@ -28,17 +24,12 @@ Token Lexer::get_token() {
       buffer += c;
       c = in->get();
     }
-    if (buffer == "print")
-      return Token::PRINT;
-    else if (buffer == "jump")
-      return Token::JUMP;
-    else if (buffer == "bookmark")
-      return Token::BOOKMARK;
-    else if (buffer == "step")
-      return Token::STEP;
+    if (commandMap.contains(buffer))
+      return commandMap[buffer];
     else
       return Token::ID;
   }
+  return Token::EOL;
 }
 
 

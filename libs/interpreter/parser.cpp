@@ -19,8 +19,12 @@ void Parser::command() {
     break;
   case Token::BOOKMARK:
     bookmark();
+    break;
+  case Token::HELP:
+    help();
+    break;
   default:
-    return;
+    nonrecognizable();
   }
 }
 
@@ -36,8 +40,11 @@ void Parser::print() {
 void Parser::jump() {
   std::string value = get_id();
 
+  if(value == ""){
+    value = "bookmark";
+  }
   if (statemap->contains(value)) {
-    (*statemap)["current"] = (*statemap)[value];
+    statemap->set("current", value);
   }
 }
 
@@ -45,17 +52,17 @@ void Parser::jump() {
 void Parser::step() {
   CPA::AnalysisState newstate;
   MiniMC::proc_t proc{0};
-  (*statemap)["prev"] = (*statemap)["current"];
+  statemap->set("prev","current");
 
   if (auto noinsedge = haveNoInstructionEdge((*statemap)["current"])) {
     if (transfer.Transfer((*statemap)["current"], noinsedge, proc, newstate)) {
-      (*statemap)["current"] = newstate;
+      statemap->set("current",newstate);
     };
   }
 
   if (auto edge = promptForEdge((*statemap)["current"])) {
     if (transfer.Transfer((*statemap)["current"], edge, proc, newstate)) {
-      (*statemap)["current"] = newstate;
+      statemap->set("current",newstate);
     };
   } else {
     std::cout << "Current location have no outgoing edges" << std::endl;
@@ -68,7 +75,16 @@ void Parser::bookmark() {
   if(value == ""){
     value = "current";
   }
-  (*statemap)["bookmark"] = (*statemap)[value];
+  statemap->set("bookmark",value);
+}
+
+void Parser::help(){
+  std::for_each(lexer->commandMap.begin(), lexer->commandMap.end(), [](auto i){std::cout << i.first << std::endl;});
+}
+
+void Parser::nonrecognizable() {
+  std::cout << "The command is not recognised. Try typing 'help', inorder to "
+            << "get a list of recognised commands" << std::endl;
 }
 
 std::string Parser::get_id() {
