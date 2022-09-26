@@ -17,21 +17,26 @@ public:
          CPA::AnalysisTransfer transfer)
       : statemap(statemap), transfer(transfer){};
 
+  void operator()(const std::string& s)
+  {
+    std::istringstream ist{s};
+    lexer = new Lexer{ist};
+    command();
+    delete lexer;
+  }
+
 private:
   Lexer *lexer;
   std::unordered_map<std::string, CPA::AnalysisState> *statemap;
   CPA::AnalysisTransfer transfer;
 
-  void print(std::string);
   void print();
-  void jump(std::string);
   void jump();
   void step();
   void bookmark();
-  void bookmark(std::string);
   std::string get_id();
 
-  void primary();
+  void command();
 
   MiniMC::Model::Edge* promptForEdge(MiniMC::CPA::AnalysisState);
   Model::Edge* haveNoInstructionEdge(CPA::AnalysisState);

@@ -6,27 +6,43 @@
 namespace MiniMC {
 namespace Interpreter {
 
-void Parser::print() {
-  std::string value = "current";
-  print(value);
+void Parser::command() {
+  switch (lexer->token()) {
+  case Token::PRINT:
+    print();
+    break;
+  case Token::JUMP:
+    jump();
+    break;
+  case Token::STEP:
+    step();
+    break;
+  case Token::BOOKMARK:
+    bookmark();
+  default:
+    return;
+  }
 }
-void Parser::print(std::string value) { std::cout << (*statemap)[value]; }
 
-void Parser::jump(std::string value) {
+void Parser::print() {
+  std::string value = get_id();
+
+  if(value == ""){
+    value = "current";
+  }
+  std::cout << (*statemap)[value];
+}
+
+void Parser::jump() {
+  std::string value = get_id();
+
   if (statemap->contains(value)) {
     (*statemap)["current"] = (*statemap)[value];
   }
 }
 
-void Parser::jump() {
-  std::string value = "bookmark";
-  jump(value);
-}
+
 void Parser::step() {
-  lexer->advance();
-  if (lexer->token() != Token::EOL) {
-    return;
-  }
   CPA::AnalysisState newstate;
   MiniMC::proc_t proc{0};
   (*statemap)["prev"] = (*statemap)["current"];
@@ -43,6 +59,25 @@ void Parser::step() {
     };
   } else {
     std::cout << "Current location have no outgoing edges" << std::endl;
+  }
+}
+
+void Parser::bookmark() {
+  std::string value = get_id();
+
+  if(value == ""){
+    value = "current";
+  }
+  (*statemap)["bookmark"] = (*statemap)[value];
+}
+
+std::string Parser::get_id() {
+  lexer->advance();
+  switch (lexer->token()) {
+  case Token::ID:
+    return lexer->getTokenAsText();
+  default:
+    return "";
   }
 }
 
@@ -95,42 +130,6 @@ Model::Edge *Parser::promptForEdge(CPA::AnalysisState state) {
         << edges.size();
   }
   return nullptr;
-}
-void Parser::primary() {
-  switch (lexer->token()) {
-  case Token::PRINT:
-    print(get_id());
-    break;
-  case Token::JUMP:
-    jump(get_id());
-    break;
-  case Token::STEP:
-    step();
-    break;
-  case Token::BOOKMARK:
-    bookmark(get_id());
-  default:
-    return;
-  }
-}
-
-void Parser::bookmark(std::string value) {
-  (*statemap)["bookmark"] = (*statemap)[value];
-}
-
-void Parser::bookmark() {
-  std::string value = "current";
-  bookmark(value);
-}
-
-std::string Parser::get_id() {
-  lexer->advance();
-  switch (lexer->token()) {
-  case Token::ID:
-    return lexer->getTokenAsText();
-  default:
-    return "";
-  }
 }
 
 }// namespace Interpreter
