@@ -8,6 +8,9 @@ namespace MiniMC {
 namespace Loader {
 
 enum class Token {
+  EOF_TOKEN,
+  COLON,
+  DIGIT,
   FUNCTIONS,
   REGISTERS,
   PARAMETERS,
@@ -24,8 +27,6 @@ enum class Token {
   INITIALISER,
   HASH_SIGN,
   HASHHASH_SIGN,
-  NEW_LINE,
-  EOF_TOKEN,
   EOL_TOKEN,
   HEX,
   TYPE_Void,
@@ -73,7 +74,8 @@ enum class Token {
   INSTR_BitCast,
   INSTR_BoolZExt,
   INSTR_BoolSExt,
-  INSTR_IntToBoolStore,
+  INSTR_IntToBool,
+  INSTR_Store,
   INSTR_Load,
   INSTR_Skip,
   INSTR_Call,
@@ -81,7 +83,8 @@ enum class Token {
   INSTR_Ret,
   INSTR_RetVoid,
   INSTR_NonDet,
-  INSTR_UniformAssert,
+  INSTR_Uniform,
+  INSTR_Assert,
   INSTR_Assume,
   INSTR_NegAssume,
   INSTR_PRED_ICMP_SGT,
@@ -93,6 +96,7 @@ enum class Token {
   INSTR_PRED_ICMP_SLE,
   INSTR_PRED_ICMP_ULE,
   INSTR_PRED_ICMP_EQ,
+  INSTR_PRED_ICMP_NEQ,
 };
 
 class Lexer {
@@ -106,6 +110,7 @@ public:
   std::string getValue(){ return buffer;}
 
   std::map<std::string,Token> keywordsMap = {
+      {":", Token::COLON},
       {"Functions", Token::FUNCTIONS},
       {"0x", Token::HEX},
       {".registers", Token::REGISTERS},
@@ -120,7 +125,6 @@ public:
       {"Entrypoints", Token::ENTRYPOINTS},
       {"Initaliser", Token::INITIALISER},
       {"Heap", Token::HEAP},
-      {"\n", Token::NEW_LINE},
       {"#", Token::HASH_SIGN},
       {"##", Token::HASHHASH_SIGN},
       {"Void",Token::TYPE_Void},
@@ -168,7 +172,8 @@ public:
       {"BitCast", Token::INSTR_BitCast},
       {"BoolZExt", Token::INSTR_BoolZExt},
       {"BoolSExt", Token::INSTR_BoolSExt},
-      {"IntToBoolStore", Token::INSTR_IntToBoolStore},
+      {"IntToBoolStore", Token::INSTR_IntToBool},
+      {"Store", Token::INSTR_Store},
       {"Load", Token::INSTR_Load},
       {"Skip", Token::INSTR_Skip},
       {"Call", Token::INSTR_Call},
@@ -176,7 +181,8 @@ public:
       {"Ret", Token::INSTR_Ret},
       {"RetVoid", Token::INSTR_RetVoid},
       {"NonDet", Token::INSTR_NonDet},
-      {"UniformAssert", Token::INSTR_UniformAssert},
+      {"Uniform", Token::INSTR_Uniform},
+      {"Assert", Token::INSTR_Assert},
       {"Assume", Token::INSTR_Assume},
       {"NegAssume", Token::INSTR_NegAssume},
       {"PRED_ICMP_SGT", Token::INSTR_PRED_ICMP_SGT},
@@ -187,7 +193,8 @@ public:
       {"PRED_ICMP_ULT", Token::INSTR_PRED_ICMP_ULT},
       {"PRED_ICMP_SLE", Token::INSTR_PRED_ICMP_SLE},
       {"PRED_ICMP_ULE", Token::INSTR_PRED_ICMP_ULE},
-      {"PRED_ICMP_EQ", Token::INSTR_PRED_ICMP_EQ}
+      {"PRED_ICMP_EQ", Token::INSTR_PRED_ICMP_EQ},
+      {"PRED_ICMP_NEQ", Token::INSTR_PRED_ICMP_NEQ}
   };
 
 private:

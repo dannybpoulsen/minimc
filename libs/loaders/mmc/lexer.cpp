@@ -12,6 +12,7 @@ Token Lexer::get_token() {
 
     if(isprint(c)){
       buffer = c;
+
       if(c=='-' && in->peek() == '>'){
         c = in->get();
         c = in->get();
@@ -39,14 +40,26 @@ Token Lexer::get_token() {
         c = in->get();
         return Token::HASHHASH_SIGN;
       }
-      while(isprint(c) && !isspace(c)){
+
+      if(isdigit(c)) {
         buffer += c;
         c = in->get();
+        while (isdigit(c)) {
+          buffer += c;
+          c = in->get();
+        }
+        return Token::DIGIT;
       }
-      if(keywordsMap.contains(buffer)){
-        return keywordsMap[buffer];
-      } else {
-        return Token::IDENTIFIER;
+
+      while(isprint(c) && !isspace(c)) {
+        buffer += c;
+        c = in->get();
+
+        if (keywordsMap.contains(buffer)) {
+          return keywordsMap[buffer];
+        } else {
+          return Token::IDENTIFIER;
+        }
       }
     }
   }

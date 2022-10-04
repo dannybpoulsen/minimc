@@ -1,7 +1,6 @@
 #ifndef MINIMC_PARSER_HPP
 #define MINIMC_PARSER_HPP
 
-#include "../llvm/llvmpasses.hpp"
 #include "lexer.hpp"
 #include "model/edge.hpp"
 #include <istream>
@@ -10,11 +9,6 @@
 
 namespace MiniMC {
 namespace Loader {
-
-struct Variable{
-  std::string value;
-  Model::Type_ptr type;
-};
 
 class Parser {
 public:
@@ -33,26 +27,22 @@ private:
   MiniMC::Model::Program_ptr& prgm;
 
   void ignore_eol();
-  void hash_sign();
   void functions();
-  void hashhash_sign();
-  void function();
-  Model::RegisterDescr_uptr registers(std::string name);
-  struct Variable variable();
-  std::string identifier();
-  std::string hex();
-  Model::Type_ptr type();
-  void parameters(std::vector<Model::Register_ptr> registers, std::vector<Model::Register_ptr>* params);
-  void returns(Model::Type_ptr retType);
-  void cfa(Model::CFA*,MiniMC::Model::RegisterDescr*);
-  Model::Instruction instruction();
-  Model::Instruction single_instr(std::vector<std::pair(Token,std::string)> tokens);
-
   void entrypoints();
   void heap();
-  void intialiser();
+  void initialiser();
+  void function();
+  Model::RegisterDescr_uptr registers(std::string name);
+  void parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs);
+  Model::Type_ptr returns();
+  Model::CFA cfa(std::string name, std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs);
+  void edge(std::string name, std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfa, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap);
+  Model::Location_ptr location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc, MiniMC::Model::LocationInfoCreator locinfoc);
+  void instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr>* params);
 
-
+  Model::Value_ptr value();
+  Model::Register variable();
+  std::string identifier();
 
 };
 
