@@ -27,7 +27,7 @@ namespace MiniMC {
       }
 
       else if constexpr (i == InstructionCode::NonDet) {
-	return os << *content.res << "=" << InstructionCode::NonDet << " "  << *content.res->getType () << *content.min << " " << *content.max;
+	return os << *content.res << " = " << InstructionCode::NonDet << " "  << *content.res->getType () << *content.min << " " << *content.max;
       }
 
       
@@ -39,7 +39,7 @@ namespace MiniMC {
 
       else if constexpr (i == InstructionCode::Call) {
 	if (content.res) {
-	  os << *content.res << " =  ";
+	  os << *content.res << " = ";
 	}
 	os << InstructionCode::Call << " " << *content.function << " ";
 	for (auto& v : content.params)
@@ -54,7 +54,7 @@ namespace MiniMC {
       }
 
       else if constexpr ( i == InstructionCode::ExtractValue) {
-	return os << *content.res << " =  " << InstructionCode::ExtractValue << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
+	return os << *content.res << " = " << InstructionCode::ExtractValue << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
       }
 
       else if constexpr ( i == InstructionCode::Assign) {
