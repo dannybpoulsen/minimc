@@ -71,7 +71,7 @@ namespace MiniMC {
       }
 
       else if constexpr ( i == InstructionCode::InsertValue) {
-	return os << *content.res << " =  " << InstructionCode::InsertValue << *content.insertee->getType () << " " << *content.aggregate << " "  << *content.offset << " " << *content.insertee;	
+	return os << *content.res << " = " << InstructionCode::InsertValue << *content.insertee->getType () << " " << *content.aggregate << " "  << *content.offset << " " << *content.insertee;
       }
 
       else if constexpr ( i == InstructionCode::Uniform) {
