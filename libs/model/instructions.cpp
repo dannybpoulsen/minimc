@@ -27,7 +27,7 @@ namespace MiniMC {
       }
 
       else if constexpr (i == InstructionCode::NonDet) {
-	return os << *content.res << " = " << InstructionCode::NonDet << " "  << *content.res->getType () << *content.min << " " << *content.max;
+	return os << *content.res << " = " << InstructionCode::NonDet << " "  << *content.res->getType () << " " << *content.min << " " << *content.max;
       }
 
       

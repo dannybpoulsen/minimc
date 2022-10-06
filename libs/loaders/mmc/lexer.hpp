@@ -11,6 +11,7 @@ enum class Token {
   EOF_TOKEN,
   COLON,
   DIGIT,
+  EQUAL_SIGN,
   FUNCTIONS,
   REGISTERS,
   PARAMETERS,
@@ -110,6 +111,7 @@ public:
   std::string getValue(){ return buffer;}
 
   std::map<std::string,Token> keywordsMap = {
+      {"=", Token::EQUAL_SIGN},
       {":", Token::COLON},
       {"Functions", Token::FUNCTIONS},
       {"0x", Token::HEX},

@@ -73,7 +73,7 @@ void Parser::heap() {
 
 void Parser::initialiser(){
   Model::InstructionStream instructionStream;
-  std::vector<MiniMC::Model::Register_ptr> params;
+  std::vector<MiniMC::Model::Register_ptr> variables;
 
   if (lexer->token() == Token::HASH_SIGN) {
     lexer->advance();
@@ -81,7 +81,7 @@ void Parser::initialiser(){
       lexer->advance();
       ignore_eol();
       while(lexer->token() != Token::EOF_TOKEN){
-        instruction(&instructionStream, &params);
+        instruction(&instructionStream, variables);
         lexer->advance();
         ignore_eol();
       }
@@ -103,7 +103,7 @@ void Parser::function() {
 
     parameters(&params, registerDescr.get());
     auto ret = returns();
-    auto cfg = cfa(name, &params, registerDescr.get());
+    auto cfg = cfa(name, registerDescr.get());
     prgm->addFunction(name, params, ret,
                       std::move(registerDescr), std::move(cfg));
   }
@@ -122,7 +122,7 @@ Model::RegisterDescr_uptr Parser::registers(std::string name){
       lexer->advance();
       ignore_eol();
     }
-    return std::move(registerDescr);
+    return registerDescr;
   }
   throw;
 }
@@ -150,15 +150,15 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
 Model::Type_ptr Parser::returns(){
   if(lexer->token() == Token::RETURNS){
     lexer->advance();
-    Model::Type_ptr type = type();
+    Model::Type_ptr t = type();
     lexer->advance();
     ignore_eol();
-    return type;
+    return t;
   }
   throw;
 }
 
-Model::CFA Parser::cfa(std::string name, std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs) {
+Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* regs) {
   Model::CFA cfg;
   std::unordered_map<std::string, MiniMC::Model::Location_ptr> locmap;
 
@@ -166,7 +166,7 @@ Model::CFA Parser::cfa(std::string name, std::vector<MiniMC::Model::Register_ptr
     lexer->advance();
     ignore_eol();
     while (lexer->token() != Token::HASHHASH_SIGN) {
-      edge(name, params, regs, &cfg, &locmap);
+      edge(name, regs, &cfg, &locmap);
     }
     auto edges = cfg.getEdges();
     std::for_each(edges.begin(),edges.end(),[locmap,this](auto e){
@@ -179,7 +179,7 @@ Model::CFA Parser::cfa(std::string name, std::vector<MiniMC::Model::Register_ptr
   throw;
 }
 
-void Parser::edge(std::string name, std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
+void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
   Model::InstructionStream instructionStream;
   MiniMC::Model::LocationInfoCreator locinfoc(name, regs);
   Model::Location_ptr to;
@@ -190,7 +190,9 @@ void Parser::edge(std::string name, std::vector<MiniMC::Model::Register_ptr>* pa
   ignore_eol();
   if (lexer->token() == Token::L_BRACKET) {
     while (lexer->token() != Token::R_BRACKET) {
-      instruction(&instructionStream, params);
+      lexer->advance();
+      ignore_eol();
+      instruction(&instructionStream, regs->getRegisters());
       if (lexer->token() == Token::R_ARROW) {
         if (locmap->contains (lexer->getValue())) {
           to = locmap->at(lexer->getValue());
@@ -227,7 +229,7 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
   throw;
 }
 
-void Parser::instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr>* params) {
+void Parser::instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr> variables) {
   switch (lexer->token()) {
   case Token::INSTR_Skip:
     instructionStream->addInstruction(
@@ -245,62 +247,7 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
     lexer->advance();
     instructionStream->addInstruction(
         Model::createInstruction<Model::InstructionCode::Ret>(
-            {.value = value()}));
-  case Token::INSTR_Add:
-  case Token::INSTR_Sub:
-  case Token::INSTR_Mul:
-  case Token::INSTR_UDiv:
-  case Token::INSTR_SDiv:
-  case Token::INSTR_Shl:
-  case Token::INSTR_LShr:
-  case Token::INSTR_AShr:
-  case Token::INSTR_And:
-  case Token::INSTR_Or:
-  case Token::INSTR_Xor:
-    instructionStream->addInstruction(predicates());
-    return;
-  case Token::INSTR_Not:
-    lexer->advance();
-    Value_ptr res = value();
-    lexer->advance();
-    Value_ptr op1 = value();
-    instructionStream->addInstruction(Model::createInstruction<Model::InstructionCode::Not>({.res=res,.op1=op1}));
-    return;
-  case Token::INSTR_ICMP_SGT:
-  case Token::INSTR_ICMP_UGT:
-  case Token::INSTR_ICMP_SGE:
-  case Token::INSTR_ICMP_UGE:
-  case Token::INSTR_ICMP_SLT:
-  case Token::INSTR_ICMP_ULT:
-  case Token::INSTR_ICMP_SLE:
-  case Token::INSTR_ICMP_ULE:
-  case Token::INSTR_ICMP_EQ:
-  case Token::INSTR_ICMP_NEQ:
-    instructionStream->addInstruction(comperisons());
-    return;
-  case Token::INSTR_PtrAdd:
-  case Token::INSTR_PtrEq:
-    instructionStream->addInstruction(pointerops());
-    return;
-  case Token::INSTR_ExtractValue:
-  case Token::INSTR_InsertValue:
-    instructionStream->addInstruction(aggregateops());
-    return;
-  case Token::INSTR_Trunc:
-  case Token::INSTR_ZExt:
-  case Token::INSTR_SExt:
-  case Token::INSTR_PtrToInt:
-  case Token::INSTR_IntToPtr:
-  case Token::INSTR_BitCast:
-  case Token::INSTR_BoolZExt:
-  case Token::INSTR_BoolSExt:
-  case Token::INSTR_IntToBool:
-    instructionStream->addInstruction(castops());
-    return;
-  case Token::INSTR_Assert:
-  case Token::INSTR_Assume:
-  case Token::INSTR_NegAssume:
-    instructionStream->addInstruction(assumeasserts());
+            {.value = value(variables)}));
     return;
   case Token::INSTR_PRED_ICMP_SGT:
   case Token::INSTR_PRED_ICMP_UGT:
@@ -312,15 +259,395 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
   case Token::INSTR_PRED_ICMP_ULE:
   case Token::INSTR_PRED_ICMP_EQ:
   case Token::INSTR_PRED_ICMP_NEQ:
-    instructionStream->addInstruction(predicates());
+    instructionStream->addInstruction(predicates(variables));
+    return;
+  case Token::INSTR_Assert:
+    lexer->advance();
+    instructionStream->addInstruction(
+      Model::createInstruction<Model::InstructionCode::Assert>(
+          {.expr=value(variables)}
+          )
+      );
+    return;
+  case Token::INSTR_Assume:
+    lexer->advance();
+    instructionStream->addInstruction(
+        Model::createInstruction<Model::InstructionCode::Assume>(
+            {.expr=value(variables)}
+            )
+        );
+    return;
+  case Token::INSTR_NegAssume:
+    lexer->advance();
+    instructionStream->addInstruction(
+        Model::createInstruction<Model::InstructionCode::NegAssume>(
+            {.expr=value(variables)}
+            )
+        );
+    return;
+  case Token::INSTR_Store:{
+    lexer->advance();
+    Model::Value_ptr addr = value(variables);
+    lexer->advance();
+    Model::Value_ptr storee = value(variables);
+    instructionStream->addInstruction(
+        Model::createInstruction<Model::InstructionCode::Store>(
+            {.addr = addr, .storee = storee}
+            )
+    );
+    return;
+  }
+  case Token::LESS_THAN:
+    instructionStream->addInstruction(
+        instruction1(variables)
+        );
     return;
   default:
+    throw;
+  }
+}
+
+Model::Instruction Parser::instruction1(const std::vector<MiniMC::Model::Register_ptr> variables){
+  if(lexer->token() == Token::LESS_THAN){
+    Model::Value_ptr res = value(variables);
+    lexer->advance();
+    if (lexer->token() == Token::INSTR_PtrAdd){
+      lexer->advance();
+      Model::Value_ptr res = value(variables);
+      lexer->advance();
+      Model::Value_ptr ptr = value(variables);
+      lexer->advance();
+      Model::Value_ptr skipsize = value(variables);
+      lexer->advance();
+      Model::Value_ptr nbSkips = value(variables);
+      return Model::createInstruction<Model::InstructionCode::PtrAdd>({
+        .res=res,
+        .ptr=ptr,
+        .skipsize=skipsize,
+        .nbSkips=nbSkips
+      });
+    } else if (lexer->token() == Token::EQUAL_SIGN){
+      return instruction2(variables, res);
+    }
   }
   throw;
 }
 
-Model::Value_ptr Parser::value(){
+Model::Instruction Parser::instruction2(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
+  if (lexer->token() == Token::EQUAL_SIGN) {
+    lexer->advance();
+    switch (lexer->token()) {
+    case Token::INSTR_Add:
+    case Token::INSTR_Sub:
+    case Token::INSTR_Mul:
+    case Token::INSTR_UDiv:
+    case Token::INSTR_SDiv:
+    case Token::INSTR_Shl:
+    case Token::INSTR_LShr:
+    case Token::INSTR_AShr:
+    case Token::INSTR_And:
+    case Token::INSTR_Or:
+    case Token::INSTR_Xor:
+      return tacops(variables,res);
+    case Token::INSTR_Not:
+      lexer->advance();
+      return Model::createInstruction<Model::InstructionCode::Not>(
+          {.res = res, .op1 = value(variables)});
+    case Token::INSTR_Trunc:
+    case Token::INSTR_ZExt:
+    case Token::INSTR_SExt:
+    case Token::INSTR_PtrToInt:
+    case Token::INSTR_IntToPtr:
+    case Token::INSTR_BitCast:
+    case Token::INSTR_BoolZExt:
+    case Token::INSTR_BoolSExt:
+    case Token::INSTR_IntToBool:
+      return castops(variables,res);
+    case Token::INSTR_NonDet:
+      return nondet(variables,res);
+    case Token::INSTR_Call: {
+      lexer->advance();
+      Model::Value_ptr function = value(variables);
+      lexer->advance();
+      return Model::createInstruction<Model::InstructionCode::Call>(
+          {.res = res, .function = function, .params=value_list(variables)});
+    }
+    case Token::INSTR_ExtractValue:
+      return extract(variables,res);
+    case Token::INSTR_InsertValue:
+      return insert(variables,res);
+    case Token::INSTR_Load:
+      return load(variables,res);
+    default:
+      throw;
+    }
+  }
+  throw;
 
+}
+
+
+Model::Instruction Parser::predicates(const std::vector<MiniMC::Model::Register_ptr> variables) {
+  Token token = lexer->token();
+  lexer->advance();
+  Model::Value_ptr op1 = value(variables);
+  lexer->advance();
+  Model::Value_ptr op2 = value(variables);
+
+  switch (token) {
+  case Token::INSTR_PRED_ICMP_SGT:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGT>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_UGT:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGT>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_SGE:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGE>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_UGE:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGE>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_SLT:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLT>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_ULT:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULT>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_SLE:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLE>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_ULE:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULE>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_EQ:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_EQ>({.op1=op1, .op2=op2});
+  case Token::INSTR_PRED_ICMP_NEQ:
+    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_NEQ>({.op1=op1, .op2=op2});
+  default:
+    throw;
+
+  }
+}
+
+Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res){
+  Token token = lexer->token();
+  lexer->advance();
+  Model::Value_ptr op1 = value(variables);
+  lexer->advance();
+  Model::Value_ptr op2 = value(variables);
+
+  switch (token) {
+  case Token::INSTR_Add:
+    return Model::createInstruction<Model::InstructionCode::Add>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_Sub:
+    return Model::createInstruction<Model::InstructionCode::Sub>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_Mul:
+    return Model::createInstruction<Model::InstructionCode::Mul>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_UDiv:
+    return Model::createInstruction<Model::InstructionCode::UDiv>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_SDiv:
+    return Model::createInstruction<Model::InstructionCode::SDiv>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_Shl:
+    return Model::createInstruction<Model::InstructionCode::Shl>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_LShr:
+    return Model::createInstruction<Model::InstructionCode::LShr>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_AShr:
+    return Model::createInstruction<Model::InstructionCode::AShr>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_And:
+    return Model::createInstruction<Model::InstructionCode::And>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_Or:
+    return Model::createInstruction<Model::InstructionCode::Or>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_Xor:
+    return Model::createInstruction<Model::InstructionCode::Xor>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  default:
+    throw;
+  }
+}
+
+Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
+  Token token = lexer->token();
+  lexer->advance();
+  Model::Type_ptr t = type();
+  if(t->getTypeID() == res->getType()->getTypeID()){
+    lexer->advance();
+    Model::Value_ptr op1 = value(variables);
+    switch(token){
+    case Token::INSTR_Trunc:
+      return Model::createInstruction<Model::InstructionCode::Trunc>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_ZExt:
+      return Model::createInstruction<Model::InstructionCode::ZExt>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_SExt:
+      return Model::createInstruction<Model::InstructionCode::SExt>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_PtrToInt:
+      return Model::createInstruction<Model::InstructionCode::PtrToInt>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_IntToPtr:
+      return Model::createInstruction<Model::InstructionCode::IntToPtr>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_BitCast:
+      return Model::createInstruction<Model::InstructionCode::BitCast>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_BoolZExt:
+      return Model::createInstruction<Model::InstructionCode::BoolZExt>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_BoolSExt:
+      return Model::createInstruction<Model::InstructionCode::BoolSExt>(
+          {.res=res, .op1=op1});
+    case Token::INSTR_IntToBool:
+      return Model::createInstruction<Model::InstructionCode::IntToBool>(
+          {.res=res, .op1=op1});
+    default:
+      throw;
+
+    }
+  }
+  throw;
+}
+
+Model::Instruction Parser::nondet(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
+  if(lexer->token() == Token::INSTR_NonDet){
+    lexer->advance();
+    Model::Type_ptr t = type();
+    lexer->advance();
+    Model::Value_ptr min = value(variables);
+    lexer->advance();
+    Model::Value_ptr max = value(variables);
+    return Model::createInstruction<Model::InstructionCode::NonDet>(
+        {.res=res, .min=min, .max=max}
+        );
+  }
+  throw;
+}
+
+Model::Instruction Parser::extract(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
+  if(lexer->token() == Token::INSTR_ExtractValue){
+    lexer->advance();
+    Model::Type_ptr t = type();
+    lexer->advance();
+    Model::Value_ptr aggregate = value(variables);
+    lexer->advance();
+    Model::Value_ptr offset = value(variables);
+    return Model::createInstruction<Model::InstructionCode::ExtractValue>(
+        {.res=res,.aggregate=aggregate, .offset=offset});
+  }
+  throw;
+
+}
+
+Model::Instruction Parser::insert(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
+  if(lexer->token() == Token::INSTR_InsertValue){
+    lexer->advance();
+    Model::Type_ptr t = type();
+    lexer->advance();
+    Model::Value_ptr aggregate = value(variables);
+    lexer->advance();
+    Model::Value_ptr offset = value(variables);
+    lexer->advance();
+    Model::Value_ptr insertee = value(variables);
+    return Model::createInstruction<Model::InstructionCode::InsertValue>(
+        {.res=res,.aggregate=aggregate,.offset=offset,.insertee=insertee});
+  }
+  throw;
+}
+
+Model::Instruction Parser::load(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
+  if(lexer->token() == Token::INSTR_Load){
+    lexer->advance();
+    Model::Type_ptr t = type();
+    lexer->advance();
+    Model::Value_ptr addr = value(variables);
+    return Model::createInstruction<Model::InstructionCode::Load>(
+        {.res=res, .addr=addr});
+  }
+  throw;
+}
+
+
+Model::Type_ptr Parser::type(){
+  switch(lexer->token()){
+  case Token::TYPE_Void:
+    return tfac.makeVoidType();
+  case Token::TYPE_Bool:
+    return tfac.makeBoolType();
+  case Token::TYPE_I8:
+    return tfac.makeIntegerType(8);
+  case Token::TYPE_I16:
+    return tfac.makeIntegerType(16);
+  case Token::TYPE_I32:
+    return tfac.makeIntegerType(32);
+  case Token::TYPE_I64:
+    return tfac.makeIntegerType(64);
+  case Token::TYPE_Float:
+    return tfac.makeFloatType();
+  case Token::TYPE_Double:
+    return tfac.makeDoubleType();
+  case Token::TYPE_Pointer:
+    return tfac.makePointerType();
+  case Token::TYPE_Struct:
+    lexer->advance();
+    return tfac.makeStructType(integer());
+  case Token::TYPE_Array:
+    lexer->advance();
+    return tfac.makeArrayType(integer());
+  default:
+    throw;
+  }
+}
+
+std::vector<Model::Value_ptr> Parser::value_list(std::vector<MiniMC::Model::Register_ptr> variables){
+  std::vector<Model::Value_ptr> list;
+  lexer->advance();
+  while(lexer->token() != Token::EOL_TOKEN){
+    list.push_back(value(variables));
+    lexer->advance();
+  }
+  return list;
+}
+
+
+Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variables){
+  Model::Value_ptr ret;
+  if(lexer->token() == Token::LESS_THAN){
+    lexer->advance();
+    if(lexer->token() == Token::IDENTIFIER){
+      std::string var = identifier();
+      lexer->advance();
+      Model::Type_ptr t = type();
+      std::for_each(variables.begin(),variables.end(), [&ret,&t,&var](auto rptr){
+        if(rptr->getName() == var && t->getTypeID() == rptr->getType()->getTypeID()){
+          if(!ret){
+            ret = rptr;
+          } else throw;
+        }
+      });
+      return ret;
+    } else {
+      int value = integer();
+      lexer->advance();
+      Model::Type_ptr t = type();
+      switch(t->getTypeID){
+      case Model::TypeID::Bool:
+      case Model::TypeID::I8:
+      case Model::TypeID::I16:
+      case Model::TypeID::I32:
+      case Model::TypeID::I64:
+        return cfac.makeIntegerConstant(value,t);
+      case Model::TypeID::Pointer:
+        return constantPointer();
+      case Model::TypeID::Struct:
+        return cfac.makeAggregateConstant(,false);
+      case Model::TypeID::Array:
+        return cfac.makeAggregateConstant(,true);
+      }
+    }
+  }
+  throw;
 }
 
 Model::Register Parser::variable(){
@@ -329,7 +656,10 @@ Model::Register Parser::variable(){
     Model::Register var =  Model::Register(identifier(), nullptr);
     lexer->advance();
     var.setType(type());
-    return var;
+    lexer->advance();
+    if(lexer->token() == Token::GREATER_THAN) {
+      return var;
+    }
   }
   throw;
 }
@@ -340,6 +670,18 @@ std::string Parser::identifier() {
   }
   throw;
 }
+
+int Parser::integer(){
+  std::string value = lexer->getValue();
+
+  if(lexer->token() == Token::DIGIT){
+    return std::stoi(value);
+  } else if(lexer->token() == Token::HEX){
+    return std::stoi(value, 0,16);
+  }
+  throw;
+}
+
 
 } // namespace Loader
 } // namespace MiniMC
