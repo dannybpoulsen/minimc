@@ -34,6 +34,7 @@ namespace MiniMC {
       explicit LocationInfo(const std::string& name, AttrType flags, const SourceInfo& info, const MiniMC::Model::RegisterDescr* registers) : name(name), flags(flags), source(info.shared_from_this()),active_registers(registers) {}
 
       const std::string& getName() const { return name; }
+      const std::string getNameWithoutPref() const { return name.substr(name.find(':')+1);}
       const RegisterDescr& getRegisters () const {return *active_registers;}
       /** 
 	   * Check  if this location has Attributes \p i set 

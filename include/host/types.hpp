@@ -198,7 +198,7 @@ namespace MiniMC {
     if (is_null(p)) {
       return os << std::string("nullptr", 7);
     }
-    return os << static_cast<BV8> (p.segment) << ":" << static_cast<int64_t>(p.base) << "+" << p.offset;
+    return os << static_cast<BV8> (p.segment) << "(" << static_cast<int64_t>(p.base) << "+" << p.offset << ")";
   }
   
   

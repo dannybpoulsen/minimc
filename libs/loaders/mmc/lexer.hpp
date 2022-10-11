@@ -5,7 +5,7 @@
 #include <map>
 
 namespace MiniMC {
-namespace Loader {
+namespace Loaders {
 
 enum class Token {
   EOF_TOKEN,
@@ -20,6 +20,8 @@ enum class Token {
   IDENTIFIER,
   L_BRACKET,
   R_BRACKET,
+  L_PARA,
+  R_PARA,
   R_ARROW,
   GREATER_THAN,
   LESS_THAN,
@@ -28,6 +30,8 @@ enum class Token {
   INITIALISER,
   HASH_SIGN,
   HASHHASH_SIGN,
+  DOLLAR_SIGN,
+  PLUS_SIGN,
   EOL_TOKEN,
   HEX,
   TYPE_Void,
@@ -39,6 +43,8 @@ enum class Token {
   TYPE_Float,
   TYPE_Double,
   TYPE_Pointer,
+  FUNCTION_POINTER,
+  HEAP_POINTER,
   TYPE_Struct,
   TYPE_Array,
   INSTR_Add,
@@ -111,6 +117,7 @@ public:
   std::string getValue(){ return buffer;}
 
   std::map<std::string,Token> keywordsMap = {
+      {"$", Token::DOLLAR_SIGN},
       {"=", Token::EQUAL_SIGN},
       {":", Token::COLON},
       {"Functions", Token::FUNCTIONS},
@@ -125,7 +132,7 @@ public:
       {"<", Token::LESS_THAN},
       {">", Token::GREATER_THAN},
       {"Entrypoints", Token::ENTRYPOINTS},
-      {"Initaliser", Token::INITIALISER},
+      {"Initialiser", Token::INITIALISER},
       {"Heap", Token::HEAP},
       {"#", Token::HASH_SIGN},
       {"##", Token::HASHHASH_SIGN},
@@ -135,6 +142,10 @@ public:
       {"I16",Token::TYPE_I16},
       {"I32",Token::TYPE_I32},
       {"I64",Token::TYPE_I64},
+      {"Int8",Token::TYPE_I8},
+      {"Int16",Token::TYPE_I16},
+      {"Int32",Token::TYPE_I32},
+      {"Int64",Token::TYPE_I64},
       {"Float",Token::TYPE_Float},
       {"Double",Token::TYPE_Double},
       {"Pointer",Token::TYPE_Pointer},
@@ -174,7 +185,7 @@ public:
       {"BitCast", Token::INSTR_BitCast},
       {"BoolZExt", Token::INSTR_BoolZExt},
       {"BoolSExt", Token::INSTR_BoolSExt},
-      {"IntToBoolStore", Token::INSTR_IntToBool},
+      {"IntToBool", Token::INSTR_IntToBool},
       {"Store", Token::INSTR_Store},
       {"Load", Token::INSTR_Load},
       {"Skip", Token::INSTR_Skip},

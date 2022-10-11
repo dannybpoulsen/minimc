@@ -8,23 +8,22 @@
 #include <string>
 
 namespace MiniMC {
-namespace Loader {
+namespace Loaders {
 
 class Parser {
 public:
-  Parser(std::istream &is, Model::TypeFactory &tfac,
-         Model::ConstantFactory &cfac, MiniMC::Model::Program_ptr& program)
+  Parser(std::istream &is,Model::TypeFactory &tfac,
+         Model::ConstantFactory &cfac , MiniMC::Model::Program_ptr program)
       : in{&is}, tfac(tfac), cfac(cfac), prgm(program) {};
 
   void run();
 
 private:
   std::istream *in;
-  std::string buffer;
   Lexer* lexer;
   Model::TypeFactory &tfac;
   Model::ConstantFactory &cfac;
-  MiniMC::Model::Program_ptr& prgm;
+  MiniMC::Model::Program_ptr prgm;
 
   void ignore_eol();
   void functions();
@@ -43,6 +42,7 @@ private:
   Model::Instruction instruction2(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
   Model::Instruction predicates(const std::vector<MiniMC::Model::Register_ptr> variables);
   Model::Instruction tacops(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
+  Model::Instruction comparison(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
   Model::Instruction castops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) ;
   Model::Instruction nondet(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
   Model::Instruction extract(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
@@ -55,6 +55,7 @@ private:
   Model::Register variable();
   std::string identifier();
   int integer();
+  std::vector<Model::Constant_ptr> integer_list();
 
 };
 

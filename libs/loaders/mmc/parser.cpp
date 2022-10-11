@@ -1,10 +1,9 @@
 #include "parser.hpp"
-#include "lexer.hpp"
 #include "model/cfg.hpp"
 #include "model/builder.hpp"
 
 namespace MiniMC{
-namespace Loader{
+namespace Loaders{
 
 void Parser::ignore_eol() {
   while(lexer->token() == Token::EOL_TOKEN) lexer->advance();
@@ -19,15 +18,16 @@ void Parser::run() {
   delete lexer;
 }
 
-void Parser::functions(){
-  if(lexer->token() == Token::HASH_SIGN){
+void Parser::functions() {
+  if (lexer->token() == Token::HASH_SIGN) {
     lexer->advance();
-    if(lexer->token()== Token::FUNCTIONS){
-      lexer->advance(); ignore_eol();
-      while(lexer->token() != Token::HASH_SIGN){
+    if (lexer->token() == Token::FUNCTIONS) {
+      lexer->advance();
+      ignore_eol();
+      while (lexer->token() != Token::HASH_SIGN) {
         function();
-        lexer->advance(); ignore_eol();
       }
+      return;
     }
   }
   throw;
@@ -61,6 +61,8 @@ void Parser::heap() {
             lexer->advance();
             if (lexer->token() == Token::DIGIT) {
               prgm->getHeapLayout().addBlock(stoi(lexer->getValue()));
+              lexer->advance();
+              ignore_eol();
               return;
             }
           }
@@ -106,6 +108,7 @@ void Parser::function() {
     auto cfg = cfa(name, registerDescr.get());
     prgm->addFunction(name, params, ret,
                       std::move(registerDescr), std::move(cfg));
+    return;
   }
   throw;
 }
@@ -134,8 +137,8 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
     lexer->advance();
     ignore_eol();
     while(lexer->token() != Token::RETURNS){
-      std::for_each(variables.begin(),variables.end(), [params,this](Model::Register_ptr reg){
-        if(reg->getName() == identifier()){
+      std::for_each(variables.begin(),variables.end(), [params,regs,this](Model::Register_ptr reg){
+        if(reg->getName() ==  regs->getPref() + ":" + identifier()){
           params->push_back(reg);
         }
       });
@@ -165,15 +168,16 @@ Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* reg
   if (lexer->token() == Token::CFA) {
     lexer->advance();
     ignore_eol();
-    while (lexer->token() != Token::HASHHASH_SIGN) {
+    while (lexer->token() != Token::HASHHASH_SIGN && lexer->token() != Token::HASH_SIGN) {
       edge(name, regs, &cfg, &locmap);
     }
     auto edges = cfg.getEdges();
     std::for_each(edges.begin(),edges.end(),[locmap,this](auto e){
       auto location = e->getTo();
-      auto to = locmap.at(location->getInfo().getName());
+      auto to = locmap.at(location->getInfo().getNameWithoutPref());
       e->setTo(to);
     });
+    cfg.setInitial(locmap.at("Initial"));
     return cfg;
   }
   throw;
@@ -189,26 +193,30 @@ void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Mo
   lexer->advance();
   ignore_eol();
   if (lexer->token() == Token::L_BRACKET) {
+    lexer->advance();
+    ignore_eol();
     while (lexer->token() != Token::R_BRACKET) {
-      lexer->advance();
-      ignore_eol();
-      instruction(&instructionStream, regs->getRegisters());
       if (lexer->token() == Token::R_ARROW) {
         if (locmap->contains (lexer->getValue())) {
           to = locmap->at(lexer->getValue());
         }
         else {
           auto location = cfg->makeLocation(locinfoc.make(lexer->getValue(), 0, *source_loc));
-          locmap->at(lexer->getValue()) = location;
+          (*locmap)[lexer->getValue()] = location;
           to = location;
         }
         auto edge = cfg->makeEdge(from,to);
         edge->getInstructions() = instructionStream;
         instructionStream.clear();
+      } else {
+        instruction(&instructionStream, regs->getRegisters());
       }
       lexer->advance();
       ignore_eol();
     }
+    lexer->advance();
+    ignore_eol();
+    return;
   }
 
   throw;
@@ -222,8 +230,13 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
     return locmap->at(index);
   }
   else {
+
+
     auto location = cfg->makeLocation (locinfoc.make(name, 0, *source_loc));
-    locmap->at(index) = location;
+    if (locmap->size() == 0){
+      (*locmap)["Initial"] = location;
+    }
+    (*locmap)[index] = location;
     return location;
   }
   throw;
@@ -285,16 +298,25 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
             )
         );
     return;
-  case Token::INSTR_Store:{
+  case Token::INSTR_Store: {
     lexer->advance();
     Model::Value_ptr addr = value(variables);
     lexer->advance();
     Model::Value_ptr storee = value(variables);
     instructionStream->addInstruction(
         Model::createInstruction<Model::InstructionCode::Store>(
-            {.addr = addr, .storee = storee}
-            )
-    );
+            {.addr = addr, .storee = storee}));
+    return;
+  }
+  case Token::INSTR_Call: {
+    lexer->advance();
+    Model::Value_ptr function = value(variables);
+    lexer->advance();
+    instructionStream->addInstruction(
+        Model::createInstruction<Model::InstructionCode::Call>(
+            {.res = nullptr,
+             .function = function,
+             .params = value_list(variables)}));
     return;
   }
   case Token::LESS_THAN:
@@ -312,8 +334,6 @@ Model::Instruction Parser::instruction1(const std::vector<MiniMC::Model::Registe
     Model::Value_ptr res = value(variables);
     lexer->advance();
     if (lexer->token() == Token::INSTR_PtrAdd){
-      lexer->advance();
-      Model::Value_ptr res = value(variables);
       lexer->advance();
       Model::Value_ptr ptr = value(variables);
       lexer->advance();
@@ -349,7 +369,17 @@ Model::Instruction Parser::instruction2(const std::vector<MiniMC::Model::Registe
     case Token::INSTR_Or:
     case Token::INSTR_Xor:
       return tacops(variables,res);
-    case Token::INSTR_Not:
+    case Token::INSTR_ICMP_SGT:
+    case Token::INSTR_ICMP_UGT:
+    case Token::INSTR_ICMP_SGE:
+    case Token::INSTR_ICMP_UGE:
+    case Token::INSTR_ICMP_SLT:
+    case Token::INSTR_ICMP_ULT:
+    case Token::INSTR_ICMP_SLE:
+    case Token::INSTR_ICMP_ULE:
+    case Token::INSTR_ICMP_EQ:
+      return comparison(variables,res);
+    case Token::INSTR_ICMP_NEQ:case Token::INSTR_Not:
       lexer->advance();
       return Model::createInstruction<Model::InstructionCode::Not>(
           {.res = res, .op1 = value(variables)});
@@ -378,6 +408,10 @@ Model::Instruction Parser::instruction2(const std::vector<MiniMC::Model::Registe
       return insert(variables,res);
     case Token::INSTR_Load:
       return load(variables,res);
+    case Token::LESS_THAN:
+      return Model::createInstruction<Model::InstructionCode::Assign>(
+          {.res = res, .op1=value(variables)}
+          );
     default:
       throw;
     }
@@ -467,11 +501,53 @@ Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr>
   }
 }
 
+Model::Instruction Parser::comparison(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res) {
+  Token token = lexer->token();
+  lexer->advance();
+  Model::Value_ptr op1 = value(variables);
+  lexer->advance();
+  Model::Value_ptr op2 = value(variables);
+  switch (token) {
+  case Token::INSTR_ICMP_SGT:
+    return Model::createInstruction<Model::InstructionCode::ICMP_SGT>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_UGT:
+    return Model::createInstruction<Model::InstructionCode::ICMP_UGT>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_SGE:
+    return Model::createInstruction<Model::InstructionCode::ICMP_SGE>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_UGE:
+    return Model::createInstruction<Model::InstructionCode::ICMP_UGE>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_SLT:
+    return Model::createInstruction<Model::InstructionCode::ICMP_SLT>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_ULT:
+    return Model::createInstruction<Model::InstructionCode::ICMP_ULT>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_SLE:
+    return Model::createInstruction<Model::InstructionCode::ICMP_SLE>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_ULE:
+    return Model::createInstruction<Model::InstructionCode::ICMP_ULE>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_EQ:
+    return Model::createInstruction<Model::InstructionCode::ICMP_EQ>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  case Token::INSTR_ICMP_NEQ:
+    return Model::createInstruction<Model::InstructionCode::ICMP_NEQ>(
+        {.res = res, .op1 = op1, .op2 = op2});
+  default:
+    throw;
+  }
+}
+
 Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
   Token token = lexer->token();
   lexer->advance();
   Model::Type_ptr t = type();
-  if(t->getTypeID() == res->getType()->getTypeID()){
+  if(true){
     lexer->advance();
     Model::Value_ptr op1 = value(variables);
     switch(token){
@@ -602,7 +678,6 @@ Model::Type_ptr Parser::type(){
 
 std::vector<Model::Value_ptr> Parser::value_list(std::vector<MiniMC::Model::Register_ptr> variables){
   std::vector<Model::Value_ptr> list;
-  lexer->advance();
   while(lexer->token() != Token::EOL_TOKEN){
     list.push_back(value(variables));
     lexer->advance();
@@ -611,40 +686,89 @@ std::vector<Model::Value_ptr> Parser::value_list(std::vector<MiniMC::Model::Regi
 }
 
 
-Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variables){
+Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variables) {
   Model::Value_ptr ret;
-  if(lexer->token() == Token::LESS_THAN){
+  int value;
+  std::vector<Model::Constant_ptr> blob;
+  Token token;
+
+  if (lexer->token() == Token::LESS_THAN) {
     lexer->advance();
-    if(lexer->token() == Token::IDENTIFIER){
+    switch (lexer->token()) {
+    case Token::IDENTIFIER: {
       std::string var = identifier();
       lexer->advance();
       Model::Type_ptr t = type();
-      std::for_each(variables.begin(),variables.end(), [&ret,&t,&var](auto rptr){
-        if(rptr->getName() == var && t->getTypeID() == rptr->getType()->getTypeID()){
-          if(!ret){
-            ret = rptr;
-          } else throw;
-        }
-      });
-      return ret;
-    } else {
-      int value = integer();
       lexer->advance();
-      Model::Type_ptr t = type();
-      switch(t->getTypeID){
-      case Model::TypeID::Bool:
-      case Model::TypeID::I8:
-      case Model::TypeID::I16:
-      case Model::TypeID::I32:
-      case Model::TypeID::I64:
-        return cfac.makeIntegerConstant(value,t);
-      case Model::TypeID::Pointer:
-        return constantPointer();
-      case Model::TypeID::Struct:
-        return cfac.makeAggregateConstant(,false);
-      case Model::TypeID::Array:
-        return cfac.makeAggregateConstant(,true);
+      if (lexer->token() != Token::GREATER_THAN)
+        throw;
+      std::for_each(
+          variables.begin(), variables.end(), [&ret, &t, &var](auto rptr) {
+            if (rptr->getName() == rptr->getOwner()->getPref() + ":" + var &&
+                t->getTypeID() == rptr->getType()->getTypeID()) {
+              if (!ret) {
+                ret = rptr;
+              } else
+                throw;
+            }
+          });
+      return ret;
+    }
+    case Token::DOLLAR_SIGN: {
+      lexer->advance();
+      blob = integer_list();
+      lexer->advance();
+      if (lexer->token() != Token::DOLLAR_SIGN)
+        throw;
+    }
+    case Token::HEAP_POINTER:
+    case Token::FUNCTION_POINTER:
+      token = lexer->token();
+      lexer->advance();
+      if (lexer->token() == Token::L_PARA) {
+        lexer->advance();
+        int base = integer();
+        lexer->advance();
+        int offset = integer();
+        lexer->advance();
+        if (lexer->token() != Token::R_PARA)
+          throw;
+        lexer->advance();
+        type();
+        lexer->advance();
+        if (lexer->token() != Token::GREATER_THAN)
+          throw;
+        if (token == Token::HEAP_POINTER)
+          return cfac.makeHeapPointer(base);
+        if (token == Token::FUNCTION_POINTER)
+          return cfac.makeFunctionPointer(base);
       }
+      break;
+    case Token::DIGIT:
+    case Token::HEX:
+      value = integer();
+      break;
+    default:
+      throw;
+    }
+    lexer->advance();
+    Model::Type_ptr t = type();
+    lexer->advance();
+    if (lexer->token() != Token::GREATER_THAN)
+      throw;
+    switch (t->getTypeID()) {
+    case Model::TypeID::Bool:
+    case Model::TypeID::I8:
+    case Model::TypeID::I16:
+    case Model::TypeID::I32:
+    case Model::TypeID::I64:
+      return cfac.makeIntegerConstant(value, t->getTypeID());
+    case Model::TypeID::Struct:
+      return cfac.makeAggregateConstant(blob, false);
+    case Model::TypeID::Array:
+      return cfac.makeAggregateConstant(blob, true);
+    default:
+      throw;
     }
   }
   throw;
@@ -682,6 +806,15 @@ int Parser::integer(){
   throw;
 }
 
+std::vector<Model::Constant_ptr> Parser::integer_list(){
+  std::vector<Model::Constant_ptr> blob;
+  while(lexer->token() == Token::HEX){
+    Model::Constant_ptr cptr = std::make_shared<Model::TConstant<BV8>>(static_cast<MiniMC::BV8>(integer()));
+    blob.push_back(cptr);
+    lexer->advance();
+  }
+  return blob;
+}
 
 } // namespace Loader
 } // namespace MiniMC
