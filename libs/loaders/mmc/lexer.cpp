@@ -16,23 +16,11 @@ Token Lexer::get_token() {
     }
 
     if (isprint(c)) {
-      if(c == 'F' && in->peek() == '(')
-        return Token::FUNCTION_POINTER;
-      if(c == 'H' && in->peek() == '(')
-        return Token::HEAP_POINTER;
-      if(c == '(')
-        return Token::L_PARA;
-      if(c == ')')
-        return Token::R_PARA;
-      if(c == '+')
-        return Token::PLUS_SIGN;
 
-      if(c =='$')
-        return Token::DOLLAR_SIGN;
-      if (c == '<')
-        return Token::LESS_THAN;
-      if (c == '>')
-        return Token::GREATER_THAN;
+      if(c == 'F' && in->peek() == '(')
+        return Token::FUNCTION_Pointer;
+      if(c == 'H' && in->peek() == '(')
+        return Token::HEAP_Pointer;
 
       if (c == '-' && in->peek() == '>') {
         c = get_next_char();
@@ -63,6 +51,10 @@ Token Lexer::get_token() {
         c = get_next_char();
         buffer += c;
         return Token::HASHHASH_SIGN;
+      }
+
+      if (symbolsMap.contains(c)) {
+        return symbolsMap[c];
       }
 
       if (isdigit(c)) {

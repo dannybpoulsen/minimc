@@ -179,6 +179,7 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
 Model::Type_ptr Parser::returns(){
   if(lexer->token() == Token::RETURNS){
     lexer->advance();
+    ignore_eol();
     Model::Type_ptr t = type();
     lexer->advance();
     ignore_eol();
@@ -285,55 +286,55 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
 void Parser::instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr> variables) {
   try {
     switch (lexer->token()) {
-    case Token::INSTR_Skip:
+    case Token::Skip:
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::Skip>({}));
       return;
-    case Token::INSTR_Uniform:
+    case Token::Uniform:
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::Uniform>({}));
       return;
-    case Token::INSTR_RetVoid:
+    case Token::RetVoid:
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::RetVoid>({}));
       return;
-    case Token::INSTR_Ret:
+    case Token::Ret:
       lexer->advance();
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::Ret>(
               {.value = value(variables)}));
       return;
-    case Token::INSTR_PRED_ICMP_SGT:
-    case Token::INSTR_PRED_ICMP_UGT:
-    case Token::INSTR_PRED_ICMP_SGE:
-    case Token::INSTR_PRED_ICMP_UGE:
-    case Token::INSTR_PRED_ICMP_SLT:
-    case Token::INSTR_PRED_ICMP_ULT:
-    case Token::INSTR_PRED_ICMP_SLE:
-    case Token::INSTR_PRED_ICMP_ULE:
-    case Token::INSTR_PRED_ICMP_EQ:
-    case Token::INSTR_PRED_ICMP_NEQ:
+    case Token::PRED_ICMP_SGT:
+    case Token::PRED_ICMP_UGT:
+    case Token::PRED_ICMP_SGE:
+    case Token::PRED_ICMP_UGE:
+    case Token::PRED_ICMP_SLT:
+    case Token::PRED_ICMP_ULT:
+    case Token::PRED_ICMP_SLE:
+    case Token::PRED_ICMP_ULE:
+    case Token::PRED_ICMP_EQ:
+    case Token::PRED_ICMP_NEQ:
       instructionStream->addInstruction(predicates(variables));
       return;
-    case Token::INSTR_Assert:
+    case Token::Assert:
       lexer->advance();
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::Assert>(
               {.expr = value(variables)}));
       return;
-    case Token::INSTR_Assume:
+    case Token::Assume:
       lexer->advance();
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::Assume>(
               {.expr = value(variables)}));
       return;
-    case Token::INSTR_NegAssume:
+    case Token::NegAssume:
       lexer->advance();
       instructionStream->addInstruction(
           Model::createInstruction<Model::InstructionCode::NegAssume>(
               {.expr = value(variables)}));
       return;
-    case Token::INSTR_Store: {
+    case Token::Store: {
       lexer->advance();
       Model::Value_ptr addr = value(variables);
       lexer->advance();
@@ -343,7 +344,7 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
               {.addr = addr, .storee = storee}));
       return;
     }
-    case Token::INSTR_Call: {
+    case Token::Call: {
       lexer->advance();
       Model::Value_ptr function = value(variables);
       lexer->advance();
@@ -378,7 +379,7 @@ Model::Instruction Parser::instrres(const std::vector<MiniMC::Model::Register_pt
   if (lexer->token() == Token::LESS_THAN) {
     Model::Value_ptr res = value(variables);
     lexer->advance();
-    if (lexer->token() == Token::INSTR_PtrAdd) {
+    if (lexer->token() == Token::PtrAdd) {
       lexer->advance();
       Model::Value_ptr ptr = value(variables);
       lexer->advance();
@@ -402,46 +403,46 @@ Model::Instruction Parser::instreseq(const std::vector<MiniMC::Model::Register_p
    if (lexer->token() == Token::EQUAL_SIGN) {
      lexer->advance();
      switch (lexer->token()) {
-     case Token::INSTR_Add:
-     case Token::INSTR_Sub:
-     case Token::INSTR_Mul:
-     case Token::INSTR_UDiv:
-     case Token::INSTR_SDiv:
-     case Token::INSTR_Shl:
-     case Token::INSTR_LShr:
-     case Token::INSTR_AShr:
-     case Token::INSTR_And:
-     case Token::INSTR_Or:
-     case Token::INSTR_Xor:
+     case Token::Add:
+     case Token::Sub:
+     case Token::Mul:
+     case Token::UDiv:
+     case Token::SDiv:
+     case Token::Shl:
+     case Token::LShr:
+     case Token::AShr:
+     case Token::And:
+     case Token::Or:
+     case Token::Xor:
        return tacops(variables, res);
-     case Token::INSTR_ICMP_SGT:
-     case Token::INSTR_ICMP_UGT:
-     case Token::INSTR_ICMP_SGE:
-     case Token::INSTR_ICMP_UGE:
-     case Token::INSTR_ICMP_SLT:
-     case Token::INSTR_ICMP_ULT:
-     case Token::INSTR_ICMP_SLE:
-     case Token::INSTR_ICMP_ULE:
-     case Token::INSTR_ICMP_EQ:
+     case Token::ICMP_SGT:
+     case Token::ICMP_UGT:
+     case Token::ICMP_SGE:
+     case Token::ICMP_UGE:
+     case Token::ICMP_SLT:
+     case Token::ICMP_ULT:
+     case Token::ICMP_SLE:
+     case Token::ICMP_ULE:
+     case Token::ICMP_EQ:
        return comparison(variables, res);
-     case Token::INSTR_ICMP_NEQ:
-     case Token::INSTR_Not:
+     case Token::ICMP_NEQ:
+     case Token::Not:
        lexer->advance();
        return Model::createInstruction<Model::InstructionCode::Not>(
            {.res = res, .op1 = value(variables)});
-     case Token::INSTR_Trunc:
-     case Token::INSTR_ZExt:
-     case Token::INSTR_SExt:
-     case Token::INSTR_PtrToInt:
-     case Token::INSTR_IntToPtr:
-     case Token::INSTR_BitCast:
-     case Token::INSTR_BoolZExt:
-     case Token::INSTR_BoolSExt:
-     case Token::INSTR_IntToBool:
+     case Token::Trunc:
+     case Token::ZExt:
+     case Token::SExt:
+     case Token::PtrToInt:
+     case Token::IntToPtr:
+     case Token::BitCast:
+     case Token::BoolZExt:
+     case Token::BoolSExt:
+     case Token::IntToBool:
        return castops(variables, res);
-     case Token::INSTR_NonDet:
+     case Token::NonDet:
        return nondet(variables, res);
-     case Token::INSTR_Call: {
+     case Token::Call: {
        lexer->advance();
        Model::Value_ptr function = value(variables);
        lexer->advance();
@@ -450,11 +451,11 @@ Model::Instruction Parser::instreseq(const std::vector<MiniMC::Model::Register_p
             .function = function,
             .params = value_list(variables)});
      }
-     case Token::INSTR_ExtractValue:
+     case Token::ExtractValue:
        return extract(variables, res);
-     case Token::INSTR_InsertValue:
+     case Token::InsertValue:
        return insert(variables, res);
-     case Token::INSTR_Load:
+     case Token::Load:
        return load(variables, res);
      case Token::LESS_THAN:
        return Model::createInstruction<Model::InstructionCode::Assign>(
@@ -485,34 +486,34 @@ Model::Instruction Parser::predicates(const std::vector<MiniMC::Model::Register_
     lexer->advance();
     Model::Value_ptr op2 = value(variables);
     switch (token) {
-    case Token::INSTR_PRED_ICMP_SGT:
+    case Token::PRED_ICMP_SGT:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGT>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_UGT:
+    case Token::PRED_ICMP_UGT:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGT>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_SGE:
+    case Token::PRED_ICMP_SGE:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGE>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_UGE:
+    case Token::PRED_ICMP_UGE:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGE>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_SLT:
+    case Token::PRED_ICMP_SLT:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLT>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_ULT:
+    case Token::PRED_ICMP_ULT:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULT>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_SLE:
+    case Token::PRED_ICMP_SLE:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLE>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_ULE:
+    case Token::PRED_ICMP_ULE:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULE>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_EQ:
+    case Token::PRED_ICMP_EQ:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_EQ>(
           {.op1 = op1, .op2 = op2});
-    case Token::INSTR_PRED_ICMP_NEQ:
+    case Token::PRED_ICMP_NEQ:
       return Model::createInstruction<Model::InstructionCode::PRED_ICMP_NEQ>(
           {.op1 = op1, .op2 = op2});
     default:
@@ -539,37 +540,37 @@ Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr>
     Model::Value_ptr op2 = value(variables);
 
     switch (token) {
-    case Token::INSTR_Add:
+    case Token::Add:
       return Model::createInstruction<Model::InstructionCode::Add>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_Sub:
+    case Token::Sub:
       return Model::createInstruction<Model::InstructionCode::Sub>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_Mul:
+    case Token::Mul:
       return Model::createInstruction<Model::InstructionCode::Mul>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_UDiv:
+    case Token::UDiv:
       return Model::createInstruction<Model::InstructionCode::UDiv>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_SDiv:
+    case Token::SDiv:
       return Model::createInstruction<Model::InstructionCode::SDiv>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_Shl:
+    case Token::Shl:
       return Model::createInstruction<Model::InstructionCode::Shl>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_LShr:
+    case Token::LShr:
       return Model::createInstruction<Model::InstructionCode::LShr>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_AShr:
+    case Token::AShr:
       return Model::createInstruction<Model::InstructionCode::AShr>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_And:
+    case Token::And:
       return Model::createInstruction<Model::InstructionCode::And>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_Or:
+    case Token::Or:
       return Model::createInstruction<Model::InstructionCode::Or>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_Xor:
+    case Token::Xor:
       return Model::createInstruction<Model::InstructionCode::Xor>(
           {.res = res, .op1 = op1, .op2 = op2});
     default:
@@ -595,34 +596,34 @@ Model::Instruction Parser::comparison(const std::vector<MiniMC::Model::Register_
     lexer->advance();
     Model::Value_ptr op2 = value(variables);
     switch (token) {
-    case Token::INSTR_ICMP_SGT:
+    case Token::ICMP_SGT:
       return Model::createInstruction<Model::InstructionCode::ICMP_SGT>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_UGT:
+    case Token::ICMP_UGT:
       return Model::createInstruction<Model::InstructionCode::ICMP_UGT>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_SGE:
+    case Token::ICMP_SGE:
       return Model::createInstruction<Model::InstructionCode::ICMP_SGE>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_UGE:
+    case Token::ICMP_UGE:
       return Model::createInstruction<Model::InstructionCode::ICMP_UGE>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_SLT:
+    case Token::ICMP_SLT:
       return Model::createInstruction<Model::InstructionCode::ICMP_SLT>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_ULT:
+    case Token::ICMP_ULT:
       return Model::createInstruction<Model::InstructionCode::ICMP_ULT>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_SLE:
+    case Token::ICMP_SLE:
       return Model::createInstruction<Model::InstructionCode::ICMP_SLE>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_ULE:
+    case Token::ICMP_ULE:
       return Model::createInstruction<Model::InstructionCode::ICMP_ULE>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_EQ:
+    case Token::ICMP_EQ:
       return Model::createInstruction<Model::InstructionCode::ICMP_EQ>(
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::INSTR_ICMP_NEQ:
+    case Token::ICMP_NEQ:
       return Model::createInstruction<Model::InstructionCode::ICMP_NEQ>(
           {.res = res, .op1 = op1, .op2 = op2});
     default:
@@ -648,31 +649,31 @@ Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr
     lexer->advance();
     Model::Value_ptr op1 = value(variables);
     switch (token) {
-    case Token::INSTR_Trunc:
+    case Token::Trunc:
       return Model::createInstruction<Model::InstructionCode::Trunc>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_ZExt:
+    case Token::ZExt:
       return Model::createInstruction<Model::InstructionCode::ZExt>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_SExt:
+    case Token::SExt:
       return Model::createInstruction<Model::InstructionCode::SExt>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_PtrToInt:
+    case Token::PtrToInt:
       return Model::createInstruction<Model::InstructionCode::PtrToInt>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_IntToPtr:
+    case Token::IntToPtr:
       return Model::createInstruction<Model::InstructionCode::IntToPtr>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_BitCast:
+    case Token::BitCast:
       return Model::createInstruction<Model::InstructionCode::BitCast>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_BoolZExt:
+    case Token::BoolZExt:
       return Model::createInstruction<Model::InstructionCode::BoolZExt>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_BoolSExt:
+    case Token::BoolSExt:
       return Model::createInstruction<Model::InstructionCode::BoolSExt>(
           {.res = res, .op1 = op1});
-    case Token::INSTR_IntToBool:
+    case Token::IntToBool:
       return Model::createInstruction<Model::InstructionCode::IntToBool>(
           {.res = res, .op1 = op1});
     default:
@@ -692,7 +693,7 @@ Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr
 
 Model::Instruction Parser::nondet(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
   try {
-    if (lexer->token() == Token::INSTR_NonDet) {
+    if (lexer->token() == Token::NonDet) {
       lexer->advance();
       Model::Type_ptr t = type();
       lexer->advance();
@@ -717,7 +718,7 @@ Model::Instruction Parser::nondet(const std::vector<MiniMC::Model::Register_ptr>
 
 Model::Instruction Parser::extract(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
   try {
-    if (lexer->token() == Token::INSTR_ExtractValue) {
+    if (lexer->token() == Token::ExtractValue) {
       lexer->advance();
       Model::Type_ptr t = type();
       lexer->advance();
@@ -743,7 +744,7 @@ Model::Instruction Parser::extract(const std::vector<MiniMC::Model::Register_ptr
 
 Model::Instruction Parser::insert(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
   try {
-    if (lexer->token() == Token::INSTR_InsertValue) {
+    if (lexer->token() == Token::InsertValue) {
       lexer->advance();
       Model::Type_ptr t = type();
       lexer->advance();
@@ -773,7 +774,7 @@ Model::Instruction Parser::insert(const std::vector<MiniMC::Model::Register_ptr>
 
 Model::Instruction Parser::load(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
   try {
-    if (lexer->token() == Token::INSTR_Load) {
+    if (lexer->token() == Token::Load) {
       lexer->advance();
       Model::Type_ptr t = type();
       lexer->advance();
@@ -798,28 +799,28 @@ Model::Instruction Parser::load(const std::vector<MiniMC::Model::Register_ptr> v
 
 Model::Type_ptr Parser::type(){
   switch(lexer->token()){
-  case Token::TYPE_Void:
+  case Token::Void:
     return tfac.makeVoidType();
-  case Token::TYPE_Bool:
+  case Token::Bool:
     return tfac.makeBoolType();
-  case Token::TYPE_I8:
+  case Token::Int8:
     return tfac.makeIntegerType(8);
-  case Token::TYPE_I16:
+  case Token::Int16:
     return tfac.makeIntegerType(16);
-  case Token::TYPE_I32:
+  case Token::Int32:
     return tfac.makeIntegerType(32);
-  case Token::TYPE_I64:
+  case Token::Int64:
     return tfac.makeIntegerType(64);
-  case Token::TYPE_Float:
+  case Token::Float:
     return tfac.makeFloatType();
-  case Token::TYPE_Double:
+  case Token::Double:
     return tfac.makeDoubleType();
-  case Token::TYPE_Pointer:
+  case Token::Pointer:
     return tfac.makePointerType();
-  case Token::TYPE_Struct:
+  case Token::Struct:
     lexer->advance();
     return tfac.makeStructType(integer());
-  case Token::TYPE_Array:
+  case Token::Array:
     lexer->advance();
     return tfac.makeArrayType(integer());
   default:
@@ -878,8 +879,8 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
             lexer->getLine(), lexer->getPos(), lexer->getValue(),
             "Expected a dollar-sign to enclose the list.");
     }
-    case Token::HEAP_POINTER:
-    case Token::FUNCTION_POINTER:
+    case Token::HEAP_Pointer:
+    case Token::FUNCTION_Pointer:
       token = lexer->token();
       lexer->advance();
       if (lexer->token() == Token::L_PARA) {
@@ -899,9 +900,9 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
           throw MMCParserException(
               lexer->getLine(), lexer->getPos(), lexer->getValue(),
               "Expected a greater than.");
-        if (token == Token::HEAP_POINTER)
+        if (token == Token::HEAP_Pointer)
           return cfac.makeHeapPointer(base);
-        if (token == Token::FUNCTION_POINTER)
+        if (token == Token::FUNCTION_Pointer)
           return cfac.makeFunctionPointer(base);
       }
       break;
