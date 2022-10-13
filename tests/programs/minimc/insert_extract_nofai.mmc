@@ -1,0 +1,64 @@
+# Functions
+## main
+  .registers
+    <main:main:__minimc.sp Pointer>
+    <main:main:tmp Aggr8>
+    <main:main:tmp1 Int32>
+    <main:main:tmp2 Bool>
+    <main:main:tmp3 Int8>
+    <main:main:BVar Bool>
+  .parameters
+    main:main:__minimc.sp
+  .returns
+    Void
+  .cfa
+    BB0  {main:bb}
+    [
+      <main:main:tmp Aggr8> = InsertValueInt32 < $01 00 00 00 01 00 00 00 $ Aggr8 > <0 Int32> <0x1 Int32>
+      <main:main:tmp1 Int32> = ExtractValueInt32 <main:main:tmp Aggr8> <0 Int32>
+      <main:main:tmp2 Bool> = ICMP_EQ <0x1 Int32> <main:main:tmp1 Int32>
+      <main:main:tmp3 Int8> = BoolSExt Int8 <main:main:tmp2 Bool>
+      <main:main:BVar Bool> = IntToBool Bool <main:main:tmp3 Int8>
+      ->BB2
+    ]
+    BB2  {main:bb}
+    [
+      ->BB5
+    ]
+    BB5  {main:Assert}
+    [
+      NegAssume <main:main:BVar Bool>
+      ->BB4
+      Assume <main:main:BVar Bool>
+      ->BB3
+    ]
+    BB3  {main:bb}
+    [
+      RetVoid
+      ->BB1
+    ]
+    BB1  {main:bb}
+    [
+    ]
+    BB4  {main:AssertViolation}
+    [
+    ]
+## __minimc__entry_main-1
+  .registers
+  .parameters
+  .returns
+    Void
+  .cfa
+    BB0  {main:init}
+    [
+      Call <F(0+0) Pointer> <H(0+0) Pointer> 
+      ->BB1
+    ]
+    BB1  {main:end}
+    [
+    ]
+# Entrypoints
+  __minimc__entry_main-1
+# Heap
+0 : 200
+# Initialiser

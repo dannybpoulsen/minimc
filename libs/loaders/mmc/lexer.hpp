@@ -109,6 +109,8 @@ enum class Token {
 class Lexer {
 public:
   Lexer(std::istream &is) : in{&is} {
+    line = 1;
+    pos = 0;
     advance();
   }
 
@@ -210,12 +212,17 @@ public:
       {"PRED_ICMP_NEQ", Token::INSTR_PRED_ICMP_NEQ}
   };
 
+  int getLine(){return line;}
+  int getPos(){return pos;}
 private:
   std::istream* in;
   Token cur_token;
   std::string buffer;
+  int line;
+  int pos;
 
   Token get_token();
+  char get_next_char();
 };
 
 } // namespace Loader

@@ -1,0 +1,5 @@
+command=mc
+inputfile@CMAKE_CURRENT_SOURCE_DIR@/main.mmc
+task= main
+inlinefunctions=1
+mc.expect=0

@@ -1,3 +1,0 @@
-fun main:
-    tmp: Pointer = __minimc.sp: Pointer
-    tmp: Pointer ptradd tmp: Pointer 0x28: Int32

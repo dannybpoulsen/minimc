@@ -1,7 +1,6 @@
 command=mc
-inputfile=@CMAKE_CURRENT_BINARY_DIR@/array.ll
+inputfile=@CMAKE_CURRENT_SOURCE_DIR@/array.mmc
 task=main
 inlinefunctions=2
 cpa=2
 mc.expect=0
-loader=1

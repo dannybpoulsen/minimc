@@ -1,6 +1,10 @@
 #include "parser.hpp"
 #include "model/cfg.hpp"
 #include "model/builder.hpp"
+#include "parserexception.hpp"
+
+#include "support/feedback.hpp"
+
 
 namespace MiniMC{
 namespace Loaders{
@@ -11,10 +15,21 @@ void Parser::ignore_eol() {
 
 void Parser::run() {
   lexer = new Lexer{*in};
-  functions();
-  entrypoints();
-  heap();
-  initialiser();
+  try {
+    functions();
+    entrypoints();
+    heap();
+    initialiser();
+  } catch (MMCParserException const& e) {
+    Support::Messager messager;
+
+        messager.message<MiniMC::Support::Severity::Error>(
+            Support::Localiser("\n%4% \n"
+                               "Pos: %1% \n"
+                               "Line: %2% \n"
+                               "With Token Value: '%3%' \n")
+            .format(e.getPos(), e.getLine(), e.getValue(), e.getMesg()));
+  }
   delete lexer;
 }
 
@@ -30,22 +45,27 @@ void Parser::functions() {
       return;
     }
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected a functions-title on the from '# Functions'");
 }
 
-void Parser::entrypoints(){
-  if(lexer->token() == Token::HASH_SIGN){
+void Parser::entrypoints() {
+  if (lexer->token() == Token::HASH_SIGN) {
     lexer->advance();
-    if(lexer->token() == Token::ENTRYPOINTS){
-      lexer->advance(); ignore_eol();
-      while(lexer->token() != Token::HASH_SIGN){
+    if (lexer->token() == Token::ENTRYPOINTS) {
+      lexer->advance();
+      ignore_eol();
+      while (lexer->token() != Token::HASH_SIGN) {
         prgm->addEntryPoint(identifier());
-        lexer->advance(); ignore_eol();
+        lexer->advance();
+        ignore_eol();
       }
       return;
     }
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected a entrypoints-title on the from '# Entrypoints'");
 }
 
 void Parser::heap() {
@@ -70,10 +90,11 @@ void Parser::heap() {
       }
     }
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected a heap-title on the form '# Heap'");
 }
 
-void Parser::initialiser(){
+void Parser::initialiser() {
   Model::InstructionStream instructionStream;
   std::vector<MiniMC::Model::Register_ptr> variables;
 
@@ -82,7 +103,7 @@ void Parser::initialiser(){
     if (lexer->token() == Token::INITIALISER) {
       lexer->advance();
       ignore_eol();
-      while(lexer->token() != Token::EOF_TOKEN){
+      while (lexer->token() != Token::EOF_TOKEN) {
         instruction(&instructionStream, variables);
         lexer->advance();
         ignore_eol();
@@ -91,7 +112,9 @@ void Parser::initialiser(){
       return;
     }
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected a initialiser-segment on the form '# Initialiser'");
 }
 void Parser::function() {
   std::vector<MiniMC::Model::Register_ptr> params;
@@ -110,7 +133,8 @@ void Parser::function() {
                       std::move(registerDescr), std::move(cfg));
     return;
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected a function-declaration beginning with '## {function-name}'");
 }
 
 Model::RegisterDescr_uptr Parser::registers(std::string name){
@@ -127,7 +151,8 @@ Model::RegisterDescr_uptr Parser::registers(std::string name){
     }
     return registerDescr;
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected a registers-declaration on the form: '.registers'");
 }
 
 void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs) {
@@ -147,7 +172,8 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
     }
     return;
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected a parameteres-declaration on the form: '.parameters'");
 }
 
 Model::Type_ptr Parser::returns(){
@@ -158,7 +184,8 @@ Model::Type_ptr Parser::returns(){
     ignore_eol();
     return t;
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected a returns-declaration on the form: '.returns'");
 }
 
 Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* regs) {
@@ -180,7 +207,8 @@ Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* reg
     cfg.setInitial(locmap.at("Initial"));
     return cfg;
   }
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected a cfa-declaration on the form: '.cfa'");
 }
 
 void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
@@ -218,430 +246,553 @@ void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Mo
     ignore_eol();
     return;
   }
-
-  throw;
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                           "Expected an edge on the form: \n"
+                           "[\n"
+                           "{INSTRUCTION1}\n"
+                           "{INSTRUCTION2}\n"
+                           "{...}\n"
+                           "]'");
 }
 
-Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc,MiniMC::Model::LocationInfoCreator locinfoc){
-  std::string index = identifier();
-  lexer->advance();
-  std::string name = identifier();
-  if (locmap->contains (index)) {
-    return locmap->at(index);
-  }
-  else {
+Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc,MiniMC::Model::LocationInfoCreator locinfoc) {
+  try {
+    std::string index = identifier();
+    lexer->advance();
+    std::string name = identifier();
 
-
-    auto location = cfg->makeLocation (locinfoc.make(name, 0, *source_loc));
-    if (locmap->size() == 0){
-      (*locmap)["Initial"] = location;
+    if (locmap->contains(index)) {
+      return locmap->at(index);
+    } else {
+      auto location = cfg->makeLocation(locinfoc.make(name, 0, *source_loc));
+      if (locmap->size() == 0) {
+        (*locmap)["Initial"] = location;
+      }
+      (*locmap)[index] = location;
+      return location;
     }
-    (*locmap)[index] = location;
-    return location;
+  } catch (MMCParserException const& e){
+    Support::Messager messager;
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a location, which is "
+        "on the form: {INDEX_NAME} {LOCATION_NAME}");
   }
-  throw;
 }
 
 void Parser::instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr> variables) {
-  switch (lexer->token()) {
-  case Token::INSTR_Skip:
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Skip>({}));
-    return;
-  case Token::INSTR_Uniform:
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Uniform>({}));
-    return;
-  case Token::INSTR_RetVoid:
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::RetVoid>({}));
-    return;
-  case Token::INSTR_Ret:
-    lexer->advance();
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Ret>(
-            {.value = value(variables)}));
-    return;
-  case Token::INSTR_PRED_ICMP_SGT:
-  case Token::INSTR_PRED_ICMP_UGT:
-  case Token::INSTR_PRED_ICMP_SGE:
-  case Token::INSTR_PRED_ICMP_UGE:
-  case Token::INSTR_PRED_ICMP_SLT:
-  case Token::INSTR_PRED_ICMP_ULT:
-  case Token::INSTR_PRED_ICMP_SLE:
-  case Token::INSTR_PRED_ICMP_ULE:
-  case Token::INSTR_PRED_ICMP_EQ:
-  case Token::INSTR_PRED_ICMP_NEQ:
-    instructionStream->addInstruction(predicates(variables));
-    return;
-  case Token::INSTR_Assert:
-    lexer->advance();
-    instructionStream->addInstruction(
-      Model::createInstruction<Model::InstructionCode::Assert>(
-          {.expr=value(variables)}
-          )
-      );
-    return;
-  case Token::INSTR_Assume:
-    lexer->advance();
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Assume>(
-            {.expr=value(variables)}
-            )
-        );
-    return;
-  case Token::INSTR_NegAssume:
-    lexer->advance();
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::NegAssume>(
-            {.expr=value(variables)}
-            )
-        );
-    return;
-  case Token::INSTR_Store: {
-    lexer->advance();
-    Model::Value_ptr addr = value(variables);
-    lexer->advance();
-    Model::Value_ptr storee = value(variables);
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Store>(
-            {.addr = addr, .storee = storee}));
-    return;
-  }
-  case Token::INSTR_Call: {
-    lexer->advance();
-    Model::Value_ptr function = value(variables);
-    lexer->advance();
-    instructionStream->addInstruction(
-        Model::createInstruction<Model::InstructionCode::Call>(
-            {.res = nullptr,
-             .function = function,
-             .params = value_list(variables)}));
-    return;
-  }
-  case Token::LESS_THAN:
-    instructionStream->addInstruction(
-        instruction1(variables)
-        );
-    return;
-  default:
-    throw;
+  try {
+    switch (lexer->token()) {
+    case Token::INSTR_Skip:
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Skip>({}));
+      return;
+    case Token::INSTR_Uniform:
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Uniform>({}));
+      return;
+    case Token::INSTR_RetVoid:
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::RetVoid>({}));
+      return;
+    case Token::INSTR_Ret:
+      lexer->advance();
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Ret>(
+              {.value = value(variables)}));
+      return;
+    case Token::INSTR_PRED_ICMP_SGT:
+    case Token::INSTR_PRED_ICMP_UGT:
+    case Token::INSTR_PRED_ICMP_SGE:
+    case Token::INSTR_PRED_ICMP_UGE:
+    case Token::INSTR_PRED_ICMP_SLT:
+    case Token::INSTR_PRED_ICMP_ULT:
+    case Token::INSTR_PRED_ICMP_SLE:
+    case Token::INSTR_PRED_ICMP_ULE:
+    case Token::INSTR_PRED_ICMP_EQ:
+    case Token::INSTR_PRED_ICMP_NEQ:
+      instructionStream->addInstruction(predicates(variables));
+      return;
+    case Token::INSTR_Assert:
+      lexer->advance();
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Assert>(
+              {.expr = value(variables)}));
+      return;
+    case Token::INSTR_Assume:
+      lexer->advance();
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Assume>(
+              {.expr = value(variables)}));
+      return;
+    case Token::INSTR_NegAssume:
+      lexer->advance();
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::NegAssume>(
+              {.expr = value(variables)}));
+      return;
+    case Token::INSTR_Store: {
+      lexer->advance();
+      Model::Value_ptr addr = value(variables);
+      lexer->advance();
+      Model::Value_ptr storee = value(variables);
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Store>(
+              {.addr = addr, .storee = storee}));
+      return;
+    }
+    case Token::INSTR_Call: {
+      lexer->advance();
+      Model::Value_ptr function = value(variables);
+      lexer->advance();
+      instructionStream->addInstruction(
+          Model::createInstruction<Model::InstructionCode::Call>(
+              {.res = nullptr,
+               .function = function,
+               .params = value_list(variables)}));
+      return;
+    }
+    case Token::LESS_THAN:
+      instructionStream->addInstruction(instrres(variables));
+      return;
+    default:
+      throw MMCParserException(
+          lexer->getLine(), lexer->getPos(),lexer->getValue(),
+          "The first token of the instruction is not recognised");
+    }
+  } catch (MMCParserException const& e) {
+    Support::Messager messager;
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "The parser doesn't recognise this instruction. The instruction "
+        "might not be supported. Otherwise you might want to check the "
+        "structure of the instruction again");
   }
 }
 
-Model::Instruction Parser::instruction1(const std::vector<MiniMC::Model::Register_ptr> variables){
-  if(lexer->token() == Token::LESS_THAN){
+Model::Instruction Parser::instrres(const std::vector<MiniMC::Model::Register_ptr> variables) {
+  if (lexer->token() == Token::LESS_THAN) {
     Model::Value_ptr res = value(variables);
     lexer->advance();
-    if (lexer->token() == Token::INSTR_PtrAdd){
+    if (lexer->token() == Token::INSTR_PtrAdd) {
       lexer->advance();
       Model::Value_ptr ptr = value(variables);
       lexer->advance();
       Model::Value_ptr skipsize = value(variables);
       lexer->advance();
       Model::Value_ptr nbSkips = value(variables);
-      return Model::createInstruction<Model::InstructionCode::PtrAdd>({
-        .res=res,
-        .ptr=ptr,
-        .skipsize=skipsize,
-        .nbSkips=nbSkips
-      });
-    } else if (lexer->token() == Token::EQUAL_SIGN){
-      return instruction2(variables, res);
+      return Model::createInstruction<Model::InstructionCode::PtrAdd>(
+          {.res = res, .ptr = ptr, .skipsize = skipsize, .nbSkips = nbSkips});
+    } else if (lexer->token() == Token::EQUAL_SIGN) {
+      return instreseq(variables, res);
     }
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "The 2nd or 3rd token of the instruction is not recognised. "
+      "It is either a variable or 'PtrAdd' followed by '='");
 }
 
-Model::Instruction Parser::instruction2(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
-  if (lexer->token() == Token::EQUAL_SIGN) {
-    lexer->advance();
-    switch (lexer->token()) {
-    case Token::INSTR_Add:
-    case Token::INSTR_Sub:
-    case Token::INSTR_Mul:
-    case Token::INSTR_UDiv:
-    case Token::INSTR_SDiv:
-    case Token::INSTR_Shl:
-    case Token::INSTR_LShr:
-    case Token::INSTR_AShr:
-    case Token::INSTR_And:
-    case Token::INSTR_Or:
-    case Token::INSTR_Xor:
-      return tacops(variables,res);
-    case Token::INSTR_ICMP_SGT:
-    case Token::INSTR_ICMP_UGT:
-    case Token::INSTR_ICMP_SGE:
-    case Token::INSTR_ICMP_UGE:
-    case Token::INSTR_ICMP_SLT:
-    case Token::INSTR_ICMP_ULT:
-    case Token::INSTR_ICMP_SLE:
-    case Token::INSTR_ICMP_ULE:
-    case Token::INSTR_ICMP_EQ:
-      return comparison(variables,res);
-    case Token::INSTR_ICMP_NEQ:case Token::INSTR_Not:
-      lexer->advance();
-      return Model::createInstruction<Model::InstructionCode::Not>(
-          {.res = res, .op1 = value(variables)});
-    case Token::INSTR_Trunc:
-    case Token::INSTR_ZExt:
-    case Token::INSTR_SExt:
-    case Token::INSTR_PtrToInt:
-    case Token::INSTR_IntToPtr:
-    case Token::INSTR_BitCast:
-    case Token::INSTR_BoolZExt:
-    case Token::INSTR_BoolSExt:
-    case Token::INSTR_IntToBool:
-      return castops(variables,res);
-    case Token::INSTR_NonDet:
-      return nondet(variables,res);
-    case Token::INSTR_Call: {
-      lexer->advance();
-      Model::Value_ptr function = value(variables);
-      lexer->advance();
-      return Model::createInstruction<Model::InstructionCode::Call>(
-          {.res = res, .function = function, .params=value_list(variables)});
-    }
-    case Token::INSTR_ExtractValue:
-      return extract(variables,res);
-    case Token::INSTR_InsertValue:
-      return insert(variables,res);
-    case Token::INSTR_Load:
-      return load(variables,res);
-    case Token::LESS_THAN:
-      return Model::createInstruction<Model::InstructionCode::Assign>(
-          {.res = res, .op1=value(variables)}
-          );
-    default:
-      throw;
-    }
-  }
-  throw;
+Model::Instruction Parser::instreseq(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
+ try {
+   if (lexer->token() == Token::EQUAL_SIGN) {
+     lexer->advance();
+     switch (lexer->token()) {
+     case Token::INSTR_Add:
+     case Token::INSTR_Sub:
+     case Token::INSTR_Mul:
+     case Token::INSTR_UDiv:
+     case Token::INSTR_SDiv:
+     case Token::INSTR_Shl:
+     case Token::INSTR_LShr:
+     case Token::INSTR_AShr:
+     case Token::INSTR_And:
+     case Token::INSTR_Or:
+     case Token::INSTR_Xor:
+       return tacops(variables, res);
+     case Token::INSTR_ICMP_SGT:
+     case Token::INSTR_ICMP_UGT:
+     case Token::INSTR_ICMP_SGE:
+     case Token::INSTR_ICMP_UGE:
+     case Token::INSTR_ICMP_SLT:
+     case Token::INSTR_ICMP_ULT:
+     case Token::INSTR_ICMP_SLE:
+     case Token::INSTR_ICMP_ULE:
+     case Token::INSTR_ICMP_EQ:
+       return comparison(variables, res);
+     case Token::INSTR_ICMP_NEQ:
+     case Token::INSTR_Not:
+       lexer->advance();
+       return Model::createInstruction<Model::InstructionCode::Not>(
+           {.res = res, .op1 = value(variables)});
+     case Token::INSTR_Trunc:
+     case Token::INSTR_ZExt:
+     case Token::INSTR_SExt:
+     case Token::INSTR_PtrToInt:
+     case Token::INSTR_IntToPtr:
+     case Token::INSTR_BitCast:
+     case Token::INSTR_BoolZExt:
+     case Token::INSTR_BoolSExt:
+     case Token::INSTR_IntToBool:
+       return castops(variables, res);
+     case Token::INSTR_NonDet:
+       return nondet(variables, res);
+     case Token::INSTR_Call: {
+       lexer->advance();
+       Model::Value_ptr function = value(variables);
+       lexer->advance();
+       return Model::createInstruction<Model::InstructionCode::Call>(
+           {.res = res,
+            .function = function,
+            .params = value_list(variables)});
+     }
+     case Token::INSTR_ExtractValue:
+       return extract(variables, res);
+     case Token::INSTR_InsertValue:
+       return insert(variables, res);
+     case Token::INSTR_Load:
+       return load(variables, res);
+     case Token::LESS_THAN:
+       return Model::createInstruction<Model::InstructionCode::Assign>(
+           {.res = res, .op1 = value(variables)});
+     default:
+       throw MMCParserException(
+           lexer->getLine(), lexer->getPos(), lexer->getValue(),
+           "The token does not match any know/supported instruction.");
+     }
+   }
+ } catch (MMCParserException const& e){
+   Support::Messager messager;
 
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "The 3rd< token of the instruction is not recognised.");
+ }
 }
 
 
 Model::Instruction Parser::predicates(const std::vector<MiniMC::Model::Register_ptr> variables) {
-  Token token = lexer->token();
-  lexer->advance();
-  Model::Value_ptr op1 = value(variables);
-  lexer->advance();
-  Model::Value_ptr op2 = value(variables);
+  try {
+    Token token = lexer->token();
+    lexer->advance();
+    Model::Value_ptr op1 = value(variables);
+    lexer->advance();
+    Model::Value_ptr op2 = value(variables);
+    switch (token) {
+    case Token::INSTR_PRED_ICMP_SGT:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGT>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_UGT:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGT>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_SGE:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGE>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_UGE:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGE>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_SLT:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLT>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_ULT:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULT>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_SLE:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLE>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_ULE:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULE>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_EQ:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_EQ>(
+          {.op1 = op1, .op2 = op2});
+    case Token::INSTR_PRED_ICMP_NEQ:
+      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_NEQ>(
+          {.op1 = op1, .op2 = op2});
+    default:
+      __builtin_unreachable();
+    }
+  } catch (MMCParserException const& e){
+    Support::Messager messager;
 
-  switch (token) {
-  case Token::INSTR_PRED_ICMP_SGT:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGT>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_UGT:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGT>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_SGE:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGE>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_UGE:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGE>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_SLT:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLT>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_ULT:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULT>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_SLE:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLE>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_ULE:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULE>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_EQ:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_EQ>({.op1=op1, .op2=op2});
-  case Token::INSTR_PRED_ICMP_NEQ:
-    return Model::createInstruction<Model::InstructionCode::PRED_ICMP_NEQ>({.op1=op1, .op2=op2});
-  default:
-    throw;
-
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a predicate instruction on the form: "
+        "{PRED_INSTRUCTION} {OP1} {OP2}");
   }
 }
 
 Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res){
-  Token token = lexer->token();
-  lexer->advance();
-  Model::Value_ptr op1 = value(variables);
-  lexer->advance();
-  Model::Value_ptr op2 = value(variables);
+  try {
+    Token token = lexer->token();
+    lexer->advance();
+    Model::Value_ptr op1 = value(variables);
+    lexer->advance();
+    Model::Value_ptr op2 = value(variables);
 
-  switch (token) {
-  case Token::INSTR_Add:
-    return Model::createInstruction<Model::InstructionCode::Add>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_Sub:
-    return Model::createInstruction<Model::InstructionCode::Sub>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_Mul:
-    return Model::createInstruction<Model::InstructionCode::Mul>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_UDiv:
-    return Model::createInstruction<Model::InstructionCode::UDiv>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_SDiv:
-    return Model::createInstruction<Model::InstructionCode::SDiv>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_Shl:
-    return Model::createInstruction<Model::InstructionCode::Shl>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_LShr:
-    return Model::createInstruction<Model::InstructionCode::LShr>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_AShr:
-    return Model::createInstruction<Model::InstructionCode::AShr>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_And:
-    return Model::createInstruction<Model::InstructionCode::And>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_Or:
-    return Model::createInstruction<Model::InstructionCode::Or>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_Xor:
-    return Model::createInstruction<Model::InstructionCode::Xor>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  default:
-    throw;
+    switch (token) {
+    case Token::INSTR_Add:
+      return Model::createInstruction<Model::InstructionCode::Add>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_Sub:
+      return Model::createInstruction<Model::InstructionCode::Sub>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_Mul:
+      return Model::createInstruction<Model::InstructionCode::Mul>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_UDiv:
+      return Model::createInstruction<Model::InstructionCode::UDiv>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_SDiv:
+      return Model::createInstruction<Model::InstructionCode::SDiv>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_Shl:
+      return Model::createInstruction<Model::InstructionCode::Shl>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_LShr:
+      return Model::createInstruction<Model::InstructionCode::LShr>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_AShr:
+      return Model::createInstruction<Model::InstructionCode::AShr>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_And:
+      return Model::createInstruction<Model::InstructionCode::And>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_Or:
+      return Model::createInstruction<Model::InstructionCode::Or>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_Xor:
+      return Model::createInstruction<Model::InstructionCode::Xor>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    default:
+      __builtin_unreachable();
+    }
+  } catch (MMCParserException const& e){
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a TAC-instruction expression on the form: "
+        "{RES} = {INSTRUCTION} {OP1} {OP2}");
   }
 }
 
 Model::Instruction Parser::comparison(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res) {
-  Token token = lexer->token();
-  lexer->advance();
-  Model::Value_ptr op1 = value(variables);
-  lexer->advance();
-  Model::Value_ptr op2 = value(variables);
-  switch (token) {
-  case Token::INSTR_ICMP_SGT:
-    return Model::createInstruction<Model::InstructionCode::ICMP_SGT>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_UGT:
-    return Model::createInstruction<Model::InstructionCode::ICMP_UGT>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_SGE:
-    return Model::createInstruction<Model::InstructionCode::ICMP_SGE>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_UGE:
-    return Model::createInstruction<Model::InstructionCode::ICMP_UGE>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_SLT:
-    return Model::createInstruction<Model::InstructionCode::ICMP_SLT>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_ULT:
-    return Model::createInstruction<Model::InstructionCode::ICMP_ULT>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_SLE:
-    return Model::createInstruction<Model::InstructionCode::ICMP_SLE>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_ULE:
-    return Model::createInstruction<Model::InstructionCode::ICMP_ULE>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_EQ:
-    return Model::createInstruction<Model::InstructionCode::ICMP_EQ>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  case Token::INSTR_ICMP_NEQ:
-    return Model::createInstruction<Model::InstructionCode::ICMP_NEQ>(
-        {.res = res, .op1 = op1, .op2 = op2});
-  default:
-    throw;
+  try {
+    Token token = lexer->token();
+    lexer->advance();
+    Model::Value_ptr op1 = value(variables);
+    lexer->advance();
+    Model::Value_ptr op2 = value(variables);
+    switch (token) {
+    case Token::INSTR_ICMP_SGT:
+      return Model::createInstruction<Model::InstructionCode::ICMP_SGT>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_UGT:
+      return Model::createInstruction<Model::InstructionCode::ICMP_UGT>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_SGE:
+      return Model::createInstruction<Model::InstructionCode::ICMP_SGE>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_UGE:
+      return Model::createInstruction<Model::InstructionCode::ICMP_UGE>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_SLT:
+      return Model::createInstruction<Model::InstructionCode::ICMP_SLT>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_ULT:
+      return Model::createInstruction<Model::InstructionCode::ICMP_ULT>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_SLE:
+      return Model::createInstruction<Model::InstructionCode::ICMP_SLE>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_ULE:
+      return Model::createInstruction<Model::InstructionCode::ICMP_ULE>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_EQ:
+      return Model::createInstruction<Model::InstructionCode::ICMP_EQ>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    case Token::INSTR_ICMP_NEQ:
+      return Model::createInstruction<Model::InstructionCode::ICMP_NEQ>(
+          {.res = res, .op1 = op1, .op2 = op2});
+    default:
+      __builtin_unreachable();
+    }
+  } catch (MMCParserException const& e){
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a comparison instruction on the form: "
+        "{RES} = {INSTRUCTION} {OP1} {OP2}");
   }
 }
 
 Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr> variables, Model::Value_ptr res) {
-  Token token = lexer->token();
-  lexer->advance();
-  Model::Type_ptr t = type();
-  if(true){
+  try {
+    Token token = lexer->token();
+    lexer->advance();
+    Model::Type_ptr t = type();
     lexer->advance();
     Model::Value_ptr op1 = value(variables);
-    switch(token){
+    switch (token) {
     case Token::INSTR_Trunc:
       return Model::createInstruction<Model::InstructionCode::Trunc>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_ZExt:
       return Model::createInstruction<Model::InstructionCode::ZExt>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_SExt:
       return Model::createInstruction<Model::InstructionCode::SExt>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_PtrToInt:
       return Model::createInstruction<Model::InstructionCode::PtrToInt>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_IntToPtr:
       return Model::createInstruction<Model::InstructionCode::IntToPtr>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_BitCast:
       return Model::createInstruction<Model::InstructionCode::BitCast>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_BoolZExt:
       return Model::createInstruction<Model::InstructionCode::BoolZExt>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_BoolSExt:
       return Model::createInstruction<Model::InstructionCode::BoolSExt>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     case Token::INSTR_IntToBool:
       return Model::createInstruction<Model::InstructionCode::IntToBool>(
-          {.res=res, .op1=op1});
+          {.res = res, .op1 = op1});
     default:
-      throw;
-
+      __builtin_unreachable();
     }
+  } catch (MMCParserException const& e) {
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                             lexer->getValue(),
+                             "Expected a comparison instruction on the form: "
+                             "{RES} = {INSTRUCTION} {TYPE} {OP1}");
   }
-  throw;
 }
 
 Model::Instruction Parser::nondet(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
-  if(lexer->token() == Token::INSTR_NonDet){
-    lexer->advance();
-    Model::Type_ptr t = type();
-    lexer->advance();
-    Model::Value_ptr min = value(variables);
-    lexer->advance();
-    Model::Value_ptr max = value(variables);
-    return Model::createInstruction<Model::InstructionCode::NonDet>(
-        {.res=res, .min=min, .max=max}
-        );
+  try {
+    if (lexer->token() == Token::INSTR_NonDet) {
+      lexer->advance();
+      Model::Type_ptr t = type();
+      lexer->advance();
+      Model::Value_ptr min = value(variables);
+      lexer->advance();
+      Model::Value_ptr max = value(variables);
+      return Model::createInstruction<Model::InstructionCode::NonDet>(
+          {.res = res, .min = min, .max = max});
+    }
+    __builtin_unreachable();
+  } catch(MMCParserException const& e) {
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                             lexer->getValue(),
+                             "Expected a NonDet instruction on the form: "
+                             "{RES} = {INSTRUCTION} {TYPE} {MIN} {MAX}");
   }
-  throw;
 }
 
 Model::Instruction Parser::extract(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
-  if(lexer->token() == Token::INSTR_ExtractValue){
-    lexer->advance();
-    Model::Type_ptr t = type();
-    lexer->advance();
-    Model::Value_ptr aggregate = value(variables);
-    lexer->advance();
-    Model::Value_ptr offset = value(variables);
-    return Model::createInstruction<Model::InstructionCode::ExtractValue>(
-        {.res=res,.aggregate=aggregate, .offset=offset});
+  try {
+    if (lexer->token() == Token::INSTR_ExtractValue) {
+      lexer->advance();
+      Model::Type_ptr t = type();
+      lexer->advance();
+      Model::Value_ptr aggregate = value(variables);
+      lexer->advance();
+      Model::Value_ptr offset = value(variables);
+      return Model::createInstruction<Model::InstructionCode::ExtractValue>(
+          {.res = res, .aggregate = aggregate, .offset = offset});
+    }
+    __builtin_unreachable();
+  }  catch(MMCParserException const& e) {
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(),lexer->getValue(),
+      "Expected a ExtractValue instruction on the form: "
+      "{RES} = ExtractValue {TYPE} {AGGREGATE} {OFFSET}");
 
 }
 
 Model::Instruction Parser::insert(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
-  if(lexer->token() == Token::INSTR_InsertValue){
-    lexer->advance();
-    Model::Type_ptr t = type();
-    lexer->advance();
-    Model::Value_ptr aggregate = value(variables);
-    lexer->advance();
-    Model::Value_ptr offset = value(variables);
-    lexer->advance();
-    Model::Value_ptr insertee = value(variables);
-    return Model::createInstruction<Model::InstructionCode::InsertValue>(
-        {.res=res,.aggregate=aggregate,.offset=offset,.insertee=insertee});
+  try {
+    if (lexer->token() == Token::INSTR_InsertValue) {
+      lexer->advance();
+      Model::Type_ptr t = type();
+      lexer->advance();
+      Model::Value_ptr aggregate = value(variables);
+      lexer->advance();
+      Model::Value_ptr offset = value(variables);
+      lexer->advance();
+      Model::Value_ptr insertee = value(variables);
+      return Model::createInstruction<Model::InstructionCode::InsertValue>(
+          {.res = res,
+           .aggregate = aggregate,
+           .offset = offset,
+           .insertee = insertee});
+    }
+    __builtin_unreachable();
+  }  catch(MMCParserException const& e) {
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a InsertValue instruction on the form: "
+        "{RES} = InsertValue {TYPE} {AGGREGATE} {OFFSET} {INSERTEE}");
   }
-  throw;
 }
 
 Model::Instruction Parser::load(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res){
-  if(lexer->token() == Token::INSTR_Load){
-    lexer->advance();
-    Model::Type_ptr t = type();
-    lexer->advance();
-    Model::Value_ptr addr = value(variables);
-    return Model::createInstruction<Model::InstructionCode::Load>(
-        {.res=res, .addr=addr});
+  try {
+    if (lexer->token() == Token::INSTR_Load) {
+      lexer->advance();
+      Model::Type_ptr t = type();
+      lexer->advance();
+      Model::Value_ptr addr = value(variables);
+      return Model::createInstruction<Model::InstructionCode::Load>(
+          {.res = res, .addr = addr});
+    }
+    __builtin_unreachable();
+  } catch (MMCParserException const& e){
+
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a InsertValue instruction on the form: "
+        "{RES} = Load {TYPE} {ADDRESS}");
   }
-  throw;
 }
 
 
@@ -672,7 +823,9 @@ Model::Type_ptr Parser::type(){
     lexer->advance();
     return tfac.makeArrayType(integer());
   default:
-    throw;
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a type.");
   }
 }
 
@@ -701,15 +854,17 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       Model::Type_ptr t = type();
       lexer->advance();
       if (lexer->token() != Token::GREATER_THAN)
-        throw;
+        throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(), "");
       std::for_each(
-          variables.begin(), variables.end(), [&ret, &t, &var](auto rptr) {
+          variables.begin(), variables.end(), [&ret, &t, &var ,this](auto rptr) {
             if (rptr->getName() == rptr->getOwner()->getPref() + ":" + var &&
                 t->getTypeID() == rptr->getType()->getTypeID()) {
               if (!ret) {
                 ret = rptr;
               } else
-                throw;
+                throw MMCParserException(
+                    lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                    "The identifier describes a NULL-pointer");
             }
           });
       return ret;
@@ -719,7 +874,9 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       blob = integer_list();
       lexer->advance();
       if (lexer->token() != Token::DOLLAR_SIGN)
-        throw;
+        throw MMCParserException(
+            lexer->getLine(), lexer->getPos(), lexer->getValue(),
+            "Expected a dollar-sign to enclose the list.");
     }
     case Token::HEAP_POINTER:
     case Token::FUNCTION_POINTER:
@@ -732,12 +889,16 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
         int offset = integer();
         lexer->advance();
         if (lexer->token() != Token::R_PARA)
-          throw;
+          throw MMCParserException(
+              lexer->getLine(),lexer->getPos(), lexer->getValue(),
+              "Expected a right parenthesis.");
         lexer->advance();
         type();
         lexer->advance();
         if (lexer->token() != Token::GREATER_THAN)
-          throw;
+          throw MMCParserException(
+              lexer->getLine(), lexer->getPos(), lexer->getValue(),
+              "Expected a greater than.");
         if (token == Token::HEAP_POINTER)
           return cfac.makeHeapPointer(base);
         if (token == Token::FUNCTION_POINTER)
@@ -749,13 +910,18 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       value = integer();
       break;
     default:
-      throw;
+      throw MMCParserException(
+          lexer->getLine(), lexer->getPos(), lexer->getValue(),
+          "The token is not recognised as a part of a value. This might be a "
+          "result to using a keyword as identifier.");
     }
     lexer->advance();
     Model::Type_ptr t = type();
     lexer->advance();
     if (lexer->token() != Token::GREATER_THAN)
-      throw;
+      throw MMCParserException(
+          lexer->getLine(), lexer->getPos(), lexer->getValue(),
+          "Expected a greater than.");
     switch (t->getTypeID()) {
     case Model::TypeID::Bool:
     case Model::TypeID::I8:
@@ -768,31 +934,49 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
     case Model::TypeID::Array:
       return cfac.makeAggregateConstant(blob, true);
     default:
-      throw;
+      throw MMCParserException(
+          lexer->getLine(), lexer->getPos(), lexer->getValue(),
+          "The type is not supported in the Parser right now");
     }
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(),lexer->getPos(), lexer->getValue(),
+      "Expected a value, which always starts with a less than.");
 }
 
 Model::Register Parser::variable(){
-  if(lexer->token() == Token::LESS_THAN){
-    lexer->advance();
-    Model::Register var =  Model::Register(identifier(), nullptr);
-    lexer->advance();
-    var.setType(type());
-    lexer->advance();
-    if(lexer->token() == Token::GREATER_THAN) {
-      return var;
+  try {
+    if (lexer->token() == Token::LESS_THAN) {
+      lexer->advance();
+      Model::Register var = Model::Register(identifier(), nullptr);
+      lexer->advance();
+      var.setType(type());
+      lexer->advance();
+      if (lexer->token() == Token::GREATER_THAN) {
+        return var;
+      }
     }
+  } catch (MMCParserException const& e){
+
+    Support::Messager messager;
+
+    messager.message<MiniMC::Support::Severity::Error>(
+        Support::Localiser("\n%1% \n").format(e.getMesg()));
+    throw MMCParserException(
+        lexer->getLine(), lexer->getPos(), lexer->getValue(),
+        "Expected a variable. A variable is of the form: "
+        "<{IDENTIFIER} {TYPE}>");
   }
-  throw;
 }
 
 std::string Parser::identifier() {
   if(lexer->token() == Token::IDENTIFIER){
     return lexer->getValue();
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected a identifier. This can be caused of using a keyword as "
+      "identifier which is not allowed in MiniMC.");
 }
 
 int Parser::integer(){
@@ -803,7 +987,9 @@ int Parser::integer(){
   } else if(lexer->token() == Token::HEX){
     return std::stoi(value, 0,16);
   }
-  throw;
+  throw MMCParserException(
+      lexer->getLine(), lexer->getPos(), lexer->getValue(),
+      "Expected either a Hex(16) or Decimal(10) value.");
 }
 
 std::vector<Model::Constant_ptr> Parser::integer_list(){

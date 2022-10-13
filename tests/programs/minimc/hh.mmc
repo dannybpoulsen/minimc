@@ -1,0 +1,140 @@
+# Functions
+## check
+  .registers
+    <check:check:__minimc.sp Pointer>
+    <check:check:arg Int8>
+    <check:check:tmp3 Int32>
+    <check:check:tmp4 Bool>
+    <check:check:BVar Bool>
+  .parameters
+    check:check:__minimc.sp
+    check:check:arg
+  .returns
+    Void
+  .cfa
+    BB0  {check:bb}
+    [
+      <check:check:tmp3 Int32> = SExt Int32 <check:check:arg Int8>
+      <check:check:tmp4 Bool> = ICMP_SGT <check:check:tmp3 Int32> <0x64 Int32>
+      ->BB1
+    ]
+    BB1  {check:bb}
+    [
+      ->BB4
+      ->BB8
+    ]
+    BB8  {check:bb}
+    [
+      NegAssume <check:check:tmp4 Bool>
+      ->BB9
+    ]
+    BB9  {check:bb}
+    [
+      ->BB7
+    ]
+    BB7  {check:bb}
+    [
+      ->BB6
+    ]
+    BB6  {check:bb9}
+    [
+      RetVoid
+      ->BB10
+    ]
+    BB10  {check:bb9}
+    [
+    ]
+    BB4  {check:bb}
+    [
+      Assume <check:check:tmp4 Bool>
+      ->BB5
+    ]
+    BB5  {check:bb}
+    [
+      ->BB3
+    ]
+    BB3  {check:bb}
+    [
+      ->BB2
+    ]
+    BB2  {check:bb6}
+    [
+      <check:check:BVar Bool> = IntToBool Bool <0 Int8>
+      ->BB12
+    ]
+    BB12  {check:bb6}
+    [
+      ->BB15
+    ]
+    BB15  {check:Assert}
+    [
+      NegAssume <check:check:BVar Bool>
+      ->BB14
+      Assume <check:check:BVar Bool>
+      ->BB13
+    ]
+    BB13  {check:bb6}
+    [
+      ->BB11
+    ]
+    BB11  {check:bb6}
+    [
+      ->BB6
+    ]
+    BB14  {check:AssertViolation}
+    [
+    ]
+## main
+  .registers
+    <main:main:__minimc.sp Pointer>
+    <main:main:tmp1 Int8>
+  .parameters
+    main:main:__minimc.sp
+  .returns
+    Void
+  .cfa
+    BB0  {main:bb}
+    [
+      ->BB2
+    ]
+    BB2  {main:bb}
+    [
+      <main:main:tmp1 Int8> = NonDet Int8 <0 Int8> <0xff Int8>
+      ->BB3
+    ]
+    BB3  {main:bb}
+    [
+      ->BB4
+    ]
+    BB4  {main:bb}
+    [
+      Call <F(0+0) Pointer> <main:main:__minimc.sp Pointer> <main:main:tmp1 Int8> 
+      ->BB5
+    ]
+    BB5  {main:bb}
+    [
+      RetVoid
+      ->BB1
+    ]
+    BB1  {main:bb}
+    [
+    ]
+## __minimc__entry_main-1
+  .registers
+  .parameters
+  .returns
+    Void
+  .cfa
+    BB0  {main:init}
+    [
+      Call <F(1+0) Pointer> <H(0+0) Pointer> 
+      ->BB1
+    ]
+    BB1  {main:end}
+    [
+    ]
+# Entrypoints
+  __minimc__entry_main-1
+# Heap
+0 : 200
+# Initialiser
