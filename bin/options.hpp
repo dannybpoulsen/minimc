@@ -22,11 +22,15 @@ struct load_options{
   MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
 };
 
-
+struct transform_options {
+  bool expand_nondet{false};
+};
 
 struct SetupOptions {
   SMTOption smt;
   load_options load;
+  transform_options transform;
+  
   
   MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
   CommandRegistrar* command = nullptr;

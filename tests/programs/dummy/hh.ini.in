@@ -4,3 +4,4 @@ task= main
 inlinefunctions=1
 cpa=2
 mc.expect=1
+transform.expand_nondet=1 
