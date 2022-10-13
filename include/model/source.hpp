@@ -31,9 +31,9 @@ namespace MiniMC {
     };
 
     struct LocationInfo {
-      explicit LocationInfo(const std::string& name, AttrType flags, const SourceInfo& info, const MiniMC::Model::RegisterDescr* registers) : name(name), flags(flags), source(info.shared_from_this()),active_registers(registers) {}
+      explicit LocationInfo(const Symbol& name, AttrType flags, const SourceInfo& info, const MiniMC::Model::RegisterDescr* registers) : name(name), flags(flags), source(info.shared_from_this()),active_registers(registers) {}
 
-      const std::string& getName() const { return name; }
+      const std::string getName() const { return name.getFullName(); }
       const RegisterDescr& getRegisters () const {return *active_registers;}
       /** 
 	   * Check  if this location has Attributes \p i set 
@@ -65,7 +65,7 @@ k	   */
       }
 
       bool isFlagSet(AttrType t) { return flags & t; }
-      std::string name;
+      Symbol name;
       AttrType flags;
       SourceInfo_ptr source;
       const MiniMC::Model::RegisterDescr* active_registers;
@@ -76,19 +76,19 @@ k	   */
     }
 
     struct LocationInfoCreator {
-      LocationInfoCreator(const std::string prefix, const MiniMC::Model::RegisterDescr* regs) : pref(prefix),registers(regs) {}
+      LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr* regs) : pref(std::move(prefix)),registers(regs) {}
       
       LocationInfo make(const std::string& name, AttrType type, const SourceInfo& info) {
-        return LocationInfo(pref + ":" + name, type, info,registers);
+        return LocationInfo(Symbol{pref,name}, type, info,registers);
       }
 
       LocationInfo make(const LocationInfo& loc) {
 	
-        return LocationInfo(pref + ":" + loc.name, loc.flags, *loc.source,loc.active_registers);
+        return LocationInfo(Symbol{pref,loc.name.getName ()}, loc.flags, *loc.source,loc.active_registers);
       }
 
     private:
-      const std::string pref;
+      const Symbol pref;
       const MiniMC::Model::RegisterDescr* registers;
     };
 

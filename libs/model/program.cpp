@@ -13,7 +13,7 @@ namespace MiniMC {
       auto copyVariables ( const MiniMC::Model::RegisterDescr& vars) {
 	MiniMC::Model::RegisterDescr_uptr stack= std::make_unique<MiniMC::Model::RegisterDescr> (vars.getPref());
 	for (auto& v : vars.getRegisters ())
-	  stack->addRegister (v->getName(),v->getType ());
+	  stack->addRegister (v->getSymbol().getName (),v->getType ());
 	return stack;
       }
 
@@ -73,7 +73,7 @@ namespace MiniMC {
 		       );
 	auto cfa = copyCFA (function->getCFA (),*varstack);
 	auto retType  = function->getReturnType ();
-	return program.addFunction (function->getName (),
+	return program.addFunction (function->getName ().getName(),
 				    parameters,
 				    retType,
 				    std::move(varstack),

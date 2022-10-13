@@ -35,7 +35,7 @@ namespace MiniMC {
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
-        copyCFG(cfunc->getCFA(), valmap, func->getCFA(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
           if (ne->getInstructions ()) {
