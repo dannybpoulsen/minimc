@@ -38,8 +38,8 @@ private:
   void edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfa, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap);
   Model::Location_ptr location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc, MiniMC::Model::LocationInfoCreator locinfoc);
   void instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr> variables);
-  Model::Instruction instruction1(const std::vector<MiniMC::Model::Register_ptr> variables);
-  Model::Instruction instruction2(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
+  Model::Instruction instrres(const std::vector<MiniMC::Model::Register_ptr> variables);
+  Model::Instruction instreseq(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
   Model::Instruction predicates(const std::vector<MiniMC::Model::Register_ptr> variables);
   Model::Instruction tacops(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);
   Model::Instruction comparison(const std::vector<MiniMC::Model::Register_ptr> variables,Model::Value_ptr res);

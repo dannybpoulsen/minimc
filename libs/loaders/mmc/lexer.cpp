@@ -5,14 +5,14 @@ namespace Loaders {
 Token Lexer::get_token() {
   buffer.clear();
 
-  while(char c = in->get()) {
+  while(char c = get_next_char()) {
     if(c == EOF)
       return Token::EOF_TOKEN;
 
     while (isspace(c)) {
       if (c == '\n')
         return Token::EOL_TOKEN;
-      c = in->get();
+      c = get_next_char();
     }
 
     if (isprint(c)) {
@@ -35,53 +35,60 @@ Token Lexer::get_token() {
         return Token::GREATER_THAN;
 
       if (c == '-' && in->peek() == '>') {
-        c = in->get();
-        c = in->get();
+        c = get_next_char();
+        c = get_next_char();
         while (isalnum(c)) {
           buffer += c;
-          c = in->get();
+          c = get_next_char();
         }
         return Token::R_ARROW;
       }
 
       if (c == '0' && in->peek() == 'x') {
         buffer += c;
-        c = in->get();
+        c = get_next_char();
         buffer += c;
-        c = in->get();
+        c = get_next_char();
         while (isdigit(c)) {
           buffer += c;
-          c = in->get();
+          if(in->peek() == ')'){
+            break;
+          }
+          c = get_next_char();
         }
-        if(c == ')')
-          in->unget();
         return Token::HEX;
       }
       if (c == '#' && in->peek() == '#') {
         buffer += c;
-        c = in->get();
+        c = get_next_char();
         buffer += c;
         return Token::HASHHASH_SIGN;
       }
 
       if (isdigit(c)) {
         buffer += c;
-        c = in->get();
+        if(in->peek() == ')'){
+          return Token::DIGIT;
+        }
+        c = get_next_char();
         while (isdigit(c)) {
           buffer +=c;
-          c = in->get();
+          if(in->peek() == ')'){
+            return Token::DIGIT;
+          }
+          c = get_next_char();
         }
-        if(c == ')')
-          in->unget();
         return Token::DIGIT;
       }
 
-      while (isprint(c) && !isspace(c) && c != '>') {
+      while (isprint(c) && !isspace(c)) {
         buffer += c;
-        c = in->get();
+        if(in->peek() == '>'){
+          break;
+        }
+        c = get_next_char();
       }
-      if (c == '>')
-        in->unget();
+
       if (keywordsMap.contains(buffer)) {
         return keywordsMap[buffer];
       } else {
@@ -91,5 +98,17 @@ Token Lexer::get_token() {
   }
   return Token::EOF_TOKEN;
 }
+char Lexer::get_next_char() {
+  char c = in->get();
+  if(c == '\n'){
+    line++;
+    pos = 1;
+  } else {
+    pos++;
+  }
+  return c;
+}
+
+
 } // namespace Loader
 } // namespace MiniMC
