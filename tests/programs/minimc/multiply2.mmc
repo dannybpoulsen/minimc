@@ -1,0 +1,149 @@
+# Functions
+## mult
+  .registers
+    <mult:mult:__minimc.sp Pointer>
+    <mult:mult:tmp7 Int32>
+  .parameters
+    mult:mult:__minimc.sp
+  .returns
+    Int32
+  .cfa
+    BB0  {mult:bb}
+    [
+      <mult:mult:tmp7 Int32> = Mul <0x5 Int32> <0x3 Int32>
+      Ret <mult:mult:tmp7 Int32>
+      ->BB1
+    ]
+    BB1  {mult:bb}
+    [
+    ]
+## main
+  .registers
+    <main:main:__minimc.sp Pointer>
+    <main:main:tmp3 Int32>
+    <main:main:tmp6 Bool>
+    <main:main:tmp.0 Int32>
+    <main:main:BVar Bool>
+  .parameters
+    main:main:__minimc.sp
+  .returns
+    Int32
+  .cfa
+    BB0  {main:bb}
+    [
+      ->BB2
+    ]
+    BB2  {main:bb}
+    [
+      <main:main:tmp3 Int32> = Call <F(0+0) Pointer> <main:main:__minimc.sp Pointer> 
+      ->BB3
+    ]
+    BB3  {main:bb}
+    [
+      <main:main:tmp6 Bool> = ICMP_SGE <main:main:tmp3 Int32> <0xf Int32>
+      ->BB1
+    ]
+    BB1  {main:bb}
+    [
+      ->BB6
+      ->BB10
+    ]
+    BB10  {main:bb}
+    [
+      NegAssume <main:main:tmp6 Bool>
+      ->BB11
+    ]
+    BB11  {main:bb}
+    [
+      ->BB9
+    ]
+    BB9  {main:bb}
+    [
+      ->BB8
+    ]
+    BB8  {main:bb10}
+    [
+      ->BB12
+    ]
+    BB12  {main:bb10}
+    [
+      <main:main:tmp.0 Int32> = <0 Int32>
+      ->BB13
+    ]
+    BB13  {main:bb17}
+    [
+      Ret <main:main:tmp.0 Int32>
+      ->BB14
+    ]
+    BB14  {main:bb17}
+    [
+    ]
+    BB6  {main:bb}
+    [
+      Assume <main:main:tmp6 Bool>
+      ->BB7
+    ]
+    BB7  {main:bb}
+    [
+      ->BB5
+    ]
+    BB5  {main:bb}
+    [
+      ->BB4
+    ]
+    BB4  {main:bb8}
+    [
+      ->BB15
+    ]
+    BB15  {main:bb8}
+    [
+      ->BB16
+    ]
+    BB16  {main:bb13}
+    [
+      <main:main:BVar Bool> = IntToBool Bool <0 Int32>
+      ->BB18
+    ]
+    BB18  {main:bb13}
+    [
+      ->BB21
+    ]
+    BB21  {main:Assert}
+    [
+      NegAssume <main:main:BVar Bool>
+      ->BB20
+      Assume <main:main:BVar Bool>
+      ->BB19
+    ]
+    BB19  {main:bb13}
+    [
+      ->BB17
+    ]
+    BB17  {main:bb13}
+    [
+      <main:main:tmp.0 Int32> = <0xffffffff Int32>
+      ->BB13
+    ]
+    BB20  {main:AssertViolation}
+    [
+    ]
+## __minimc__entry_main-1
+  .registers
+    <__minimc__entry_main-1:_ Int32>
+  .parameters
+  .returns
+    Void
+  .cfa
+    BB0  {main:init}
+    [
+      <__minimc__entry_main-1:_ Int32> = Call <F(1+0) Pointer> <H(0+0) Pointer> 
+      ->BB1
+    ]
+    BB1  {main:end}
+    [
+    ]
+# Entrypoints
+  __minimc__entry_main-1
+# Heap
+0 : 200
+# Initialiser

@@ -1,3 +1,3 @@
-add_library (minimcloader OBJECT loader.cpp lexer.cpp parser.cpp parserexception.cpp parserexception.hpp)
+add_library (minimcloader OBJECT loader.cpp lexer.cpp parser.cpp)
 target_link_libraries (minimcloader PUBLIC model)
 target_include_directories(minimcloader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
