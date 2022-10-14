@@ -3,6 +3,7 @@
 
 
 #include <unordered_map>
+#include "model/instructions.hpp"
 
 namespace MiniMC {
 namespace Loaders {
@@ -55,94 +56,6 @@ namespace Loaders {
   X(Pointer) \
   X(HEAP_Pointer) \
   X(FUNCTION_Pointer)
-
-#define TACOPS \
-  X(Add)       \
-  X(Sub)       \
-  X(Mul)       \
-  X(UDiv)      \
-  X(SDiv)      \
-  X(Shl)       \
-  X(LShr)      \
-  X(AShr)      \
-  X(And)       \
-  X(Or)        \
-  X(Xor)
-
-#define UNARYOPS X(Not)
-
-#define COMPARISONS \
-  X(ICMP_SGT)       \
-  X(ICMP_UGT)       \
-  X(ICMP_SGE)       \
-  X(ICMP_UGE)       \
-  X(ICMP_SLT)       \
-  X(ICMP_ULT)       \
-  X(ICMP_SLE)       \
-  X(ICMP_ULE)       \
-  X(ICMP_EQ)        \
-  X(ICMP_NEQ)
-
-#define POINTEROPS \
-  X(PtrAdd)        \
-  X(PtrEq)
-
-#define AGGREGATEOPS \
-  X(ExtractValue)    \
-  X(InsertValue)
-
-#define CASTOPS \
-  X(Trunc)	\
-  X(ZExt)       \
-  X(SExt)       \
-  X(PtrToInt)   \
-  X(IntToPtr)   \
-  X(BitCast)    \
-  X(BoolZExt)   \
-  X(BoolSExt)   \
-  X(IntToBool)
-
-#define MEMORY \
-  X(Store)     \
-  X(Load)
-
-#define INTERNAL  \
-  X(Skip)         \
-  X(Call)         \
-  X(Assign)       \
-  X(Ret)          \
-  X(RetVoid)      \
-  X(NonDet)       \
-  X(Uniform)
-
-#define ASSUMEASSERTS				\
-    X(Assert)					\
-    X(Assume)					\
-    X(NegAssume)
-
-#define PREDICATES \
-  X(PRED_ICMP_SGT) \
-  X(PRED_ICMP_UGT) \
-  X(PRED_ICMP_SGE) \
-  X(PRED_ICMP_UGE) \
-  X(PRED_ICMP_SLT) \
-  X(PRED_ICMP_ULT) \
-  X(PRED_ICMP_SLE) \
-  X(PRED_ICMP_ULE) \
-  X(PRED_ICMP_EQ)  \
-  X(PRED_ICMP_NEQ)
-
-#define OPERATIONS \
-  TACOPS           \
-  UNARYOPS         \
-  COMPARISONS      \
-  CASTOPS          \
-  MEMORY           \
-  INTERNAL         \
-  POINTEROPS       \
-  AGGREGATEOPS     \
-  ASSUMEASSERTS    \
-    PREDICATES
 
 #define TOKENS \
  OPERATIONS    \
