@@ -73,7 +73,7 @@ namespace MiniMC {
 		       );
 	auto cfa = copyCFA (function->getCFA (),*varstack);
 	auto retType  = function->getReturnType ();
-	return program.addFunction (function->getName ().getName(),
+	return program.addFunction (function->getSymbol ().getName(),
 				    parameters,
 				    retType,
 				    std::move(varstack),

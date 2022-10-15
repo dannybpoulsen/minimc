@@ -5,7 +5,7 @@ namespace MiniMC {
     namespace Modifications {
       bool SplitAsserts::runFunction(const MiniMC::Model::Function_ptr& F) {
 	auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-	MiniMC::Model::LocationInfoCreator locc(F->getName(),&F->getRegisterDescr ());
+	MiniMC::Model::LocationInfoCreator locc(F->getSymbol(),&F->getRegisterDescr ());
 	auto& cfg = F->getCFA();
 	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 	auto inserter = wlist.inserter();

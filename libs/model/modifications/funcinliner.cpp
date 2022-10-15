@@ -82,7 +82,7 @@ namespace MiniMC {
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
-        MiniMC::Model::LocationInfoCreator linfoc(F->getName(),&F->getRegisterDescr ());
+        MiniMC::Model::LocationInfoCreator linfoc(F->getSymbol(),&F->getRegisterDescr ());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
         auto& cfg = F->getCFA();
