@@ -215,7 +215,7 @@ namespace MiniMC {
       
       bool isRegister() const override { return true; }
       auto& getOwner() const { return owner; }
-      auto& getSymbol () const {return name;}
+      auto getSymbol () const {return name;}
       
     private:
       Symbol name;
@@ -231,10 +231,10 @@ namespace MiniMC {
      */
     class RegisterDescr {
     public:
-      RegisterDescr(const Symbol& pref) : pref(pref) {}
+      RegisterDescr(Symbol pref = Symbol{}) : pref(std::move(pref)) {}
       RegisterDescr(const RegisterDescr&) = delete;
       RegisterDescr(RegisterDescr&&) = default;
-      Register_ptr addRegister(const std::string& name, const Type_ptr& type);
+      Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
       auto& getRegisters() const { return variables; }
       
       /**

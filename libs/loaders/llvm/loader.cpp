@@ -118,12 +118,12 @@ namespace MiniMC {
         auto variablestack = std::make_unique<MiniMC::Model::RegisterDescr> (MiniMC::Model::Symbol{fname});
 	MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack.get());
 
-	LoadContext load{context,*variablestack,variablestack->addRegister ("__minimc.sp",context.getTypeFactory().makePointerType ())};
+	LoadContext load{context,*variablestack,variablestack->addRegister (MiniMC::Model::Symbol{"__minimc.sp"},context.getTypeFactory().makePointerType ())};
 
 	auto makeVariable = [&load,this](auto val) {
 	  if (!load.hasValue (val)) {
 	    auto type = load.getType (val->getType ());
-	    load.addValue (val,load.getStack().addRegister (val->getName().str(),type));
+	    load.addValue (val,load.getStack().addRegister (MiniMC::Model::Symbol{val->getName().str()},type));
 	  }
 	  return load.findValue (val);
 	};
@@ -245,7 +245,7 @@ namespace MiniMC {
 		auto dest = enqueue (brterm->getDestination (i));
 		auto valComp = load.findValue(brterm->getDestination(i));
                 auto btype = load.getTypeFactory().makeBoolType();
-                auto cond = load.getStack().addRegister("", btype);
+                auto cond = load.getStack().addRegister(MiniMC::Model::Symbol{"-"}, btype);
 
 		MiniMC::Model::EdgeBuilder {cfg,to,splitloc}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({
 		    .res = cond,
@@ -298,7 +298,7 @@ namespace MiniMC {
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack->addRegister("_", restype);
+        result = vstack->addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
 
       edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,

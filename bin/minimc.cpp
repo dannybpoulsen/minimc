@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 	    return -1;
 	  }
 	}
-    }
+      }
       else {
 	messager.message<MiniMC::Support::Severity::Error> ("At least one entry point must be specified");
 	return -1;

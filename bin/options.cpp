@@ -199,7 +199,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
 
     if (help){
       printBanner(std::cerr);
-      std::cerr << "Usage: " << MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" << std::endl;
+      std::cerr << "Usage: " << MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND" << std::endl;
       std::cerr << general << std::endl;
       std::cerr << "Subcommands" << std::endl;
       auto comms = getCommandNameAndDescr();

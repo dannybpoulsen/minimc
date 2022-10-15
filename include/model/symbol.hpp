@@ -16,6 +16,8 @@ namespace MiniMC {
       
       Symbol (const Symbol&);
       Symbol (const Symbol&, std::string name);
+      Symbol (const Symbol&, Symbol&&);
+      
       ~Symbol ();
       
       Symbol& operator=  (Symbol&&) = default;
@@ -23,6 +25,7 @@ namespace MiniMC {
       //assumtion hasPrefix() == true
       Symbol prefix () const;
       bool hasPrefix () const;
+      bool isRoot () const;
       std::ostream& output (std::ostream& ) const;  
       std::string to_string () const; 
       std::string getName () const;
@@ -32,8 +35,8 @@ namespace MiniMC {
       
     private:
       struct data;
-      std::shared_ptr<data> _internal;
-      Symbol (const std::shared_ptr<data>&);
+      std::unique_ptr<data> _internal;
+      Symbol (std::unique_ptr<data>&&);
       
     };
 

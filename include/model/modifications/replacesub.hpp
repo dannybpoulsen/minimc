@@ -27,7 +27,7 @@ namespace MiniMC {
                 for (; it != end; ++it) {
                   if (it->getOpcode() == MiniMC::Model::InstructionCode::Sub) {
                     auto& content = it->getOps<MiniMC::Model::InstructionCode::Sub> ();
-                    auto nvar = F->getRegisterStackDescr().addRegister("", content.op1->getType());
+                    auto nvar = F->getRegisterStackDescr().addRegister(Symbol{}, content.op1->getType());
                     auto one_constant = cfac.makeIntegerConstant(1, content.op1->getType()->getTypeID ());
                     std::vector<MiniMC::Model::Instruction> vec;
                     vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = content.op2}));

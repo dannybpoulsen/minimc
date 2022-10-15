@@ -11,9 +11,9 @@ namespace MiniMC {
     struct Copier {
       Copier (Program& program) : program(program) { }
       auto copyVariables ( const MiniMC::Model::RegisterDescr& vars) {
-	MiniMC::Model::RegisterDescr_uptr stack= std::make_unique<MiniMC::Model::RegisterDescr> (vars.getPref());
+	MiniMC::Model::RegisterDescr_uptr stack= std::make_unique<MiniMC::Model::RegisterDescr> ();
 	for (auto& v : vars.getRegisters ())
-	  stack->addRegister (v->getSymbol().getName (),v->getType ());
+	  stack->addRegister (v->getSymbol(),v->getType ());
 	return stack;
       }
 

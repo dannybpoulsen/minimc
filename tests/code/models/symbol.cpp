@@ -6,13 +6,13 @@
 
 #include <model/symbol.hpp>
 
-TEST_CASE ("") {
+TEST_CASE ("Simple Symbol") {
   const std::string s = "main";
   MiniMC::Model::Symbol smb {s};
   CHECK (smb.getName () == s);
 }
 
-TEST_CASE ("") {
+TEST_CASE ("Name Fullname") {
   const std::string s = "main";
   const std::string s2 = "suff";
   MiniMC::Model::Symbol smb {s};
@@ -22,18 +22,11 @@ TEST_CASE ("") {
   CHECK (smb2.getFullName () == s+std::string(":")+s2);
 }
 
-TEST_CASE ("") {
+TEST_CASE ("From String") {
   const std::string s = "main:main:tmp";
   auto  smb = MiniMC::Model::Symbol::from_string (s); 
   CHECK (smb.getName () == "tmp");
   CHECK (smb.getFullName () == "main:main:tmp");
-}
-
-TEST_CASE ("") {
-  const std::string s = "main:main2:tmp";
-  auto  smb = MiniMC::Model::Symbol::from_string (s); 
-  CHECK (smb.prefix().getName () == "main2");
-  CHECK (smb.prefix().getFullName () == "main:main2");
 }
 
 

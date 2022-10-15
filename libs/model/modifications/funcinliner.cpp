@@ -25,7 +25,7 @@ namespace MiniMC {
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {
-            valmap.insert(std::make_pair(v.get(), func->getRegisterStackDescr().addRegister(v->getName(), v->getType())));
+            valmap.insert(std::make_pair(v.get(), func->getRegisterStackDescr().addRegister(v->getSymbol(), v->getType())));
           }
         };
 
