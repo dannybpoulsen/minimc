@@ -1,22 +1,2 @@
-
-
-add_library (support STATIC feedback.cpp)
-
-if(ENABLE_SYMBOLIC)
-target_sources (support PRIVATE smt.cpp) 
-target_link_libraries (support PUBLIC smtlib)
-endif (ENABLE_SYMBOLIC)
-
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	add_subdirectory (linux)
-	target_link_libraries (support PUBLIC linuxsupport)
-endif()	       
-
-
-configure_file (
- "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
- "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-)
-
-target_include_directories (support PUBLIC PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include PRIVATE  )
-
+project (support CXX)
+add_subdirectory (src)
