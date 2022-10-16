@@ -1,4 +1,4 @@
-#include "support/smt.hpp"
+#include "smt/smt.hpp"
 #include "smt/context.hpp"
 #include "support/exceptions.hpp"
 #include <vector>

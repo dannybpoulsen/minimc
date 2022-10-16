@@ -2,7 +2,7 @@
 
 
 #include "doctest/doctest.h"
-#include "support/smt.hpp"
+#include "smt/smt.hpp"
 #include "vm/pathformula/pathformua.hpp"
 #include "vm/pathformula/operations.hpp"
 

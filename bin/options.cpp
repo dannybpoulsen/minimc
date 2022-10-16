@@ -1,6 +1,6 @@
 #include "config.h"
 #include "options.hpp"
-#include "support/smt.hpp"
+#include "smt/smt.hpp"
 #include "plugin.hpp"
 #include "cpa/location.hpp"
 #ifdef MINIMC_SYMBOLIC

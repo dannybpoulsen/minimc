@@ -1,7 +1,7 @@
 #include "vm/pathformula/operations.hpp"
 #include "vm/pathformula/value.hpp"
 #include "smt/builder.hpp"
-#include "util/smtconstruction.hpp"
+#include "smt/smtconstruction.hpp"
 
 namespace MiniMC {
   namespace VMT {

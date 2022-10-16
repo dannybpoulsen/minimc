@@ -5,7 +5,7 @@
 #include "vm/pathformula/pathformua.hpp"
 #include "model/checkers/HasInstruction.hpp"
 #include "support/localisation.hpp"
-#include "support/smt.hpp"
+#include "smt/smt.hpp"
 
 namespace MiniMC {
   namespace CPA {

@@ -1,4 +1,3 @@
-add_library (algorithms INTERFACE)
+add_library (algorithms STATIC)
 add_subdirectory (reachability)
-target_link_libraries (algorithms INTERFACE support cpa algo_reach )
-target_include_directories (algorithms INTERFACE ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries (algorithms PUBLIC algo_reach )

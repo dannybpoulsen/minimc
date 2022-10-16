@@ -1,5 +1,5 @@
 #include "vm/pathformula/operations.hpp"
-#include "util/smtconstruction.hpp"
+#include "smt/smtconstruction.hpp"
 #include "vm/pathformula/value.hpp"
 #include "smt/builder.hpp"
 #include "aggrhelper.hpp"

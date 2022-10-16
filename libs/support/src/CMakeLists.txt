@@ -1,11 +1,5 @@
-
-
 add_library (support STATIC feedback.cpp)
 
-if(ENABLE_SYMBOLIC)
-target_sources (support PRIVATE smt.cpp) 
-target_link_libraries (support PUBLIC smtlib host)
-endif (ENABLE_SYMBOLIC)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_subdirectory (linux)
