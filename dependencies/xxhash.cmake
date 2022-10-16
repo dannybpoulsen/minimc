@@ -6,7 +6,7 @@ FetchContent_Declare(xxhash
 FetchContent_GetProperties(xxhash)
 if(NOT xxhash_POPULATED)
 	 FetchContent_Populate(xxhash)
-	 add_subdirectory (${xxhash_SOURCE_DIR}/cmake_unofficial ${xxhash_BINARY_DIR})
+	 add_subdirectory (${xxhash_SOURCE_DIR}/cmake_unofficial ${xxhash_BINARY_DIR} EXCLUDE_FROM_ALL)
 	 add_library (xxhash_imp INTERFACE)
 	 target_link_libraries (xxhash_imp INTERFACE xxhash)
 	 set(XXHash_LIBRARIES xxhash_imp)

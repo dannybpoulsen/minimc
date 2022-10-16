@@ -1,6 +1,5 @@
 #include "model/variables.hpp"
 #include "support/exceptions.hpp"
-#include "support/pointer.hpp"
 
 #include <memory>
 

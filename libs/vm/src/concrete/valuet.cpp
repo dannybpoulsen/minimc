@@ -1,7 +1,6 @@
 #include "model/valuevisitor.hpp"
 #include "host/casts.hpp"
 #include "host/operataions.hpp"
-#include "support/pointer.hpp"
 #include "support/feedback.hpp"
 #include "vm/concrete/concrete.hpp"
 

@@ -2,7 +2,7 @@
 #define _HOST__
 
 namespace MiniMC {
-  namespace Support {
+  namespace Host {
     enum class ExitCodes {
       AllGood = 0,
       RuntimeError = 1,

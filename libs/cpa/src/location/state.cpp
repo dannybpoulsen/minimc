@@ -3,7 +3,6 @@
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
 #include "model/valuevisitor.hpp"
-#include "support/pointer.hpp"
 
 
 namespace MiniMC {

@@ -2,7 +2,6 @@
 #define _PATH_VM__
 
 #include "hash/hashing.hpp"
-#include "support/pointer.hpp"
 
 #include "vm/vmt.hpp"
 #include "vm/pathformula/value.hpp"

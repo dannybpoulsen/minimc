@@ -89,8 +89,8 @@ namespace MiniMC {
 
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           auto performRead = [&]<typename T>() {
             typename T::underlying_type readVal;
@@ -129,8 +129,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I8& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = &value, .size = sizeof(value)}, offset);
         }
@@ -139,8 +139,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I16& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
@@ -149,8 +149,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
@@ -159,8 +159,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I64& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
@@ -169,8 +169,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
@@ -179,8 +179,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Support::getBase(pointer);
-        auto offset = MiniMC::Support::getOffset(pointer);
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
           _internal->entries.at(base).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
         }
@@ -189,7 +189,7 @@ namespace MiniMC {
       // PArameter is size to allocate
       Memory::Value Memory::alloca(const Memory::Value::I64& size) {
 	auto size_ = size.getValue();
-        auto pointer = MiniMC::Support::makeHeapPointer(_internal->entries.size(), 0);
+        auto pointer = MiniMC::pointer_t::makeHeapPointer(_internal->entries.size(), 0);
         _internal->entries.emplace_back(size_);
 
         return Memory::Value::Pointer(pointer);

@@ -192,6 +192,17 @@ namespace MiniMC {
            t.offset == 0;
   }
 
+  inline func_t getFunctionId(const pointer_t& p) {
+    return p.base;
+  }
+  
+  inline base_t getBase(const pointer_t& p) {
+    return p.base;
+  }
+  
+  inline offset_t getOffset(const pointer_t& p) {
+    return p.offset;
+  }
   
   template <class T, class P>
   T& operator<<(T& os, const P& p)  requires (is_pointer_v<P>) {

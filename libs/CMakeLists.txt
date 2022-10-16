@@ -23,3 +23,5 @@ target_link_libraries (minimclib PUBLIC algorithms)
 target_link_libraries (minimclib PUBLIC util)
 target_link_libraries (minimclib PUBLIC host)
 
+INSTALL (TARGETS minimclib)
+ 

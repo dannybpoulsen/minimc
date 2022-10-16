@@ -12,7 +12,6 @@
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
 #include "support/localisation.hpp"
-#include "support/pointer.hpp"
 
 namespace MiniMC {
   namespace Model {

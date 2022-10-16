@@ -4,7 +4,6 @@
 #include "hash/hashing.hpp"
 #include "host/casts.hpp"
 #include "host/operataions.hpp"
-#include "support/pointer.hpp"
 
 #include "vm/vmt.hpp"
 #include "vm/concrete/value.hpp"

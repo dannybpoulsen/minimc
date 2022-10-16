@@ -2,7 +2,6 @@
 #include "cpa/location.hpp"
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
-#include "support/pointer.hpp"
 
 namespace MiniMC {
   namespace CPA {

@@ -42,7 +42,7 @@ namespace MiniMC {
       SMTLib::Term_ptr isStackConstraint(SMTLib::Term_ptr& term) {
         // Extract last eight bits;
         auto stack_seg = builder->buildTerm(SMTLib::Ops::Extract, {term}, {63, 63 - sizeof(MiniMC::seg_t) * 8});
-        auto stack_id = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::Support::PointerType::Stack), 8);
+        auto stack_id = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::PointerType::Stack), 8);
         return builder->buildTerm(SMTLib::Ops::Equal, {stack_seg, stack_id});
       }
 
@@ -57,7 +57,7 @@ namespace MiniMC {
      
       SMTLib::Term_ptr makeHeapPointer(MiniMC::base_t base, MiniMC::offset_t offset) {
 
-        auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::Support::PointerType::Heap), 8 * sizeof(MiniMC::seg_t));
+        auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::PointerType::Heap), 8 * sizeof(MiniMC::seg_t));
         auto base_term = builder->makeBVIntConst(base, 8 * sizeof(MiniMC::base_t));
         auto offset_term = builder->makeBVIntConst(offset, 8 * sizeof(MiniMC::offset_t));
 

@@ -1,7 +1,6 @@
 #ifndef _HEAP_LAYOUT__
 #define _HEAP_LAYOUT__
 
-#include "support/pointer.hpp"
 #include "host/types.hpp"
 
 #include <vector>

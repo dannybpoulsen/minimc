@@ -6,7 +6,6 @@
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
-#include "support/pointer.hpp"
 #include "support/exceptions.hpp"
 #include "vm/pathformula/pathformua.hpp"
 #include <cstring>

@@ -3,7 +3,6 @@
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
 #include "support/localisation.hpp"
-#include "support/pointer.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -281,14 +280,14 @@ namespace MiniMC {
           else {
             auto constant = std::static_pointer_cast<MiniMC::Model::TConstant<pointer_t>>(func);
             auto ptr = (*constant).template getValue (); //MiniMC::Support::CastToPtr (constant->getValue());
-            bool is_func = prgm.functionExists(MiniMC::Support::getFunctionId(ptr));
+            bool is_func = prgm.functionExists(MiniMC::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
             if (!is_func) {
-              mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::Support::getFunctionId(ptr)));
+              mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::getFunctionId(ptr)));
               return false;
             }
 
-            auto func = prgm.getFunction(MiniMC::Support::getFunctionId(ptr));
+            auto func = prgm.getFunction(MiniMC::getFunctionId(ptr));
             if (func->getParameters().size() != content.params.size()) {
               mess.message<MiniMC::Support::Severity::Error>("Inconsistent number of parameters between call and function prototype");
               return false;

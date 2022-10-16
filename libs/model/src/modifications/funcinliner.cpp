@@ -3,7 +3,6 @@
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/helpers.hpp"
 #include "support/exceptions.hpp"
-#include "support/pointer.hpp"
 #include "support/sequencer.hpp"
 #include "support/workinglist.hpp"
 
@@ -21,7 +20,7 @@ namespace MiniMC {
 	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = prgm.getFunction(MiniMC::Support::getFunctionId(loadPtr));
+	auto cfunc = prgm.getFunction(MiniMC::getFunctionId(loadPtr));
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {

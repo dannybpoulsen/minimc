@@ -43,7 +43,6 @@
 #include "model/cfg.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
-#include "support/pointer.hpp"
 #include "model/builder.hpp"
 #include "context.hpp"
 
