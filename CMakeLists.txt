@@ -30,6 +30,7 @@ execute_process(COMMAND
   OUTPUT_VARIABLE GIT_HASH
   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+include(package/package.cmake)
 include (package/rpath.cmake)
 
 
@@ -40,4 +41,6 @@ add_subdirectory(tests)
 if(ENABLE_PYTHON)	
   add_subdirectory (python)
 endif()
-include(package/package.cmake)
+
+
+include(CPack)	

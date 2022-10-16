@@ -10,4 +10,4 @@ add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp)
 
 target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})
 
-INSTALL (TARGETS minimc)
+INSTALL (TARGETS minimc )
