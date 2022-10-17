@@ -10,7 +10,7 @@ namespace MiniMC {
 namespace Loaders {
 
 MiniMC::Model::Function_ptr createEntryPoint(MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&) {
-  return function;
+  throw MiniMC::Support::ConfigurationException ("Loader does not support defining entry points");
 }
 
 

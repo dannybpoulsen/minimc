@@ -53,20 +53,16 @@ int main(int argc, char* argv[]) {
       transformProgram (control,options.transform);
       
       
-      if (options.load.tasks.size()) {
-	for (std::string& s : options.load.tasks) {
-	  try {
-	    control.addEntryPoint(s, {});
-	  } catch (MiniMC::Support::FunctionDoesNotExist&) {
-	    messager.message<MiniMC::Support::Severity::Error> (MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s));
-	    return -1;
+      for (std::string& s : options.load.tasks) {
+	try {
+	  control.addEntryPoint(s, {});
+	} catch (MiniMC::Support::FunctionDoesNotExist&) {
+	  messager.message<MiniMC::Support::Severity::Error> (MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s));
+	  return -1;
 	  }
-	}
       }
-      else {
-	messager.message<MiniMC::Support::Severity::Error> ("At least one entry point must be specified");
-	return -1;
-      }
+      
+      
       if (options.outputname != "") {
 	std::ofstream stream;
 	stream.open (options.outputname, std::ofstream::out);

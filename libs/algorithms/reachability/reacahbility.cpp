@@ -48,13 +48,16 @@ namespace MiniMC {
 	    found = std::move(searchee);
 	    return Verdict::Found;
 	  }
+
+	  if (searchee.getCFAState ()->getLocationState().nbOfProcesses ()) {
 	  
-	  MiniMC::CPA::AnalysisState newstate;
-	  MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
-	  MiniMC::Algorithms::EnumResult res;
-	  while (enumerator.getNext (res)) {
-	    if (transfer.Transfer (searchee,res.edge,res.proc,newstate)) {
-	      insert(newstate);
+	    MiniMC::CPA::AnalysisState newstate;
+	    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
+	    MiniMC::Algorithms::EnumResult res;
+	    while (enumerator.getNext (res)) {
+	      if (transfer.Transfer (searchee,res.edge,res.proc,newstate)) {
+		insert(newstate);
+	      }
 	    }
 	  }
 	  
