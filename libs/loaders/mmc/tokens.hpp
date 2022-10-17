@@ -114,7 +114,13 @@ inline static std::unordered_map<char,Token> symbolsMap = {
     {'\n',Token::EOL_TOKEN}
 };
 
-
+inline static std::unordered_map<std::string,Token> twosignsymbolMap = {
+    {"->", Token::R_ARROW},
+    {"##", Token::HASHHASH_SIGN},
+    {"F(", Token::FUNCTION_Pointer},
+    {"H(", Token::HEAP_Pointer},
+    {"0x", Token::HEX}
+};
 
 
 

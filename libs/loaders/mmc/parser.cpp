@@ -27,8 +27,8 @@ void Parser::run() {
             Support::Localiser("\n%4% \n"
                                "Pos: %1% \n"
                                "Line: %2% \n"
-                               "With Token Value: '%3%' \n")
-            .format(e.getPos(), e.getLine(), e.getValue(), e.getMesg()));
+                               "With Token Value: Token::%5% : '%3%' \n")
+            .format(e.getPos(), e.getLine(), e.getValue(), e.getMesg(), lexer->token()));
   }
   delete lexer;
 }
@@ -226,12 +226,14 @@ void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Mo
     ignore_eol();
     while (lexer->token() != Token::R_BRACKET) {
       if (lexer->token() == Token::R_ARROW) {
-        if (locmap->contains (lexer->getValue())) {
-          to = locmap->at(lexer->getValue());
+        lexer->advance();
+        std::string to_str = identifier();
+        if (locmap->contains (to_str)) {
+          to = locmap->at(to_str);
         }
         else {
-          auto location = cfg->makeLocation(locinfoc.make(lexer->getValue(), 0, *source_loc));
-          (*locmap)[lexer->getValue()] = location;
+          auto location = cfg->makeLocation(locinfoc.make(to_str, 0, *source_loc));
+          (*locmap)[to_str] = location;
           to = location;
         }
         auto edge = cfg->makeEdge(from,to);
@@ -855,9 +857,11 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       Model::Type_ptr t = type();
       lexer->advance();
       if (lexer->token() != Token::GREATER_THAN)
-        throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(), "");
+        throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                                 lexer->getValue(), "");
       std::for_each(
-          variables.begin(), variables.end(), [&ret, &t, &var ,this](auto rptr) {
+          variables.begin(), variables.end(),
+          [&ret, &t, &var, this](auto rptr) {
             if (rptr->getName() == rptr->getOwner()->getPref() + ":" + var &&
                 t->getTypeID() == rptr->getType()->getTypeID()) {
               if (!ret) {
@@ -875,37 +879,34 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       blob = integer_list();
       lexer->advance();
       if (lexer->token() != Token::DOLLAR_SIGN)
-        throw MMCParserException(
-            lexer->getLine(), lexer->getPos(), lexer->getValue(),
-            "Expected a dollar-sign to enclose the list.");
+        throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                                 lexer->getValue(),
+                                 "Expected a dollar-sign to enclose the list.");
     }
     case Token::HEAP_Pointer:
-    case Token::FUNCTION_Pointer:
+    case Token::FUNCTION_Pointer: {
       token = lexer->token();
       lexer->advance();
-      if (lexer->token() == Token::L_PARA) {
-        lexer->advance();
-        int base = integer();
-        lexer->advance();
-        int offset = integer();
-        lexer->advance();
-        if (lexer->token() != Token::R_PARA)
-          throw MMCParserException(
-              lexer->getLine(),lexer->getPos(), lexer->getValue(),
-              "Expected a right parenthesis.");
-        lexer->advance();
-        type();
-        lexer->advance();
-        if (lexer->token() != Token::GREATER_THAN)
-          throw MMCParserException(
-              lexer->getLine(), lexer->getPos(), lexer->getValue(),
-              "Expected a greater than.");
-        if (token == Token::HEAP_Pointer)
-          return cfac.makeHeapPointer(base);
-        if (token == Token::FUNCTION_Pointer)
-          return cfac.makeFunctionPointer(base);
-      }
+      int base = integer();
+      lexer->advance();
+      int offset = integer();
+      lexer->advance();
+      if (lexer->token() != Token::R_PARA)
+        throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                                 lexer->getValue(),
+                                 "Expected a right parenthesis.");
+      lexer->advance();
+      type();
+      lexer->advance();
+      if (lexer->token() != Token::GREATER_THAN)
+        throw MMCParserException(lexer->getLine(), lexer->getPos(),
+                                 lexer->getValue(), "Expected a greater than.");
+      if (token == Token::HEAP_Pointer)
+        return cfac.makeHeapPointer(base);
+      if (token == Token::FUNCTION_Pointer)
+        return cfac.makeFunctionPointer(base);
       break;
+    }
     case Token::DIGIT:
     case Token::HEX:
       value = integer();

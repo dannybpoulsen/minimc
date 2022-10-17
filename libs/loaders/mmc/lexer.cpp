@@ -4,11 +4,9 @@ namespace MiniMC {
 namespace Loaders {
 Token Lexer::get_token() {
   buffer.clear();
-
   while(char c = get_next_char()) {
     if(c == EOF)
       return Token::EOF_TOKEN;
-
     while (isspace(c)) {
       if (c == '\n')
         return Token::EOL_TOKEN;
@@ -16,41 +14,34 @@ Token Lexer::get_token() {
     }
 
     if (isprint(c)) {
+      auto il = {c, (char) in->peek()};
 
-      if(c == 'F' && in->peek() == '(')
-        return Token::FUNCTION_Pointer;
-      if(c == 'H' && in->peek() == '(')
-        return Token::HEAP_Pointer;
-
-      if (c == '-' && in->peek() == '>') {
-        c = get_next_char();
-        c = get_next_char();
-        while (isalnum(c)) {
-          buffer += c;
+      if(twosignsymbolMap.contains(std::string(il))){
+        Token token = twosignsymbolMap[std::string(il)];
+        if(token == Token::R_ARROW){
           c = get_next_char();
-        }
-        return Token::R_ARROW;
-      }
-
-      if (c == '0' && in->peek() == 'x') {
-        buffer += c;
-        c = get_next_char();
-        buffer += c;
-        c = get_next_char();
-        while (isdigit(c)) {
-          buffer += c;
-          if(in->peek() == ')'){
-            break;
+          while (isalnum(c)) {
+            buffer += c;
+            c = get_next_char();
           }
+        } else if (token == Token::HEX){
+          buffer += c;
           c = get_next_char();
+          buffer += c;
+          c = get_next_char();
+          while (isdigit(c)) {
+            buffer += c;
+            if(in->peek() == ')'){
+              break;
+            }
+            c = get_next_char();
+          }
+        } else {
+          buffer += c;
+          c = get_next_char();
+          buffer += c;
         }
-        return Token::HEX;
-      }
-      if (c == '#' && in->peek() == '#') {
-        buffer += c;
-        c = get_next_char();
-        buffer += c;
-        return Token::HASHHASH_SIGN;
+        return token;
       }
 
       if (symbolsMap.contains(c)) {
