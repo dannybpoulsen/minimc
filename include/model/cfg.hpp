@@ -19,6 +19,7 @@
 #include "model/location.hpp"
 #include "model/variables.hpp"
 #include "model/heaplayout.hpp"
+#include "model/symbol.hpp"
 #include "host/types.hpp"
 #include "support/workinglist.hpp"
 
@@ -117,7 +118,7 @@ namespace MiniMC {
     class Function : public std::enable_shared_from_this<Function> {
     public:
       Function(MiniMC::func_t id,
-               const std::string& name,
+               const Symbol& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
                RegisterDescr_uptr&& registerdescr,
@@ -133,7 +134,7 @@ namespace MiniMC {
       {
       }
 
-      auto& getName() const { return name; }
+      auto& getSymbol() const { return name; }
       auto& getParameters() const { return parameters; }
       auto& getRegisterDescr() const { return *registerdescr; }
       auto& getRegisterStackDescr() { return *registerdescr; }
@@ -145,7 +146,7 @@ namespace MiniMC {
       Program& getPrgm() const { return prgm; }
 
     private:
-      std::string name;
+      Symbol name;
       std::vector<Register_ptr> parameters;
       RegisterDescr_uptr registerdescr;
       CFA cfa;
@@ -167,7 +168,7 @@ namespace MiniMC {
 			       const Type_ptr retType,
 			       RegisterDescr_uptr&& registerdescr,
 			       CFA&& cfg) {
-        functions.push_back(std::make_shared<Function>(functions.size(), name, params, retType, std::move(registerdescr), std::move(cfg), *this));
+        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this));
         function_map.insert(std::make_pair(name, functions.back()));
         return functions.back();
       }

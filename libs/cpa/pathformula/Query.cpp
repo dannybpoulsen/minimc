@@ -48,7 +48,7 @@ namespace MiniMC {
 	return nullptr;
       }
       
-      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id [[maybe_unused]]) {
         assert(id == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s->copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);

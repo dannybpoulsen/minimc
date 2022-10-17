@@ -6,8 +6,8 @@
 
 namespace MiniMC {
   namespace Model {
-    Register_ptr RegisterDescr::addRegister(const std::string& name, const Type_ptr& type) {
-      variables.push_back(std::make_shared<Register>(pref + ":" + name, this));
+    Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
+      variables.push_back(std::make_shared<Register>(Symbol(pref, std::move(name)), this));
       variables.back()->setType(type);
       variables.back()->setPlace(totalSize);
       variables.back()->setId(variables.size() - 1);
@@ -193,7 +193,7 @@ namespace MiniMC {
   }
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
-    Register::Register(const std::string& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),
+    Register::Register(const Symbol& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),
                                                                         name(name), owner(owner) {}
 
     AggregateConstant::AggregateConstant(MiniMC::BV8* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),

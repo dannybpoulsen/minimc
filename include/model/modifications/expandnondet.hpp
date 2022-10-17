@@ -6,8 +6,7 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
-      void expandNonDet (MiniMC::Model::Program& prgm);
-      
+      void expandNonDet (MiniMC::Model::Program& prgm);      
     }
   }
 }

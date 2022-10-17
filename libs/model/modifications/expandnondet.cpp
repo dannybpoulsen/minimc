@@ -1,6 +1,9 @@
 #include "model/modifications/expandnondet.hpp"
 #include "model/instructions.hpp"
 #include "support/workinglist.hpp"
+#include "support/feedback.hpp"
+#include "support/localisation.hpp"
+
 
 #include <limits>
 #include <algorithm>
@@ -30,7 +33,7 @@ namespace MiniMC {
 
       void expandEdge (MiniMC::Model::CFA& cfa, MiniMC::Model::ConstantFactory& cfac, const MiniMC::Model::Edge* edge) {
 	if (edge->getInstructions ()) {
-	  // Only bother if we have instructions to deala with
+	  // Only bother if we have instructions to deal with
 	  auto& instr = edge->getInstructions();
 	  MiniMC::Model::InstructionStream nstr{instr.isPhi ()};
 	  auto prev =  edge->getFrom ();
@@ -98,6 +101,7 @@ namespace MiniMC {
       }
 
       void expandNonDet (MiniMC::Model::Program& prgm) {
+	MiniMC::Support::Messager{}.message (MiniMC::Support::Localiser{"Unfolding non-determinstic values"}.format ());
 	for (auto& function : prgm.getFunctions ()) {
 	  expandNonDetCFAEdges (function->getCFA (),prgm.getConstantFactory ());
 	}

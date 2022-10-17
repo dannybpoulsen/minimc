@@ -7,6 +7,7 @@
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
 #include "support/pointer.hpp"
+#include "support/exceptions.hpp"
 #include "vm/pathformula/pathformua.hpp"
 #include <cstring>
 #include <memory>
@@ -177,6 +178,8 @@ namespace MiniMC {
 	    });
 	      
           }
+
+	  throw MiniMC::Support::VerificationException {"Cannot evalute values on unsatisfiable states"};
         }
 
       private:
