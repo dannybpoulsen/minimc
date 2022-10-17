@@ -66,7 +66,7 @@ Token Lexer::get_token() {
 
       while (isprint(c) && !isspace(c)) {
         buffer += c;
-        if(in->peek() == '>' || buffer == "Aggr"){
+        if(in->peek() == '>'){
           break;
         }
         c = get_next_char();

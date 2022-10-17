@@ -38,9 +38,9 @@
     BB0  {main:bb}
     [
       <main:main:tmp Pointer> = <main:main:__minimc.sp Pointer>
-      <main:main:tmp Pointer> PtrAdd <main:main:__minimc.sp Pointer> <0x28 Int32> <0x1 Int32>
-      <main:main:_gep__ Pointer> PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
-      <main:main:_gep__1 Pointer> PtrAdd <main:main:_gep__ Pointer> <0x4 Int64> <0x5 Int64>
+      <main:main:tmp Pointer> = PtrAdd <main:main:__minimc.sp Pointer> <0x28 Int32> <0x1 Int32>
+      <main:main:_gep__ Pointer> = PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
+      <main:main:_gep__1 Pointer> = PtrAdd <main:main:_gep__ Pointer> <0x4 Int64> <0x5 Int64>
       ->BB2
     ]
     BB2  {main:bb}
@@ -50,8 +50,8 @@
     ]
     BB3  {main:bb}
     [
-      <main:main:_gep__2 Pointer> PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
-      <main:main:_gep__3 Pointer> PtrAdd <main:main:_gep__2 Pointer> <0x4 Int64> <0x5 Int64>
+      <main:main:_gep__2 Pointer> = PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
+      <main:main:_gep__3 Pointer> = PtrAdd <main:main:_gep__2 Pointer> <0x4 Int64> <0x5 Int64>
       <main:main:tmp5 Int32> = Load Int32 <main:main:_gep__3 Pointer>
       <main:main:tmp6 Bool> = ICMP_EQ <main:main:tmp5 Int32> <0x4 Int32>
       <main:main:tmp7 Int32> = BoolZExt Int32 <main:main:tmp6 Bool>

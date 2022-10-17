@@ -36,7 +36,7 @@
     BB0  {main:bb}
     [
       <main:main:tmp1 Pointer> = <main:main:__minimc.sp Pointer>
-      <main:main:tmp1 Pointer> PtrAdd <main:main:__minimc.sp Pointer> <0x4 Int32> <0x1 Int32>
+      <main:main:tmp1 Pointer> = PtrAdd <main:main:__minimc.sp Pointer> <0x4 Int32> <0x1 Int32>
       Store  <main:main:tmp1 Pointer> <0 Int32>
       ->BB1
     ]

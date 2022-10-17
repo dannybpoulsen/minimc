@@ -53,7 +53,8 @@ namespace Loaders {
   X(Double) \
   X(Struct) \
   X(Array) \
-  X(Pointer) \
+  X(Pointer)  \
+  X(Aggr8)           \
   X(HEAP_Pointer) \
   X(FUNCTION_Pointer)
 
