@@ -25,7 +25,7 @@ namespace MiniMC {
         MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {
-            valmap.insert(std::make_pair(v.get(), func->getRegisterStackDescr().addRegister(v->getName(), v->getType())));
+            valmap.insert(std::make_pair(v.get(), func->getRegisterStackDescr().addRegister(v->getSymbol(), v->getType())));
           }
         };
 
@@ -35,7 +35,7 @@ namespace MiniMC {
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
-        copyCFG(cfunc->getCFA(), valmap, func->getCFA(), cfunc->getName(), locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
           if (ne->getInstructions ()) {
@@ -82,7 +82,7 @@ namespace MiniMC {
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
-        MiniMC::Model::LocationInfoCreator linfoc(F->getName(),&F->getRegisterDescr ());
+        MiniMC::Model::LocationInfoCreator linfoc(F->getSymbol(),&F->getRegisterDescr ());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
         auto& cfg = F->getCFA();

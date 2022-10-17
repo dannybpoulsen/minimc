@@ -2,6 +2,7 @@
 #define _VARIABLE__
 
 #include "model/types.hpp"
+#include "model/symbol.hpp"
 #include "support/binary_encode.hpp"
 #include "support/exceptions.hpp"
 #include "support/storehelp.hpp"
@@ -206,17 +207,18 @@ namespace MiniMC {
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const std::string& name, RegisterDescr* owner);
-      const std::string& getName() const { return name; }
+      Register(const Symbol& name, RegisterDescr* owner);
+      const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
-        return os << "<" << getName() << " " << *getType ()  << ">";
+        return os << "<" << name << " " << *getType ()  << ">";
       }
-
+      
       bool isRegister() const override { return true; }
       auto& getOwner() const { return owner; }
-
+      auto getSymbol () const {return name;}
+      
     private:
-      std::string name;
+      Symbol name;
       const RegisterDescr* owner{nullptr};
     };
 
@@ -229,10 +231,10 @@ namespace MiniMC {
      */
     class RegisterDescr {
     public:
-      RegisterDescr(const std::string& pref) : pref(pref) {}
+      RegisterDescr(Symbol pref = Symbol{}) : pref(std::move(pref)) {}
       RegisterDescr(const RegisterDescr&) = delete;
       RegisterDescr(RegisterDescr&&) = default;
-      Register_ptr addRegister(const std::string& name, const Type_ptr& type);
+      Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
       auto& getRegisters() const { return variables; }
       
       /**
@@ -242,11 +244,11 @@ namespace MiniMC {
       auto getTotalSize() const { return totalSize; }
       auto getTotalRegisters() const { return variables.size(); }
       auto getPref() const { return pref; }
-
+      
     private:
       std::vector<Register_ptr> variables;
       std::size_t totalSize = 0;
-      const std::string pref;
+      const Symbol pref;
     };
 
     using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;

@@ -199,7 +199,7 @@ namespace MiniMC {
 	  
 	  else if (val->getType()->isInteger ()) {
 	    auto ntype = context.getTypeFactory ().makeBoolType();
-	    auto nvar = context.getStack().addRegister("BVar", ntype);
+	    auto nvar = context.getStack().addRegister(MiniMC::Model::Symbol{"BVar"}, ntype);
 	    gather.
 	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>({.res = nvar, .op1 = val}).
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>({.expr = nvar});

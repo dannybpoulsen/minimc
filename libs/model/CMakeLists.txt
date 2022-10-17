@@ -1,4 +1,4 @@
-add_library (model STATIC types.cpp variables.cpp program.cpp  instructions.cpp controller.cpp output.cpp)
+add_library (model STATIC types.cpp variables.cpp program.cpp  instructions.cpp controller.cpp output.cpp symbol.cpp)
 target_include_directories (model PUBLIC ${PROJECT_SOURCE_DIR}/include )
 target_link_libraries (model  util support )
 

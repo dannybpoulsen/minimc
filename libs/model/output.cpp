@@ -44,7 +44,7 @@ namespace MiniMC {
     }
     
     void writeFunction (std::ostream& os, const MiniMC::Model::Function& F) {
-      os << "## " << F.getName () <<"\n";
+      os << "## " << F.getSymbol () <<"\n";
       os << "  .registers" << "\n";
       for (auto& reg : F.getRegisterDescr ().getRegisters()) {
 	os << "    " << *reg << "\n";
@@ -66,7 +66,7 @@ namespace MiniMC {
       
       os << "# Entrypoints" <<"\n";
       for (auto& F : p.getEntryPoints ()) {
-	os << "  " << F->getName () << "\n";
+	os << "  " << F->getSymbol () << "\n";
       }
 
       os << "# Heap" <<"\n";

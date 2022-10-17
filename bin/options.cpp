@@ -19,7 +19,12 @@ void printBanner(std::ostream& os) {
   os << std::endl;
 }
 
-
+po::options_description transformOptions (SetupOptions& options) {
+  po::options_description general("Transform Options");
+  general.add_options()
+    ("transform.expand_nondet", boost::program_options::bool_switch(&options.transform.expand_nondet) , "Expand Non");
+  return general;
+}
 
 po::options_description loadOptions (SetupOptions& options) {
   
@@ -164,6 +169,8 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   
   general.add(loadOptions (opt));
   general.add(smtOptions (opt));
+  general.add(transformOptions (opt));
+  
   std::vector<int> cpasel;
   general.add(cpaOptions (cpasel));
   addCommandOptions (general);
@@ -192,7 +199,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
 
     if (help){
       printBanner(std::cerr);
-      std::cerr << "Usage: " << MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND [SUBCOMMAND OPTIONS]" << std::endl;
+      std::cerr << "Usage: " << MiniMC::Support::Version::TOOLNAME << "[OPTIONS] INPUT SUBCOMMAND" << std::endl;
       std::cerr << general << std::endl;
       std::cerr << "Subcommands" << std::endl;
       auto comms = getCommandNameAndDescr();

@@ -115,15 +115,15 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
-        auto variablestack = std::make_unique<MiniMC::Model::RegisterDescr> (fname);
-	MiniMC::Model::LocationInfoCreator locinfoc(fname,variablestack.get());
+        auto variablestack = std::make_unique<MiniMC::Model::RegisterDescr> (MiniMC::Model::Symbol{fname});
+	MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack.get());
 
-	LoadContext load{context,*variablestack,variablestack->addRegister ("__minimc.sp",context.getTypeFactory().makePointerType ())};
+	LoadContext load{context,*variablestack,variablestack->addRegister (MiniMC::Model::Symbol{"__minimc.sp"},context.getTypeFactory().makePointerType ())};
 
 	auto makeVariable = [&load,this](auto val) {
 	  if (!load.hasValue (val)) {
 	    auto type = load.getType (val->getType ());
-	    load.addValue (val,load.getStack().addRegister (val->getName().str(),type));
+	    load.addValue (val,load.getStack().addRegister (MiniMC::Model::Symbol{val->getName().str()},type));
 	  }
 	  return load.findValue (val);
 	};
@@ -245,7 +245,7 @@ namespace MiniMC {
 		auto dest = enqueue (brterm->getDestination (i));
 		auto valComp = load.findValue(brterm->getDestination(i));
                 auto btype = load.getTypeFactory().makeBoolType();
-                auto cond = load.getStack().addRegister("", btype);
+                auto cond = load.getStack().addRegister(MiniMC::Model::Symbol{"-"}, btype);
 
 		MiniMC::Model::EdgeBuilder {cfg,to,splitloc}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({
 		    .res = cond,
@@ -278,10 +278,10 @@ namespace MiniMC {
       auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
       
       static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
+      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
       MiniMC::Model::CFA cfg;
-      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (name);
-      MiniMC::Model::LocationInfoCreator locinf (function->getName(),vstack.get());
+      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (MiniMC::Model::Symbol{name});
+      MiniMC::Model::LocationInfoCreator locinf (MiniMC::Model::Symbol{name},vstack.get());
       
       auto funcpointer = program.getConstantFactory().makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ().makePointerType ());
@@ -298,7 +298,7 @@ namespace MiniMC {
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack->addRegister("_", restype);
+        result = vstack->addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
 
       edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
