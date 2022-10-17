@@ -138,14 +138,14 @@ void Parser::function() {
 }
 
 Model::RegisterDescr_uptr Parser::registers(std::string name){
-  auto registerDescr = std::make_unique<MiniMC::Model::RegisterDescr> (name);
+  auto registerDescr = std::make_unique<MiniMC::Model::RegisterDescr> (Model::Symbol{name});
 
   if(lexer->token() == Token::REGISTERS){
     lexer->advance();
     ignore_eol();
     while(lexer->token() != Token::PARAMETERS){
       auto v = variable();
-      registerDescr->addRegister(v.getName(), v.getType());
+      registerDescr->addRegister(MiniMC::Model::Symbol{v.getName()}, v.getType());
       lexer->advance();
       ignore_eol();
     }
@@ -163,7 +163,7 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
     ignore_eol();
     while(lexer->token() != Token::RETURNS){
       std::for_each(variables.begin(),variables.end(), [params,regs,this](Model::Register_ptr reg){
-        if(reg->getName() ==  regs->getPref() + ":" + identifier()){
+        if(reg->getSymbol().getName() == identifier()){
           params->push_back(reg);
         }
       });
@@ -202,7 +202,7 @@ Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* reg
     auto edges = cfg.getEdges();
     std::for_each(edges.begin(),edges.end(),[locmap,this](auto e){
       auto location = e->getTo();
-      auto to = locmap.at(location->getInfo().getNameWithoutPref());
+      auto to = locmap.at(location->getInfo().name.getName());
       e->setTo(to);
     });
     cfg.setInitial(locmap.at("Initial"));
@@ -214,7 +214,7 @@ Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* reg
 
 void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
   Model::InstructionStream instructionStream;
-  MiniMC::Model::LocationInfoCreator locinfoc(name, regs);
+  MiniMC::Model::LocationInfoCreator locinfoc(Model::Symbol{name}, regs);
   Model::Location_ptr to;
   auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 
@@ -839,6 +839,7 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
   int value;
   std::vector<Model::Constant_ptr> blob;
   Token token;
+  bool loop_end = 1;
 
   if (lexer->token() == Token::LESS_THAN) {
     lexer->advance();
@@ -853,17 +854,21 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
                                  lexer->getValue(), "");
       std::for_each(
           variables.begin(), variables.end(),
-          [&ret, &t, &var, this](auto rptr) {
-            if (rptr->getName() == rptr->getOwner()->getPref() + ":" + var &&
+          [&ret, &t, &var, &loop_end, this](auto rptr) {
+            if (rptr->getSymbol().getName() == var &&
                 t->getTypeID() == rptr->getType()->getTypeID()) {
               if (!ret) {
                 ret = rptr;
+                loop_end = 0;
               } else
                 throw MMCParserException(
                     lexer->getLine(), lexer->getPos(), lexer->getValue(),
                     "The identifier describes a NULL-pointer");
             }
           });
+      if (loop_end) throw MMCParserException(
+            lexer->getLine(), lexer->getPos(), lexer->getValue(),
+            "Looped through all variables with out finding a match.");
       return ret;
     }
     case Token::DOLLAR_SIGN: {
@@ -942,7 +947,7 @@ Model::Register Parser::variable(){
   try {
     if (lexer->token() == Token::LESS_THAN) {
       lexer->advance();
-      Model::Register var = Model::Register(identifier(), nullptr);
+      Model::Register var = Model::Register(Model::Symbol{identifier()}, nullptr);
       lexer->advance();
       var.setType(type());
       lexer->advance();
