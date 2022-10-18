@@ -4,11 +4,9 @@ namespace MiniMC {
 namespace Loaders {
 Token Lexer::get_token() {
   buffer.clear();
-
   while(char c = get_next_char()) {
     if(c == EOF)
       return Token::EOF_TOKEN;
-
     while (isspace(c)) {
       if (c == '\n')
         return Token::EOL_TOKEN;
@@ -16,53 +14,38 @@ Token Lexer::get_token() {
     }
 
     if (isprint(c)) {
-      if(c == 'F' && in->peek() == '(')
-        return Token::FUNCTION_POINTER;
-      if(c == 'H' && in->peek() == '(')
-        return Token::HEAP_POINTER;
-      if(c == '(')
-        return Token::L_PARA;
-      if(c == ')')
-        return Token::R_PARA;
-      if(c == '+')
-        return Token::PLUS_SIGN;
+      auto il = {c, (char) in->peek()};
 
-      if(c =='$')
-        return Token::DOLLAR_SIGN;
-      if (c == '<')
-        return Token::LESS_THAN;
-      if (c == '>')
-        return Token::GREATER_THAN;
-
-      if (c == '-' && in->peek() == '>') {
-        c = get_next_char();
-        c = get_next_char();
-        while (isalnum(c)) {
-          buffer += c;
+      if(twosignsymbolMap.contains(std::string(il))){
+        Token token = twosignsymbolMap[std::string(il)];
+        if(token == Token::R_ARROW){
           c = get_next_char();
-        }
-        return Token::R_ARROW;
-      }
-
-      if (c == '0' && in->peek() == 'x') {
-        buffer += c;
-        c = get_next_char();
-        buffer += c;
-        c = get_next_char();
-        while (isdigit(c)) {
-          buffer += c;
-          if(in->peek() == ')'){
-            break;
+          while (isalnum(c)) {
+            buffer += c;
+            c = get_next_char();
           }
+        } else if (token == Token::HEX){
+          buffer += c;
           c = get_next_char();
+          buffer += c;
+          c = get_next_char();
+          while (isdigit(c)) {
+            buffer += c;
+            if(in->peek() == ')'){
+              break;
+            }
+            c = get_next_char();
+          }
+        } else {
+          buffer += c;
+          c = get_next_char();
+          buffer += c;
         }
-        return Token::HEX;
+        return token;
       }
-      if (c == '#' && in->peek() == '#') {
-        buffer += c;
-        c = get_next_char();
-        buffer += c;
-        return Token::HASHHASH_SIGN;
+
+      if (symbolsMap.contains(c)) {
+        return symbolsMap[c];
       }
 
       if (isdigit(c)) {
@@ -83,7 +66,7 @@ Token Lexer::get_token() {
 
       while (isprint(c) && !isspace(c)) {
         buffer += c;
-        if(in->peek() == '>' || buffer == "Aggr"){
+        if(in->peek() == '>'){
           break;
         }
         c = get_next_char();
@@ -106,6 +89,18 @@ char Lexer::get_next_char() {
   } else {
     pos++;
   }
+
+  if (c == '/'){
+    if (c == '/'){
+      while(c != '\n')
+        c = in->get();
+    } else if (c == '*'){
+      while(c != '*' && in->peek()!= '/')
+        c = in->get();
+    }
+  }
+
+
   return c;
 }
 
