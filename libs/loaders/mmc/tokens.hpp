@@ -22,7 +22,10 @@ namespace Loaders {
   X(HASH_SIGN) \
   X(HASHHASH_SIGN) \
   X(DOLLAR_SIGN) \
-  X(PLUS_SIGN) \
+  X(PLUS_SIGN)  \
+  X(LINE_COMMENT) \
+  X(COMMENT_START)\
+  X(COMMENT_END)  \
   X(EOL_TOKEN)
 
 #define KEYWORDS \
@@ -120,7 +123,10 @@ inline static std::unordered_map<std::string,Token> twosignsymbolMap = {
     {"##", Token::HASHHASH_SIGN},
     {"F(", Token::FUNCTION_Pointer},
     {"H(", Token::HEAP_Pointer},
-    {"0x", Token::HEX}
+    {"0x", Token::HEX},
+    {"//", Token::LINE_COMMENT},
+    {"/*", Token::COMMENT_START},
+    {"*/", Token::COMMENT_END}
 };
 
 

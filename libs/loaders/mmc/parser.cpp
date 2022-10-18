@@ -275,9 +275,6 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
       return location;
     }
   } catch (MMCParserException const& e){
-    Support::Messager messager;
-    messager.message<MiniMC::Support::Severity::Error>(
-        Support::Localiser("\n%1% \n").format(e.getMesg()));
     throw MMCParserException(
         lexer->getLine(), lexer->getPos(), lexer->getValue(),
         "Expected a location, which is "

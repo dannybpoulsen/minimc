@@ -89,6 +89,18 @@ char Lexer::get_next_char() {
   } else {
     pos++;
   }
+
+  if (c == '/'){
+    if (c == '/'){
+      while(c != '\n')
+        c = in->get();
+    } else if (c == '*'){
+      while(c != '*' && in->peek()!= '/')
+        c = in->get();
+    }
+  }
+
+
   return c;
 }
 
