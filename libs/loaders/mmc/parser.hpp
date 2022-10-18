@@ -53,7 +53,7 @@ private:
   Model::Value_ptr value(std::vector<MiniMC::Model::Register_ptr> variables);
   Model::Register variable();
   std::string identifier();
-  int integer();
+  unsigned long int integer();
   std::vector<Model::Constant_ptr> integer_list();
 
 };

@@ -833,7 +833,7 @@ std::vector<Model::Value_ptr> Parser::value_list(std::vector<MiniMC::Model::Regi
 
 Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variables) {
   Model::Value_ptr ret;
-  int value;
+  unsigned long value;
   std::vector<Model::Constant_ptr> blob;
   Token token;
   bool loop_end = 1;
@@ -881,9 +881,9 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
     case Token::FUNCTION_Pointer: {
       token = lexer->token();
       lexer->advance();
-      int base = integer();
+      unsigned long base = integer();
       lexer->advance();
-      int offset = integer();
+      unsigned long offset = integer();
       lexer->advance();
       if (lexer->token() != Token::R_PARA)
         throw MMCParserException(lexer->getLine(), lexer->getPos(),
@@ -975,13 +975,13 @@ std::string Parser::identifier() {
       "identifier which is not allowed in MiniMC.");
 }
 
-int Parser::integer(){
+unsigned long Parser::integer(){
   std::string value = lexer->getValue();
 
   if(lexer->token() == Token::DIGIT){
-    return std::stoi(value);
+    return std::stoul(value);
   } else if(lexer->token() == Token::HEX){
-    return std::stoi(value, 0,16);
+    return std::stoul(value, 0,16);
   }
   throw MMCParserException(
       lexer->getLine(), lexer->getPos(), lexer->getValue(),

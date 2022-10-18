@@ -29,7 +29,7 @@ Token Lexer::get_token() {
           c = get_next_char();
           buffer += c;
           c = get_next_char();
-          while (isdigit(c)) {
+          while (isxdigit(c)) {
             buffer += c;
             if(in->peek() == ')'){
               break;
