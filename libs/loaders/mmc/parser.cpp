@@ -223,6 +223,19 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, 
   Model::Location_ptr from = location(cfg,locmap,source_loc,locinfoc);
   lexer->advance();
   ignore_eol();
+  while(lexer->token() == Token::AT_SIGN){
+    lexer->advance();
+    switch(lexer->token()){
+    case Token::AssertViolated:
+      from->getInfo().set<Model::Attributes::AssertViolated>();
+      break;
+    default:
+      throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+                                     "Does not recognise the annotation.");
+    }
+    lexer->advance();
+    ignore_eol();
+  }
   if (lexer->token() == Token::L_BRACKET) {
     lexer->advance();
     ignore_eol();

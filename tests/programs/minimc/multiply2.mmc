@@ -125,6 +125,7 @@
       ->BB13
     ]
     BB20  {main:AssertViolation}
+    @AssertViolated
     [
     ]
 ## __minimc__entry_main-1

@@ -82,6 +82,7 @@
       ->BB6
     ]
     BB14  {check:AssertViolation}
+    @AssertViolated
     [
     ]
 ## main

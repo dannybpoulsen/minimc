@@ -149,6 +149,7 @@
     [
     ]
     BB52  {main:AssertViolation}
+    @AssertViolated
     [
     ]
     BB26  {main:LeafBlock1}

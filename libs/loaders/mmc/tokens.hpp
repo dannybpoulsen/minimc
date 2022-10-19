@@ -25,7 +25,8 @@ namespace Loaders {
   X(PLUS_SIGN)  \
   X(LINE_COMMENT) \
   X(COMMENT_START)\
-  X(COMMENT_END)  \
+  X(COMMENT_END)\
+  X(AT_SIGN)              \
   X(EOL_TOKEN)
 
 #define KEYWORDS \
@@ -61,13 +62,17 @@ namespace Loaders {
   X(HEAP_Pointer) \
   X(FUNCTION_Pointer)
 
+#define ATTRIBUTES \
+  X(AssertViolated)
+
 #define TOKENS \
  OPERATIONS    \
   KEYWORDS     \
   NUMBERS      \
   ID           \
   TYPES        \
-  SYMBOLS
+  SYMBOLS      \
+  ATTRIBUTES
 
 enum class Token {
 #define X(OP) OP,
@@ -98,7 +103,8 @@ inline static std::unordered_map<std::string,Token> keywordsMap = {
     {"Heap", Token::HEAP},
 #define X(OP) { #OP , Token::OP },
  TYPES \
- OPERATIONS
+ OPERATIONS \
+ ATTRIBUTES
 #undef X
 };
 
@@ -115,7 +121,8 @@ inline static std::unordered_map<char,Token> symbolsMap = {
     {'#',Token::HASH_SIGN},
     {'$',Token::DOLLAR_SIGN},
     {'+',Token::PLUS_SIGN},
-    {'\n',Token::EOL_TOKEN}
+    {'\n',Token::EOL_TOKEN},
+    {'@', Token::AT_SIGN}
 };
 
 inline static std::unordered_map<std::string,Token> twosignsymbolMap = {

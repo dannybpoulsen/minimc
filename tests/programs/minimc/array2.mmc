@@ -78,6 +78,7 @@
     [
     ]
     BB6  {main:AssertViolation}
+    @AssertViolated
     [
     ]
 ## __minimc__entry_main-1
