@@ -4,7 +4,7 @@
 #include "model/cfg.hpp"
 #include "model/builder.hpp"
 #include "parserexception.hpp"
-
+#include "model/instructions.hpp"
 #include "support/feedback.hpp"
 
 
@@ -318,36 +318,15 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
           Model::createInstruction<Model::InstructionCode::Ret>(
               {.value = value(variables)}));
       return;
-    case Token::PRED_ICMP_SGT:
-    case Token::PRED_ICMP_UGT:
-    case Token::PRED_ICMP_SGE:
-    case Token::PRED_ICMP_UGE:
-    case Token::PRED_ICMP_SLT:
-    case Token::PRED_ICMP_ULT:
-    case Token::PRED_ICMP_SLE:
-    case Token::PRED_ICMP_ULE:
-    case Token::PRED_ICMP_EQ:
-    case Token::PRED_ICMP_NEQ:
-      instructionStream->addInstruction(predicates(variables));
-      return;
-    case Token::Assert:
-      lexer->advance();
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Assert>(
-              {.expr = value(variables)}));
-      return;
-    case Token::Assume:
-      lexer->advance();
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Assume>(
-              {.expr = value(variables)}));
-      return;
-    case Token::NegAssume:
-      lexer->advance();
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::NegAssume>(
-              {.expr = value(variables)}));
-      return;
+#define X(OP) \
+  case Token::OP: \
+    lexer->advance(); \
+    instructionStream->addInstruction( \
+        Model::createInstruction<Model::InstructionCode::OP>( \
+            {.expr = value(variables)})); \
+    return;
+      ASSUMEASSERTS
+#undef X
     case Token::Store: {
       lexer->advance();
       Model::Value_ptr addr = value(variables);
@@ -369,6 +348,12 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
                .params = value_list(variables)}));
       return;
     }
+#define X(OP) \
+    case Token::OP: \
+      PREDICATES
+#undef X
+      instructionStream->addInstruction(predicates(variables));
+      return;
     case Token::LESS_THAN:
       instructionStream->addInstruction(instruction_eq(variables));
       return;
@@ -411,42 +396,24 @@ Model::Instruction Parser::instruction_eq(const std::vector<MiniMC::Model::Regis
               .skipsize = skipsize,
               .nbSkips = nbSkips});
        }
-       case Token::Add:
-       case Token::Sub:
-       case Token::Mul:
-       case Token::UDiv:
-       case Token::SDiv:
-       case Token::Shl:
-       case Token::LShr:
-       case Token::AShr:
-       case Token::And:
-       case Token::Or:
-       case Token::Xor:
+#define X(OP) \
+        case Token::OP:
+    TACOPS
+#undef X
          return tacops(variables, res);
-       case Token::ICMP_SGT:
-       case Token::ICMP_UGT:
-       case Token::ICMP_SGE:
-       case Token::ICMP_UGE:
-       case Token::ICMP_SLT:
-       case Token::ICMP_ULT:
-       case Token::ICMP_SLE:
-       case Token::ICMP_ULE:
-       case Token::ICMP_EQ:
+#define X(OP) \
+        case Token::OP:
+    COMPARISONS
+#undef X
          return comparison(variables, res);
-       case Token::ICMP_NEQ:
        case Token::Not:
          lexer->advance();
          return Model::createInstruction<Model::InstructionCode::Not>(
              {.res = res, .op1 = value(variables)});
-       case Token::Trunc:
-       case Token::ZExt:
-       case Token::SExt:
-       case Token::PtrToInt:
-       case Token::IntToPtr:
-       case Token::BitCast:
-       case Token::BoolZExt:
-       case Token::BoolSExt:
-       case Token::IntToBool:
+#define X(OP) \
+        case Token::OP:
+    CASTOPS
+#undef X
          return castops(variables, res);
        case Token::NonDet:
          return nondet(variables, res);
@@ -490,36 +457,12 @@ Model::Instruction Parser::predicates(const std::vector<MiniMC::Model::Register_
     lexer->advance();
     Model::Value_ptr op2 = value(variables);
     switch (token) {
-    case Token::PRED_ICMP_SGT:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGT>(
+#define X(OP) \
+    case Token::OP: \
+    return Model::createInstruction<Model::InstructionCode::OP>( \
           {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_UGT:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGT>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_SGE:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SGE>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_UGE:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_UGE>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_SLT:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLT>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_ULT:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULT>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_SLE:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_SLE>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_ULE:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_ULE>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_EQ:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_EQ>(
-          {.op1 = op1, .op2 = op2});
-    case Token::PRED_ICMP_NEQ:
-      return Model::createInstruction<Model::InstructionCode::PRED_ICMP_NEQ>(
-          {.op1 = op1, .op2 = op2});
+    PREDICATES
+#undef X
     default:
       __builtin_unreachable();
     }
@@ -544,39 +487,12 @@ Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr>
     Model::Value_ptr op2 = value(variables);
 
     switch (token) {
-    case Token::Add:
-      return Model::createInstruction<Model::InstructionCode::Add>(
+#define X(OP)               \
+    case Token::OP:         \
+      return Model::createInstruction<Model::InstructionCode::OP>( \
           {.res = res, .op1 = op1, .op2 = op2});
-    case Token::Sub:
-      return Model::createInstruction<Model::InstructionCode::Sub>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::Mul:
-      return Model::createInstruction<Model::InstructionCode::Mul>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::UDiv:
-      return Model::createInstruction<Model::InstructionCode::UDiv>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::SDiv:
-      return Model::createInstruction<Model::InstructionCode::SDiv>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::Shl:
-      return Model::createInstruction<Model::InstructionCode::Shl>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::LShr:
-      return Model::createInstruction<Model::InstructionCode::LShr>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::AShr:
-      return Model::createInstruction<Model::InstructionCode::AShr>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::And:
-      return Model::createInstruction<Model::InstructionCode::And>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::Or:
-      return Model::createInstruction<Model::InstructionCode::Or>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::Xor:
-      return Model::createInstruction<Model::InstructionCode::Xor>(
-          {.res = res, .op1 = op1, .op2 = op2});
+      TACOPS
+#undef X
     default:
       __builtin_unreachable();
     }
@@ -600,36 +516,12 @@ Model::Instruction Parser::comparison(const std::vector<MiniMC::Model::Register_
     lexer->advance();
     Model::Value_ptr op2 = value(variables);
     switch (token) {
-    case Token::ICMP_SGT:
-      return Model::createInstruction<Model::InstructionCode::ICMP_SGT>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_UGT:
-      return Model::createInstruction<Model::InstructionCode::ICMP_UGT>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_SGE:
-      return Model::createInstruction<Model::InstructionCode::ICMP_SGE>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_UGE:
-      return Model::createInstruction<Model::InstructionCode::ICMP_UGE>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_SLT:
-      return Model::createInstruction<Model::InstructionCode::ICMP_SLT>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_ULT:
-      return Model::createInstruction<Model::InstructionCode::ICMP_ULT>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_SLE:
-      return Model::createInstruction<Model::InstructionCode::ICMP_SLE>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_ULE:
-      return Model::createInstruction<Model::InstructionCode::ICMP_ULE>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_EQ:
-      return Model::createInstruction<Model::InstructionCode::ICMP_EQ>(
-          {.res = res, .op1 = op1, .op2 = op2});
-    case Token::ICMP_NEQ:
-      return Model::createInstruction<Model::InstructionCode::ICMP_NEQ>(
-          {.res = res, .op1 = op1, .op2 = op2});
+#define X(OP)               \
+      case Token::OP:       \
+        return Model::createInstruction<Model::InstructionCode::OP>( \
+            {.res = res, .op1 = op1, .op2 = op2});
+      COMPARISONS
+#undef X
     default:
       __builtin_unreachable();
     }
@@ -653,33 +545,12 @@ Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr
     lexer->advance();
     Model::Value_ptr op1 = value(variables);
     switch (token) {
-    case Token::Trunc:
-      return Model::createInstruction<Model::InstructionCode::Trunc>(
+#define X(OP)               \
+      case Token::OP: \
+        return Model::createInstruction<Model::InstructionCode::OP>( \
           {.res = res, .op1 = op1});
-    case Token::ZExt:
-      return Model::createInstruction<Model::InstructionCode::ZExt>(
-          {.res = res, .op1 = op1});
-    case Token::SExt:
-      return Model::createInstruction<Model::InstructionCode::SExt>(
-          {.res = res, .op1 = op1});
-    case Token::PtrToInt:
-      return Model::createInstruction<Model::InstructionCode::PtrToInt>(
-          {.res = res, .op1 = op1});
-    case Token::IntToPtr:
-      return Model::createInstruction<Model::InstructionCode::IntToPtr>(
-          {.res = res, .op1 = op1});
-    case Token::BitCast:
-      return Model::createInstruction<Model::InstructionCode::BitCast>(
-          {.res = res, .op1 = op1});
-    case Token::BoolZExt:
-      return Model::createInstruction<Model::InstructionCode::BoolZExt>(
-          {.res = res, .op1 = op1});
-    case Token::BoolSExt:
-      return Model::createInstruction<Model::InstructionCode::BoolSExt>(
-          {.res = res, .op1 = op1});
-    case Token::IntToBool:
-      return Model::createInstruction<Model::InstructionCode::IntToBool>(
-          {.res = res, .op1 = op1});
+      CASTOPS
+#undef X
     default:
       __builtin_unreachable();
     }
