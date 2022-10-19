@@ -1,3 +1,5 @@
+#include <list>
+
 #include "parser.hpp"
 #include "model/cfg.hpp"
 #include "model/builder.hpp"
@@ -56,7 +58,7 @@ void Parser::entrypoints() {
       lexer->advance();
       ignore_eol();
       while (lexer->token() != Token::HASH_SIGN) {
-        prgm->addEntryPoint(identifier());
+        prgm->addEntryPoint(identifier().getFullName());
         lexer->advance();
         ignore_eol();
       }
@@ -121,7 +123,7 @@ void Parser::function() {
 
   if (lexer->token() == Token::HASHHASH_SIGN) {
     lexer->advance();
-    std::string name = identifier();
+    Model::Symbol name = identifier();
     lexer->advance();
     ignore_eol();
     auto registerDescr = registers(name);
@@ -129,7 +131,7 @@ void Parser::function() {
     parameters(&params, registerDescr.get());
     auto ret = returns();
     auto cfg = cfa(name, registerDescr.get());
-    prgm->addFunction(name, params, ret,
+    prgm->addFunction(name.getFullName(), params, ret,
                       std::move(registerDescr), std::move(cfg));
     return;
   }
@@ -137,15 +139,15 @@ void Parser::function() {
       "Expected a function-declaration beginning with '## {function-name}'");
 }
 
-Model::RegisterDescr_uptr Parser::registers(std::string name){
-  auto registerDescr = std::make_unique<MiniMC::Model::RegisterDescr> (Model::Symbol{name});
+Model::RegisterDescr_uptr Parser::registers(Model::Symbol name){
+  auto registerDescr = std::make_unique<MiniMC::Model::RegisterDescr> (name);
 
   if(lexer->token() == Token::REGISTERS){
     lexer->advance();
     ignore_eol();
     while(lexer->token() != Token::PARAMETERS){
       auto v = variable();
-      registerDescr->addRegister(MiniMC::Model::Symbol{v.getName()}, v.getType());
+      registerDescr->addRegister(Model::Symbol(v.getSymbol().getName()), v.getType());
       lexer->advance();
       ignore_eol();
     }
@@ -163,7 +165,7 @@ void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const 
     ignore_eol();
     while(lexer->token() != Token::RETURNS){
       std::for_each(variables.begin(),variables.end(), [params,regs,this](Model::Register_ptr reg){
-        if(reg->getSymbol().getName() == identifier()){
+        if(reg->getSymbol().getFullName() == identifier().getFullName()){
           params->push_back(reg);
         }
       });
@@ -189,7 +191,7 @@ Model::Type_ptr Parser::returns(){
                            "Expected a returns-declaration on the form: '.returns'");
 }
 
-Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* regs) {
+Model::CFA Parser::cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs) {
   Model::CFA cfg;
   std::unordered_map<std::string, MiniMC::Model::Location_ptr> locmap;
 
@@ -212,9 +214,9 @@ Model::CFA Parser::cfa(std::string name, const MiniMC::Model::RegisterDescr* reg
                            "Expected a cfa-declaration on the form: '.cfa'");
 }
 
-void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
+void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
   Model::InstructionStream instructionStream;
-  MiniMC::Model::LocationInfoCreator locinfoc(Model::Symbol{name}, regs);
+  MiniMC::Model::LocationInfoCreator locinfoc(name, regs);
   Model::Location_ptr to;
   auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 
@@ -227,13 +229,13 @@ void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Mo
     while (lexer->token() != Token::R_BRACKET) {
       if (lexer->token() == Token::R_ARROW) {
         lexer->advance();
-        std::string to_str = identifier();
-        if (locmap->contains (to_str)) {
-          to = locmap->at(to_str);
+        Model::Symbol to_str = identifier();
+        if (locmap->contains (to_str.getFullName())) {
+          to = locmap->at(to_str.getFullName());
         }
         else {
-          auto location = cfg->makeLocation(locinfoc.make(to_str, 0, *source_loc));
-          (*locmap)[to_str] = location;
+          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), 0, *source_loc));
+          (*locmap)[to_str.getFullName()] = location;
           to = location;
         }
         auto edge = cfg->makeEdge(from,to);
@@ -260,18 +262,18 @@ void Parser::edge(std::string name, const MiniMC::Model::RegisterDescr* regs, Mo
 
 Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc,MiniMC::Model::LocationInfoCreator locinfoc) {
   try {
-    std::string index = identifier();
+    Model::Symbol index = identifier();
     lexer->advance();
-    std::string name = identifier();
+    Model::Symbol  name = identifier();
 
-    if (locmap->contains(index)) {
-      return locmap->at(index);
+    if (locmap->contains(index.getFullName())) {
+      return locmap->at(index.getFullName());
     } else {
-      auto location = cfg->makeLocation(locinfoc.make(name, 0, *source_loc));
+      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), 0, *source_loc));
       if (locmap->size() == 0) {
         (*locmap)["Initial"] = location;
       }
-      (*locmap)[index] = location;
+      (*locmap)[index.getFullName()] = location;
       return location;
     }
   } catch (MMCParserException const& e){
@@ -842,7 +844,7 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
     lexer->advance();
     switch (lexer->token()) {
     case Token::IDENTIFIER: {
-      std::string var = identifier();
+      Model::Symbol var = identifier();
       lexer->advance();
       Model::Type_ptr t = type();
       lexer->advance();
@@ -852,7 +854,7 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       std::for_each(
           variables.begin(), variables.end(),
           [&ret, &t, &var, &loop_end, this](auto rptr) {
-            if (rptr->getSymbol().getName() == var &&
+            if (rptr->getName() == var.getFullName() &&
                 t->getTypeID() == rptr->getType()->getTypeID()) {
               if (!ret) {
                 ret = rptr;
@@ -944,7 +946,7 @@ Model::Register Parser::variable(){
   try {
     if (lexer->token() == Token::LESS_THAN) {
       lexer->advance();
-      Model::Register var = Model::Register(Model::Symbol{identifier()}, nullptr);
+      Model::Register var = Model::Register(identifier(), nullptr);
       lexer->advance();
       var.setType(type());
       lexer->advance();
@@ -965,9 +967,20 @@ Model::Register Parser::variable(){
   }
 }
 
-std::string Parser::identifier() {
+Model::Symbol Parser::identifier() {
+
   if(lexer->token() == Token::IDENTIFIER){
-    return lexer->getValue();
+    std::string val = lexer->getValue();
+    std::list<std::string> tokens;
+    std::string intermediate;
+    std::stringstream ss(val);
+
+    while(getline(ss, intermediate, ':'))
+    {
+      tokens.push_back(intermediate);
+    }
+    return Model::Symbol(tokens);
+
   }
   throw MMCParserException(
       lexer->getLine(), lexer->getPos(), lexer->getValue(),

@@ -1,24 +1,24 @@
 # Functions
 ## main
   .registers
-    <main:main:__minimc.sp Pointer>
-    <main:main:tmp Aggr8>
-    <main:main:tmp1 Int32>
-    <main:main:tmp2 Bool>
-    <main:main:tmp3 Int8>
-    <main:main:BVar Bool>
+    <main:__minimc.sp Pointer>
+    <main:tmp Aggr8>
+    <main:tmp1 Int32>
+    <main:tmp2 Bool>
+    <main:tmp3 Int8>
+    <main:BVar Bool>
   .parameters
-    main:main:__minimc.sp
+    main:__minimc.sp
   .returns
     Void
   .cfa
     BB0  {main:bb}
     [
-      <main:main:tmp Aggr8> = InsertValue Int32 < $01 00 00 00 01 00 00 00 $ Aggr8 > <0 Int32> <0x1 Int32>
-      <main:main:tmp1 Int32> = ExtractValue Int32 <main:main:tmp Aggr8> <0 Int32>
-      <main:main:tmp2 Bool> = ICMP_EQ <0x1 Int32> <main:main:tmp1 Int32>
-      <main:main:tmp3 Int8> = BoolSExt Int8 <main:main:tmp2 Bool>
-      <main:main:BVar Bool> = IntToBool Bool <main:main:tmp3 Int8>
+      <main:tmp Aggr8> = InsertValue Int32 < $01 00 00 00 01 00 00 00 $ Aggr8 > <0 Int32> <0x1 Int32>
+      <main:tmp1 Int32> = ExtractValue Int32 <main:tmp Aggr8> <0 Int32>
+      <main:tmp2 Bool> = ICMP_EQ <0x1 Int32> <main:tmp1 Int32>
+      <main:tmp3 Int8> = BoolSExt Int8 <main:tmp2 Bool>
+      <main:BVar Bool> = IntToBool Bool <main:tmp3 Int8>
       ->BB2
     ]
     BB2  {main:bb}
@@ -27,9 +27,9 @@
     ]
     BB5  {main:Assert}
     [
-      NegAssume <main:main:BVar Bool>
+      NegAssume <main:BVar Bool>
       ->BB4
-      Assume <main:main:BVar Bool>
+      Assume <main:BVar Bool>
       ->BB3
     ]
     BB3  {main:bb}
@@ -49,12 +49,12 @@
   .returns
     Void
   .cfa
-    BB0  {main:init}
+    BB0  {__minimc__entry_main-1:init}
     [
       Call <F(0+0) Pointer> <H(0+0) Pointer> 
       ->BB1
     ]
-    BB1  {main:end}
+    BB1  {__minimc__entry_main-1:end}
     [
     ]
 # Entrypoints

@@ -1,17 +1,17 @@
 # Functions
 ## setVal
   .registers
-    <setVal:setVal:__minimc.sp Pointer>
-    <setVal:setVal:arg Pointer>
+    <setVal:__minimc.sp Pointer>
+    <setVal:arg Pointer>
   .parameters
-    setVal:setVal:__minimc.sp
-    setVal:setVal:arg
+    setVal:__minimc.sp
+    setVal:arg
   .returns
     Void
   .cfa
     BB0  {setVal:bb}
     [
-      Store  <setVal:setVal:arg Pointer> <0x5 Int32>
+      Store  <setVal:arg Pointer> <0x5 Int32>
       RetVoid
       ->BB1
     ]
@@ -20,42 +20,42 @@
     ]
 ## main
   .registers
-    <main:main:__minimc.sp Pointer>
-    <main:main:tmp Pointer>
-    <main:main:_gep__ Pointer>
-    <main:main:_gep__1 Pointer>
-    <main:main:_gep__2 Pointer>
-    <main:main:_gep__3 Pointer>
-    <main:main:tmp5 Int32>
-    <main:main:tmp6 Bool>
-    <main:main:tmp7 Int32>
-    <main:main:BVar Bool>
+    <main:__minimc.sp Pointer>
+    <main:tmp Pointer>
+    <main:_gep__ Pointer>
+    <main:_gep__1 Pointer>
+    <main:_gep__2 Pointer>
+    <main:_gep__3 Pointer>
+    <main:tmp5 Int32>
+    <main:tmp6 Bool>
+    <main:tmp7 Int32>
+    <main:BVar Bool>
   .parameters
-    main:main:__minimc.sp
+    main:__minimc.sp
   .returns
     Int32
   .cfa
     BB0  {main:bb}
     [
-      <main:main:tmp Pointer> = <main:main:__minimc.sp Pointer>
-      <main:main:tmp Pointer> = PtrAdd <main:main:__minimc.sp Pointer> <0x28 Int32> <0x1 Int32>
-      <main:main:_gep__ Pointer> = PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
-      <main:main:_gep__1 Pointer> = PtrAdd <main:main:_gep__ Pointer> <0x4 Int64> <0x5 Int64>
+      <main:tmp Pointer> = <main:__minimc.sp Pointer>
+      <main:tmp Pointer> = PtrAdd <main:__minimc.sp Pointer> <0x28 Int32> <0x1 Int32>
+      <main:_gep__ Pointer> = PtrAdd <main:tmp Pointer> <0x28 Int64> <0 Int64>
+      <main:_gep__1 Pointer> = PtrAdd <main:_gep__ Pointer> <0x4 Int64> <0x5 Int64>
       ->BB2
     ]
     BB2  {main:bb}
     [
-      Call <F(0+0) Pointer> <main:main:__minimc.sp Pointer> <main:main:_gep__1 Pointer> 
+      Call <F(0+0) Pointer> <main:__minimc.sp Pointer> <main:_gep__1 Pointer> 
       ->BB3
     ]
     BB3  {main:bb}
     [
-      <main:main:_gep__2 Pointer> = PtrAdd <main:main:tmp Pointer> <0x28 Int64> <0 Int64>
-      <main:main:_gep__3 Pointer> = PtrAdd <main:main:_gep__2 Pointer> <0x4 Int64> <0x5 Int64>
-      <main:main:tmp5 Int32> = Load Int32 <main:main:_gep__3 Pointer>
-      <main:main:tmp6 Bool> = ICMP_EQ <main:main:tmp5 Int32> <0x5 Int32>
-      <main:main:tmp7 Int32> = BoolZExt Int32 <main:main:tmp6 Bool>
-      <main:main:BVar Bool> = IntToBool Bool <main:main:tmp7 Int32>
+      <main:_gep__2 Pointer> = PtrAdd <main:tmp Pointer> <0x28 Int64> <0 Int64>
+      <main:_gep__3 Pointer> = PtrAdd <main:_gep__2 Pointer> <0x4 Int64> <0x5 Int64>
+      <main:tmp5 Int32> = Load Int32 <main:_gep__3 Pointer>
+      <main:tmp6 Bool> = ICMP_EQ <main:tmp5 Int32> <0x5 Int32>
+      <main:tmp7 Int32> = BoolZExt Int32 <main:tmp6 Bool>
+      <main:BVar Bool> = IntToBool Bool <main:tmp7 Int32>
       ->BB4
     ]
     BB4  {main:bb}
@@ -64,9 +64,9 @@
     ]
     BB7  {main:Assert}
     [
-      NegAssume <main:main:BVar Bool>
+      NegAssume <main:BVar Bool>
       ->BB6
-      Assume <main:main:BVar Bool>
+      Assume <main:BVar Bool>
       ->BB5
     ]
     BB5  {main:bb}
@@ -87,12 +87,12 @@
   .returns
     Void
   .cfa
-    BB0  {main:init}
+    BB0  {__minimc__entry_main-1:init}
     [
       <__minimc__entry_main-1:_ Int32> = Call <F(1+0) Pointer> <H(0+0) Pointer> 
       ->BB1
     ]
-    BB1  {main:end}
+    BB1  {__minimc__entry_main-1:end}
     [
     ]
 # Entrypoints

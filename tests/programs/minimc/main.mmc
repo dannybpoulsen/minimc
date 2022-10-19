@@ -1,21 +1,21 @@
 # Functions
 ## inc
   .registers
-    <inc:inc:__minimc.sp Pointer>
-    <inc:inc:arg Pointer>
-    <inc:inc:tmp3 Int32>
-    <inc:inc:tmp4 Int32>
+    <inc:__minimc.sp Pointer>
+    <inc:arg Pointer>
+    <inc:tmp3 Int32>
+    <inc:tmp4 Int32>
   .parameters
-    inc:inc:__minimc.sp
-    inc:inc:arg
+    inc:__minimc.sp
+    inc:arg
   .returns
     Void
   .cfa
     BB0  {inc:bb}
     [
-      <inc:inc:tmp3 Int32> = Load Int32 <inc:inc:arg Pointer>
-      <inc:inc:tmp4 Int32> = Add <inc:inc:tmp3 Int32> <0x1 Int32>
-      Store  <inc:inc:arg Pointer> <inc:inc:tmp4 Int32>
+      <inc:tmp3 Int32> = Load Int32 <inc:arg Pointer>
+      <inc:tmp4 Int32> = Add <inc:tmp3 Int32> <0x1 Int32>
+      Store  <inc:arg Pointer> <inc:tmp4 Int32>
       RetVoid
       ->BB1
     ]
@@ -24,20 +24,20 @@
     ]
 ## main
   .registers
-    <main:main:__minimc.sp Pointer>
-    <main:main:tmp1 Pointer>
-    <main:main:tmp6 Int32>
-    <main:main:tmp7 Bool>
+    <main:__minimc.sp Pointer>
+    <main:tmp1 Pointer>
+    <main:tmp6 Int32>
+    <main:tmp7 Bool>
   .parameters
-    main:main:__minimc.sp
+    main:__minimc.sp
   .returns
     Int32
   .cfa
     BB0  {main:bb}
     [
-      <main:main:tmp1 Pointer> = <main:main:__minimc.sp Pointer>
-      <main:main:tmp1 Pointer> = PtrAdd <main:main:__minimc.sp Pointer> <0x4 Int32> <0x1 Int32>
-      Store  <main:main:tmp1 Pointer> <0 Int32>
+      <main:tmp1 Pointer> = <main:__minimc.sp Pointer>
+      <main:tmp1 Pointer> = PtrAdd <main:__minimc.sp Pointer> <0x4 Int32> <0x1 Int32>
+      Store  <main:tmp1 Pointer> <0 Int32>
       ->BB1
     ]
     BB1  {main:bb}
@@ -46,8 +46,8 @@
     ]
     BB2  {main:bb5}
     [
-      <main:main:tmp6 Int32> = Load Int32 <main:main:tmp1 Pointer>
-      <main:main:tmp7 Bool> = ICMP_SLE <main:main:tmp6 Int32> <0xa Int32>
+      <main:tmp6 Int32> = Load Int32 <main:tmp1 Pointer>
+      <main:tmp7 Bool> = ICMP_SLE <main:tmp6 Int32> <0xa Int32>
       ->BB3
     ]
     BB3  {main:bb5}
@@ -57,7 +57,7 @@
     ]
     BB10  {main:bb5}
     [
-      NegAssume <main:main:tmp7 Bool>
+      NegAssume <main:tmp7 Bool>
       ->BB11
     ]
     BB11  {main:bb5}
@@ -78,7 +78,7 @@
     ]
     BB6  {main:bb5}
     [
-      Assume <main:main:tmp7 Bool>
+      Assume <main:tmp7 Bool>
       ->BB7
     ]
     BB7  {main:bb5}
@@ -95,7 +95,7 @@
     ]
     BB14  {main:bb9}
     [
-      Call <F(0+0) Pointer> <main:main:__minimc.sp Pointer> <main:main:tmp1 Pointer> 
+      Call <F(0+0) Pointer> <main:__minimc.sp Pointer> <main:tmp1 Pointer> 
       ->BB15
     ]
     BB15  {main:bb9}
@@ -113,12 +113,12 @@
   .returns
     Void
   .cfa
-    BB0  {main:init}
+    BB0  {__minimc__entry_main-1:init}
     [
       <__minimc__entry_main-1:_ Int32> = Call <F(1+0) Pointer> <H(0+0) Pointer> 
       ->BB1
     ]
-    BB1  {main:end}
+    BB1  {__minimc__entry_main-1:end}
     [
     ]
 # Entrypoints
