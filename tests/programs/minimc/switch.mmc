@@ -1,0 +1,285 @@
+# Functions
+## main
+  .registers
+    <main:__minimc.sp Pointer>
+    <main:tmp5.0 Int32>
+    <main:tmp5.2 Int32>
+    <main:Pivot4 Bool>
+    <main:Pivot Bool>
+    <main:SwitchLeaf2 Bool>
+    <main:SwitchLeaf Bool>
+    <main:tmp5.1 Int32>
+    <main:tmp37 Int32>
+    <main:tmp40 Bool>
+    <main:tmp41 Int32>
+    <main:BVar Bool>
+  .parameters
+    main:__minimc.sp
+  .returns
+    Int32
+  .cfa
+    BB0  {main:bb}
+    [
+      ->BB1
+    ]
+    BB1  {main:bb}
+    [
+      <main:tmp5.0 Int32> = <0 Int32>
+      ->BB2
+    ]
+    BB2  {main:bb12}
+    [
+      ->BB3
+    ]
+    BB3  {main:bb12}
+    [
+      ->BB4
+    ]
+    BB4  {main:NodeBlock3}
+    [
+      <main:Pivot4 Bool> = ICMP_SLT <main:tmp5.0 Int32> <0x1 Int32>
+      ->BB5
+    ]
+    BB5  {main:NodeBlock3}
+    [
+      ->BB8
+      ->BB12
+    ]
+    BB12  {main:NodeBlock3}
+    [
+      NegAssume <main:Pivot4 Bool>
+      ->BB13
+    ]
+    BB13  {main:NodeBlock3}
+    [
+      ->BB11
+    ]
+    BB11  {main:NodeBlock3}
+    [
+      ->BB10
+    ]
+    BB10  {main:NodeBlock}
+    [
+      <main:Pivot Bool> = ICMP_SLT <main:tmp5.0 Int32> <0x2 Int32>
+      ->BB14
+    ]
+    BB14  {main:NodeBlock}
+    [
+      ->BB17
+      ->BB21
+    ]
+    BB21  {main:NodeBlock}
+    [
+      NegAssume <main:Pivot Bool>
+      ->BB22
+    ]
+    BB22  {main:NodeBlock}
+    [
+      ->BB20
+    ]
+    BB20  {main:NodeBlock}
+    [
+      ->BB19
+    ]
+    BB19  {main:LeafBlock1}
+    [
+      <main:SwitchLeaf2 Bool> = ICMP_EQ <main:tmp5.0 Int32> <0x2 Int32>
+      ->BB23
+    ]
+    BB23  {main:LeafBlock1}
+    [
+      ->BB26
+      ->BB30
+    ]
+    BB30  {main:LeafBlock1}
+    [
+      NegAssume <main:SwitchLeaf2 Bool>
+      ->BB31
+    ]
+    BB31  {main:LeafBlock1}
+    [
+      ->BB29
+    ]
+    BB29  {main:LeafBlock1}
+    [
+      ->BB28
+    ]
+    BB28  {main:NewDefault}
+    [
+      ->BB32
+    ]
+    BB32  {main:NewDefault}
+    [
+      <main:tmp5.1 Int32> = <main:tmp5.0 Int32>
+      ->BB33
+    ]
+    BB33  {main:bb29}
+    [
+      ->BB34
+    ]
+    BB34  {main:bb29}
+    [
+      ->BB35
+    ]
+    BB35  {main:bb33}
+    [
+      <main:tmp37 Int32> = Add <main:tmp5.1 Int32> <0x1 Int32>
+      <main:tmp40 Bool> = ICMP_EQ <main:tmp37 Int32> <0x4 Int32>
+      <main:tmp41 Int32> = BoolZExt Int32 <main:tmp40 Bool>
+      <main:BVar Bool> = IntToBool Bool <main:tmp41 Int32>
+      ->BB37
+    ]
+    BB37  {main:bb33}
+    [
+      ->BB53
+    ]
+    BB53  {main:Assert}
+    [
+      NegAssume <main:BVar Bool>
+      ->BB52
+      Assume <main:BVar Bool>
+      ->BB38
+    ]
+    BB38  {main:bb33}
+    [
+      Ret <0 Int32>
+      ->BB36
+    ]
+    BB36  {main:bb33}
+    [
+    ]
+    BB52  {main:AssertViolation}
+    @AssertViolated
+    [
+    ]
+    BB26  {main:LeafBlock1}
+    [
+      Assume <main:SwitchLeaf2 Bool>
+      ->BB27
+    ]
+    BB27  {main:LeafBlock1}
+    [
+      ->BB25
+    ]
+    BB25  {main:LeafBlock1}
+    [
+      ->BB24
+    ]
+    BB24  {main:bb25}
+    [
+      ->BB39
+    ]
+    BB39  {main:bb25}
+    [
+      <main:tmp5.1 Int32> = <0x3 Int32>
+      ->BB33
+    ]
+    BB17  {main:NodeBlock}
+    [
+      Assume <main:Pivot Bool>
+      ->BB18
+    ]
+    BB18  {main:NodeBlock}
+    [
+      ->BB16
+    ]
+    BB16  {main:NodeBlock}
+    [
+      ->BB15
+    ]
+    BB15  {main:bb22}
+    [
+      ->BB40
+    ]
+    BB40  {main:bb22}
+    [
+      <main:tmp5.2 Int32> = <0x2 Int32>
+      ->BB41
+    ]
+    BB41  {main:bb31}
+    [
+      ->BB42
+    ]
+    BB42  {main:bb31}
+    [
+      <main:tmp5.0 Int32> = <main:tmp5.2 Int32>
+      ->BB2
+    ]
+    BB8  {main:NodeBlock3}
+    [
+      Assume <main:Pivot4 Bool>
+      ->BB9
+    ]
+    BB9  {main:NodeBlock3}
+    [
+      ->BB7
+    ]
+    BB7  {main:NodeBlock3}
+    [
+      ->BB6
+    ]
+    BB6  {main:LeafBlock}
+    [
+      <main:SwitchLeaf Bool> = ICMP_EQ <main:tmp5.0 Int32> <0 Int32>
+      ->BB43
+    ]
+    BB43  {main:LeafBlock}
+    [
+      ->BB46
+      ->BB49
+    ]
+    BB49  {main:LeafBlock}
+    [
+      NegAssume <main:SwitchLeaf Bool>
+      ->BB50
+    ]
+    BB50  {main:LeafBlock}
+    [
+      ->BB48
+    ]
+    BB48  {main:LeafBlock}
+    [
+      ->BB28
+    ]
+    BB46  {main:LeafBlock}
+    [
+      Assume <main:SwitchLeaf Bool>
+      ->BB47
+    ]
+    BB47  {main:LeafBlock}
+    [
+      ->BB45
+    ]
+    BB45  {main:LeafBlock}
+    [
+      ->BB44
+    ]
+    BB44  {main:bb19}
+    [
+      ->BB51
+    ]
+    BB51  {main:bb19}
+    [
+      <main:tmp5.2 Int32> = <0x1 Int32>
+      ->BB41
+    ]
+## __minimc__entry_main-1
+  .registers
+    <__minimc__entry_main-1:_ Int32>
+  .parameters
+  .returns
+    Void
+  .cfa
+    BB0  {__minimc__entry_main-1:init}
+    [
+      <__minimc__entry_main-1:_ Int32> = Call <F(0+0) Pointer> <H(0+0) Pointer> 
+      ->BB1
+    ]
+    BB1  {__minimc__entry_main-1:end}
+    [
+    ]
+# Entrypoints
+  __minimc__entry_main-1
+# Heap
+0 : 200
+# Initialiser

@@ -16,7 +16,7 @@ namespace MiniMC {
 	  stack->addRegister (v->getSymbol(),v->getType ());
 	return stack;
       }
-
+      
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
 							   const MiniMC::Model::RegisterDescr& vars
 							   ) {
@@ -86,6 +86,10 @@ namespace MiniMC {
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f);
 	}
+	for (auto f: p.getEntryPoints ()) {
+	  program.addEntryPoint (f->getSymbol ().getName());
+	}
+	
 	program.getHeapLayout () = p.getHeapLayout ();
 	
       }

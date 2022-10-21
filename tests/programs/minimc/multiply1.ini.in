@@ -1,0 +1,5 @@
+command=mc
+inputfile=@CMAKE_CURRENT_SOURCE_DIR@/multiply1.mmc
+inlinefunctions=2
+cpa=2
+mc.expect=0

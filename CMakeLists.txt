@@ -31,7 +31,7 @@ add_subdirectory (dependencies)
 add_subdirectory (external)
 add_subdirectory (libs)
 add_subdirectory (bin)
-add_subdirectory(tests)
+add_subdirectory (tests)
 
 if(ENABLE_PYTHON)	
   add_subdirectory (python)

@@ -5,6 +5,7 @@
 #include <string>
 #include <ostream>
 #include <sstream>
+#include <list>
 
 namespace MiniMC {
   namespace Model {
@@ -17,6 +18,7 @@ namespace MiniMC {
       Symbol (const Symbol&);
       Symbol (const Symbol&, std::string name);
       Symbol (const Symbol&, Symbol&&);
+      Symbol(const std::list<std::string> list);
       
       ~Symbol ();
       
@@ -33,7 +35,7 @@ namespace MiniMC {
 
       
       
-    private:
+          private:
       struct data;
       std::unique_ptr<data> _internal;
       Symbol (std::unique_ptr<data>&&);

@@ -1,0 +1,128 @@
+# Functions
+## inc
+  .registers
+    <inc:__minimc.sp Pointer>
+    <inc:arg Pointer>
+    <inc:tmp3 Int32>
+    <inc:tmp4 Int32>
+  .parameters
+    inc:__minimc.sp
+    inc:arg
+  .returns
+    Void
+  .cfa
+    BB0  {inc:bb}
+    [
+      <inc:tmp3 Int32> = Load Int32 <inc:arg Pointer>
+      <inc:tmp4 Int32> = Add <inc:tmp3 Int32> <0x1 Int32>
+      Store  <inc:arg Pointer> <inc:tmp4 Int32>
+      RetVoid
+      ->BB1
+    ]
+    BB1  {inc:bb}
+    [
+    ]
+## main
+  .registers
+    <main:__minimc.sp Pointer>
+    <main:tmp1 Pointer>
+    <main:tmp6 Int32>
+    <main:tmp7 Bool>
+  .parameters
+    main:__minimc.sp
+  .returns
+    Int32
+  .cfa
+    BB0  {main:bb}
+    [
+      <main:tmp1 Pointer> = <main:__minimc.sp Pointer>
+      <main:tmp1 Pointer> = PtrAdd <main:__minimc.sp Pointer> <0x4 Int32> <0x1 Int32>
+      Store  <main:tmp1 Pointer> <0 Int32>
+      ->BB1
+    ]
+    BB1  {main:bb}
+    [
+      ->BB2
+    ]
+    BB2  {main:bb5}
+    [
+      <main:tmp6 Int32> = Load Int32 <main:tmp1 Pointer>
+      <main:tmp7 Bool> = ICMP_SLE <main:tmp6 Int32> <0xa Int32>
+      ->BB3
+    ]
+    BB3  {main:bb5}
+    [
+      ->BB6
+      ->BB10
+    ]
+    BB10  {main:bb5}
+    [
+      NegAssume <main:tmp7 Bool>
+      ->BB11
+    ]
+    BB11  {main:bb5}
+    [
+      ->BB9
+    ]
+    BB9  {main:bb5}
+    [
+      ->BB8
+    ]
+    BB8  {main:bb12}
+    [
+      Ret <0 Int32>
+      ->BB12
+    ]
+    BB12  {main:bb12}
+    [
+    ]
+    BB6  {main:bb5}
+    [
+      Assume <main:tmp7 Bool>
+      ->BB7
+    ]
+    BB7  {main:bb5}
+    [
+      ->BB5
+    ]
+    BB5  {main:bb5}
+    [
+      ->BB4
+    ]
+    BB4  {main:bb9}
+    [
+      ->BB14
+    ]
+    BB14  {main:bb9}
+    [
+      Call <F(0+0) Pointer> <main:__minimc.sp Pointer> <main:tmp1 Pointer> 
+      ->BB15
+    ]
+    BB15  {main:bb9}
+    [
+      ->BB13
+    ]
+    BB13  {main:bb9}
+    [
+      ->BB2
+    ]
+## __minimc__entry_main-1
+  .registers
+    <__minimc__entry_main-1:_ Int32>
+  .parameters
+  .returns
+    Void
+  .cfa
+    BB0  {__minimc__entry_main-1:init}
+    [
+      <__minimc__entry_main-1:_ Int32> = Call <F(1+0) Pointer> <H(0+0) Pointer> 
+      ->BB1
+    ]
+    BB1  {__minimc__entry_main-1:end}
+    [
+    ]
+# Entrypoints
+  __minimc__entry_main-1
+# Heap
+0 : 200
+# Initialiser

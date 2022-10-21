@@ -4,3 +4,4 @@ task= main
 inlinefunctions=2
 cpa=2
 mc.expect=0
+loader=1

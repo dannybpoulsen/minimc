@@ -73,6 +73,10 @@ namespace MiniMC {
     Symbol::Symbol (std::unique_ptr<data>&& data) : _internal(std::move(data)) {
      
     }
+
+    Symbol::Symbol(const std::list<std::string> list) {
+      _internal = std::make_unique<data> (list);
+    }
     
     
     //assumtion hasPrefix() == true
