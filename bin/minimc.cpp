@@ -2,7 +2,6 @@
 #include "model/output.hpp"
 #include "plugin.hpp"
 #include "support/localisation.hpp"
-#include "support/smt.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
@@ -15,6 +14,7 @@
 #include "cpa/pathformula.hpp"
 #endif
 #include "cpa/concrete.hpp"
+#include "loaders/loader.hpp"
 #include "options.hpp"
 
 namespace po = boost::program_options;
@@ -78,17 +78,17 @@ int main(int argc, char* argv[]) {
       else {
 	messager.message<MiniMC::Support::Severity::Error> ("No subcommand selected");
 	
-      return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError);
+      return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
       }
     }
   }
   catch (MiniMC::Support::ConfigurationException& e) {
     messager.message<MiniMC::Support::Severity::Error> (e.what ());
-    return static_cast<int>(MiniMC::Support::ExitCodes::ConfigurationError); 
+    return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError); 
   }
   catch (MiniMC::Support::Exception& e) {
     messager.message<MiniMC::Support::Severity::Error> (e.what ());
-    return static_cast<int>(MiniMC::Support::ExitCodes::RuntimeError); 
+    return static_cast<int>(MiniMC::Host::ExitCodes::RuntimeError); 
   }
   
 }
