@@ -4,5 +4,5 @@ task= main
 inlinefunctions=1
 cpa=2
 mc.expect=1
-loader=1
+loader=LLVM
 transform.expand_nondet=1

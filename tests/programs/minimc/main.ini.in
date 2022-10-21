@@ -2,3 +2,4 @@ command=mc
 inputfile@CMAKE_CURRENT_SOURCE_DIR@/main.mmc
 inlinefunctions=1
 mc.expect=0
+loader=MMC
