@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
-project(minimc VERSION 0.1.0)	
+project(minimc VERSION 0.1.0)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set (CMAKE_CXX_STANDARD 20)
 
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
@@ -38,9 +39,9 @@ add_subdirectory (libs)
 add_subdirectory (bin)
 add_subdirectory (tests)
 
-if(ENABLE_PYTHON)	
+if(ENABLE_PYTHON)
   add_subdirectory (python)
 endif()
 
 
-include(CPack)	
+include(CPack)

@@ -1,22 +1,21 @@
 #ifndef _OPTIONS__
 #define _OPTIONS__
 
-#include "smt/smt.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/location.hpp"
 #include "loaders/loader.hpp"
+#include "smt/smt.hpp"
 
 struct CommandRegistrar;
 
-#include <vector>
 #include <string>
+#include <vector>
 
 struct SMTOption {
   MiniMC::Support::SMT::SMTDescr selsmt;
 };
 
-
-struct load_options{
+struct load_options {
   std::string inputname;
   std::vector<std::string> tasks;
   MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
@@ -30,15 +29,13 @@ struct SetupOptions {
   SMTOption smt;
   load_options load;
   transform_options transform;
-  
-  
-  MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
+
+  MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA>()};
   CommandRegistrar* command = nullptr;
   bool help;
   std::string outputname = "";
 };
 
-
-bool parseOptions(int argc, char* argv[],SetupOptions&);
+bool parseOptions(int argc, char* argv[], SetupOptions&);
 
 #endif

@@ -2,48 +2,46 @@
 #include <istream>
 
 namespace MiniMC {
-namespace Interpreter {
-Lexer::Lexer(std::istream &is) : in{&is} {
-  advance();
-}
-
-Token Lexer::get_token() {
-  buffer.clear();
-  char c = in->get();
-
-  while (isspace(c))
-    c = in->get();
-  if (!in)
-    return Token::EOL;
-
-  if (isdigit(c)) {
-    buffer = c;
-    c = in->get();
-    while (isdigit(c)) {
-      buffer += c;
-      c = in->get();
+  namespace Interpreter {
+    Lexer::Lexer(std::istream& is) : in{&is} {
+      advance();
     }
-    return Token::NUMBER;
-  }
 
+    Token Lexer::get_token() {
+      buffer.clear();
+      char c = in->get();
 
-  if (isalpha(c)) {
-    buffer = c;
-    c = in->get();
+      while (isspace(c))
+        c = in->get();
+      if (!in)
+        return Token::EOL;
 
-    while (isalnum(c)) {
-      buffer += c;
-      c = in->get();
+      if (isdigit(c)) {
+        buffer = c;
+        c = in->get();
+        while (isdigit(c)) {
+          buffer += c;
+          c = in->get();
+        }
+        return Token::NUMBER;
+      }
+
+      if (isalpha(c)) {
+        buffer = c;
+        c = in->get();
+
+        while (isalnum(c)) {
+          buffer += c;
+          c = in->get();
+        }
+        if (commandMap.contains(buffer))
+          return commandMap[buffer];
+        else
+          return Token::ID;
+      }
+
+      return Token::EOL;
     }
-    if (commandMap.contains(buffer))
-      return commandMap[buffer];
-    else
-      return Token::ID;
-  }
 
-  return Token::EOL;
-}
-
-
-}// namespace Interpreter
+  } // namespace Interpreter
 } // namespace MiniMC
