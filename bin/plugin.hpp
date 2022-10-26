@@ -2,9 +2,9 @@
 #define _PLUGIN__
 
 #include "cpa/interface.hpp"
+#include "host/host.hpp"
 #include "model/controller.hpp"
 #include "options.hpp"
-#include "host/host.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
