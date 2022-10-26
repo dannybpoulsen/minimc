@@ -192,3 +192,5 @@ dependencies/smtlib
 libs/host/tests/hosttests
 libs/support/config.h
 *.cbp
+
+.pre-commit-config.yaml
