@@ -3,3 +3,4 @@ inputfile=@CMAKE_CURRENT_SOURCE_DIR@/insert_extract_nofai.mmc
 inlinefunctions=2
 cpa=2
 mc.expect=0
+loader=MMC

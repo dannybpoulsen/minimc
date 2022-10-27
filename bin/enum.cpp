@@ -1,9 +1,8 @@
 #include <boost/program_options.hpp>
 
 #include "options.hpp"
-#include "support/feedback.hpp"
 #include "support/sequencer.hpp"
-#include "support/host.hpp"
+#include "host/host.hpp"
 #include "algorithms/reachability/reachability.hpp"
 
 #include "plugin.hpp"
@@ -17,7 +16,7 @@ namespace {
   }
 }
 
-MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa)  {
+MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa)  {
   MiniMC::Support::Messager messager;
   messager.message("Initiating EnumStates");
   
@@ -40,7 +39,7 @@ MiniMC::Support::ExitCodes enum_main (MiniMC::Model::Controller& controller, con
   messager.message("Finished EnumStates");
   messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(reach.getPWProgresMeasure ().get().passed));
   
-  return MiniMC::Support::ExitCodes::AllGood;
+  return MiniMC::Host::ExitCodes::AllGood;
 }
 
 static CommandRegistrar enum_reg ("enum",enum_main,"Enumerate total number of states in CPA",addOptions);

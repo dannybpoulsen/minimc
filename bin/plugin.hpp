@@ -2,16 +2,15 @@
 #define _PLUGIN__
 
 #include "cpa/interface.hpp"
-#include "loaders/loader.hpp"
 #include "model/controller.hpp"
 #include "options.hpp"
-#include "support/host.hpp"
+#include "host/host.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>
 
-using subcommandfunc = std::function<MiniMC::Support::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::AnalysisBuilder&)>;
+using subcommandfunc = std::function<MiniMC::Host::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::AnalysisBuilder&)>;
 using options_func = std::function<void(boost::program_options::options_description&)>;
 
 struct CommandRegistrar;

@@ -57,7 +57,7 @@ namespace {
 }
 
 
-MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa) {
+MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa) {
   MiniMC::Support::Messager messager{};
   messager.message("Initiating Reachability");
   
@@ -85,22 +85,22 @@ MiniMC::Support::ExitCodes mc_main (MiniMC::Model::Controller& controller, const
     std::cerr << reach.foundState () << std::endl;
     
     if (locoptions.expect == ExpectReach::Reachable)
-      return MiniMC::Support::ExitCodes::AllGood;
+      return MiniMC::Host::ExitCodes::AllGood;
     else
-      return MiniMC::Support::ExitCodes::UnexpectedResult;
+      return MiniMC::Host::ExitCodes::UnexpectedResult;
   }
 
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("No violation found").format ());
     if (locoptions.expect == ExpectReach::Reachable)
-      return MiniMC::Support::ExitCodes::UnexpectedResult;
+      return MiniMC::Host::ExitCodes::UnexpectedResult;
     else
-      return MiniMC::Support::ExitCodes::AllGood;
+      return MiniMC::Host::ExitCodes::AllGood;
   }
   
   
   
-  return MiniMC::Support::ExitCodes::AllGood;
+  return MiniMC::Host::ExitCodes::AllGood;
 }
 
 static CommandRegistrar mc_reg ("mc",mc_main,"Check whether it is possible to reach an assert violation. Classic reachability analysis. ",addOptions);

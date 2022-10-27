@@ -1,6 +1,6 @@
 #include "config.h"
 #include "options.hpp"
-#include "support/smt.hpp"
+#include "smt/smt.hpp"
 #include "plugin.hpp"
 #include "cpa/location.hpp"
 #ifdef MINIMC_SYMBOLIC
@@ -30,14 +30,14 @@ po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
   
-  auto setLoader = [&options](std::size_t val) {
-    if (val < MiniMC::Loaders::getLoaders ().size ()) {
-      options.load.registrar = MiniMC::Loaders::getLoaders ().at (val);
+  auto setLoader = [&options](auto& val) {
+    if (auto load = MiniMC::Loaders::findLoader (val)) {
+      options.load.registrar = load;
     }
     else
       throw MiniMC::Support::ConfigurationException ("Can't find specificed Loader");
   };
-  
+
   general.add_options()
     ("inputfile", po::value<std::string>(&options.load.inputname), "Input file")
     ("task", boost::program_options::value<std::vector<std::string>>(&options.load.tasks), "Add task as entrypoint");
@@ -45,11 +45,11 @@ po::options_description loadOptions (SetupOptions& options) {
   str << "Model Loader\n";
   int i = 0;
   for (auto& loader : MiniMC::Loaders::getLoaders ()) {
-    str << "\t " << i << ": " << loader->getName () << "\n";
+    str << "\t "  << loader->getName () << "\n";
     i++;
   }
   general.add_options ()
-    ("loader",po::value<std::size_t> ()->default_value(0)->notifier (setLoader),str.str().c_str());
+    ("loader",po::value<std::string> ()->default_value(std::string{"LLVM"})->notifier (setLoader),str.str().c_str());
 
   for (auto& loader : MiniMC::Loaders::getLoaders ()) {
     

@@ -1,4 +1,0 @@
-add_library (modelanalysis STATIC  loop.cpp dominator.cpp )
-target_include_directories (modelanalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries (modelanalysis support util)
-
