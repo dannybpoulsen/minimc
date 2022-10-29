@@ -757,7 +757,6 @@ ASSUMEASSERTS
       
       InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
                                                                                  phi(isPhi) {
-        assert(instr.size());
       }
       InstructionStream(const InstructionStream& str) : instr(str.instr), phi(str.phi) {}
 

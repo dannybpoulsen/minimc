@@ -181,7 +181,10 @@ namespace MiniMC {
 	    if constexpr (!std::is_same_v<const typename T::Bool&,decltype(t)> &&
 			  !std::is_same_v<const typename T::Aggregate&,decltype(t)>
 			  )
-	      writeState.getMemory().storeValue(addr, t);  
+	      writeState.getMemory().storeValue(addr, t);
+	    else {
+	      throw MiniMC::Support::Exception ("Cannot Store this type");
+	    }
 	  });
 	}
         
@@ -579,6 +582,7 @@ namespace MiniMC {
       Status status = Status::Ok;
       auto it = instr.begin ();
       for ( it = instr.begin(); it != end && status == Status::Ok; ++it) {
+	std::cerr << *it << std::endl;
 	switch (it->getOpcode()) {
 	  
 #define X(OP)								\
