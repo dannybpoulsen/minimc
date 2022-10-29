@@ -152,17 +152,31 @@ namespace MiniMC {
 
       template<std::size_t PtrWidth>
       SMTLib::Term_ptr write(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, const SMTLib::Term_ptr& content) {
-        auto carr = arr;
+	auto carr = arr;
         for (size_t i = 0; i < bytes; ++i) {
           auto ones = t.makeBVIntConst(bytes - 1 - i,  PtrWidth);
           auto curind = t.buildTerm(SMTLib::Ops::BVAdd, {startInd, ones});
           auto curbyte = t.buildTerm(SMTLib::Ops::Extract, {content}, {i * 8 + 7, i * 8});
-	  
+	  std::cerr << *curbyte << std::endl;
           carr = t.buildTerm(SMTLib::Ops::Store, {carr, curind, curbyte});
         }
-        assert(carr);
+	assert(carr);
         return carr;
       }
+
+      template<std::size_t PtrWidth>
+      SMTLib::Term_ptr writeAggr(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, const SMTLib::Term_ptr& content) {
+	auto carr = arr;
+        for (size_t i = 0; i < bytes; ++i) {
+          auto ones = t.makeBVIntConst(i,  PtrWidth);
+          auto curind = t.buildTerm(SMTLib::Ops::BVAdd, {startInd, ones});
+          auto curbyte = t.buildTerm(SMTLib::Ops::Extract, {content}, {i * 8 + 7, i * 8});
+	  carr = t.buildTerm(SMTLib::Ops::Store, {carr, curind, curbyte});
+        }
+	assert(carr);
+        return carr;
+      }
+
       
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I8& val)  {
 	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
@@ -185,9 +199,12 @@ namespace MiniMC {
       }
 
       void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer32& val) {
-	mem_var = write<PathFormulaVMVal::Pointer32::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
-      
+
+      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Aggregate& val) {
+	mem_var = writeAggr<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      }
       
       
       PathControl::PathControl(SMTLib::TermBuilder& builder) : builder(builder) {

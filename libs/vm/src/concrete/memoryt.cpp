@@ -166,6 +166,16 @@ namespace MiniMC {
         }
       }
 
+      void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Aggregate& v) {
+	auto pointer = p.getValue();
+        auto value = v.getValue();
+        auto base = MiniMC::getBase(pointer);
+        auto offset = MiniMC::getOffset(pointer);
+        if (base < _internal->entries.size()) {
+          _internal->entries.at(base).write({.buffer = value.get_direct_access(), .size = value.getSize ()}, offset);
+        }
+      }
+
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();

@@ -53,7 +53,7 @@ namespace MiniMC {
 
         MiniMC::Hash::hash_t hash() const { return val.hash(); }
         auto getValue() const { return val; }
-
+	
       private:
         MiniMC::Util::Array val;
       };

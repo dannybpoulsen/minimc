@@ -28,7 +28,8 @@ namespace MiniMC {
 	void storeValue(const Value::Pointer&, const Value::I16&) override;
         void storeValue(const Value::Pointer&, const Value::I32&) override;
         void storeValue(const Value::Pointer&, const Value::I64&) override;
-        void storeValue(const Value::Pointer&, const Value::Pointer&) override;
+	void storeValue(const Value::Pointer&, const Value::Aggregate&) override;
+	void storeValue(const Value::Pointer&, const Value::Pointer&) override;
 	void storeValue(const Value::Pointer&, const Value::Pointer32&) override;
         
 	

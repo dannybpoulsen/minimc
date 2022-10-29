@@ -69,6 +69,7 @@ namespace MiniMC {
       virtual void storeValue (const typename T::Pointer&, const typename T::I16&) = 0;
       virtual void storeValue (const typename T::Pointer&, const typename T::I32&) = 0;
       virtual void storeValue (const typename T::Pointer&, const typename T::I64&) = 0;
+      virtual void storeValue (const typename T::Pointer&, const typename T::Aggregate&) = 0; 
       virtual void storeValue (const typename T::Pointer&, const typename T::Pointer&) = 0;
       virtual void storeValue (const typename T::Pointer&, const typename T::Pointer32&) = 0;
       
