@@ -52,17 +52,6 @@ int main(int argc, char* argv[]) {
       }
       transformProgram (control,options.transform);
       
-      
-      for (std::string& s : options.load.tasks) {
-	try {
-	  control.addEntryPoint(s, {});
-	} catch (MiniMC::Support::FunctionDoesNotExist&) {
-	  messager.message<MiniMC::Support::Severity::Error> (MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s));
-	  return -1;
-	  }
-      }
-      
-      
       if (options.outputname != "") {
 	std::ofstream stream;
 	stream.open (options.outputname, std::ofstream::out);
@@ -72,13 +61,12 @@ int main(int argc, char* argv[]) {
       if (options.command) {
 	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
       
-      return res;
+	return res;
       }
       
       else {
 	messager.message<MiniMC::Support::Severity::Error> ("No subcommand selected");
-	
-      return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
+	return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
       }
     }
   }

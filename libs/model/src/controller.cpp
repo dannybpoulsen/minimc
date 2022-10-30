@@ -49,13 +49,6 @@ namespace MiniMC {
     void Controller::expandNonDeterministic (){
       MiniMC::Model::Modifications::expandNonDet (*prgm);
     }
-
-      
-    void Controller::addEntryPoint (std::string& name, std::vector<MiniMC::Model::Value_ptr>&& params) {
-      auto func = prgm->getFunction(name);
-      auto entry = createEntry(*prgm, func,std::move(params));
-      prgm->addEntryPoint(entry->getSymbol().getName());
-    }
     
   }
 } // namespace MiniMC

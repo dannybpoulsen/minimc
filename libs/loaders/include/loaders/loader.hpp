@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <variant>
 #include <initializer_list>
 
@@ -29,12 +30,15 @@ namespace MiniMC {
       std::string description;
       T value;
     };
-
+    
     using IntOption = TOption<std::size_t>;
     using StringOption = TOption<std::string>;
-
+    using VecStringOption = TOption<std::vector<std::string>>;
+    
+    
     using LoaderOption = std::variant<IntOption,
-                                      StringOption>;
+                                      StringOption,
+				      VecStringOption>;
 
     struct Loader {
       Loader(MiniMC::Model::TypeFactory_ptr& tfac,

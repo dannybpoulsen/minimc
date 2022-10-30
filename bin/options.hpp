@@ -18,7 +18,6 @@ struct SMTOption {
 
 struct load_options{
   std::string inputname;
-  std::vector<std::string> tasks;
   MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
 };
 

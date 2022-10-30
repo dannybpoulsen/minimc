@@ -90,6 +90,7 @@ namespace MiniMC {
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f);
 	}
+	
 	for (auto f: p.getEntryPoints ()) {
 	  program.addEntryPoint (f->getSymbol ().getName());
 	}

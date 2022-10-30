@@ -1,6 +1,6 @@
 command=mc
 inputfile=@CMAKE_CURRENT_BINARY_DIR@/main.ll
-task= main
+LLVM.entry= main
 inlinefunctions=1
 mc.expect=0
 loader=LLVM
