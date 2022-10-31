@@ -325,7 +325,6 @@ namespace MiniMC {
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
 	return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
       }
 
@@ -335,7 +334,6 @@ namespace MiniMC {
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
         return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
 
 

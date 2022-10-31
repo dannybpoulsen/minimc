@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.registrar->makeLoader  (tfac,cfac);
       MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname);
       
-      MiniMC::Model::Controller control(*loadresult.program,loadresult.entrycreator);
+      MiniMC::Model::Controller control(*loadresult.program);
       control.boolCasts();
   
       if (!control.typecheck ()) {

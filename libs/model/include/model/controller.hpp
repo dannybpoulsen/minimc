@@ -8,12 +8,11 @@
 
 namespace MiniMC {
   namespace Model {
-    using entry_creator = std::function<MiniMC::Model::Function_ptr(MiniMC::Model::Program&, MiniMC::Model::Function_ptr,std::vector<MiniMC::Model::Value_ptr>&&)>;
     
     //Helper class for running modifications on a Program
     class Controller {
     public:
-      Controller (const MiniMC::Model::Program& p,entry_creator entry) : prgm(std::make_shared<Program> (p)),createEntry(entry) {
+      Controller (const MiniMC::Model::Program& p) : prgm(std::make_shared<Program> (p)) {
 	lowerPhi ();
       }
       
@@ -34,7 +33,6 @@ namespace MiniMC {
       
     private:
       MiniMC::Model::Program_ptr prgm;
-      entry_creator createEntry;
     };
   }
 }

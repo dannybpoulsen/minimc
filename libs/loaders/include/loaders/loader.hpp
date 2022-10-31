@@ -21,7 +21,6 @@ namespace MiniMC {
 
     struct LoadResult {
       MiniMC::Model::Program_ptr program;
-      MiniMC::Model::entry_creator entrycreator;
     };
 
     template <class T>
