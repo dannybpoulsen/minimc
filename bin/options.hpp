@@ -23,7 +23,11 @@ struct load_options{
 
 struct transform_options {
   bool expand_nondet{false};
-};
+  std::size_t unrollLoops{0};
+  std::size_t inlineFunctions{0};
+  
+  };
+
 
 struct SetupOptions {
   SMTOption smt;

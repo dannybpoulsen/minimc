@@ -24,6 +24,12 @@ void transformProgram (auto& controller, const transform_options& options) {
   if (options.expand_nondet) {
     controller.expandNonDeterministic ();
   }
+  if (options.unrollLoops) {
+    controller.unrollLoops (options.unrollLoops);
+  }
+  if (options.inlineFunctions) {
+    controller.inlineFunctions (options.inlineFunctions);
+  }
 }
 
 int main(int argc, char* argv[]) {

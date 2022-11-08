@@ -22,8 +22,8 @@ namespace MiniMC {
       void lowerPhi ();
       void makeMemNonDet ();
       void createAssertViolateLocations ();
-      void inlineFunctions (std::size_t, const MiniMC::Model::Function_ptr&);
-      void unrollLoops (std::size_t, const MiniMC::Model::Function_ptr&);
+      void inlineFunctions (std::size_t);
+      void unrollLoops (std::size_t);
       void boolCasts ();
       void splitAtCMP ();
       void expandNonDeterministic ();

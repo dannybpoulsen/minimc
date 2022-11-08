@@ -22,7 +22,11 @@ void printBanner(std::ostream& os) {
 po::options_description transformOptions (SetupOptions& options) {
   po::options_description general("Transform Options");
   general.add_options()
-    ("transform.expand_nondet", boost::program_options::bool_switch(&options.transform.expand_nondet) , "Expand Non");
+    ("transform.expand_nondet", boost::program_options::bool_switch(&options.transform.expand_nondet) , "Expand Nondeterministic")
+    ("transform.unroll", boost::program_options::value(&options.transform.unrollLoops) , "Unroll (all) loops")
+    ("transform.inline", boost::program_options::value(&options.transform.inlineFunctions) , "Inline function calls for all entry_points");
+    
+    
   return general;
 }
 

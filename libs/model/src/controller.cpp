@@ -37,12 +37,15 @@ namespace MiniMC {
       MiniMC::Model::Modifications::SplitAsserts{}.run (*prgm);
     }
     
-    void Controller::inlineFunctions (std::size_t depth, const MiniMC::Model::Function_ptr& func){
-      MiniMC::Model::Modifications::InlineFunctions{*prgm}.runFunction (func,depth);
+    void Controller::inlineFunctions (std::size_t depth){
+      for (auto& func : prgm->getEntryPoints ()) {
+	MiniMC::Model::Modifications::InlineFunctions{*prgm}.runFunction (func,depth);
+      }
     }
     
-    void Controller::unrollLoops (std::size_t iterations,  const MiniMC::Model::Function_ptr& func){
-      MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
+    void Controller::unrollLoops (std::size_t iterations){
+      for (auto& func : prgm->getFunctions ()) 
+	MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
     }
     
     
