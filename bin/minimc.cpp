@@ -24,6 +24,12 @@ void transformProgram (auto& controller, const transform_options& options) {
   if (options.expand_nondet) {
     controller.expandNonDeterministic ();
   }
+  if (options.unrollLoops) {
+    controller.unrollLoops (options.unrollLoops);
+  }
+  if (options.inlineFunctions) {
+    controller.inlineFunctions (options.inlineFunctions);
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -44,24 +50,13 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.registrar->makeLoader  (tfac,cfac);
       MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname);
       
-      MiniMC::Model::Controller control(*loadresult.program,loadresult.entrycreator);
+      MiniMC::Model::Controller control(*loadresult.program);
       control.boolCasts();
   
       if (!control.typecheck ()) {
 	return -1;
       }
       transformProgram (control,options.transform);
-      
-      
-      for (std::string& s : options.load.tasks) {
-	try {
-	  control.addEntryPoint(s, {});
-	} catch (MiniMC::Support::FunctionDoesNotExist&) {
-	  messager.message<MiniMC::Support::Severity::Error> (MiniMC::Support::Localiser{"Function '%1%' specicifed as entry point does not exists. "}.format(s));
-	  return -1;
-	  }
-      }
-      
       
       if (options.outputname != "") {
 	std::ofstream stream;
@@ -72,13 +67,12 @@ int main(int argc, char* argv[]) {
       if (options.command) {
 	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
       
-      return res;
+	return res;
       }
       
       else {
 	messager.message<MiniMC::Support::Severity::Error> ("No subcommand selected");
-	
-      return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
+	return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
       }
     }
   }

@@ -9,10 +9,6 @@
 namespace MiniMC {
 namespace Loaders {
 
-MiniMC::Model::Function_ptr createEntryPoint(MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&) {
-  throw MiniMC::Support::ConfigurationException ("Loader does not support defining entry points");
-}
-
 
 class MMCLoader : public Loader {
 public:
@@ -26,7 +22,6 @@ public:
     Parser parser = Parser(str, *tfactory, *cfactory, program);
     parser.run();
     return {.program = program,
-            .entrycreator = createEntryPoint
     };
   }
   LoadResult loadFromString(const std::string &inp) override {
@@ -35,8 +30,7 @@ public:
     str.str(inp);
     Parser parser = Parser(str, *tfactory, *cfactory, program);
     parser.run();
-    return {.program = program,
-            .entrycreator = createEntryPoint
+    return {.program = program
             };
   }
 };
@@ -44,22 +38,10 @@ public:
 class MMCLoadRegistrar : public LoaderRegistrar {
 public:
   MMCLoadRegistrar()
-      : LoaderRegistrar("MMC", {IntOption{.name = "stack",
-                                          .description = "StackSize",
-                                          .value = 200}}) {}
+      : LoaderRegistrar("MMC", {}) {}
 
   Loader_ptr makeLoader(MiniMC::Model::TypeFactory_ptr &tfac,
                         Model::ConstantFactory_ptr cfac) override {
-    auto stacksize = std::visit(
-        [](auto &t) -> std::size_t {
-          using T = std::decay_t<decltype(t)>;
-          if constexpr (std::is_same_v<T, IntOption>)
-            return t.value;
-          else {
-            throw MiniMC::Support::Exception("Horrendous error");
-          }
-        },
-        getOptions().at(0));
     return std::make_unique<MMCLoader>(tfac, cfac);
   }
 };

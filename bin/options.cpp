@@ -22,7 +22,11 @@ void printBanner(std::ostream& os) {
 po::options_description transformOptions (SetupOptions& options) {
   po::options_description general("Transform Options");
   general.add_options()
-    ("transform.expand_nondet", boost::program_options::bool_switch(&options.transform.expand_nondet) , "Expand Non");
+    ("transform.expand_nondet", boost::program_options::bool_switch(&options.transform.expand_nondet) , "Expand Nondeterministic")
+    ("transform.unroll", boost::program_options::value(&options.transform.unrollLoops) , "Unroll (all) loops")
+    ("transform.inline", boost::program_options::value(&options.transform.inlineFunctions) , "Inline function calls for all entry_points");
+    
+    
   return general;
 }
 
@@ -39,8 +43,7 @@ po::options_description loadOptions (SetupOptions& options) {
   };
 
   general.add_options()
-    ("inputfile", po::value<std::string>(&options.load.inputname), "Input file")
-    ("task", boost::program_options::value<std::vector<std::string>>(&options.load.tasks), "Add task as entrypoint");
+    ("inputfile", po::value<std::string>(&options.load.inputname), "Input file");
   std::stringstream str;
   str << "Model Loader\n";
   int i = 0;
@@ -65,8 +68,9 @@ po::options_description loadOptions (SetupOptions& options) {
       },
 	opt
 	);
-      general.add (opt_arr);
     }
+      general.add (opt_arr);
+    
   }
   
   return general;
@@ -120,7 +124,7 @@ po::options_description defOptions (SetupOptions& options) {
 po::options_description cpaOptions (std::vector<int>& select) {  
   po::options_description general("CPA Options");
   general.add_options ()
-    ("cpa", po::value<std::vector<int>>(&select)->multitoken (), "CPA\n 2: Concrete\n"
+    ("cpa", po::value<std::vector<int>>(&select), "CPA\n 2: Concrete\n"
 #ifdef MINIMC_SYMBOLIC
      "\t 3: PathFormula\n"
 #endif

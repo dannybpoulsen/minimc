@@ -18,13 +18,16 @@ struct SMTOption {
 
 struct load_options{
   std::string inputname;
-  std::vector<std::string> tasks;
   MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
 };
 
 struct transform_options {
   bool expand_nondet{false};
-};
+  std::size_t unrollLoops{0};
+  std::size_t inlineFunctions{0};
+  
+  };
+
 
 struct SetupOptions {
   SMTOption smt;

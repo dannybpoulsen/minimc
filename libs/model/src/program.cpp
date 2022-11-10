@@ -18,7 +18,7 @@ namespace MiniMC {
       }
       
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
-							   const MiniMC::Model::RegisterDescr& vars
+							   const MiniMC::Model::RegisterDescr* vars = nullptr
 							   ) {
 	auto replacer = [&vars](auto& v) -> MiniMC::Model::Value_ptr {
 	  if (v == nullptr)
@@ -26,8 +26,12 @@ namespace MiniMC {
 	  if (v->isConstant ()) {
 	    return v;
 	  }
-	  else
-	    return vars.getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
+	  else if (vars) {
+	    return vars->getRegisters ().at (std::static_pointer_cast<MiniMC::Model::Register> (v)->getId ());
+	  }
+	  else {
+	    throw MiniMC::Support::Exception ("Cannot replace variable");
+	  }
 	};
 	std::vector<Instruction> instrs;
 	for (auto& t : instr) {
@@ -54,7 +58,7 @@ namespace MiniMC {
 
 	  if (e->getInstructions ()) {
 	    auto& instrs = e->getInstructions();
-	    nedge->getInstructions () = copyInstructionStream (instrs,vars);
+	    nedge->getInstructions () = copyInstructionStream (instrs,&vars);
 	      
 	  }
 	  
@@ -86,9 +90,12 @@ namespace MiniMC {
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f);
 	}
+	
 	for (auto f: p.getEntryPoints ()) {
 	  program.addEntryPoint (f->getSymbol ().getName());
 	}
+
+	program.setInitialiser (copyInstructionStream(p.getInitialiser ()));
 	
 	program.getHeapLayout () = p.getHeapLayout ();
 	

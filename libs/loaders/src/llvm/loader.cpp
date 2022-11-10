@@ -316,15 +316,15 @@ namespace MiniMC {
     public:
       LLVMLoader (MiniMC::Model::TypeFactory_ptr& tfac,
 		  Model::ConstantFactory_ptr& cfac,
-		  std::size_t stacksize
-		  ) : Loader (tfac,cfac),stacksize(stacksize) {}
+		  std::size_t stacksize,
+		  std::vector<std::string> entry
+		  ) : Loader (tfac,cfac),stacksize(stacksize),entry(entry) {}
       LoadResult loadFromFile(const std::string& file) override {
         std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
 	return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
       }
 
@@ -334,7 +334,6 @@ namespace MiniMC {
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
         return {.program = readFromBuffer(buffer, tfactory, cfactory),
-		.entrycreator = std::bind(createEntryPoint,stacksize,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)
 	};
 
 
@@ -388,11 +387,18 @@ namespace MiniMC {
 
         mpm.run(*module, mam);
 
+	for (const auto& e : entry) {
+	  auto func = prgm->getFunction (e);
+	  auto entry = createEntryPoint (stacksize,*prgm,func,{});
+	
+	  prgm->addEntryPoint (entry->getSymbol().getName ());
+	}
         return prgm;
       }
 
     private:
       std::size_t stacksize;
+      std::vector<std::string> entry;
     };
 
 
@@ -401,7 +407,11 @@ namespace MiniMC {
       LLVMLoadRegistrar () : LoaderRegistrar("LLVM",{IntOption{.name="stack",
 							       .description ="StackSize",
 							       .value = 200
-	}
+	},
+						     VecStringOption {.name = "entry",
+								      .description="Entry point function",
+								      .value = {}
+						     }
 	}) {
       }
       
@@ -416,7 +426,17 @@ namespace MiniMC {
 	},
 	  getOptions().at(0)
 	  );
-	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize);
+	auto entry = std::visit([](auto& t)->std::vector<std::string> {
+	  using T = std::decay_t<decltype(t)>;
+	  if constexpr (std::is_same_v<T,VecStringOption>)
+	    return t.value;
+	  else {
+	    throw MiniMC::Support::Exception ("Horrendous error");
+	  }
+	},
+	  getOptions().at(1)
+	  );
+	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry);
       }
     };
 

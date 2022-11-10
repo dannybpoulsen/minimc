@@ -1,6 +1,6 @@
 command=mc
 inputfile=@CMAKE_CURRENT_BINARY_DIR@/array.ll
-task=main
+LLVM.entry=main
 inlinefunctions=2
 cpa=2
 mc.expect=0

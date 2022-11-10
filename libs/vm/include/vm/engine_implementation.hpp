@@ -178,10 +178,11 @@ namespace MiniMC {
 	  auto addr =  addrConverter (writeState.getStackControl().getValueLookup ().lookupValue(content.addr));
 	  
 	  value.visit ([&writeState,&addr](const auto& t) {
-	    if constexpr (!std::is_same_v<const typename T::Bool&,decltype(t)> &&
-			  !std::is_same_v<const typename T::Aggregate&,decltype(t)>
-			  )
-	      writeState.getMemory().storeValue(addr, t);  
+	    if constexpr (!std::is_same_v<const typename T::Bool&,decltype(t)>)
+	      writeState.getMemory().storeValue(addr, t);
+	    else {
+	      throw MiniMC::Support::Exception ("Cannot Store this type");
+	    }
 	  });
 	}
         

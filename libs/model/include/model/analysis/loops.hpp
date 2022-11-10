@@ -52,9 +52,9 @@ namespace MiniMC {
           }
 
           /*for (auto& b : latches) {
-			std::for_each (b->ebegin (),b->eend(),[&](const auto& e) {this->insertEdge(e);});
-			}*/
-
+	    std::for_each (b->ebegin (),b->eend(),[&](const auto& e) {this->insertEdge(e);});
+	    }*/
+	  
           std::for_each(header->ebegin(), header->eend(), [&](const auto& e) { this->insertEdge(e); });
         }
 
