@@ -1,6 +1,7 @@
 
 #include "algorithms/algorithms.hpp"
 #include "cpa/interface.hpp"
+#include "algorithms/reachability/verdict.hpp"
 
 #include <iosfwd>
 
@@ -17,11 +18,7 @@ namespace MiniMC {
 
       StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState&);; 
       
-      enum class Verdict {
-	Found,
-	NotFound
-      };
-      
+
       class Reachability {
       public:
 	struct Progress {
@@ -31,7 +28,7 @@ namespace MiniMC {
 	
 	Reachability (MiniMC::CPA::AnalysisTransfer transfer) : transfer(transfer)  {}
 	
-	Verdict search (const MiniMC::CPA::AnalysisState&,
+	Verdict::Result search (const MiniMC::CPA::AnalysisState&,
 			GoalFunction,
 			FilterFunction = DefaultFilter
 			);
