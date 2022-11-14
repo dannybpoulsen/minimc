@@ -20,7 +20,7 @@ struct VerdictData{
 };
 
 struct FoundContent {
-  MiniMC::CPA::AnalysisState& state;
+  MiniMC::CPA::AnalysisState state;
 };
 
 template<>
