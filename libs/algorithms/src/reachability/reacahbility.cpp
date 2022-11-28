@@ -45,7 +45,7 @@ namespace MiniMC {
 	  waiting.pop_back ();
 
 	  if (goal(searchee)) {
-	    return Verdict::createResult<Verdict::Verdict::Found>({.state=std::move(searchee)});
+	    return Verdict::createResult<Verdict::Verdict::ReachabilityFound>({.state=std::move(searchee)});
 	  }
 
 	  if (searchee.getCFAState ()->getLocationState().nbOfProcesses ()) {
@@ -65,7 +65,7 @@ namespace MiniMC {
 	  progress_indicator.notif_listeners ();
 	}
 	
-	return Verdict::createResult<Verdict::Verdict::NotFound>({});
+	return Verdict::createResult<Verdict::Verdict::ReachabilityNotFound>({});
 	
       }
       

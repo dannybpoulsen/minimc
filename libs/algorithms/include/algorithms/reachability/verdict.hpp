@@ -12,7 +12,7 @@ namespace Algorithms {
 namespace Reachability {
 namespace Verdict {
 
-enum class Verdict { Found, NotFound };
+enum class Verdict { ReachabilityFound, ReachabilityNotFound };
 
 template<Verdict V>
 struct VerdictData{
@@ -24,22 +24,22 @@ struct FoundContent {
 };
 
 template<>
-struct VerdictData<Verdict::Found> {
+struct VerdictData<Verdict::ReachabilityFound> {
   static const bool isFound = true;
   using Content = FoundContent;
 };
 
 template<>
-struct VerdictData<Verdict::NotFound>{
+struct VerdictData<Verdict::ReachabilityNotFound>{
   static const bool isFound = false;
   using Content = int;
 };
 
 using Verdict_content = std::variant<FoundContent,int>;
 
-struct Result {
+struct Details {
 public:
-  Result(Verdict verdict, Verdict_content verdictcontent) : verdict(verdict), content(verdictcontent){};
+  Details(Verdict verdict, Verdict_content verdictcontent) : verdict(verdict), content(verdictcontent){};
   Verdict getVerdict(){return verdict;}
 
   template<Verdict V>
@@ -53,8 +53,8 @@ private:
 };
 
 template<Verdict V>
-Result createResult(const typename VerdictData<V>::Content content){
-  return Result(V,content);
+Details createResult(const typename VerdictData<V>::Content content){
+  return Details(V,content);
 }
 
 
