@@ -2,9 +2,11 @@
 #ifndef MINIMC_VERDICT_HPP
 #define MINIMC_VERDICT_HPP
 
+#include <variant>
+
 #include "algorithms/algorithms.hpp"
 #include "cpa/interface.hpp"
-#include <variant>
+#include "storage/storage.hpp"
 
 
 namespace MiniMC {
@@ -16,22 +18,20 @@ enum class Verdict { ReachabilityFound, ReachabilityNotFound };
 
 template<Verdict V>
 struct VerdictData{
-  static const bool isFound = false;
 };
 
 struct ReachabilityFoundContent {
   MiniMC::CPA::AnalysisState state;
+  MiniMC::Storage::HashStorage storage;
 };
 
 template<>
 struct VerdictData<Verdict::ReachabilityFound> {
-  static const bool isFound = true;
   using Content = ReachabilityFoundContent;
 };
 
 template<>
 struct VerdictData<Verdict::ReachabilityNotFound>{
-  static const bool isFound = false;
   using Content = int;
 };
 
