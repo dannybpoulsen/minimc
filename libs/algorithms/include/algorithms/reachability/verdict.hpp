@@ -19,14 +19,14 @@ struct VerdictData{
   static const bool isFound = false;
 };
 
-struct FoundContent {
+struct ReachabilityFoundContent {
   MiniMC::CPA::AnalysisState state;
 };
 
 template<>
 struct VerdictData<Verdict::ReachabilityFound> {
   static const bool isFound = true;
-  using Content = FoundContent;
+  using Content = ReachabilityFoundContent;
 };
 
 template<>
@@ -35,7 +35,7 @@ struct VerdictData<Verdict::ReachabilityNotFound>{
   using Content = int;
 };
 
-using Verdict_content = std::variant<FoundContent,int>;
+using Verdict_content = std::variant<ReachabilityFoundContent,int>;
 
 struct Details {
 public:
