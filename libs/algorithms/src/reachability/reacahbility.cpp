@@ -26,7 +26,7 @@ namespace MiniMC {
       }
       
 
-      Verdict::Result Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
+      Verdict::Details Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	std::list<MiniMC::CPA::AnalysisState> waiting;
 	MiniMC::Storage::HashStorage storage;
 	
