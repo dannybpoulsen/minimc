@@ -41,7 +41,11 @@ struct Result {
 public:
   Result(Verdict verdict, Verdict_content verdictcontent) : verdict(verdict), content(verdictcontent){};
   Verdict getVerdict(){return verdict;}
-  Verdict_content getContent(){return content;}
+
+  template<Verdict V>
+  auto& getContent(){
+    return std::get<typename VerdictData<V>::Content> (content);
+  }
 
 private:
   Verdict verdict;

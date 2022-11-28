@@ -85,7 +85,7 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   
   if (verdict.getVerdict() == MiniMC::Algorithms::Reachability::Verdict::Verdict::Found) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Found Violation").format ());
-    std::cerr << reach.foundState () << std::endl;
+    std::cerr << verdict.getContent<MiniMC::Algorithms::Reachability::Verdict::Verdict::Found>().state << std::endl;
     
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Host::ExitCodes::AllGood;
