@@ -18,21 +18,6 @@ namespace MiniMC {
 
     class Instruction;
 
-/**
-     * Structure for representing guards. 
-	 */
-    struct Guard {
-      Guard() {}
-      Guard(const Value_ptr& g, bool negate) : guard(g), negate(negate) {}
-
-      Value_ptr guard = nullptr; ///< The guarding Value
-      bool negate = false;       ///< whether the guarding value should be negated when evaluating if the guard is true
-    };
-
-    inline std::ostream& operator<<(std::ostream& os, const Guard& g) {
-      return os << "<< " << (g.negate ? "!" : "") << *g.guard << " >>";
-    }
-
     class Edge : public std::enable_shared_from_this<Edge> {
     public:
       Edge(Location_ptr from, Location_ptr to) : from(from),
