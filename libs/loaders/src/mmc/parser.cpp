@@ -128,9 +128,9 @@ void Parser::function() {
     ignore_eol();
     auto registerDescr = registers(name);
 
-    parameters(&params, registerDescr.get());
+    parameters(&params, registerDescr);
     auto ret = returns();
-    auto cfg = cfa(name, registerDescr.get());
+    auto cfg = cfa(name, registerDescr);
     prgm->addFunction(name.getFullName(), params, ret,
                       std::move(registerDescr), std::move(cfg));
     return;
@@ -139,15 +139,15 @@ void Parser::function() {
       "Expected a function-declaration beginning with '## {function-name}'");
 }
 
-Model::RegisterDescr_uptr Parser::registers(Model::Symbol name){
-  auto registerDescr = std::make_unique<MiniMC::Model::RegisterDescr> (name);
+Model::RegisterDescr Parser::registers(Model::Symbol name){
+  MiniMC::Model::RegisterDescr registerDescr{name};
 
   if(lexer->token() == Token::REGISTERS){
     lexer->advance();
     ignore_eol();
     while(lexer->token() != Token::PARAMETERS){
       auto v = variable();
-      registerDescr->addRegister(Model::Symbol(v.getSymbol().getName()), v.getType());
+      registerDescr.addRegister(Model::Symbol(v.getSymbol().getName()), v.getType());
       lexer->advance();
       ignore_eol();
     }
@@ -157,8 +157,8 @@ Model::RegisterDescr_uptr Parser::registers(Model::Symbol name){
                            "Expected a registers-declaration on the form: '.registers'");
 }
 
-void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs) {
-  std::vector<Model::Register_ptr> variables = regs->getRegisters();
+void Parser::parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr& regs) {
+  std::vector<Model::Register_ptr> variables = regs.getRegisters();
 
   if(lexer->token() == Token::PARAMETERS){
     lexer->advance();
@@ -191,7 +191,7 @@ Model::Type_ptr Parser::returns(){
                            "Expected a returns-declaration on the form: '.returns'");
 }
 
-Model::CFA Parser::cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs) {
+Model::CFA Parser::cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs) {
   Model::CFA cfg;
   std::unordered_map<std::string, MiniMC::Model::Location_ptr> locmap;
 
@@ -214,7 +214,7 @@ Model::CFA Parser::cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr* r
                            "Expected a cfa-declaration on the form: '.cfa'");
 }
 
-void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
+void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, Model::CFA* cfg, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap) {
   Model::InstructionStream instructionStream;
   MiniMC::Model::LocationInfoCreator locinfoc(name, regs);
   Model::Location_ptr to;
@@ -254,7 +254,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, 
         edge->getInstructions() = instructionStream;
         instructionStream.clear();
       } else {
-        instruction(&instructionStream, regs->getRegisters());
+        instruction(&instructionStream, regs.getRegisters());
       }
       lexer->advance();
       ignore_eol();
@@ -829,7 +829,7 @@ Model::Register Parser::variable(){
   try {
     if (lexer->token() == Token::LESS_THAN) {
       lexer->advance();
-      Model::Register var = Model::Register(identifier(), nullptr);
+      Model::Register var = Model::Register(identifier());
       lexer->advance();
       var.setType(type());
       lexer->advance();

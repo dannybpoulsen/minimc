@@ -31,11 +31,11 @@ private:
   void heap();
   void initialiser();
   void function();
-  Model::RegisterDescr_uptr registers(Model::Symbol name);
-  void parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr* regs);
+  Model::RegisterDescr registers(Model::Symbol name);
+  void parameters(std::vector<MiniMC::Model::Register_ptr>* params, const MiniMC::Model::RegisterDescr& regs);
   Model::Type_ptr returns();
-  Model::CFA cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs);
-  void edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, Model::CFA* cfa, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap);
+  Model::CFA cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs);
+  void edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, Model::CFA* cfa, std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap);
   Model::Location_ptr location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap,  MiniMC::Model::LocationInfoCreator locinfoc);
   void instruction(Model::InstructionStream* instructionStream, std::vector<MiniMC::Model::Register_ptr> variables);
   Model::Instruction instruction_eq(const std::vector<MiniMC::Model::Register_ptr> variables);

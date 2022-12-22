@@ -1,14 +1,18 @@
 #ifndef _MODEL_BUILDER__
 #define _MODEL_BUILDER__
 
+#include "hash/hashing.hpp"
+#include "model/symbol.hpp"
 #include "model/edge.hpp"
 #include "model/cfg.hpp"
 #include "model/location.hpp"
 #include "model/instructions.hpp"
 
+#include <unordered_map>
 
 namespace MiniMC {
   namespace Model {
+    
     template<bool isPhi = false>
     class EdgeBuilder {
     public:
@@ -60,46 +64,6 @@ namespace MiniMC {
 	return *this;
       }
       
-      /*EdgeBuilder& operator<< (const MiniMC::Model::Instruction& instr) {
-	if constexpr (!isPhi) {
-	  switch (instr.getOpcode ()) {
-	  case MiniMC::Model::InstructionCode::Call:
-	  case MiniMC::Model::InstructionCode::NonDet:
-	  case MiniMC::Model::InstructionCode::Uniform:	  
-	  case MiniMC::Model::InstructionCode::Assume:
-	  case MiniMC::Model::InstructionCode::NegAssume:
-	  case MiniMC::Model::InstructionCode::Assert:
-	    {
-	      auto nto = cfa.makeLocation (from->getInfo ());
-	      edge->setTo (nto);
-	      from = cfa.makeLocation (from->getInfo ());
-	      
-	      auto call_edge = cfa.makeEdge (nto,from);
-	      call_edge->getInstructions().addInstruction (instr);
-	      edge = cfa.makeEdge (from,to);
-	      
-	    }
-	    break;
-	    
-	    
-	  default:
-	    edge->getInstructions().addInstruction (instr);
-	    
-	    break;
-	  }
-	  return *this;
-	}
-	
-	else {
-	  assert(instr.getOpcode () == MiniMC::Model::InstructionCode::Assign);
-	  if (instr.getOpcode () == MiniMC::Model::InstructionCode::Assign)
-	    edge->getInstructions().addInstruction (instr);
-	  
-	  else
-	    throw MiniMC::Support::Exception ("Phi edges can only have Assign instructions");
-	}
-      }
-      */
       
     private:
       MiniMC::Model::CFA& cfa;
@@ -107,6 +71,9 @@ namespace MiniMC {
       MiniMC::Model::Location_ptr to;
       MiniMC::Model::Edge_ptr edge;
     };
+
+    
+    
   }
 }
 

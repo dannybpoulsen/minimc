@@ -11,9 +11,9 @@ namespace MiniMC {
     struct Copier {
       Copier (Program& program) : program(program) { }
       auto copyVariables ( const MiniMC::Model::RegisterDescr& vars) {
-	MiniMC::Model::RegisterDescr_uptr stack= std::make_unique<MiniMC::Model::RegisterDescr> ();
+	MiniMC::Model::RegisterDescr stack;
 	for (auto& v : vars.getRegisters ())
-	  stack->addRegister (v->getSymbol(),v->getType ());
+	  stack.addRegister (v->getSymbol(),v->getType ());
 	return stack;
       }
       
@@ -73,9 +73,9 @@ namespace MiniMC {
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
-		       [&](auto& vv) {parameters.push_back (varstack->getRegisters ().at (vv->getId ()));}
+		       [&](auto& vv) {parameters.push_back (varstack.getRegisters ().at (vv->getId ()));}
 		       );
-	auto cfa = copyCFA (function->getCFA (),*varstack);
+	auto cfa = copyCFA (function->getCFA (),varstack);
 	auto retType  = function->getReturnType ();
 	return program.addFunction (function->getSymbol ().getName(),
 				    parameters,

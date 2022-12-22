@@ -6,12 +6,12 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
-      variables.push_back(std::make_shared<Register>(Symbol(pref, std::move(name)), this));
-      variables.back()->setType(type);
-      variables.back()->setPlace(totalSize);
-      variables.back()->setId(variables.size() - 1);
-      totalSize += type->getSize();
-      return variables.back();
+      _internal->variables.push_back(std::make_shared<Register>(Symbol(_internal->pref, std::move(name))));
+      _internal->variables.back()->setType(type);
+      _internal->variables.back()->setPlace(_internal->totalSize);
+      _internal->variables.back()->setId(_internal->variables.size() - 1);
+      _internal->totalSize += type->getSize();
+      return _internal->variables.back();
     }
 
     const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::BV64 val, TypeID ty) {
@@ -192,8 +192,8 @@ namespace MiniMC {
   }
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
-    Register::Register(const Symbol& name, RegisterDescr* owner) : Value(ValueInfo<Register>::type_t()),
-                                                                        name(name), owner(owner) {}
+    Register::Register(const Symbol& name) : Value(ValueInfo<Register>::type_t()),
+					     name(name) {}
 
     AggregateConstant::AggregateConstant(MiniMC::BV8* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),
                                                                                  value(new MiniMC::BV8[s]),

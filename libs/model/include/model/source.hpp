@@ -48,10 +48,10 @@ namespace MiniMC {
     };
 
     struct LocationInfo {
-      explicit LocationInfo(const Symbol& name, AttrType flags, const MiniMC::Model::RegisterDescr* registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(registers) {}
-
+      explicit LocationInfo(const Symbol& name, AttrType flags, MiniMC::Model::RegisterDescr registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
+      
       const std::string getName() const { return name.getFullName(); }
-      const RegisterDescr& getRegisters () const {return *active_registers;}
+      const RegisterDescr& getRegisters () const {return active_registers;}
       /** 
 	   * Check  if this location has Attributes \p i set 
 	   *
@@ -85,7 +85,7 @@ k	   */
       Symbol name;
       AttrType flags;
       SourceInfo source;
-      const MiniMC::Model::RegisterDescr* active_registers;
+      const MiniMC::Model::RegisterDescr active_registers;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const LocationInfo& info) {
@@ -93,7 +93,7 @@ k	   */
     }
 
     struct LocationInfoCreator {
-      LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr* regs) : pref(std::move(prefix)),registers(regs) {}
+      LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr& regs) : pref(std::move(prefix)),registers(regs) {}
       
       LocationInfo make(const std::string& name, AttrType type, const SourceInfo& info) {
         return LocationInfo(Symbol{pref,name}, type, registers, info);
@@ -110,7 +110,7 @@ k	   */
 
     private:
       const Symbol pref;
-      const MiniMC::Model::RegisterDescr* registers;
+      const MiniMC::Model::RegisterDescr registers;
     };
 
   } // namespace Model

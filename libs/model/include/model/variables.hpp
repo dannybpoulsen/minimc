@@ -207,19 +207,17 @@ namespace MiniMC {
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const Symbol& name, RegisterDescr* owner);
+      Register(const Symbol& name);
       const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
       }
       
       bool isRegister() const override { return true; }
-      auto& getOwner() const { return owner; }
       auto getSymbol () const {return name;}
       
     private:
       Symbol name;
-      const RegisterDescr* owner{nullptr};
     };
 
     using Register_ptr = std::shared_ptr<Register>;
@@ -231,26 +229,31 @@ namespace MiniMC {
      */
     class RegisterDescr {
     public:
-      RegisterDescr(Symbol pref = Symbol{}) : pref(std::move(pref)) {}
-      RegisterDescr(const RegisterDescr&) = delete;
+      RegisterDescr(Symbol pref = Symbol{}) : _internal(std::make_shared<Data>(std::move(pref))) {}
+      RegisterDescr(const RegisterDescr&) = default;
       RegisterDescr(RegisterDescr&&) = default;
       Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
-      auto& getRegisters() const { return variables; }
+      auto& getRegisters() const { return _internal->variables; }
       
       /**
        *
        * @return Total size in bytes of an activation record
        */
-      auto getTotalSize() const { return totalSize; }
-      auto getTotalRegisters() const { return variables.size(); }
-      auto getPref() const { return pref; }
+      auto getTotalSize() const { return _internal->totalSize; }
+      auto getTotalRegisters() const { return _internal->variables.size(); }
+      auto getPref() const { return _internal->pref; }
       
     private:
-      std::vector<Register_ptr> variables;
-      std::size_t totalSize = 0;
-      const Symbol pref;
+      struct Data {
+	Data (Symbol pref) :pref(std::move(pref)) {}
+	std::vector<Register_ptr> variables;
+	std::size_t totalSize = 0;
+	const Symbol pref;
+	
+      };
+      std::shared_ptr<Data> _internal;
     };
-
+    
     using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
     
     

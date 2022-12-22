@@ -121,7 +121,7 @@ namespace MiniMC {
                const Symbol& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
-               RegisterDescr_uptr&& registerdescr,
+               RegisterDescr&& registerdescr,
 	       CFA&& cfa,
                Program& prgm) : name(name),
 				parameters(params),
@@ -136,8 +136,8 @@ namespace MiniMC {
 
       auto& getSymbol() const { return name; }
       auto& getParameters() const { return parameters; }
-      auto& getRegisterDescr() const { return *registerdescr; }
-      auto& getRegisterStackDescr() { return *registerdescr; }
+      auto& getRegisterDescr() const { return registerdescr; }
+      auto& getRegisterStackDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
       auto& getCFA()  { return cfa; }
       
@@ -148,7 +148,7 @@ namespace MiniMC {
     private:
       Symbol name;
       std::vector<Register_ptr> parameters;
-      RegisterDescr_uptr registerdescr;
+      RegisterDescr registerdescr;
       CFA cfa;
       MiniMC::func_t id;
       Program& prgm;
@@ -166,7 +166,7 @@ namespace MiniMC {
       Function_ptr addFunction(const std::string& name,
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
-			       RegisterDescr_uptr&& registerdescr,
+			       RegisterDescr&& registerdescr,
 			       CFA&& cfg) {
         functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this));
         function_map.insert(std::make_pair(name, functions.back()));

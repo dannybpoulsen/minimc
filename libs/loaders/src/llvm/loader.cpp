@@ -113,10 +113,10 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
-        auto variablestack = std::make_unique<MiniMC::Model::RegisterDescr> (MiniMC::Model::Symbol{fname});
-	MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack.get());
+        MiniMC::Model::RegisterDescr variablestack (MiniMC::Model::Symbol{fname});
+	MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack);
 
-	LoadContext load{context,*variablestack,variablestack->addRegister (MiniMC::Model::Symbol{"__minimc.sp"},context.getTypeFactory().makePointerType ())};
+	LoadContext load{context,variablestack,variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"},context.getTypeFactory().makePointerType ())};
 
 	auto makeVariable = [&load,this](auto val) {
 	  if (!load.hasValue (val)) {
@@ -278,8 +278,8 @@ namespace MiniMC {
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
       MiniMC::Model::CFA cfg;
-      auto vstack = std::make_unique<MiniMC::Model::RegisterDescr> (MiniMC::Model::Symbol{name});
-      MiniMC::Model::LocationInfoCreator locinf (MiniMC::Model::Symbol{name},vstack.get());
+      MiniMC::Model::RegisterDescr vstack  (MiniMC::Model::Symbol{name});
+      MiniMC::Model::LocationInfoCreator locinf (MiniMC::Model::Symbol{name},vstack);
       
       auto funcpointer = program.getConstantFactory().makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ().makePointerType ());
@@ -296,7 +296,7 @@ namespace MiniMC {
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack->addRegister(MiniMC::Model::Symbol{"_"}, restype);
+        result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
 
       edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
