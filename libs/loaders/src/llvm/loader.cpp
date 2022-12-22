@@ -110,7 +110,6 @@ namespace MiniMC {
 					  context(context) {
       }
       llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager&) {
-        auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::string fname = F.getName().str();
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
@@ -160,12 +159,12 @@ namespace MiniMC {
 
 	std::unordered_map<llvm::BasicBlock*, MiniMC::Model::Location_ptr> locmap;
 	std::vector<llvm::BasicBlock*> waiting;
-	auto enqueue = [&locinfoc,&cfg,&locmap,&waiting,&source_loc](llvm::BasicBlock* BB)->MiniMC::Model::Location_ptr {
+	auto enqueue = [&locinfoc,&cfg,&locmap,&waiting](llvm::BasicBlock* BB)->MiniMC::Model::Location_ptr {
 	  if (locmap.count (BB)) {
 	    return locmap.at(BB);
 	  }
 	  else {
-	    auto location = cfg.makeLocation (locinfoc.make(BB->getName().str(), 0, *source_loc));
+	    auto location = cfg.makeLocation (locinfoc.make(BB->getName().str(), 0));
 	    locmap.insert (std::make_pair(BB,location));
 	    waiting.push_back (BB);
 	    return location;

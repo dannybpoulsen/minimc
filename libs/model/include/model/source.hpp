@@ -9,21 +9,38 @@
 namespace MiniMC {
   namespace Model {
 
+    class SourceInfo {
+    public:
+      struct SourceData {
+	virtual ~SourceData () {}
+	virtual std::ostream& out(std::ostream& os) = 0;
+      };
+      
+
+      SourceInfo (SourceInfo&& ) =default;
+      SourceInfo (const SourceInfo& ) =default;
+      
+      SourceInfo (std::shared_ptr<SourceData> data = nullptr) : data(data) {}
+      std::ostream& out(std::ostream& os) {
+	if (data) 
+	  return data->out (os);
+	else
+	  os << "[?]";
+      }
+      
+      
+    private:
+      std::shared_ptr<SourceData> data;
+      
+    };
+    
     using AttrType = char;
     /**
-	 * The possible attributes that can be assigned locations
-	 *
-	 */
-
-    struct SourceInfo : public std::enable_shared_from_this<SourceInfo> {
-      virtual ~SourceInfo () {}
-      virtual std::ostream& out(std::ostream& os) {
-        return os << "[?]";
-      }
-    };
-
-    using SourceInfo_ptr = std::shared_ptr<const SourceInfo>;
-
+     * The possible attributes that can be assigned locations
+     *
+     */
+    
+    
     enum class Attributes : AttrType {
       AssertViolated = 1,  /**< Indicates an assert was violated */
       
@@ -31,7 +48,7 @@ namespace MiniMC {
     };
 
     struct LocationInfo {
-      explicit LocationInfo(const Symbol& name, AttrType flags, const SourceInfo& info, const MiniMC::Model::RegisterDescr* registers) : name(name), flags(flags), source(info.shared_from_this()),active_registers(registers) {}
+      explicit LocationInfo(const Symbol& name, AttrType flags, const MiniMC::Model::RegisterDescr* registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(registers) {}
 
       const std::string getName() const { return name.getFullName(); }
       const RegisterDescr& getRegisters () const {return *active_registers;}
@@ -67,7 +84,7 @@ k	   */
       bool isFlagSet(AttrType t) { return flags & t; }
       Symbol name;
       AttrType flags;
-      SourceInfo_ptr source;
+      SourceInfo source;
       const MiniMC::Model::RegisterDescr* active_registers;
     };
 
@@ -79,12 +96,16 @@ k	   */
       LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr* regs) : pref(std::move(prefix)),registers(regs) {}
       
       LocationInfo make(const std::string& name, AttrType type, const SourceInfo& info) {
-        return LocationInfo(Symbol{pref,name}, type, info,registers);
+        return LocationInfo(Symbol{pref,name}, type, registers, info);
       }
 
+      LocationInfo make(const std::string& name, AttrType type) {
+        return LocationInfo(Symbol{pref,name}, type, registers);
+      }
+      
       LocationInfo make(const LocationInfo& loc) {
 	
-        return LocationInfo(Symbol{pref,loc.name.getName ()}, loc.flags, *loc.source,loc.active_registers);
+        return LocationInfo(Symbol{pref,loc.name.getName ()}, loc.flags, loc.active_registers, loc.source);
       }
 
     private:

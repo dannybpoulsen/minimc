@@ -218,9 +218,8 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, 
   Model::InstructionStream instructionStream;
   MiniMC::Model::LocationInfoCreator locinfoc(name, regs);
   Model::Location_ptr to;
-  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-
-  Model::Location_ptr from = location(cfg,locmap,source_loc,locinfoc);
+  
+  Model::Location_ptr from = location(cfg,locmap,locinfoc);
   lexer->advance();
   ignore_eol();
   while(lexer->token() == Token::AT_SIGN){
@@ -247,7 +246,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, 
           to = locmap->at(to_str.getFullName());
         }
         else {
-          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), 0, *source_loc));
+          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), 0));
           (*locmap)[to_str.getFullName()] = location;
           to = location;
         }
@@ -273,7 +272,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr* regs, 
                            "]'");
 }
 
-Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap, std::shared_ptr<MiniMC::Model::SourceInfo> source_loc,MiniMC::Model::LocationInfoCreator locinfoc) {
+Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::string, MiniMC::Model::Location_ptr>* locmap,MiniMC::Model::LocationInfoCreator locinfoc) {
   try {
     Model::Symbol index = identifier();
     lexer->advance();
@@ -282,7 +281,7 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
     if (locmap->contains(index.getFullName())) {
       return locmap->at(index.getFullName());
     } else {
-      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), 0, *source_loc));
+      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), 0));
       if (locmap->size() == 0) {
         (*locmap)["Initial"] = location;
       }
