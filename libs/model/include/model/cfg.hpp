@@ -44,7 +44,7 @@ namespace MiniMC {
       CFA (const CFA& ) = delete;
       CFA (CFA&& ) = default;
       Location_ptr makeLocation(const LocationInfo& info) {
-        locations.emplace_back(new Location(info, locations.size(), this));
+        locations.emplace_back(new Location(info, locations.size()));
         return locations.back();
       }
 

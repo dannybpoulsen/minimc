@@ -34,11 +34,6 @@ namespace MiniMC {
           location = l;
         }
         
-        
-        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override {
-          return location->getInfo().isFlagSet(tt);
-        }
-
         std::shared_ptr<State> join(const State& oth) const {
           if (location == oth.location) {
             auto nstate = std::make_shared<State>(location->shared_from_this());

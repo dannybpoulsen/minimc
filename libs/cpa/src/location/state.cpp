@@ -81,22 +81,6 @@ namespace MiniMC {
         void pushLocation(size_t i, MiniMC::Model::Location* l) { locations[i].push(l); }
         void popLocation(size_t i) { locations[i].pop(); }
         
-        virtual bool assertViolated() const override {
-          for (auto& locState : locations) {
-            if (locState.cur()->getInfo().template is<MiniMC::Model::Attributes::AssertViolated>())
-              return true;
-          }
-          return false;
-        }
-
-        virtual bool hasLocationAttribute(MiniMC::Model::AttrType tt) const override  {
-          for (auto& locState : locations) {
-            if (locState.cur()->getInfo().isFlagSet(tt))
-              return true;
-          }
-          return false;
-        }
-
 	virtual const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
       
 	

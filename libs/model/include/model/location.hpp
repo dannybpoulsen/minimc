@@ -60,7 +60,7 @@ namespace MiniMC {
 
       using edge_iterator = std::vector<Edge*>::iterator;
 
-      Location(const LocationInfo& n, MiniMC::offset_t id, CFA* cfg) : info(n), id(id), cfg(cfg) {}
+      Location(const LocationInfo& n, MiniMC::offset_t id) : info(n), id(id) {}
 
       void addEdge(Edge* e) { edges.push_back(e); }
       void addIncomingEdge(Edge* e) { incomingEdges.push_back(e); }
@@ -100,7 +100,7 @@ namespace MiniMC {
       auto nbOutgoingEdges() const {
         return edges.size();
       }
-
+      
       MiniMC::Hash::hash_t hash () const {
 	return getID ();
       }
@@ -136,10 +136,7 @@ namespace MiniMC {
         return it != incomingEdges.end();
       }
 
-      CFA* getCFG() const {
-        return cfg;
-      }
-
+      
     protected:
       /** 
        * Search for an edge \p e. If found delete it from the outgoing edges.
@@ -177,7 +174,6 @@ namespace MiniMC {
       std::vector<Edge*> incomingEdges;
       LocationInfo info;
       MiniMC::offset_t id;
-      CFA* cfg;
     };
 
     using Location_ptr = std::shared_ptr<Location>;

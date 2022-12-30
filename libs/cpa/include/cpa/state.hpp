@@ -43,13 +43,6 @@ namespace MiniMC {
     using Solver_ptr = std::shared_ptr<Solver>;
 
     struct LocationInfo {
-      template <MiniMC::Model::Attributes att>
-      bool hasLocationOf() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(att)); }
-
-
-      virtual bool assertViolated() const { return hasLocationAttribute(static_cast<MiniMC::Model::AttrType>(MiniMC::Model::Attributes::AssertViolated)); }
-      virtual bool hasLocationAttribute(MiniMC::Model::AttrType) const { return false; }
-      
       virtual MiniMC::Model::Location_ptr getLocation(proc_id) const  = 0;
       virtual size_t nbOfProcesses() const = 0;
       

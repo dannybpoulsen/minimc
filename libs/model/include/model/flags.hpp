@@ -3,8 +3,9 @@ namespace MiniMC {
     template<class T>
     struct FlagSet {
       using V = std::underlying_type_t<T>;
+      FlagSet () : value(0) {}
       FlagSet (const T& t) : value(static_cast<V> (t)) {}
-
+      
       auto& operator|= (const T& t) {
 	value |= static_cast<V> (t);
 	return *this;

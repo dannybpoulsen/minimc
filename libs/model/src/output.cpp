@@ -26,7 +26,7 @@ namespace MiniMC {
 	auto cur = waiting.back ();
 	waiting.pop_back ();
 	os << "    " << "BB" << cur->getID ()<< " " << " {" << cur->getInfo().getName () <<"}\n";
-        if(cur->getInfo().is<Attributes::AssertViolated>()){
+        if(cur->getInfo().getFlags ().isSet(Attributes::AssertViolated)){
           os << "    @AssertViolated\n";
         }
 	os << "    [" << "\n";

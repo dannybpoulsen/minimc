@@ -164,7 +164,7 @@ namespace MiniMC {
 	    return locmap.at(BB);
 	  }
 	  else {
-	    auto location = cfg.makeLocation (locinfoc.make(BB->getName().str(), 0));
+	    auto location = cfg.makeLocation (locinfoc.make(BB->getName().str(), {}));
 	    locmap.insert (std::make_pair(BB,location));
 	    waiting.push_back (BB);
 	    return location;
@@ -283,8 +283,8 @@ namespace MiniMC {
       
       auto funcpointer = program.getConstantFactory().makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ().makePointerType ());
-      auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
-      auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
+      auto init = cfg.makeLocation(locinf.make("init", {}, *source_loc));
+      auto end = cfg.makeLocation(locinf.make("end", {}, *source_loc));
       
       cfg.setInitial(init);
       auto edge = cfg.makeEdge(init, end);

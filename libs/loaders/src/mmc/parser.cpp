@@ -226,7 +226,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, 
     lexer->advance();
     switch(lexer->token()){
     case Token::AssertViolated:
-      from->getInfo().set<Model::Attributes::AssertViolated>();
+      from->getInfo().getFlags () |= Model::Attributes::AssertViolated ;
       break;
     default:
       throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
@@ -246,7 +246,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, 
           to = locmap->at(to_str.getFullName());
         }
         else {
-          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), 0));
+          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), {}));
           (*locmap)[to_str.getFullName()] = location;
           to = location;
         }
@@ -281,7 +281,7 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
     if (locmap->contains(index.getFullName())) {
       return locmap->at(index.getFullName());
     } else {
-      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), 0));
+      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), {}));
       if (locmap->size() == 0) {
         (*locmap)["Initial"] = location;
       }

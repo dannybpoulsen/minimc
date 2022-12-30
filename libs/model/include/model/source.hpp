@@ -6,6 +6,8 @@
 #include <string>
 
 #include "model/variables.hpp"
+#include "model/flags.hpp"
+
 namespace MiniMC {
   namespace Model {
 
@@ -34,56 +36,26 @@ namespace MiniMC {
       
     };
     
-    using AttrType = char;
-    /**
-     * The possible attributes that can be assigned locations
-     *
-     */
     
-    
-    enum class Attributes : AttrType {
-      AssertViolated = 1,  /**< Indicates an assert was violated */
+    enum class Attributes {
+      AssertViolated = 1 << 0,  /**< Indicates an assert was violated */
       
-      UnrollFailed = 32 /** Indicates loop unrolling was unsufficient **/
+      UnrollFailed = 1 << 1 /** Indicates loop unrolling was unsufficient **/
     };
-
+    
+    using LocFlags = FlagSet<Attributes>;
+    
     struct LocationInfo {
-      explicit LocationInfo(const Symbol& name, AttrType flags, MiniMC::Model::RegisterDescr registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
+      explicit LocationInfo(const Symbol& name, LocFlags flags, MiniMC::Model::RegisterDescr registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
       
       const std::string getName() const { return name.getFullName(); }
       const RegisterDescr& getRegisters () const {return active_registers;}
-      /** 
-	   * Check  if this location has Attributes \p i set 
-	   *
-	   *
-	   * @return true if \p i  is set false otherwise
-k	   */
-      template <Attributes i>
-      bool is() const {
-        return static_cast<AttrType>(i) & flags;
-      }
-
-      /** 
-	   * Set attribute \p i.
-	   *
-	   */
-      template <Attributes i>
-      void set() {
-        flags |= static_cast<AttrType>(i);
-      }
-
-      /** 
-	   * Remove attribute \p i from this Location.
-	   *
-	   */
-      template <Attributes i>
-      void unset() {
-        flags &= ~static_cast<AttrType>(i);
-      }
-
-      bool isFlagSet(AttrType t) { return flags & t; }
+      
+      auto& getFlags () const  {return flags;} 
+      auto& getFlags () {return flags;} 
+      
       Symbol name;
-      AttrType flags;
+      LocFlags flags;
       SourceInfo source;
       const MiniMC::Model::RegisterDescr active_registers;
     };
@@ -95,16 +67,12 @@ k	   */
     struct LocationInfoCreator {
       LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr& regs) : pref(std::move(prefix)),registers(regs) {}
       
-      LocationInfo make(const std::string& name, AttrType type, const SourceInfo& info) {
+      LocationInfo make(const std::string& name, LocFlags type, const SourceInfo& info = {}) {
         return LocationInfo(Symbol{pref,name}, type, registers, info);
       }
 
-      LocationInfo make(const std::string& name, AttrType type) {
-        return LocationInfo(Symbol{pref,name}, type, registers);
-      }
       
-      LocationInfo make(const LocationInfo& loc) {
-	
+      LocationInfo make(const LocationInfo& loc) {	
         return LocationInfo(Symbol{pref,loc.name.getName ()}, loc.flags, loc.active_registers, loc.source);
       }
 

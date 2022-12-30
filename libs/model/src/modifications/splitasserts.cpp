@@ -12,8 +12,8 @@ namespace MiniMC {
 	std::for_each(cfg.getEdges().begin(),
                         cfg.getEdges().end(),
 		      [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
-	auto eloc = cfg.makeLocation(locc.make("AssertViolation", static_cast<AttrType>(MiniMC::Model::Attributes::AssertViolated), *source_loc));
-	eloc->getInfo().set<MiniMC::Model::Attributes::AssertViolated>();
+	auto eloc = cfg.makeLocation(locc.make("AssertViolation", {MiniMC::Model::Attributes::AssertViolated}, *source_loc));
+	eloc->getInfo().getFlags () |= MiniMC::Model::Attributes::AssertViolated;
 	
 	for (auto E : wlist) {
 	  if (E->getInstructions ()) {
@@ -22,7 +22,7 @@ namespace MiniMC {
 	      auto val = instrs.last().getOps<MiniMC::Model::InstructionCode::Assert> ().expr;
 	      instrs.erase((instrs.rbegin() + 1).base());
 	      
-	      auto nloc = cfg.makeLocation(locc.make("Assert", 0, *source_loc));
+	      auto nloc = cfg.makeLocation(locc.make("Assert", {}, *source_loc));
 	      auto ttloc = E->getTo();
 	      E->setTo(nloc);
 	      auto ff_edge = cfg.makeEdge(nloc, eloc);
