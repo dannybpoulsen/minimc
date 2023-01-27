@@ -26,7 +26,7 @@ namespace MiniMC {
 
       template<MiniMC::Model::InstructionCode code>
       EdgeBuilder& addInstr (typename MiniMC::Model::InstructionData<code>::Content content) requires (!isPhi) {
-	auto instr = MiniMC::Model::createInstruction<code> (content);
+	auto instr = MiniMC::Model::Instruction::make<code> (content);
 	if constexpr (code == MiniMC::Model::InstructionCode::Call ||
 		      code == MiniMC::Model::InstructionCode::NonDet ||
 		      code == MiniMC::Model::InstructionCode::Uniform ||	  
@@ -39,14 +39,14 @@ namespace MiniMC {
 	  from = cfa.makeLocation (from->getInfo ());
 	  
 	  auto call_edge = cfa.makeEdge (nto,from);
-	  call_edge->getInstructions().addInstruction (instr);
+	  call_edge->getInstructions().add (instr);
 	  edge = cfa.makeEdge (from,to);
 	  
 	  
 	}
 
 	else {
-	  edge->getInstructions().addInstruction (instr);
+	  edge->getInstructions().add (instr);
 	  
 	}
 	
@@ -57,8 +57,8 @@ namespace MiniMC {
       template<MiniMC::Model::InstructionCode code>
       EdgeBuilder& addInstr (typename MiniMC::Model::InstructionData<code>::Content content) requires (isPhi) {
 	static_assert(code==MiniMC::Model::InstructionCode::Assign && "Phi edges can only have assign");
-	auto instr = MiniMC::Model::createInstruction<code> (content);
-	edge->getInstructions().addInstruction (instr);
+	auto instr = MiniMC::Model::Instruction::make<code> (content);
+	edge->getInstructions().add (instr);
 	
 	
 	return *this;

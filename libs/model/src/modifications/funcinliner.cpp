@@ -45,17 +45,17 @@ namespace MiniMC {
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
               ne->setTo(edge->getTo());
-              ninstr.last().replace(createInstruction<InstructionCode::Skip> (0));
+              ninstr.last().replace(Instruction::make<InstructionCode::Skip> (0));
             }
 
             else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Ret) {
 	      auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
           
               ne->setTo(edge->getTo());
-              ninstr.last().replace(createInstruction<InstructionCode::Assign> ( {
-		    .res = call_content.res,
-		    .op1 = content.value 
-		  })
+              ninstr.last().replace(Instruction::make<InstructionCode::Assign> ( 
+		    call_content.res,
+		    content.value 
+		  )
 		);
             }
           }
@@ -67,13 +67,13 @@ namespace MiniMC {
         auto it = parameters.begin();
         MiniMC::Model::InstructionStream str;
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
-          str.addInstruction(*it);
+          str.add(*it);
         }
         for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
-          str.addInstruction<InstructionCode::Assign> (
-					 {.res = valmap.at(it->get()),
-					  .op1 = call_content.params.at(i)});  
+          str.add<InstructionCode::Assign> (
+					 valmap.at(it->get()),
+					  call_content.params.at(i));  
         }
         edge->getInstructions ().clear ();
         if (str.begin() != str.end())

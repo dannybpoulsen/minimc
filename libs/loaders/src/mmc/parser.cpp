@@ -300,29 +300,28 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
   try {
     switch (lexer->token()) {
     case Token::Skip:
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Skip>({}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::Skip>());
       return;
     case Token::Uniform:
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Uniform>({}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::Uniform>());
       return;
     case Token::RetVoid:
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::RetVoid>({}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::RetVoid>());
       return;
     case Token::Ret:
       lexer->advance();
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Ret>(
-              {.value = value(variables)}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::Ret>(value(variables)));
       return;
 #define X(OP) \
   case Token::OP: \
     lexer->advance(); \
-    instructionStream->addInstruction( \
-        Model::createInstruction<Model::InstructionCode::OP>( \
-            {.expr = value(variables)})); \
+    instructionStream->add( \
+			    Model::Instruction::make<Model::InstructionCode::OP>( \
+            value(variables))); \
     return;
       ASSUMEASSERTS
 #undef X
@@ -331,30 +330,30 @@ void Parser::instruction(Model::InstructionStream* instructionStream, std::vecto
       Model::Value_ptr addr = value(variables);
       lexer->advance();
       Model::Value_ptr storee = value(variables);
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Store>(
-              {.addr = addr, .storee = storee}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::Store>(
+              addr, storee));
       return;
     }
     case Token::Call: {
       lexer->advance();
       Model::Value_ptr function = value(variables);
       lexer->advance();
-      instructionStream->addInstruction(
-          Model::createInstruction<Model::InstructionCode::Call>(
-              {.res = nullptr,
-               .function = function,
-               .params = value_list(variables)}));
+      instructionStream->add(
+          Model::Instruction::make<Model::InstructionCode::Call>(
+              nullptr,
+               function,
+               value_list(variables)));
       return;
     }
 #define X(OP) \
     case Token::OP: \
       PREDICATES
 #undef X
-      instructionStream->addInstruction(predicates(variables));
+      instructionStream->add(predicates(variables));
       return;
     case Token::LESS_THAN:
-      instructionStream->addInstruction(instruction_eq(variables));
+      instructionStream->add(instruction_eq(variables));
       return;
     default:
       throw MMCParserException(
@@ -389,11 +388,11 @@ Model::Instruction Parser::instruction_eq(const std::vector<MiniMC::Model::Regis
          Model::Value_ptr skipsize = value(variables);
          lexer->advance();
          Model::Value_ptr nbSkips = value(variables);
-         return Model::createInstruction<Model::InstructionCode::PtrAdd>(
-             {.res = res,
-              .ptr = ptr,
-              .skipsize = skipsize,
-              .nbSkips = nbSkips});
+         return Model::Instruction::make<Model::InstructionCode::PtrAdd>(
+             res,
+              ptr,
+              skipsize,
+              nbSkips);
        }
 #define X(OP) \
         case Token::OP:
@@ -407,8 +406,8 @@ Model::Instruction Parser::instruction_eq(const std::vector<MiniMC::Model::Regis
          return comparison(variables, res);
        case Token::Not:
          lexer->advance();
-         return Model::createInstruction<Model::InstructionCode::Not>(
-             {.res = res, .op1 = value(variables)});
+         return Model::Instruction::make<Model::InstructionCode::Not>(
+             res, value(variables));
 #define X(OP) \
         case Token::OP:
     CASTOPS
@@ -420,10 +419,10 @@ Model::Instruction Parser::instruction_eq(const std::vector<MiniMC::Model::Regis
          lexer->advance();
          Model::Value_ptr function = value(variables);
          lexer->advance();
-         return Model::createInstruction<Model::InstructionCode::Call>(
-             {.res = res,
-              .function = function,
-              .params = value_list(variables)});
+         return Model::Instruction::make<Model::InstructionCode::Call>(
+             res,
+	     function,
+	     value_list(variables));
        }
        case Token::ExtractValue:
          return extract(variables, res);
@@ -432,8 +431,8 @@ Model::Instruction Parser::instruction_eq(const std::vector<MiniMC::Model::Regis
        case Token::Load:
          return load(variables, res);
        case Token::LESS_THAN:
-         return Model::createInstruction<Model::InstructionCode::Assign>(
-             {.res = res, .op1 = value(variables)});
+         return Model::Instruction::make<Model::InstructionCode::Assign>(
+             res, value(variables));
        default:
          throw MMCParserException(
              lexer->getLine(), lexer->getPos(), lexer->getValue(),
@@ -458,8 +457,8 @@ Model::Instruction Parser::predicates(const std::vector<MiniMC::Model::Register_
     switch (token) {
 #define X(OP) \
     case Token::OP: \
-    return Model::createInstruction<Model::InstructionCode::OP>( \
-          {.op1 = op1, .op2 = op2});
+    return Model::Instruction::make<Model::InstructionCode::OP>( \
+          op1, op2);
     PREDICATES
 #undef X
     default:
@@ -488,8 +487,8 @@ Model::Instruction Parser::tacops(const std::vector<MiniMC::Model::Register_ptr>
     switch (token) {
 #define X(OP)               \
     case Token::OP:         \
-      return Model::createInstruction<Model::InstructionCode::OP>( \
-          {.res = res, .op1 = op1, .op2 = op2});
+      return Model::Instruction::make<Model::InstructionCode::OP>( \
+          res, op1, op2);
       TACOPS
 #undef X
     default:
@@ -517,8 +516,8 @@ Model::Instruction Parser::comparison(const std::vector<MiniMC::Model::Register_
     switch (token) {
 #define X(OP)               \
       case Token::OP:       \
-        return Model::createInstruction<Model::InstructionCode::OP>( \
-            {.res = res, .op1 = op1, .op2 = op2});
+        return Model::Instruction::make<Model::InstructionCode::OP>( \
+            res, op1, op2);
       COMPARISONS
 #undef X
     default:
@@ -546,8 +545,8 @@ Model::Instruction Parser::castops(const std::vector<MiniMC::Model::Register_ptr
     switch (token) {
 #define X(OP)               \
       case Token::OP: \
-        return Model::createInstruction<Model::InstructionCode::OP>( \
-          {.res = res, .op1 = op1});
+        return Model::Instruction::make<Model::InstructionCode::OP>( \
+          res, op1);
       CASTOPS
 #undef X
     default:
@@ -574,8 +573,8 @@ Model::Instruction Parser::nondet(const std::vector<MiniMC::Model::Register_ptr>
       Model::Value_ptr min = value(variables);
       lexer->advance();
       Model::Value_ptr max = value(variables);
-      return Model::createInstruction<Model::InstructionCode::NonDet>(
-          {.res = res, .min = min, .max = max});
+      return Model::Instruction::make<Model::InstructionCode::NonDet>(
+          res, min, max);
     }
     __builtin_unreachable();
   } catch(MMCParserException const& e) {
@@ -599,8 +598,8 @@ Model::Instruction Parser::extract(const std::vector<MiniMC::Model::Register_ptr
       Model::Value_ptr aggregate = value(variables);
       lexer->advance();
       Model::Value_ptr offset = value(variables);
-      return Model::createInstruction<Model::InstructionCode::ExtractValue>(
-          {.res = res, .aggregate = aggregate, .offset = offset});
+      return Model::Instruction::make<Model::InstructionCode::ExtractValue>(
+									    res, aggregate, offset);
     }
     __builtin_unreachable();
   }  catch(MMCParserException const& e) {
@@ -627,11 +626,11 @@ Model::Instruction Parser::insert(const std::vector<MiniMC::Model::Register_ptr>
       Model::Value_ptr offset = value(variables);
       lexer->advance();
       Model::Value_ptr insertee = value(variables);
-      return Model::createInstruction<Model::InstructionCode::InsertValue>(
-          {.res = res,
-           .aggregate = aggregate,
-           .offset = offset,
-           .insertee = insertee});
+      return Model::Instruction::make<Model::InstructionCode::InsertValue>(
+          res,
+           aggregate,
+           offset,
+           insertee);
     }
     __builtin_unreachable();
   }  catch(MMCParserException const& e) {
@@ -653,8 +652,8 @@ Model::Instruction Parser::load(const std::vector<MiniMC::Model::Register_ptr> v
       Model::Type_ptr t = type();
       lexer->advance();
       Model::Value_ptr addr = value(variables);
-      return Model::createInstruction<Model::InstructionCode::Load>(
-          {.res = res, .addr = addr});
+      return Model::Instruction::make<Model::InstructionCode::Load>(
+          res, addr);
     }
     __builtin_unreachable();
   } catch (MMCParserException const& e){

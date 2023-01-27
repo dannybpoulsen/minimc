@@ -26,12 +26,11 @@ namespace MiniMC {
 	      auto ttloc = E->getTo();
 	      E->setTo(nloc);
 	      auto ff_edge = cfg.makeEdge(nloc, eloc);
-	      ff_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::NegAssume> ({
-			.expr = val})},false);
+	      ff_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::NegAssume> (
+			val)},false);
 		  
 	      auto tt_edge = cfg.makeEdge(nloc, ttloc);
-	      tt_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assume> ({
-			.expr = val})},false);
+	      tt_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assume> (val)},false);
 	    }
 	  }
 	}

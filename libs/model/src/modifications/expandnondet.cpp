@@ -41,7 +41,7 @@ namespace MiniMC {
 	  
 	  for (auto& i : instr) {
 	    if (i.getOpcode () != MiniMC::Model::InstructionCode::NonDet) {
-	      nstr.addInstruction (i);
+	      nstr.add (i);
 	    }
 
 	    else {
@@ -76,7 +76,7 @@ namespace MiniMC {
 	      
 	      NonDetGenerator gen {min,max};
 	      for (;!gen.finished (); 	gen.increment ()) {
-		nstr.addInstruction<InstructionCode::Assign> ({.res = assign,.op1 = cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ())});
+		nstr.add<InstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
 		cfa.makeEdge (nloc,nnondet)->getInstructions () = nstr;
 		nstr.clear ();
 	      }

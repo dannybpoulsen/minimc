@@ -30,9 +30,9 @@ namespace MiniMC {
                     auto nvar = F->getRegisterDescr().addRegister(Symbol{}, content.op1->getType());
                     auto one_constant = cfac.makeIntegerConstant(1, content.op1->getType()->getTypeID ());
                     std::vector<MiniMC::Model::Instruction> vec;
-                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Not>({.res = nvar, .op1 = content.op2}));
-                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = nvar, .op1  = nvar, .op2 = one_constant}));
-                    vec.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Add>({.res = content.res, .op1 = content.op1, .op2 = nvar}));
+                    vec.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Not>({nvar, content.op2}));
+                    vec.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Add>({nvar, nvar, one_constant}));
+                    vec.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Add>({content.res, content.op1, nvar}));
 
                     it = instrstr.replaceInstructionBySeq(it, vec.begin(), vec.end());
                     end = instrstr.end();

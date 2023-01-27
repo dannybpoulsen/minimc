@@ -20,16 +20,17 @@ namespace MiniMC {
 
     class Edge : public std::enable_shared_from_this<Edge> {
     public:
-      Edge(Location_ptr from, Location_ptr to) : from(from),
-						 to(to)
-						  { }
+      Edge(Location_ptr from, Location_ptr to, InstructionStream stream = {}) : from(from),
+									   to(to),
+									   instructions(stream)
+									   
+      { }
 
       Edge(const Edge&) = default;
 
       //auto& getGuard () {return guard;}
       auto& getInstructions () {return instructions;}
 
-      //auto& getGuard () const {return guard;}
       auto& getInstructions () const  {return instructions;}
       
       

@@ -96,30 +96,30 @@ namespace MiniMC {
 	auto op1 = context.findValue (inst->getOperand(0));
 	auto op2 = context.findValue (inst->getOperand(1));
 	gather.template addInstr<code> ({
-	  .res = res,
-	  .op1 = op1,
-	  .op2 = op2
+	  res,
+	  op1,
+	  op2
 	  });
       }
 
       else if constexpr (MiniMC::Model::InstructionData<code>::isCast ) {
 	gather.template addInstr<code> ({
-	    .res = context.findValue (inst),
-	    .op1 = context.findValue (inst->getOperand (0))
+	    context.findValue (inst),
+	    context.findValue (inst->getOperand (0))
 	  });
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Load == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Load>({
-	    .res = context.findValue (inst),
-	    .addr = context.findValue (inst->getOperand (0))
+	    context.findValue (inst),
+	    context.findValue (inst->getOperand (0))
 	  });
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Store == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Store>({
-	    .addr = context.findValue (inst->getOperand(1)),
-	    .storee = context.findValue (inst->getOperand (0))
+	    context.findValue (inst->getOperand(1)),
+	    context.findValue (inst->getOperand (0))
 	  });
       }
 
@@ -139,10 +139,10 @@ namespace MiniMC {
 	 auto skipee = context.getConstantFactory ().makeIntegerConstant(skip, MiniMC::Model::TypeID::I32);
 	 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::InsertValue>({
-	     .res = context.findValue(inst),
-	     .aggregate = aggre,
-	     .offset = skipee,
-	     .insertee = insertee});;
+	     context.findValue(inst),
+	     aggre,
+	     skipee,
+	     insertee});;
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::ExtractValue == code) {
@@ -158,8 +158,8 @@ namespace MiniMC {
 	  auto value = context.findValue(cur);
 	  auto res = context.findValue(inst);
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
-									   {.res = res,
-									    .op1 = value});
+									   {res,
+									    value});
 	  
 	}
 	else {
@@ -174,9 +174,9 @@ namespace MiniMC {
 	  auto res = context.findValue(inst);
 	  
 	  gather.template addInstr<MiniMC::Model::InstructionCode::ExtractValue>({
-	      .res = res,
-	      .aggregate = aggre,
-	      .offset = skipee,
+	      res,
+	      aggre,
+	      skipee,
 	    });
 	  
 	}
@@ -195,15 +195,15 @@ namespace MiniMC {
 	  auto val = context.findValue(*cinst->arg_begin());
 	  if (val->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
 	    
-	    gather.template addInstr<MiniMC::Model::InstructionCode::Assert>({.expr = val});
+	    gather.template addInstr<MiniMC::Model::InstructionCode::Assert>({val});
 	  }
 	  
 	  else if (val->getType()->isInteger ()) {
 	    auto ntype = context.getTypeFactory ().makeBoolType();
 	    auto nvar = context.getStack().addRegister(MiniMC::Model::Symbol{"BVar"}, ntype);
 	    gather.
-	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>({.res = nvar, .op1 = val}).
-	      template addInstr<MiniMC::Model::InstructionCode::Assert>({.expr = nvar});
+	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>({nvar, val}).
+	      template addInstr<MiniMC::Model::InstructionCode::Assert>({nvar});
 	  }
 	}
        else if (func->isDeclaration()) {
@@ -250,9 +250,9 @@ namespace MiniMC {
           params.push_back(context.findValue(*it));
         }
         gather.template addInstr<MiniMC::Model::InstructionCode::Call>({
-	    .res = res,
-	    .function = func_ptr,
-	    .params = params});	  
+	    res,
+	    func_ptr,
+	    params});	  
        }
       }
 
@@ -261,7 +261,7 @@ namespace MiniMC {
 	if (retinst->getReturnValue()) {
 	  
 	  auto res = context.findValue(retinst->getReturnValue());
-	  gather.template addInstr<MiniMC::Model::InstructionCode::Ret>({.value = res});
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Ret>({res});
 	  
 	} else {
 	  gather.template addInstr<MiniMC::Model::InstructionCode::RetVoid>(0);
@@ -381,14 +381,15 @@ namespace MiniMC {
 	 auto skipsize = context.getConstantFactory ().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
 	 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({
-	     .res = res,
-	     .op1 = context.getStackPointer()
+	     res,
+	     context.getStackPointer()
 	   });
 	   
-	   gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>({.res = res,
-	       .ptr = context.getStackPointer(),
-	       .skipsize = size,
-	       .nbSkips = skipsize
+
+	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>({res,
+	     context.getStackPointer(),
+	     skipsize,
+	     size
 	     });
       }
 	
@@ -429,10 +430,10 @@ namespace MiniMC {
 	  }
 	}
 	gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>(
-									 {.res = result,
-									  .ptr = address,
-									  .skipsize = skipsize,
-									  .nbSkips = nbSkips});
+									 {result,
+									   address,
+									  skipsize,
+									  nbSkips});
 	
       }
 	//createInstruction<MiniMC::Model::InstructionCode::Alloc> (inst,gather);

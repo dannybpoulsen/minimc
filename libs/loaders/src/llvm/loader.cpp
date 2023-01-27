@@ -86,8 +86,8 @@ namespace MiniMC {
           context.addValue (&g, gvar);
           if (g.hasInitializer()) {
             auto val = context.findValue(g.getInitializer());
-            instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Store>({.addr = gvar,
-                                                                                                     .storee = val}));
+            instr.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Store>(gvar,
+                                                                                                     val));
           }
         }
         if (instr.size()) {
@@ -175,7 +175,7 @@ namespace MiniMC {
 	  for (auto& phi : to->phis()) {
 	    auto ass = load.findValue(&phi);
 	    auto incoming = load.findValue(phi.getIncomingValueForBlock(from));
-	    builder.template addInstr<MiniMC::Model::InstructionCode::Assign>({.res = ass, .op1 = incoming});
+	    builder.template addInstr<MiniMC::Model::InstructionCode::Assign>({ass, incoming});
 	  }
 	};
 	
@@ -218,7 +218,7 @@ namespace MiniMC {
 		{
 		  auto ttloc = enqueue (term->getSuccessor (0));
 		  auto ttloc_tmp = cfg.makeLocation (to->getInfo ());
-		  MiniMC::Model::EdgeBuilder {cfg,to,ttloc_tmp}.addInstr<MiniMC::Model::InstructionCode::Assume> ({.expr = cond});
+		  MiniMC::Model::EdgeBuilder {cfg,to,ttloc_tmp}.addInstr<MiniMC::Model::InstructionCode::Assume> ({cond});
 		  buildphi (cur_bb,term->getSuccessor (0),MiniMC::Model::EdgeBuilder<true> {cfg,ttloc_tmp,ttloc});
 		}
 		
@@ -226,8 +226,7 @@ namespace MiniMC {
 		{
 		  auto ffloc = enqueue (term->getSuccessor (1));
 		  auto ffloc_tmp = cfg.makeLocation (to->getInfo ());
-		  MiniMC::Model::EdgeBuilder {cfg,to,ffloc_tmp}.addInstr<MiniMC::Model::InstructionCode::NegAssume> ({
-		      .expr = cond});
+		  MiniMC::Model::EdgeBuilder {cfg,to,ffloc_tmp}.addInstr<MiniMC::Model::InstructionCode::NegAssume> ({		      cond});
 		  buildphi (cur_bb,term->getSuccessor (1),MiniMC::Model::EdgeBuilder<true> {cfg,ffloc_tmp,ffloc});
 		
 		}
@@ -246,11 +245,11 @@ namespace MiniMC {
                 auto cond = load.getStack().addRegister(MiniMC::Model::Symbol{"-"}, btype);
 
 		MiniMC::Model::EdgeBuilder {cfg,to,splitloc}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({
-		    .res = cond,
-		    .op1 = value,
-		    .op2 = valComp}).
+		    cond,
+		    value,
+		    valComp}).
 		  addInstr<MiniMC::Model::InstructionCode::Assume> ({
-		      .expr = cond}
+		      cond}
 		    );
 		buildphi (cur_bb,brterm->getDestination (i),MiniMC::Model::EdgeBuilder<true> {cfg,splitloc,dest});
 			      }
@@ -288,7 +287,7 @@ namespace MiniMC {
       
       cfg.setInitial(init);
       auto edge = cfg.makeEdge(init, end);
-
+      
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
       MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
@@ -299,9 +298,10 @@ namespace MiniMC {
         result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
 
-      edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Call>({.res = result,
-                                                                                                                                                                               .function = funcpointer,
-                                                                                                                                                                               .params = params})});
+      edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Call>(
+																	  result,
+																	   funcpointer,
+																	   params)});
       
       return program.addFunction(name, {},
                                  program.getTypeFactory().makeVoidType(),

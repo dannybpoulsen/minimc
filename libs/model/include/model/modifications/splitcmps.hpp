@@ -33,7 +33,7 @@ namespace MiniMC {
                                                                       MiniMC::Model::InstructionCode::ICMP_UGE,
                                                                       MiniMC::Model::InstructionCode::ICMP_ULT,
                                                                       MiniMC::Model::InstructionCode::ICMP_ULE>(inst); };
-
+	  
           auto& cfg = F->getCFA();
           MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
           auto inserter = wlist.inserter();
@@ -62,8 +62,8 @@ namespace MiniMC {
                   auto tt = cfg.makeEdge(E->getFrom(), loc);
                   tt->getInstructions () = instr;
                   std::vector<MiniMC::Model::Instruction> ttI{
-		    MiniMC::Model::createInstruction<left>({.op1 = origcontent.op1, .op2 = origcontent.op2}),
-		    MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Assign>({.res = origcontent.res, .op1 = v})
+		    MiniMC::Model::Instruction::make<left>(origcontent.op1, origcontent.op2),
+		    MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assign>(origcontent.res, v)
 		  };
                   auto& llnew = tt->getInstructions ();
                   llnew.replaceInstructionBySeq(llnew.end() - 1, ttI.begin(), ttI.end());

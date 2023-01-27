@@ -49,13 +49,13 @@ namespace MiniMC {
       }
 
       /** 
-	   * Make a new edge 
-	   *
-	   * @param from source of the edge
-	   * @param to target of the edge
-	   *
-	   * @return 
-	   */
+       * Make a new edge 
+       *
+       * @param from source of the edge
+       * @param to target of the edge
+       *
+       * @return 
+       */
       Edge_ptr makeEdge(Location_ptr from, Location_ptr to) {
         edges.emplace_back(new Edge(from, to));
         to->addIncomingEdge(edges.back().get());
@@ -73,11 +73,11 @@ namespace MiniMC {
       }
 
       /** 
-	   * Delete \p edge from this CFG. Update also the
-	   * incoming/outgoing edges of the target/source of \p edge. 
-	   *
-	   * @param edge The edge to delete
-	   */
+       * Delete \p edge from this CFG. Update also the
+       * incoming/outgoing edges of the target/source of \p edge. 
+       *
+       * @param edge The edge to delete
+       */
       void deleteEdge(const Edge* edge) {
         edge->getFrom()->removeEdge(edge);
         edge->getTo()->removeIncomingEdge(edge);
@@ -93,7 +93,7 @@ namespace MiniMC {
         auto insert = wlist.inserter();
         std::for_each(location->ebegin(), location->eend(), [&](const auto& e) { insert = e; });
         std::for_each(location->iebegin(), location->ieend(), [&](const auto& e) { insert = e; });
-
+	
         std::for_each(wlist.begin(), wlist.end(), [&](const auto& e) { this->deleteEdge(e); });
 	
         auto it = std::find(locations.begin(), locations.end(), location);

@@ -27,7 +27,7 @@ namespace MiniMC {
                 for (auto& I : E->getInstructions ()) {
                   if (I.getOpcode() == MiniMC::Model::InstructionCode::Ret ||
                       I.getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
-                    I.replace(createInstruction<InstructionCode::Skip> (0));
+                    I.replace(Instruction::make<InstructionCode::Skip> (0));
                   }
                 }
               }

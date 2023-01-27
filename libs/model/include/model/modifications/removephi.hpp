@@ -26,14 +26,14 @@ namespace MiniMC {
 								       Symbol(std::static_pointer_cast<Register>( content.res)->getName() + "PHI-tmp"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 
-                    stream.addInstruction<MiniMC::Model::InstructionCode::Assign>({.res = replacemap.at(content.res.get()), .op1 = content.op1});
+                    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), content.op1);
                   }
 
                   for (auto& inst : instrstream) {
                     auto& content = inst.getOps<InstructionCode::Assign>();
 
                     auto val = replacemap.count(content.op1.get()) ? replacemap.at(content.op1.get()) : content.op1;
-                    stream.addInstruction<MiniMC::Model::InstructionCode::Assign>({.res = replacemap.at(content.res.get()), .op1 = val});
+                    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), val);
                   }
 
 		  E->getInstructions () = stream;

@@ -8,7 +8,7 @@ namespace MiniMC {
 	if (I.getOpcode() == From) {
 	  auto& content = I.getOps<To>();
 	  if (content.op1->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
-	    I.replace(MiniMC::Model::createInstruction<To>({.res = content.res, .op1 = content.op1}));
+	    I.replace(MiniMC::Model::Instruction::make<To>(content.res, content.op1));
 	  }
 	}
       }

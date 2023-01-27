@@ -145,6 +145,9 @@ namespace MiniMC {
     };
 
     struct TACContent {
+      TACContent (Value_ptr res, Value_ptr op1, Value_ptr op2) : res(std::move(res)),
+								       op1(std::move(op1)),
+								       op2(std::move(op2)) {}
       Value_ptr res;
       Value_ptr op1;
       Value_ptr op2;
@@ -169,6 +172,7 @@ namespace MiniMC {
 #undef X
 
     struct UnaryContent {
+      UnaryContent (Value_ptr res, Value_ptr op1) : res(std::move(res)), op1(std::move(op1)) {}
       Value_ptr res;
       Value_ptr op1;
     };
@@ -192,6 +196,7 @@ namespace MiniMC {
 #undef X
 
     struct BinaryContent {
+      BinaryContent (Value_ptr op1, Value_ptr op2) : op1(std::move(op1)),op2(std::move(op2)) {}
       Value_ptr op1;
       Value_ptr op2;
     };
@@ -251,6 +256,9 @@ namespace MiniMC {
 #undef X
 
     struct ExtractContent {
+      ExtractContent (Value_ptr res, Value_ptr aggregate, Value_ptr offset) : res(std::move(res)),
+									      aggregate(std::move(aggregate)),
+									      offset(std::move(offset)) {}
       Value_ptr res;
       Value_ptr aggregate;
       Value_ptr offset;
@@ -272,6 +280,13 @@ namespace MiniMC {
     };
 
     struct InsertContent {
+      InsertContent (Value_ptr res,
+		     Value_ptr aggregate,
+		     Value_ptr offset,
+		     Value_ptr insertee) : res(std::move(res)),
+					   aggregate(std::move(aggregate)),
+					   offset(std::move(offset)),
+					   insertee(std::move(insertee)) {}
       Value_ptr res;
       Value_ptr aggregate;
       Value_ptr offset;
@@ -294,6 +309,13 @@ namespace MiniMC {
     };
 
     struct PtrAddContent{
+      PtrAddContent (Value_ptr res,
+		     Value_ptr ptr,
+		     Value_ptr skip,
+		     Value_ptr nbSkips) : res(std::move(res)),
+					  ptr(std::move(ptr)),
+					  skipsize(std::move(skip)),
+					  nbSkips(std::move(nbSkips)) {}
       Value_ptr res;
       Value_ptr ptr;
       Value_ptr skipsize;
@@ -330,21 +352,7 @@ namespace MiniMC {
       using Content = TACContent;
     };
 
-    struct ExtendObjContent {
-      Value_ptr res;
-      Value_ptr object;
-      Value_ptr size;
-    };
     
-    
-    struct MallocContent {
-      Value_ptr object;
-      Value_ptr size;
-    };
-    
-    struct FreeContent {
-      Value_ptr object;
-    };
     
     template <>
     struct InstructionData<InstructionCode::Skip> {
@@ -385,6 +393,7 @@ namespace MiniMC {
     };
 
     struct AssertAssumeContent {
+      AssertAssumeContent (Value_ptr res) : expr(std::move(res)) {}
       Value_ptr expr;
     };
 
@@ -410,6 +419,8 @@ ASSUMEASSERTS
 #undef X
 
     struct CallContent {
+  CallContent (Value_ptr res, Value_ptr function, std::vector<Value_ptr> params) :
+    res(std::move(res)),function(std::move(function)),params(std::move(params)) {}
       Value_ptr res;
       Value_ptr function;
       std::vector<Value_ptr> params;
@@ -440,6 +451,7 @@ ASSUMEASSERTS
     
     
     struct LoadContent {
+      LoadContent (Value_ptr res, Value_ptr add) : res(std::move(res)),addr(std::move(add)) {}
       Value_ptr res;
       Value_ptr addr;
     };
@@ -460,6 +472,7 @@ ASSUMEASSERTS
     };
 
     struct StoreContent {
+      StoreContent (Value_ptr addr,Value_ptr storee) : addr(std::move(addr)),storee(std::move(storee)) {}
       Value_ptr addr;
       Value_ptr storee;
     };
@@ -513,6 +526,7 @@ ASSUMEASSERTS
     };
 
     struct RetContent {
+      RetContent (Value_ptr v) : value(std::move(v)) {}
       Value_ptr value;
     };
     
@@ -556,9 +570,6 @@ ASSUMEASSERTS
 					     ExtractContent,
 					     InsertContent,
 					     PtrAddContent,
-					     ExtendObjContent,
-					     MallocContent,
-					     FreeContent,
 					     NonDetContent,
 					     AssertAssumeContent,
 					     LoadContent,
@@ -572,63 +583,52 @@ ASSUMEASSERTS
     template<class T>
     T copyReplace (const T& t, ReplaceFunction replace) {
       if constexpr (std::is_same<TACContent, T> ()) {
-	return {.res = replace(t.res), .op1 = replace(t.op1), .op2 = replace(t.op2)};
+	return {replace(t.res), replace(t.op1), replace(t.op2)};
       }
 
       else if constexpr (std::is_same<UnaryContent, T> ()) {
-	return {.res = replace(t.res), .op1 = replace(t.op1)};
+	return {replace(t.res), replace(t.op1)};
       }
 
       else if constexpr (std::is_same<BinaryContent,T> ()) {
-	return {.op1 = replace(t.op1), .op2 = replace(t.op2)};
+	return {replace(t.op1), replace(t.op2)};
       }
       else if constexpr (std::is_same<ExtractContent,T> ()) {
-	return {.res = replace(t.res), .aggregate = replace(t.aggregate), .offset = replace (t.offset)};
+	return {replace(t.res), replace(t.aggregate), replace (t.offset)};
       }
 
       else if constexpr (std::is_same<InsertContent,T> ()) {
-	return {.res = replace(t.res), .aggregate = replace(t.aggregate), .offset = replace (t.offset), .insertee = replace (t.insertee)};
+	return {replace(t.res), replace(t.aggregate), replace (t.offset), replace (t.insertee)};
 		
       }
 
       else  if constexpr (std::is_same<PtrAddContent,T> ()) {
-	return {.res = replace(t.res),
-	        .ptr = replace(t.ptr),
-		.skipsize = replace(t.skipsize),
-		.nbSkips = replace(t.nbSkips)
+	return {replace(t.res),
+	        replace(t.ptr),
+		replace(t.skipsize),
+		replace(t.nbSkips)
 	};
       }
 
-      else if constexpr (std::is_same<ExtendObjContent,T> ()) {
-	return {.res = replace(t.res), .object = replace(t.object), .size = replace(t.size)};
-      }
-
-      else if constexpr (std::is_same<MallocContent,T> ()) {
-	return { .object= replace(t.object), .size = replace(t.size)};
-      }
-
-      else if constexpr (std::is_same<FreeContent,T> ()) {
-	return { .object= replace(t.object)};
-      }
       
       else if constexpr (std::is_same<NonDetContent,T> ()) {
-	return { .res = replace(t.res), .min = replace(t.min), .max = replace(t.max)};
+	return {replace(t.res),replace(t.min), replace(t.max)};
       }
 
       else if constexpr (std::is_same<AssertAssumeContent,T> ()) {
-	return {.expr = replace(t.expr)};
+	return {replace(t.expr)};
       }
 
       else if constexpr (std::is_same<LoadContent,T> ()) {
-	return {.res = replace(t.res), .addr = replace(t.addr)};
+	return {replace(t.res), replace(t.addr)};
       }
       
       else if constexpr (std::is_same<StoreContent,T> ()) {
-	return {.addr = replace(t.addr), .storee = replace(t.storee)};
+	return {replace(t.addr), replace(t.storee)};
       }
 
       else if constexpr (std::is_same<RetContent,T> ()) {
-	return {.value = replace(t.value)};
+	return {replace(t.value)};
       }
 
       else if constexpr (std::is_same<CallContent,T> ()) {
@@ -636,7 +636,7 @@ ASSUMEASSERTS
 	auto inserter = std::back_inserter(params);
 	std::for_each (t.params.begin(),t.params.end(),[replace,&inserter](auto& p) {inserter = replace(p);}); 
 	
-	return {.res = replace(t.res), .function = replace(t.function), .params = params};
+	return {replace(t.res), replace(t.function), params};
 
       }
 
@@ -654,19 +654,21 @@ ASSUMEASSERTS
     using Function_ptr = std::shared_ptr<Function>;
 
     
-    /**
-     *  \brief Container for instruction codes and their paramaters
-     * 
-     * The Instruction class holds its operands internally in  a vector. 
-     * The operands are accesible through the getOp function. 
-     * Since the order of the operands are important in the rest of MiniMC, you should never 
-     * instantiate Instruction objects yourself but rather use the InstBuilder classes. Furthermore access to operand should be done using the the InstHelper structs.
-     */
+    
     struct Instruction {
     public:
-      Instruction(InstructionCode code, Instruction_content content) : opcode(code),
+      Instruction (InstructionCode code, Instruction_content content) : opcode(code),
 								       content(content) {}
 
+      template<InstructionCode op,class... Args>
+      static Instruction make (Args... args) {
+	return Instruction(op,typename InstructionData<op>::Content (std::forward<Args> (args)...));
+      }
+      
+      template<InstructionCode op> 
+      static Instruction make (InstructionData<op>::Content d) {
+	return Instruction(op,d);
+      }
       
       /**
        * Replace this instruction with contents of \p i.
@@ -700,13 +702,8 @@ ASSUMEASSERTS
       InstructionCode opcode;
       Instruction_content content;
     };
-
-
-    template<InstructionCode i>
-    Instruction createInstruction (const typename InstructionData<i>::Content  content) {
-      return Instruction (i,content);
-    }
     
+
     inline std::ostream& operator<<(std::ostream& os, const Instruction& inst) {
       return inst.output(os);
     }
@@ -727,7 +724,7 @@ ASSUMEASSERTS
     template<InstructionCode i>
     Instruction copyInstructionWithReplaceT (const Instruction& inst, ReplaceFunction replace) {
       assert(inst.getOpcode () == i);
-      return createInstruction<i> (copyReplace (inst.getOps<i> (), replace));
+      return Instruction::make<i> (copyReplace (inst.getOps<i> (), replace));
     }
 
     inline Instruction copyInstructionWithReplace (const Instruction& inst, ReplaceFunction replace) {
@@ -774,13 +771,13 @@ ASSUMEASSERTS
 
       operator bool () const {return instr.size ();}
 
-      template<InstructionCode c>
-      InstructionStream& addInstruction (const typename InstructionData<c>::Content  content) {
-	instr.emplace_back (createInstruction<c> (content));
+      template<InstructionCode c,class... Args>
+      InstructionStream& add (Args... args) {
+	instr.emplace_back (Instruction::make<c> (std::forward<Args> (args)...));
 	return *this;
       }
 
-      InstructionStream& addInstruction (const Instruction& i) {
+      InstructionStream& add (const Instruction& i) {
 	instr.emplace_back (i);
 	return *this;
       }
@@ -818,10 +815,10 @@ ASSUMEASSERTS
       std::ostream& output (std::ostream& os) const  {
 	return os << instr;
       }
-
+      
       bool isPhi () const {
 	return phi;
-      }
+	}
 
 	
       

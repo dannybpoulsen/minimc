@@ -41,7 +41,7 @@ namespace MiniMC {
           auto& orig = edge->getInstructions ();
           MiniMC::Model::InstructionStream nstr (orig.isPhi ());
           std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-            nstr.addInstruction (inst); 
+            nstr.add (inst); 
           });
 
           nedge->getInstructions () = nstr;
@@ -82,7 +82,7 @@ namespace MiniMC {
 	      return lookupValue (op,val);
 	    };
 	      
-	    nstr.addInstruction(copyInstructionWithReplace (inst,replaceF));
+	    nstr.add(copyInstructionWithReplace (inst,replaceF));
           });
 
           nedge->getInstructions () = std::move(nstr);
