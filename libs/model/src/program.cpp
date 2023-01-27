@@ -69,7 +69,7 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function) {
-	auto varstack = copyVariables (function->getRegisterStackDescr ());
+	auto varstack = copyVariables (function->getRegisterDescr ());
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),

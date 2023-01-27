@@ -15,7 +15,7 @@ namespace MiniMC {
 	}
 	
 	auto& func = entrypoints[0];
-	auto& vstack = func->getRegisterStackDescr ();
+	auto& vstack = func->getRegisterDescr ();
 	auto& termbuilder =  context->getBuilder ();
 	
 	auto term = termbuilder.makeBoolConst (true);
@@ -55,7 +55,7 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = context->getBuilder ();
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-      
+	
 	StackControl stackcontrol{nstate.getStack (),*context};
         
 	decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};

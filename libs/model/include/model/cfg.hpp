@@ -137,7 +137,7 @@ namespace MiniMC {
       auto& getSymbol() const { return name; }
       auto& getParameters() const { return parameters; }
       auto& getRegisterDescr() const { return registerdescr; }
-      auto& getRegisterStackDescr() { return registerdescr; }
+      auto& getRegisterDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
       auto& getCFA()  { return cfa; }
       

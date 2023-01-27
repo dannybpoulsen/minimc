@@ -219,8 +219,12 @@ namespace MiniMC {
         return TriBool::Unk;
       }
 
-      TriBool PathControl::addAssert(const PathFormulaVMVal::Bool&) {
-        return TriBool::Unk;
+      TriBool PathControl::addAssert(const PathFormulaVMVal::Bool& b) {
+	if (asserts)
+          asserts = builder.buildTerm(SMTLib::Ops::And, {asserts, b.getTerm()});
+        else
+          asserts = b.getTerm();
+	return TriBool::Unk;
       }
 
       template <typename v>

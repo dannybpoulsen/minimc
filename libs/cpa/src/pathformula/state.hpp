@@ -105,7 +105,7 @@ namespace MiniMC {
         auto& getMemory() { return memory; }
         auto& getStack() const { return call_stack; }
 
-        void addConstraints(SMTLib::Term_ptr& term) {
+        void addConstraints(const SMTLib::Term_ptr& term) {
           pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
         }
 

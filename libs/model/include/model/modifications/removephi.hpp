@@ -22,7 +22,7 @@ namespace MiniMC {
                 if (instrstream.isPhi ()) {
                   for (auto& inst : instrstream) {
                     auto& content = inst.getOps<InstructionCode::Assign>();
-                    auto nvar = F->getRegisterStackDescr().addRegister(
+                    auto nvar = F->getRegisterDescr().addRegister(
 								       Symbol(std::static_pointer_cast<Register>( content.res)->getName() + "PHI-tmp"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 

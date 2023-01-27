@@ -424,7 +424,7 @@ namespace MiniMC {
 						 ,*content.function
 						 );
 	  
-	  auto& vstack = func->getRegisterStackDescr();
+	  auto& vstack = func->getRegisterDescr();
 	  
 	  std::vector<T> params;
           auto inserter = std::back_inserter(params);

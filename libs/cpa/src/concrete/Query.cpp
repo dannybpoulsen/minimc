@@ -133,7 +133,7 @@ namespace MiniMC {
 	
         std::vector<ActivationStack> stack;
         for (auto& f : descr.getEntries()) {
-          auto& vstack = f->getRegisterStackDescr();
+          auto& vstack = f->getRegisterDescr();
 	  ActivationRecord sf {{vstack.getTotalRegisters ()},
 			 nullptr};
 	  for (auto& v : vstack.getRegisters()) {

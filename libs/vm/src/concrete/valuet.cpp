@@ -16,7 +16,7 @@ namespace MiniMC {
 		 [](const MiniMC::Model::I8Integer& val) -> Value { return Value::I8{val.getValue()}; },
 		 [](const MiniMC::Model::I16Integer& val) -> Value { return Value::I16{val.getValue()}; },
 		 [](const MiniMC::Model::I32Integer& val) -> Value { return Value::I32{val.getValue()}; },
-		 [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
+		   [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
 		 [](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{static_cast<bool>(val.getValue())}; },
 		 [](const MiniMC::Model::Pointer& val) -> Value { return Value::Pointer{val.getValue()}; },
 		 [](const MiniMC::Model::Pointer32& val) -> Value { return Value::Pointer32{val.getValue()}; },
@@ -35,7 +35,7 @@ namespace MiniMC {
       ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
 	switch (t->getTypeID()) {
 	case MiniMC::Model::TypeID::Bool:
-            return BoolValue(false);
+	  return BoolValue(false);
 	case MiniMC::Model::TypeID::Pointer32:
 	  return Value::Pointer32{Value::Pointer32::underlying_type {}};
 	  
@@ -44,7 +44,7 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::I8:
 	  return Value::I8(0);
 	case MiniMC::Model::TypeID::I16:
-            return Value::I16(0);
+	  return Value::I16(0);
 	case MiniMC::Model::TypeID::I32:
 	  return Value::I32(0);
 	case MiniMC::Model::TypeID::I64:

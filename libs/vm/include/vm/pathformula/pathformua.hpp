@@ -67,8 +67,8 @@ namespace MiniMC {
 	PathControl (SMTLib::TermBuilder& builder);
         TriBool addAssumption(const Value::Bool&) override;
         TriBool addAssert(const Value::Bool&) override;
-	auto& getAssump () {return assump;}
-	auto& getAsserts () {return asserts;}
+	auto& getAssump () const {return assump;}
+	auto& getAsserts () const {return asserts;}
 	
       private:
 	SMTLib::Term_ptr assump;
