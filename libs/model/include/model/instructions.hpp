@@ -671,8 +671,8 @@ ASSUMEASSERTS
       InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
                                                                                  phi(isPhi) {
       }
-      InstructionStream(const InstructionStream& str) : instr(str.instr), phi(str.phi) {}
-
+      InstructionStream(const InstructionStream& str) = default;
+      
       InstructionStream& operator= (const InstructionStream&) = default;
       
       auto begin() const { return instr.begin(); }

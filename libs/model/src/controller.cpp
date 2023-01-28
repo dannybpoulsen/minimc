@@ -7,7 +7,6 @@
 #include "model/modifications/replacesub.hpp"
 #include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/splitasserts.hpp"
-#include "model/modifications/splitcmps.hpp"
 #include "model/modifications/expandnondet.hpp"
 
 #include "model/checkers/structure.hpp"

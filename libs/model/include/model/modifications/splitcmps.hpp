@@ -54,13 +54,11 @@ namespace MiniMC {
                   auto end = E->getTo()->eend();
 
                   for (; it != end; ++it) {
-                    auto nedge = cfg.makeEdge(loc, (*it)->getTo());
-                    nedge->copyAttributesFrom(**it);
+                    auto nedge = cfg.makeEdge(loc, (*it)->getTo(),MiniMC::Model::InstructionStream {(*it)->getInstructions ()});
                   }
                   std::vector<MiniMC::Model::Instruction> instr;
                   std::copy(instrs.begin(), instrs.end(), std::back_inserter(instr));
-                  auto tt = cfg.makeEdge(E->getFrom(), loc);
-                  tt->getInstructions () = instr;
+                  auto tt = cfg.makeEdge(E->getFrom(), loc,std::move(instr));
                   std::vector<MiniMC::Model::Instruction> ttI{
 		    MiniMC::Model::Instruction::make<left>(origcontent.op1, origcontent.op2),
 		    MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assign>(origcontent.res, v)

@@ -35,17 +35,12 @@ namespace MiniMC {
         auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
-        auto nedge = cfg.makeEdge(from, to);
         
-        if (edge->getInstructions ()) {
-          auto& orig = edge->getInstructions ();
-          MiniMC::Model::InstructionStream nstr (orig.isPhi ());
-          std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-            nstr.add (inst); 
-          });
-
-          nedge->getInstructions () = nstr;
-        }
+	auto& orig = edge->getInstructions ();
+	MiniMC::Model::InstructionStream nstr (orig);
+	cfg.makeEdge(from, to,std::move(nstr));
+        
+	
       }
 
       template <class LocInsert, class LocInserter>
@@ -72,23 +67,19 @@ namespace MiniMC {
         auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
         auto from = (locs.count(edge->getFrom().get())) ? locs.at(edge->getFrom().get()) : edge->getFrom();
 
-        auto nedge = cfg.makeEdge(from, to);
-        
-        if (edge->getInstructions ()) {
-          auto& orig = edge->getInstructions ();
-          MiniMC::Model::InstructionStream nstr (orig.isPhi ());
-          std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-	    auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
-	      return lookupValue (op,val);
-	    };
-	      
-	    nstr.add(Instruction (inst,replaceF));
-          });
 
-          nedge->getInstructions () = std::move(nstr);
-        }
+	auto& orig = edge->getInstructions ();
+	MiniMC::Model::InstructionStream nstr (orig.isPhi ());
+	std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
+	  auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
+	    return lookupValue (op,val);
+	  };
+	  
+	  nstr.add(Instruction (inst,replaceF));
+	});
 
-        insertTo = nedge;
+	
+        insertTo = cfg.makeEdge(from, to,std::move(nstr));
       }
 
       template <class LocInsert, class EdgeInsert>

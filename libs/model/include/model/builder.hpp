@@ -21,7 +21,10 @@ namespace MiniMC {
 		   const MiniMC::Model::Location_ptr& to) : cfa(cfa),
 						    from(from),
 						    to(to) {
-	edge = cfa.makeEdge (from,to);
+      }
+
+      ~EdgeBuilder () {
+	cfa.makeEdge (from,to,std::move(stream));
       }
 
       template<MiniMC::Model::InstructionCode code>
@@ -35,18 +38,16 @@ namespace MiniMC {
 		      code ==MiniMC::Model::InstructionCode::Assert
 		      ){
 	  auto nto = cfa.makeLocation (from->getInfo ());
-	  edge->setTo (nto);
+	  cfa.makeEdge (from,nto,std::move(stream));
 	  from = cfa.makeLocation (from->getInfo ());
 	  
-	  auto call_edge = cfa.makeEdge (nto,from);
-	  call_edge->getInstructions().add (instr);
-	  edge = cfa.makeEdge (from,to);
+	  cfa.makeEdge (nto,from,MiniMC::Model::InstructionStream({instr}));
 	  
 	  
 	}
 
 	else {
-	  edge->getInstructions().add (instr);
+	  stream.add (instr);
 	  
 	}
 	
@@ -58,7 +59,7 @@ namespace MiniMC {
       EdgeBuilder& addInstr (typename MiniMC::Model::InstructionData<code>::Content content) requires (isPhi) {
 	static_assert(code==MiniMC::Model::InstructionCode::Assign && "Phi edges can only have assign");
 	auto instr = MiniMC::Model::Instruction::make<code> (content);
-	edge->getInstructions().add (instr);
+	stream.add (instr);
 	
 	
 	return *this;
@@ -69,7 +70,7 @@ namespace MiniMC {
       MiniMC::Model::CFA& cfa;
       MiniMC::Model::Location_ptr from;
       MiniMC::Model::Location_ptr to;
-      MiniMC::Model::Edge_ptr edge;
+      MiniMC::Model::InstructionStream stream;
     };
 
     

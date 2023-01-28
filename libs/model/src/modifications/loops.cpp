@@ -45,8 +45,8 @@ namespace MiniMC {
               to = unrolledLocations[i + 1].at(loop->getHeader().get());
             } else
               to = deadLoc;
-            auto nedge = cfg.makeEdge(from, to);
-            nedge->copyAttributesFrom(*e);
+            auto nedge = cfg.makeEdge(from, to,MiniMC::Model::InstructionStream{e->getInstructions ()});
+            
           });
         }
       }

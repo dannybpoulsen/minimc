@@ -250,8 +250,7 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, 
           (*locmap)[to_str.getFullName()] = location;
           to = location;
         }
-        auto edge = cfg->makeEdge(from,to);
-        edge->getInstructions() = instructionStream;
+        auto edge = cfg->makeEdge(from,to,std::move(instructionStream));
         instructionStream.clear();
       } else {
         instruction(&instructionStream, regs.getRegisters());

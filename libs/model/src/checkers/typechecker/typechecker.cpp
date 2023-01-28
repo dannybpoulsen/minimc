@@ -8,7 +8,7 @@ namespace MiniMC {
   namespace Model {
     namespace Checkers {
       template <MiniMC::Model::InstructionCode i>
-      bool doCheck(MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
+      bool doCheck(const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
 	MiniMC::Support::Messager mess;
         auto& content = inst.getOps<i>();
         if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
@@ -434,7 +434,7 @@ namespace MiniMC {
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           for (auto& E : F->getCFA().getEdges()) {
-	    auto& instrkeeper = E->getInstructions ();
+	    const auto& instrkeeper = E->getInstructions ();
             if (instrkeeper) {
               for (auto& I : instrkeeper) {
 

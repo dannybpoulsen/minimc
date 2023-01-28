@@ -48,7 +48,7 @@ namespace MiniMC {
 	      auto nloc = cfa.makeLocation (prev->getInfo ());
 	      auto nnondet = cfa.makeLocation (prev->getInfo ());
 	      
-	      cfa.makeEdge (prev,nloc)->getInstructions () = nstr;
+	      cfa.makeEdge (prev,nloc,std::move(nstr));
 	      nstr.clear ();
 	      MiniMC::BV64 min{0};
 	      MiniMC::BV64 max{0};
@@ -77,7 +77,7 @@ namespace MiniMC {
 	      NonDetGenerator gen {min,max};
 	      for (;!gen.finished (); 	gen.increment ()) {
 		nstr.add<InstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
-		cfa.makeEdge (nloc,nnondet)->getInstructions () = nstr;
+		cfa.makeEdge (nloc,nnondet,std::move(nstr));
 		nstr.clear ();
 	      }
 
@@ -86,7 +86,7 @@ namespace MiniMC {
 	      
 	    }
 	  }
-	  cfa.makeEdge (prev,goal)->getInstructions () = nstr;
+	  cfa.makeEdge (prev,goal,std::move(nstr));
 	  cfa.deleteEdge ( edge);
 	}
       }

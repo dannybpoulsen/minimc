@@ -12,17 +12,13 @@
 namespace MiniMC {
   namespace Model {
 
-    class Program;
-    using Program_ptr = std::shared_ptr<Program>;
-    using Program_wptr = std::weak_ptr<Program>;
-
     class Instruction;
 
     class Edge : public std::enable_shared_from_this<Edge> {
     public:
-      Edge(Location_ptr from, Location_ptr to, InstructionStream stream = {}) : from(from),
-									   to(to),
-									   instructions(stream)
+      Edge(Location_ptr from, Location_ptr to, InstructionStream&& stream = {}) : from(from),
+										  to(to),
+										  instructions(std::move(stream))
 									   
       { }
 
@@ -47,12 +43,6 @@ namespace MiniMC {
         to.lock()->removeIncomingEdge(this);
         to = t;
         t->addIncomingEdge(this);
-      }
-
-      //void setProgram (const Program_ptr& p) {prgm = p;}
-
-      void copyAttributesFrom(const Edge& e) {
-	instructions = e.instructions;
       }
 
     private:

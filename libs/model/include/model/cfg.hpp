@@ -56,8 +56,8 @@ namespace MiniMC {
        *
        * @return 
        */
-      Edge_ptr makeEdge(Location_ptr from, Location_ptr to) {
-        edges.emplace_back(new Edge(from, to));
+      Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream ) {
+        edges.emplace_back(new Edge(from, to,std::move(istream)));
         to->addIncomingEdge(edges.back().get());
         from->addEdge(edges.back().get());
         return edges.back();
@@ -114,6 +114,11 @@ namespace MiniMC {
       Location_ptr initial = nullptr;
     };
 
+    
+    class Program;
+    using Program_ptr = std::shared_ptr<Program>;
+    using Program_wptr = std::weak_ptr<Program>;
+    
     
     class Function : public std::enable_shared_from_this<Function> {
     public:

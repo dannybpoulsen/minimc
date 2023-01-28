@@ -25,12 +25,10 @@ namespace MiniMC {
 	      auto nloc = cfg.makeLocation(locc.make("Assert", {}, *source_loc));
 	      auto ttloc = E->getTo();
 	      E->setTo(nloc);
-	      auto ff_edge = cfg.makeEdge(nloc, eloc);
-	      ff_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::NegAssume> (
-			val)},false);
-		  
-	      auto tt_edge = cfg.makeEdge(nloc, ttloc);
-	      tt_edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assume> (val)},false);
+	      auto ff_edge = cfg.makeEdge(nloc, eloc, MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::NegAssume> (val)},false));
+	     
+	      
+	      auto tt_edge = cfg.makeEdge(nloc, ttloc,MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assume> (val)},false));
 	    }
 	  }
 	}

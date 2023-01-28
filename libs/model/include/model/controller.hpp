@@ -25,7 +25,6 @@ namespace MiniMC {
       void inlineFunctions (std::size_t);
       void unrollLoops (std::size_t);
       void boolCasts ();
-      void splitAtCMP ();
       void expandNonDeterministic ();
       void onlyOneMemAccessPerEdge ();
 

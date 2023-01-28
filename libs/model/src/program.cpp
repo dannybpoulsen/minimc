@@ -54,13 +54,10 @@ namespace MiniMC {
 	ncfa.setInitial (locMap.at(cfa.getInitialLocation ()));
 	
 	for (auto& e : cfa.getEdges ()) {
-	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()));
+	  auto& instrs = e->getInstructions();
+	  
+	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()),copyInstructionStream (instrs,&vars));
 
-	  if (e->getInstructions ()) {
-	    auto& instrs = e->getInstructions();
-	    nedge->getInstructions () = copyInstructionStream (instrs,&vars);
-	      
-	  }
 	  
 	}
 	

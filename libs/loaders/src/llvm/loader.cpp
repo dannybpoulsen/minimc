@@ -286,7 +286,6 @@ namespace MiniMC {
       auto end = cfg.makeLocation(locinf.make("end", {}, *source_loc));
       
       cfg.setInitial(init);
-      auto edge = cfg.makeEdge(init, end);
       
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
@@ -298,10 +297,12 @@ namespace MiniMC {
         result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
 
-      edge->getInstructions () = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Call>(
+      auto instrstream = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Call>(
 																	  result,
 																	   funcpointer,
 																	   params)});
+      auto edge = cfg.makeEdge(init, end,std::move(instrstream));
+      
       
       return program.addFunction(name, {},
                                  program.getTypeFactory().makeVoidType(),

@@ -3,13 +3,15 @@
 
 #include "lexer.hpp"
 #include "model/edge.hpp"
+#include "model/cfg.hpp"
 #include <istream>
 #include <stack>
 #include <string>
 
 namespace MiniMC {
 namespace Loaders {
-
+  
+  
 class Parser {
 public:
   Parser(std::istream &is,Model::TypeFactory &tfac,
