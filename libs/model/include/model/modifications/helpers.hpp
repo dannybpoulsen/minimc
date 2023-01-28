@@ -25,7 +25,7 @@ namespace MiniMC {
           }
         }; 
 	
-        insert = MiniMC::Model::copyInstructionWithReplace (inst,replaceFunction);
+        insert = MiniMC::Model::Instruction (inst,replaceFunction);
       }
 
       inline void copyEdgeAnd(const MiniMC::Model::Edge* edge,
@@ -82,7 +82,7 @@ namespace MiniMC {
 	      return lookupValue (op,val);
 	    };
 	      
-	    nstr.add(copyInstructionWithReplace (inst,replaceF));
+	    nstr.add(Instruction (inst,replaceF));
           });
 
           nedge->getInstructions () = std::move(nstr);

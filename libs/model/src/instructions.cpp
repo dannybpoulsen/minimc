@@ -119,5 +119,92 @@ namespace MiniMC {
 	  }
       throw MiniMC::Support::Exception ("Not an instruction");
     }
+
+    template<class T>
+    T copyReplace (const T& t, ReplaceFunction replace) {
+      if constexpr (std::is_same<TACContent, T> ()) {
+	return {replace(t.res), replace(t.op1), replace(t.op2)};
+      }
+
+      else if constexpr (std::is_same<UnaryContent, T> ()) {
+	return {replace(t.res), replace(t.op1)};
+      }
+
+      else if constexpr (std::is_same<BinaryContent,T> ()) {
+	return {replace(t.op1), replace(t.op2)};
+      }
+      else if constexpr (std::is_same<ExtractContent,T> ()) {
+	return {replace(t.res), replace(t.aggregate), replace (t.offset)};
+      }
+
+      else if constexpr (std::is_same<InsertContent,T> ()) {
+	return {replace(t.res), replace(t.aggregate), replace (t.offset), replace (t.insertee)};
+		
+      }
+
+      else  if constexpr (std::is_same<PtrAddContent,T> ()) {
+	return {replace(t.res),
+	        replace(t.ptr),
+		replace(t.skipsize),
+		replace(t.nbSkips)
+	};
+      }
+
+      
+      else if constexpr (std::is_same<NonDetContent,T> ()) {
+	return {replace(t.res),replace(t.min), replace(t.max)};
+      }
+
+      else if constexpr (std::is_same<AssertAssumeContent,T> ()) {
+	return {replace(t.expr)};
+      }
+
+      else if constexpr (std::is_same<LoadContent,T> ()) {
+	return {replace(t.res), replace(t.addr)};
+      }
+      
+      else if constexpr (std::is_same<StoreContent,T> ()) {
+	return {replace(t.addr), replace(t.storee)};
+      }
+
+      else if constexpr (std::is_same<RetContent,T> ()) {
+	return {replace(t.value)};
+      }
+
+      else if constexpr (std::is_same<CallContent,T> ()) {
+	std::vector<Value_ptr> params;
+	auto inserter = std::back_inserter(params);
+	std::for_each (t.params.begin(),t.params.end(),[replace,&inserter](auto& p) {inserter = replace(p);}); 
+	
+	return {replace(t.res), replace(t.function), params};
+
+      }
+
+      else if constexpr (std::is_same<int,T> ()) {
+	return t;
+      }
+
+      else {
+	[]<bool flag = false>() {static_assert(flag, "Uncopiable Object");}();
+      }
+      
+    }
+    
+
+    //Copy Consructor with Replacement :-)
+    Instruction::Instruction (const Instruction& oth, ReplaceFunction replace) : opcode(oth.opcode),content(oth.content) {
+      switch (oth.getOpcode ()) {
+#define X(OP)					\
+	case InstructionCode::OP:					\
+	  content =  copyReplace (oth.getOps<InstructionCode::OP> (), replace); \
+	  break;
+	OPERATIONS
+#undef X
+      default:
+	__builtin_unreachable ();
+      }
+    }
+      
+    
   }
 }

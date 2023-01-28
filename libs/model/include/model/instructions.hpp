@@ -115,7 +115,7 @@ namespace MiniMC {
       OPERATIONS
 #undef X
     };
-
+    
     inline std::ostream& operator<<(std::ostream& os, const InstructionCode& c) {
       switch (c) {
 #define X(OP)               \
@@ -470,7 +470,7 @@ ASSUMEASSERTS
       static const bool hasResVar = true;
       using Content = LoadContent;
     };
-
+    
     struct StoreContent {
       StoreContent (Value_ptr addr,Value_ptr storee) : addr(std::move(addr)),storee(std::move(storee)) {}
       Value_ptr addr;
@@ -580,86 +580,15 @@ ASSUMEASSERTS
 					     >;
 
     using ReplaceFunction = std::function<Value_ptr(const Value_ptr&)>;
-    template<class T>
-    T copyReplace (const T& t, ReplaceFunction replace) {
-      if constexpr (std::is_same<TACContent, T> ()) {
-	return {replace(t.res), replace(t.op1), replace(t.op2)};
-      }
-
-      else if constexpr (std::is_same<UnaryContent, T> ()) {
-	return {replace(t.res), replace(t.op1)};
-      }
-
-      else if constexpr (std::is_same<BinaryContent,T> ()) {
-	return {replace(t.op1), replace(t.op2)};
-      }
-      else if constexpr (std::is_same<ExtractContent,T> ()) {
-	return {replace(t.res), replace(t.aggregate), replace (t.offset)};
-      }
-
-      else if constexpr (std::is_same<InsertContent,T> ()) {
-	return {replace(t.res), replace(t.aggregate), replace (t.offset), replace (t.insertee)};
-		
-      }
-
-      else  if constexpr (std::is_same<PtrAddContent,T> ()) {
-	return {replace(t.res),
-	        replace(t.ptr),
-		replace(t.skipsize),
-		replace(t.nbSkips)
-	};
-      }
-
-      
-      else if constexpr (std::is_same<NonDetContent,T> ()) {
-	return {replace(t.res),replace(t.min), replace(t.max)};
-      }
-
-      else if constexpr (std::is_same<AssertAssumeContent,T> ()) {
-	return {replace(t.expr)};
-      }
-
-      else if constexpr (std::is_same<LoadContent,T> ()) {
-	return {replace(t.res), replace(t.addr)};
-      }
-      
-      else if constexpr (std::is_same<StoreContent,T> ()) {
-	return {replace(t.addr), replace(t.storee)};
-      }
-
-      else if constexpr (std::is_same<RetContent,T> ()) {
-	return {replace(t.value)};
-      }
-
-      else if constexpr (std::is_same<CallContent,T> ()) {
-	std::vector<Value_ptr> params;
-	auto inserter = std::back_inserter(params);
-	std::for_each (t.params.begin(),t.params.end(),[replace,&inserter](auto& p) {inserter = replace(p);}); 
-	
-	return {replace(t.res), replace(t.function), params};
-
-      }
-
-      else if constexpr (std::is_same<int,T> ()) {
-	return t;
-      }
-
-      else {
-	[]<bool flag = false>() {static_assert(flag, "Uncopiable Object");}();
-      }
-      
-    }
-    
-    class Function;
-    using Function_ptr = std::shared_ptr<Function>;
-
-    
     
     struct Instruction {
     public:
       Instruction (InstructionCode code, Instruction_content content) : opcode(code),
 								       content(content) {}
 
+      //Copy Consructor with Replacement :-)
+      Instruction (const Instruction&, ReplaceFunction);
+      
       template<InstructionCode op,class... Args>
       static Instruction make (Args... args) {
 	return Instruction(op,typename InstructionData<op>::Content (std::forward<Args> (args)...));
@@ -669,6 +598,8 @@ ASSUMEASSERTS
       static Instruction make (InstructionData<op>::Content d) {
 	return Instruction(op,d);
       }
+      
+      
       
       /**
        * Replace this instruction with contents of \p i.
@@ -688,7 +619,7 @@ ASSUMEASSERTS
 	return std::get<typename InstructionData<c>::Content> (content);
       }
 
-
+      
       /** 
        * Write a textual representation to \p os
        *
@@ -721,23 +652,8 @@ ASSUMEASSERTS
       }
     }
 
-    template<InstructionCode i>
-    Instruction copyInstructionWithReplaceT (const Instruction& inst, ReplaceFunction replace) {
-      assert(inst.getOpcode () == i);
-      return Instruction::make<i> (copyReplace (inst.getOps<i> (), replace));
-    }
 
-    inline Instruction copyInstructionWithReplace (const Instruction& inst, ReplaceFunction replace) {
-      switch (inst.getOpcode ()) {
-#define X(OP)					\
-	case InstructionCode::OP:		\
-	  return copyInstructionWithReplaceT<InstructionCode::OP>  (inst,replace);
-	OPERATIONS
-#undef X
-      }
-      throw MiniMC::Support::Exception ("Uncopiable Object");
-    }
-
+    
     std::ostream& operator<<(std::ostream& os, const std::vector<Instruction>& str);
     
     
@@ -777,6 +693,11 @@ ASSUMEASSERTS
 	return *this;
       }
 
+      InstructionStream& add (const Instruction& i, ReplaceFunction r) {
+	instr.emplace_back (Instruction(i,r));
+	return *this;
+      }
+      
       InstructionStream& add (const Instruction& i) {
 	instr.emplace_back (i);
 	return *this;
