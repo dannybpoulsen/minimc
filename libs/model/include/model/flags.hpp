@@ -1,3 +1,6 @@
+#ifndef _MODEL__FLAGS__
+#define _MODEL__FLAGS__
+
 namespace MiniMC {
   namespace Model {
     template<class T>
@@ -22,3 +25,5 @@ namespace MiniMC {
 
   }
 }
+
+#endif
