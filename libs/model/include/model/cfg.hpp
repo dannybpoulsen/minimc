@@ -56,8 +56,8 @@ namespace MiniMC {
        *
        * @return 
        */
-      Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream ) {
-        edges.emplace_back(new Edge(from, to,std::move(istream)));
+      Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream,bool isPhi = false  ) {
+        edges.emplace_back(new Edge(from, to,std::move(istream),isPhi));
         to->addIncomingEdge(edges.back().get());
         from->addEdge(edges.back().get());
         return edges.back();

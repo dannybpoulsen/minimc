@@ -54,7 +54,7 @@ namespace MiniMC {
                   auto end = E->getTo()->eend();
 
                   for (; it != end; ++it) {
-                    auto nedge = cfg.makeEdge(loc, (*it)->getTo(),MiniMC::Model::InstructionStream {(*it)->getInstructions ()});
+                    auto nedge = cfg.makeEdge(loc, (*it)->getTo(),MiniMC::Model::InstructionStream {(*it)->getInstructions ()},false);
                   }
                   std::vector<MiniMC::Model::Instruction> instr;
                   std::copy(instrs.begin(), instrs.end(), std::back_inserter(instr));

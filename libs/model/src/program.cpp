@@ -37,7 +37,7 @@ namespace MiniMC {
 	for (auto& t : instr) {
 	  std::back_inserter (instrs) = MiniMC::Model::Instruction (t, replacer);
 	}
-	return {instrs, instr.isPhi ()};
+	return {instrs};
 
       }
       

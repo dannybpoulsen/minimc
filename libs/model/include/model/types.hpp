@@ -44,7 +44,7 @@ namespace MiniMC {
       Type(const TypeID& ty) : id(ty) {}
       virtual ~Type() {}
       virtual std::ostream& output(std::ostream& os) const = 0;
-
+      
       /** 
        * Calculate this types size in bytes
        *
@@ -52,7 +52,7 @@ namespace MiniMC {
        * @return Size in bytes this type occupies.
        */
       virtual std::size_t getSize() const = 0;
-
+      
       TypeID getTypeID() const { return id; }
       
       virtual bool isEqual(const Type& t) {

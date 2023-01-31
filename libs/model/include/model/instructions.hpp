@@ -665,13 +665,11 @@ ASSUMEASSERTS
 	 */
     struct InstructionStream {
       using iterator = std::vector<Instruction>::iterator;
-      InstructionStream() : InstructionStream(false) {}
-      InstructionStream(bool isPhi) : phi(isPhi) {}
+      InstructionStream()  {}
       
-      InstructionStream(const std::vector<Instruction>& i, bool isPhi = false) : instr(i),
-                                                                                 phi(isPhi) {
-      }
+      InstructionStream(const std::vector<Instruction>& i) : instr(i) {}
       InstructionStream(const InstructionStream& str) = default;
+      InstructionStream(const std::initializer_list<Instruction> i) : instr(i) {}
       
       InstructionStream& operator= (const InstructionStream&) = default;
       
@@ -737,15 +735,11 @@ ASSUMEASSERTS
 	return os << instr;
       }
       
-      bool isPhi () const {
-	return phi;
-	}
-
+      
 	
       
     private:
       std::vector<Instruction> instr;
-      bool phi = false;
     };
     
     std::ostream& operator<<(std::ostream& os, const InstructionStream& str);

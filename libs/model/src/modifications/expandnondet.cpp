@@ -35,7 +35,7 @@ namespace MiniMC {
 	if (edge->getInstructions ()) {
 	  // Only bother if we have instructions to deal with
 	  auto& instr = edge->getInstructions();
-	  MiniMC::Model::InstructionStream nstr{instr.isPhi ()};
+	  MiniMC::Model::InstructionStream nstr;
 	  auto prev =  edge->getFrom ();
 	  auto goal =  edge->getTo ();
 	  
@@ -48,7 +48,7 @@ namespace MiniMC {
 	      auto nloc = cfa.makeLocation (prev->getInfo ());
 	      auto nnondet = cfa.makeLocation (prev->getInfo ());
 	      
-	      cfa.makeEdge (prev,nloc,std::move(nstr));
+	      cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
 	      nstr.clear ();
 	      MiniMC::BV64 min{0};
 	      MiniMC::BV64 max{0};

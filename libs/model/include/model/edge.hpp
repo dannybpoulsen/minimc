@@ -13,17 +13,18 @@ namespace MiniMC {
   namespace Model {
 
     class Instruction;
-
+    
     class Edge : public std::enable_shared_from_this<Edge> {
     public:
-      Edge(Location_ptr from, Location_ptr to, InstructionStream&& stream = {}) : from(from),
-										  to(to),
-										  instructions(std::move(stream))
+      Edge(Location_ptr from, Location_ptr to, InstructionStream&& stream = {},bool isPhi = false) : from(from),
+											     to(to),
+											     instructions(std::move(stream)),
+											     phi(isPhi)
 									   
       { }
 
       Edge(const Edge&) = default;
-
+      
       //auto& getGuard () {return guard;}
       auto& getInstructions () {return instructions;}
 
@@ -33,6 +34,8 @@ namespace MiniMC {
       auto getFrom() const { return from.lock(); }
       auto getTo() const { return to.lock(); }
 
+      auto isPhi () const {return phi;}
+      
       /** 
 	   *  Set the to Location of this Edge. Also remove the edge
 	   *  itself from the current to.
@@ -44,12 +47,13 @@ namespace MiniMC {
         to = t;
         t->addIncomingEdge(this);
       }
-
+      
     private:
       Location_wptr from;
       Location_wptr to;
       Value_ptr value;
       InstructionStream instructions;
+      bool phi = false;
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Edge& e) {

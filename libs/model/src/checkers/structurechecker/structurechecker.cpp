@@ -45,7 +45,7 @@ namespace MiniMC {
           auto& instr = e.getInstructions ();
           auto it = instr.rbegin();
           auto end = instr.rend();
-          if (instr.isPhi () ) {
+          if (e.isPhi () ) {
             for (++it; it != end; ++it) {
               if (it->getOpcode() != MiniMC::Model::InstructionCode::Assign) {
                 mess.message<MiniMC::Support::Severity::Error>("Phi edges can only have assignments");

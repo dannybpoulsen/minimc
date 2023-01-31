@@ -38,7 +38,7 @@ namespace MiniMC {
         
 	auto& orig = edge->getInstructions ();
 	MiniMC::Model::InstructionStream nstr (orig);
-	cfg.makeEdge(from, to,std::move(nstr));
+	cfg.makeEdge(from, to,std::move(nstr),edge->isPhi());
         
 	
       }
@@ -69,7 +69,7 @@ namespace MiniMC {
 
 
 	auto& orig = edge->getInstructions ();
-	MiniMC::Model::InstructionStream nstr (orig.isPhi ());
+	MiniMC::Model::InstructionStream nstr;
 	std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
 	  auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
 	    return lookupValue (op,val);
@@ -79,7 +79,7 @@ namespace MiniMC {
 	});
 
 	
-        insertTo = cfg.makeEdge(from, to,std::move(nstr));
+        insertTo = cfg.makeEdge(from, to,std::move(nstr),edge->isPhi ());
       }
 
       template <class LocInsert, class EdgeInsert>

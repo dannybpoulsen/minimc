@@ -24,7 +24,7 @@ namespace MiniMC {
       }
 
       ~EdgeBuilder () {
-	cfa.makeEdge (from,to,std::move(stream));
+	cfa.makeEdge (from,to,std::move(stream),isPhi);
       }
 
       template<MiniMC::Model::InstructionCode code>

@@ -19,7 +19,7 @@ namespace MiniMC {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
                 std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
-                if (instrstream.isPhi ()) {
+                if (E->isPhi ()) {
                   for (auto& inst : instrstream) {
                     auto& content = inst.getOps<InstructionCode::Assign>();
                     auto nvar = F->getRegisterDescr().addRegister(
