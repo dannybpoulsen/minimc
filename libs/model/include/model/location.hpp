@@ -13,42 +13,8 @@ namespace MiniMC {
 
     class Edge;
     using Edge_ptr = std::shared_ptr<Edge>;
-    using Edge_wptr = std::weak_ptr<Edge>;
-
-    /*template <class Obj, class BaseIterator>
-    class SmartIterator {
-    public:
-      SmartIterator(BaseIterator iter) : iter(iter) {}
-      bool operator==(const SmartIterator<Obj, BaseIterator>& oth) const {
-        return oth.iter == iter;
-      }
-
-      bool operator!=(const SmartIterator<Obj, BaseIterator>& oth) const {
-        return oth.iter != iter;
-      }
-
-      Obj operator->() {
-        assert((*iter).lock());
-        return (*iter).lock();
-      }
-
-      Obj operator*() {
-        assert((*iter).lock());
-        return (*iter).lock();
-      }
-
-      void operator++() {
-        ++iter;
-      }
-
-    private:
-      BaseIterator iter;
-      };
-    */
     
     class CFA;
-    using CFA_ptr = std::shared_ptr<CFA>;
-    using CFA_wptr = std::weak_ptr<CFA>;
     /** 
      * Location in a functions CFG
      * Locations can be assigned different attributes which can affect exploration algorithms, or the modification algorihtms on the CFG. 
@@ -177,7 +143,6 @@ namespace MiniMC {
     };
 
     using Location_ptr = std::shared_ptr<Location>;
-    using Location_wptr = std::weak_ptr<Location>;
     
   } // namespace Model
 } // namespace MiniMC

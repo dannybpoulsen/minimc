@@ -117,7 +117,6 @@ namespace MiniMC {
     
     class Program;
     using Program_ptr = std::shared_ptr<Program>;
-    using Program_wptr = std::weak_ptr<Program>;
     
     
     class Function : public std::enable_shared_from_this<Function> {

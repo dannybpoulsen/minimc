@@ -36,7 +36,7 @@ namespace MiniMC {
 	    hash << *t;
 	  return hash;
 	}
-
+	
         std::vector<MiniMC::Model::Location*> stack;
       };
     } // namespace Location
@@ -54,7 +54,7 @@ namespace MiniMC {
         }
 
         State(const State&) = default;
-
+	
         virtual std::ostream& output(std::ostream& os) const override {
           os << "[ ";
           for (auto l : locations) {
@@ -72,7 +72,7 @@ namespace MiniMC {
 
 	virtual std::shared_ptr<MiniMC::CPA::Location::State> lcopy() const { return std::make_shared<State>(*this); }
         virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return lcopy(); }
-
+	
         size_t nbOfProcesses() const override { return locations.size(); }
         MiniMC::Model::Location& getLocation(size_t i) const override { return *locations.at(i).cur(); }
         void setLocation(size_t i, MiniMC::Model::Location* l) { 
@@ -86,7 +86,6 @@ namespace MiniMC {
 	
       private:
         std::vector<LocationState> locations;
-        std::vector<bool> ready;
       };
 
       MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState& s, const MiniMC::Model::Edge& edge, proc_id id) {
@@ -95,7 +94,7 @@ namespace MiniMC {
         if (edge.getFrom().get() == &state.getLocation(id)) {
           auto nstate = state.lcopy();
           nstate->setLocation(id, edge.getTo().get());
-
+	  
           if (edge.getInstructions () ) {
             auto& inst = edge.getInstructions ().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
@@ -106,7 +105,7 @@ namespace MiniMC {
 					  [this](auto& t) -> MiniMC::Model::Function_ptr {
 					    using T = std::decay_t<decltype(t)>;
 					    if constexpr (std::is_same_v<T,MiniMC::Model::Pointer> ||
-						std::is_same_v<T,MiniMC::Model::Pointer32>) {
+							  std::is_same_v<T,MiniMC::Model::Pointer32>) {
 					      auto loadPtr = t.getValue ();
 					      auto func = prgm.getFunction(loadPtr.base);
 					      return func;
