@@ -10,11 +10,28 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
-      template <class T>
-      using ReplaceMap = std::unordered_map<T*, std::shared_ptr<T>>;
+      template <class F, class T = std::shared_ptr<F>>
+      struct ReplaceMap {
+	using value_type = std::unordered_map<F*, T>::value_type;
+	using iterator = std::unordered_map<F*, T>::iterator;
+	auto at (F* t) const {return map.at (t);}
+	auto count (F* t) const {return map.count(t);}
 
+	auto insert (value_type t) {return map.insert(t);}
+	auto insert (iterator it, value_type t) {return map.insert(it,t);}
+	
+	auto begin () {return map.begin ();}
+	auto end () {return map.end ();}
+	
+	std::unordered_map<F*, T> map;
+	
+      };
+
+      using ValueReplaceMap = ReplaceMap<MiniMC::Model::Value, MiniMC::Model::Value_ptr>;
+      using LocationReplaceMap = ReplaceMap<MiniMC::Model::Location, MiniMC::Model::Location_ptr>;
+      
       template <class Inserter>
-      void copyInstructionAndReplace(const MiniMC::Model::Instruction& inst, const ReplaceMap<MiniMC::Model::Value>& val, Inserter insert) {
+      void copyInstructionAndReplace(const MiniMC::Model::Instruction& inst, const ValueReplaceMap& val, Inserter insert) {
         //std::vector<MiniMC::Model::Value_ptr> vals;
         //auto inserter = std::back_inserter(vals);
 	auto replaceFunction = [&](const MiniMC::Model::Value_ptr& op) {
@@ -28,8 +45,8 @@ namespace MiniMC {
         insert = MiniMC::Model::Instruction (inst,replaceFunction);
       }
 
-      inline void copyEdgeAnd(const MiniMC::Model::Edge* edge,
-                              const ReplaceMap<MiniMC::Model::Location>& locs,
+      inline void copyEdge(const MiniMC::Model::Edge* edge,
+                              const LocationReplaceMap& locs,
                               MiniMC::Model::CFA& cfg) {
 
         auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
@@ -39,29 +56,21 @@ namespace MiniMC {
 	auto& orig = edge->getInstructions ();
 	MiniMC::Model::InstructionStream nstr (orig);
 	cfg.makeEdge(from, to,std::move(nstr),edge->isPhi());
-        
+	
 	
       }
-
+      
       template <class LocInsert, class LocInserter>
       void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, MiniMC::Model::LocationInfoCreator& linfo) {
         auto nloc = to.makeLocation(linfo.make(loc->getInfo()));
         inserter = std::make_pair(loc.get(), nloc);
         linserter = nloc;
       }
-      template <class T>
-      auto lookupValue(std::shared_ptr<T> v, const ReplaceMap<T>& map) {
-        if (map.count(v.get())) {
-          return map.at(v.get());
-        } else {
-          return v;
-        }
-      }
-
+      
       template <class Inserter>
       void copyEdgeAndReplace(const MiniMC::Model::Edge_ptr& edge,
-                              const ReplaceMap<MiniMC::Model::Value>& val,
-                              const ReplaceMap<MiniMC::Model::Location>& locs,
+                              const ValueReplaceMap& val,
+                              const LocationReplaceMap& locs,
                               MiniMC::Model::CFA& cfg,
                               Inserter insertTo) {
         auto to = (locs.count(edge->getTo().get())) ? locs.at(edge->getTo().get()) : edge->getTo();
@@ -72,7 +81,7 @@ namespace MiniMC {
 	MiniMC::Model::InstructionStream nstr;
 	std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
 	  auto replaceF = [&](const MiniMC::Model::Value_ptr& op) {
-	    return lookupValue (op,val);
+	    return val.count(op.get()) ? val.at (op.get ()) : op;
 	  };
 	  
 	  nstr.add(Instruction (inst,replaceF));
@@ -84,9 +93,9 @@ namespace MiniMC {
 
       template <class LocInsert, class EdgeInsert>
       void copyCFG(const MiniMC::Model::CFA& from,
-                   ReplaceMap<MiniMC::Model::Value>& val,
+                   ValueReplaceMap& val,
                    MiniMC::Model::CFA& to,
-                   ReplaceMap<MiniMC::Model::Location>& locmap,
+                   LocationReplaceMap& locmap,
                    LocInsert lInsert,
                    EdgeInsert eInsert,
                    MiniMC::Model::LocationInfoCreator& locinfoc) {

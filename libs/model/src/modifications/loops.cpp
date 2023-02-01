@@ -11,9 +11,8 @@ namespace MiniMC {
 
       template <class LocInserter>
       void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::LocationInfoCreator& locInf ) {
-        auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
-        auto deadLoc = cfg.makeLocation(locInf.make ("DEAD", {}, *source_loc));
+        auto deadLoc = cfg.makeLocation(locInf.make ("DEAD", {}));
         deadLoc->getInfo().getFlags() |= MiniMC::Model::Attributes::UnrollFailed ;
         //linserter =deadLoc;
         for (size_t i = 0; i < amount; i++) {
@@ -28,13 +27,13 @@ namespace MiniMC {
         }
 
         std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
-          e->setTo(unrolledLocations[0][loop->getHeader().get()]);
+          e->setTo(unrolledLocations[0].at(loop->getHeader().get()));
         });
 
         for (size_t i = 0; i < amount; i++) {
           auto& locations = unrolledLocations[i];
-          std::for_each(loop->internal_begin(), loop->internal_end(), [&](auto& e) { copyEdgeAnd(e, locations, cfg); });
-          std::for_each(loop->exiting_begin(), loop->exiting_end(), [&](auto& e) { copyEdgeAnd(e, locations, cfg); });
+          std::for_each(loop->internal_begin(), loop->internal_end(), [&](auto& e) { copyEdge(e, locations, cfg); });
+          std::for_each(loop->exiting_begin(), loop->exiting_end(), [&](auto& e) { copyEdge(e, locations, cfg); });
 
           std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
             auto& locmap = unrolledLocations[i];
