@@ -55,7 +55,7 @@ namespace MiniMC {
 	    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
 	    MiniMC::Algorithms::EnumResult res;
 	    while (enumerator.getNext (res)) {
-	      if (transfer.Transfer (searchee,res.edge,res.proc,newstate)) {
+	      if (transfer.Transfer (searchee,*res.edge,res.proc,newstate)) {
 		insert(newstate);
 	      }
 	    }

@@ -43,7 +43,7 @@ namespace MiniMC {
     using Solver_ptr = std::shared_ptr<Solver>;
 
     struct LocationInfo {
-      virtual MiniMC::Model::Location_ptr getLocation(proc_id) const  = 0;
+      virtual MiniMC::Model::Location& getLocation(proc_id) const  = 0;
       virtual size_t nbOfProcesses() const = 0;
       
     };
@@ -51,22 +51,26 @@ namespace MiniMC {
     /** A general CPA state interface. It is deliberately kept minimal to relay no information to observers besides what is absolutely needed 
      * 
      */
-    class CommonState  {
+    class CommonState  : public std::enable_shared_from_this<CommonState> {
     public:
       ~CommonState() {}
-
+      
       virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
       virtual MiniMC::Hash::hash_t hash() const = 0;
       virtual std::shared_ptr<CommonState> copy() const = 0;
     };
 
+    
+    using CommonState_ptr = std::shared_ptr<const CommonState>;
+    
+    
     class CFAState : public CommonState {
     public:
       virtual ~CFAState () {}
       virtual const LocationInfo& getLocationState () const  = 0;
     };
-
-    using CFAState_ptr = std::shared_ptr<CFAState>;
+    
+    using CFAState_ptr = std::shared_ptr<const CFAState>;
     
     class DataState : public CommonState {
     public:
@@ -75,7 +79,7 @@ namespace MiniMC {
       virtual const QueryBuilder& getBuilder () const = 0;
     };
     
-    using DataState_ptr = std::shared_ptr<DataState>;
+    using DataState_ptr = std::shared_ptr<const DataState>;
     
     
     class AnalysisState  {
@@ -90,10 +94,6 @@ namespace MiniMC {
       CFAState_ptr cfastate;
       std::vector<DataState_ptr> datastates;   
     };
-    
-    using AnalysisState_ptr = std::unique_ptr<AnalysisState>;
-    
-    using CommonState_ptr = std::shared_ptr<CommonState>;
     
     std::ostream& operator<<(std::ostream& os, const CommonState& state);
     std::ostream& operator<<(std::ostream& os, const AnalysisState& state);

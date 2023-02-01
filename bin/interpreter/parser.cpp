@@ -78,11 +78,11 @@ void Parser::step() {
   statemap->set("prev","current");
 
   if (auto edge = get_edge(get_nr())) {
-    if (transfer.Transfer(statemap->get("current"), edge, proc, newstate)) {
+    if (transfer.Transfer(statemap->get("current"), *edge, proc, newstate)) {
       statemap->set("current",newstate);
     };
     if (auto noinsedge = haveNoInstructionEdge(statemap->get("current"))) {
-      if (transfer.Transfer(statemap->get("current"), noinsedge, proc, newstate)) {
+      if (transfer.Transfer(statemap->get("current"), *noinsedge, proc, newstate)) {
         statemap->set("current",newstate);
       };
     }

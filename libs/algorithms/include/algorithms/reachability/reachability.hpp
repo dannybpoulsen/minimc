@@ -43,7 +43,6 @@ namespace MiniMC {
       private:
 	Observable<Progress> progress_indicator;
 	MiniMC::CPA::AnalysisTransfer transfer;
-	MiniMC::CPA::Joiner_ptr joiner;
 	MiniMC::CPA::AnalysisState found;
       };
       

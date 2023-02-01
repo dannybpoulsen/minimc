@@ -50,7 +50,7 @@ namespace MiniMC {
       };
 
       MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge_ptr& edge, proc_id) {
-        auto state = static_cast<const MiniMC::CPA::SingleLocation::State*>(s.get());
+1        auto state = static_cast<const MiniMC::CPA::SingleLocation::State*>(s.get());
         
         if (edge->getFrom() == state->getLocation(0)) {
           auto nstate = state->lcopy();

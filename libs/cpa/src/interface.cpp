@@ -18,13 +18,13 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  cfastate->getLocationState ().getLocation (i)->getInfo().getName ();
+	os <<  cfastate->getLocationState ().getLocation (i).getInfo().getName ();
       }
       os << "]\n";
 
       auto nbDataStates = state.nbDataStates ();
       for (std::size_t p = 0; p < nbProcs; p++) {
-	auto& vstack = cfastate->getLocationState().getLocation(p)->getInfo().getRegisters ();
+	auto& vstack = cfastate->getLocationState().getLocation(p).getInfo().getRegisters ();
 	for (auto& reg : vstack.getRegisters ()) {
 	  os << reg->getName () << ":\t";
 
@@ -51,8 +51,8 @@ namespace MiniMC {
     }
     
     
-    bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge* e,  proc_id proc,AnalysisState& res) {
-      auto locTrans = std::static_pointer_cast<CFAState> (locTransfer->doTransfer (state.getCFAState (),e,proc));
+    bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge& e,  proc_id proc,AnalysisState& res) {
+      auto locTrans = std::static_pointer_cast<const CFAState> (locTransfer->doTransfer (*state.getCFAState (),e,proc));
       if (!locTrans)
 	return false;
       else {
@@ -60,10 +60,10 @@ namespace MiniMC {
 	std::size_t i = 0;
 	std::vector<DataState_ptr> datas;
 	for (auto tit = dataTransfers.begin (); tit != dataTransfers.end (); ++tit,++i) {
-	  auto res = (*tit)->doTransfer (state.getDataState (i),e,proc);
+	  auto res = (*tit)->doTransfer (*state.getDataState (i),e,proc);
 	  if (!res)
 	    return false;
-	  datas.push_back (std::move(std::static_pointer_cast<DataState> (res)));
+	  datas.push_back (std::move(std::static_pointer_cast<const DataState> (res)));
 	}
 	res = AnalysisState{std::move(locTrans),std::move(datas)};
 	

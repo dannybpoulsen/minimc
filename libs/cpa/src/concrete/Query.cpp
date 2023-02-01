@@ -155,8 +155,8 @@ namespace MiniMC {
         return state;
       }
 
-      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const MiniMC::CPA::CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id) {
-	auto resstate = s->copy();
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const MiniMC::CPA::CommonState& s, const MiniMC::Model::Edge& e, proc_id id) {
+	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
@@ -164,7 +164,7 @@ namespace MiniMC {
 	StackControl scontrol {nstate.getProc (id)};
 	
 	decltype(engine)::State newvm {nstate.getHeap (),control,scontrol};
-	auto& instr = e->getInstructions();
+	auto& instr = e.getInstructions();
 	status = engine.execute(instr,newvm);
 	
 	if (status ==MiniMC::VMT::Status::Ok)

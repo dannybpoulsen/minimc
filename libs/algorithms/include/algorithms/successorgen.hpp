@@ -140,8 +140,8 @@ namespace MiniMC {
     class EdgeEnumerator {
     public:
       EdgeEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state),
-								 iter(orig.getCFAState ()->getLocationState().getLocation(0)->ebegin ()),
-								 end(orig.getCFAState ()->getLocationState().getLocation(0)->eend ())
+								 iter(orig.getCFAState ()->getLocationState().getLocation(0).ebegin ()),
+								 end(orig.getCFAState ()->getLocationState().getLocation(0).eend ())
 	
       {
 	hasOne = next ();
@@ -161,8 +161,8 @@ namespace MiniMC {
 
       bool next () {
 	if (init ) {
-	  iter = orig.getCFAState ()->getLocationState().getLocation(proc)->ebegin ();
-	  end = orig.getCFAState ()->getLocationState().getLocation(proc)->eend ();
+	  iter = orig.getCFAState ()->getLocationState().getLocation(proc).ebegin ();
+	  end = orig.getCFAState ()->getLocationState().getLocation(proc).eend ();
 	  init = false;
 	  return iter!=end;
 	}
@@ -173,8 +173,8 @@ namespace MiniMC {
 	    proc++;
 	    if (proc >=orig.getCFAState ()->getLocationState().nbOfProcesses ())
 	      return false;
-	    iter = orig.getCFAState ()->getLocationState().getLocation(proc)->ebegin ();
-	    end = orig.getCFAState ()->getLocationState().getLocation(proc)->eend ();
+	    iter = orig.getCFAState ()->getLocationState().getLocation(proc).ebegin ();
+	    end = orig.getCFAState ()->getLocationState().getLocation(proc).eend ();
 	    return iter != end;
 	  }
 	  return true;

@@ -44,13 +44,13 @@ namespace MiniMC {
 	return state;
       }
 
-      MiniMC::CPA::CommonState_ptr Joiner::doJoin(const CommonState_ptr&, const CommonState_ptr&) {
+      MiniMC::CPA::CommonState_ptr Joiner::doJoin(const CommonState&, const CommonState&) {
 	return nullptr;
       }
       
-      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* e, proc_id id [[maybe_unused]]) {
+      MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState& s, const MiniMC::Model::Edge& e, proc_id id [[maybe_unused]]) {
         assert(id == 0 && "PathFormula only useful for one process systems");
-	auto resstate = s->copy();
+	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = context->getBuilder ();
@@ -59,7 +59,7 @@ namespace MiniMC {
 	StackControl stackcontrol{nstate.getStack (),*context};
         
 	decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
-	auto& instr = e->getInstructions();
+	auto& instr = e.getInstructions();
 	status = engine.execute(instr,newvm);
 	
 	if (status ==MiniMC::VMT::Status::Ok)  {

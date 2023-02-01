@@ -76,7 +76,7 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
     auto procs = locationstate.nbOfProcesses ();
     
     for (std::size_t i = 0; i < procs; ++i) {
-      if (locationstate.getLocation (i)->getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
+      if (locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
 	return true;
     }
     

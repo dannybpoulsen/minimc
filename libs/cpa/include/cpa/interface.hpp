@@ -39,7 +39,7 @@ namespace MiniMC {
       auto& getHeap() const { return heap; }
       auto& getInit() const { return init; }
       auto& getProgram() const { return prgm; }
-
+      
     private:
       std::vector<MiniMC::Model::Function_ptr> entries;
       MiniMC::Model::HeapLayout heap;
@@ -52,11 +52,12 @@ namespace MiniMC {
     };
 
     using StateQuery_ptr = std::shared_ptr<StateQuery>;
-
+    
     /**
      * The Tranferer generates successor for States
      */
     struct Transferer {
+      virtual ~Transferer () {}
       /**
        * Comput the successor state of \p s by performing edge \p e for
        * process \p
@@ -67,27 +68,29 @@ namespace MiniMC {
        * performed (which may happen for instance) when a guard is
        * false)
        */
-      virtual CommonState_ptr doTransfer(const CommonState_ptr&, const MiniMC::Model::Edge*, proc_id) = 0;
+      virtual CommonState_ptr doTransfer(const CommonState&, const MiniMC::Model::Edge&, proc_id) {return nullptr;};
     };
 
     using Transferer_ptr = std::shared_ptr<Transferer>;
 
     struct Joiner {
+      virtual ~Joiner () {}
       /**
        * Join two  states \p l and \p r with each other
        *
-       * @return  the joined state of nullptr if the states cannot be
+       * @return  the joined state or nullptr if the states cannot be
        * merged.
        */
-      virtual CommonState_ptr doJoin(const CommonState_ptr&, const CommonState_ptr&) = 0;
-
+      virtual CommonState_ptr doJoin(const CommonState&, const CommonState&) {return nullptr;}
+      
       /**
        * Test if \p l covers \p r i.e. whether the behaviour of \l
        * includes that of \p r
        */
-      virtual bool covers(const CommonState_ptr&, const CommonState_ptr&) = 0;
+      virtual bool covers(const CommonState& l , const CommonState& r) {return l.hash() == r.hash();
+      }
     };
-
+    
     using Joiner_ptr = std::shared_ptr<Joiner>;
 
     struct ICPA {
@@ -113,14 +116,13 @@ namespace MiniMC {
     class AnalysisTransfer {
     public:
       AnalysisTransfer (Transferer_ptr&& locTransfer, std::vector<Transferer_ptr>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
-      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge*, proc_id,AnalysisState&);
+      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge&, proc_id,AnalysisState&);
     private:
       Transferer_ptr locTransfer;
-      std::vector<Transferer_ptr> dataTransfers;
-    
+      std::vector<Transferer_ptr> dataTransfers;    
     };
     
-
+    
     class AnalysisBuilder {
     public:
       AnalysisBuilder (CPA_ptr&& cpa) : cfa_cpa(std::move(cpa)) {}
@@ -132,11 +134,13 @@ namespace MiniMC {
 	return AnalysisTransfer (cfa_cpa->makeTransfer (prgm),std::move(datas));
       }
 
+      
+      
       AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
 	std::vector<DataState_ptr> datas;
 	for (auto& d : data_cpa) 
-	  datas.push_back (std::static_pointer_cast<DataState> (d->makeQuery ()->makeInitialState (descr)));
-	return AnalysisState (std::static_pointer_cast<CFAState> (cfa_cpa->makeQuery()->makeInitialState(descr)),std::move(datas));
+	  datas.push_back (std::static_pointer_cast<const DataState> (d->makeQuery ()->makeInitialState (descr)));
+	return AnalysisState (std::static_pointer_cast<const CFAState> (cfa_cpa->makeQuery()->makeInitialState(descr)),std::move(datas));
       }
       
     private:

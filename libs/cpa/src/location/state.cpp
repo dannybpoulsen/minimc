@@ -74,7 +74,7 @@ namespace MiniMC {
         virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return lcopy(); }
 
         size_t nbOfProcesses() const override { return locations.size(); }
-        MiniMC::Model::Location_ptr getLocation(size_t i) const override { return locations.at(i).cur()->shared_from_this(); }
+        MiniMC::Model::Location& getLocation(size_t i) const override { return *locations.at(i).cur(); }
         void setLocation(size_t i, MiniMC::Model::Location* l) { 
 	  locations[i].setLocation(l);
         }
@@ -89,15 +89,15 @@ namespace MiniMC {
         std::vector<bool> ready;
       };
 
-      MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState_ptr& s, const MiniMC::Model::Edge* edge, proc_id id) {
-        auto state = static_cast<const State*>(s.get());
-        assert(id < state->nbOfProcesses());
-        if (edge->getFrom() == state->getLocation(id)) {
-          auto nstate = state->lcopy();
-          nstate->setLocation(id, edge->getTo().get());
+      MiniMC::CPA::CommonState_ptr MiniMC::CPA::Location::Transferer::doTransfer(const CommonState& s, const MiniMC::Model::Edge& edge, proc_id id) {
+        auto& state = static_cast<const State&>(s);
+        assert(id < state.nbOfProcesses());
+        if (edge.getFrom().get() == &state.getLocation(id)) {
+          auto nstate = state.lcopy();
+          nstate->setLocation(id, edge.getTo().get());
 
-          if (edge->getInstructions () ) {
-            auto& inst = edge->getInstructions ().last();
+          if (edge.getInstructions () ) {
+            auto& inst = edge.getInstructions ().last();
             if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	      if (content.function->isConstant()) {

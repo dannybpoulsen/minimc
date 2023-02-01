@@ -17,9 +17,9 @@ namespace MiniMC {
     class Edge : public std::enable_shared_from_this<Edge> {
     public:
       Edge(Location_ptr from, Location_ptr to, InstructionStream&& stream = {},bool isPhi = false) : from(from),
-											     to(to),
-											     instructions(std::move(stream)),
-											     phi(isPhi)
+												     to(to),
+												     instructions(std::move(stream)),
+												     phi(isPhi)
 									   
       { }
 
@@ -31,8 +31,8 @@ namespace MiniMC {
       auto& getInstructions () const  {return instructions;}
       
       
-      auto getFrom() const { return from.lock(); }
-      auto getTo() const { return to.lock(); }
+      auto getFrom() const { return from; }
+      auto getTo() const { return to; }
 
       auto isPhi () const {return phi;}
       
@@ -43,14 +43,14 @@ namespace MiniMC {
 	   * @param t New target of the edge 
 	   */
       void setTo(Location_ptr t) {
-        to.lock()->removeIncomingEdge(this);
+        to->removeIncomingEdge(this);
         to = t;
         t->addIncomingEdge(this);
       }
       
     private:
-      Location_wptr from;
-      Location_wptr to;
+      Location_ptr from;
+      Location_ptr to;
       Value_ptr value;
       InstructionStream instructions;
       bool phi = false;
