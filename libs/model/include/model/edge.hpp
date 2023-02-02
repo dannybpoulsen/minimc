@@ -25,7 +25,6 @@ namespace MiniMC {
 
       Edge(const Edge&) = default;
       
-      //auto& getGuard () {return guard;}
       auto& getInstructions () {return instructions;}
 
       auto& getInstructions () const  {return instructions;}
@@ -36,18 +35,6 @@ namespace MiniMC {
 
       auto isPhi () const {return phi;}
       
-      /** 
-	   *  Set the to Location of this Edge. Also remove the edge
-	   *  itself from the current to.
-	   *
-	   * @param t New target of the edge 
-	   */
-      void setTo(Location_ptr t) {
-        to->removeIncomingEdge(this);
-        to = t;
-        t->addIncomingEdge(this);
-      }
-      
     private:
       Location_ptr from;
       Location_ptr to;
@@ -57,7 +44,6 @@ namespace MiniMC {
     };
 
     inline std::ostream& operator<<(std::ostream& os, const Edge& e) {
-      //os << e.getGuard ();
       os << e.getInstructions ();
       return os;
     }

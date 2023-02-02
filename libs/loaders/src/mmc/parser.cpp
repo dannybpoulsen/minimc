@@ -202,10 +202,14 @@ Model::CFA Parser::cfa(Model::Symbol name, const MiniMC::Model::RegisterDescr& r
       edge(name, regs, &cfg, &locmap);
     }
     auto edges = cfg.getEdges();
-    std::for_each(edges.begin(),edges.end(),[locmap,this](auto e){
+    std::for_each(edges.begin(),edges.end(),[&cfg,locmap,this](auto e){
       auto location = e->getTo();
       auto to = locmap.at(location->getInfo().name.getName());
-      e->setTo(to);
+      auto from = e->getFrom ();
+      auto instr = e->getInstructions ();
+      cfg.makeEdge (from,to,std::move(instr), e->isPhi ());
+      cfg.deleteEdge (e.get ());
+      
     });
     cfg.setInitial(locmap.at("Initial"));
     return cfg;

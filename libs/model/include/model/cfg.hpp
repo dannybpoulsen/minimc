@@ -119,7 +119,7 @@ namespace MiniMC {
     using Program_ptr = std::shared_ptr<Program>;
     
     
-    class Function : public std::enable_shared_from_this<Function> {
+    class Function  {
     public:
       Function(MiniMC::func_t id,
                const Symbol& name,

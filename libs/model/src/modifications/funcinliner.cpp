@@ -37,32 +37,34 @@ namespace MiniMC {
         copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
 
         for (auto& ne : wlist) {
-          if (ne->getInstructions ()) {
-            auto& ninstr = ne->getInstructions ();
-            if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
-              inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
-            }
+	  auto ninstr = ne->getInstructions ();
+	  auto ne_from = ne->getFrom ();
+	  
+	  if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
+	    inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
+	  }
+	  
+	  else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
+	    ninstr.last().replace (Instruction::make<InstructionCode::Skip> (0));
+	    cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
+	    cfunc->getCFA().deleteEdge (ne.get());
+	  }
+	  
+	  else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Ret) {
+	    auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
+	    ninstr.last().replace(Instruction::make<InstructionCode::Assign> ( 
+									      call_content.res,
+									      content.value 
+									       )
+				  );
+	    cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
+	    cfunc->getCFA ().deleteEdge (ne.get());
 
-            else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
-              ne->setTo(edge->getTo());
-              ninstr.last().replace(Instruction::make<InstructionCode::Skip> (0));
-            }
-
-            else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Ret) {
-	      auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
+	  }
           
-              ne->setTo(edge->getTo());
-              ninstr.last().replace(Instruction::make<InstructionCode::Assign> ( 
-		    call_content.res,
-		    content.value 
-		  )
-		);
-            }
-          }
         }
 
-        edge->setTo(locmap.at(cfunc->getCFA().getInitialLocation().get()));
-
+        
         auto& parameters = cfunc->getParameters();
         auto it = parameters.begin();
         MiniMC::Model::InstructionStream str;
@@ -75,9 +77,10 @@ namespace MiniMC {
 					 valmap.at(it->get()),
 					  call_content.params.at(i));  
         }
-        edge->getInstructions ().clear ();
-        if (str.begin() != str.end())
-          edge->getInstructions () = str;
+
+	cfunc->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation().get()),std::move(str));
+	cfunc->getCFA ().deleteEdge (edge.get ());
+	
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {

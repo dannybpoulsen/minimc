@@ -27,8 +27,10 @@ namespace MiniMC {
         }
 
         std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
-          e->setTo(unrolledLocations[0].at(loop->getHeader().get()));
-        });
+	  auto instructions = e->getInstructions ();
+	  cfg.makeEdge (e->getFrom (),unrolledLocations[0].at(loop->getHeader().get()),std::move(instructions),e->isPhi ());
+	  cfg.deleteEdge (e);
+	});
 
         for (size_t i = 0; i < amount; i++) {
           auto& locations = unrolledLocations[i];
