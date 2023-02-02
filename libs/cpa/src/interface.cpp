@@ -31,7 +31,7 @@ namespace MiniMC {
 	  for (std::size_t dstate = 0; dstate < nbDataStates; dstate++) {
 	    auto& datastate = state.getDataState (dstate);
 	    auto symbval = datastate->getBuilder ().buildValue (p,reg);
-	    os << "  " << datastate->getConcretizer ()->evaluate (*symbval);
+	    os << "  " << *datastate->getConcretizer ()->evaluate (*symbval);
 	  }
 	  os << std::endl;
 	}

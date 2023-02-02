@@ -79,7 +79,7 @@ namespace MiniMC {
 		  },
                 [this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
                   MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-                  for (auto byte : val) {
+                  for (auto byte : val.getData()) {
                     chainer >> (builder.makeBVIntConst(byte, 8));
                   }
                   return AggregateValue(chainer.getTerm(), val.getSize());
@@ -157,8 +157,7 @@ namespace MiniMC {
           auto ones = t.makeBVIntConst(bytes - 1 - i,  PtrWidth);
           auto curind = t.buildTerm(SMTLib::Ops::BVAdd, {startInd, ones});
           auto curbyte = t.buildTerm(SMTLib::Ops::Extract, {content}, {i * 8 + 7, i * 8});
-	  std::cerr << *curbyte << std::endl;
-          carr = t.buildTerm(SMTLib::Ops::Store, {carr, curind, curbyte});
+	  carr = t.buildTerm(SMTLib::Ops::Store, {carr, curind, curbyte});
         }
 	assert(carr);
         return carr;

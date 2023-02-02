@@ -20,9 +20,8 @@ namespace MiniMC {
 		 [](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{static_cast<bool>(val.getValue())}; },
 		 [](const MiniMC::Model::Pointer& val) -> Value { return Value::Pointer{val.getValue()}; },
 		 [](const MiniMC::Model::Pointer32& val) -> Value { return Value::Pointer32{val.getValue()}; },
-		 [](const MiniMC::Model::AggregateConstant& val) -> Value {
-                  MiniMC::Util::Array res(val.begin(), val.end());
-                  return AggregateValue({res});
+		   [](const MiniMC::Model::AggregateConstant& val) -> Value {
+		     return AggregateValue(val.getData());
                 },
                 [](const MiniMC::Model::Undef&) ->  Value { throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA"); },
                 [this](const MiniMC::Model::Register& val) -> Value {

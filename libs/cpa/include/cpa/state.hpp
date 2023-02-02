@@ -36,7 +36,7 @@ namespace MiniMC {
       virtual ~Solver () {}
       
       virtual Feasibility isFeasible() const  {return Feasibility::Unknown;}
-      virtual MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr&) const override = 0;
+      virtual MiniMC::Model::Constant_ptr evaluate (const QueryExpr&) const override = 0;
       
     };
     

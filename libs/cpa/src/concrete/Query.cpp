@@ -28,11 +28,20 @@ namespace MiniMC {
       public:
         MConcretizer()  {}
 	MiniMC::CPA::Solver::Feasibility isFeasible() const override { return Feasibility::Feasible; }
-	MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr& expr) const override {
+	MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
 	  auto& ref = static_cast<const QExpr&> (expr);
-	  return ref.getValue ();
+	  return ref.getValue ().visit (MiniMC::VMT::Overload {
+	      [](MiniMC::VMT::Concrete::ConcreteVMVal::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::I32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I32Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::Pointer& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::Pointer32& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer32> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::Bool& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Bool> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::AggregateConstant> (val.getValue ());},
+		});
 	}
-      
+	
 	
       };
 

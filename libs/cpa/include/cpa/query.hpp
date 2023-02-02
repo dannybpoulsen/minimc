@@ -30,7 +30,7 @@ namespace MiniMC {
     class QueryEvaluator {
       public:
       virtual ~QueryEvaluator () {}
-      virtual MiniMC::VMT::Concrete::ConcreteVMVal evaluate (const QueryExpr&) const = 0;
+      virtual MiniMC::Model::Constant_ptr evaluate (const QueryExpr&) const = 0;
     };
 
     inline std::ostream& operator<< (std::ostream& os, const QueryExpr& e) {

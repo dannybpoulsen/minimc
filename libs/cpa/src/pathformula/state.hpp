@@ -145,39 +145,27 @@ namespace MiniMC {
           }
         }
 
-        MiniMC::VMT::Concrete::ConcreteVMVal evaluate(const QueryExpr& expr) const override {
+	MiniMC::Model::Constant_ptr evaluate(const QueryExpr& expr) const override {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
-	    return myexpr.getValue().visit([this](auto& t) -> MiniMC::VMT::Concrete::ConcreteVMVal {
-	      auto res =  t.interpretValue (*solver);
-	      if constexpr (std::is_same_v<decltype(res),MiniMC::BV8>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::I8 {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV16>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::I16 {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV32>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::I32 {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),MiniMC::BV64>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::I64 {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),bool>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::Bool {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),pointer64_t>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),pointer32_t>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::Pointer32 {res};
-	      }
-	      else if constexpr (std::is_same_v<decltype(res),MiniMC::Util::Array>) {
-		return MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate {res};
-	      }
-	    });
+	    return myexpr.getValue ().visit (MiniMC::VMT::Overload {
+		[this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I8& val) ->MiniMC::Model::Constant_ptr {
+		  return std::make_shared<MiniMC::Model::I8Integer> (val.interpretValue (*solver));
+		},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I32& val) ->MiniMC::Model::Constant_ptr { return std::make_shared<MiniMC::Model::I32Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer32> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Bool& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Bool> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Aggregate& val) ->MiniMC::Model::Constant_ptr {
+		    auto res = val.interpretValue (*solver);
+		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
+		  },
+		  });
 	      
           }
-
+	  
 	  throw MiniMC::Support::VerificationException {"Cannot evalute values on unsatisfiable states"};
         }
 

@@ -8,6 +8,7 @@
 #include "support/storehelp.hpp"
 #include "host/types.hpp"
 #include "util/valuemap.hpp"
+#include "util/array.hpp"
 #include <algorithm>
 #include <limits>
 #include <memory>
@@ -48,14 +49,21 @@ namespace MiniMC {
         this->output(str);
         return str.str();
       }
-
+      
       operator std::string() const {
         return this->string_repr();
       }
 
       type_id_t type_t() const { return val_type; }
-
+    protected:
+      std::ostream& outputType (std::ostream& os) const {
+	if (type)
+	  return os << *type;
+	else
+	  return os;
+      }
     private:
+
       Type_ptr type;
       type_id_t val_type;
     };
@@ -65,7 +73,7 @@ namespace MiniMC {
     }
 
     using Value_ptr = std::shared_ptr<Value>;
-
+    
     class Constant : public Value {
     public:
       Constant(type_id_t val) : Value(val) {}
@@ -80,12 +88,16 @@ namespace MiniMC {
       virtual bool isUndef() const { return false; }
     };
 
+    using Constant_ptr = std::shared_ptr<Constant>;
+    
+    
     class Undef : public Constant {
     public:
       Undef();
       virtual bool isUndef() const override { return true; }
       virtual std::ostream& output(std::ostream& os) const override {
-        return os << "<Undef " << *getType () << ">";
+        os << "<Undef ";
+	return outputType (os) <<  ">";
       }
     };
 
@@ -120,12 +132,12 @@ namespace MiniMC {
 	if constexpr (std::is_integral_v<T>) {
 	  MiniMC::BV64 val = value;
 	  copy << std::showbase << std::hex ;
-	  copy << "<" <<  val << " " << *getType () <<">";;
+	  copy << "<" <<  val << " ";
 	}
 	else {
-	  copy << "<" <<  value << " " << *getType () <<">";;
+	  copy << "<" <<  value << " ";
 	}
-        return os;
+	return outputType (os) << ">";
       }
 
     private:
@@ -147,38 +159,29 @@ namespace MiniMC {
      */
     class AggregateConstant : public Constant {
     public:
-      AggregateConstant(MiniMC::BV8* data, std::size_t s);
-
+      //AggregateConstant(MiniMC::BV8* data, std::size_t s);
+      AggregateConstant(MiniMC::Util::Array&& arr);
       template <class T>
       auto& getValue() const {
-        assert(sizeof(T) == size);
-        return *reinterpret_cast<T*>(value.get());
+        assert(sizeof(T) == data.getSize ());
+        return *reinterpret_cast<T*>(data.get_direct_access ());
       }
-
-      /*virtual const MiniMC::uint8_t* getData() const override {
-        return value.get();
-        }*/
-
-      auto begin() const {
-        return value.get();
-      }
-
-      auto end() const {
-        return value.get() + size;
-      }
-
+      
+      auto& getData () const  {return data;}
+      
       virtual bool isAggregate() const override { return true; }
 
-      std::size_t getSize() const override { return size; }
+      std::size_t getSize() const override { return data.getSize (); }
 
       virtual std::ostream& output(std::ostream& os) const override {
         MiniMC::Support::STDEncode encoder;
-        return os << "< $" << encoder.encode(reinterpret_cast<const char*>(value.get()), size) << "$ " << *getType () << " >";
+        os << "< $" << encoder.encode(reinterpret_cast<const char*>(data.get_direct_access ()), data.getSize ()) << "$ ";
+	return outputType (os) << ">";
+      
       }
-
+      
     private:
-      std::unique_ptr<MiniMC::BV8[]> value;
-      std::size_t size;
+      MiniMC::Util::Array data;
     };
 
     template <class T>

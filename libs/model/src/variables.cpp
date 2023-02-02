@@ -164,8 +164,8 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::I64:
             addType(*std::static_pointer_cast<MiniMC::Model::I64Integer>(c));
             break;
-          case MiniMC::Model::TypeID::Bool:
-            addType(*std::static_pointer_cast<MiniMC::Model::Bool>(c));
+	case MiniMC::Model::TypeID::Bool:
+	    addType(*std::static_pointer_cast<MiniMC::Model::Bool>(c));
             break;
           case MiniMC::Model::TypeID::Pointer:
             addType(*std::static_pointer_cast<MiniMC::Model::Pointer>(c));
@@ -173,7 +173,7 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::Struct:
           case MiniMC::Model::TypeID::Array: {
             auto aggr = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(c);
-            out = std::copy(aggr->begin(), aggr->end(), out);
+            out = std::copy(aggr->getData().begin(), aggr->getData().end(), out);
 	    break;
 	  }
           default:
@@ -186,7 +186,7 @@ namespace MiniMC {
       else
 	type = typefact->makeStructType (size);
       
-      Value_ptr v(new MiniMC::Model::AggregateConstant(reinterpret_cast<MiniMC::BV8*>(data.get()), size));
+      Value_ptr v = std::make_shared<MiniMC::Model::AggregateConstant>(MiniMC::Util::Array{size,std::move(data)});
       v->setType (type);
       return v;
   }
@@ -195,11 +195,9 @@ namespace MiniMC {
     Register::Register(const Symbol& name) : Value(ValueInfo<Register>::type_t()),
 					     name(name) {}
 
-    AggregateConstant::AggregateConstant(MiniMC::BV8* data, std::size_t s) : Constant(ValueInfo<AggregateConstant>::type_t()),
-                                                                                 value(new MiniMC::BV8[s]),
-                                                                                 size(s) {
-      std::copy(data, data + s, value.get());
-    }
+    
+    AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo<AggregateConstant>::type_t()),data(std::move(arr)) {}
+    
 
   } // namespace Model
 } // namespace MiniMC

@@ -14,6 +14,10 @@ namespace MiniMC {
   namespace VMT {
     
     
+    template<typename ... Ts>                                                  
+    struct Overload : Ts ... { 
+      using Ts::operator() ...;
+    };
     
     
 

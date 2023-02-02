@@ -1,4 +1,4 @@
-#include <memory>
+#xinclude <memory>
 
 namespace MiniMC  {
   namespace CPA {

@@ -16,10 +16,14 @@ namespace MiniMC {
         std::fill(buffer.get(), buffer.get() + size, 0);
       }
 
+      Array(std::size_t s, std::unique_ptr<MiniMC::BV8[]>&& buf) : buffer(std::move(buf)), size(s) {
+      }
+      
+      
       Array(size_t s, const MiniMC::BV8* buffer) : buffer(new MiniMC::BV8[s]), size(s) {
         std::copy(buffer, buffer + size, this->buffer.get());
       }
-
+      
       Array(const MiniMC::BV8* begin,const MiniMC::BV8* end) : buffer(new MiniMC::BV8[end-begin]), size(end-begin) {
         std::copy(begin, end, this->buffer.get());
       }
@@ -68,7 +72,7 @@ namespace MiniMC {
       const MiniMC::BV8* get_direct_access() const {
         return buffer.get();
       }
-
+      
       MiniMC::BV8* get_direct_access()  {
         return buffer.get();
       }
@@ -79,12 +83,16 @@ namespace MiniMC {
         MiniMC::Support::STDEncode encoder;
         return os << encoder.encode(reinterpret_cast<const char*>(buffer.get()), size);
       }
-
+      
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::hash_t s{0};
 	return MiniMC::Hash::Hash(buffer.get(), size, s);
       }
 
+      auto begin () const {return buffer.get ();}
+      auto end () const {return buffer.get ()+size;}
+      
+      
     private:
       std::unique_ptr<MiniMC::BV8[]> buffer;
       std::size_t size;
