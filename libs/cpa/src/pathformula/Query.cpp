@@ -7,7 +7,7 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      CommonState_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
+      CommonState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& entrypoints = descr.getEntries ();
 
 	if (entrypoints.size () > 1) {

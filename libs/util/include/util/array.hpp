@@ -12,6 +12,7 @@ namespace MiniMC {
     public:
       Array() : buffer(nullptr), size(0) {
       }
+
       Array(size_t s) : buffer(new MiniMC::BV8[s]), size(s) {
         std::fill(buffer.get(), buffer.get() + size, 0);
       }
@@ -33,7 +34,6 @@ namespace MiniMC {
       }
 
       Array& operator=(const Array& a) {
-        //assert(getSize() == a.getSize ());
         buffer.reset(new MiniMC::BV8[a.size]);
         size = a.size;
         std::copy(a.buffer.get(), a.buffer.get() + a.size, buffer.get());

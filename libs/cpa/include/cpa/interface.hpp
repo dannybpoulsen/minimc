@@ -47,11 +47,6 @@ namespace MiniMC {
       const MiniMC::Model::Program& prgm;
     };
 
-    struct StateQuery {
-      virtual CommonState_ptr makeInitialState(const InitialiseDescr&) = 0;
-    };
-
-    using StateQuery_ptr = std::shared_ptr<StateQuery>;
     
     /**
      * The Tranferer generates successor for States
@@ -95,23 +90,14 @@ namespace MiniMC {
 
     struct ICPA {
       virtual ~ICPA() {}
-      virtual StateQuery_ptr makeQuery() const = 0;
+      virtual CommonState_ptr makeInitialState(const InitialiseDescr&) = 0;
+      //virtual StateQuery_ptr makeQuery() const = 0;
       virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
-      virtual Joiner_ptr makeJoin() const = 0;
+      virtual Joiner_ptr makeJoin() const {return std::make_shared<Joiner> ();}
+      
     };
-
-    using CPA_ptr = std::shared_ptr<ICPA>;
-
-    template <
-        class Query,
-        class Transfer,
-        class Joiner>
-    struct CPADef : public ICPA {
-      virtual StateQuery_ptr makeQuery() const { return std::make_shared<Query>(); }
-      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transfer>(prgm); }
-      virtual Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(); }
-    };
-
+    
+    using CPA_ptr = std::shared_ptr<ICPA>;    
     
     class AnalysisTransfer {
     public:
@@ -139,8 +125,8 @@ namespace MiniMC {
       AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
 	std::vector<DataState_ptr> datas;
 	for (auto& d : data_cpa) 
-	  datas.push_back (std::static_pointer_cast<const DataState> (d->makeQuery ()->makeInitialState (descr)));
-	return AnalysisState (std::static_pointer_cast<const CFAState> (cfa_cpa->makeQuery()->makeInitialState(descr)),std::move(datas));
+	  datas.push_back (std::static_pointer_cast<const DataState> (d->makeInitialState (descr)));
+	return AnalysisState (std::static_pointer_cast<const CFAState> (cfa_cpa->makeInitialState(descr)),std::move(datas));
       }
       
     private:

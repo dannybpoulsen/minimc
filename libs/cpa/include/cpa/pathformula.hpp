@@ -10,13 +10,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
-      struct StateQuery : public MiniMC::CPA::StateQuery {
-	StateQuery (const SMTLib::Context_ptr& context) : context(context) {}
-        MiniMC::CPA::CommonState_ptr makeInitialState(const InitialiseDescr&) override;
-      private:
-	SMTLib::Context_ptr context;
-      };
-
+      
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm) : context(context),
 											      engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm) {}
@@ -39,7 +33,7 @@ namespace MiniMC {
       
       struct CPA : public ICPA {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
-	StateQuery_ptr makeQuery() const { return std::make_shared<StateQuery>(context); }
+	MiniMC::CPA::CommonState_ptr makeInitialState(const InitialiseDescr&) override;
 	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
 	Joiner_ptr makeJoin() const { return std::make_shared<Joiner>(context); }
       private:

@@ -15,10 +15,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace Location {
-      struct StateQuery : public MiniMC::CPA::StateQuery {
-        CommonState_ptr makeInitialState(const InitialiseDescr&) override;
-      };
-
+      
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
         CommonState_ptr doTransfer(const CommonState& s, const MiniMC::Model::Edge&, proc_id) override;
@@ -46,11 +43,14 @@ namespace MiniMC {
         }
       };
 
-      using CPA = CPADef<
-          StateQuery,
-          Transferer,
-          Joiner>;
-
+      struct CPA : public ICPA {
+	CommonState_ptr makeInitialState(const InitialiseDescr&) override;
+	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const override {return std::make_shared<Transferer> (prgm);}
+	Joiner_ptr makeJoin( ) const override {return std::make_shared<Joiner> ();} 
+	
+      };
+      
+      
     } // namespace Location
   } // namespace CPA
 } // namespace MiniMC

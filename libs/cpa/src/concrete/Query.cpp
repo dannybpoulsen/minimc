@@ -134,7 +134,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::Memory heap;
       };
 
-      MiniMC::CPA::CommonState_ptr StateQuery::makeInitialState(const InitialiseDescr& descr) {
+      MiniMC::CPA::CommonState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 
 	MiniMC::VMT::Concrete::Memory heap;
 	heap.createHeapLayout (descr.getHeap ());

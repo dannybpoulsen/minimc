@@ -18,11 +18,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
-      struct StateQuery : public MiniMC::CPA::StateQuery {
-	virtual CommonState_ptr makeInitialState(const MiniMC::CPA::InitialiseDescr& ) override;
-	
-      };
-
+      
       struct Transferer : public MiniMC::CPA::Transferer {
 	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm) {}
         MiniMC::CPA::CommonState_ptr doTransfer(const MiniMC::CPA::CommonState& s, const MiniMC::Model::Edge& e, proc_id id);
@@ -32,11 +28,12 @@ namespace MiniMC {
       
       
       
-      using CPA = CPADef<
-	StateQuery,
-	Transferer,
-	MiniMC::CPA::Joiner
-        >;
+      struct CPA : public ICPA {
+	//virtual StateQuery_ptr makeQuery() const {return std::make_shared<StateQuery> ();}
+	CommonState_ptr makeInitialState(const InitialiseDescr&) override;
+	virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer> (prgm);}
+	
+      };
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

@@ -133,7 +133,7 @@ namespace MiniMC {
         return nullptr;
       }
 
-      CommonState_ptr MiniMC::CPA::Location::StateQuery::makeInitialState(const InitialiseDescr& p) {
+      CommonState_ptr MiniMC::CPA::Location::CPA::makeInitialState(const InitialiseDescr& p) {
         std::vector<LocationState> locs;
         for (auto& f : p.getEntries()) {
           locs.emplace_back();

@@ -41,7 +41,7 @@ namespace MiniMC {
     };
     
     using Solver_ptr = std::shared_ptr<Solver>;
-
+    
     struct LocationInfo {
       virtual MiniMC::Model::Location& getLocation(proc_id) const  = 0;
       virtual size_t nbOfProcesses() const = 0;

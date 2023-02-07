@@ -72,7 +72,7 @@ namespace MiniMC {
       MiniMC::Model::Location_ptr to;
       MiniMC::Model::InstructionStream stream;
     };
-
+    
     
     
   }
