@@ -8,7 +8,6 @@ namespace MiniMC {
     Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
       _internal->variables.push_back(std::make_shared<Register>(Symbol(_internal->pref, std::move(name))));
       _internal->variables.back()->setType(type);
-      _internal->variables.back()->setPlace(_internal->totalSize);
       _internal->variables.back()->setId(_internal->variables.size() - 1);
       _internal->totalSize += type->getSize();
       return _internal->variables.back();

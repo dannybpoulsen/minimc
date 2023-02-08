@@ -187,16 +187,13 @@ namespace MiniMC {
     template <class T>
     class Placed {
     public:
-      Placed() : place(unused), id(unused) {}
-      std::size_t getPlace() const { return place; }
+      Placed() :  id(unused) {}
       std::size_t getId() const { return id; }
 
-      void setPlace(std::size_t p) { place = p; }
       void setId(std::size_t i) { id = i; }
 
     private:
       static constexpr std::size_t unused = std::numeric_limits<std::size_t>::max();
-      std::size_t place;
       std::size_t id;
     };
 
