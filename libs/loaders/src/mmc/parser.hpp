@@ -29,6 +29,8 @@ private:
 
   void ignore_eol();
   void functions();
+  void globals();
+  
   void entrypoints();
   void heap();
   void initialiser();

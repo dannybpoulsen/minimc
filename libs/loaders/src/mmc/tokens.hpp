@@ -31,7 +31,8 @@ namespace Loaders {
 
 #define KEYWORDS \
   X(FUNCTIONS) \
-  X(REGISTERS) \
+  X(GLOBALS)	\
+  X(REGISTERS)	\
   X(PARAMETERS) \
   X(RETURNS) \
   X(CFA) \
@@ -95,6 +96,7 @@ inline std::ostream& operator<<(std::ostream& os, const Token& c) {
 inline static std::unordered_map<std::string,Token> keywordsMap = {
     {"Entrypoints", Token::ENTRYPOINTS},
     {"Functions", Token::FUNCTIONS},
+    {"Globals", Token::GLOBALS},
     {"Initialiser", Token::INITIALISER},
     {".registers", Token::REGISTERS},
     {".parameters", Token::PARAMETERS},

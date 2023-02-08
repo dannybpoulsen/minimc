@@ -165,7 +165,7 @@ namespace MiniMC {
               const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact),
 								 tfact(tfact),
 								 
-								 cpu_regs(Symbol{"G"},RegType::CPU)
+								 cpu_regs(Symbol{"_cpu_"},RegType::CPU)
       {
       }
 

@@ -18,6 +18,7 @@ void Parser::ignore_eol() {
 void Parser::run() {
   lexer = new Lexer{*in};
   try {
+    globals ();
     functions();
     entrypoints();
     heap();
@@ -51,6 +52,29 @@ void Parser::functions() {
       "Expected a functions-title on the from '# Functions'");
 }
 
+void Parser::globals() {
+  if (lexer->token() == Token::HASH_SIGN) {
+    lexer->advance();
+    if (lexer->token() == Token::GLOBALS) {
+      lexer->advance();
+      ignore_eol();
+      
+        if(lexer->token() == Token::REGISTERS){
+	  lexer->advance();
+	  ignore_eol();
+	  while(lexer->token() != Token::HASH_SIGN){
+	    variable(prgm->getCPURegs());
+	    lexer->advance();
+	    ignore_eol();
+	  }
+	}
+	return;
+    }
+  }
+  throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),
+			   "Expected a functions-title on the from '# Functions'");
+}
+  
 void Parser::entrypoints() {
   if (lexer->token() == Token::HASH_SIGN) {
     lexer->advance();
@@ -141,7 +165,7 @@ void Parser::function() {
 
 Model::RegisterDescr Parser::registers(Model::Symbol name){
   MiniMC::Model::RegisterDescr registerDescr{name};
-
+  
   if(lexer->token() == Token::REGISTERS){
     lexer->advance();
     ignore_eol();
@@ -749,9 +773,16 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
                     "The identifier describes a NULL-pointer");
             }
           });
-      if (loop_end) throw MMCParserException(
-            lexer->getLine(), lexer->getPos(), lexer->getValue(),
-            "Looped through all variables with out finding a match.");
+      if (loop_end) {
+	for (auto& reg : prgm->getCPURegs ().getRegisters ()) {
+	  if (reg->getName () == var.getFullName ())
+	    return reg;
+	}
+	
+	throw MMCParserException(
+					       lexer->getLine(), lexer->getPos(), lexer->getValue(),
+					       "Looped through all variables with out finding a match.");
+      }
       return ret;
     }
     case Token::DOLLAR_SIGN: {

@@ -15,7 +15,7 @@ Token Lexer::get_token() {
 
     if (isprint(c)) {
       auto il = {c, (char) in->peek()};
-
+      
       if(twosignsymbolMap.contains(std::string(il))){
         Token token = twosignsymbolMap[std::string(il)];
         if(token == Token::R_ARROW){
@@ -63,9 +63,9 @@ Token Lexer::get_token() {
         }
         return Token::DIGIT;
       }
-
+      
       while (isprint(c) && !isspace(c)) {
-        buffer += c;
+	buffer += c;
         if(in->peek() == '>'){
           break;
         }

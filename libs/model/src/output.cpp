@@ -62,6 +62,12 @@ namespace MiniMC {
     }
     
     void writeProgram (std::ostream& os, const MiniMC::Model::Program& p) {
+      os << "# Globals" << "\n";
+      os << "  .registers" << "\n";
+      for (auto& reg : p.getCPURegs().getRegisters()) {
+	os << "    " << *reg << "\n";
+      }
+
       os << "# Functions" << "\n";
       for (auto& F : p.getFunctions ()) {
 	writeFunction (os,*F);
