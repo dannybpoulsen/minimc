@@ -1,24 +1,26 @@
 #ifndef _CPA_COMMON__
 #define _CPA_COMMON__
 
+#include "vm/vmt.hpp"
+
 namespace MiniMC {
   namespace CPA {
   namespace Common {
-    template<class Value,class Lookup>
+    template<class Value>
     struct ActivationRecord {
-      ActivationRecord(Lookup&& values, const MiniMC::Model::Value_ptr& ret) : values(std::move(values)), ret(ret) {}
+      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Value_ptr& ret) : values(std::move(values)), ret(ret) {}
       ActivationRecord(const ActivationRecord&) = default;
-
+      
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
 	hash << values << ret.get();
 	return hash;
       }
-
-      Lookup values;
+      
+      MiniMC::Model::VariableMap<Value> values;
       MiniMC::Model::Value_ptr ret{nullptr};
     };
-
+    
     template <class ActRecord>
     struct ActivationStack {
       ActivationStack(ActRecord&& sf) {
@@ -49,6 +51,32 @@ namespace MiniMC {
       
       std::vector<ActRecord> frames;
     };
+
+
+    template<class T>
+    struct BaseValueLookup : MiniMC::VMT::ValueLookup<T> {
+    public:
+      BaseValueLookup (ActivationStack<ActivationRecord<T>>& values) : values(values) {}
+      BaseValueLookup (const BaseValueLookup&) = delete;
+      virtual  ~BaseValueLookup () {}
+      virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
+      void saveValue(const MiniMC::Model::Register& v, T&& value) override {
+	values.back().values.set (v,std::move(value));
+      }
+      virtual T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      
+      MiniMC::Hash::hash_t hash() const { return values.hash(); }
+      using Value = T;
+    protected:
+      T lookupRegister (const MiniMC::Model::Register& reg) const  {return values.back().values[reg];}
+    private:
+      ActivationStack<ActivationRecord<T>>& values;
+    };
+    
+    
+
+    
   }
   }
 }

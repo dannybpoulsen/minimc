@@ -5,17 +5,16 @@
 #include "host/casts.hpp"
 #include "host/operataions.hpp"
 
+#include "cpa/common.hpp"
 #include "vm/vmt.hpp"
-#include "vm/concrete/value.hpp"
-#include "vm/concrete/operations.hpp"
+#include "concvm/value.hpp"
+#include "concvm/operations.hpp"
 
 #include <memory>
 
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-      
-      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, Operations, Caster >;
       
       class Memory : public MiniMC::VMT::Memory<ConcreteVMVal> {
       public:
@@ -44,9 +43,9 @@ namespace MiniMC {
         std::unique_ptr<internal> _internal;
       };
       
-      class ValueLookup : public MiniMC::VMT::BaseValueLookup<ConcreteVMVal> {
+      class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
       public:
-	ValueLookup (std::size_t i) : BaseValueLookup<ConcreteVMVal>(i) {}
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<MiniMC::CPA::Common::ActivationRecord<ConcreteVMVal> > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
 	Value unboundValue (const MiniMC::Model::Type_ptr&) const override;
 	Value defaultValue(const MiniMC::Model::Type_ptr&) const override;
@@ -63,6 +62,12 @@ namespace MiniMC {
 
       };
 
+      
+      
+      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal>;
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
+      
+      using ConcreteEngine = MiniMC::VMT::Engine<MiniMC::VMT::Concrete::ConcreteVMVal, MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Caster >;
       
       
     } // namespace Concrete

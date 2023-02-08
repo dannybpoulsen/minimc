@@ -2,7 +2,7 @@
 #include "host/casts.hpp"
 #include "host/operataions.hpp"
 #include "support/feedback.hpp"
-#include "vm/concrete/concrete.hpp"
+#include "concvm/concrete.hpp"
 
 
 namespace MiniMC {

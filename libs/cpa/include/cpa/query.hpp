@@ -3,7 +3,6 @@
 
 #include "util/array.hpp"
 #include "model/variables.hpp"
-#include "vm/concrete/concrete.hpp"
 
 #include <iosfwd>
 #include <memory>

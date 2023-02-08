@@ -1,7 +1,7 @@
 #ifndef _VM_PATHFORMULA_OPERATIONS__
 #define _VM_PATHFORMULA_OPERATIONS__
 
-#include "vm/pathformula/value.hpp"
+#include "pathvm/value.hpp"
 
 #include <memory>
 

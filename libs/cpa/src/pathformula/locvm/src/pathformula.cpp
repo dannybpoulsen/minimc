@@ -1,8 +1,8 @@
 #include "model/valuevisitor.hpp"
 #include "smt/builder.hpp"
 #include "smt/smtconstruction.hpp"
-#include "vm/pathformula/pathformua.hpp"
-#include "vm/pathformula/value.hpp"
+#include "pathvm/pathformua.hpp"
+#include "pathvm/value.hpp"
 #include "smt/solver.hpp"
 #include "smt/smt.hpp"
 #include <sstream>

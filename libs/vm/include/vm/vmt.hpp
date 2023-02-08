@@ -33,31 +33,7 @@ namespace MiniMC {
 
       using Value = T;
       
-    };
-    
-    template<class T>
-    struct BaseValueLookup : ValueLookup<T> {
-    public:
-      BaseValueLookup (std::size_t i) : values(i) {}
-      BaseValueLookup (const BaseValueLookup&) = default;
-      virtual  ~BaseValueLookup () {}
-      virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
-      void saveValue(const MiniMC::Model::Register& v, T&& value) override {
-	values.set (v,std::move(value));
-      }
-      virtual T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
-      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
-      
-      MiniMC::Hash::hash_t hash() const { return values.hash(); }
-      using Value = T;
-    protected:
-      T lookupRegister (const MiniMC::Model::Register& reg) const  {return values[reg];}
-    private:
-      MiniMC::Model::VariableMap<T> values;
-    };
-    
-
-    
+    };    
     
     template<class T>
     struct Memory {
@@ -106,7 +82,6 @@ namespace MiniMC {
       virtual void  push (std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
       virtual void pop (T&&) = 0;
       virtual void popNoReturn () = 0;
-      virtual ValueLookup<T>& getValueLookup () = 0;
       using Value = T;
     };
     
@@ -119,10 +94,10 @@ namespace MiniMC {
       using StControl  = typename std::conditional<!cons,StackControl<T>,const StackControl<T>>::type;
       
       
-      VMState (MLookup& m, PControl& path, StControl& stack) : memory(m),control(path),scontrol(stack) {}
-      //auto& getValueLookup () {return lookup;}
+      VMState (MLookup& m, PControl& path, StControl& stack,VLookup& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
+      auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
-      //auto& getValueLookup () const {return lookup;}
+      auto& getValueLookup () const {return lookup;}
       auto& getMemory () const {return memory;}
       auto& getPathControl () const {return control;}
       auto& getStackControl () const {return scontrol;}
@@ -130,6 +105,7 @@ namespace MiniMC {
       MLookup& memory;
       PControl& control;
       StControl& scontrol;
+      VLookup& lookup;
     };
 
     enum class  Status{

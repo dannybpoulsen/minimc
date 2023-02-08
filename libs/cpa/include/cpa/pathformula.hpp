@@ -2,22 +2,23 @@
 #define _PATHFORMULA__
 
 #include "cpa/interface.hpp"
-#include "vm/pathformula/pathformua.hpp"
 #include "model/checkers/HasInstruction.hpp"
 #include "support/localisation.hpp"
 #include "smt/smt.hpp"
+
+#include <memory>
 
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
       
       struct Transferer : public MiniMC::CPA::Transferer {
-	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm) : context(context),
-											      engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm) {}
+	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm);
+	~Transferer ();
 	MiniMC::CPA::CommonState_ptr doTransfer(const CommonState& s, const MiniMC::Model::Edge&, proc_id);
       private:
-	SMTLib::Context_ptr context;
-	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
+	class Internal;
+	std::unique_ptr<Internal> _internal;
       };
       
       struct Joiner : public MiniMC::CPA::Joiner {

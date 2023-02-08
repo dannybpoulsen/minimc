@@ -8,7 +8,6 @@
 #include "task.hpp"
 #include "parser.hpp"
 #include "lexer.hpp"
-#include "vm/concrete/concrete.hpp"
 #include <boost/program_options/options_description.hpp>
 #include <queue>
 #include <utility>

@@ -22,6 +22,8 @@ namespace MiniMC {
         std::copy(o.mem.get(), o.mem.get() + o.size, mem.get());
       }
 
+      FixedVector (FixedVector&& o) : mem(std::move(o.mem)),size(o.size) {     }
+      
       const T& at(const F& f) const {
         assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];
@@ -34,12 +36,14 @@ namespace MiniMC {
 
       void set (const F& f, T&& t) {
 	assert(Index{}(f) < size);
+	assert(mem);
 	mem.get()[Index{}(f)] = std::move(t);	
       }
       
       const T& operator[](const F& f) const {
 	assert(Index{}(f) < size);
-        return mem.get()[Index{}(f)];
+	
+	return mem.get()[Index{}(f)];
       }
       
       std::ostream& output(std::ostream& os) const {

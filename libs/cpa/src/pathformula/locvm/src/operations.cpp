@@ -1,6 +1,6 @@
-#include "vm/pathformula/operations.hpp"
+#include "pathvm/operations.hpp"
 #include "smt/smtconstruction.hpp"
-#include "vm/pathformula/value.hpp"
+#include "pathvm/value.hpp"
 #include "smt/builder.hpp"
 #include "aggrhelper.hpp"
 

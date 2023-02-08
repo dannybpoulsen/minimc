@@ -19,25 +19,28 @@ namespace MiniMC {
 	auto& termbuilder =  context->getBuilder ();
 	
 	auto term = termbuilder.makeBoolConst (true);
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {vstack.getTotalRegisters ()};
+	MiniMC::VMT::Pathformula::ActivationStack stack{MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
+	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(stack),
+									std::move(memory),
+									std::move(term),
+									*context);	
+	MiniMC::VMT::Pathformula::ValueLookup lookup{state->getStack (),termbuilder};
 	
-	MiniMC::VMT::Pathformula::ValueLookup lookup{vstack.getTotalRegisters (),termbuilder};
 	for (auto& reg : vstack.getRegisters ()) {
 	  auto val = lookup.defaultValue (reg->getType ());
 	  lookup.saveValue (*reg,std::move(val));
 	}
 	
-	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
+
 	memory.createHeapLayout (descr.getHeap ());
 	
-	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(ActivationStack{{std::move(lookup),nullptr}},
-									std::move(memory),
-									std::move(term),
-									*context);	
-
+	
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{termbuilder},descr.getProgram ()};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	StackControl stackcontrol{state->getStack (),*context};
-        decltype(engine)::State newvm {state->getMemory (),control,stackcontrol};
+	decltype(engine)::State newvm {state->getMemory (),control,stackcontrol,lookup};
 	
 	engine.execute(descr.getInit (),newvm);
 	
@@ -47,20 +50,35 @@ namespace MiniMC {
       MiniMC::CPA::CommonState_ptr Joiner::doJoin(const CommonState&, const CommonState&) {
 	return nullptr;
       }
-      
+
+
+      struct Transferer::Internal {
+	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
+		      engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm) {}
+	SMTLib::Context_ptr context;
+	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
+	
+	
+      };
+
+      Transferer::Transferer (const SMTLib::Context_ptr& context,const MiniMC::Model::Program& prgm) : _internal(new Internal (context,prgm)) {}
+      Transferer::~Transferer () {}
+	
+	
       MiniMC::CPA::CommonState_ptr Transferer::doTransfer(const CommonState& s, const MiniMC::Model::Edge& e, proc_id id [[maybe_unused]]) {
         assert(id == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
-	auto& termbuilder = context->getBuilder ();
+	auto& termbuilder = _internal->context->getBuilder ();
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	StackControl stackcontrol{nstate.getStack (),*context};
-        
-	decltype(engine)::State newvm {nstate.getMemory (),control,stackcontrol};
+	StackControl stackcontrol{nstate.getStack (),*_internal->context};
+	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),termbuilder};
+	
+	decltype(_internal->engine)::State newvm {nstate.getMemory (),control,stackcontrol,lookup};
 	auto& instr = e.getInstructions();
-	status = engine.execute(instr,newvm);
+	status = _internal->engine.execute(instr,newvm);
 	
 	if (status ==MiniMC::VMT::Status::Ok)  {
 	  if (control.getAssump ()) 

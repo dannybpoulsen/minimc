@@ -10,20 +10,24 @@
 #include "cpa/state.hpp"
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
-#include "vm/concrete/concrete.hpp"
 #include "support/feedback.hpp"
 #include "support/sequencer.hpp"
 #include <unordered_map>
+
+
 
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       
       struct Transferer : public MiniMC::CPA::Transferer {
-	Transferer (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm) {}
+	Transferer (const MiniMC::Model::Program& prgm);
+	~Transferer ();
         MiniMC::CPA::CommonState_ptr doTransfer(const MiniMC::CPA::CommonState& s, const MiniMC::Model::Edge& e, proc_id id);
       private:
-	MiniMC::VMT::Concrete::ConcreteEngine engine;
+	struct Internal;
+	
+	std::unique_ptr<Internal> _internal;
       };
       
       

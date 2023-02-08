@@ -7,7 +7,7 @@
 #include "smt/solver.hpp"
 #include "support/feedback.hpp"
 #include "support/exceptions.hpp"
-#include "vm/pathformula/pathformua.hpp"
+#include "pathvm/pathformua.hpp"
 #include <cstring>
 #include <memory>
 
@@ -15,29 +15,7 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      template <class T>
-      struct MapToConcrete;
-
-      template <>
-      struct MapToConcrete<MiniMC::VMT::Pathformula::PathFormulaVMVal::I64> {
-        using Concrete = MiniMC::VMT::Concrete::ConcreteVMVal::I64;
-      };
-
-      template <>
-      struct MapToConcrete<MiniMC::VMT::Pathformula::PathFormulaVMVal::I32> {
-        using Concrete = MiniMC::VMT::Concrete::ConcreteVMVal::I32;
-      };
-
-      template <>
-      struct MapToConcrete<MiniMC::VMT::Pathformula::PathFormulaVMVal::I16> {
-        using Concrete = MiniMC::VMT::Concrete::ConcreteVMVal::I16;
-      };
-
-      template <>
-      struct MapToConcrete<MiniMC::VMT::Pathformula::PathFormulaVMVal::I8> {
-        using Concrete = MiniMC::VMT::Concrete::ConcreteVMVal::I8;
-      };
-
+      
       class QExpr : public MiniMC::CPA::QueryExpr {
       public:
         QExpr(MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) : value(std::move(val)) {}
@@ -51,40 +29,34 @@ namespace MiniMC {
         MiniMC::VMT::Pathformula::PathFormulaVMVal value;
       };
 
-      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::PathFormulaVMVal, MiniMC::VMT::Pathformula::ValueLookup>;
-
-      using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
-
       class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-        StackControl(ActivationStack& stack, SMTLib::Context& context) : stack(stack), context(context) {}
+        StackControl(MiniMC::VMT::Pathformula::ActivationStack& stack, SMTLib::Context& context) : stack(stack), context(context) {}
         // StackControl API
         void push(std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
-          MiniMC::VMT::Pathformula::ValueLookup values{registers, context.getBuilder()};
-          stack.push({std::move(values), ret});
+          MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values{registers};
+	  stack.push({std::move(values), ret});
         }
 
         void pop(MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
           auto ret = stack.back().ret;
           stack.pop();
-          stack.back().values.saveValue(*std::static_pointer_cast<MiniMC::Model::Register>(ret), std::move(val));
+          stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register>(ret), std::move(val));
         }
 
         void popNoReturn() override {
           stack.pop();
         }
 
-        MiniMC::VMT::ValueLookup<MiniMC::VMT::Pathformula::PathFormulaVMVal>& getValueLookup() override { return stack.back().values; }
-
       private:
-        ActivationStack& stack;
+        MiniMC::VMT::Pathformula::ActivationStack& stack;
         SMTLib::Context& context;
       };
 
       class State : public MiniMC::CPA::DataState,
                     private MiniMC::CPA::QueryBuilder {
       public:
-        State(ActivationStack&& vals, MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : call_stack(std::move(vals)),
+        State(MiniMC::VMT::Pathformula::ActivationStack&& vals, MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : call_stack(std::move(vals)),
                                                                                                                                       memory(std::move(memory)),
                                                                                                                                       pathformula(std::move(formula)),
                                                                                                                                       context(ctxt) {}
@@ -116,11 +88,12 @@ namespace MiniMC {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
-          return std::make_unique<QExpr>(call_stack.back().values.lookupValue(val));
+	  MiniMC::VMT::Pathformula::ValueLookup lookup {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (call_stack),context.getBuilder ()};
+          return std::make_unique<QExpr>(lookup.lookupValue(val));
         }
 
       private:
-        ActivationStack call_stack;
+      MiniMC::VMT::Pathformula::ActivationStack call_stack;
         MiniMC::VMT::Pathformula::Memory memory;
         SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;
