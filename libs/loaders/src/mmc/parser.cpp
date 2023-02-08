@@ -146,8 +146,7 @@ Model::RegisterDescr Parser::registers(Model::Symbol name){
     lexer->advance();
     ignore_eol();
     while(lexer->token() != Token::PARAMETERS){
-      auto v = variable();
-      registerDescr.addRegister(Model::Symbol(v.getSymbol().getName()), v.getType());
+      auto v = variable(registerDescr);
       lexer->advance();
       ignore_eol();
     }
@@ -827,17 +826,20 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       "Expected a value, which always starts with a less than.");
 }
 
-Model::Register Parser::variable(){
+  Model::Register_ptr Parser::variable(Model::RegisterDescr& registers){
   try {
     if (lexer->token() == Token::LESS_THAN) {
       lexer->advance();
-      Model::Register var = Model::Register(identifier());
+      auto ident = identifier();
       lexer->advance();
-      var.setType(type());
+      auto thetype = type();
       lexer->advance();
       if (lexer->token() == Token::GREATER_THAN) {
-        return var;
+	return registers.addRegister(Model::Symbol{ident.getName ()},thetype);
+	
       }
+      
+      
     }
   } catch (MMCParserException const& e){
 

@@ -187,13 +187,12 @@ namespace MiniMC {
     template <class T>
     class Placed {
     public:
-      Placed() :  id(unused) {}
+      Placed(std::size_t id) :  id(id) {}
       std::size_t getId() const { return id; }
 
       void setId(std::size_t i) { id = i; }
 
     private:
-      static constexpr std::size_t unused = std::numeric_limits<std::size_t>::max();
       std::size_t id;
     };
 
@@ -207,7 +206,7 @@ namespace MiniMC {
                      public Placed<Register>,
                      public std::enable_shared_from_this<Register> {
     public:
-      Register(const Symbol& name);
+      Register(const Symbol& name,std::size_t id);
       const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
