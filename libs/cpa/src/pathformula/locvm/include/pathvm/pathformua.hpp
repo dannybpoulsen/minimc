@@ -52,12 +52,12 @@ namespace MiniMC {
 
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
-      using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
-
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
+      
       
       class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<PathFormulaVMVal> {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<MiniMC::CPA::Common::ActivationRecord<PathFormulaVMVal> >& values, SMTLib::TermBuilder& b) : BaseValueLookup(values),builder(b) {}
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<PathFormulaVMVal>& values, SMTLib::TermBuilder& b) : BaseValueLookup(values),builder(b) {}
 	ValueLookup (const ValueLookup&) = default;
         PathFormulaVMVal lookupValue (const MiniMC::Model::Value_ptr& ) const override;
         PathFormulaVMVal unboundValue(const MiniMC::Model::Type_ptr&) const override;

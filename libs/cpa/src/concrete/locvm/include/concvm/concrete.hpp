@@ -45,7 +45,7 @@ namespace MiniMC {
       
       class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<MiniMC::CPA::Common::ActivationRecord<ConcreteVMVal> > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
         ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
 	Value unboundValue (const MiniMC::Model::Type_ptr&) const override;
 	Value defaultValue(const MiniMC::Model::Type_ptr&) const override;
@@ -65,7 +65,7 @@ namespace MiniMC {
       
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal>;
-      using ActivationStack = MiniMC::CPA::Common::ActivationStack<ActivationRecord>;
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::ConcreteVMVal>;
       
       using ConcreteEngine = MiniMC::VMT::Engine<MiniMC::VMT::Concrete::ConcreteVMVal, MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Caster >;
       

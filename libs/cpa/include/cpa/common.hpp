@@ -21,9 +21,10 @@ namespace MiniMC {
       MiniMC::Model::Value_ptr ret{nullptr};
     };
     
-    template <class ActRecord>
+    template <class Value>
     struct ActivationStack {
-      ActivationStack(ActRecord&& sf) {
+      using ActRecord = ActivationRecord<Value>;
+      ActivationStack(MiniMC::Model::VariableMap<Value>&& cpuregs, ActRecord&& sf) : cpuregs(std::move(cpuregs)) {
         frames.push_back(std::move(sf));
       }
       ActivationStack(const ActivationStack&) = default;
@@ -40,6 +41,7 @@ namespace MiniMC {
 
       auto& back () {return frames.back ();}
       auto& back () const {return frames.back ();}
+      auto& cpus () {return cpuregs;}
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
@@ -48,7 +50,10 @@ namespace MiniMC {
 	}
 	return hash;
       }
+
       
+      
+      MiniMC::Model::VariableMap<Value> cpuregs;
       std::vector<ActRecord> frames;
     };
 
@@ -56,7 +61,7 @@ namespace MiniMC {
     template<class T>
     struct BaseValueLookup : MiniMC::VMT::ValueLookup<T> {
     public:
-      BaseValueLookup (ActivationStack<ActivationRecord<T>>& values) : values(values) {}
+      BaseValueLookup (ActivationStack<T>& values) : values(values) {}
       BaseValueLookup (const BaseValueLookup&) = delete;
       virtual  ~BaseValueLookup () {}
       virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
@@ -71,7 +76,7 @@ namespace MiniMC {
     protected:
       T lookupRegister (const MiniMC::Model::Register& reg) const  {return values.back().values[reg];}
     private:
-      ActivationStack<ActivationRecord<T>>& values;
+      ActivationStack<T>& values;
     };
     
     

@@ -18,9 +18,12 @@ namespace MiniMC {
 	auto& vstack = func->getRegisterDescr ();
 	auto& termbuilder =  context->getBuilder ();
 	
+	
 	auto term = termbuilder.makeBoolConst (true);
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {vstack.getTotalRegisters ()};
-	MiniMC::VMT::Pathformula::ActivationStack stack{MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+	
+	MiniMC::VMT::Pathformula::ActivationStack stack{std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(stack),
 									std::move(memory),

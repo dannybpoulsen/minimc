@@ -13,8 +13,9 @@
 TEST_CASE ("Check Pointer interpretation") {
   std::vector<MiniMC::Support::SMT::SMTDescr> descrs;
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
-  MiniMC::VMT::Pathformula::ActivationStack stack {MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+  MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   REQUIRE (descrs.size () > 0);
   
@@ -39,8 +40,9 @@ TEST_CASE ("Check Pointer interpretation") {
 TEST_CASE ("Check Pointer32 interpretation") {
   std::vector<MiniMC::Support::SMT::SMTDescr> descrs;
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
-  MiniMC::VMT::Pathformula::ActivationStack stack {MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+  MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);
@@ -65,8 +67,9 @@ TEST_CASE ("Check Pointer32 interpretation") {
 TEST_CASE ("Pointer to Pointer32") {
   std::vector<MiniMC::Support::SMT::SMTDescr> descrs;
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
-  MiniMC::VMT::Pathformula::ActivationStack stack {MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+  MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);
@@ -96,8 +99,9 @@ TEST_CASE ("Pointer to Pointer32") {
 TEST_CASE ("Pointer32 to Pointer") {
   std::vector<MiniMC::Support::SMT::SMTDescr> descrs;
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
-  MiniMC::VMT::Pathformula::ActivationStack stack {MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+  MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);

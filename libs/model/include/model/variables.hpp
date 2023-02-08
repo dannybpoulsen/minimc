@@ -184,16 +184,19 @@ namespace MiniMC {
       MiniMC::Util::Array data;
     };
 
-    template <class T>
-    class Placed {
+    enum class RegType {
+      CPU,
+      Local
+    };
+    
+    class RegisterInfo {
     public:
-      Placed(std::size_t id) :  id(id) {}
+      explicit RegisterInfo(std::size_t id,RegType rtype = RegType::Local) :  id(id),type(rtype) {}
       std::size_t getId() const { return id; }
-
-      void setId(std::size_t i) { id = i; }
 
     private:
       std::size_t id;
+      RegType type;
     };
 
     class RegisterDescr;
@@ -202,11 +205,9 @@ namespace MiniMC {
      * Representation of Variable in MiniMC.
      * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution
      */
-    class Register : public Value,
-                     public Placed<Register>,
-                     public std::enable_shared_from_this<Register> {
+    class Register : public Value{
     public:
-      Register(const Symbol& name,std::size_t id);
+      Register(const Symbol& name,RegisterInfo&& p);
       const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
@@ -214,8 +215,9 @@ namespace MiniMC {
       
       bool isRegister() const override { return true; }
       auto getSymbol () const {return name;}
-      
+      auto getId  () const {return place.getId ();}
     private:
+      RegisterInfo place;
       Symbol name;
     };
 
@@ -228,9 +230,10 @@ namespace MiniMC {
      */
     class RegisterDescr {
     public:
-      RegisterDescr(Symbol pref = Symbol{}) : _internal(std::make_shared<Data>(std::move(pref))) {}
+      RegisterDescr(Symbol pref = Symbol{},RegType tt = RegType::Local) : _internal(std::make_shared<Data>(std::move(pref),tt)) {}
       RegisterDescr(const RegisterDescr&) = default;
       RegisterDescr(RegisterDescr&&) = default;
+      RegisterDescr& operator= (RegisterDescr&&) = default;
       Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
       auto& getRegisters() const { return _internal->variables; }
       
@@ -238,17 +241,14 @@ namespace MiniMC {
        *
        * @return Total size in bytes of an activation record
        */
-      auto getTotalSize() const { return _internal->totalSize; }
       auto getTotalRegisters() const { return _internal->variables.size(); }
       auto getPref() const { return _internal->pref; }
-      
     private:
       struct Data {
-	Data (Symbol pref) :pref(std::move(pref)) {}
+	Data (Symbol pref,RegType tt) :pref(std::move(pref)),types(tt) {}
 	std::vector<Register_ptr> variables;
-	std::size_t totalSize = 0;
 	const Symbol pref;
-	
+	RegType types;
       };
       std::shared_ptr<Data> _internal;
     };

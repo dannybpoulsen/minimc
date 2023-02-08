@@ -162,7 +162,11 @@ namespace MiniMC {
     class Program  {
     public:
       Program(const MiniMC::Model::TypeFactory_ptr &tfact,
-              const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact), tfact(tfact) {
+              const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact),
+								 tfact(tfact),
+								 
+								 cpu_regs(Symbol{"G"},RegType::CPU)
+      {
       }
 
       Program (const Program&);
@@ -214,6 +218,10 @@ namespace MiniMC {
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}
       
+      auto& getCPURegs () {return cpu_regs;}
+      const auto& getCPURegs () const  {return cpu_regs;}
+      
+      
     private:
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
@@ -222,6 +230,7 @@ namespace MiniMC {
       InstructionStream initialiser;
       std::unordered_map<std::string, Function_ptr> function_map;
       HeapLayout heaplayout;
+      MiniMC::Model::RegisterDescr cpu_regs;
     };
     
     Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);

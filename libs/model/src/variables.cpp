@@ -6,9 +6,8 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
-      _internal->variables.push_back(std::make_shared<Register>(Symbol(_internal->pref, std::move(name)),_internal->variables.size()));
+      _internal->variables.push_back(std::make_shared<Register>(Symbol(_internal->pref, std::move(name)),RegisterInfo{_internal->variables.size(), _internal->types}));
       _internal->variables.back()->setType(type);
-      _internal->totalSize += type->getSize();
       return _internal->variables.back();
     }
 
@@ -190,8 +189,8 @@ namespace MiniMC {
   }
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
-    Register::Register(const Symbol& name,std::size_t id) : Value(ValueInfo<Register>::type_t()),
-							    Placed (id),
+    Register::Register(const Symbol& name,RegisterInfo&& place) : Value(ValueInfo<Register>::type_t()),
+							  place (std::move(place)),
 							    
 							    name(name) {}
 

@@ -151,9 +151,10 @@ namespace MiniMC {
         std::vector<MiniMC::VMT::Concrete::ActivationStack> stack;
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f->getRegisterDescr();
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> values{vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
-	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(sf)};
+	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
 	  MiniMC::VMT::Concrete::ValueLookup lookup {cs};
 	  for (auto& v : vstack.getRegisters()) {
             lookup.saveValue  (*v,lookup.defaultValue (v->getType ()));
