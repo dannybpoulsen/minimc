@@ -193,7 +193,7 @@ namespace MiniMC {
     public:
       explicit RegisterInfo(std::size_t id,RegType rtype = RegType::Local) :  id(id),type(rtype) {}
       std::size_t getId() const { return id; }
-
+      auto getRegType () const {return type;}
     private:
       std::size_t id;
       RegType type;
@@ -216,6 +216,7 @@ namespace MiniMC {
       bool isRegister() const override { return true; }
       auto getSymbol () const {return name;}
       auto getId  () const {return place.getId ();}
+      auto getRegType () const {return place.getRegType ();}
     private:
       RegisterInfo place;
       Symbol name;

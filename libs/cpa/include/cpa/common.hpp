@@ -45,6 +45,7 @@ namespace MiniMC {
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
+	hash << cpuregs;
 	for (auto& vl : frames) {
 	  hash << vl;
 	}
@@ -66,7 +67,12 @@ namespace MiniMC {
       virtual  ~BaseValueLookup () {}
       virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
       void saveValue(const MiniMC::Model::Register& v, T&& value) override {
-	values.back().values.set (v,std::move(value));
+	if (v.getRegType () == MiniMC::Model::RegType::Local) {
+	  values.back().values.set (v,std::move(value));
+	}
+	else {
+	  values.cpus ().set (v,std::move(value));
+	}
       }
       virtual T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
       virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
@@ -74,7 +80,10 @@ namespace MiniMC {
       MiniMC::Hash::hash_t hash() const { return values.hash(); }
       using Value = T;
     protected:
-      T lookupRegister (const MiniMC::Model::Register& reg) const  {return values.back().values[reg];}
+      T lookupRegister (const MiniMC::Model::Register& reg) const  {
+	return (reg.getRegType () == MiniMC::Model::RegType::Local) ? values.back().values[reg]
+	                                                            : values.cpus()[reg];
+      }
     private:
       ActivationStack<T>& values;
     };

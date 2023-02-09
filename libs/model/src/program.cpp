@@ -12,12 +12,11 @@ namespace MiniMC {
       using RegReplaceMap = std::unordered_map<Register_ptr,Register_ptr>;
       
       Copier (Program& program) : program(program) { }
-      auto copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map) {
-	MiniMC::Model::RegisterDescr stack;
+      void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack) {
+	
 	for (auto& v : vars.getRegisters ()) {
 	  map.emplace (v,stack.addRegister (v->getSymbol(),v->getType ()));
 	}
-	return stack;
       }
       
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
@@ -67,7 +66,8 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function,RegReplaceMap map) {
-	auto varstack = copyVariables (function->getRegisterDescr (),map);
+	MiniMC::Model::RegisterDescr varstack;
+	copyVariables (function->getRegisterDescr (),map,varstack);
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
@@ -86,7 +86,7 @@ namespace MiniMC {
       
       void copyProgram (const Program& p) {
 	RegReplaceMap replace_map;
-	program.getCPURegs () = copyVariables (p.getCPURegs (),replace_map);
+	copyVariables (p.getCPURegs (),replace_map,program.getCPURegs ());
 	
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f,replace_map);
