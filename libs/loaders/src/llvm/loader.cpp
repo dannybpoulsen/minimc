@@ -118,93 +118,43 @@ namespace MiniMC {
 
       }
 
-      virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
-        auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
-
-        llvm::legacy::PassManager lpm;
-
-        llvm::SMDiagnostic diag;
-        std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
-        std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag, *context);
-	if (!module) {
-	  throw LoadError{};
-	}
-        lpm.add(llvm::createLowerSwitchPass());
-        lpm.run(*module);
-
-        llvm::PassBuilder PB;
-
-        llvm::LoopAnalysisManager lam;
-        llvm::FunctionAnalysisManager fam;
-        llvm::CGSCCAnalysisManager cgam;
-        llvm::ModuleAnalysisManager mam;
-
-        llvm::LoopPassManager loopmanager;
-        llvm::FunctionPassManager funcmanagerllvm;
-        llvm::FunctionPassManager funcmanager;
-        llvm::ModulePassManager mpm;
+      void loadGlobals (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
+	std::vector<MiniMC::Model::Instruction> instr;
         
-        PB.registerFunctionAnalyses(fam);
-        PB.registerModuleAnalyses(mam);
-        PB.registerLoopAnalyses(lam);
-        PB.registerCGSCCAnalyses(cgam);
-        PB.crossRegisterProxies(lam, fam, cgam, mam);
-
-        funcmanagerllvm.addPass(ConstExprRemover());
-        funcmanagerllvm.addPass(RemoveUnusedInstructions());
-        funcmanager.addPass(llvm::PromotePass());
-        funcmanagerllvm.addPass(GetElementPtrSimplifier());
-        funcmanagerllvm.addPass(InstructionNamer());
-        
-        mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
-	// mpm.addPass(llvm::PrintModulePass(llvm::errs()));
-	GLoadContext lcontext {*cfac,*tfac};
-	//mpm.addPass(GlobalConstructor(prgm,lcontext ));
-	
-        //funcmanager.addPass(Constructor(prgm, lcontext));
-        mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
-
-        mpm.run(*module, mam);
-
-	//Setup globals
-	{
-	  std::vector<MiniMC::Model::Instruction> instr;
-        
-	  MiniMC::func_t fid = 0;
-	  for (auto& Func : *module) {
-	    auto ptr = lcontext.getConstantFactory().makeFunctionPointer(fid);
-	    ptr->setType(lcontext.getTypeFactory().makePointerType());
-	    lcontext.addValue (&Func, ptr);
-	    MiniMC::offset_t lid = 0;
-	    for (auto& BB : Func) {
-	      auto ptr = lcontext.getConstantFactory().makeLocationPointer(fid, lid);
-	      ptr->setType(lcontext.getTypeFactory ().makePointerType());
-	      lcontext.addValue(&BB, ptr);
-	      lid++;
-	    }
-	    fid++;
+	MiniMC::func_t fid = 0;
+	for (auto& Func : module) {
+	  auto ptr = lcontext.getConstantFactory().makeFunctionPointer(fid);
+	  ptr->setType(lcontext.getTypeFactory().makePointerType());
+	  lcontext.addValue (&Func, ptr);
+	  MiniMC::offset_t lid = 0;
+	  for (auto& BB : Func) {
+	    auto ptr = lcontext.getConstantFactory().makeLocationPointer(fid, lid);
+	    ptr->setType(lcontext.getTypeFactory ().makePointerType());
+	    lcontext.addValue(&BB, ptr);
+	    lid++;
 	  }
+	  fid++;
+	}
+	
+	for (auto& g : module.getGlobalList()) {
+	  auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
 	  
-	  for (auto& g : module->getGlobalList()) {
-	    auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
-	    
-	    auto gvar = lcontext.getConstantFactory().makeHeapPointer(prgm->getHeapLayout().addBlock(pointTySize));
-	    lcontext.addValue (&g, gvar);
-	    if (g.hasInitializer()) {
-	      auto val = lcontext.findValue(g.getInitializer());
-	      instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Store>({.addr = gvar,
-		    .storee = val}));
-	    }
-	  }
-	  if (instr.size()) {
-	    MiniMC::Model::InstructionStream str(instr);
-	    prgm->setInitialiser(str);
+	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(prgm->getHeapLayout().addBlock(pointTySize));
+	  lcontext.addValue (&g, gvar);
+	  if (g.hasInitializer()) {
+	    auto val = lcontext.findValue(g.getInitializer());
+	    instr.push_back(MiniMC::Model::createInstruction<MiniMC::Model::InstructionCode::Store>({.addr = gvar,
+		  .storee = val}));
 	  }
 	}
-	
-	//Instantiate Functions
-	
-	for (auto& F : *module) {
+	if (instr.size()) {
+	  MiniMC::Model::InstructionStream str(instr);
+	  prgm->setInitialiser(str);
+	}
+      }
+
+      void  instantiateFunctions (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
+	for (auto& F : module) {
 	  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 	  std::string fname = F.getName().str();
 	  MiniMC::Model::CFA cfg;
@@ -385,13 +335,72 @@ namespace MiniMC {
 	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg));
 	  }
 	}
+      }
+
+      void llvmModifications (llvm::Module& module) {
+		
+        llvm::legacy::PassManager lpm;
+	lpm.add(llvm::createLowerSwitchPass());
+        lpm.run(module);
+	llvm::PassBuilder PB;
+
+        llvm::LoopAnalysisManager lam;
+        llvm::FunctionAnalysisManager fam;
+        llvm::CGSCCAnalysisManager cgam;
+        llvm::ModuleAnalysisManager mam;
+
+        llvm::LoopPassManager loopmanager;
+        llvm::FunctionPassManager funcmanagerllvm;
+        llvm::FunctionPassManager funcmanager;
+        llvm::ModulePassManager mpm;
+        
+        PB.registerFunctionAnalyses(fam);
+        PB.registerModuleAnalyses(mam);
+        PB.registerLoopAnalyses(lam);
+        PB.registerCGSCCAnalyses(cgam);
+        PB.crossRegisterProxies(lam, fam, cgam, mam);
+
+        funcmanagerllvm.addPass(ConstExprRemover());
+        funcmanagerllvm.addPass(RemoveUnusedInstructions());
+        funcmanager.addPass(llvm::PromotePass());
+        funcmanagerllvm.addPass(GetElementPtrSimplifier());
+        funcmanagerllvm.addPass(InstructionNamer());
+        
+        mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
+	// mpm.addPass(llvm::PrintModulePass(llvm::errs()));
+	mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
 	
+        mpm.run(module, mam);
+	
+      }
+
+      void setupEntryPoints (MiniMC::Model::Program_ptr& prgm) {
 	for (const auto& e : entry) {
 	  auto func = prgm->getFunction (e);
 	  auto entry = createEntryPoint (stacksize,*prgm,func,{});
-	
+	  
 	  prgm->addEntryPoint (entry->getSymbol().getName ());
 	}
+      }
+      
+      virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+        auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
+	GLoadContext lcontext {*cfac,*tfac};
+	
+	
+        llvm::SMDiagnostic diag;
+        std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
+        std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag, *context);
+	if (!module) {
+	  throw LoadError{};
+	}
+        
+        llvmModifications (*module);
+	loadGlobals (lcontext,prgm,*module);
+	instantiateFunctions (lcontext,prgm,*module);
+	
+	setupEntryPoints (prgm);
+	
         return prgm;
       }
 
