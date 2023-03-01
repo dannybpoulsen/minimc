@@ -4,6 +4,7 @@
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/Constants.h>
 #include <unordered_map>
 
 
@@ -205,7 +206,7 @@ namespace MiniMC {
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>({.expr = nvar});
 	  }
 	}
-       else if (func->isDeclaration()) {
+	/*else if (func->isDeclaration()) {
         //We don't know what to do for this function
         if (inst->getType()->isIntegerTy()) {
           std::size_t bitwidth = inst->getType()->getIntegerBitWidth();
@@ -236,7 +237,7 @@ namespace MiniMC {
 
           gather.template addInstr<MiniMC::Model::InstructionCode::NonDet>({.res = res, .min = min, .max = max});
         }
-      } else {
+	} else*/ {
         std::vector<MiniMC::Model::Value_ptr> params;
         MiniMC::Model::Value_ptr func_ptr = context.findValue(func);
         MiniMC::Model::Value_ptr res = nullptr;
