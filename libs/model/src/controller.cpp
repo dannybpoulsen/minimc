@@ -50,6 +50,7 @@ namespace MiniMC {
     
     void Controller::expandNonDeterministic (){
       MiniMC::Model::Modifications::expandNonDet (*prgm);
+      
     }
     
   }
