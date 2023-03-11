@@ -24,7 +24,7 @@ namespace MiniMC {
                   MiniMC::Util::Array res(val.begin(), val.end());
                   return AggregateValue({res});
                 },
-                [](const MiniMC::Model::Undef&) ->  Value { throw MiniMC::Support::Exception("Undef Values Not supported by Concrete CPA"); },
+		   [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (und.getType ()); },
                 [this](const MiniMC::Model::Register& val) -> Value {
                   return lookupRegister (val);
                 },
@@ -62,7 +62,7 @@ namespace MiniMC {
       
       
       ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
-	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting Nondeterministic values for concrete values....using default value");
+	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting nondeterministic values for concrete values - using default value");
 	return defaultValue (t);
       }
 
