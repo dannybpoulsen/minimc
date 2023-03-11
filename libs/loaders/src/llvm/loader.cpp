@@ -201,8 +201,34 @@ namespace MiniMC {
 	    {
 	      MiniMC::Model::EdgeBuilder edgebuilder{cfg,init,end};
 	      if (returnTy->getTypeID () != MiniMC::Model::TypeID::Void) {
-		auto retVal = prgm->getConstantFactory().makeUndef (returnTy->getTypeID (),returnTy->getSize ());
-		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret> ({retVal});
+		std::size_t bitwidth = returnTy ->getSize ();//inst->getType()->getIntegerBitWidth();
+		MiniMC::Model::Value_ptr min, max;
+		
+		switch (bitwidth) {
+		case 1:
+		  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
+		  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
+		  break;
+		case 2:
+		  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
+		  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
+		  break;
+		case 4:
+		  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
+		  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
+		  break;
+		case 8:
+		  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
+		  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
+		  break;
+		default:
+		  throw MiniMC::Support::Exception("Error");
+		}
+	  
+		auto retVar = variablestack->addRegister (MiniMC::Model::Symbol{"_ret_"},returnTy);
+		
+		edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet> ({.res = retVar, .min = min,.max=max});
+		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret> ({retVar});
 			
 	      }
 	      
