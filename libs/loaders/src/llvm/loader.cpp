@@ -155,6 +155,9 @@ namespace MiniMC {
 
       void  instantiateFunctions (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
 	for (auto& F : module) {
+	  if (F.isVarArg ()) {
+	    throw VariadicFunctionsNotSupported (F.getName().str());
+	  }
 	  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 	  std::string fname = F.getName().str();
 	  MiniMC::Model::CFA cfg;
