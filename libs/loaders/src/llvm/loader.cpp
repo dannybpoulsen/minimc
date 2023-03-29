@@ -86,7 +86,9 @@ namespace MiniMC {
       return program.addFunction(name, {},
                                  program.getTypeFactory().makeVoidType(),
                                  std::move(vstack),
-                                 std::move(cfg));
+                                 std::move(cfg),
+				 false
+				 );
     }
     
 
@@ -155,9 +157,6 @@ namespace MiniMC {
 
       void  instantiateFunctions (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
 	for (auto& F : module) {
-	  if (F.isVarArg ()) {
-	    throw VariadicFunctionsNotSupported (F.getName().str());
-	  }
 	  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 	  std::string fname = F.getName().str();
 	  MiniMC::Model::CFA cfg;
@@ -232,7 +231,7 @@ namespace MiniMC {
 		
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet> ({.res = retVar, .min = min,.max=max});
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret> ({retVar});
-			
+		
 	      }
 	      
 	      else {
@@ -241,7 +240,7 @@ namespace MiniMC {
 
 	    }
 	    
-	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg));
+	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg),F.isVarArg ());
 	  }
 
 	  else  {
@@ -361,7 +360,7 @@ namespace MiniMC {
 		
 	      }
 	    }
-	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg));
+	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg),F.isVarArg ());
 	  }
 	}
       }

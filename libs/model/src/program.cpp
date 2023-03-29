@@ -81,7 +81,8 @@ namespace MiniMC {
 				    parameters,
 				    retType,
 				    std::move(varstack),
-				    std::move(cfa));
+				    std::move(cfa),
+				    function->isVarArgs ());
       }
 
       
