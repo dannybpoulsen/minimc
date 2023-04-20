@@ -125,11 +125,11 @@ namespace MiniMC {
 	       CFA&& cfa,
                Program& prgm,
 	       bool varargs) : name(name),
-				parameters(params),
-				registerdescr(std::move(registerdescr)),
-				cfa(std::move(cfa)),
-				id(id),
-				prgm(prgm),
+			       parameters(params),
+			       registerdescr(std::move(registerdescr)),
+			       cfa(std::move(cfa)),
+			       id(id),
+			       prgm(prgm),
 			       retType(rtype),
 			       varargs(varargs)
                                           
