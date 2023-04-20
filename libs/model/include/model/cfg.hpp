@@ -123,13 +123,15 @@ namespace MiniMC {
                const Type_ptr rtype,
                RegisterDescr_uptr&& registerdescr,
 	       CFA&& cfa,
-               Program& prgm) : name(name),
-				parameters(params),
-				registerdescr(std::move(registerdescr)),
-				cfa(std::move(cfa)),
-				id(id),
-				prgm(prgm),
-				retType(rtype)
+               Program& prgm,
+	       bool varargs) : name(name),
+			       parameters(params),
+			       registerdescr(std::move(registerdescr)),
+			       cfa(std::move(cfa)),
+			       id(id),
+			       prgm(prgm),
+			       retType(rtype),
+			       varargs(varargs)
                                           
       {
       }
@@ -143,6 +145,7 @@ namespace MiniMC {
       
       auto& getID() const { return id; }
       auto& getReturnType() const { return retType; }
+      auto& isVarArgs () const {return varargs;}
       Program& getPrgm() const { return prgm; }
 
     private:
@@ -153,6 +156,7 @@ namespace MiniMC {
       MiniMC::func_t id;
       Program& prgm;
       Type_ptr retType;
+      bool varargs;
     };
     
     class Program  {
@@ -167,8 +171,10 @@ namespace MiniMC {
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
 			       RegisterDescr_uptr&& registerdescr,
-			       CFA&& cfg) {
-        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this));
+			       CFA&& cfg,
+			       bool varargs
+			       ) {
+        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs));
         function_map.insert(std::make_pair(name, functions.back()));
         return functions.back();
       }

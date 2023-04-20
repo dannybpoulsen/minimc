@@ -282,29 +282,36 @@ namespace MiniMC {
             auto ptr = (*constant).template getValue (); //MiniMC::Support::CastToPtr (constant->getValue());
             bool is_func = prgm.functionExists(MiniMC::getFunctionId(ptr));
             MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
-            if (!is_func) {
+	    MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
+            
+	    if (!is_func) {
               mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::getFunctionId(ptr)));
               return false;
             }
-
+	    
             auto func = prgm.getFunction(MiniMC::getFunctionId(ptr));
-            if (func->getParameters().size() != content.params.size()) {
-              mess.message<MiniMC::Support::Severity::Error>("Inconsistent number of parameters between call and function prototype");
-              return false;
-            }
+	    if (!func->isVarArgs ()) {
+	      if (func->getParameters().size() != content.params.size() ) {
+		mess.message<MiniMC::Support::Severity::Error>("Inconsistent number of parameters between call and function prototype");
+		return false;
+	      }
 
-            auto nbParams = content.params.size();
-            auto it = func->getParameters().begin();
-
-            for (size_t j = 0; j < nbParams; j++, ++it) {
-              auto form_type = (*it)->getType();
-              auto act_type = content.params.at(j)->getType();
-              if (form_type != act_type) {
-                mess.message<MiniMC::Support::Severity::Error>("Formal and actual parameters do not match typewise");
-                return false;
-              }
-            }
-
+	      auto nbParams = content.params.size();
+	      auto it = func->getParameters().begin();
+	      
+	      for (size_t j = 0; j < nbParams; j++, ++it) {
+		auto form_type = (*it)->getType();
+		auto act_type = content.params.at(j)->getType();
+		if (form_type != act_type) {
+		  mess.message<MiniMC::Support::Severity::Error>("Formal and actual parameters do not match typewise");
+		  return false;
+		}
+	      }
+	    }
+	    else {
+	      mess.message<MiniMC::Support::Severity::Warning>(function_is_var_args.format (func->getSymbol ().getName ()));
+	      
+	    }
             if (content.res) {
               auto resType = content.res->getType();
               if (resType != func->getReturnType()) {

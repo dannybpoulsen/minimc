@@ -132,7 +132,7 @@ void Parser::function() {
     auto ret = returns();
     auto cfg = cfa(name, registerDescr.get());
     prgm->addFunction(name.getFullName(), params, ret,
-                      std::move(registerDescr), std::move(cfg));
+                      std::move(registerDescr), std::move(cfg),false);
     return;
   }
   throw MMCParserException(lexer->getLine(), lexer->getPos(), lexer->getValue(),

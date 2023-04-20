@@ -423,6 +423,9 @@ namespace MiniMC {
 						   }}
 						 ,*content.function
 						 );
+	  if (func->isVarArgs()) {
+	    throw MiniMC::Support::Exception("Vararg functions are not supported");						   
+	  }
 	  
 	  auto& vstack = func->getRegisterStackDescr();
 	  

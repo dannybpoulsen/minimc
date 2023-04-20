@@ -86,7 +86,9 @@ namespace MiniMC {
       return program.addFunction(name, {},
                                  program.getTypeFactory().makeVoidType(),
                                  std::move(vstack),
-                                 std::move(cfg));
+                                 std::move(cfg),
+				 false
+				 );
     }
     
 
@@ -229,7 +231,7 @@ namespace MiniMC {
 		
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet> ({.res = retVar, .min = min,.max=max});
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret> ({retVar});
-			
+		
 	      }
 	      
 	      else {
@@ -238,7 +240,7 @@ namespace MiniMC {
 
 	    }
 	    
-	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg));
+	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg),F.isVarArg ());
 	  }
 
 	  else  {
@@ -358,7 +360,7 @@ namespace MiniMC {
 		
 	      }
 	    }
-	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg));
+	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg),F.isVarArg ());
 	  }
 	}
       }

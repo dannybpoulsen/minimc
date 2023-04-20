@@ -19,11 +19,11 @@ declare void @assert(i8 signext) #1
 ; Function Attrs: noinline nounwind optnone sspstrong uwtable
 define dso_local void @main() #0 {
   %1 = alloca i8, align 1
-  %2 = call signext i8 (...) @k()
+  %2 = call signext i8 () @k()
   store i8 %2, i8* %1, align 1
   %3 = load i8, i8* %1, align 1
   call void @check(i8 signext %3)
   ret void
 }
 
-declare signext i8 @k(...) #1
+declare signext i8 @k() #1
