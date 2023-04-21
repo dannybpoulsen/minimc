@@ -4,6 +4,8 @@
 #include "model/cfg.hpp"
 #include "model/controller.hpp"
 #include "support/exceptions.hpp"
+#include "support/localisation.hpp"
+
 
 #include <memory>
 #include <string>
@@ -16,7 +18,14 @@ namespace MiniMC {
 
     class LoadError : public MiniMC::Support::ConfigurationException {
     public:
-      LoadError() : ConfigurationException("Failed to load program") {}
+      LoadError(const std::string& mess = "Failed to load program" ) : ConfigurationException(mess) {}
+    };
+
+    class VariadicFunctionsNotSupported : public LoadError {
+    public:
+      VariadicFunctionsNotSupported(const std::string& name) : LoadError(
+									 MiniMC::Support::Localiser("Function '%1%' is varidic. This is not supported by MiniMC").format (name)) 
+      {}
     };
 
     struct LoadResult {
