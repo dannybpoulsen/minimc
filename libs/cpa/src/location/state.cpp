@@ -4,7 +4,6 @@
 #include "model/cfg.hpp"
 #include "model/valuevisitor.hpp"
 
-
 namespace MiniMC {
   namespace CPA {
     namespace Location {
@@ -63,6 +62,7 @@ namespace MiniMC {
           }
           return os << "]";
         }
+	
         virtual MiniMC::Hash::hash_t hash() const override {
 	  MiniMC::Hash::Hasher hash;
 	  for (auto& t : locations)

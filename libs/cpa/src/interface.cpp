@@ -5,10 +5,7 @@
 
 namespace MiniMC {
   namespace CPA {
-    std::ostream& operator<<(std::ostream& os, const CommonState&) {
-      
-      return os;
-    }
+    
 
     std::ostream& operator<<(std::ostream& os, const AnalysisState& state) {
       auto& cfastate = state.getCFAState ();

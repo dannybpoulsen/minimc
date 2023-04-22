@@ -85,8 +85,6 @@ namespace MiniMC {
     template<class State>
     using TCPA_ptr = std::shared_ptr<ICPA<State>>;    
 
-    using CPA_ptr = TCPA_ptr<CommonState>;
-    
     class AnalysisTransfer {
     public:
       AnalysisTransfer (TTransferer_ptr<CFAState>&& locTransfer, std::vector<TTransferer_ptr<DataState>>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}

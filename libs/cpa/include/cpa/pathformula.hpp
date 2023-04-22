@@ -25,9 +25,6 @@ namespace MiniMC {
 	Joiner (const SMTLib::Context_ptr& context) : context(context) {}
 	MiniMC::CPA::DataState_ptr doJoin(const DataState& l, const DataState& r);
 	
-        bool covers(const CommonState&, const CommonState&) {
-          return false;
-        }
       private:
 	SMTLib::Context_ptr context;
       };
