@@ -47,57 +47,55 @@ namespace MiniMC {
       const MiniMC::Model::Program& prgm;
     };
 
-    
-    /**
-     * The Tranferer generates successor for States
-     */
-    struct Transferer {
-      virtual ~Transferer () {}
-      /**
-       * Comput the successor state of \p s by performing edge \p e for
-       * process \p
-       *
-       * @param s
-       *
-       * @return the resulting State of nullptr if the edge cannot be
-       * performed (which may happen for instance) when a guard is
-       * false)
-       */
-      virtual CommonState_ptr doTransfer(const CommonState&, const MiniMC::Model::Edge&, proc_id) {return nullptr;};
+    template<class State>
+    class TTransfer {
+    public:
+      virtual ~TTransfer () {}
+      virtual State_ptr<State> doTransfer(const State&, const MiniMC::Model::Edge&, proc_id) {return nullptr;}
     };
-
-    using Transferer_ptr = std::shared_ptr<Transferer>;
-
-    struct Joiner {
-      virtual ~Joiner () {}
-      /**
-       * Join two  states \p l and \p r with each other
-       *
-       * @return  the joined state or nullptr if the states cannot be
-       * merged.
-       */
-      virtual CommonState_ptr doJoin(const CommonState&, const CommonState&) {return nullptr;}
+    
+    
+    using Transferer = TTransfer<CommonState>;
+    using DataTransferer = TTransfer<DataState>;
+    using CFATransferer = TTransfer<CFAState>;
+    
+    
+    
+    template<class State>
+    using TTransferer_ptr = std::shared_ptr<TTransfer<State>>;
+    
+    using Transferer_ptr = TTransferer_ptr<CommonState>;
+    
+    
+    template<class State>
+    class TJoiner {
+    public:
+      virtual ~TJoiner () {}
       
-      /**
-       * Test if \p l covers \p r i.e. whether the behaviour of \l
-       * includes that of \p r
-       */
-      virtual bool covers(const CommonState& l , const CommonState& r) {return l.hash() == r.hash();
-      }
+      virtual State_ptr<State> doJoin(const State&, const State&) {return nullptr;}
+      
     };
-    
-    using Joiner_ptr = std::shared_ptr<Joiner>;
 
+    
+    using Joiner = TJoiner<CommonState>;
+    using DataJoiner = TTransfer<DataState>;
+    using CFAJoiner = TTransfer<CFAState>;
+    
+    template<class State>
+    using TJoiner_ptr = std::shared_ptr<TJoiner<State>>;
+    
+    using Joiner_ptr = TJoiner_ptr<CommonState>;
+    
+    template<class T = CommonState>
     struct ICPA {
       virtual ~ICPA() {}
-      virtual CommonState_ptr makeInitialState(const InitialiseDescr&) = 0;
-      //virtual StateQuery_ptr makeQuery() const = 0;
-      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
-      virtual Joiner_ptr makeJoin() const {return std::make_shared<Joiner> ();}
+      virtual State_ptr<T> makeInitialState(const InitialiseDescr&) = 0;
+      virtual TTransferer_ptr<T> makeTransfer(const MiniMC::Model::Program& ) const = 0;
+      virtual TJoiner_ptr<T> makeJoin() const {return std::make_shared<TJoiner<T>> ();}
       
     };
     
-    using CPA_ptr = std::shared_ptr<ICPA>;    
+    using CPA_ptr = std::shared_ptr<ICPA<CommonState>>;    
     
     class AnalysisTransfer {
     public:

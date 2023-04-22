@@ -60,8 +60,11 @@ namespace MiniMC {
       virtual std::shared_ptr<CommonState> copy() const = 0;
     };
 
+
+    template<class T>
+    using State_ptr = std::shared_ptr<const T>;
     
-    using CommonState_ptr = std::shared_ptr<const CommonState>;
+    using CommonState_ptr = State_ptr<CommonState>;
     
     
     class CFAState : public CommonState {

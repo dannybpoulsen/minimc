@@ -32,7 +32,7 @@ namespace MiniMC {
       
       
       
-      struct CPA : public ICPA {
+      struct CPA : public ICPA<CommonState> {
 	//virtual StateQuery_ptr makeQuery() const {return std::make_shared<StateQuery> ();}
 	CommonState_ptr makeInitialState(const InitialiseDescr&) override;
 	virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer> (prgm);}

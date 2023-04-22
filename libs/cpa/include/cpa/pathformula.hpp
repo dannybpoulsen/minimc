@@ -32,7 +32,7 @@ namespace MiniMC {
 	SMTLib::Context_ptr context;
       };
       
-      struct CPA : public ICPA {
+      struct CPA : public ICPA<CommonState> {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	MiniMC::CPA::CommonState_ptr makeInitialState(const InitialiseDescr&) override;
 	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
