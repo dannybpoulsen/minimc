@@ -16,31 +16,31 @@ namespace MiniMC {
   namespace CPA {
     namespace Location {
       
-      struct Transferer : public MiniMC::CPA::TTransfer<CommonState> {
+      struct Transferer : public MiniMC::CPA::TTransfer<CFAState> {
 	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
-        State_ptr<CommonState> doTransfer(const CommonState& s, const MiniMC::Model::Edge&, proc_id) override;
+        State_ptr<CFAState> doTransfer(const CFAState& s, const MiniMC::Model::Edge&, proc_id) override;
       private:
 	const MiniMC::Model::Program& prgm;
       };
 
-      struct Joiner : public MiniMC::CPA::TJoiner<CommonState> {
+      struct Joiner : public MiniMC::CPA::TJoiner<CFAState> {
         /** 
 	 * The Location tracking CPA can only join if the two states has equal hash value.  
 	 *
 	 * @return 
 	 */
-        State_ptr<CommonState> doJoin(const CommonState& l, const CommonState& r) override {
-          if (std::hash<MiniMC::CPA::CommonState>{}(l) == std::hash<MiniMC::CPA::CommonState>{}(r))
+        State_ptr<CFAState> doJoin(const CFAState& l, const CFAState& r) override {
+          if (std::hash<MiniMC::CPA::CFAState>{}(l) == std::hash<MiniMC::CPA::CFAState>{}(r))
             return l.shared_from_this ();
           return nullptr;
         }
 
       };
 
-      struct CPA : public ICPA<CommonState> {
-	State_ptr<CommonState> makeInitialState(const InitialiseDescr&) override;
-	TTransferer_ptr<CommonState> makeTransfer(const MiniMC::Model::Program& prgm ) const override {return std::make_shared<Transferer> (prgm);}
-	TJoiner_ptr<CommonState> makeJoin( ) const override {return std::make_shared<Joiner> ();} 
+      struct CPA : public ICPA<CFAState> {
+	State_ptr<CFAState> makeInitialState(const InitialiseDescr&) override;
+	TTransferer_ptr<CFAState> makeTransfer(const MiniMC::Model::Program& prgm ) const override {return std::make_shared<Transferer> (prgm);}
+	TJoiner_ptr<CFAState> makeJoin( ) const override {return std::make_shared<Joiner> ();} 
 	
       };
       

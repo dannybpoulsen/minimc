@@ -55,38 +55,25 @@ namespace MiniMC {
     };
     
     
-    using Transferer = TTransfer<CommonState>;
-    using DataTransferer = TTransfer<DataState>;
-    using CFATransferer = TTransfer<CFAState>;
     
     
     
     template<class State>
     using TTransferer_ptr = std::shared_ptr<TTransfer<State>>;
     
-    using Transferer_ptr = TTransferer_ptr<CommonState>;
-    
     
     template<class State>
     class TJoiner {
     public:
-      virtual ~TJoiner () {}
-      
+      virtual ~TJoiner () {} 
       virtual State_ptr<State> doJoin(const State&, const State&) {return nullptr;}
-      
     };
 
-    
-    using Joiner = TJoiner<CommonState>;
-    using DataJoiner = TTransfer<DataState>;
-    using CFAJoiner = TTransfer<CFAState>;
     
     template<class State>
     using TJoiner_ptr = std::shared_ptr<TJoiner<State>>;
     
-    using Joiner_ptr = TJoiner_ptr<CommonState>;
-    
-    template<class T = CommonState>
+    template<class T>
     struct ICPA {
       virtual ~ICPA() {}
       virtual State_ptr<T> makeInitialState(const InitialiseDescr&) = 0;
@@ -94,25 +81,28 @@ namespace MiniMC {
       virtual TJoiner_ptr<T> makeJoin() const {return std::make_shared<TJoiner<T>> ();}
       
     };
-    
-    using CPA_ptr = std::shared_ptr<ICPA<CommonState>>;    
+
+    template<class State>
+    using TCPA_ptr = std::shared_ptr<ICPA<State>>;    
+
+    using CPA_ptr = TCPA_ptr<CommonState>;
     
     class AnalysisTransfer {
     public:
-      AnalysisTransfer (Transferer_ptr&& locTransfer, std::vector<Transferer_ptr>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
+      AnalysisTransfer (TTransferer_ptr<CFAState>&& locTransfer, std::vector<TTransferer_ptr<DataState>>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
       bool Transfer (const AnalysisState&, const MiniMC::Model::Edge&, proc_id,AnalysisState&);
     private:
-      Transferer_ptr locTransfer;
-      std::vector<Transferer_ptr> dataTransfers;    
+      TTransferer_ptr<CFAState> locTransfer;
+      std::vector<TTransferer_ptr<DataState>> dataTransfers;    
     };
     
     
     class AnalysisBuilder {
     public:
-      AnalysisBuilder (CPA_ptr&& cpa) : cfa_cpa(std::move(cpa)) {}
-      void addDataCPA (CPA_ptr&& cpa) {data_cpa.push_back (std::move(cpa));}
+      AnalysisBuilder (TCPA_ptr<CFAState>&& cpa) : cfa_cpa(std::move(cpa)) {}
+      void addDataCPA (TCPA_ptr<DataState>&& cpa) {data_cpa.push_back (std::move(cpa));}
       AnalysisTransfer makeTransfer (const MiniMC::Model::Program& prgm) const  {
-	std::vector<Transferer_ptr> datas;
+	std::vector<TTransferer_ptr<DataState>> datas;
 	for (auto& d : data_cpa)
 	  datas.push_back (d->makeTransfer (prgm));
 	return AnalysisTransfer (cfa_cpa->makeTransfer (prgm),std::move(datas));
@@ -128,8 +118,8 @@ namespace MiniMC {
       }
       
     private:
-      CPA_ptr cfa_cpa;
-      std::vector<CPA_ptr> data_cpa;
+      TCPA_ptr<CFAState> cfa_cpa;
+      std::vector<TCPA_ptr<DataState>> data_cpa;
     };
     
   } // namespace CPA

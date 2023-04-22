@@ -70,7 +70,8 @@ namespace MiniMC {
             _hash = ++nextHash;
           return _hash;
         }
-        virtual std::shared_ptr<MiniMC::CPA::CommonState> copy() const override { return std::make_shared<State>(*this); }
+	
+        virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
 
         const Solver_ptr getConcretizer() const override;
         auto& getStack() { return call_stack; }

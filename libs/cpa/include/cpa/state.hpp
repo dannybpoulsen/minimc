@@ -48,41 +48,42 @@ namespace MiniMC {
       
     };
     
-    /** A general CPA state interface. It is deliberately kept minimal to relay no information to observers besides what is absolutely needed 
-     * 
-     */
-    class CommonState  : public std::enable_shared_from_this<CommonState> {
+    class CommonState   {
     public:
       ~CommonState() {}
       
       virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
       virtual MiniMC::Hash::hash_t hash() const = 0;
-      virtual std::shared_ptr<CommonState> copy() const = 0;
     };
 
+
+    
+    
+    class CFAState : public CommonState,
+		     public std::enable_shared_from_this<CFAState> {
+    public:
+      virtual ~CFAState () {}
+      virtual const LocationInfo& getLocationState () const  = 0;
+      virtual std::shared_ptr<CFAState> copy() const = 0;
+      
+    };
+    
+    
+    class DataState : public CommonState
+    {
+    public:
+      virtual ~DataState () {}
+      virtual const Solver_ptr getConcretizer() const = 0;
+      virtual const QueryBuilder& getBuilder () const = 0;
+      virtual std::shared_ptr<DataState> copy() const = 0;
+    };
 
     template<class T>
     using State_ptr = std::shared_ptr<const T>;
     
     using CommonState_ptr = State_ptr<CommonState>;
-    
-    
-    class CFAState : public CommonState {
-    public:
-      virtual ~CFAState () {}
-      virtual const LocationInfo& getLocationState () const  = 0;
-    };
-    
+    using DataState_ptr = State_ptr<DataState>;
     using CFAState_ptr = std::shared_ptr<const CFAState>;
-    
-    class DataState : public CommonState {
-    public:
-      virtual ~DataState () {}
-      virtual const Solver_ptr getConcretizer() const = 0;
-      virtual const QueryBuilder& getBuilder () const = 0;
-    };
-    
-    using DataState_ptr = std::shared_ptr<const DataState>;
     
     
     class AnalysisState  {
