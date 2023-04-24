@@ -111,15 +111,10 @@ namespace MiniMC {
       TConstant(T val);
 
       T getValue() const {
-        // auto val = MiniMC::loadHelper<T>(reinterpret_cast<const MiniMC::uint8_t*>(&value), sizeof(value));
         return value;
       }
 
       std::size_t getSize() const override { return sizeof(T); }
-
-      /*const MiniMC::uint8_t* getData() const override  {
-        return reinterpret_cast<const MiniMC::uint8_t*>(&value);
-        }*/
 
       bool isBool() const override { return is_bool; }
       bool isInteger() const override { return std::is_integral_v<T>; }

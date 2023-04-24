@@ -18,7 +18,7 @@ namespace MiniMC {
       inline Status runCMPAdd(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
         auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-
+	
         auto lval = writeState.getValueLookup ().lookupValue(content.op1).template as<Value>();
         auto rval = writeState.getValueLookup ().lookupValue(content.op2).template as<Value>();
         if constexpr (op == MiniMC::Model::InstructionCode::Add)
@@ -493,23 +493,14 @@ namespace MiniMC {
         auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
         MiniMC::BV64 offset{0};
 
-        /* This is nasty. We should update the typechecker to ensure onæy I64 bit integers are allowed as offsets*/
-        switch (offset_constant->getSize()) {
-          case 1:
-            offset = std::static_pointer_cast<MiniMC::Model::I8Integer>(offset_constant)->getValue();
-            break;
-          case 2:
-            offset = std::static_pointer_cast<MiniMC::Model::I16Integer>(offset_constant)->getValue();
-            break;
-          case 4:
-            offset = std::static_pointer_cast<MiniMC::Model::I32Integer>(offset_constant)->getValue();
-            break;
-          case 8:
-            offset = std::static_pointer_cast<MiniMC::Model::I64Integer>(offset_constant)->getValue();
-            break;
-          default:
-            throw MiniMC::Support::Exception("Invalid Conversion");
-        }
+	offset = MiniMC::Model::visitValue (MiniMC::Model::Overload {
+	    [](const MiniMC::Model::I16Integer& value)->MiniMC::BV64 {return value.getValue ();},
+	    [](const MiniMC::Model::I32Integer& value)->MiniMC::BV64  {return value.getValue ();},
+            [](const MiniMC::Model::I64Integer& value)->MiniMC::BV64  {return value.getValue ();},
+	    [](const auto& )->MiniMC::BV64 {throw MiniMC::Support::Exception ("Invalid aggregate offset");}
+	      },
+	  *offset_constant);
+	
 
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
           auto val_v = content.insertee;
@@ -576,6 +567,25 @@ namespace MiniMC {
 
     } // namespace Impl
 
+
+    template <class T, class Operations, class Caster>
+    Status Engine<T, Operations, Caster>::execute(const MiniMC::Model::Instruction& instr,
+                                                  VMState<T>& wstate) {
+      switch (instr.getOpcode()) {	
+#define X(OP)								\
+	case MiniMC::Model::InstructionCode::OP:			\
+	  return Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(instr, wstate, operations, caster,prgm); \
+	  break;
+	OPERATIONS
+	  
+#undef X
+      default:
+	return Status::UnsupportedOperation;
+      }
+    }
+    
+    
+    
     template <class T, class Operations, class Caster>
     Status Engine<T, Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
                                                   VMState<T>& wstate) {
@@ -583,18 +593,7 @@ namespace MiniMC {
       Status status = Status::Ok;
       auto it = instr.begin ();
       for ( it = instr.begin(); it != end && status == Status::Ok; ++it) {
-	switch (it->getOpcode()) {
-	  
-#define X(OP)								\
-  case MiniMC::Model::InstructionCode::OP:                                                                                                \
-    status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, operations, caster,prgm); \
-    break;
-          OPERATIONS
-
-#undef X
-          default:
-            status = Status::UnsupportedOperation;
-        }
+	status = execute (*it,wstate);
       }
 
       

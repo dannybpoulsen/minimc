@@ -259,6 +259,8 @@ namespace MiniMC {
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
       Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
+      Status execute (const MiniMC::Model::Instruction&, State& ) ;
+      
       using OperationsT = Operations;
       using CasterT = Caster;
     private:

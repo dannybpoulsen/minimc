@@ -10,7 +10,7 @@ namespace MiniMC {
   namespace Model {
     
     template<class... Ts> struct Overload : Ts... { using Ts::operator()...; };
-
+    
     
     template <class F>
     auto visitValue(F f,const MiniMC::Model::Value& v) {
