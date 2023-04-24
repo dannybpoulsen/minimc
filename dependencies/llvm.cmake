@@ -22,9 +22,7 @@ if (NOT LLVM_FOUND)
   target_include_directories(llvm13 INTERFACE ${LLVM_INCLUDE_DIRS})
   target_link_libraries(llvm13 INTERFACE ${llvm_libs})
 else()
-  find_program(LLVM_CONFIG_BINARY
-  NAMES llvm-config)
-  message(STATUS "LLVM_CONFIG_BINARY: ${LLVM_CONFIG_BINARY}")				  
+  find_program(LLVM_CONFIG_BINARY NAMES llvm-config)
   function (run_llvm_config params output_var) 
   execute_process(COMMAND "${LLVM_CONFIG_BINARY}" "${params}" 
       RESULT_VARIABLE _exit_code
@@ -36,14 +34,11 @@ else()
 
  run_llvm_config ("--libs" "libnames")
  run_llvm_config ("--includedir" "includedir")
- run_llvm_config ("--liddir" "libdir")
+ run_llvm_config ("--libdir" "libdir")
  target_include_directories(llvm13 INTERFACE ${includedir})
  target_link_directories(llvm13 INTERFACE ${libdir})
  target_link_libraries(llvm13 INTERFACE ${libnames})
- 		 
-message (STATUS ${libnames})
 endif()
    
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
