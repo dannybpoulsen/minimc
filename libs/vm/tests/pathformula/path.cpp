@@ -24,7 +24,7 @@ TEST_CASE ("Check Pointer interpretation") {
   auto input = MiniMC::pointer_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer> (input);
 
-  auto p_ptr = vlookup.lookupValue(ptr);
+  auto p_ptr = vlookup.lookupValue(*ptr);
   auto solver = context->makeSolver ();
   REQUIRE (solver->check_sat () == SMTLib::Result::Satis);
   REQUIRE (p_ptr.is<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer> ());
@@ -52,7 +52,7 @@ TEST_CASE ("Check Pointer32 interpretation") {
   auto input = MiniMC::pointer32_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer32> (input);
 
-  auto p_ptr = vlookup.lookupValue(ptr);
+  auto p_ptr = vlookup.lookupValue(*ptr);
   auto solver = context->makeSolver ();
   REQUIRE (solver->check_sat () == SMTLib::Result::Satis);
   REQUIRE (p_ptr.is<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer32> ());
@@ -81,7 +81,7 @@ TEST_CASE ("Pointer to Pointer32") {
   auto input = MiniMC::pointer_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer> (input);
   
-  auto p_ptr = vlookup.lookupValue(ptr);
+  auto p_ptr = vlookup.lookupValue(*ptr);
   REQUIRE (p_ptr.is<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer> ());
     
   auto casted = caster.PtrToPtr32 (p_ptr.as<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer> ());
@@ -113,7 +113,7 @@ TEST_CASE ("Pointer32 to Pointer") {
   auto input = MiniMC::pointer32_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer32> (input);
   
-  auto p_ptr = vlookup.lookupValue(ptr);
+  auto p_ptr = vlookup.lookupValue(*ptr);
   REQUIRE (p_ptr.is<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer32> ());
     
   auto casted = caster.Ptr32ToPtr (p_ptr.as<MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer32> ());

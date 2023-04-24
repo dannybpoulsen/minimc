@@ -65,7 +65,7 @@ namespace MiniMC {
       BaseValueLookup (ActivationStack<T>& values) : values(values) {}
       BaseValueLookup (const BaseValueLookup&) = delete;
       virtual  ~BaseValueLookup () {}
-      virtual T lookupValue (const MiniMC::Model::Value_ptr& v) const override = 0;
+      virtual T lookupValue (const MiniMC::Model::Value& v) const override = 0;
       void saveValue(const MiniMC::Model::Register& v, T&& value) override {
 	if (v.getRegType () == MiniMC::Model::RegType::Local) {
 	  values.back().values.set (v,std::move(value));
@@ -74,8 +74,8 @@ namespace MiniMC {
 	  values.cpus ().set (v,std::move(value));
 	}
       }
-      virtual T unboundValue(const MiniMC::Model::Type_ptr&) const override = 0;
-      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const override = 0;
+      virtual T unboundValue(const MiniMC::Model::Type&) const override = 0;
+      virtual T defaultValue(const MiniMC::Model::Type&) const override = 0;
       
       MiniMC::Hash::hash_t hash() const { return values.hash(); }
       using Value = T;

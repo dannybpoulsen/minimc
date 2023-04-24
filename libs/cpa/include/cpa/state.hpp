@@ -86,8 +86,8 @@ namespace MiniMC {
     public:
       AnalysisState () {}
       AnalysisState (CFAState_ptr&& cfa, std::vector<DataState_ptr>&& datastates) : cfastate(std::move(cfa)),datastates(std::move(datastates)) {}
-      auto& getCFAState () const {return cfastate;}
-      auto& getDataState (std::size_t i) const {return datastates.at(i);}
+      auto& getCFAState () const {return *cfastate;}
+      auto& getDataState (std::size_t i) const {return *datastates.at(i);}
       std::size_t nbDataStates () const {return datastates.size ();}
       MiniMC::Hash::hash_t hash() const;
     private:

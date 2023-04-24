@@ -46,9 +46,9 @@ namespace MiniMC {
       class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
       public:
 	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
-        ConcreteVMVal lookupValue (const MiniMC::Model::Value_ptr& v) const override;
-	Value unboundValue (const MiniMC::Model::Type_ptr&) const override;
-	Value defaultValue(const MiniMC::Model::Type_ptr&) const override;
+        ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const override;
+	Value unboundValue (const MiniMC::Model::Type&) const override;
+	Value defaultValue(const MiniMC::Model::Type&) const override;
       };
       
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {

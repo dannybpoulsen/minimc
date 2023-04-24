@@ -34,7 +34,7 @@ namespace MiniMC {
 	MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
 	  auto& ref = static_cast<const QExpr&> (expr);
 	  return ref.getValue ().visit (MiniMC::VMT::Overload {
-	      [](MiniMC::VMT::Concrete::ConcreteVMVal::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
+	        [](MiniMC::VMT::Concrete::ConcreteVMVal::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
 		[](MiniMC::VMT::Concrete::ConcreteVMVal::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.getValue ());},
 		[](MiniMC::VMT::Concrete::ConcreteVMVal::I32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I32Integer> (val.getValue ());},
 		[](MiniMC::VMT::Concrete::ConcreteVMVal::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.getValue ());},
@@ -72,7 +72,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::ActivationStack& stack;
 	
       };
-
+      
       struct Transferer::Internal {
 	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm) {}
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
@@ -109,9 +109,7 @@ namespace MiniMC {
 
 	  std::vector<MiniMC::VMT::Concrete::ActivationStack> proc_vars2{proc_vars};
 	  MiniMC::VMT::Concrete::Memory heap2(heap);
-	  auto copy = std::make_shared<State>(proc_vars2,heap2); 
-	  
-	  return copy;
+	  return std::make_shared<State>(proc_vars2,heap2); 
 	}
 	
         auto& getProc(std::size_t i) { return proc_vars.at(i); }
@@ -129,7 +127,7 @@ namespace MiniMC {
 	  }
 	  
 	  MiniMC::VMT::Concrete::ValueLookup lookup{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p))};
-	  return std::make_unique<QExpr> (lookup.lookupValue(val));
+	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
 	  
 	}
 	
@@ -157,7 +155,7 @@ namespace MiniMC {
 	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
 	  MiniMC::VMT::Concrete::ValueLookup lookup {cs};
 	  for (auto& v : vstack.getRegisters()) {
-            lookup.saveValue  (*v,lookup.defaultValue (v->getType ()));
+            lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
 	    
 	  }
 	  

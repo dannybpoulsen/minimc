@@ -9,7 +9,7 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
 
-      ValueLookup::Value ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
+      ValueLookup::Value ValueLookup::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
 					 
 		MiniMC::Model::Overload{
@@ -23,16 +23,16 @@ namespace MiniMC {
 		   [](const MiniMC::Model::AggregateConstant& val) -> Value {
 		     return AggregateValue(val.getData());
                 },
-		   [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (und.getType ()); },
+		   [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (*und.getType ()); },
                 [this](const MiniMC::Model::Register& val) -> Value {
                   return lookupRegister (val);
                 },
             },
-            *v);
+            v);
       }
 
-      ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
-	switch (t->getTypeID()) {
+      ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type& t) const {
+	switch (t.getTypeID()) {
 	case MiniMC::Model::TypeID::Bool:
 	  return BoolValue(false);
 	case MiniMC::Model::TypeID::Pointer32:
@@ -51,7 +51,7 @@ namespace MiniMC {
 
 	case MiniMC::Model::TypeID::Array:
 	case MiniMC::Model::TypeID::Struct:
-	  return Value::Aggregate{MiniMC::Util::Array{t->getSize()}};
+	  return Value::Aggregate{MiniMC::Util::Array{t.getSize()}};
 	default:
 	  break;
         }
@@ -60,7 +60,7 @@ namespace MiniMC {
       }
       
       
-      ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
+      ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type& t) const {
 	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting nondeterministic values for concrete values - using default value");
 	return defaultValue (t);
       }

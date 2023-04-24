@@ -26,10 +26,10 @@ namespace MiniMC {
     struct ValueLookup {
     public:
       virtual ~ValueLookup ()  {}
-      virtual T lookupValue (const MiniMC::Model::Value_ptr&) const = 0;
+      virtual T lookupValue (const MiniMC::Model::Value&) const = 0;
       virtual void saveValue (const MiniMC::Model::Register&, T&&)  = 0;
-      virtual T unboundValue (const MiniMC::Model::Type_ptr&) const = 0;
-      virtual T defaultValue(const MiniMC::Model::Type_ptr&) const  = 0;
+      virtual T unboundValue (const MiniMC::Model::Type&) const = 0;
+      virtual T defaultValue(const MiniMC::Model::Type&) const  = 0;
 
       using Value = T;
       
@@ -86,12 +86,12 @@ namespace MiniMC {
     };
     
     
-    template<class T, bool cons = false>  
+    template<class T>  
     struct VMState {
-      using VLookup  = typename std::conditional<!cons,ValueLookup<T>,const ValueLookup<T>>::type;
-      using MLookup  = typename std::conditional<!cons,Memory<T>,const Memory<T>>::type;
-      using PControl  = typename std::conditional<!cons,PathControl<T>,const PathControl<T>>::type;
-      using StControl  = typename std::conditional<!cons,StackControl<T>,const StackControl<T>>::type;
+      using VLookup  =  ValueLookup<T>;
+      using MLookup  =  Memory<T>;
+      using PControl =  PathControl<T>;
+      using StControl = StackControl<T>;
       
       
       VMState (MLookup& m, PControl& path, StControl& stack,VLookup& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
@@ -253,8 +253,7 @@ namespace MiniMC {
     requires VMCompatible<T,Operations,Caster>
     class Engine {
     public:
-      using State = VMState<T,false>;
-      using ConstState = VMState<T,true>;
+      using State = VMState<T>;
       
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}

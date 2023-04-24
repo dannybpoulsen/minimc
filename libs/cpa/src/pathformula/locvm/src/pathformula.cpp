@@ -11,10 +11,10 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
       static std::size_t next = 0;
-      inline PathFormulaVMVal unboundVal(const MiniMC::Model::Type_ptr& t, SMTLib::TermBuilder& builder) {
+      inline PathFormulaVMVal unboundVal(const MiniMC::Model::Type& t, SMTLib::TermBuilder& builder) {
         std::stringstream str;
         str << "Var" << ++next;
-        switch (t->getTypeID()) {
+        switch (t.getTypeID()) {
           case MiniMC::Model::TypeID::Bool:
             return BoolValue(builder.makeVar(builder.makeSort(SMTLib::SortKind::Bool, {}), str.str()));
 	case MiniMC::Model::TypeID::Pointer32:
@@ -33,7 +33,7 @@ namespace MiniMC {
             return I64Value(builder.makeVar(builder.makeBVSort(64), str.str()));
           case MiniMC::Model::TypeID::Array:
           case MiniMC::Model::TypeID::Struct:
-            return AggregateValue(builder.makeVar(builder.makeBVSort(8 * t->getSize()), str.str()), t->getSize());
+            return AggregateValue(builder.makeVar(builder.makeBVSort(8 * t.getSize()), str.str()), t.getSize());
 	    
           default:
             break;
@@ -42,17 +42,17 @@ namespace MiniMC {
       }
 
        
-      PathFormulaVMVal ValueLookup::unboundValue(const MiniMC::Model::Type_ptr& t) const {
+      PathFormulaVMVal ValueLookup::unboundValue(const MiniMC::Model::Type& t) const {
         return unboundVal(t, builder);
       }
 
-      PathFormulaVMVal ValueLookup::defaultValue(const MiniMC::Model::Type_ptr& t) const {
+      PathFormulaVMVal ValueLookup::defaultValue(const MiniMC::Model::Type& t) const {
         return unboundValue(t);
       }
 
       
       
-      PathFormulaVMVal ValueLookup::lookupValue(const MiniMC::Model::Value_ptr& v) const {
+      PathFormulaVMVal ValueLookup::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
             MiniMC::Model::Overload{
                 [this](const MiniMC::Model::I8Integer& val) -> PathFormulaVMVal { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
@@ -84,12 +84,12 @@ namespace MiniMC {
                   }
                   return AggregateValue(chainer.getTerm(), val.getSize());
                 },
-		  [this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(val.getType()); },
+		  [this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(*val.getType()); },
 		  [this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
 		    return lookupRegister (val);
 		  },
             },
-            *v);
+            v);
       }
       
       PathFormulaVMVal Memory::loadValue(const typename PathFormulaVMVal::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {

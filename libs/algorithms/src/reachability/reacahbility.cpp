@@ -12,7 +12,7 @@ namespace MiniMC {
       
       StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
 	if (state.nbDataStates ()) {
-	  auto solver = state.getDataState(0)->getConcretizer ();
+	  auto solver = state.getDataState(0).getConcretizer ();
 	  switch (solver->isFeasible ()) {
 	  case MiniMC::CPA::Solver::Feasibility::Feasible:
 	  case MiniMC::CPA::Solver::Feasibility::Unknown:
@@ -49,7 +49,7 @@ namespace MiniMC {
 	    return Verdict::Found;
 	  }
 
-	  if (searchee.getCFAState ()->getLocationState().nbOfProcesses ()) {
+	  if (searchee.getCFAState ().getLocationState().nbOfProcesses ()) {
 	  
 	    MiniMC::CPA::AnalysisState newstate;
 	    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
