@@ -8,8 +8,6 @@
 namespace MiniMC {
   namespace Algorithms {
     namespace Reachability {
-
-      
       StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
 	if (state.nbDataStates ()) {
 	  auto solver = state.getDataState(0).getConcretizer ();

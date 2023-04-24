@@ -60,7 +60,7 @@ namespace MiniMC {
 	  auto res = (*tit)->doTransfer (state.getDataState (i),e,proc);
 	  if (!res)
 	    return false;
-	  datas.push_back (std::move(std::static_pointer_cast<const DataState> (res)));
+	  datas.push_back (std::move(res));
 	}
 	res = AnalysisState{std::move(locTrans),std::move(datas)};
 	
