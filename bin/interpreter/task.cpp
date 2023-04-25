@@ -11,8 +11,10 @@ Model::Edge* SingleStepTask::haveNoInstructionEdge(CPA::AnalysisState state) {
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
 
-  while (enumerator.getNext(res)) {
+  for (;enumerator;++enumerator) {
+    res = *enumerator;
     if(!res.edge->getInstructions()) return res.edge;
+    
   }
   return nullptr;
 }
@@ -27,13 +29,15 @@ Model::Edge *SingleStepTask::promptForEdge(CPA::AnalysisState state) {
   Algorithms::EnumResult res;
 
   // Print outgoing edges
-  if (enumerator.getNext(res)) {
+  if (enumerator) {
+    res = *enumerator;
     std::cout << "Following edges can be picked" << std::endl;
     edges.push_back(res.edge);
     n++;
     std::cout << n << ". " << std::endl;
     std::cout << *res.edge;
-    while (enumerator.getNext(res)) {
+    for (;enumerator;++enumerator) {
+      res = *enumerator;
       edges.push_back(res.edge);
       n++;
       std::cout << n << ". " << std::endl;

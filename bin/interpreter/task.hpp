@@ -114,10 +114,10 @@ class RunPathTask : public Task {
       std::for_each((*indexes).begin(), (*indexes).end(), [&](const int i){
         Algorithms::EdgeEnumerator enumerator{(*statemap)["current"]};
         Algorithms::EnumResult res;
-        for(int j = 0; j < i; j++){
-          enumerator.getNext(res);
+        for(int j = 0; j < i; ++enumerator,j++){
+          //enumerator.getNext(res);
         }
-
+	res = *enumerator;
         if(transfer.Transfer((*statemap)["current"], *res.edge, proc, newstate)){
           (*statemap)["current"]=newstate;
         };

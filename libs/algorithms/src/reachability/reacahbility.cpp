@@ -11,12 +11,12 @@ namespace MiniMC {
 
       
       StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
-	if (state.nbDataStates ()) {
-	  auto solver = state.getDataState(0).getConcretizer ();
+	for (auto& dstate : state.dataStates ()) {
+	  auto solver = dstate.getConcretizer ();
 	  switch (solver->isFeasible ()) {
 	  case MiniMC::CPA::Solver::Feasibility::Feasible:
 	  case MiniMC::CPA::Solver::Feasibility::Unknown:
-	      return StateStatus::Keep;
+	    break;
 	  default:
 	    return StateStatus::Discard;
 	  }
@@ -53,8 +53,9 @@ namespace MiniMC {
 	  
 	    MiniMC::CPA::AnalysisState newstate;
 	    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
-	    MiniMC::Algorithms::EnumResult res;
-	    while (enumerator.getNext (res)) {
+	    //MiniMC::Algorithms::EnumResult res;
+	    for (; enumerator; ++enumerator) {
+	      MiniMC::Algorithms::EnumResult res = *enumerator;
 	      if (transfer.Transfer (searchee,*res.edge,res.proc,newstate)) {
 		insert(newstate);
 	      }

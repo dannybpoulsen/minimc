@@ -19,6 +19,7 @@
 #include "cpa/query.hpp"
 #include <iosfwd>
 #include <memory>
+#include <ranges>
 
 namespace MiniMC {
   namespace CPA {
@@ -87,8 +88,9 @@ namespace MiniMC {
       AnalysisState () {}
       AnalysisState (CFAState_ptr&& cfa, std::vector<DataState_ptr>&& datastates) : cfastate(std::move(cfa)),datastates(std::move(datastates)) {}
       auto& getCFAState () const {return *cfastate;}
-      auto& getDataState (std::size_t i) const {return *datastates.at(i);}
-      std::size_t nbDataStates () const {return datastates.size ();}
+      auto dataStates () const {
+	return datastates | std::views::transform([](auto& r)->const DataState& {return *r;});;
+      }
       MiniMC::Hash::hash_t hash() const;
     private:
       CFAState_ptr cfastate;
@@ -109,22 +111,5 @@ namespace MiniMC {
     
   } // namespace CPA
 } // namespace MiniMC
-
-namespace std {
-  template <>
-  struct hash<MiniMC::CPA::DataState> {
-    std::size_t operator()(const MiniMC::CPA::DataState& s) const noexcept {
-      return s.hash();
-    }
-  };
-
-  template<>
-  struct hash<MiniMC::CPA::CFAState> {
-    std::size_t operator()(const MiniMC::CPA::CFAState& s) const noexcept {
-      return s.hash();
-    }
-  };
-  
-} // namespace std
 
 #endif

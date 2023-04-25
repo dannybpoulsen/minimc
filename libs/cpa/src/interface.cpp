@@ -19,14 +19,12 @@ namespace MiniMC {
       }
       os << "]\n";
 
-      auto nbDataStates = state.nbDataStates ();
       for (std::size_t p = 0; p < nbProcs; p++) {
 	auto& vstack = cfastate.getLocationState().getLocation(p).getInfo().getRegisters ();
 	for (auto& reg : vstack.getRegisters ()) {
 	  os << reg->getName () << ":\t";
-
-	  for (std::size_t dstate = 0; dstate < nbDataStates; dstate++) {
-	    auto& datastate = state.getDataState (dstate);
+	  
+	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
 	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
 	  }
@@ -49,18 +47,19 @@ namespace MiniMC {
     
     
     bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge& e,  proc_id proc,AnalysisState& res) {
-      auto locTrans = std::static_pointer_cast<const CFAState> (locTransfer->doTransfer (state.getCFAState (),e,proc));
+      auto locTrans = locTransfer->doTransfer (state.getCFAState (),e,proc);
       if (!locTrans)
 	return false;
       else {
-	assert(state.nbDataStates () == dataTransfers.size ());
-	std::size_t i = 0;
 	std::vector<DataState_ptr> datas;
-	for (auto tit = dataTransfers.begin (); tit != dataTransfers.end (); ++tit,++i) {
-	  auto res = (*tit)->doTransfer (state.getDataState (i),e,proc);
+	auto datastate_view = state.dataStates ();
+	auto dit = datastate_view.begin();
+	auto tit = dataTransfers.begin ();
+	for (; tit != dataTransfers.end (); ++tit,++dit) {
+	  auto res = (*tit)->doTransfer (*dit,e,proc);
 	  if (!res)
 	    return false;
-	  datas.push_back (std::move(std::static_pointer_cast<const DataState> (res)));
+	  datas.push_back (std::move(res));
 	}
 	res = AnalysisState{std::move(locTrans),std::move(datas)};
 	
