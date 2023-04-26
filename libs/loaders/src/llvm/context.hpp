@@ -223,10 +223,13 @@ namespace MiniMC {
 	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
 	    params.push_back(context.findValue(*it));
 	  }
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({context.getStackPointerMem (),context.getStackPointer ()});
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>({
 	      res,
 	      func_ptr,
-	      params});	  
+	      params});
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({context.getStackPointer (),context.getStackPointerMem ()});
+	  
 	}
       }
 

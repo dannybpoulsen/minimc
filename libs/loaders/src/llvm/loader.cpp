@@ -77,12 +77,9 @@ namespace MiniMC {
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
         result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
-
-      auto instrstream = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Call>(
-																	  result,
-																	   funcpointer,
-																	   params)});
-      auto edge = cfg.makeEdge(init, end,std::move(instrstream));
+      MiniMC::Model::EdgeBuilder builder {cfg,init,end};
+      
+      builder.addInstr<MiniMC::Model::InstructionCode::Call> ({result,funcpointer,params});
       
       
       return program.addFunction(name, {},
@@ -436,7 +433,6 @@ namespace MiniMC {
     private:
       std::size_t stacksize;
       std::vector<std::string> entry;
-      MiniMC::Model::Value_ptr sp;
     };
 
 
