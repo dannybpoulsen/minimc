@@ -78,13 +78,13 @@ public:
     (*statemap)["prev"] = (*statemap)["current"];
 
     if(auto noinsedge = haveNoInstructionEdge((*statemap)["current"])){
-      if(transfer.Transfer((*statemap)["current"], *noinsedge, proc, newstate)){
+      if(transfer.Transfer((*statemap)["current"], {noinsedge, proc}, newstate)){
         (*statemap)["current"]=newstate;
       };
     }
 
     if(auto edge = promptForEdge((*statemap)["current"])){
-      if(transfer.Transfer((*statemap)["current"], *edge, proc, newstate)){
+      if(transfer.Transfer((*statemap)["current"], {edge, proc}, newstate)){
         (*statemap)["current"]=newstate;
       };
     } else {
@@ -109,16 +109,12 @@ class RunPathTask : public Task {
 
     void performTask(){
       CPA::AnalysisState newstate;
-      MiniMC::proc_t proc{0};
-
       std::for_each((*indexes).begin(), (*indexes).end(), [&](const int i){
-        Algorithms::EdgeEnumerator enumerator{(*statemap)["current"]};
-        Algorithms::EnumResult res;
+        Algorithms::TransitionEnumerator enumerator{(*statemap)["current"]};
         for(int j = 0; j < i; ++enumerator,j++){
           //enumerator.getNext(res);
         }
-	res = *enumerator;
-        if(transfer.Transfer((*statemap)["current"], *res.edge, proc, newstate)){
+        if(transfer.Transfer((*statemap)["current"], *enumerator, newstate)){
           (*statemap)["current"]=newstate;
         };
       });

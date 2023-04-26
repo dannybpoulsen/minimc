@@ -7,20 +7,20 @@
 
 namespace MiniMC {
   namespace Algorithms {
-    struct EnumResult {
+    /*struct EnumResult {
       EnumResult () : edge(nullptr),proc(0) {}
       EnumResult (MiniMC::Model::Edge* edge,MiniMC::proc_t p) : edge(edge),proc(p) {}
       
       MiniMC::Model::Edge* edge;
       MiniMC::proc_t proc; 
-    };
+    };*/
 
 
     
     
-    class EdgeEnumerator {
+    class TransitionEnumerator {
     public:
-      EdgeEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state),
+      TransitionEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state),
 								 iter(orig.getCFAState ().getLocationState().getLocation(0).ebegin ()),
 								 end(orig.getCFAState ().getLocationState().getLocation(0).eend ())
 	
@@ -30,9 +30,9 @@ namespace MiniMC {
       
 
       auto operator* () {
-	return EnumResult {*iter,proc};
+	return MiniMC::CPA::Transition {*iter,proc};
       }
-
+      
       auto operator++ () {
 	done = !next();
       }

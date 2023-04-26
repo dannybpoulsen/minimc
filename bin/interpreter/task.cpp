@@ -8,12 +8,10 @@
 namespace MiniMC {
 namespace Interpreter {
 Model::Edge* SingleStepTask::haveNoInstructionEdge(CPA::AnalysisState state) {
-  Algorithms::EdgeEnumerator enumerator{state};
-  Algorithms::EnumResult res;
-
+  Algorithms::TransitionEnumerator enumerator{state};
+  
   for (;enumerator;++enumerator) {
-    res = *enumerator;
-    if(!res.edge->getInstructions()) return res.edge;
+    if(!(*enumerator).edge->getInstructions()) return (*enumerator).edge;
     
   }
   return nullptr;
@@ -25,23 +23,20 @@ Model::Edge *SingleStepTask::promptForEdge(CPA::AnalysisState state) {
 
   std::vector<Model::Edge *> edges;
 
-  Algorithms::EdgeEnumerator enumerator{state};
-  Algorithms::EnumResult res;
-
+  Algorithms::TransitionEnumerator enumerator{state};
+  
   // Print outgoing edges
   if (enumerator) {
-    res = *enumerator;
     std::cout << "Following edges can be picked" << std::endl;
-    edges.push_back(res.edge);
+    edges.push_back((*enumerator).edge);
     n++;
     std::cout << n << ". " << std::endl;
-    std::cout << *res.edge;
+    std::cout << (*enumerator).edge;
     for (;enumerator;++enumerator) {
-      res = *enumerator;
-      edges.push_back(res.edge);
+      edges.push_back((*enumerator).edge);
       n++;
       std::cout << n << ". " << std::endl;
-      std::cout << *res.edge;
+      std::cout << *(*enumerator).edge;
     }
   }
 

@@ -23,7 +23,7 @@ namespace MiniMC {
       struct Transferer : public MiniMC::CPA::TTransfer<DataState> {
 	Transferer (const MiniMC::Model::Program& prgm);
 	~Transferer ();
-        MiniMC::CPA::DataState_ptr doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::Model::Edge& e, proc_id id);
+        MiniMC::CPA::DataState_ptr doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition&) override;
       private:
 	struct Internal;
 	

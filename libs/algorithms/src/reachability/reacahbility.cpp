@@ -52,11 +52,9 @@ namespace MiniMC {
 	  if (searchee.getCFAState ().getLocationState().nbOfProcesses ()) {
 	  
 	    MiniMC::CPA::AnalysisState newstate;
-	    MiniMC::Algorithms::EdgeEnumerator enumerator{searchee};
-	    //MiniMC::Algorithms::EnumResult res;
+	    MiniMC::Algorithms::TransitionEnumerator enumerator{searchee};
 	    for (; enumerator; ++enumerator) {
-	      MiniMC::Algorithms::EnumResult res = *enumerator;
-	      if (transfer.Transfer (searchee,*res.edge,res.proc,newstate)) {
+	      if (transfer.Transfer (searchee,*enumerator,newstate)) {
 		insert(newstate);
 	      }
 	    }

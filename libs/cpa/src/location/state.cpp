@@ -88,7 +88,9 @@ namespace MiniMC {
         std::vector<LocationState> locations;
       };
 
-      MiniMC::CPA::State_ptr<CFAState> MiniMC::CPA::Location::Transferer::doTransfer(const CFAState& s, const MiniMC::Model::Edge& edge, proc_id id) {
+      MiniMC::CPA::State_ptr<CFAState> MiniMC::CPA::Location::Transferer::doTransfer(const CFAState& s, const Transition& transition ) {
+	const MiniMC::Model::Edge& edge = *transition.edge;
+	proc_id id = transition.proc;
         auto& state = static_cast<const State&>(s);
         assert(id < state.nbOfProcesses());
         if (edge.getFrom().get() == &state.getLocation(id)) {

@@ -46,8 +46,9 @@ namespace MiniMC {
     }
     
     
-    bool AnalysisTransfer::Transfer (const AnalysisState& state, const MiniMC::Model::Edge& e,  proc_id proc,AnalysisState& res) {
-      auto locTrans = locTransfer->doTransfer (state.getCFAState (),e,proc);
+    bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
+      
+      auto locTrans = locTransfer->doTransfer (state.getCFAState (),trans);
       if (!locTrans)
 	return false;
       else {
@@ -56,7 +57,7 @@ namespace MiniMC {
 	auto dit = datastate_view.begin();
 	auto tit = dataTransfers.begin ();
 	for (; tit != dataTransfers.end (); ++tit,++dit) {
-	  auto res = (*tit)->doTransfer (*dit,e,proc);
+	  auto res = (*tit)->doTransfer (*dit,trans);
 	  if (!res)
 	    return false;
 	  datas.push_back (std::move(res));

@@ -164,11 +164,12 @@ namespace MiniMC {
 	  std::vector<MiniMC::Model::Register_ptr> params;
 	  MiniMC::Model::RegisterDescr variablestack (MiniMC::Model::Symbol{fname});
 	  MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack);
+	  auto sp = variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, lcontext.getTypeFactory().makePointerType ());
 	  
-	  LoadContext load{lcontext,variablestack,variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"},lcontext.getTypeFactory().makePointerType ())};
+	  LoadContext load{lcontext,variablestack, sp, sp};
 	  auto returnTy = load.getType(F.getReturnType());
 	  
-	  auto makeVariable = [&load,this](auto val) {
+	  auto makeVariable = [&load](auto val) {
 	    if (!load.hasValue (val)) {
 	      auto type = load.getType (val->getType ());
 	      load.addValue (val,load.getStack().addRegister (MiniMC::Model::Symbol{val->getName().str()},type));
@@ -176,7 +177,7 @@ namespace MiniMC {
 	    return load.findValue (val);
 	  };
 	  
-	  auto makeVar = [&load,this,makeVariable](auto op) {
+	  auto makeVar = [&load,makeVariable](auto op) {
 	    const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant>(op);
 	    auto lltype = op->getType();
 	    if (lltype->isLabelTy() ||
@@ -435,6 +436,7 @@ namespace MiniMC {
     private:
       std::size_t stacksize;
       std::vector<std::string> entry;
+      MiniMC::Model::Value_ptr sp;
     };
 
 
@@ -463,13 +465,13 @@ namespace MiniMC {
 	  getOptions().at(0)
 	  );
 	auto entry = std::visit([](auto& t)->std::vector<std::string> {
-	  using T = std::decay_t<decltype(t)>;
-	  if constexpr (std::is_same_v<T,VecStringOption>)
-	    return t.value;
-	  else {
-	    throw MiniMC::Support::Exception ("Horrendous error");
-	  }
-	},
+	    using T = std::decay_t<decltype(t)>;
+	    if constexpr (std::is_same_v<T,VecStringOption>)
+	      return t.value;
+	    else {
+	      throw MiniMC::Support::Exception ("Horrendous error");
+	    }
+	  },
 	  getOptions().at(1)
 	  );
 	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry);

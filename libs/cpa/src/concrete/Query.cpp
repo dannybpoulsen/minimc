@@ -175,7 +175,10 @@ namespace MiniMC {
         return state;
       }
 
-      MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::Model::Edge& e, proc_id id) {
+      MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
+	const MiniMC::Model::Edge& e = *t.edge;
+	proc_id id = t.proc;
+	
 	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
