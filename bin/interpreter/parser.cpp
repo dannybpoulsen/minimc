@@ -48,11 +48,13 @@ void Parser::edges(){
   Algorithms::EnumResult res;
 
   // Print outgoing edges
-  if (enumerator.getNext(res)) {
+  if (enumerator) {
+    res = *enumerator;
     n++;
     std::cout << n << ". " << std::endl;
     std::cout << *res.edge;
-    while (enumerator.getNext(res)) {
+    for (; enumerator; ++enumerator) {
+      res = *enumerator;
       n++;
       std::cout << n << ". " << std::endl;
       std::cout << *res.edge;
@@ -135,7 +137,8 @@ Model::Edge* Parser::haveNoInstructionEdge(CPA::AnalysisState state) {
   Algorithms::EdgeEnumerator enumerator{state};
   Algorithms::EnumResult res;
 
-  while (enumerator.getNext(res)) {
+  for (;enumerator; ++enumerator) {
+    res = *enumerator;
     if(!res.edge->getInstructions()) return res.edge;
   }
   return nullptr;
@@ -153,7 +156,8 @@ Model::Edge *Parser::get_edge(int i) {
   Algorithms::EnumResult res;
 
   // Print outgoing edges
-  while (enumerator.getNext(res)) {
+  for (;enumerator; ++enumerator) {
+    res = *enumerator;
     edges.push_back(res.edge);
   }
 

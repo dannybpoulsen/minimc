@@ -39,12 +39,12 @@ namespace MiniMC {
 } // namespace MiniMC
 
 template <typename T>
-concept hasHash = requires (T a) {
+concept Hashable = requires (const T a) {
   a.hash ();
 };
 
 namespace std {
-  template<class T> requires hasHash<T> 
+  template<Hashable T> 
   struct hash<T> {
     auto operator() (const T& t) {return t.hash ();}
   };
