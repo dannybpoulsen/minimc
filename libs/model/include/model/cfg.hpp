@@ -130,11 +130,11 @@ namespace MiniMC {
                Program& prgm,
 	       bool varargs
 	       ) : name(name),
-				parameters(params),
-				registerdescr(std::move(registerdescr)),
-				cfa(std::move(cfa)),
-				id(id),
-				prgm(prgm),
+		   parameters(params),
+		   registerdescr(std::move(registerdescr)),
+		   cfa(std::move(cfa)),
+		   id(id),
+		   prgm(prgm),
 		   retType(rtype),
 		   varargs(varargs)
                                           
@@ -166,7 +166,8 @@ namespace MiniMC {
     class Program  {
     public:
       Program(const MiniMC::Model::TypeFactory_ptr &tfact,
-              const MiniMC::Model::ConstantFactory_ptr& cfact) : cfact(cfact),
+              const MiniMC::Model::ConstantFactory_ptr& cfact
+	      ) : cfact(cfact),
 								 tfact(tfact),
 								 cpu_regs(Symbol{"_cpu_"},RegType::CPU)
       {

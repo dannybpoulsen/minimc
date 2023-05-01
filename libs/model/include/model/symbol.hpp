@@ -35,7 +35,7 @@ namespace MiniMC {
 
       
       
-          private:
+    private:
       struct data;
       std::unique_ptr<data> _internal;
       Symbol (std::unique_ptr<data>&&);

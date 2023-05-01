@@ -15,7 +15,7 @@ namespace MiniMC {
       void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack) {
 	
 	for (auto& v : vars.getRegisters ()) {
-	  map.emplace (v,stack.addRegister (v->getSymbol(),v->getType ()));
+	  map.emplace (v,stack.addRegister (MiniMC::Model::Symbol{v->getSymbol().getName ()},v->getType ()));
 	}
       }
       
@@ -66,7 +66,7 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function,RegReplaceMap map) {
-	MiniMC::Model::RegisterDescr varstack;
+	MiniMC::Model::RegisterDescr varstack{function->getSymbol (),MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack);
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
