@@ -162,8 +162,9 @@ namespace MiniMC {
 	  MiniMC::Model::RegisterDescr variablestack (MiniMC::Model::Symbol{fname});
 	  MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack);
 	  auto sp = variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, lcontext.getTypeFactory().makePointerType ());
+	  auto sp_mem = variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp_mem"}, lcontext.getTypeFactory().makePointerType ());
 	  
-	  LoadContext load{lcontext,variablestack, sp, sp};
+	  LoadContext load{lcontext,variablestack, sp, sp_mem};
 	  auto returnTy = load.getType(F.getReturnType());
 	  
 	  auto makeVariable = [&load](auto val) {
@@ -411,6 +412,7 @@ namespace MiniMC {
       
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
         auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
+	prgm->getCPURegs ().addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, tfac->makePointerType ());
 	GLoadContext lcontext {*cfac,*tfac};
 	
 	

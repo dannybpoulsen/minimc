@@ -19,8 +19,7 @@ namespace MiniMC {
       }
       os << "]\n";
 
-      for (std::size_t p = 0; p < nbProcs; p++) {
-	auto& vstack = cfastate.getLocationState().getLocation(p).getInfo().getRegisters ();
+      auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
 	  os << reg->getName () << ":\t";
 	  
@@ -30,6 +29,44 @@ namespace MiniMC {
 	  }
 	  os << std::endl;
 	}
+      };
+      
+      for (std::size_t p = 0; p < nbProcs; p++) {
+	printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+      }
+      
+      
+      return os << std::endl;;
+    }
+    
+    std::ostream& StateOutputter::output (const AnalysisState& state, std::ostream& os) {
+      auto& cfastate = state.getCFAState ();
+      auto nbProcs = cfastate.getLocationState ().nbOfProcesses ();
+      os << "[";
+      for (std::size_t i = 0; i < nbProcs; i++) {
+        if(i != 0){
+          os << ",";
+        }
+	os <<  cfastate.getLocationState ().getLocation (i).getInfo().getName ();
+      }
+      os << "]\n";
+
+      auto printVStack = [&os,&state](auto& vstack,auto p ) {
+	for (auto& reg : vstack.getRegisters ()) {
+	  os << reg->getName () << ":\t";
+	  
+	  for (const auto& datastate : state.dataStates ()) {
+	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
+	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
+	  }
+	  os << std::endl;
+	}
+      };
+
+      
+      for (std::size_t p = 0; p < nbProcs; p++) {
+	printVStack (prgm.getCPURegs (), p);
+	printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
       }
       
       

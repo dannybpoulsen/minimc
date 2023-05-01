@@ -54,14 +54,6 @@ namespace MiniMC {
 
         State(const State&) = default;
 	
-        virtual std::ostream& output(std::ostream& os) const override {
-          os << "[ ";
-          for (auto l : locations) {
-            assert(l.cur());
-            os << l.cur()->getInfo() << ", ";
-          }
-          return os << "]";
-        }
 	
         virtual MiniMC::Hash::hash_t hash() const override {
 	  MiniMC::Hash::Hasher hash;

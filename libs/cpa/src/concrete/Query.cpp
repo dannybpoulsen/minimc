@@ -88,14 +88,7 @@ namespace MiniMC {
         State( const std::vector<MiniMC::VMT::Concrete::ActivationStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
 
-	virtual std::ostream& output(std::ostream& os) const override {
-          /*for (auto& vl : proc_vars) {
-            os << "===\n";
-            os << vl << "\n";
-	    }*/
-          return os << "==\n";
-        }
-
+	
         virtual MiniMC::Hash::hash_t hash() const override {
 	  MiniMC::Hash::Hasher hash;
 	  for (auto& vl : proc_vars) {

@@ -46,7 +46,7 @@ namespace MiniMC {
     using LocFlags = FlagSet<Attributes>;
     
     struct LocationInfo {
-      explicit LocationInfo(const Symbol& name, LocFlags flags, MiniMC::Model::RegisterDescr registers, SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
+      explicit LocationInfo(const Symbol& name, LocFlags flags, MiniMC::Model::RegisterDescr registers,  SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
       
       const std::string getName() const { return name.getFullName(); }
       const RegisterDescr& getRegisters () const {return active_registers;}
