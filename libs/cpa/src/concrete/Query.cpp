@@ -88,14 +88,7 @@ namespace MiniMC {
         State( const std::vector<MiniMC::VMT::Concrete::ActivationStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
         }
 
-	virtual std::ostream& output(std::ostream& os) const override {
-          /*for (auto& vl : proc_vars) {
-            os << "===\n";
-            os << vl << "\n";
-	    }*/
-          return os << "==\n";
-        }
-
+	
         virtual MiniMC::Hash::hash_t hash() const override {
 	  MiniMC::Hash::Hasher hash;
 	  for (auto& vl : proc_vars) {
@@ -175,7 +168,10 @@ namespace MiniMC {
         return state;
       }
 
-      MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::Model::Edge& e, proc_id id) {
+      MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
+	const MiniMC::Model::Edge& e = *t.edge;
+	proc_id id = t.proc;
+	
 	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;

@@ -68,14 +68,15 @@ namespace MiniMC {
       Transferer::~Transferer () {}
 	
 	
-      MiniMC::CPA::DataState_ptr Transferer::doTransfer(const DataState& s, const MiniMC::Model::Edge& e, proc_id id [[maybe_unused]]) {
-        assert(id == 0 && "PathFormula only useful for one process systems");
+      MiniMC::CPA::DataState_ptr Transferer::doTransfer(const DataState& s, const MiniMC::CPA::Transition& trans) {
+	const MiniMC::Model::Edge& e = *trans.edge;
+	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = _internal->context->getBuilder ();
-	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
+	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	StackControl stackcontrol{nstate.getStack (),*_internal->context};
 	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),termbuilder};
 	

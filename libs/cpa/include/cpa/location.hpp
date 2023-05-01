@@ -18,7 +18,7 @@ namespace MiniMC {
       
       struct Transferer : public MiniMC::CPA::TTransfer<CFAState> {
 	Transferer (const MiniMC::Model::Program& prgm) : prgm(prgm) {} 
-        State_ptr<CFAState> doTransfer(const CFAState& s, const MiniMC::Model::Edge&, proc_id) override;
+        State_ptr<CFAState> doTransfer(const CFAState& s, const Transition&) override;
       private:
 	const MiniMC::Model::Program& prgm;
       };

@@ -77,12 +77,9 @@ namespace MiniMC {
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
         result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
       }
-
-      auto instrstream = MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Call>(
-																	  result,
-																	   funcpointer,
-																	   params)});
-      auto edge = cfg.makeEdge(init, end,std::move(instrstream));
+      MiniMC::Model::EdgeBuilder builder {cfg,init,end};
+      
+      builder.addInstr<MiniMC::Model::InstructionCode::Call> ({result,funcpointer,params});
       
       
       return program.addFunction(name, {},
@@ -164,11 +161,13 @@ namespace MiniMC {
 	  std::vector<MiniMC::Model::Register_ptr> params;
 	  MiniMC::Model::RegisterDescr variablestack (MiniMC::Model::Symbol{fname});
 	  MiniMC::Model::LocationInfoCreator locinfoc(MiniMC::Model::Symbol{fname},variablestack);
+	  auto sp = variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, lcontext.getTypeFactory().makePointerType ());
+	  auto sp_mem = variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp_mem"}, lcontext.getTypeFactory().makePointerType ());
 	  
-	  LoadContext load{lcontext,variablestack,variablestack.addRegister (MiniMC::Model::Symbol{"__minimc.sp"},lcontext.getTypeFactory().makePointerType ())};
+	  LoadContext load{lcontext,variablestack, sp, sp_mem};
 	  auto returnTy = load.getType(F.getReturnType());
 	  
-	  auto makeVariable = [&load,this](auto val) {
+	  auto makeVariable = [&load](auto val) {
 	    if (!load.hasValue (val)) {
 	      auto type = load.getType (val->getType ());
 	      load.addValue (val,load.getStack().addRegister (MiniMC::Model::Symbol{val->getName().str()},type));
@@ -176,7 +175,7 @@ namespace MiniMC {
 	    return load.findValue (val);
 	  };
 	  
-	  auto makeVar = [&load,this,makeVariable](auto op) {
+	  auto makeVar = [&load,makeVariable](auto op) {
 	    const llvm::Constant* oop = llvm::dyn_cast<const llvm::Constant>(op);
 	    auto lltype = op->getType();
 	    if (lltype->isLabelTy() ||
@@ -413,6 +412,7 @@ namespace MiniMC {
       
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
         auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
+	prgm->getCPURegs ().addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, tfac->makePointerType ());
 	GLoadContext lcontext {*cfac,*tfac};
 	
 	
@@ -463,13 +463,13 @@ namespace MiniMC {
 	  getOptions().at(0)
 	  );
 	auto entry = std::visit([](auto& t)->std::vector<std::string> {
-	  using T = std::decay_t<decltype(t)>;
-	  if constexpr (std::is_same_v<T,VecStringOption>)
-	    return t.value;
-	  else {
-	    throw MiniMC::Support::Exception ("Horrendous error");
-	  }
-	},
+	    using T = std::decay_t<decltype(t)>;
+	    if constexpr (std::is_same_v<T,VecStringOption>)
+	      return t.value;
+	    else {
+	      throw MiniMC::Support::Exception ("Horrendous error");
+	    }
+	  },
 	  getOptions().at(1)
 	  );
 	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry);

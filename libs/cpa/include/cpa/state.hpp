@@ -13,6 +13,7 @@
 #include "hash/hashing.hpp"
 #include "model/location.hpp"
 #include "model/variables.hpp"
+#include "model/cfg.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "util/array.hpp"
@@ -50,7 +51,7 @@ namespace MiniMC {
     };
     
 
-
+    
     
     
     class CFAState : public std::enable_shared_from_this<CFAState> {
@@ -58,7 +59,6 @@ namespace MiniMC {
       virtual ~CFAState () {}
       virtual const LocationInfo& getLocationState () const  = 0;
       virtual std::shared_ptr<CFAState> copy() const = 0;
-      virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
       virtual MiniMC::Hash::hash_t hash() const = 0;
     
     };
@@ -71,7 +71,6 @@ namespace MiniMC {
       virtual const Solver_ptr getConcretizer() const = 0;
       virtual const QueryBuilder& getBuilder () const = 0;
       virtual std::shared_ptr<DataState> copy() const = 0;
-      virtual std::ostream& output(std::ostream& os) const { return os << "_"; }
       virtual MiniMC::Hash::hash_t hash() const = 0;
       
     };
@@ -96,14 +95,15 @@ namespace MiniMC {
       CFAState_ptr cfastate;
       std::vector<DataState_ptr> datastates;   
     };
-    
-    inline std::ostream& operator<<(std::ostream& os, const DataState& state) {
-      return state.output (os);
-    }
 
-    inline std::ostream& operator<<(std::ostream& os, const CFAState& state) {
-      return state.output (os);
-    }
+    class StateOutputter {
+    public:
+      StateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
+      std::ostream& output (const AnalysisState&, std::ostream& os);
+    private:
+      const MiniMC::Model::Program& prgm;
+      
+    };
     
     std::ostream& operator<<(std::ostream& os, const AnalysisState& state);
     

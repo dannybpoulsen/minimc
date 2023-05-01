@@ -44,20 +44,17 @@ void Parser::print() {
 void Parser::edges(){
   MiniMC::CPA::AnalysisState state = statemap->get("current");
   int n = 0;
-  Algorithms::EdgeEnumerator enumerator{state};
-  Algorithms::EnumResult res;
-
+  Algorithms::TransitionEnumerator enumerator{state};
+  
   // Print outgoing edges
   if (enumerator) {
-    res = *enumerator;
     n++;
     std::cout << n << ". " << std::endl;
-    std::cout << *res.edge;
+    std::cout << *(*enumerator).edge;
     for (; enumerator; ++enumerator) {
-      res = *enumerator;
       n++;
       std::cout << n << ". " << std::endl;
-      std::cout << *res.edge;
+      std::cout << *(*enumerator).edge;
     }
   }
 }
@@ -80,11 +77,11 @@ void Parser::step() {
   statemap->set("prev","current");
 
   if (auto edge = get_edge(get_nr())) {
-    if (transfer.Transfer(statemap->get("current"), *edge, proc, newstate)) {
+    if (transfer.Transfer(statemap->get("current"), {edge, proc}, newstate)) {
       statemap->set("current",newstate);
     };
     if (auto noinsedge = haveNoInstructionEdge(statemap->get("current"))) {
-      if (transfer.Transfer(statemap->get("current"), *noinsedge, proc, newstate)) {
+      if (transfer.Transfer(statemap->get("current"), {noinsedge, proc}, newstate)) {
         statemap->set("current",newstate);
       };
     }
@@ -134,12 +131,10 @@ int Parser::get_nr(){
 }
 
 Model::Edge* Parser::haveNoInstructionEdge(CPA::AnalysisState state) {
-  Algorithms::EdgeEnumerator enumerator{state};
-  Algorithms::EnumResult res;
-
+  Algorithms::TransitionEnumerator enumerator{state};
+  
   for (;enumerator; ++enumerator) {
-    res = *enumerator;
-    if(!res.edge->getInstructions()) return res.edge;
+    if(!(*enumerator).edge->getInstructions()) return (*enumerator).edge;
   }
   return nullptr;
 }
@@ -152,13 +147,11 @@ Model::Edge *Parser::get_edge(int i) {
   std::vector<Model::Edge *> edges;
   CPA::AnalysisState state = statemap->get("current");
 
-  Algorithms::EdgeEnumerator enumerator{state};
-  Algorithms::EnumResult res;
-
+  Algorithms::TransitionEnumerator enumerator{state};
+  
   // Print outgoing edges
   for (;enumerator; ++enumerator) {
-    res = *enumerator;
-    edges.push_back(res.edge);
+    edges.push_back((*enumerator).edge);
   }
 
   if (edges.size() == 0) {

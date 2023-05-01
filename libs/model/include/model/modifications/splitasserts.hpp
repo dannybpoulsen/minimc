@@ -32,7 +32,7 @@ namespace MiniMC {
 	   * MiniMC::Location::Attributes::AssertViolated set.
 	   */
       struct SplitAsserts : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        virtual bool runFunction(const MiniMC::Model::Function_ptr& F);
+	virtual bool runFunction(const MiniMC::Model::Function_ptr& F);
 	virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
             runFunction(F);

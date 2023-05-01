@@ -669,7 +669,10 @@ ASSUMEASSERTS
       
       InstructionStream(const std::vector<Instruction>& i) : instr(i) {}
       InstructionStream(const InstructionStream& str) = default;
+      InstructionStream(InstructionStream&& str) = default;
+      
       InstructionStream(const std::initializer_list<Instruction> i) : instr(i) {}
+      
       
       InstructionStream& operator= (const InstructionStream&) = default;
       

@@ -41,20 +41,25 @@ namespace MiniMC {
 		     MiniMC::Model::TypeFactory& tfact,
 		     std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values,
 		     MiniMC::Model::RegisterDescr& descr,
-		     const MiniMC::Model::Value_ptr& sp
-		     ) : GLoadContext(cfact,tfact,std::move(values)),stack(descr),sp(sp) {}
+		     const MiniMC::Model::Value_ptr& sp,
+		     const MiniMC::Model::Value_ptr& sp_mem
+		     ) : GLoadContext(cfact,tfact,std::move(values)),stack(descr),sp(sp),sp_mem(sp_mem) {}
       LoadContext (const LoadContext& ) = delete;
       LoadContext ( const GLoadContext& c,
 		    MiniMC::Model::RegisterDescr& descr,
-		    const MiniMC::Model::Value_ptr& sp) : GLoadContext(c),stack(descr),sp(sp) {
+		    const MiniMC::Model::Value_ptr& sp,
+		    const MiniMC::Model::Value_ptr& sp_mem
+		    ) : GLoadContext(c),stack(descr),sp(sp),sp_mem(sp_mem) {
 	
       }
       auto& getStack () {return stack;}
+      auto& getStackPointerMem () {return sp_mem;}
       auto& getStackPointer () {return sp;}
     private:
       
       MiniMC::Model::RegisterDescr& stack;
       MiniMC::Model::Value_ptr sp;
+      MiniMC::Model::Value_ptr sp_mem;
     };
 
     struct InstructionTranslator {
@@ -206,54 +211,26 @@ namespace MiniMC {
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>({nvar});
 	  }
 	}
-	/*else if (func->isDeclaration()) {
-        //We don't know what to do for this function
-        if (inst->getType()->isIntegerTy()) {
-          std::size_t bitwidth = inst->getType()->getIntegerBitWidth();
-          auto type = context.getTypeFactory().makeIntegerType(bitwidth);
-          MiniMC::Model::Value_ptr min, max;
-          MiniMC::Model::Value_ptr res = context.findValue(inst);
-
-          switch (bitwidth) {
-            case 8:
-              min = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
-              max = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
-              break;
-            case 16:
-              min = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
-              max = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
-              break;
-            case 32:
-              min = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
-              max = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
-              break;
-            case 64:
-              min = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
-              max = context.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
-              break;
-            default:
-              throw MiniMC::Support::Exception("Error");
-          }
-
-          gather.template addInstr<MiniMC::Model::InstructionCode::NonDet>({.res = res, .min = min, .max = max});
-        }
-	} else*/ {
-        std::vector<MiniMC::Model::Value_ptr> params;
-        MiniMC::Model::Value_ptr func_ptr = context.findValue(func);
-        MiniMC::Model::Value_ptr res = nullptr;
-        if (!inst->getType()->isVoidTy()) {
-          res = context.findValue(inst);
-        }
-        auto type = context.getTypeFactory().makeIntegerType(64);
-	params.push_back (context.getStackPointer());
-        for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
-          params.push_back(context.findValue(*it));
-        }
-        gather.template addInstr<MiniMC::Model::InstructionCode::Call>({
-	    res,
-	    func_ptr,
-	    params});	  
-       }
+	else {
+	  std::vector<MiniMC::Model::Value_ptr> params;
+	  MiniMC::Model::Value_ptr func_ptr = context.findValue(func);
+	  MiniMC::Model::Value_ptr res = nullptr;
+	  if (!inst->getType()->isVoidTy()) {
+	    res = context.findValue(inst);
+	  }
+	  auto type = context.getTypeFactory().makeIntegerType(64);
+	  params.push_back (context.getStackPointer());
+	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
+	    params.push_back(context.findValue(*it));
+	  }
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({context.getStackPointerMem (),context.getStackPointer ()});
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>({
+	      res,
+	      func_ptr,
+	      params});
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({context.getStackPointer (),context.getStackPointerMem ()});
+	  
+	}
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Ret == code) {

@@ -61,7 +61,6 @@ namespace MiniMC {
                                                                                                                                       pathformula(std::move(formula)),
                                                                                                                                       context(ctxt) {}
         State(const State& oth) : call_stack(oth.call_stack), memory(oth.memory), pathformula(oth.pathformula), context(oth.context), _hash(0) {}
-        virtual std::ostream& output(std::ostream& os) const override { return os << "\nPathformula:" << *pathformula; }
         MiniMC::Hash::hash_t hash() const override {
           // Hashes for pathformula states makes no sense
           // Since they should be usable by all algorithms we just makes a fake hash that increments with each invocation of the hash function

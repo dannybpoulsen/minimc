@@ -47,11 +47,18 @@ namespace MiniMC {
       const MiniMC::Model::Program& prgm;
     };
 
+    struct Transition {
+      Transition (MiniMC::Model::Edge* e, MiniMC::proc_t p) : edge(e),proc(p) {}
+      Transition ( const Transition&) = default;
+      MiniMC::Model::Edge* edge;
+      MiniMC::proc_t proc;
+    };
+    
     template<class State>
     class TTransfer {
     public:
       virtual ~TTransfer () {}
-      virtual State_ptr<State> doTransfer(const State&, const MiniMC::Model::Edge&, proc_id) {return nullptr;}
+      virtual State_ptr<State> doTransfer(const State&, const Transition&) {return nullptr;}
     };
     
     
@@ -88,7 +95,7 @@ namespace MiniMC {
     class AnalysisTransfer {
     public:
       AnalysisTransfer (TTransferer_ptr<CFAState>&& locTransfer, std::vector<TTransferer_ptr<DataState>>&& dtransfers) : locTransfer(std::move(locTransfer)), dataTransfers(std::move(dtransfers)) {}
-      bool Transfer (const AnalysisState&, const MiniMC::Model::Edge&, proc_id,AnalysisState&);
+      bool Transfer (const AnalysisState&, const Transition&, AnalysisState&);
     private:
       TTransferer_ptr<CFAState> locTransfer;
       std::vector<TTransferer_ptr<DataState>> dataTransfers;    
