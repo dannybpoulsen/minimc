@@ -42,6 +42,31 @@ namespace MiniMC {
       
     };
 
+    class Frame;
+    using Frame_ptr = std::shared_ptr<Frame>;
+    
+    class Frame {
+    public:
+      static Frame_ptr RootFrame () { return  Frame_ptr{new Frame (MiniMC::Model::Symbol {})};}
+      
+      Frame_ptr open (const std::string& s)  {
+	return Frame_ptr{new Frame (Symbol{symb,s},Frame_ptr(this))};
+      }
+
+      Frame_ptr close () const {
+	return parent;
+      }
+      
+      Symbol makeSymbol (const std::string& s) {return Symbol{symb,s};}
+      
+    private:
+      Frame (Symbol symb) : symb(symb),parent(nullptr) {}
+      Frame (Symbol symb,Frame_ptr f) : symb(symb),parent(std::move(f)) {}
+      Symbol symb;
+      Frame_ptr parent;
+    };
+    
+    
     inline std::ostream& operator<< (std::ostream& os, const Symbol& symb) {
       return symb.output (os);
     }
@@ -52,7 +77,7 @@ namespace MiniMC {
       str << *this;
       return str.str ();
     }
-      
+    
     
   }
 }
