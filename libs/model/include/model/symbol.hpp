@@ -18,12 +18,12 @@ namespace MiniMC {
       Symbol (const Symbol&);
       Symbol (const Symbol&, std::string name);
       Symbol (const Symbol&, Symbol&&);
-      Symbol(const std::list<std::string> list);
       
       ~Symbol ();
       
       Symbol& operator=  (Symbol&&) = default;
-
+      Symbol& operator=  (const Symbol&);
+      
       //assumtion hasPrefix() == true
       Symbol prefix () const;
       bool hasPrefix () const;
@@ -34,36 +34,40 @@ namespace MiniMC {
       std::string getFullName () const {return to_string ();}
 
       
+      struct data;
       
     private:
-      struct data;
-      std::unique_ptr<data> _internal;
-      Symbol (std::unique_ptr<data>&&);
+      std::shared_ptr<data> _internal;
+      Symbol (std::shared_ptr<data>);
       
     };
-
-    class Frame;
-    using Frame_ptr = std::shared_ptr<Frame>;
+    
     
     class Frame {
     public:
-      static Frame_ptr RootFrame () { return  Frame_ptr{new Frame (MiniMC::Model::Symbol {})};}
+      Frame ();
+      ~Frame ();
+      Frame (const Frame& f) = default;
+      Frame (Frame&& f) = default;
       
-      Frame_ptr open (const std::string& s)  {
-	return Frame_ptr{new Frame (Symbol{symb,s},Frame_ptr(this))};
-      }
-
-      Frame_ptr close () const {
-	return parent;
-      }
+      Frame open (const std::string& s);
+      Frame create (const std::string& s);
       
-      Symbol makeSymbol (const std::string& s) {return Symbol{symb,s};}
+      Frame close ();
+      bool resolve (const std::string&, Symbol& s);
+      bool resolveQualified (const std::string&, Symbol& s);
+      
+      Symbol makeSymbol (const std::string& s);
+      
       
     private:
-      Frame (Symbol symb) : symb(symb),parent(nullptr) {}
-      Frame (Symbol symb,Frame_ptr f) : symb(symb),parent(std::move(f)) {}
-      Symbol symb;
-      Frame_ptr parent;
+      struct Internal;
+      Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}
+      Frame (const std::shared_ptr<Internal>& s) : _internal(s) {}
+      
+      
+      std::shared_ptr<Internal> _internal;
+
     };
     
     

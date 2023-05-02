@@ -889,15 +889,15 @@ Model::Symbol Parser::identifier() {
 
   if(lexer->token() == Token::IDENTIFIER){
     std::string val = lexer->getValue();
-    std::list<std::string> tokens;
+    /*std::list<std::string> tokens;
     std::string intermediate;
     std::stringstream ss(val);
 
     while(getline(ss, intermediate, ':'))
     {
       tokens.push_back(intermediate);
-    }
-    return Model::Symbol(tokens);
+      }*/
+    return Model::Symbol::from_string(val);
 
   }
   throw MMCParserException(

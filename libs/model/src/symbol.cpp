@@ -1,4 +1,6 @@
 #include "model/symbol.hpp"
+#include "support/exceptions.hpp"
+
 
 #include <string>
 #include <ostream>
@@ -13,85 +15,82 @@ namespace MiniMC {
   namespace Model {
     struct Symbol::data {
       static const char delim {':'};
-      data () {}
-      data (std::string name) : names({name}) {
-      }
-      
-      data (std::list<std::string> s) : names(std::move(s)) {}
+      data (std::shared_ptr<data> p = nullptr) : parent(std::move(p)) {}
+      data (std::string s,  std::shared_ptr<data> p = nullptr) : parent(std::move(p)),name(s) {}
       
       std::ostream& output (std::ostream& os) const {
-	bool started = false;
-	std::for_each (names.begin (), names.end (), [&started,&os](const auto& s) {
-	  if (started) {
-	    os << delim;
-	  }
-	  started = true;
-	  os << s;  
-	    
-	});
-	
-	return os;
+	if (parent && !parent->isRoot ()) {
+	  
+	  return parent->output (os) << delim << name;
+	  
+	}
+	else
+	  return os << name;
+      }
+
+      bool isRoot () const {
+	return parent == nullptr && name == "";
       }
       
-      std::list<std::string> names;
+      
+      std::shared_ptr<data> parent;
+      std::string name;
     };
 
+    
     std::string Symbol::getName () const {
-      if (_internal->names.size () > 0)
-	return _internal->names.back ();
-      else
-	return "";
+	return _internal->name;
     }
 
     Symbol::Symbol () {
-      _internal = std::make_unique<data> ();
+      _internal = std::make_shared<data> ();
     }
       
     
     Symbol::Symbol (const std::string& s) {
-      _internal = std::make_unique<data> (s);
+      _internal = std::make_shared<data> (s);
     }
 
     Symbol::Symbol (const Symbol& s) {
-      _internal = std::make_unique<data> (s._internal->names);
+      _internal = s._internal;
     }
 
+    Symbol& Symbol::operator= (const Symbol& s) {
+      _internal = s._internal;
+      return *this;
+    }
+    
 
     Symbol::Symbol (const Symbol& pref, Symbol&& end) {
-      _internal = std::make_unique<data> ();
-      std::copy (pref._internal->names.begin(),pref._internal->names.end(),std::back_inserter (_internal->names));
-      std::copy (end._internal->names.begin(),end._internal->names.end(),std::back_inserter (_internal->names));
-      
+      if (end._internal->parent) {
+	throw MiniMC::Support::Exception ("Cannot concatenate a non-root element to another symbol");	
+      }
+
+      end._internal->parent=pref._internal;
+      _internal = std::move(end._internal);
     }
     
     Symbol::Symbol (const Symbol& s, std::string name) {
-      _internal = std::make_unique<data> ();
-      std::copy (s._internal->names.begin(),s._internal->names.end(),std::back_inserter (_internal->names));
-      _internal->names.push_back (name);
+      _internal = std::make_shared<data> (name,s._internal);
     }
 
-    Symbol::Symbol (std::unique_ptr<data>&& data) : _internal(std::move(data)) {
-     
+    Symbol::Symbol (std::shared_ptr<data> data) : _internal(std::move(data)) {   
     }
-
-    Symbol::Symbol(const std::list<std::string> list) {
-      _internal = std::make_unique<data> (list);
-    }
+    
+    
     
     
     //assumtion hasPrefix() == true
     Symbol Symbol::prefix () const {
-      std::list<std::string> names;
-      std::copy (_internal->names.begin (),_internal->names.end ()--,std::back_inserter (names));
-      return Symbol (std::make_unique<data> (names));
+      return Symbol (_internal->parent);
     }
 
     bool Symbol::hasPrefix () const {
-      return _internal->names.size () >  1;	
+      return _internal->parent != nullptr;	
     }
 
     bool Symbol::isRoot () const {
-      return _internal->names.size () == 0;
+      return !hasPrefix ();
     }
     
     Symbol::~Symbol () {}
@@ -102,19 +101,128 @@ namespace MiniMC {
     
     
     Symbol Symbol::from_string (const  std::string& str) {
-      std::list<std::string> names;
-      auto inserter = std::back_inserter (names);
       std::stringstream stream {str};
       std::string inp;
       std::getline (stream,inp,data::delim);
-      inserter = inp;
+      Symbol symbol{inp};
       while (stream.good ())  {
 	std::getline (stream,inp,data::delim);
-	inserter = inp;
+	symbol = Symbol {symbol,inp};
+      }
+      
+      return symbol;
+    }
+    
+    struct Frame::Internal {
+      Internal (Symbol symb) : symb(symb) {}
+      Internal (Symbol symb,std::shared_ptr<Internal> p) : symb(symb),parent(p) {}
+      
+      Symbol symb;
+      std::shared_ptr<Internal> parent;
+      std::unordered_map<std::string, Symbol> symbols;
+      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;
+      
+
+      bool resolve (const std::string& s, Symbol& symb) {
+	auto it = symbols.find(s);
+	if (it != symbols.end ()) {
+	  symb = it->second;
+	  return true;
+	}
+	  else if (parent){
+	  return parent->resolve(s,symb);
+	}
+	else {
+	  return false;
+	}
       }
 
-      return Symbol {std::make_unique<data> (std::move(names))};
+
+      
+      template<class S>
+      bool resolveRecursive (const std::string& qname, Symbol& symb, S s) {
+	std::stringstream stream {qname};
+	std::string inp;
+	
+	do   {
+	  std::getline (stream,inp,Symbol::data::delim);  
+	  if (stream.good ()) {
+	    if (s->frames.count(inp))
+	      s = s->frames.at(inp);
+	    else
+	      return false;
+	  }
+	  else  {
+	    if (s->symbols.count(inp)) {
+	      symb = s->symbols.at(inp);
+	      return true;
+	    }
+	    else
+	      return false;
+	    
+	  }
+	}while (stream.good ());
+	
+	return false;
+		
+      }
+      
+      bool qualifiedResolve (const std::string& s, Symbol& symb) {
+	auto p = parent;
+	while (p->parent != nullptr)
+	  p = p->parent;
+	return resolveRecursive (s,symb,p);
+      }
+    };
+    
+    Frame::Frame () : _internal(std::make_shared<Internal> (Symbol{})) {}
+    Frame::~Frame () {}
+
+    
+    
+    Frame Frame::open (const std::string& s) {
+      std::shared_ptr<Internal> _frame{nullptr};
+      auto it  = _internal->frames.find (s);
+      if (it== _internal->frames.end ())
+	throw MiniMC::Support::Exception ("Cannot find frame");
+
+      _frame = it->second;
+      
+      return _frame;
     }
+
+    Frame Frame::create (const std::string& s) {
+      if (_internal->frames.count (s)) {
+	throw MiniMC::Support::Exception ("Frame already exists");
+      }
+      auto _frame = std::make_shared<Internal>(Symbol{_internal->symb,s},_internal);
+      _internal->frames.emplace (s,_frame);
+      
+      return _frame;
+    }
+    
+    Frame Frame::close () {
+      if (!_internal->parent)
+	throw MiniMC::Support::Exception ("Cannot close root scope");
+      return Frame (_internal->parent);
+    }
+
+    bool Frame::resolve (const std::string& s, Symbol& symb) {
+      return _internal->resolve( s,symb);
+    }
+
+    bool Frame::resolveQualified (const std::string& s, Symbol& symb) {
+      return _internal->qualifiedResolve ( s,symb);
+    }
+    
+    
+    Symbol Frame::makeSymbol (const std::string& s) {
+      Symbol symb{_internal->symb,s};
+      _internal->symbols.emplace (s,symb);
+      return symb;
+    }
+
+    
     
   }
 }
