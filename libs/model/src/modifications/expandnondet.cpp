@@ -45,8 +45,8 @@ namespace MiniMC {
 	    }
 
 	    else {
-	      auto nloc = cfa.makeLocation (prev->getInfo ());
-	      auto nnondet = cfa.makeLocation (prev->getInfo ());
+	      auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
+	      auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
 	      
 	      cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
 	      nstr.clear ();

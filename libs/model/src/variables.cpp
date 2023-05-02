@@ -6,7 +6,7 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
-      _internal->variables.push_back(std::make_shared<Register>(Symbol(_internal->pref, std::move(name)),RegisterInfo{_internal->variables.size(), _internal->types}));
+      _internal->variables.push_back(std::make_shared<Register>(std::move(name),RegisterInfo{_internal->variables.size(), _internal->types}));
       _internal->variables.back()->setType(type);
       return _internal->variables.back();
     }

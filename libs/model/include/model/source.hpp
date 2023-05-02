@@ -46,38 +46,32 @@ namespace MiniMC {
     using LocFlags = FlagSet<Attributes>;
     
     struct LocationInfo {
-      explicit LocationInfo(const Symbol& name, LocFlags flags, MiniMC::Model::RegisterDescr registers,  SourceInfo info = SourceInfo{})  : name(name), flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
+      explicit LocationInfo(LocFlags flags, MiniMC::Model::RegisterDescr registers,  SourceInfo info = SourceInfo{})  : flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
       
-      const std::string getName() const { return name.getFullName(); }
+      //const std::string getName() const { return name.getFullName(); }
       const RegisterDescr& getRegisters () const {return active_registers;}
       
       auto& getFlags () const  {return flags;} 
       auto& getFlags () {return flags;} 
       
-      Symbol name;
       LocFlags flags;
       SourceInfo source;
       const MiniMC::Model::RegisterDescr active_registers;
     };
 
-    inline std::ostream& operator<<(std::ostream& os, const LocationInfo& info) {
-      return os << info.getName();
-    }
-
     struct LocationInfoCreator {
-      LocationInfoCreator(const Symbol prefix, const MiniMC::Model::RegisterDescr& regs) : pref(std::move(prefix)),registers(regs) {}
+      LocationInfoCreator(const MiniMC::Model::RegisterDescr& regs) : registers(regs) {}
       
-      LocationInfo make(const std::string& name, LocFlags type, const SourceInfo& info = {}) {
-        return LocationInfo(Symbol{pref,name}, type, registers, info);
+      LocationInfo make(LocFlags type, const SourceInfo& info = {}) {
+        return LocationInfo(type, registers, info);
       }
 
       
       LocationInfo make(const LocationInfo& loc) {	
-        return LocationInfo(Symbol{pref,loc.name.getName ()}, loc.flags, loc.active_registers, loc.source);
+        return LocationInfo(loc.flags, loc.active_registers, loc.source);
       }
 
     private:
-      const Symbol pref;
       const MiniMC::Model::RegisterDescr registers;
     };
 

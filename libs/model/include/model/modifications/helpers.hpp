@@ -61,8 +61,9 @@ namespace MiniMC {
       }
       
       template <class LocInsert, class LocInserter>
-      void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, MiniMC::Model::LocationInfoCreator& linfo) {
-        auto nloc = to.makeLocation(linfo.make(loc->getInfo()));
+      void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, MiniMC::Model::LocationInfoCreator& linfo, Frame frame) {
+	auto info = linfo.make(loc->getInfo());
+	auto nloc = to.makeLocation(frame.makeFresh (),info);
         inserter = std::make_pair(loc.get(), nloc);
         linserter = nloc;
       }
@@ -98,9 +99,12 @@ namespace MiniMC {
                    LocationReplaceMap& locmap,
                    LocInsert lInsert,
                    EdgeInsert eInsert,
-                   MiniMC::Model::LocationInfoCreator& locinfoc) {
+                   MiniMC::Model::LocationInfoCreator& locinfoc,
+		   MiniMC::Model::Frame frame
+		   ) {
         for (auto& loc : from.getLocations()) {
-          auto nloc = to.makeLocation(locinfoc.make(loc->getInfo()));
+	  auto info = locinfoc.make(loc->getInfo());
+          auto nloc = to.makeLocation(frame.makeSymbol (loc->getSymbol ().getName ()),info);
           locmap.insert(std::pair(loc.get(), nloc));
           lInsert = loc;
         }

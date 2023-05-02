@@ -39,7 +39,6 @@ namespace MiniMC {
     private:
       std::shared_ptr<data> _internal;
       Symbol (std::shared_ptr<data>);
-      
     };
     
     
@@ -58,6 +57,7 @@ namespace MiniMC {
       bool resolveQualified (const std::string&, Symbol& s);
       
       Symbol makeSymbol (const std::string& s);
+      Symbol makeFresh ();
       
       
     private:

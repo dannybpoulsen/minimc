@@ -15,13 +15,13 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  cfastate.getLocationState ().getLocation (i).getInfo().getName ();
+	os <<  cfastate.getLocationState ().getLocation (i).getSymbol ().getFullName ();
       }
       os << "]\n";
 
       auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg->getName () << ":\t";
+	  os << reg->getSymbol().getFullName () << ":\t";
 	  
 	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
@@ -47,13 +47,13 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  cfastate.getLocationState ().getLocation (i).getInfo().getName ();
+	os <<  cfastate.getLocationState ().getLocation (i).getSymbol().getName ();
       }
       os << "]\n";
 
       auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg->getName () << ":\t";
+	  os << reg->getSymbol().getFullName () << ":\t";
 	  
 	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);

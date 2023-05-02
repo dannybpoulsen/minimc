@@ -25,7 +25,7 @@ namespace MiniMC {
       while (waiting.size ()) {
 	auto cur = waiting.back ();
 	waiting.pop_back ();
-	os << "    " << "BB" << cur->getID ()<< " " << " {" << cur->getInfo().getName () <<"}\n";
+	os << "    " << "BB" << cur->getID ()<< " " << " {" << cur->getSymbol().getFullName () <<"}\n";
         if(cur->getInfo().getFlags ().isSet(Attributes::AssertViolated)){
           os << "    @AssertViolated\n";
         }
@@ -54,7 +54,7 @@ namespace MiniMC {
       }
       os << "  .parameters" << "\n";
       for (auto& reg : F.getParameters ()) {
-	os << "    " << reg->getName () << "\n";
+	os << "    " << reg->getSymbol ().getFullName () << "\n";
       }
       os << "  .returns" <<  "\n";
       os << "    " << *F.getReturnType () <<"\n";

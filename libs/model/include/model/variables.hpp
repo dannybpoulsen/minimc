@@ -200,10 +200,10 @@ namespace MiniMC {
      * Representation of Variable in MiniMC.
      * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution
      */
-    class Register : public Value{
+    class Register : public Value {
     public:
       Register(const Symbol& name,RegisterInfo&& p);
-      const std::string getName() const { return name.to_string(); }
+      //const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
       }
@@ -226,7 +226,7 @@ namespace MiniMC {
      */
     class RegisterDescr {
     public:
-      RegisterDescr(Symbol pref = Symbol{},RegType tt = RegType::Local) : _internal(std::make_shared<Data>(std::move(pref),tt)) {}
+      RegisterDescr(RegType tt = RegType::Local) : _internal(std::make_shared<Data>(tt)) {}
       RegisterDescr(const RegisterDescr&) = default;
       RegisterDescr(RegisterDescr&&) = default;
       RegisterDescr& operator= (RegisterDescr&&) = default;
@@ -238,12 +238,10 @@ namespace MiniMC {
        * @return Total size in bytes of an activation record
        */
       auto getTotalRegisters() const { return _internal->variables.size(); }
-      auto getPref() const { return _internal->pref; }
     private:
       struct Data {
-	Data (Symbol pref,RegType tt) :pref(std::move(pref)),types(tt) {}
+	Data (RegType tt) : types(tt) {}
 	std::vector<Register_ptr> variables;
-	const Symbol pref;
 	RegType types;
       };
       std::shared_ptr<Data> _internal;

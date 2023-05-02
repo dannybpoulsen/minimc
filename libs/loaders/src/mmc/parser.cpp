@@ -164,7 +164,7 @@ void Parser::function() {
 }
 
 Model::RegisterDescr Parser::registers(Model::Symbol name){
-  MiniMC::Model::RegisterDescr registerDescr{name};
+  MiniMC::Model::RegisterDescr registerDescr;
   
   if(lexer->token() == Token::REGISTERS){
     lexer->advance();
@@ -273,7 +273,8 @@ void Parser::edge(Model::Symbol name, const MiniMC::Model::RegisterDescr& regs, 
           to = locmap->at(to_str.getFullName());
         }
         else {
-          auto location = cfg->makeLocation(locinfoc.make(to_str.getFullName(), {}));
+	  auto info = locinfoc.make(to_str.getFullName(), {});
+          auto location = cfg->makeLocation(info.name,info);
           (*locmap)[to_str.getFullName()] = location;
           to = location;
         }
@@ -307,7 +308,8 @@ Model::Location_ptr Parser::location(Model::CFA* cfg,std::unordered_map<std::str
     if (locmap->contains(index.getFullName())) {
       return locmap->at(index.getFullName());
     } else {
-      auto location = cfg->makeLocation(locinfoc.make(name.getFullName(), {}));
+      auto info = locinfoc.make(name.getFullName(), {});
+      auto location = cfg->makeLocation(info.name,info);
       if (locmap->size() == 0) {
         (*locmap)["Initial"] = location;
       }
@@ -762,7 +764,7 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
       std::for_each(
           variables.begin(), variables.end(),
           [&ret, &t, &var, &loop_end, this](auto rptr) {
-            if (rptr->getName() == var.getFullName() &&
+            if (rptr->getSymbol().getFullName() == var.getFullName() &&
                 t->getTypeID() == rptr->getType()->getTypeID()) {
               if (!ret) {
                 ret = rptr;
@@ -775,7 +777,7 @@ Model::Value_ptr Parser::value(std::vector<MiniMC::Model::Register_ptr> variable
           });
       if (loop_end) {
 	for (auto& reg : prgm->getCPURegs ().getRegisters ()) {
-	  if (reg->getName () == var.getFullName ())
+	  if (reg->getSymbol().getFullName () == var.getFullName ())
 	    return reg;
 	}
 	

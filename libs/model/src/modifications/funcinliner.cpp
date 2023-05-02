@@ -10,9 +10,10 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc, size_t depth = 10) {
+      void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc, size_t depth, MiniMC::Model::Frame cframe) {
         if (!depth)
           throw MiniMC::Support::Exception("Inlining Depth exceeded");
+	
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
         auto& instrs = edge->getInstructions();
@@ -21,10 +22,11 @@ namespace MiniMC {
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
 	auto cfunc = prgm.getFunction(MiniMC::getFunctionId(loadPtr));
-        MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
+	auto frame = cframe.create (cfunc->getSymbol ().getName ());
+	MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {
-            valmap.insert(std::make_pair(v.get(), func->getRegisterDescr().addRegister(v->getSymbol(), v->getType())));
+            valmap.insert(std::make_pair(v.get(), func->getRegisterDescr().addRegister(frame.makeSymbol (v->getSymbol ().getName ()), v->getType())));
           }
         };
 
@@ -34,14 +36,15 @@ namespace MiniMC {
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
-        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, std::back_inserter(nlocs), wlist.inserter(), locinfoc,frame);
 
         for (auto& ne : wlist) {
-	  auto ninstr = ne->getInstructions ();
+	  auto& ninstr = ne->getInstructions ();
 	  auto ne_from = ne->getFrom ();
-	  
+	  if (!ninstr)
+	    continue;
 	  if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::Call) {
-	    inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1);
+	    inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1,frame);
 	  }
 	  
 	  else if (ninstr.last().getOpcode() == MiniMC::Model::InstructionCode::RetVoid) {
@@ -59,7 +62,7 @@ namespace MiniMC {
 				  );
 	    cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 	    cfunc->getCFA ().deleteEdge (ne.get());
-
+	    
 	  }
           
         }
@@ -84,7 +87,7 @@ namespace MiniMC {
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
-        MiniMC::Model::LocationInfoCreator linfoc(F->getSymbol(),F->getRegisterDescr ());
+        MiniMC::Model::LocationInfoCreator linfoc(F->getRegisterDescr ());
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
         auto inserter = wlist.inserter();
         auto& cfg = F->getCFA();
@@ -94,8 +97,8 @@ namespace MiniMC {
         for (auto& e : wlist) {
           if (e->getInstructions () &&
               e->getInstructions().last().getOpcode() ==
-                  MiniMC::Model::InstructionCode::Call) {
-            inlineCallEdgeToFunction(prgm,F, e, linfoc, depth);
+	      MiniMC::Model::InstructionCode::Call) {
+            inlineCallEdgeToFunction(prgm,F, e, linfoc, depth, F->getFrame ());
           }
         }
 

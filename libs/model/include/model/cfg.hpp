@@ -43,8 +43,8 @@ namespace MiniMC {
       CFA () {}
       CFA (const CFA& ) = delete;
       CFA (CFA&& ) = default;
-      Location_ptr makeLocation(const LocationInfo& info) {
-        locations.emplace_back(new Location(info, locations.size()));
+      Location_ptr makeLocation(MiniMC::Model::Symbol symbol, const LocationInfo& info) {
+        locations.emplace_back(new Location(symbol,info, locations.size()));
         return locations.back();
       }
 
@@ -128,7 +128,8 @@ namespace MiniMC {
                RegisterDescr&& registerdescr,
 	       CFA&& cfa,
                Program& prgm,
-	       bool varargs
+	       bool varargs,
+	       MiniMC::Model::Frame frame
 	       ) : name(name),
 		   parameters(params),
 		   registerdescr(std::move(registerdescr)),
@@ -136,7 +137,8 @@ namespace MiniMC {
 		   id(id),
 		   prgm(prgm),
 		   retType(rtype),
-		   varargs(varargs)
+		   varargs(varargs),
+		   frame(frame)
                                           
       {
       }
@@ -150,6 +152,7 @@ namespace MiniMC {
       
       auto& getID() const { return id; }
       auto& getReturnType() const { return retType; }
+      auto& getFrame () {return frame;}
       Program& getPrgm() const { return prgm; }
       auto isVarArgs () const {return varargs;}
     private:
@@ -161,6 +164,7 @@ namespace MiniMC {
       Program& prgm;
       Type_ptr retType;
       bool varargs;
+      MiniMC::Model::Frame frame;
     };
     
     class Program  {
@@ -169,7 +173,7 @@ namespace MiniMC {
               const MiniMC::Model::ConstantFactory_ptr& cfact
 	      ) : cfact(cfact),
 		  tfact(tfact),
-		  cpu_regs(Symbol{"_cpu_"},RegType::CPU)
+		  cpu_regs(RegType::CPU)
       {
       }
 
@@ -180,9 +184,10 @@ namespace MiniMC {
 			       const Type_ptr retType,
 			       RegisterDescr&& registerdescr,
 			       CFA&& cfg,
-			       bool varargs
+			       bool varargs,
+			       Frame frame
 		) {
-        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs));
+        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
         function_map.insert(std::make_pair(name, functions.back()));
         return functions.back();
       }
@@ -202,7 +207,7 @@ namespace MiniMC {
         if (function_map.count(name)) {
           return function_map.at(name);
         }
-
+	
         throw MiniMC::Support::FunctionDoesNotExist(name);
       }
 
@@ -227,7 +232,7 @@ namespace MiniMC {
       auto& getCPURegs () {return cpu_regs;}
       const auto& getCPURegs () const  {return cpu_regs;}
       
-      
+      auto& getRootFrame () {return frame;}
     private:
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
@@ -237,6 +242,7 @@ namespace MiniMC {
       std::unordered_map<std::string, Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;
+      MiniMC::Model::Frame frame;
     };
     
     Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);

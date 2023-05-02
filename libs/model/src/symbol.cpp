@@ -38,6 +38,7 @@ namespace MiniMC {
     };
 
     
+    
     std::string Symbol::getName () const {
 	return _internal->name;
     }
@@ -117,12 +118,7 @@ namespace MiniMC {
       Internal (Symbol symb) : symb(symb) {}
       Internal (Symbol symb,std::shared_ptr<Internal> p) : symb(symb),parent(p) {}
       
-      Symbol symb;
-      std::shared_ptr<Internal> parent;
-      std::unordered_map<std::string, Symbol> symbols;
-      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;
       
-
       bool resolve (const std::string& s, Symbol& symb) {
 	auto it = symbols.find(s);
 	if (it != symbols.end ()) {
@@ -173,6 +169,15 @@ namespace MiniMC {
 	  p = p->parent;
 	return resolveRecursive (s,symb,p);
       }
+
+      Symbol symb;
+      std::shared_ptr<Internal> parent;
+      std::unordered_map<std::string, Symbol> symbols;
+      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;
+      std::size_t fresh_counter{0};
+      
+      
+      
     };
     
     Frame::Frame () : _internal(std::make_shared<Internal> (Symbol{})) {}
@@ -221,7 +226,21 @@ namespace MiniMC {
       _internal->symbols.emplace (s,symb);
       return symb;
     }
+    
+    Symbol Frame::makeFresh () {
+      auto newName = [this]() {
+	std::stringstream str;
+	str << "_" << ++_internal->fresh_counter;
+	return str.str();
+      };
+      
+      while(true) {
+	auto freshname = newName ();
+	if (!_internal->symbols.count(freshname))
+	  return makeSymbol (freshname);
+      }
 
+    }
     
     
   }

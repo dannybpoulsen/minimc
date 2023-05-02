@@ -18,9 +18,13 @@ namespace MiniMC {
     public:
       EdgeBuilder (MiniMC::Model::CFA& cfa,
 		   const MiniMC::Model::Location_ptr& from,
-		   const MiniMC::Model::Location_ptr& to) : cfa(cfa),
-						    from(from),
-						    to(to) {
+		   const MiniMC::Model::Location_ptr& to,
+		   MiniMC::Model::Frame& frame
+		   ) :
+	cfa(cfa),
+	from(from),
+	to(to),
+	frame(frame){
       }
 
       ~EdgeBuilder () {
@@ -37,9 +41,9 @@ namespace MiniMC {
 		      code ==MiniMC::Model::InstructionCode::NegAssume ||
 		      code ==MiniMC::Model::InstructionCode::Assert
 		      ){
-	  auto nto = cfa.makeLocation (from->getInfo ());
+	  auto nto = cfa.makeLocation (frame.makeFresh (), from->getInfo ());
 	  cfa.makeEdge (from,nto,std::move(stream));
-	  from = cfa.makeLocation (from->getInfo ());
+	  from = cfa.makeLocation (frame.makeFresh (),from->getInfo ());
 	  
 	  cfa.makeEdge (nto,from,MiniMC::Model::InstructionStream({instr}));
 	  
@@ -71,6 +75,7 @@ namespace MiniMC {
       MiniMC::Model::Location_ptr from;
       MiniMC::Model::Location_ptr to;
       MiniMC::Model::InstructionStream stream;
+      MiniMC::Model::Frame frame;
     };
     
     

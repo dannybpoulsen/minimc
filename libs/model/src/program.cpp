@@ -12,10 +12,10 @@ namespace MiniMC {
       using RegReplaceMap = std::unordered_map<Register_ptr,Register_ptr>;
       
       Copier (Program& program) : program(program) { }
-      void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack) {
+      void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
 	
 	for (auto& v : vars.getRegisters ()) {
-	  map.emplace (v,stack.addRegister (MiniMC::Model::Symbol{v->getSymbol().getName ()},v->getType ()));
+	  map.emplace (v,stack.addRegister (frame.makeSymbol (v->getSymbol().getName ()),v->getType ()));
 	}
       }
       
@@ -42,13 +42,14 @@ namespace MiniMC {
       }
       
       auto copyCFA (const MiniMC::Model::CFA& cfa,
-		    const RegReplaceMap& vars
+		    const RegReplaceMap& vars,
+		    Frame& frame
 		    ) {
 	MiniMC::Model::CFA ncfa;
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
 
 	for (auto& loc : cfa.getLocations ()) {
-	  locMap.emplace (loc,ncfa.makeLocation (loc->getInfo ()));
+	  locMap.emplace (loc,ncfa.makeLocation (frame.makeSymbol (loc->getSymbol ().getName ()), loc->getInfo ()));
 	}
 
 	ncfa.setInitial (locMap.at(cfa.getInitialLocation ()));
@@ -66,28 +67,31 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function,RegReplaceMap map) {
-	MiniMC::Model::RegisterDescr varstack{function->getSymbol (),MiniMC::Model::RegType::Local};
-	copyVariables (function->getRegisterDescr (),map,varstack);
+	auto frame = program.getRootFrame ().create (function->getSymbol().getName ());
+	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
+	copyVariables (function->getRegisterDescr (),map,varstack,frame);
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
 		       [&map,&parameters](auto& vv) {parameters.push_back (map.at (vv));}
 		       );
-	auto cfa = copyCFA (function->getCFA (),map);
+	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();
 	return program.addFunction (function->getSymbol ().getName(),
 				    parameters,
 				    retType,
 				    std::move(varstack),
 				    std::move(cfa),
-				    function->isVarArgs ());
+				    function->isVarArgs (),
+				    frame
+				    );
       }
 
       
       
       void copyProgram (const Program& p) {
 	RegReplaceMap replace_map;
-	copyVariables (p.getCPURegs (),replace_map,program.getCPURegs ());
+	copyVariables (p.getCPURegs (),replace_map,program.getCPURegs (),program.getRootFrame());
 	
 	for (auto f : p.getFunctions ()) {
 	  copyFunction (f,replace_map);

@@ -26,8 +26,8 @@ namespace MiniMC {
 
       using edge_iterator = std::vector<Edge*>::iterator;
 
-      Location(const LocationInfo& n, MiniMC::offset_t id) : info(n), id(id) {}
-
+      Location(MiniMC::Model::Symbol symb,const LocationInfo& n, MiniMC::offset_t id) : symb(symb),info(n), id(id) {}
+      
       void addEdge(Edge* e) { edges.push_back(e); }
       void addIncomingEdge(Edge* e) { incomingEdges.push_back(e); }
       /** 
@@ -83,9 +83,10 @@ namespace MiniMC {
       auto nbIncomingEdges() const {
         return incomingEdges.size();
       }
-
+      
       MiniMC::offset_t getID() const { return id; }
-
+      const auto& getSymbol () const {return symb;}
+      
       bool isOutgoing(const MiniMC::Model::Edge_ptr& e) {
         auto it = std::find_if(edges.begin(), edges.end(),
                                [&e](auto& ptr1) {
@@ -136,10 +137,12 @@ namespace MiniMC {
       }
 
     private:
+      MiniMC::Model::Symbol symb;
       std::vector<Edge*> edges;
       std::vector<Edge*> incomingEdges;
       LocationInfo info;
       MiniMC::offset_t id;
+
     };
 
     using Location_ptr = std::shared_ptr<Location>;
