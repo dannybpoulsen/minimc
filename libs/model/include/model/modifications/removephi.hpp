@@ -15,15 +15,16 @@ namespace MiniMC {
         virtual bool run(MiniMC::Model::Program& prgm) {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
-              if (E->getInstructions () ) {
+	      auto frame = F->getFrame ();
+	      if (E->getInstructions () ) {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
                 std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
                 if (E->isPhi ()) {
                   for (auto& inst : instrstream) {
-                    auto& content = inst.getOps<InstructionCode::Assign>();
-                    auto nvar = F->getRegisterDescr().addRegister(
-								  Symbol(std::static_pointer_cast<Register>( content.res)->getSymbol().getFullName() + "PHI-tmp"), content.res->getType());
+		    
+		    auto& content = inst.getOps<InstructionCode::Assign>();
+                    auto nvar = F->getRegisterDescr().addRegister( frame.makeFresh ("Phi"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 
                     stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), content.op1);

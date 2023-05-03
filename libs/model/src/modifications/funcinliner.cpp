@@ -12,7 +12,7 @@ namespace MiniMC {
 
       void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc, size_t depth, MiniMC::Model::Frame cframe) {
         if (!depth)
-          throw MiniMC::Support::Exception("Inlining Depth exceeded");
+          //throw MiniMC::Support::Exception("Inlining Depth exceeded");
 	
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
@@ -23,16 +23,16 @@ namespace MiniMC {
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
 	auto cfunc = prgm.getFunction(MiniMC::getFunctionId(loadPtr));
 	auto frame = cframe.create (cfunc->getSymbol ().getName ());
-	MiniMC::Model::Modifications::ReplaceMap<MiniMC::Model::Value> valmap;
+	MiniMC::Model::Modifications::ValueReplaceMap valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
           for (auto& v : stack.getRegisters()) {
-            valmap.insert(std::make_pair(v.get(), func->getRegisterDescr().addRegister(frame.makeSymbol (v->getSymbol ().getName ()), v->getType())));
+            valmap.insert(std::make_pair(v->getSymbol (), func->getRegisterDescr().addRegister(frame.makeSymbol (v->getSymbol ().getName ()), v->getType())));
           }
         };
 
         copyVar(cfunc->getRegisterDescr());
 
-        ReplaceMap<MiniMC::Model::Location> locmap;
+        LocationReplaceMap locmap;
         std::vector<Location_ptr> nlocs;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 
@@ -69,19 +69,20 @@ namespace MiniMC {
 
         
         auto& parameters = cfunc->getParameters();
-        auto it = parameters.begin();
+        
         MiniMC::Model::InstructionStream str;
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
           str.add(*it);
-        }
-        for (size_t i = 0; i < call_content.params.size (); i++, it++) {
+        }	
+	auto it = parameters.begin();
+	for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
           str.add<InstructionCode::Assign> (
-					 valmap.at(it->get()),
+					    valmap.at(std::static_pointer_cast<MiniMC::Model::Register> (*it)->getSymbol ()),
 					  call_content.params.at(i));  
         }
 
-	cfunc->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation().get()),std::move(str));
+	cfunc->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation()->getSymbol ()),std::move(str));
 	cfunc->getCFA ().deleteEdge (edge.get ());
 	
       }

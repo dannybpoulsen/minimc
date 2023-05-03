@@ -42,24 +42,28 @@ namespace MiniMC {
 		     std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values,
 		     MiniMC::Model::RegisterDescr& descr,
 		     const MiniMC::Model::Value_ptr& sp,
-		     const MiniMC::Model::Value_ptr& sp_mem
-		     ) : GLoadContext(cfact,tfact,std::move(values)),stack(descr),sp(sp),sp_mem(sp_mem) {}
+		     const MiniMC::Model::Value_ptr& sp_mem,
+		     MiniMC::Model::Frame frame
+		     ) : GLoadContext(cfact,tfact,std::move(values)),stack(descr),sp(sp),sp_mem(sp_mem),frame(frame) {}
       LoadContext (const LoadContext& ) = delete;
       LoadContext ( const GLoadContext& c,
 		    MiniMC::Model::RegisterDescr& descr,
 		    const MiniMC::Model::Value_ptr& sp,
-		    const MiniMC::Model::Value_ptr& sp_mem
-		    ) : GLoadContext(c),stack(descr),sp(sp),sp_mem(sp_mem) {
+		    const MiniMC::Model::Value_ptr& sp_mem,
+		    MiniMC::Model::Frame frame
+		    ) : GLoadContext(c),stack(descr),sp(sp),sp_mem(sp_mem),frame(frame) {
 	
       }
       auto& getStack () {return stack;}
       auto& getStackPointerMem () {return sp_mem;}
       auto& getStackPointer () {return sp;}
+      auto& getFrame () {return frame;}
     private:
       
       MiniMC::Model::RegisterDescr& stack;
       MiniMC::Model::Value_ptr sp;
       MiniMC::Model::Value_ptr sp_mem;
+      MiniMC::Model::Frame frame;
     };
 
     struct InstructionTranslator {
@@ -205,7 +209,7 @@ namespace MiniMC {
 	  
 	  else if (val->getType()->isInteger ()) {
 	    auto ntype = context.getTypeFactory ().makeBoolType();
-	    auto nvar = context.getStack().addRegister(MiniMC::Model::Symbol{"BVar"}, ntype);
+	    auto nvar = context.getStack().addRegister(context.getFrame ().makeFresh ("bool"), ntype);
 	    gather.
 	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>({nvar, val}).
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>({nvar});

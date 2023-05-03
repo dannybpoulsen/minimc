@@ -1,6 +1,6 @@
 #include "model/symbol.hpp"
 #include "support/exceptions.hpp"
-
+#include "hash/hashing.hpp"
 
 #include <string>
 #include <ostream>
@@ -31,10 +31,26 @@ namespace MiniMC {
       bool isRoot () const {
 	return parent == nullptr && name == "";
       }
+
+      MiniMC::Hash::hash_t hash () const {
+	if (!_hash) {
+	  MiniMC::Hash::Hasher hasher;
+	  hasher << name;
+	  if (parent)
+	    hasher << *parent;
+	  _hash = hasher;
+	}
+	return _hash;
+      }
       
+      bool operator== (const data& d) const {
+	return name == d.name && parent == d.parent;
+      } 
+
       
       std::shared_ptr<data> parent;
       std::string name;
+      mutable MiniMC::Hash::hash_t _hash{0};
     };
 
     
@@ -61,7 +77,10 @@ namespace MiniMC {
       return *this;
     }
     
-
+    bool Symbol::operator== (const Symbol& d) const {
+      return *_internal == *d._internal;
+    } 
+    
     Symbol::Symbol (const Symbol& pref, Symbol&& end) {
       if (end._internal->parent) {
 	throw MiniMC::Support::Exception ("Cannot concatenate a non-root element to another symbol");	
@@ -78,8 +97,10 @@ namespace MiniMC {
     Symbol::Symbol (std::shared_ptr<data> data) : _internal(std::move(data)) {   
     }
     
-    
-    
+    MiniMC::Hash::hash_t Symbol::hash () const {
+      return _internal->hash ();
+    }
+
     
     //assumtion hasPrefix() == true
     Symbol Symbol::prefix () const {
@@ -173,11 +194,7 @@ namespace MiniMC {
       Symbol symb;
       std::shared_ptr<Internal> parent;
       std::unordered_map<std::string, Symbol> symbols;
-      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;
-      std::size_t fresh_counter{0};
-      
-      
-      
+      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;      
     };
     
     Frame::Frame () : _internal(std::make_shared<Internal> (Symbol{})) {}
@@ -227,10 +244,11 @@ namespace MiniMC {
       return symb;
     }
     
-    Symbol Frame::makeFresh () {
-      auto newName = [this]() {
+    Symbol Frame::makeFresh (const std::string& first) {
+      std::size_t fresh_counter{0};
+      auto newName = [first,&fresh_counter]() {
 	std::stringstream str;
-	str << "_" << ++_internal->fresh_counter;
+	str << "__minimc." << first << "_" <<++ fresh_counter;
 	return str.str();
       };
       
@@ -245,3 +263,4 @@ namespace MiniMC {
     
   }
 }
+

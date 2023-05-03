@@ -7,6 +7,19 @@
 
 uint64_t hash_impl(const void* addr, std::size_t len, uint64_t seed);
 
+template <typename T>
+concept Hashable = requires (const T a) {
+  a.hash ();
+};
+
+namespace std {
+  template<Hashable T> 
+  struct hash<T> {
+    auto operator() (const T& t) const  {return t.hash ();}
+  };
+}
+
+
 namespace MiniMC {
   namespace Hash {
     using hash_t = uint64_t;
@@ -38,16 +51,5 @@ namespace MiniMC {
   } // namespace Hash
 } // namespace MiniMC
 
-template <typename T>
-concept Hashable = requires (const T a) {
-  a.hash ();
-};
-
-namespace std {
-  template<Hashable T> 
-  struct hash<T> {
-    auto operator() (const T& t) {return t.hash ();}
-  };
-}
 
 #endif

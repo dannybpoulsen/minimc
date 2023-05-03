@@ -64,10 +64,10 @@ namespace MiniMC {
       auto funcpointer = program.getConstantFactory().makeFunctionPointer(function->getID());
       funcpointer->setType (program.getTypeFactory ().makePointerType ());
       auto iinfo = locinf.make({});
-      auto init = cfg.makeLocation(frame.makeSymbol ("init"),iinfo);
+      auto init = cfg.makeLocation(frame.makeFresh ("init"),iinfo);
       auto einfo = locinf.make({});
       
-      auto end = cfg.makeLocation(frame.makeSymbol ("end"),einfo);
+      auto end = cfg.makeLocation(frame.makeFresh ("end"),einfo);
       
       cfg.setInitial(init);
       
@@ -78,7 +78,7 @@ namespace MiniMC {
       params.push_back(sp);
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack.addRegister(MiniMC::Model::Symbol{"_"}, restype);
+        result = vstack.addRegister(frame.makeFresh (), restype);
       }
       MiniMC::Model::EdgeBuilder builder {cfg,init,end,frame};
       
@@ -166,16 +166,16 @@ namespace MiniMC {
 	  std::vector<MiniMC::Model::Register_ptr> params;
 	  MiniMC::Model::RegisterDescr variablestack;
 	  MiniMC::Model::LocationInfoCreator locinfoc(variablestack);
-	  auto sp = variablestack.addRegister (frame.makeSymbol ("__minimc.sp"), lcontext.getTypeFactory().makePointerType ());
-	  auto sp_mem = variablestack.addRegister (frame.makeSymbol ("__minimc.sp_mem"), lcontext.getTypeFactory().makePointerType ());
+	  auto sp = variablestack.addRegister (frame.makeFresh ("sp"), lcontext.getTypeFactory().makePointerType ());
+	  auto sp_mem = variablestack.addRegister (frame.makeFresh ("sp_mem"), lcontext.getTypeFactory().makePointerType ());
 	  
-	  LoadContext load{lcontext,variablestack, sp, sp_mem};
+	  LoadContext load{lcontext,variablestack, sp, sp_mem,frame};
 	  auto returnTy = load.getType(F.getReturnType());
 	  
-	  auto makeVariable = [&load](auto val) {
+	  auto makeVariable = [&load,&frame](auto val) {
 	    if (!load.hasValue (val)) {
 	      auto type = load.getType (val->getType ());
-	      load.addValue (val,load.getStack().addRegister (MiniMC::Model::Symbol{val->getName().str()},type));
+	      load.addValue (val,load.getStack().addRegister (frame.makeSymbol (val->getName().str()),type));
 	    }
 	    return load.findValue (val);
 	  };
@@ -234,7 +234,7 @@ namespace MiniMC {
 		  throw MiniMC::Support::Exception("Error");
 		}
 	  
-		auto retVar = variablestack.addRegister (MiniMC::Model::Symbol{"_ret_"},returnTy);
+		auto retVar = variablestack.addRegister (frame.makeFresh (),returnTy);
 		
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet> ({.res = retVar, .min = min,.max=max});
 		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret> ({retVar});
@@ -346,18 +346,18 @@ namespace MiniMC {
 		  for (std::size_t i = 0; i < dests; ++i) {
 		    auto splitloc = cfg.makeLocation (frame.makeFresh (),to->getInfo ());
 		    auto dest = enqueue (brterm->getDestination (i));
-		  auto valComp = load.findValue(brterm->getDestination(i));
-		  auto btype = load.getTypeFactory().makeBoolType();
-		  auto cond = load.getStack().addRegister(frame.makeFresh (), btype);
-		  
-		  MiniMC::Model::EdgeBuilder {cfg,to,splitloc,frame}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({
-		      cond,
-		      value,
-		      valComp}).
-		    addInstr<MiniMC::Model::InstructionCode::Assume> ({
-			cond}
+		    auto valComp = load.findValue(brterm->getDestination(i));
+		    auto btype = load.getTypeFactory().makeBoolType();
+		    auto cond = load.getStack().addRegister(frame.makeFresh (), btype);
+		    
+		    MiniMC::Model::EdgeBuilder {cfg,to,splitloc,frame}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({
+			cond,
+			value,
+			valComp}).
+		      addInstr<MiniMC::Model::InstructionCode::Assume> ({
+			  cond}
 		      );
-		  buildphi (cur_bb,brterm->getDestination (i),MiniMC::Model::EdgeBuilder<true> {cfg,splitloc,dest,frame});
+		    buildphi (cur_bb,brterm->getDestination (i),MiniMC::Model::EdgeBuilder<true> {cfg,splitloc,dest,frame});
 		  }
 		}
 		else if (term->getOpcode() == llvm::Instruction::Ret) {
@@ -420,7 +420,8 @@ namespace MiniMC {
       
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
         auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
-	prgm->getCPURegs ().addRegister (MiniMC::Model::Symbol{"__minimc.sp"}, tfac->makePointerType ());
+	
+	prgm->getCPURegs ().addRegister (prgm->getRootFrame().makeFresh ("sp"), tfac->makePointerType ());
 	GLoadContext lcontext {*cfac,*tfac};
 	
 	

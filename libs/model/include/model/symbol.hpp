@@ -7,17 +7,16 @@
 #include <sstream>
 #include <list>
 
+#include "hash/hashing.hpp"
+
 namespace MiniMC {
   namespace Model {
     class Symbol {
     public:
+      friend class Frame;
       static Symbol from_string (const  std::string& );
-      explicit Symbol (const std::string&);
       Symbol ();
-      
       Symbol (const Symbol&);
-      Symbol (const Symbol&, std::string name);
-      Symbol (const Symbol&, Symbol&&);
       
       ~Symbol ();
       
@@ -33,8 +32,14 @@ namespace MiniMC {
       std::string getName () const;
       std::string getFullName () const {return to_string ();}
 
+      MiniMC::Hash::hash_t hash () const;
+      bool operator== (const Symbol& d) const ;
       
       struct data;
+    protected:
+      explicit Symbol (const std::string&);
+      Symbol (const Symbol&, std::string name);
+      Symbol (const Symbol&, Symbol&&);
       
     private:
       std::shared_ptr<data> _internal;
@@ -57,7 +62,7 @@ namespace MiniMC {
       bool resolveQualified (const std::string&, Symbol& s);
       
       Symbol makeSymbol (const std::string& s);
-      Symbol makeFresh ();
+      Symbol makeFresh (const std::string& = "fresh");
       
       
     private:
@@ -81,7 +86,9 @@ namespace MiniMC {
       str << *this;
       return str.str ();
     }
-    
+
+    template<class T>
+    using SymbolTable = std::unordered_map<Symbol, T>;
     
   }
 }

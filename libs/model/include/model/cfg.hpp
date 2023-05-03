@@ -187,7 +187,8 @@ namespace MiniMC {
 			       bool varargs,
 			       Frame frame
 		) {
-        functions.push_back(std::make_shared<Function>(functions.size(), MiniMC::Model::Symbol{name}, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
+	auto symbol = frame.makeSymbol (name);
+        functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
         function_map.insert(std::make_pair(name, functions.back()));
         return functions.back();
       }

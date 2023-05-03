@@ -11,14 +11,14 @@ namespace MiniMC {
 
       template <class LocInserter>
       void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::LocationInfoCreator& locInf,Frame& frame ) {
-        std::vector<ReplaceMap<MiniMC::Model::Location>> unrolledLocations;
+        std::vector<LocationReplaceMap> unrolledLocations;
 	auto inf = locInf.make ( {});
 	auto deadLoc = cfg.makeLocation(frame.makeFresh (),inf);
         deadLoc->getInfo().getFlags() |= MiniMC::Model::Attributes::UnrollFailed ;
         for (size_t i = 0; i < amount; i++) {
           std::stringstream str;
           str << "L" << i;
-          ReplaceMap<MiniMC::Model::Location> map;
+          LocationReplaceMap map;
           auto inserter = std::inserter(map, map.begin());
           copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf,frame);
 
@@ -28,7 +28,7 @@ namespace MiniMC {
 
         std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
 	  auto instructions = e->getInstructions ();
-	  cfg.makeEdge (e->getFrom (),unrolledLocations[0].at(loop->getHeader().get()),std::move(instructions),e->isPhi ());
+	  cfg.makeEdge (e->getFrom (),unrolledLocations[0].at(loop->getHeader()->getSymbol ()),std::move(instructions),e->isPhi ());
 	  cfg.deleteEdge (e);
 	});
 
@@ -39,11 +39,11 @@ namespace MiniMC {
 
           std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
             auto& locmap = unrolledLocations[i];
-            MiniMC::Model::Location_ptr from = locmap.at(e->getFrom().get());
+            MiniMC::Model::Location_ptr from = locmap.at(e->getFrom()->getSymbol());
             MiniMC::Model::Location_ptr to;
 
             if (i < amount - 1) {
-              to = unrolledLocations[i + 1].at(loop->getHeader().get());
+              to = unrolledLocations[i + 1].at(loop->getHeader()->getSymbol ());
             } else
               to = deadLoc;
             auto nedge = cfg.makeEdge(from, to,MiniMC::Model::InstructionStream{e->getInstructions ()});
