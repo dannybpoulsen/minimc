@@ -10,12 +10,8 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
-      using ValueReplaceMap = MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr>;//ReplaceMap<MiniMC::Model::Value, MiniMC::Model::Value_ptr>;
-      using LocationReplaceMap = MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr>;//ReplaceMap<MiniMC::Model::Location, MiniMC::Model::Location_ptr>;
-
-
       inline void copyEdge(const MiniMC::Model::Edge* edge,
-                              const LocationReplaceMap& locs,
+                              const MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr>& locs,
                               MiniMC::Model::CFA& cfg) {
 
         auto to = (locs.count(edge->getTo()->getSymbol())) ? locs.at(edge->getTo()->getSymbol()) : edge->getTo();
@@ -39,8 +35,8 @@ namespace MiniMC {
       
       template <class Inserter>
       void copyEdgeAndReplace(const MiniMC::Model::Edge_ptr& edge,
-                              const ValueReplaceMap& val,
-                              const LocationReplaceMap& locs,
+                              const MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr>& val,
+                              const MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr>& locs,
                               MiniMC::Model::CFA& cfg,
                               Inserter insertTo) {
         auto to = (locs.count(edge->getTo()->getSymbol())) ? locs.at(edge->getTo()->getSymbol ()) : edge->getTo();
@@ -66,12 +62,11 @@ namespace MiniMC {
         insertTo = cfg.makeEdge(from, to,std::move(nstr),edge->isPhi ());
       }
 
-      template <class LocInsert, class EdgeInsert>
+      template <class EdgeInsert>
       void copyCFG(const MiniMC::Model::CFA& from,
-                   ValueReplaceMap& val,
+                   MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr>& val,
                    MiniMC::Model::CFA& to,
-                   LocationReplaceMap& locmap,
-                   LocInsert lInsert,
+                   MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr>& locmap,
                    EdgeInsert eInsert,
                    MiniMC::Model::LocationInfoCreator& locinfoc,
 		   MiniMC::Model::Frame frame
@@ -80,7 +75,6 @@ namespace MiniMC {
 	  auto info = locinfoc.make(loc->getInfo());
           auto nloc = to.makeLocation(frame.makeSymbol (loc->getSymbol ().getName ()),info);
           locmap.insert(std::pair(loc->getSymbol (), nloc));
-          lInsert = loc;
         }
 
         for (auto& e : from.getEdges()) {

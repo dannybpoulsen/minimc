@@ -11,14 +11,14 @@ namespace MiniMC {
 
       template <class LocInserter>
       void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::LocationInfoCreator& locInf,Frame& frame ) {
-        std::vector<LocationReplaceMap> unrolledLocations;
+        std::vector<SymbolTable<MiniMC::Model::Location_ptr>> unrolledLocations;
 	auto inf = locInf.make ( {});
 	auto deadLoc = cfg.makeLocation(frame.makeFresh (),inf);
         deadLoc->getInfo().getFlags() |= MiniMC::Model::Attributes::UnrollFailed ;
         for (size_t i = 0; i < amount; i++) {
           std::stringstream str;
           str << "L" << i;
-          LocationReplaceMap map;
+          SymbolTable<MiniMC::Model::Location_ptr> map;
           auto inserter = std::inserter(map, map.begin());
           copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf,frame);
 

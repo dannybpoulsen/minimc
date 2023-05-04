@@ -8,7 +8,7 @@
 namespace MiniMC {
   namespace Model {
     namespace Analysis {
-
+      
       Loop_ptr constructLoop(
           const MiniMC::Model::Location_ptr& head,
           const MiniMC::Model::Location_ptr& latch) {

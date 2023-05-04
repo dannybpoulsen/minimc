@@ -14,6 +14,7 @@ namespace MiniMC {
     template <class Element, class Container = std::vector<Element>>
     class WorkingList {
     public:
+      explicit operator bool () {return size ();}
       auto inserter() { return std::back_inserter(container); }
       auto begin() { return container.begin(); }
       auto end() { return container.end(); }
