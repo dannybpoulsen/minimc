@@ -40,13 +40,15 @@ namespace MiniMC {
     };
     
     using IntOption = TOption<std::size_t>;
+    using BoolOption = TOption<bool>;
     using StringOption = TOption<std::string>;
     using VecStringOption = TOption<std::vector<std::string>>;
     
     
     using LoaderOption = std::variant<IntOption,
                                       StringOption,
-				      VecStringOption>;
+				      VecStringOption,
+				      BoolOption>;
 
     struct Loader {
       Loader(MiniMC::Model::TypeFactory_ptr& tfac,

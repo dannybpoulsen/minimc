@@ -101,8 +101,10 @@ namespace MiniMC {
       LLVMLoader (MiniMC::Model::TypeFactory_ptr& tfac,
 		  Model::ConstantFactory_ptr& cfac,
 		  std::size_t stacksize,
-		  std::vector<std::string> entry
-		  ) : Loader (tfac,cfac),stacksize(stacksize),entry(entry) {}
+		  std::vector<std::string> entry,
+		  bool disablePromotion,
+		  bool printPass
+		  ) : Loader (tfac,cfac),stacksize(stacksize),entry(entry),disablePromotion(disablePromotion),printLLVMPass(printPass) {}
       LoadResult loadFromFile(const std::string& file) override {
         std::fstream str;
         str.open(file);
@@ -397,14 +399,15 @@ namespace MiniMC {
 
         funcmanagerllvm.addPass(ConstExprRemover());
         funcmanagerllvm.addPass(RemoveUnusedInstructions());
-        funcmanager.addPass(llvm::PromotePass());
+	if (!disablePromotion)
+	  funcmanager.addPass(llvm::PromotePass());
         funcmanagerllvm.addPass(GetElementPtrSimplifier());
         funcmanagerllvm.addPass(InstructionNamer());
-        
         mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanagerllvm)));
-	// mpm.addPass(llvm::PrintModulePass(llvm::errs()));
 	mpm.addPass(llvm::createModuleToFunctionPassAdaptor(std::move(funcmanager)));
-	
+	if (printLLVMPass)
+	  mpm.addPass(llvm::PrintModulePass(llvm::errs()));
+        
         mpm.run(module, mam);
 	
       }
@@ -444,6 +447,8 @@ namespace MiniMC {
     private:
       std::size_t stacksize;
       std::vector<std::string> entry;
+      bool disablePromotion;
+      bool printLLVMPass;
     };
 
 
@@ -454,8 +459,16 @@ namespace MiniMC {
 							       .value = 200
 	},
 						     VecStringOption {.name = "entry",
-								      .description="Entry point function",
-								      .value = {}
+						       .description="Entry point function",
+						       .value = {}
+						     },
+						     BoolOption {.name = "disable_promote_pass",
+								 .description = "Disable the promotion of allocas to registers",
+								 .value = false
+						     },
+						     BoolOption {.name = "print",
+								 .description = "Print LLVM Module to STDERR",
+								 .value = false
 						     }
 	}) {
       }
@@ -481,7 +494,28 @@ namespace MiniMC {
 	  },
 	  getOptions().at(1)
 	  );
-	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry);
+	auto disablePromotion = std::visit([](auto& t)->bool {
+	  using T = std::decay_t<decltype(t)>;
+	  if constexpr (std::is_same_v<T,BoolOption>)
+	    return t.value;
+	  else {
+	    throw MiniMC::Support::Exception ("Horrendous error");
+	  }
+	},
+	  getOptions().at(2)
+	  );
+	auto printPass = std::visit([](auto& t)->bool {
+	  using T = std::decay_t<decltype(t)>;
+	  if constexpr (std::is_same_v<T,BoolOption>)
+	    return t.value;
+	  else {
+	    throw MiniMC::Support::Exception ("Horrendous error");
+	  }
+	},
+	  getOptions().at(3)
+	  );
+	
+	  return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry,disablePromotion,printPass);
       }
     };
 
