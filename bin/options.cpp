@@ -30,6 +30,11 @@ po::options_description transformOptions (SetupOptions& options) {
   return general;
 }
 
+template<typename ... Ts>                                                 // (7) 
+struct Overload : Ts ... { 
+    using Ts::operator() ...;
+};
+
 po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
@@ -58,23 +63,36 @@ po::options_description loadOptions (SetupOptions& options) {
     
     po::options_description opt_arr(loader->getName ());
     for (auto& opt : loader->getOptions ()) {
+      std::visit (
+		  Overload {
+		    [loader,&opt_arr](MiniMC::Loaders::BoolOption& t) {
+		      std::stringstream str;
+		      str << loader->getName() <<"."<<t.name;
+		      opt_arr.add_options ()
+			(str.str().c_str (),boost::program_options::bool_switch(&t.value),t.description.c_str());
+		    
+		    },
+		    [loader,&opt_arr](auto& t){
+		      std::stringstream str;
+		      str << loader->getName() <<"."<<t.name;
+		      opt_arr.add_options ()
+			(str.str().c_str (),boost::program_options::value(&t.value),t.description.c_str());
+		    },
+		      
+		      },
+		  opt
+		  );
       
-      std::visit ([loader,&opt_arr](auto& t){
-	std::stringstream str;
-	str << loader->getName() <<"."<<t.name;
+      
     
-	opt_arr.add_options ()
-	  (str.str().c_str (),boost::program_options::value(&t.value),t.description.c_str());
-      },
-	opt
-	);
     }
-      general.add (opt_arr);
+    general.add (opt_arr);
     
   }
   
   return general;
 }
+
 
 
 po::options_description smtOptions (SetupOptions& options) {
