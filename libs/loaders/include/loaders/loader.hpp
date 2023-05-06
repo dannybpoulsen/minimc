@@ -34,6 +34,9 @@ namespace MiniMC {
 
     template <class T>
     struct TOption {
+      TOption (const std::string name,
+	       const std::string descr,
+	       T value) : name(name), description(descr),value(value) {}
       std::string name;
       std::string description;
       T value;
@@ -73,6 +76,12 @@ namespace MiniMC {
       virtual Loader_ptr makeLoader(MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) = 0;
       auto& getName() const { return name; }
       auto& getOptions () {return options;}
+
+      template<class T>
+      auto& getOption (std::size_t i) {return std::get<T> (options.at (i));}
+    protected:
+      template<class T,class... Args>
+      void addOption (Args... args) {options.push_back (T{args...}); }
     private:
       std::string name;
       std::vector<LoaderOption> options;

@@ -70,7 +70,7 @@ namespace MiniMC {
       auto end = cfg.makeLocation(frame.makeFresh ("end"),einfo);
       
       cfg.setInitial(init);
-      
+
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
       MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
@@ -454,68 +454,19 @@ namespace MiniMC {
 
     class LLVMLoadRegistrar : public LoaderRegistrar {
     public:
-      LLVMLoadRegistrar () : LoaderRegistrar("LLVM",{IntOption{.name="stack",
-							       .description ="StackSize",
-							       .value = 200
-	},
-						     VecStringOption {.name = "entry",
-						       .description="Entry point function",
-						       .value = {}
-						     },
-						     BoolOption {.name = "disable_promote_pass",
-								 .description = "Disable the promotion of allocas to registers",
-								 .value = false
-						     },
-						     BoolOption {.name = "print",
-								 .description = "Print LLVM Module to STDERR",
-								 .value = false
-						     }
-	}) {
+      LLVMLoadRegistrar () : LoaderRegistrar("LLVM") {
+	addOption<IntOption> ("stack","StackSize",200uL);
+	addOption<VecStringOption> ("entry","Entry point function",std::vector<std::string> {});
+	addOption<BoolOption> ("disable_promote_pass","Disable the promotion of allocas to registers",false);
+	addOption<BoolOption> ("print","Print LLVM module to stderr",false);
       }
       
       Loader_ptr makeLoader (MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) override {
-	auto stacksize = std::visit([](auto& t)->std::size_t {
-	  using T = std::decay_t<decltype(t)>;
-	  if constexpr (std::is_same_v<T,IntOption>)
-	    return t.value;
-	  else {
-	    throw MiniMC::Support::Exception ("Horrendous error");
-	  }
-	},
-	  getOptions().at(0)
-	  );
-	auto entry = std::visit([](auto& t)->std::vector<std::string> {
-	    using T = std::decay_t<decltype(t)>;
-	    if constexpr (std::is_same_v<T,VecStringOption>)
-	      return t.value;
-	    else {
-	      throw MiniMC::Support::Exception ("Horrendous error");
-	    }
-	  },
-	  getOptions().at(1)
-	  );
-	auto disablePromotion = std::visit([](auto& t)->bool {
-	  using T = std::decay_t<decltype(t)>;
-	  if constexpr (std::is_same_v<T,BoolOption>)
-	    return t.value;
-	  else {
-	    throw MiniMC::Support::Exception ("Horrendous error");
-	  }
-	},
-	  getOptions().at(2)
-	  );
-	auto printPass = std::visit([](auto& t)->bool {
-	  using T = std::decay_t<decltype(t)>;
-	  if constexpr (std::is_same_v<T,BoolOption>)
-	    return t.value;
-	  else {
-	    throw MiniMC::Support::Exception ("Horrendous error");
-	  }
-	},
-	  getOptions().at(3)
-	  );
-	
-	  return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry,disablePromotion,printPass);
+	auto stacksize = getOption<IntOption> (0).value;
+	auto entry = getOption<VecStringOption> (1).value;
+	auto disablePromotion = getOption<BoolOption> (2).value;
+	auto printPass = getOption<BoolOption> (3).value;	
+	return std::make_unique<LLVMLoader> (tfac,cfac,stacksize,entry,disablePromotion,printPass);
       }
     };
 
