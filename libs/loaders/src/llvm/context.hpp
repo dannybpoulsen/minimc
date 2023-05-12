@@ -367,7 +367,8 @@ namespace MiniMC {
 	   });
 	   
 
-	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>({res,
+	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>({
+	     context.getStackPointer(),
 	     context.getStackPointer(),
 	     skipsize,
 	     size

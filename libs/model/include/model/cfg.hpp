@@ -187,9 +187,9 @@ namespace MiniMC {
 			       bool varargs,
 			       Frame frame
 		) {
-	auto symbol = frame.makeSymbol (name);
+	auto symbol = this->frame.makeSymbol (name);
         functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
-        function_map.insert(std::make_pair(name, functions.back()));
+        function_map.emplace(symbol, functions.back());
         return functions.back();
       }
 
@@ -205,9 +205,11 @@ namespace MiniMC {
       }
 
       Function_ptr getFunction(const std::string& name) {
-        if (function_map.count(name)) {
-          return function_map.at(name);
-        }
+	Symbol symb;
+	if (frame.resolve (name,symb))
+	  if (function_map.count(symb)) {
+	    return function_map.at(symb);
+	  }
 	
         throw MiniMC::Support::FunctionDoesNotExist(name);
       }
@@ -215,15 +217,12 @@ namespace MiniMC {
       bool functionExists(MiniMC::func_t id) const {
         return static_cast<std::size_t> (id) < functions.size();
       }
-
-      auto& getEntryPoints() const { return entrypoints; }
-
-      bool hasEntryPoints() const { return entrypoints.size(); }
       
+      auto& getEntryPoints() const { return entrypoints; }
 
       auto& getConstantFactory() { return *cfact; }
       auto& getTypeFactory() { return *tfact; }
-
+      
       const auto& getInitialiser () const { return initialiser; }
       void setInitialiser (const InstructionStream& instr) { initialiser = instr; }
 
@@ -240,7 +239,7 @@ namespace MiniMC {
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
       InstructionStream initialiser;
-      std::unordered_map<std::string, Function_ptr> function_map;
+      SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;
       MiniMC::Model::Frame frame;

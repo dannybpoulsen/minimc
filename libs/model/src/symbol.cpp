@@ -197,7 +197,7 @@ namespace MiniMC {
       std::unordered_map<std::string, std::shared_ptr<Internal>> frames;      
     };
     
-    Frame::Frame () : _internal(std::make_shared<Internal> (Symbol{})) {}
+    Frame::Frame (const std::string& s) : _internal(std::make_shared<Internal> (Symbol{s})) {}
     Frame::~Frame () {}
 
     

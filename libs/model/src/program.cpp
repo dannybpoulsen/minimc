@@ -11,7 +11,6 @@ namespace MiniMC {
     struct Copier {
       using RegReplaceMap = std::unordered_map<Register_ptr,Register_ptr>;
       
-      Copier (Program& program) : program(program) { }
       void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
 	
 	for (auto& v : vars.getRegisters ()) {
@@ -66,8 +65,8 @@ namespace MiniMC {
 	
       }
 
-      auto copyFunction (const Function_ptr& function,RegReplaceMap map) {
-	auto frame = program.getRootFrame ().create (function->getSymbol().getName ());
+      auto copyFunction (const Function_ptr& function,RegReplaceMap map,Program& prgm) {
+	auto frame = prgm.getRootFrame().create (function->getSymbol().getName ());
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);
 	std::vector<Register_ptr> parameters;
@@ -77,7 +76,7 @@ namespace MiniMC {
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();
-	return program.addFunction (function->getSymbol ().getName(),
+	return prgm.addFunction (function->getSymbol ().getName(),
 				    parameters,
 				    retType,
 				    std::move(varstack),
@@ -89,30 +88,29 @@ namespace MiniMC {
 
       
       
-      void copyProgram (const Program& p) {
-	RegReplaceMap replace_map;
-	copyVariables (p.getCPURegs (),replace_map,program.getCPURegs (),program.getRootFrame());
-	
-	for (auto f : p.getFunctions ()) {
-	  copyFunction (f,replace_map);
-	}
-	
-	for (auto f: p.getEntryPoints ()) {
-	  program.addEntryPoint (f->getSymbol ().getName());
-	}
-
-	program.setInitialiser (copyInstructionStream(p.getInitialiser (),replace_map));
-	
-	program.getHeapLayout () = p.getHeapLayout ();
-	
-      }
       
-      Program& program;
     };
     
 
     Program::Program (const Program& p) : Program(p.tfact,p.cfact) {
-      Copier{*this}.copyProgram(p);
+      Copier copier;
+      
+      Copier::RegReplaceMap replace_map;
+      copier.copyVariables (p.getCPURegs (),replace_map,cpu_regs,getRootFrame());
+      
+      for (auto f : p.getFunctions ()) {
+	copier.copyFunction (f,replace_map,*this);
+      }
+      
+      for (auto f: p.getEntryPoints ()) {
+	addEntryPoint (f->getSymbol ().getName());
+      }
+      
+      setInitialiser (copier.copyInstructionStream(p.getInitialiser (),replace_map));
+      
+      getHeapLayout () = p.getHeapLayout ();
+      
+      
     }
   }
 }

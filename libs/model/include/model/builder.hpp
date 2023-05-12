@@ -49,11 +49,24 @@ namespace MiniMC {
 	  
 	  
 	}
-
+	
 	else {
-	  stream.add (instr);
+	  if constexpr (code == MiniMC::Model::InstructionCode::ZExt) {
+	    if (content.op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolZExt> (content);
+	    }
+	  }
+
+	  if constexpr (code == MiniMC::Model::InstructionCode::SExt) {
+	    if (content.op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolSExt> (content);
+	    }
+	  }
 	  
+	  stream.add (instr);
+	 
 	}
+	
 	
 	
 	return *this;

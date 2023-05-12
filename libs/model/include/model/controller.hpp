@@ -24,7 +24,6 @@ namespace MiniMC {
       void createAssertViolateLocations ();
       void inlineFunctions (std::size_t);
       void unrollLoops (std::size_t);
-      void boolCasts ();
       void expandNonDeterministic ();
       void onlyOneMemAccessPerEdge ();
 

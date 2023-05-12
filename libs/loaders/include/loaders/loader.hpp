@@ -34,6 +34,7 @@ namespace MiniMC {
 
     template <class T>
     struct TOption {
+      using ValueType = T;
       TOption (const std::string name,
 	       const std::string descr,
 	       T value) : name(name), description(descr),value(value) {}
@@ -57,7 +58,7 @@ namespace MiniMC {
       Loader(MiniMC::Model::TypeFactory_ptr& tfac,
              Model::ConstantFactory_ptr& cfac) : tfactory(tfac),
                                                  cfactory(cfac) {}
-
+      
       virtual ~Loader() {}
       virtual LoadResult loadFromFile(const std::string& file) = 0;
       virtual LoadResult loadFromString(const std::string& str) = 0;
@@ -79,6 +80,9 @@ namespace MiniMC {
 
       template<class T>
       auto& getOption (std::size_t i) {return std::get<T> (options.at (i));}
+
+      template<class T>
+      void setOption (std::size_t i, typename T::ValueType t) {std::get<T> (options.at(i)).value  = t;}
     protected:
       template<class T,class... Args>
       void addOption (Args... args) {options.push_back (T{args...}); }

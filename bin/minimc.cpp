@@ -51,7 +51,6 @@ int main(int argc, char* argv[]) {
       MiniMC::Loaders::LoadResult loadresult = loader->loadFromFile (options.load.inputname);
       
       MiniMC::Model::Controller control(*loadresult.program);
-      control.boolCasts();
   
       if (!control.typecheck ()) {
 	return -1;

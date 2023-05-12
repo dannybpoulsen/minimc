@@ -168,7 +168,7 @@ namespace MiniMC {
 	  std::vector<MiniMC::Model::Register_ptr> params;
 	  MiniMC::Model::RegisterDescr variablestack;
 	  MiniMC::Model::LocationInfoCreator locinfoc(variablestack);
-	  auto sp = variablestack.addRegister (frame.makeFresh ("sp"), lcontext.getTypeFactory().makePointerType ());
+	  //auto sp = variablestack.addRegister (frame.makeFresh ("sp"), lcontext.getTypeFactory().makePointerType ());
 	  auto sp_mem = variablestack.addRegister (frame.makeFresh ("sp_mem"), lcontext.getTypeFactory().makePointerType ());
 	  
 	  LoadContext load{lcontext,variablestack, sp, sp_mem,frame};
@@ -424,7 +424,7 @@ namespace MiniMC {
       virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
         auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
 	
-	prgm->getCPURegs ().addRegister (prgm->getRootFrame().makeFresh ("sp"), tfac->makePointerType ());
+	sp = prgm->getCPURegs ().addRegister (prgm->getRootFrame().makeFresh ("sp"), tfac->makePointerType ());
 	GLoadContext lcontext {*cfac,*tfac};
 	
 	
@@ -449,6 +449,7 @@ namespace MiniMC {
       std::vector<std::string> entry;
       bool disablePromotion;
       bool printLLVMPass;
+      MiniMC::Model::Register_ptr sp;
     };
 
 

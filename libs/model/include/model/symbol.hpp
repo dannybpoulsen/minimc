@@ -49,7 +49,7 @@ namespace MiniMC {
     
     class Frame {
     public:
-      Frame ();
+      Frame (const std::string& ="");
       ~Frame ();
       Frame (const Frame& f) = default;
       Frame (Frame&& f) = default;

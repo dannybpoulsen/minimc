@@ -28,10 +28,6 @@ namespace MiniMC {
       MiniMC::Model::Modifications::LowerPhi{}.run (*prgm);
     }
 
-    void Controller::boolCasts (){
-      MiniMC::Model::Modifications::InsertBoolCasts{}.run (*prgm);
-    }
-
     void Controller::createAssertViolateLocations (){
       MiniMC::Model::Modifications::SplitAsserts{}.run (*prgm);
     }
