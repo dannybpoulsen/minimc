@@ -243,7 +243,7 @@ namespace MiniMC {
 	
         else if constexpr (i == InstructionCode::Load) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only load from pointer types. ");
-          MiniMC::Support::Localiser must_be_integer("'%1%' can only load integers. ");
+          MiniMC::Support::Localiser must_be_integer_or_pointer("'%1%' can only load integers or pointers ");
 
           auto addr = content.addr->getType();
           if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
@@ -252,8 +252,12 @@ namespace MiniMC {
             return false;
           }
 
-          if (!content.res->getType()->isInteger () ) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(MiniMC::Model::InstructionCode::Load));
+          if (!(content.res->getType()->isInteger () ||
+		content.res->getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer ||
+		content.res->getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer32
+		)
+	      ){
+            mess.message<MiniMC::Support::Severity::Error>(must_be_integer_or_pointer.format(MiniMC::Model::InstructionCode::Load));
             return false;
           }
 

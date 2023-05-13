@@ -576,7 +576,7 @@ namespace MiniMC {
 
     } // namespace Impl
 
-    template <class T, class Operations, class Caster>
+    template <class T, class Operations, class Caster>     requires VMCompatible<T,Operations,Caster>
     Status Engine<T, Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
                                                   VMState<T>& wstate) {
       auto end = instr.end();

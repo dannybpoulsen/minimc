@@ -111,6 +111,8 @@ namespace MiniMC {
 	    return performRead.template operator()<Value::I32>();
 	  case MiniMC::Model::TypeID::I64:
 	    return performRead.template operator()<Value::I64>();
+	  case MiniMC::Model::TypeID::Pointer32:
+	    return performRead.template operator()<Value::Pointer32>();
 	
 	  case MiniMC::Model::TypeID::Pointer:
 	    return performRead.template operator()<Value::Pointer>();
