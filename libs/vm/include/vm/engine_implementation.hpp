@@ -86,7 +86,7 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::I64:
             return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops);
 	default:
-	  throw MiniMC::Support::Exception ("Throw");
+	  throw MiniMC::Support::Exception ("Comparisons operations not implemented for pointers...yet");
 	}
         throw NotImplemented<op>();
       }
@@ -589,13 +589,23 @@ namespace MiniMC {
     
     template <class T, class Operations, class Caster> requires VMCompatible<T,Operations,Caster> 
     Status Engine<T, Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
-                                                  VMState<T>& wstate) 
-     {
+                                                  VMState<T>& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
       auto it = instr.begin ();
       for ( it = instr.begin(); it != end && status == Status::Ok; ++it) {
-	status = execute (*it,wstate);
+	switch (it->getOpcode()) {
+	  
+#define X(OP)								\
+  case MiniMC::Model::InstructionCode::OP:                                                                                                \
+    status = Impl::runInstruction<MiniMC::Model::InstructionCode::OP, T, Operations, Caster>(*it, wstate, operations, caster,prgm); \
+    break;
+          OPERATIONS
+
+#undef X
+          default:
+            status = Status::UnsupportedOperation;
+        }
       }
 
       
