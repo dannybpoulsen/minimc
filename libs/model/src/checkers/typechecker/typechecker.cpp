@@ -50,14 +50,18 @@ namespace MiniMC {
         else if constexpr (InstructionData<i>::isComparison) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type..");
           MiniMC::Support::Localiser res_must_be_bool("The result of '%1% must be boolean.");
-
+	  MiniMC::Support::Localiser  must_be_integers("Comparisons must be integers");
+	  
+	  
           auto resType = content.res->getType();
           auto lType = content.op1->getType();
           auto rType = content.op2->getType();
           if (lType != rType) {
             mess.message<MiniMC::Support::Severity::Error>(loc.format(i));
             return false;
-          } else if (resType->getTypeID() != MiniMC::Model::TypeID::Bool) {
+          }
+	  
+	  else if (resType->getTypeID() != MiniMC::Model::TypeID::Bool) {
             mess.message<MiniMC::Support::Severity::Error>(res_must_be_bool.format(i));
             return false;
           }

@@ -64,7 +64,7 @@ namespace MiniMC {
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.Eq(lval, rval));
         else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
           writeState.getStackControl().getValueLookup ().saveValue(res, operations.NEq(lval, rval));
-
+	
         else
           throw NotImplemented<op>();
 
@@ -86,11 +86,11 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::I64:
             return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops);
 	default:
-	  throw MiniMC::Support::Exception ("Throw");
+	  throw MiniMC::Support::Exception ("Comparisons operations not implemented for pointers...yet");
 	}
         throw NotImplemented<op>();
       }
-
+      
       template <MiniMC::Model::InstructionCode op, class T, class Operations, class Caster>
       inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& operations, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isPointer {
         auto& content = instr.getOps<op>();
