@@ -16,25 +16,25 @@ namespace MiniMC {
 		 [](const MiniMC::Model::I8Integer& val) -> Value { return Value::I8{val.getValue()}; },
 		 [](const MiniMC::Model::I16Integer& val) -> Value { return Value::I16{val.getValue()}; },
 		 [](const MiniMC::Model::I32Integer& val) -> Value { return Value::I32{val.getValue()}; },
-		   [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
-		 [](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{static_cast<bool>(val.getValue())}; },
+		 [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
+		 [](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{val.getValue()}; },
 		 [](const MiniMC::Model::Pointer& val) -> Value { return Value::Pointer{val.getValue()}; },
 		 [](const MiniMC::Model::Pointer32& val) -> Value { return Value::Pointer32{val.getValue()}; },
-		   [](const MiniMC::Model::AggregateConstant& val) -> Value {
+		 [](const MiniMC::Model::AggregateConstant& val) -> Value {
 		     return AggregateValue(val.getData());
-                },
-		   [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (*und.getType ()); },
-                [this](const MiniMC::Model::Register& val) -> Value {
-                  return lookupRegister (val);
+		 },
+		 [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (*und.getType ()); },
+		 [this](const MiniMC::Model::Register& val) -> Value {
+		     return lookupRegister (val);
                 },
             },
             v);
       }
-
+      
       ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type& t) const {
 	switch (t.getTypeID()) {
 	case MiniMC::Model::TypeID::Bool:
-	  return BoolValue(false);
+	  return BoolValue(0);
 	case MiniMC::Model::TypeID::Pointer32:
 	  return Value::Pointer32{Value::Pointer32::underlying_type {}};
 	  

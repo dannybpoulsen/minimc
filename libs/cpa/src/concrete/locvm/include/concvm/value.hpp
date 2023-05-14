@@ -9,16 +9,17 @@ namespace MiniMC {
 
       class BoolValue {
       public:
-        BoolValue(bool val = false) : val(val) {}
+        BoolValue(MiniMC::BV8 val = 0) : val(val) {}
         BoolValue BoolNegate() const { return BoolValue(!val); }
         MiniMC::Hash::hash_t hash() const {
           return val;
         }
 
         auto getValue() const { return val; }
-	
+	using underlying_type = MiniMC::BV8;
+        
       protected:
-        bool val;
+	MiniMC::BV8 val;
       };
 
       inline std::ostream& operator<<(std::ostream& os, const BoolValue& v) { return os << v.getValue(); }

@@ -92,17 +92,20 @@ namespace MiniMC {
         auto base = MiniMC::getBase(pointer);
         auto offset = MiniMC::getOffset(pointer);
         if (base < _internal->entries.size()) {
-          auto performRead = [&]<typename T>() {
-            typename T::underlying_type readVal;
-            _internal->entries.at(base).read({.buffer = reinterpret_cast<MiniMC::BV8*>(&readVal), .size = sizeof(readVal)}, offset);
+          auto performRead = [this,base,offset]<typename T>() {
+            typename T::underlying_type readVal{0};
+	    if constexpr (sizeof(readVal) == 1) {
+	      readVal = _internal->entries.at(base).content.get_direct_access()[offset]; 
+	    }
+	    else {
+	      _internal->entries.at(base).read({.buffer = reinterpret_cast<MiniMC::BV8*>(&readVal), .size = sizeof(readVal)}, offset);
+	    }
             return T{readVal};
           };
 
           switch (readType->getTypeID()) {
-            case MiniMC::Model::TypeID::Bool:
-              MiniMC::BV8 readVal;
-              _internal->entries.at(base).read({.buffer = &readVal, .size = sizeof(MiniMC::BV8)}, offset);
-              return Memory::Value{BoolValue(readVal)};
+	  case MiniMC::Model::TypeID::Bool:
+	    return performRead.template operator()<Value::Bool>();
 	  case MiniMC::Model::TypeID::I8: 
 	    return performRead.template operator()<Value::I8>();
 	  case MiniMC::Model::TypeID::I16:
@@ -113,7 +116,6 @@ namespace MiniMC {
 	    return performRead.template operator()<Value::I64>();
 	  case MiniMC::Model::TypeID::Pointer32:
 	    return performRead.template operator()<Value::Pointer32>();
-	
 	  case MiniMC::Model::TypeID::Pointer:
 	    return performRead.template operator()<Value::Pointer>();
 	  case MiniMC::Model::TypeID::Struct:
