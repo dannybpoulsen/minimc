@@ -221,7 +221,6 @@ namespace MiniMC {
 	    res = context.findValue(inst);
 	  }
 	  auto type = context.getTypeFactory().makeIntegerType(64);
-	  params.push_back (context.getStackPointer());
 	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
 	    params.push_back(context.findValue(*it));
 	  }

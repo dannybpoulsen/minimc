@@ -87,8 +87,8 @@ namespace MiniMC {
       template <MiniMC::Model::InstructionCode op, class T, class Value, class Operation,class Caster>
       inline Status runPointerCMP(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations,Caster& caster) requires MiniMC::Model::InstructionData<op>::isComparison {
 	auto& content = instr.getOps<op>();
-	assert (*content.op1->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
-	assert (*content.op2->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
+	assert (content.op1->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
+	assert (content.op2->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
 	auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 	
         auto lval = castPtrToAppropriateInteger<T,Value,Caster> (writeState.getValueLookup ().lookupValue(*content.op1).template as<Value>(),caster);
