@@ -66,5 +66,30 @@ TEST_CASE("Frame") {
 
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("Frame") {
+  //Arrange
+  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
+  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  REQUIRE (loadRegistrar != nullptr);
+  auto loadres = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
+  MiniMC::Model::Controller control(*loadres.program);
+  control.createAssertViolateLocations ();
+  
+  auto program = control.getProgram ();
+  MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
+  analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
+  auto initialState = analysis_builder.makeInitialState({program->getEntryPoints (),
+      program->getHeapLayout (),
+      program->getInitialiser (),
+      *program});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (*program)};
+  auto verdict = reachabilityChecker.search (initialState,goal);
+
+  //Assert 
+  CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound);
   
 }
