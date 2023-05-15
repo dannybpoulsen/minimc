@@ -298,9 +298,10 @@ namespace MiniMC {
             }
 	    
             auto func = prgm.getFunction(MiniMC::getFunctionId(ptr));
+	    MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");
 	    if (!func->isVarArgs ()) {
 	      if (func->getParameters().size() != content.params.size() ) {
-		mess.message<MiniMC::Support::Severity::Error>("Inconsistent number of parameters between call and function prototype");
+		mess.message<MiniMC::Support::Severity::Error>(inconsistent_parameters.format (func->getSymbol ().getName ()));
 		return false;
 	      }
 

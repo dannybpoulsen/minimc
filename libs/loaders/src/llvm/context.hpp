@@ -187,9 +187,7 @@ namespace MiniMC {
 	auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
 	auto func = cinst->getCalledFunction();
 	assert(func);
-	if (func->isIntrinsic()) {
-	  throw MiniMC::Support::Exception ("No intrinsics atm");
-	}
+	
 	if (func->getName() == "assert") {
 	  assert(cinst->arg_size() == 1);
 	  auto val = context.findValue(*cinst->arg_begin());
