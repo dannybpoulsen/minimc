@@ -37,12 +37,15 @@
 #include <functional>
 #include <variant>
 #include <type_traits>
+#include <unordered_set>
 
 #include "llvmpasses.hpp"
 #include "loaders/loader.hpp"
 #include "model/cfg.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
+#include "support/feedback.hpp"
+
 #include "model/builder.hpp"
 #include "context.hpp"
 
@@ -53,7 +56,6 @@ namespace MiniMC {
     MiniMC::Model::TypeID getTypeID(llvm::Type* type);
  
     MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&) {
-      
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
       auto frame = program.getRootFrame ().create (name);
@@ -125,11 +127,27 @@ namespace MiniMC {
 
       }
 
+      auto createFunctionWorkList (llvm::Module& module) {
+	std::unordered_set<llvm::Function*> functions;
+	for (auto& F : module) {
+	  functions.insert (&F);
+	  for (auto& B : F) {
+	    for (auto& I : B) {
+	      if (auto cinst = llvm::dyn_cast<llvm::CallInst>(&I)) {
+		functions.insert (cinst->getCalledFunction ());
+	      }
+	    }
+	  }
+	}
+	return functions;
+      }
+      
       void loadGlobals (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
 	std::vector<MiniMC::Model::Instruction> instr;
         
 	MiniMC::func_t fid = 0;
-	for (auto& Func : module) {
+	for (auto& F : createFunctionWorkList (module)) {
+	  auto& Func = *F;
 	  auto ptr = lcontext.getConstantFactory().makeFunctionPointer(fid);
 	  ptr->setType(lcontext.getTypeFactory().makePointerType());
 	  lcontext.addValue (&Func, ptr);
@@ -159,8 +177,8 @@ namespace MiniMC {
 	}
       }
 
-      void  instantiateFunctions (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
-	for (auto& F : module) {
+      void  instantiateFunction (llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm) {
+	
 	  auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
 	  std::string fname = F.getName().str();
 	  auto frame = prgm->getRootFrame ().create (fname);
@@ -203,6 +221,8 @@ namespace MiniMC {
 	  }
 
 	  if (F.isDeclaration ()) {
+	    MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> (MiniMC::Support::Localiser{"Function '%1%' only declared in LLVM assembly. Treating it as a non-determinstic function"}.format (F.getName ().str()));
+	
 	    auto iinit = locinfoc.make(MiniMC::Model::LocFlags{},*source_loc);
 	    auto init = cfg.makeLocation (frame.makeSymbol ("init"),iinit);
 	    auto einit = locinfoc.make( MiniMC::Model::LocFlags{},*source_loc);
@@ -371,9 +391,16 @@ namespace MiniMC {
 	    }
 	    prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg),F.isVarArg (),frame);
 	  }
-	}
       }
-
+    
+      void instantiateFunctions (GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
+	std::unordered_set<llvm::Function*> functions = createFunctionWorkList (module);
+	for (auto& F : functions) {
+	  instantiateFunction (*F,lcontext,prgm);
+	}
+	
+      }
+      
       void llvmModifications (llvm::Module& module) {
 		
         llvm::legacy::PassManager lpm;
