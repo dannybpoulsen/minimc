@@ -14,9 +14,9 @@ namespace MiniMC {
         throw NotImplemented<opc>();
       }
 
-      template <MiniMC::Model::InstructionCode op, class T, class Value, class Operation>
-      inline Status runCMPAdd(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
-        auto& content = instr.getOps<op>();
+      template <MiniMC::Model::InstructionCode op, class T, class Value, class Operation,class Caster>
+      inline Status runCMPAdd(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations,Caster&) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
+	auto& content = instr.getOps<op>();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 	
         auto lval = writeState.getValueLookup ().lookupValue(*content.op1).template as<Value>();
@@ -64,29 +64,104 @@ namespace MiniMC {
           writeState.getValueLookup ().saveValue(res, operations.Eq(lval, rval));
         else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
           writeState.getValueLookup ().saveValue(res, operations.NEq(lval, rval));
-
+	
         else
           throw NotImplemented<op>();
 
         return Status::Ok;
       }
 
+      template<class T, class Value,class Caster>
+      auto castPtrToAppropriateInteger (const Value& v, Caster& caster) {
+	if constexpr (std::is_same_v<Value,typename T::Pointer>) {
+	  return caster.template PtrToInt<typename T::I64>(v);
+	}
+	else if constexpr (std::is_same_v<Value,typename T::Pointer32>) {
+	  return caster.template Ptr32ToInt<typename T::I32>(v);
+	}
+	else {
+	  static_assert("Not a pointer you try converting");
+	}
+      }
+      
+      template <MiniMC::Model::InstructionCode op, class T, class Value, class Operation,class Caster>
+      inline Status runPointerCMP(const MiniMC::Model::Instruction& instr, VMState<T>& writeState,Operation& operations,Caster& caster) requires MiniMC::Model::InstructionData<op>::isComparison {
+	auto& content = instr.getOps<op>();
+	assert (*content.op1->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
+	assert (*content.op2->getType ()->getTypeID ()==MiniMC::Model::TypeID::Pointer);
+	auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+	
+        auto lval = castPtrToAppropriateInteger<T,Value,Caster> (writeState.getValueLookup ().lookupValue(*content.op1).template as<Value>(),caster);
+        auto rval = castPtrToAppropriateInteger<T,Value,Caster> (writeState.getValueLookup ().lookupValue(*content.op2).template as<Value>(),caster);
+        
+        if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
+          writeState.getValueLookup ().saveValue(res, operations.SGt(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
+	  writeState.getValueLookup ().saveValue(res, operations.SGe(lval, rval));
+	}
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
+          writeState.getValueLookup ().saveValue(res, operations.SLe(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
+          writeState.getValueLookup ().saveValue(res, operations.SLt(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGT)
+          writeState.getValueLookup ().saveValue(res, operations.UGt(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGE)
+          writeState.getValueLookup ().saveValue(res, operations.UGe(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULE)
+          writeState.getValueLookup ().saveValue(res, operations.ULe(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULT)
+          writeState.getValueLookup ().saveValue(res, operations.ULt(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_EQ)
+          writeState.getValueLookup ().saveValue(res, operations.Eq(lval, rval));
+        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
+          writeState.getValueLookup ().saveValue(res, operations.NEq(lval, rval));
+	
+        else
+          throw NotImplemented<op>();
+
+        return Status::Ok;
+      }
+      
       template <MiniMC::Model::InstructionCode op, class T, typename Operations, typename Caster>
-      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& ops, Caster&, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison {
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isTAC {
         auto& content = instr.getOps<op>();
         auto op1 = content.op1;
 
         switch (op1->getType()->getTypeID ()) {
 	case MiniMC::Model::TypeID::I8:
-            return runCMPAdd<op, T, typename T::I8>(instr, writeState,  ops);
-          case MiniMC::Model::TypeID::I16:
-            return runCMPAdd<op, T, typename T::I16>(instr, writeState, ops);
-          case MiniMC::Model::TypeID::I32:
-            return runCMPAdd<op, T, typename T::I32>(instr, writeState, ops);
-          case MiniMC::Model::TypeID::I64:
-            return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops);
+	  return runCMPAdd<op, T, typename T::I8>(instr, writeState,  ops,caster);
+	case MiniMC::Model::TypeID::I16:
+	  return runCMPAdd<op, T, typename T::I16>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::I32:
+	  return runCMPAdd<op, T, typename T::I32>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::I64:
+	  return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops,caster);
 	default:
-	  throw MiniMC::Support::Exception ("Comparisons operations not implemented for pointers...yet");
+	  throw NotImplemented<op>();  
+	}
+      }
+
+      template <MiniMC::Model::InstructionCode op, class T, typename Operations, typename Caster>
+      inline Status runInstruction(const MiniMC::Model::Instruction& instr, VMState<T>& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&) requires MiniMC::Model::InstructionData<op>::isComparison {
+        auto& content = instr.getOps<op>();
+        auto op1 = content.op1;
+
+        switch (op1->getType()->getTypeID ()) {
+	case MiniMC::Model::TypeID::I8:
+	  return runCMPAdd<op, T, typename T::I8>(instr, writeState,  ops,caster);
+	case MiniMC::Model::TypeID::I16:
+	  return runCMPAdd<op, T, typename T::I16>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::I32:
+	  return runCMPAdd<op, T, typename T::I32>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::I64:
+	  return runCMPAdd<op, T, typename T::I64>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::Pointer:
+	  return runPointerCMP<op, T, typename T::Pointer>(instr, writeState, ops,caster);
+	case MiniMC::Model::TypeID::Pointer32:
+	  return runPointerCMP<op, T, typename T::Pointer32>(instr, writeState, ops,caster);
+	  
+	default:
+	  throw MiniMC::Support::Exception ("Something wen't wrong");
 	}
         throw NotImplemented<op>();
       }
