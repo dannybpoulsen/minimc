@@ -85,7 +85,7 @@ namespace MiniMC {
     const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
-
+      
       if (ptrtype->getSize () == 4) {
 	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeHeapPointer (base,0)));  
       }
@@ -94,6 +94,22 @@ namespace MiniMC {
 	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeHeapPointer (base,0)));  
       }
       v->setType (ptrtype);
+      return v;
+    }
+
+    const Value_ptr ConstantFactory64::makeNullPointer() {
+      auto ptrtype = typefact->makePointerType ();
+      Value_ptr v;
+      
+      if (ptrtype->getSize () == 4) {
+	v =  std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeNullPointer ());	
+      }
+      
+      else {
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeNullPointer ());	
+      
+      }
+      v->setType(ptrtype);
       return v;
     }
     
