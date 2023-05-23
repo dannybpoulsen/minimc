@@ -147,8 +147,17 @@ namespace MiniMC {
       ptr.offset = o;
       return ptr;
     }
+
+    static auto makeNullPointer () {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = 0;
+      ptr.base = 0;
+      ptr.offset = 0;
+      return ptr;
+    }
     
   };
+  
 
   
   

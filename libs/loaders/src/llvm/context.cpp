@@ -159,7 +159,7 @@ namespace MiniMC {
 
         else if (ltype->isPointerTy()) {
 	  if (llvm::isa<llvm::ConstantPointerNull> (val)) {
-	    return cfact.makeHeapPointer (0);
+	    return cfact.makeNullPointer ();
 	  }
           constant->print(llvm::errs(), true);
           throw MiniMC::Support::Exception("Pointer Not Quite there");
