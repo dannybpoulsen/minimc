@@ -161,6 +161,11 @@ namespace MiniMC {
           return p.getValue().add( t.getValue());
         }
 
+	template <class T>
+        ConcreteVMVal::Pointer PtrSub(const ConcreteVMVal::Pointer& p, const T& t) {
+          return p.getValue().sub ( t.getValue());
+        }
+	
         template <class T>
         T ExtractBaseValue(const ConcreteVMVal::Aggregate& value, const MiniMC::BV64 offset) {
 	  return value.getValue().template read<typename T::underlying_type> (offset);

@@ -21,17 +21,6 @@ namespace MiniMC {
       LoadError(const std::string& mess = "Failed to load program" ) : ConfigurationException(mess) {}
     };
 
-    class VariadicFunctionsNotSupported : public LoadError {
-    public:
-      VariadicFunctionsNotSupported(const std::string& name) : LoadError(
-									 MiniMC::Support::Localiser("Function '%1%' is varidic. This is not supported by MiniMC").format (name)) 
-      {}
-    };
-
-    struct LoadResult {
-      MiniMC::Model::Program_ptr program;
-    };
-
     template <class T>
     struct TOption {
       using ValueType = T;
@@ -60,8 +49,8 @@ namespace MiniMC {
                                                  cfactory(cfac) {}
       
       virtual ~Loader() {}
-      virtual LoadResult loadFromFile(const std::string& file) = 0;
-      virtual LoadResult loadFromString(const std::string& str) = 0;
+      virtual MiniMC::Model::Program loadFromFile(const std::string& file) = 0;
+      virtual MiniMC::Model::Program loadFromString(const std::string& str) = 0;
 
     protected:
       MiniMC::Model::TypeFactory_ptr tfactory;

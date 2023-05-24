@@ -53,6 +53,12 @@ namespace MiniMC {
 	  ;	  
       }
 
+      else if constexpr (i == InstructionCode::PtrSub) {
+	return os << *content.res << " = " <<InstructionCode::PtrSub << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
+
+	  ;	  
+      }
+      
       else if constexpr ( i == InstructionCode::ExtractValue) {
 	return os << *content.res << " = " << InstructionCode::ExtractValue << " " << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
       }
@@ -149,7 +155,7 @@ namespace MiniMC {
 		replace(t.nbSkips)
 	};
       }
-
+      
       
       else if constexpr (std::is_same<NonDetContent,T> ()) {
 	return {replace(t.res),replace(t.min), replace(t.max)};

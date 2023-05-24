@@ -358,18 +358,19 @@ namespace MiniMC {
 	 auto size = context.getConstantFactory ().makeIntegerConstant(outallsize, MiniMC::Model::TypeID::I32);
 	 auto skipsize = context.getConstantFactory ().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
 	 
-	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({
-	     res,
-	     context.getStackPointer()
-	   });
-	   
+	 
 
-	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>({
+	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrSub>({
 	     context.getStackPointer(),
 	     context.getStackPointer(),
 	     skipsize,
 	     size
-	     });
+	   });
+	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>({
+	     res,
+	     context.getStackPointer()
+	   });
+	 
       }
 	
 	//createInstruction<MiniMC::Model::InstructionCode::Alloc> (inst,gather);

@@ -144,6 +144,7 @@ namespace MiniMC {
     template<class Int, class Pointer,class Bool,class Operation>
     concept PointerOperationCompatible = requires (Operation op, const Int&left, const Pointer& ptr) {
       {op.PtrAdd (ptr,left)} -> std::convertible_to<Pointer>;
+      {op.PtrSub (ptr,left)} -> std::convertible_to<Pointer>;
       {op.PtrEq (ptr,ptr)} -> std::convertible_to<Bool>;
       
     };

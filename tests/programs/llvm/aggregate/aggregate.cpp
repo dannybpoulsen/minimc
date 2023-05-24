@@ -37,8 +37,8 @@ TEST_CASE("Frame") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto loadres = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  MiniMC::Model::Controller control(*loadres.program);
+  auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
+  MiniMC::Model::Controller control(prgm);
   CHECK(control.typecheck ());
   
 }
@@ -48,8 +48,8 @@ TEST_CASE("Frame") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto loadres = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  MiniMC::Model::Controller control(*loadres.program);
+  auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
   auto program = control.getProgram ();
@@ -73,8 +73,8 @@ TEST_CASE("Frame") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto loadres = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
-  MiniMC::Model::Controller control(*loadres.program);
+  auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
   auto program = control.getProgram ();

@@ -67,7 +67,7 @@ namespace MiniMC {
 	
         else
           throw NotImplemented<op>();
-
+	
         return Status::Ok;
       }
 
@@ -211,7 +211,30 @@ namespace MiniMC {
 	  default:
 	    throw MiniMC::Support::Exception ("Invalid Skip-type type");
 	  }
-        } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
+        }
+	if constexpr (op == MiniMC::Model::InstructionCode::PtrSub) {
+	  auto ptr = addrConverter (writeState.getValueLookup ().lookupValue(*content.ptr));
+          auto calc = [&]<typename ValT>() {
+            auto skipsize = writeState.getValueLookup ().lookupValue(*content.skipsize).template as<ValT>();
+            auto nbskips = writeState.getValueLookup ().lookupValue(*content.nbSkips).template as<ValT>();
+            auto totalskip = operations.Mul(skipsize, nbskips);
+            writeState.getValueLookup ().saveValue(res, operations.PtrSub(ptr, totalskip));
+            return Status::Ok;
+          };
+          switch (content.skipsize->getType()->getTypeID ()) {
+	  case MiniMC::Model::TypeID::I8:
+              return calc.template operator()<typename T::I8>();
+	  case MiniMC::Model::TypeID::I16:
+              return calc.template operator()<typename T::I16>();
+	  case MiniMC::Model::TypeID::I32:
+              return calc.template operator()<typename T::I32>();
+	  case MiniMC::Model::TypeID::I64:
+              return calc.template operator()<typename T::I64>();
+	  default:
+	    throw MiniMC::Support::Exception ("Invalid Skip-type type");
+	  }
+        }
+	else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
           auto lval = addrConverter (writeState.getValueLookup ().lookupValue(*content.op1));
           auto rval = addrConverter (writeState.getValueLookup ().lookupValue(*content.op2));
           writeState.getValueLookup ().saveValue(res, operations.PtrEq(lval, rval));

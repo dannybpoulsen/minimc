@@ -88,6 +88,10 @@ namespace MiniMC {
 	
         template <class T>
         Value::Pointer PtrAdd(const Value::Pointer& ptrvalue, const T& adddend);
+
+	template <class T>
+        Value::Pointer PtrSub(const Value::Pointer& ptrvalue, const T& adddend);
+	
 	
 	template <class T>
         T ExtractBaseValue(const Value::Aggregate&, const MiniMC::BV64);

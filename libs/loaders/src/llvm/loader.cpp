@@ -76,12 +76,18 @@ namespace MiniMC {
       MiniMC::Model::Value_ptr result = nullptr;
       MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
       sp->setType(program.getTypeFactory().makePointerType());
+
+      MiniMC::Model::Value_ptr stacksize_p = program.getConstantFactory().makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);
+      MiniMC::Model::Value_ptr nb_skips = program.getConstantFactory().makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
+      
+      
+      
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
         result = vstack.addRegister(frame.makeFresh(), restype);
       }
       MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
-      builder.addInstr<MiniMC::Model::InstructionCode::Assign>({sp_reg, sp});
+      builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>({sp_reg, sp,stacksize_p,nb_skips});
       builder.addInstr<MiniMC::Model::InstructionCode::Call>({result, funcpointer, params});
 
       return program.addFunction(name, {},
@@ -100,24 +106,20 @@ namespace MiniMC {
                  std::vector<std::string> entry,
                  bool disablePromotion,
                  bool printPass) : Loader(tfac, cfac), stacksize(stacksize), entry(entry), disablePromotion(disablePromotion), printLLVMPass(printPass) {}
-      LoadResult loadFromFile(const std::string& file) override {
-        std::fstream str;
+      MiniMC::Model::Program loadFromFile(const std::string& file) override {
+	 std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return {
-            .program = readFromBuffer(buffer, tfactory, cfactory),
-        };
+        return readFromBuffer(buffer, tfactory, cfactory);
       }
 
-      LoadResult loadFromString(const std::string& inp) override {
+      MiniMC::Model::Program loadFromString(const std::string& inp) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return {
-            .program = readFromBuffer(buffer, tfactory, cfactory),
-        };
+        return readFromBuffer(buffer, tfactory, cfactory);
       }
 
       auto createFunctionWorkList(llvm::Module& module) {
@@ -135,7 +137,7 @@ namespace MiniMC {
         return functions;
       }
 
-      void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
+      void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module) {
         std::vector<MiniMC::Model::Instruction> instr;
 
         MiniMC::func_t fid = 0;
@@ -157,7 +159,7 @@ namespace MiniMC {
         for (auto& g : module.getGlobalList()) {
           auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
 
-          auto gvar = lcontext.getConstantFactory().makeHeapPointer(prgm->getHeapLayout().addBlock(pointTySize));
+          auto gvar = lcontext.getConstantFactory().makeHeapPointer(prgm.getHeapLayout().addBlock(pointTySize));
           lcontext.addValue(&g, gvar);
           if (g.hasInitializer()) {
             auto val = lcontext.findValue(g.getInitializer());
@@ -166,15 +168,15 @@ namespace MiniMC {
         }
         if (instr.size()) {
           MiniMC::Model::InstructionStream str(instr);
-          prgm->setInitialiser(str);
+          prgm.setInitialiser(str);
         }
       }
 
-      void instantiateFunction(llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm) {
+      void instantiateFunction(llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program& prgm) {
 
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::string fname = F.getName().str();
-        auto frame = prgm->getRootFrame().create(fname);
+        auto frame = prgm.getRootFrame().create(fname);
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
         MiniMC::Model::RegisterDescr variablestack;
@@ -229,20 +231,20 @@ namespace MiniMC {
 
               switch (bitwidth) {
                 case 1:
-                  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
-                  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
+                  min = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
+                  max = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
                   break;
                 case 2:
-                  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
-                  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
+                  min = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
+                  max = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
                   break;
                 case 4:
-                  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
-                  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
+                  min = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
+                  max = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
                   break;
                 case 8:
-                  min = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
-                  max = prgm->getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
+                  min = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
+                  max = prgm.getConstantFactory().makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
                   break;
                 default:
                   throw MiniMC::Support::Exception("Error");
@@ -260,7 +262,7 @@ namespace MiniMC {
             }
           }
 
-          prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
+          prgm.addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
         }
 
         else {
@@ -367,11 +369,11 @@ namespace MiniMC {
               }
             }
           }
-          prgm->addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
+          prgm.addFunction(F.getName().str(), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
         }
       }
 
-      void instantiateFunctions(GLoadContext& lcontext, MiniMC::Model::Program_ptr& prgm, llvm::Module& module) {
+      void instantiateFunctions(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module) {
         std::unordered_set<llvm::Function*> functions = createFunctionWorkList(module);
         for (auto& F : functions) {
           instantiateFunction(*F, lcontext, prgm);
@@ -415,19 +417,19 @@ namespace MiniMC {
         mpm.run(module, mam);
       }
 
-      void setupEntryPoints(MiniMC::Model::Program_ptr& prgm) {
+      void setupEntryPoints(MiniMC::Model::Program& prgm) {
         for (const auto& e : entry) {
-          auto func = prgm->getFunction(e);
-          auto entry = createEntryPoint(stacksize, *prgm, func, {},sp);
-
-          prgm->addEntryPoint(entry->getSymbol().getName());
+          auto func = prgm.getFunction(e);
+          auto entry = createEntryPoint(stacksize, prgm, func, {},sp);
+	  
+          prgm.addEntryPoint(entry->getSymbol().getName());
         }
       }
 
-      virtual MiniMC::Model::Program_ptr readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
-        auto prgm = std::make_shared<MiniMC::Model::Program>(tfac, cfac);
+      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+        MiniMC::Model::Program prgm {tfac, cfac};
 
-        sp = prgm->getCPURegs().addRegister(prgm->getRootFrame().makeFresh("sp"), tfac->makePointerType());
+        sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), tfac->makePointerType());
         GLoadContext lcontext{*cfac, *tfac};
 
         llvm::SMDiagnostic diag;

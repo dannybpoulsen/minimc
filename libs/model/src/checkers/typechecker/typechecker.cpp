@@ -164,7 +164,7 @@ namespace MiniMC {
 
         }
 	
-        else if constexpr (i == InstructionCode::PtrAdd) {
+        else if constexpr (i == InstructionCode::PtrAdd ||i == InstructionCode::PtrSub ) {
           MiniMC::Support::Localiser must_be_integer("'%2%' has to be an integer for '%1%'. ");
           MiniMC::Support::Localiser must_be_same_type("'value and skipeSize must be same type '%1%'. ");
 

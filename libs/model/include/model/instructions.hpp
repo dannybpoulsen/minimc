@@ -47,6 +47,7 @@ namespace MiniMC {
 
 #define POINTEROPS \
   X(PtrAdd)        \
+  X(PtrSub)	   \
   X(PtrEq)	   
     
 #define AGGREGATEOPS \
@@ -324,6 +325,21 @@ namespace MiniMC {
     
     template <>
     struct InstructionData<InstructionCode::PtrAdd> {
+      static const bool isTAC = false;
+      static const bool isUnary = false;
+      static const bool isComparison = false;
+      static const bool isMemory = false;
+      static const bool isCast = false;
+      static const bool isPointer = true;
+      static const bool isAggregate = false;
+      static const bool isPredicate = false;
+      static const std::size_t operands = 4;
+      static const bool hasResVar = true;
+      using Content = PtrAddContent;
+    };
+
+    template <>
+    struct InstructionData<InstructionCode::PtrSub> {
       static const bool isTAC = false;
       static const bool isUnary = false;
       static const bool isComparison = false;

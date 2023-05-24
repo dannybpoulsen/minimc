@@ -38,8 +38,8 @@ TEST_CASE("Pointer") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto loadres = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
-  MiniMC::Model::Controller control(*loadres.program);
+  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
   auto program = control.getProgram ();
@@ -63,8 +63,8 @@ TEST_CASE("Pointer") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto loadres = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
-  MiniMC::Model::Controller control(*loadres.program);
+  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
   auto program = control.getProgram ();

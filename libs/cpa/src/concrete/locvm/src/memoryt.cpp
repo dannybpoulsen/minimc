@@ -34,7 +34,8 @@ namespace MiniMC {
 
         void write(WriteBuffer&& buffer, std::size_t offset) {
           assert(state == EntryState::InUse);
-          if (buffer.size + offset <= content.getSize()) {
+	 
+	  if (buffer.size + offset <= content.getSize()) {
             content.set_block(offset, buffer.size, buffer.buffer);
           } else {
             throw MiniMC::Support::BufferOverflow();

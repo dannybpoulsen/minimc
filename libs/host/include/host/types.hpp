@@ -114,6 +114,10 @@ namespace MiniMC {
       return pointer_struct {.segment = segment,.base = base,.offset = offset+off};
     }
 
+    pointer_struct sub (offset_t off) const  {
+      return pointer_struct {.segment = segment,.base = base,.offset = offset-off};
+    }
+    
     bool is_null () const {return base == 0 && segment == 0 && offset == 0;}
 
     static auto makeFunctionPointer (MiniMC::func_t f) {

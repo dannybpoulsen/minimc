@@ -89,7 +89,24 @@ namespace MiniMC {
 	return res;
 	
       }
+
+      template<class Value>
+      template <class T>
+      Value::Pointer Operations<Value>::PtrSub(const Value::Pointer& ptrvalue, const T& addend) {
+	SMTLib::Term_ptr extended;
+	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
+	if constexpr (T::intbitsize () == ptrsize) {
+	  extended = addend.getTerm ();
+	}
+	else if constexpr (T::intbitsize () <= ptrsize)
+	  extended = builder.buildTerm(SMTLib::Ops::ZExt,{addend.getTerm ()},{ptrsize - T::intbitsize ()});
+	else
+	  extended = builder.buildTerm(SMTLib::Ops::Extract,{addend.getTerm ()},{ptrsize-1,0});
+	auto res = builder.buildTerm(SMTLib::Ops::BVSub,{ptrvalue.getTerm (),extended});
+	return res;
 	
+      }
+      
       template<class Value>
       template <class T>
       T Operations<Value>::ExtractBaseValue(const Value::Aggregate& aggr, const std::size_t offset) {
@@ -121,6 +138,10 @@ namespace MiniMC {
       template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I16&);
       template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I32&);
       template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I64&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I64&);
       
       
       template PathFormulaVMVal::I8 Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
