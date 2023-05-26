@@ -16,23 +16,23 @@ namespace MiniMC {
       Type_ptr type;
       switch (ty) {
         case MiniMC::Model::TypeID::Bool:
-          retval.reset(new Bool(static_cast<MiniMC::BV8>(val)));
+          retval = std::make_shared<Bool>(static_cast<MiniMC::BV8>(val));
 	  type = typefact->makeBoolType ();
 	  break;
         case MiniMC::Model::TypeID::I8:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV8>(static_cast<MiniMC::BV8>(val)));
+          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV8>>(static_cast<MiniMC::BV8>(val));
 	  type = typefact->makeIntegerType (8);
 	  break;
         case MiniMC::Model::TypeID::I16:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV16>(static_cast<MiniMC::BV16>(val)));
+          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV16>>(static_cast<MiniMC::BV16>(val));
 	  type = typefact->makeIntegerType (16);
 	  break;
         case MiniMC::Model::TypeID::I32:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV32>(static_cast<MiniMC::BV32>(val)));
+          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV32>>(static_cast<MiniMC::BV32>(val));
 	  type = typefact->makeIntegerType (32);
 	  break;
         case MiniMC::Model::TypeID::I64:
-          retval.reset(new MiniMC::Model::TConstant<MiniMC::BV64>(static_cast<MiniMC::BV64>(val)));
+          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV64>>(static_cast<MiniMC::BV64>(val));
 	  type = typefact->makeIntegerType (64);
 	  break;
       default:
@@ -48,11 +48,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeFunctionPointer (id)));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeFunctionPointer (id));  
       }
 
       else {
-	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeFunctionPointer (id)));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeFunctionPointer (id));  
       }
       
       
@@ -60,16 +60,21 @@ namespace MiniMC {
       return v;
     }
 
+    const Value_ptr ConstantFactory64::makeSymbolicConstant(const MiniMC::Model::Symbol& s) {
+      return std::make_shared<SymbolicConstant> (s);
+    }
+      
+    
     const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id,MiniMC::base_t lid) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
 
       if (ptrtype->getSize () == 4) {
-	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeLocationPointer (id,lid)));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeLocationPointer (id,lid));  
       }
 
       else {
-	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeLocationPointer (id,lid)));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeLocationPointer (id,lid));  
       }
       
 
@@ -84,11 +89,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v.reset (new MiniMC::Model::Pointer32 (MiniMC::pointer32_t::makeHeapPointer (base,0)));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeHeapPointer (base,0));  
       }
 
       else {
-	v.reset (new MiniMC::Model::Pointer (MiniMC::pointer64_t::makeHeapPointer (base,0)));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeHeapPointer (base,0));  
       }
       v->setType (ptrtype);
       return v;
@@ -111,7 +116,7 @@ namespace MiniMC {
     }
     
     const Value_ptr ConstantFactory64::makeUndef(TypeID ty,std::size_t size) {
-      Value_ptr val(new MiniMC::Model::Undef());
+      Value_ptr val = std::make_shared<MiniMC::Model::Undef>();
       Type_ptr type;
 
       switch (ty) {

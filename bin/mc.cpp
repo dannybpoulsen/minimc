@@ -59,7 +59,7 @@ namespace {
 
 MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa) {
   MiniMC::Support::Messager messager{};
-  auto& prgm = *controller.getProgram ();
+  auto& prgm = controller.getProgram ();
   if (prgm.getEntryPoints().size () <= 0) {
     messager. message<MiniMC::Support::Severity::Error>("Nothing to analyse --- No Entry Points in loaded program");
     return MiniMC::Host::ExitCodes::ConfigurationError;

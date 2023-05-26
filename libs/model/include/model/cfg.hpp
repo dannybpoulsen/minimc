@@ -42,9 +42,9 @@ namespace MiniMC {
     public:
       CFA () {}
       CFA (const CFA& ) = delete;
-      CFA (CFA&& ) = default;
+      CFA (CFA&& cfa) = default;
       Location_ptr makeLocation(MiniMC::Model::Symbol symbol, const LocationInfo& info) {
-        locations.emplace_back(new Location(symbol,info, locations.size()));
+        locations.push_back(std::make_shared<Location>(symbol,info, locations.size()));
         return locations.back();
       }
 
@@ -57,7 +57,7 @@ namespace MiniMC {
        * @return 
        */
       Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream,bool isPhi = false  ) {
-        edges.emplace_back(new Edge(from, to,std::move(istream),isPhi));
+        edges.push_back(std::make_shared<Edge>(from, to,std::move(istream),isPhi));
         to->addIncomingEdge(edges.back().get());
         from->addEdge(edges.back().get());
         return edges.back();
@@ -142,7 +142,8 @@ namespace MiniMC {
                                           
       {
       }
-
+      Function (const Function&) = delete;
+      Function (Function&&) = default;
       auto& getSymbol() const { return name; }
       auto& getParameters() const { return parameters; }
       auto& getRegisterDescr() const { return registerdescr; }
@@ -177,9 +178,9 @@ namespace MiniMC {
       {
       }
 
-      Program (const Program&);
-      
-      Function_ptr addFunction(const std::string& name,
+      Program (const Program&) = delete ;
+      Program (Program&&) = default;
+      Function_ptr addFunction(const MiniMC::Model::Symbol& symbol,
 			       const std::vector<Register_ptr>& params,
 			       const Type_ptr retType,
 			       RegisterDescr&& registerdescr,
@@ -187,7 +188,6 @@ namespace MiniMC {
 			       bool varargs,
 			       Frame frame
 		) {
-	auto symbol = this->frame.makeSymbol (name);
         functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
         function_map.emplace(symbol, functions.back());
         return functions.back();
@@ -204,16 +204,22 @@ namespace MiniMC {
         return functions.at(id);
       }
 
-      Function_ptr getFunction(const std::string& name) {
+      Function_ptr getFunction(const std::string& name) const {
 	Symbol symb;
-	if (frame.resolve (name,symb))
-	  if (function_map.count(symb)) {
-	    return function_map.at(symb);
-	  }
-	
-        throw MiniMC::Support::FunctionDoesNotExist(name);
+	if (frame.resolve (name,symb)) {
+	  return getFunction (symb);
+	}
+	throw MiniMC::Support::FunctionDoesNotExist(name);	
       }
 
+      Function_ptr getFunction(const MiniMC::Model::Symbol& symb) const {
+	
+	if (function_map.count(symb)) {
+	  return function_map.at(symb);
+	}
+	throw MiniMC::Support::FunctionDoesNotExist(symb.getFullName ());
+      }
+      
       bool functionExists(MiniMC::func_t id) const {
         return static_cast<std::size_t> (id) < functions.size();
       }

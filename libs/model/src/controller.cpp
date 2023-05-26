@@ -17,35 +17,35 @@
 namespace MiniMC {
   namespace Model {
     bool Controller::typecheck () {
-      return MiniMC::Model::Checkers::TypeChecker{}.run (*prgm);
+      return MiniMC::Model::Checkers::TypeChecker{}.run (prgm);
     }
     
     bool Controller::structuralcheck () {
-      return MiniMC::Model::Checkers::StructureChecker{}.run (*prgm);
+      return MiniMC::Model::Checkers::StructureChecker{}.run (prgm);
     }
 
     void Controller::lowerPhi (){
-      MiniMC::Model::Modifications::LowerPhi{}.run (*prgm);
+      MiniMC::Model::Modifications::LowerPhi{}.run (prgm);
     }
 
     void Controller::createAssertViolateLocations (){
-      MiniMC::Model::Modifications::SplitAsserts{}.run (*prgm);
+      MiniMC::Model::Modifications::SplitAsserts{}.run (prgm);
     }
     
     void Controller::inlineFunctions (std::size_t depth){
-      for (auto& func : prgm->getEntryPoints ()) {
-	MiniMC::Model::Modifications::InlineFunctions{*prgm}.runFunction (func,depth);
+      for (auto& func : prgm.getEntryPoints ()) {
+	MiniMC::Model::Modifications::InlineFunctions{prgm}.runFunction (func,depth);
       }
     }
     
     void Controller::unrollLoops (std::size_t iterations){
-      for (auto& func : prgm->getFunctions ()) 
+      for (auto& func : prgm.getFunctions ()) 
 	MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
     }
     
     
     void Controller::expandNonDeterministic (){
-      MiniMC::Model::Modifications::expandNonDet (*prgm);
+      MiniMC::Model::Modifications::expandNonDet (prgm);
       
     }
     

@@ -508,19 +508,29 @@ namespace MiniMC {
 	  
 	  auto func = MiniMC::Model::visitValue (
 						 MiniMC::Model::Overload {
-						   [&prgm](auto& t) -> MiniMC::Model::Function_ptr {
-						     using TP = std::decay_t<decltype(t)>;
-						     if constexpr (std::is_same_v<TP,MiniMC::Model::Pointer> ||
-								   std::is_same_v<TP,MiniMC::Model::Pointer32>) {
+						   [&prgm](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
+						     auto loadPtr = t.getValue ();
+						     auto func = prgm.getFunction(loadPtr.base);
+						     return func;
+						   },
+						     [&prgm] (const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
 						       auto loadPtr = t.getValue ();
 						       auto func = prgm.getFunction(loadPtr.base);
 						       return func;
-						     }
-						     else
+						     },
+						     [&prgm] (const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
+						       auto symb = t.getValue ();
+						       auto func = prgm.getFunction(symb);
+						       return func;
+						     },
+						     [](const auto&) -> MiniMC::Model::Function_ptr {
+						       
 						       throw MiniMC::Support::Exception("Shouldn't happen");
-						   }}
+						     }
+						     }
 						 ,*content.function
 						 );
+	  std::cerr << "Call " << func->getSymbol ().getFullName () << std::endl;
 	  if (func->isVarArgs()) {
 	    throw MiniMC::Support::Exception("Vararg functions are not supported");						   
 	  }

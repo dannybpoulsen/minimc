@@ -45,6 +45,9 @@ namespace MiniMC {
       case ValueInfo<Undef>::type_t ():
 	return f (static_cast<const Undef&> (v));
 	break;
+      case ValueInfo<SymbolicConstant>::type_t ():
+	return f (static_cast<const SymbolicConstant&> (v));
+	break;
       default:
 #ifdef NDEBUG
 	__builtin_unreachable();

@@ -38,7 +38,7 @@ TEST_CASE("Frame") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  MiniMC::Model::Controller control(prgm);
+  MiniMC::Model::Controller control(std::move(prgm));
   CHECK(control.typecheck ());
   
 }
@@ -49,19 +49,19 @@ TEST_CASE("Frame") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  MiniMC::Model::Controller control(prgm);
+  MiniMC::Model::Controller control(std::move(prgm));
   control.createAssertViolateLocations ();
   
-  auto program = control.getProgram ();
+  auto& program = control.getProgram ();
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
-  auto initialState = analysis_builder.makeInitialState({program->getEntryPoints (),
-      program->getHeapLayout (),
-      program->getInitialiser (),
-      *program});
+  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
+      program.getHeapLayout (),
+      program.getInitialiser (),
+      program});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (*program)};
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
   auto verdict = reachabilityChecker.search (initialState,goal);
 
   //Assert 
@@ -74,19 +74,19 @@ TEST_CASE("Frame") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
-  MiniMC::Model::Controller control(prgm);
+  MiniMC::Model::Controller control(std::move(prgm));
   control.createAssertViolateLocations ();
   
-  auto program = control.getProgram ();
+  auto& program = control.getProgram ();
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
-  auto initialState = analysis_builder.makeInitialState({program->getEntryPoints (),
-      program->getHeapLayout (),
-      program->getInitialiser (),
-      *program});
+  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
+      program.getHeapLayout (),
+      program.getInitialiser (),
+      program});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (*program)};
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
   auto verdict = reachabilityChecker.search (initialState,goal);
 
   //Assert 

@@ -14,7 +14,7 @@ namespace MiniMC {
 
     class Instruction;
     
-    class Edge : public std::enable_shared_from_this<Edge> {
+    class Edge {
     public:
       Edge(Location_ptr from, Location_ptr to, InstructionStream&& stream = {},bool isPhi = false) : from(from),
 												     to(to),

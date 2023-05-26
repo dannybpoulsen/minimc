@@ -60,35 +60,37 @@ namespace MiniMC {
 		[this](const MiniMC::Model::I32Integer& val) -> PathFormulaVMVal { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
                 [this](const MiniMC::Model::I64Integer& val) -> PathFormulaVMVal { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
                 [this](const MiniMC::Model::Bool& val) -> PathFormulaVMVal { return BoolValue(builder.makeBoolConst(val.getValue())); },
-		  [this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { 
-		    auto pointer = val.getValue ();
-		    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-		    chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
-			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
-		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		    return PointerValue(chainer.getTerm ());
-		  }
-		  ,
-		  [this](const MiniMC::Model::Pointer32& val) -> PathFormulaVMVal { 
-		    auto pointer = val.getValue ();
-		    MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-		    chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
-			    << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
-		            << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		    return Value::Pointer32(chainer.getTerm ());
-		  },
-                [this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
-                  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-                  for (auto byte : val.getData()) {
+		[this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { 
+		  auto pointer = val.getValue ();
+		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+		  return PointerValue(chainer.getTerm ());
+		} ,
+		[this](const MiniMC::Model::Pointer32& val) -> PathFormulaVMVal { 
+		  auto pointer = val.getValue ();
+		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+		  return Value::Pointer32(chainer.getTerm ());
+		},
+		[this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
+		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+		  for (auto byte : val.getData()) {
                     chainer >> (builder.makeBVIntConst(byte, 8));
                   }
                   return AggregateValue(chainer.getTerm(), val.getSize());
                 },
-		  [this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(*val.getType()); },
-		  [this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
-		    return lookupRegister (val);
-		  },
-            },
+		[this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(*val.getType()); },
+		[this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
+		  return lookupRegister (val);
+		},
+		[this](const MiniMC::Model::SymbolicConstant&) -> Value {
+		  throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
+		}
+	    },
             v);
       }
       

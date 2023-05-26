@@ -55,8 +55,7 @@ namespace MiniMC {
 
       else if constexpr (i == InstructionCode::PtrSub) {
 	return os << *content.res << " = " <<InstructionCode::PtrSub << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
-
-	  ;	  
+	;	  
       }
       
       else if constexpr ( i == InstructionCode::ExtractValue) {

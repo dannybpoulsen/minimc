@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.registrar->makeLoader  (tfac,cfac);
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname);
       
-      MiniMC::Model::Controller control(prgm);
+      MiniMC::Model::Controller control(std::move(prgm));
   
       if (!control.typecheck ()) {
 	return -1;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
       if (options.outputname != "") {
 	std::ofstream stream;
 	stream.open (options.outputname, std::ofstream::out);
-	MiniMC::Model::writeProgram (stream,*control.getProgram ());
+	MiniMC::Model::writeProgram (stream,control.getProgram ());
 	stream.close ();
       }
       if (options.command) {

@@ -12,7 +12,7 @@ namespace MiniMC {
     //Helper class for running modifications on a Program
     class Controller {
     public:
-      Controller (const MiniMC::Model::Program& p) : prgm(std::make_shared<Program> (p)) {
+      Controller (MiniMC::Model::Program&& p) : prgm(std::move(p)) {
 	lowerPhi ();
       }
       
@@ -30,7 +30,7 @@ namespace MiniMC {
       auto& getProgram () const {return prgm;}
       
     private:
-      MiniMC::Model::Program_ptr prgm;
+      MiniMC::Model::Program prgm;
     };
   }
 }

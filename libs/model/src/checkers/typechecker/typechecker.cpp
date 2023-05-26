@@ -1,6 +1,7 @@
 #include "model/checkers/typechecker.hpp"
 
 #include "model/cfg.hpp"
+#include "model/valuevisitor.hpp"
 #include "support/feedback.hpp"
 #include "support/localisation.hpp"
 
@@ -278,60 +279,80 @@ namespace MiniMC {
         }
 	
         else if constexpr (i == InstructionCode::Call) {
-          auto func = content.function;
-          if (!func->isConstant()) {
-            MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
-            mess.message<MiniMC::Support::Severity::Error>(must_be_constant.format(i));
-            return false;
-          }
-
-          else {
-            auto constant = std::static_pointer_cast<MiniMC::Model::TConstant<pointer_t>>(func);
-            auto ptr = (*constant).template getValue (); //MiniMC::Support::CastToPtr (constant->getValue());
-            bool is_func = prgm.functionExists(MiniMC::getFunctionId(ptr));
-            MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
-	    MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
-            
-	    if (!is_func) {
-              mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::getFunctionId(ptr)));
-              return false;
-            }
+	  MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
+	  MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");  
+	  auto fun = content.function;
+	  auto func = MiniMC::Model::visitValue(
+						
+						MiniMC::Model::Overload{
+						  [&prgm,&function_not_exists,&mess](const MiniMC::Model::Pointer& val) -> Function_ptr {
+						    auto ptr = val.getValue ();
+						    if (prgm.functionExists (ptr.base))
+						      return prgm.getFunction (ptr.base);
+						    else {
+						      mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::getFunctionId(ptr)));
+						      return nullptr;
+						    }
+						  },
+						    [&prgm,&mess,&function_not_exists](const MiniMC::Model::Pointer32& val) -> Function_ptr {
+						      auto ptr = val.getValue ();
+							if (prgm.functionExists (ptr.base))
+							  return prgm.getFunction (ptr.base);
+							else {
+							  mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(ptr.base));
+							  return nullptr;
+							}
+						    },
+						    [&prgm](const MiniMC::Model::SymbolicConstant& sc) -> Function_ptr {
+						      return prgm.getFunction (sc.getValue ());
+						    },
+						    [&mess](const auto&) -> Function_ptr {
+						      MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
+						      mess.message<MiniMC::Support::Severity::Error>(must_be_constant.format(i));
+						      return nullptr;
+						    }
+						    },
+						*fun
+						);
 	    
-            auto func = prgm.getFunction(MiniMC::getFunctionId(ptr));
-	    MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");
-	    if (!func->isVarArgs ()) {
-	      if (func->getParameters().size() != content.params.size() ) {
-		mess.message<MiniMC::Support::Severity::Error>(inconsistent_parameters.format (func->getSymbol ().getName ()));
+	  
+	  if (!fun) {
+	    return false;
+	  }
+	  
+	  MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");
+	  if (!func->isVarArgs ()) {
+	    if (func->getParameters().size() != content.params.size() ) {
+	      mess.message<MiniMC::Support::Severity::Error>(inconsistent_parameters.format (func->getSymbol ().getName ()));
+	      return false;
+	    }
+	    
+	    auto nbParams = content.params.size();
+	    auto it = func->getParameters().begin();
+	    
+	    for (size_t j = 0; j < nbParams; j++, ++it) {
+	      auto form_type = (*it)->getType();
+	      auto act_type = content.params.at(j)->getType();
+	      if (form_type != act_type) {
+		mess.message<MiniMC::Support::Severity::Error>("Formal and actual parameters do not match typewise");
 		return false;
 	      }
-
-	      auto nbParams = content.params.size();
-	      auto it = func->getParameters().begin();
-	      
-	      for (size_t j = 0; j < nbParams; j++, ++it) {
-		auto form_type = (*it)->getType();
-		auto act_type = content.params.at(j)->getType();
-		if (form_type != act_type) {
-		  mess.message<MiniMC::Support::Severity::Error>("Formal and actual parameters do not match typewise");
-		  return false;
-		}
-	      }
 	    }
-	    else {
-	      mess.message<MiniMC::Support::Severity::Warning>(function_is_var_args.format (func->getSymbol ().getName ()));
+	  }
+	  else {
+	    mess.message<MiniMC::Support::Severity::Warning>(function_is_var_args.format (func->getSymbol ().getName ()));
 	      
+	  }
+	  if (content.res) {
+	    auto resType = content.res->getType();
+	    if (resType != func->getReturnType()) {
+	      mess.message<MiniMC::Support::Severity::Error>("Result and return type of functions must match.");
+	      return false;
 	    }
-            if (content.res) {
-              auto resType = content.res->getType();
-              if (resType != func->getReturnType()) {
-                mess.message<MiniMC::Support::Severity::Error>("Result and return type of functions must match.");
-                return false;
-              }
-            }
-          }
-
-          return true;
-        }
+	  }
+	
+	return true;
+	}
 
         else if constexpr (i == InstructionCode::Assign) {
           MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");

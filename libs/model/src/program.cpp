@@ -67,6 +67,8 @@ namespace MiniMC {
 
       auto copyFunction (const Function_ptr& function,RegReplaceMap map,Program& prgm) {
 	auto frame = prgm.getRootFrame().create (function->getSymbol().getName ());
+	auto symbol = prgm.getRootFrame().makeSymbol (function->getSymbol().getName ());
+	
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);
 	std::vector<Register_ptr> parameters;
@@ -76,7 +78,7 @@ namespace MiniMC {
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();
-	return prgm.addFunction (function->getSymbol ().getName(),
+	return prgm.addFunction (symbol,
 				    parameters,
 				    retType,
 				    std::move(varstack),
@@ -91,8 +93,8 @@ namespace MiniMC {
       
     };
     
-
-    Program::Program (const Program& p) : Program(p.tfact,p.cfact) {
+    
+    /*Program::Program (const Program& p) : Program(p.tfact,p.cfact) {
       Copier copier;
       
       Copier::RegReplaceMap replace_map;
@@ -111,6 +113,6 @@ namespace MiniMC {
       getHeapLayout () = p.getHeapLayout ();
       
       
-    }
+      }*/
   }
 }

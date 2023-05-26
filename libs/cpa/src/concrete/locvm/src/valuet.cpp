@@ -12,7 +12,7 @@ namespace MiniMC {
       ValueLookup::Value ValueLookup::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
 					 
-		MiniMC::Model::Overload{
+	       MiniMC::Model::Overload{
 		 [](const MiniMC::Model::I8Integer& val) -> Value { return Value::I8{val.getValue()}; },
 		 [](const MiniMC::Model::I16Integer& val) -> Value { return Value::I16{val.getValue()}; },
 		 [](const MiniMC::Model::I32Integer& val) -> Value { return Value::I32{val.getValue()}; },
@@ -27,6 +27,9 @@ namespace MiniMC {
 		 [this](const MiniMC::Model::Register& val) -> Value {
 		     return lookupRegister (val);
                 },
+		 [this](const MiniMC::Model::SymbolicConstant&) -> Value {
+		   throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
+		 }
             },
             v);
       }

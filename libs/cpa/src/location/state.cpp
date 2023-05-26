@@ -85,47 +85,60 @@ namespace MiniMC {
 	proc_id id = transition.proc;
         auto& state = static_cast<const State&>(s);
         assert(id < state.nbOfProcesses());
-        if (edge.getFrom().get() == &state.getLocation(id)) {
-          auto nstate = state.lcopy();
-          nstate->setLocation(id, edge.getTo().get());
-	  
-          if (edge.getInstructions () ) {
-            auto& inst = edge.getInstructions ().last();
-            if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
-	      auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
-	      if (content.function->isConstant()) {
-                auto func = MiniMC::Model::visitValue (
-					MiniMC::Model::Overload {
-					  [this](auto& t) -> MiniMC::Model::Function_ptr {
-					    using T = std::decay_t<decltype(t)>;
-					    if constexpr (std::is_same_v<T,MiniMC::Model::Pointer> ||
-							  std::is_same_v<T,MiniMC::Model::Pointer32>) {
-					      auto loadPtr = t.getValue ();
-					      auto func = prgm.getFunction(loadPtr.base);
-					      return func;
-					    }
-					    else
-					      throw MiniMC::Support::Exception("Shouldn't happen");
-					  }}
-					,*content.function);
-		  
-		nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
-		
-	      }
-	      else
-                return nullptr;
-            }
+	
+	if (edge.getFrom ().get () != &state.getLocation(id))
+	  return nullptr;
+	
+	auto nstate = state.lcopy();
+	nstate->setLocation(id, edge.getTo().get());
+	if (!edge.getInstructions ()) {
+	  return nstate;
+	}
 
-            else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
-		     MiniMC::Model::InstructionCode::Ret>(inst)) {
-              nstate->popLocation(id);
-            }
-          }
-          return nstate;
-        }
-
-        return nullptr;
+	auto& inst = edge.getInstructions ().last();
+	if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
+	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
+	  if (content.function->isConstant()) {
+	    auto func = MiniMC::Model::visitValue (
+						   MiniMC::Model::Overload {
+						     [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
+						       auto loadPtr = t.getValue ();
+						       auto func = prgm.getFunction(loadPtr.base);
+						       return func;
+						     },
+						       [this] (const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
+							 auto loadPtr = t.getValue ();
+							 auto func = prgm.getFunction(loadPtr.base);
+							 return func;
+						       },
+						       [this] (const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
+							 auto symb = t.getValue ();
+							 auto func = prgm.getFunction(symb);
+							 return func;
+						       },
+						       [](const auto&) -> MiniMC::Model::Function_ptr {
+							 
+							 throw MiniMC::Support::Exception("Shouldn't happen");
+						       }
+						       }
+						   ,*content.function);
+	    
+	    nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
+	    return nstate;
+	  }
+	}
+	
+	else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
+		 MiniMC::Model::InstructionCode::Ret>(inst)) {
+	  nstate->popLocation(id);
+	  return nstate;
+	}
+	
+	return nstate;
+	
       }
+      
+    
 
       State_ptr<CFAState> MiniMC::CPA::Location::CPA::makeInitialState(const InitialiseDescr& p) {
         std::vector<LocationState> locs;

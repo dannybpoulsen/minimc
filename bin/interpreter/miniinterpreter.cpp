@@ -46,7 +46,7 @@ MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Controller& controller, const M
     }
   }
 
-  auto& prgm = *controller.getProgram ();
+  auto& prgm = controller.getProgram ();
   auto transferer = builder.makeTransfer(prgm);
   // Build Initial state
   MiniMC::Interpreter::StateMap statemap(builder.makeInitialState(

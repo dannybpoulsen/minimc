@@ -137,17 +137,17 @@ namespace MiniMC {
     
     struct Frame::Internal {
       Internal (Symbol symb) : symb(symb) {}
-      Internal (Symbol symb,std::shared_ptr<Internal> p) : symb(symb),parent(p) {}
+      Internal (Symbol symb,std::weak_ptr<Internal> p) : symb(symb),parent(p) {}
       
       
-      bool resolve (const std::string& s, Symbol& symb) {
+      bool resolve (const std::string& s, Symbol& symb) const {
 	auto it = symbols.find(s);
 	if (it != symbols.end ()) {
 	  symb = it->second;
 	  return true;
 	}
-	  else if (parent){
-	  return parent->resolve(s,symb);
+	else if (!parent.expired ()){
+	  return parent.lock ()->resolve(s,symb);
 	}
 	else {
 	  return false;
@@ -157,11 +157,11 @@ namespace MiniMC {
 
       
       template<class S>
-      bool resolveRecursive (const std::string& qname, Symbol& symb, S s) {
+      bool resolveRecursive (const std::string& qname, Symbol& symb, S s) const {
 	std::stringstream stream {qname};
 	std::string inp;
 	
-	do   {
+	do {
 	  std::getline (stream,inp,Symbol::data::delim);  
 	  if (stream.good ()) {
 	    if (s->frames.count(inp))
@@ -184,15 +184,15 @@ namespace MiniMC {
 		
       }
       
-      bool qualifiedResolve (const std::string& s, Symbol& symb) {
+      bool qualifiedResolve (const std::string& s, Symbol& symb)const {
 	auto p = parent;
-	while (p->parent != nullptr)
-	  p = p->parent;
-	return resolveRecursive (s,symb,p);
+	while (!p.expired ())
+	  p = p.lock ()->parent;
+	return resolveRecursive (s,symb,p.lock ());
       }
 
       Symbol symb;
-      std::shared_ptr<Internal> parent;
+      std::weak_ptr<Internal> parent;
       std::unordered_map<std::string, Symbol> symbols;
       std::unordered_map<std::string, std::shared_ptr<Internal>> frames;      
     };
@@ -224,16 +224,16 @@ namespace MiniMC {
     }
     
     Frame Frame::close () {
-      if (!_internal->parent)
+      if (_internal->parent.expired ())
 	throw MiniMC::Support::Exception ("Cannot close root scope");
-      return Frame (_internal->parent);
+      return Frame (_internal->parent.lock ());
     }
 
-    bool Frame::resolve (const std::string& s, Symbol& symb) {
+    bool Frame::resolve (const std::string& s, Symbol& symb) const{
       return _internal->resolve( s,symb);
     }
 
-    bool Frame::resolveQualified (const std::string& s, Symbol& symb) {
+    bool Frame::resolveQualified (const std::string& s, Symbol& symb) const {
       return _internal->qualifiedResolve ( s,symb);
     }
     

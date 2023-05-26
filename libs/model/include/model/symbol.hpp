@@ -31,7 +31,7 @@ namespace MiniMC {
       std::string to_string () const; 
       std::string getName () const;
       std::string getFullName () const {return to_string ();}
-
+      
       MiniMC::Hash::hash_t hash () const;
       bool operator== (const Symbol& d) const ;
       
@@ -58,12 +58,11 @@ namespace MiniMC {
       Frame create (const std::string& s);
       
       Frame close ();
-      bool resolve (const std::string&, Symbol& s);
-      bool resolveQualified (const std::string&, Symbol& s);
+      bool resolve (const std::string&, Symbol& s) const ;
+      bool resolveQualified (const std::string&, Symbol& s) const ;
       
       Symbol makeSymbol (const std::string& s);
       Symbol makeFresh (const std::string& = "fresh");
-      
       
     private:
       struct Internal;

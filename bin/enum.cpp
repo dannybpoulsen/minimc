@@ -20,7 +20,7 @@ MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const 
   MiniMC::Support::Messager messager;
   messager.message("Initiating EnumStates");
   
-  auto& prgm = *controller.getProgram ();
+  auto& prgm = controller.getProgram ();
   auto initstate = cpa.makeInitialState(MiniMC::CPA::InitialiseDescr{
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),

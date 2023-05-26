@@ -109,7 +109,7 @@ namespace MiniMC {
     class TConstant : public Constant {
     public:
       TConstant(T val);
-
+      virtual ~TConstant () {}
       T getValue() const {
         return value;
       }
@@ -146,6 +146,7 @@ namespace MiniMC {
     using I64Integer = TConstant<MiniMC::BV64>;
     using Pointer = TConstant<MiniMC::pointer64_t>;
     using Pointer32 = TConstant<MiniMC::pointer32_t>;
+    using SymbolicConstant = TConstant<MiniMC::Model::Symbol>;
     
     
     /**
@@ -254,13 +255,14 @@ namespace MiniMC {
     public:
       ConstantFactory(TypeFactory_ptr tfac) : typefact(tfac) {}
       virtual ~ConstantFactory() {}
-
+      
       using aggr_input = std::vector<Constant_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
       virtual const Value_ptr makeHeapPointer(MiniMC::base_t) = 0;
       virtual const Value_ptr makeNullPointer() = 0;
+      virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) = 0;
       
       virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) = 0;
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
@@ -279,6 +281,7 @@ namespace MiniMC {
       
       virtual const Value_ptr makeHeapPointer(MiniMC::base_t);
       virtual const Value_ptr makeNullPointer();
+      virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&);
       
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0);
     };
@@ -325,6 +328,9 @@ namespace MiniMC {
 
     template <>
     constexpr type_id_t ValueInfo<Pointer32>::type_t() { return ValueInfo<Undef>::type_t() + 1; }
+
+    template <>
+    constexpr type_id_t ValueInfo<SymbolicConstant>::type_t() { return ValueInfo<Pointer32>::type_t() + 1; }
     
     
     template <class T, bool is_bool>
