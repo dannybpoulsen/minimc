@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   
   std::string input;
   std::string subcommand;
-  MiniMC::Support::setMessageSink(MiniMC::Support::MessagerType::Terminal);
+  MiniMC::Support::Messager::setMessageSink(MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Messager messager;
   try {
     

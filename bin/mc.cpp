@@ -67,9 +67,9 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
 
   messager.message("Initiating Reachability");
   auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
-	prgm.getHeapLayout (),
-	prgm.getInitialiser (),
-	prgm});
+      prgm.getHeapLayout (),
+      prgm.getInitialiser (),
+      prgm});
 
   auto goal = [](const MiniMC::CPA::AnalysisState& state) {
     auto& locationstate = state.getCFAState ().getLocationState ();
@@ -84,7 +84,10 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   };
   
   
-  auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
+  auto notify = [&messager](auto& t) {
+    messager.message (t);
+  };
+  
   MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
   reach.getPWProgresMeasure ().listen (notify);
   auto verdict = reach.search (initstate,goal);
@@ -100,9 +103,9 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
     else
       return MiniMC::Host::ExitCodes::UnexpectedResult;
   }
-
+  
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
-    MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("No violation found").format ());
+    MiniMC::Support::Messager{}.message (MiniMC::Support::Localiser ("No violation found").format ());
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Host::ExitCodes::UnexpectedResult;
     else

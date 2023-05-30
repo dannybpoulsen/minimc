@@ -2,6 +2,7 @@
 #include "support/exceptions.hpp"
 #include "hash/hashing.hpp"
 
+#include <stdexcept>
 #include <string>
 #include <ostream>
 #include <sstream>
@@ -186,9 +187,14 @@ namespace MiniMC {
       
       bool qualifiedResolve (const std::string& s, Symbol& symb)const {
 	auto p = parent;
-	while (!p.expired ())
-	  p = p.lock ()->parent;
-	return resolveRecursive (s,symb,p.lock ());
+	while (!p.expired ()) {
+	  auto q = p.lock ();
+	  if (q->parent.expired ())
+	    return resolveRecursive (s,symb,q);
+	  else
+	    p = q->parent;
+	}
+      throw std::runtime_error ("Can't find root frame");
       }
 
       Symbol symb;

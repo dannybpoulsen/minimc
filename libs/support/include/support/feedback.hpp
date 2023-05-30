@@ -16,56 +16,78 @@ namespace MiniMC {
       Progress
     };
     
+    template<Severity type>
+    class Message {
+    public:
+      Message ()  {} 
+      virtual ~Message () {}
+      virtual std::ostream& to_string (std::ostream& ) const = 0;
+      auto getType () const {return type;}
+    };
+
+    using ErrorMessage = Message<Severity::Error>;
+    using WarningMessage = Message<Severity::Warning>;
+    using InfoMessage = Message<Severity::Info>;
+    using ProgressMessage = Message<Severity::Progress>;
+    
+    
+    
+    template<class T, Severity t>
+    class TMessage : public Message<t> {
+    public:
+      TMessage (T m) : item(std::move(m)) {}
+      virtual std::ostream& to_string (std::ostream& os) const {
+	return os << item;
+      }
+      
+    private:
+      T item;
+    };
+    
     
     class MessageSink {
     public:
       virtual ~MessageSink() {}
-      virtual void error(const std::string&) {}
+      /*virtual void error(const std::string&) {}
       virtual void warning(const std::string&) {}
       virtual void message(const std::string&) {}
       virtual void progress(const std::string&) {}
-    
-    };
-
-    
-    
-    MessageSink& getMessager();
-    
-    
-    class Messager {
-    public:
-      template<Severity severity = Severity::Info>
-      void message (const std::string& s) {
-	if constexpr (severity == Severity::Info) {
-	  getMessager ().message (s);
-	}
-	else if constexpr (severity == Severity::Warning) {
-	  getMessager ().warning (s);
-	}
-	else if constexpr (severity == Severity::Error) {
-	  getMessager ().error (s);
-	}
-
-	else if constexpr (severity == Severity::Progress) {
-	  getMessager ().progress (s);
-	}
-	
-      }
-
-      template<Severity s = Severity::Info, class T>   requires (!std::is_same_v<T,std::string>)
-      void message (const T& t) {
-	std::stringstream str;
-	str << t;
-	message<s> ( str.str ());
-      }
-	
+      */
+      virtual void mess(const ErrorMessage&) {}
+      virtual void mess(const WarningMessage&) {}
+      virtual void mess(const InfoMessage&) {}
+      virtual void mess(const ProgressMessage&) {}
+      
     };
     
     enum class MessagerType {
       Terminal
     };
     
-    void setMessageSink(MessagerType);
+    
+    class Messager {
+    public:
+      template<Severity severity = Severity::Info>
+      void message (const std::string& s) {
+	sink->mess (TMessage<std::string,severity> {s});
+      }
+      
+      template<Severity s = Severity::Info, class T>   requires (!std::is_same_v<T,std::string>)
+      void message (const T& t) {
+	std::stringstream str;
+	str << t;
+	message<s> ( str.str ());
+      }
+      
+      static void setMessageSink(MessagerType);
+      
+      
+    private:
+      static std::unique_ptr<MessageSink> sink; 
+      
+    };
+    
+    
     
   } // namespace Support
 } // namespace MiniMC
