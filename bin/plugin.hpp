@@ -5,12 +5,13 @@
 #include "model/controller.hpp"
 #include "options.hpp"
 #include "host/host.hpp"
+#include "support/feedback.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>
 
-using subcommandfunc = std::function<MiniMC::Host::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::AnalysisBuilder&)>;
+using subcommandfunc = std::function<MiniMC::Host::ExitCodes(MiniMC::Model::Controller&, const MiniMC::CPA::AnalysisBuilder&, MiniMC::Support::Messager&)>;
 using options_func = std::function<void(boost::program_options::options_description&)>;
 
 struct CommandRegistrar;

@@ -16,8 +16,7 @@ namespace {
   }
 }
 
-MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa)  {
-  MiniMC::Support::Messager messager;
+MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager)  {
   messager.message("Initiating EnumStates");
   
   auto& prgm = controller.getProgram ();
@@ -34,7 +33,7 @@ MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const 
   auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
   MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer (prgm)};
   reach.getPWProgresMeasure ().listen (notify);
-  reach.search (initstate,goal);
+  reach.search (messager,initstate,goal);
 
   messager.message("Finished EnumStates");
   messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(reach.getPWProgresMeasure ().get().passed));

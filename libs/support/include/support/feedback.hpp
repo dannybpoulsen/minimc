@@ -43,6 +43,10 @@ namespace MiniMC {
     private:
       T item;
     };
+
+    enum class MessageSinkType {
+      Terminal
+    };
     
     
     class MessageSink {
@@ -57,16 +61,17 @@ namespace MiniMC {
       virtual void mess(const WarningMessage&) {}
       virtual void mess(const InfoMessage&) {}
       virtual void mess(const ProgressMessage&) {}
+
+      static std::shared_ptr<MessageSink> make (MessageSinkType);
       
     };
     
-    enum class MessagerType {
-      Terminal
-    };
+    
     
     
     class Messager {
     public:
+      Messager (std::shared_ptr<MessageSink>&& sink = MessageSink::make (MessageSinkType::Terminal)) : sink(std::move(sink)) {}
       template<Severity severity = Severity::Info>
       void message (const std::string& s) {
 	sink->mess (TMessage<std::string,severity> {s});
@@ -79,11 +84,9 @@ namespace MiniMC {
 	message<s> ( str.str ());
       }
       
-      static void setMessageSink(MessagerType);
-      
       
     private:
-      static std::unique_ptr<MessageSink> sink; 
+      std::shared_ptr<MessageSink> sink; 
       
     };
     

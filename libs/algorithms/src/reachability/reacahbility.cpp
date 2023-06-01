@@ -24,7 +24,7 @@ namespace MiniMC {
       }
       
 
-      Verdict Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
+      Verdict Reachability::search (MiniMC::Support::Messager& mess,const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	std::list<MiniMC::CPA::AnalysisState> waiting;
 	MiniMC::Storage::HashStorage storage;
 	
@@ -58,9 +58,9 @@ namespace MiniMC {
 	    }
 	  }
 	  
-	  
-	  progress_indicator = Progress{.passed = storage.size (), .waiting = waiting.size ()};
-	  progress_indicator.notif_listeners ();
+
+
+	  mess.message<MiniMC::Support::Severity::Progress> (Progress{.passed = storage.size (), .waiting = waiting.size ()});
 	}
 	
 	return Verdict::NotFound;

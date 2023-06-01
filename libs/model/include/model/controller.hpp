@@ -2,6 +2,8 @@
 #define _CONTROLLER_
 
 #include "model/cfg.hpp"
+#include "support/feedback.hpp"
+
 
 #include <functional>
 #include <vector>
@@ -16,7 +18,7 @@ namespace MiniMC {
 	lowerPhi ();
       }
       
-      bool typecheck ();
+      bool typecheck (MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
       bool structuralcheck ();
       
       void lowerPhi ();

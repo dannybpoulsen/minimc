@@ -51,9 +51,9 @@ namespace MiniMC {
       
     };
 
-    std::unique_ptr<MessageSink> makeMessager(MessagerType g) {
+    std::shared_ptr<MessageSink> makeMessager(MessageSinkType g) {
       switch (g) {
-        case MessagerType::Terminal:
+        case MessageSinkType::Terminal:
           return std::make_unique<LinuxMessageSink>();
       default:
 	return std::make_unique<LinuxMessageSink>();

@@ -36,7 +36,6 @@ int main(int argc, char* argv[]) {
   
   std::string input;
   std::string subcommand;
-  MiniMC::Support::Messager::setMessageSink(MiniMC::Support::MessagerType::Terminal);
   MiniMC::Support::Messager messager;
   try {
     
@@ -51,8 +50,8 @@ int main(int argc, char* argv[]) {
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname);
       
       MiniMC::Model::Controller control(std::move(prgm));
-  
-      if (!control.typecheck ()) {
+      
+      if (!control.typecheck (messager)) {
 	return -1;
       }
       transformProgram (control,options.transform);
@@ -64,7 +63,7 @@ int main(int argc, char* argv[]) {
 	stream.close ();
       }
       if (options.command) {
-	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa));
+	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa,messager));
       
 	return res;
       }

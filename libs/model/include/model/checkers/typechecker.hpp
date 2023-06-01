@@ -20,9 +20,9 @@ namespace MiniMC {
 	   * Typecheck the progrm \p prgm.
 	   
 	   */
-      struct TypeChecker : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+      struct TypeChecker  {
         TypeChecker()  {}
-        virtual bool run(MiniMC::Model::Program& prgm);
+        virtual bool run(MiniMC::Model::Program& prgm, MiniMC::Support::Messager = MiniMC::Support::Messager{});
       };
 
     } // namespace Checkers

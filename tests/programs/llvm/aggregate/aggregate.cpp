@@ -9,6 +9,7 @@
 #include "cpa/location.hpp"
 #include "cpa/location.hpp"
 #include "algorithms/reachability/reachability.hpp"
+#include "support/feedback.hpp"
 #include "loaders/loader.hpp"
 #include <filesystem>
 
@@ -34,16 +35,18 @@ auto goal (const MiniMC::CPA::AnalysisState& state) {
 
 TEST_CASE("Frame") {
   //Arrange
+  MiniMC::Support::Messager mess;
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   MiniMC::Model::Controller control(std::move(prgm));
-  CHECK(control.typecheck ());
+  CHECK(control.typecheck (mess));
   
 }
 
 TEST_CASE("Frame") {
+  MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
@@ -62,13 +65,14 @@ TEST_CASE("Frame") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
-  auto verdict = reachabilityChecker.search (initialState,goal);
+  auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
 }
 
 TEST_CASE("Frame") {
+  MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
@@ -87,7 +91,7 @@ TEST_CASE("Frame") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
-  auto verdict = reachabilityChecker.search (initialState,goal);
+  auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound);

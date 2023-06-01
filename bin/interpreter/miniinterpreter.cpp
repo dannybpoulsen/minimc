@@ -31,7 +31,7 @@ void addOptions (po::options_description& op) {
   op.add(desc);
 }
 
-MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder) {
+MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder, MiniMC::Support::Messager& ) {
   std::queue<MiniMC::Interpreter::Task*> queue;
   char* tok;
   char delim[] = " ";

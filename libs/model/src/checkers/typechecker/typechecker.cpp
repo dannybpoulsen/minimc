@@ -9,8 +9,7 @@ namespace MiniMC {
   namespace Model {
     namespace Checkers {
       template <MiniMC::Model::InstructionCode i>
-      bool doCheck(const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
-	MiniMC::Support::Messager mess;
+      bool doCheck(const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm,MiniMC::Support::Messager& mess) {
         auto& content = inst.getOps<i>();
         if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
           MiniMC::Support::Localiser loc("All operands to '%1%' must have same type as the result.");
@@ -467,7 +466,7 @@ namespace MiniMC {
         }
       }
 
-      bool TypeChecker::run(MiniMC::Model::Program& prgm) {
+      bool TypeChecker::run(MiniMC::Model::Program& prgm, MiniMC::Support::Messager mess) {
         bool res = true;
         for (auto& F : prgm.getFunctions()) {
           for (auto& E : F->getCFA().getEdges()) {
@@ -478,7 +477,7 @@ namespace MiniMC {
                 switch (I.getOpcode()) {
 #define X(OP)                                                                                      \
   case MiniMC::Model::InstructionCode::OP:                                                         \
-    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I,  F->getReturnType(), prgm)) { \
+    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I,  F->getReturnType(), prgm,mess)) { \
       res = false;                                                                                 \
     }                                                                                              \
     break;

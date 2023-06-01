@@ -34,6 +34,7 @@ auto goal (const MiniMC::CPA::AnalysisState& state) {
 
 
 TEST_CASE("Pointer") {
+  MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
@@ -52,13 +53,14 @@ TEST_CASE("Pointer") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
-  auto verdict = reachabilityChecker.search (initialState,goal);
+  auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound);
 }
 
 TEST_CASE("Pointer") {
+    MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
@@ -77,7 +79,7 @@ TEST_CASE("Pointer") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
-  auto verdict = reachabilityChecker.search (initialState,goal);
+  auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);

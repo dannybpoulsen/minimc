@@ -3,11 +3,11 @@
 namespace MiniMC {
   namespace Support {
 
-    std::unique_ptr<MessageSink> makeMessager(MessagerType);
-    std::unique_ptr<MessageSink> Messager::sink = makeMessager(MessagerType::Terminal); 
+    std::shared_ptr<MessageSink> makeMessager(MessageSinkType);
     
-    void Messager::setMessageSink(MessagerType term) {
-      sink = makeMessager(term);
+    
+    std::shared_ptr<MessageSink> MessageSink::make(MessageSinkType term) {
+      return makeMessager(term);
     }
 
   } // namespace Support

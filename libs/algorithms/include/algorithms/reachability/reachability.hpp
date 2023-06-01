@@ -31,7 +31,8 @@ namespace MiniMC {
 	
 	Reachability (MiniMC::CPA::AnalysisTransfer transfer) : transfer(transfer)  {}
 	
-	Verdict search (const MiniMC::CPA::AnalysisState&,
+	Verdict search (MiniMC::Support::Messager& mess,
+			const MiniMC::CPA::AnalysisState&,
 			GoalFunction,
 			FilterFunction = DefaultFilter
 			);

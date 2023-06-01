@@ -16,8 +16,8 @@
 
 namespace MiniMC {
   namespace Model {
-    bool Controller::typecheck () {
-      return MiniMC::Model::Checkers::TypeChecker{}.run (prgm);
+    bool Controller::typecheck (MiniMC::Support::Messager mess) {
+      return MiniMC::Model::Checkers::TypeChecker{}.run (prgm,mess);
     }
     
     bool Controller::structuralcheck () {
@@ -48,6 +48,6 @@ namespace MiniMC {
       MiniMC::Model::Modifications::expandNonDet (prgm);
       
     }
-    
+   
   }
 } // namespace MiniMC
