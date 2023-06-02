@@ -9,7 +9,6 @@
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/expandnondet.hpp"
 
-#include "model/checkers/structure.hpp"
 #include "model/checkers/typechecker.hpp"
 
 #include "model/controller.hpp"
@@ -20,10 +19,6 @@ namespace MiniMC {
       return MiniMC::Model::Checkers::TypeChecker{}.run (prgm,mess);
     }
     
-    bool Controller::structuralcheck () {
-      return MiniMC::Model::Checkers::StructureChecker{}.run (prgm);
-    }
-
     void Controller::lowerPhi (){
       MiniMC::Model::Modifications::LowerPhi{}.run (prgm);
     }

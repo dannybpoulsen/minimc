@@ -19,8 +19,7 @@ namespace MiniMC {
       }
       
       bool typecheck (MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
-      bool structuralcheck ();
-      
+
       void lowerPhi ();
       void makeMemNonDet ();
       void createAssertViolateLocations ();
