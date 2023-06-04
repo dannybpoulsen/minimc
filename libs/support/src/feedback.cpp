@@ -10,5 +10,11 @@ namespace MiniMC {
       return makeMessager(term);
     }
 
+    std::shared_ptr<MessageSink> defSink = makeMessager (MessageSinkType::Terminal);
+    
+    std::shared_ptr<MessageSink> MessageSink::defaultSink () {
+      return defSink;
+    }
+    
   } // namespace Support
 } // namespace MiniMC

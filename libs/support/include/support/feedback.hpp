@@ -70,6 +70,7 @@ namespace MiniMC {
       virtual void mess(const ProgressMessage&) {}
       
       static std::shared_ptr<MessageSink> make (MessageSinkType);
+      static std::shared_ptr<MessageSink> defaultSink ();
       
     };
     
@@ -78,10 +79,9 @@ namespace MiniMC {
     
     class Messager {
     public:
-      Messager (std::shared_ptr<MessageSink>&& sink = MessageSink::make (MessageSinkType::Terminal)) : sink(std::move(sink)) {}
-
-
-
+      Messager (std::shared_ptr<MessageSink> sink = MessageSink::defaultSink ()) : sink(std::move(sink)) {}
+      
+      
       template<class T>
       auto& operator<< (T&& mess) {sink->mess(mess); return *this;}
       
