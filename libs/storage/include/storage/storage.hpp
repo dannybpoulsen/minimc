@@ -12,11 +12,12 @@ namespace MiniMC {
   namespace Storage {
     class Store  {
     public:
+      virtual ~Store () {}
       virtual bool insert (const MiniMC::CPA::AnalysisState& s) = 0;
       virtual std::size_t size () const =  0;
       
     };
-
+    
     class HashStorage : public Store {
     public:
       bool insert (const MiniMC::CPA::AnalysisState& s)  override{

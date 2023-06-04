@@ -5,6 +5,7 @@
 #include "model/controller.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
+#include "support/feedback.hpp"
 
 
 #include <memory>
@@ -49,8 +50,8 @@ namespace MiniMC {
                                                  cfactory(cfac) {}
       
       virtual ~Loader() {}
-      virtual MiniMC::Model::Program loadFromFile(const std::string& file) = 0;
-      virtual MiniMC::Model::Program loadFromString(const std::string& str) = 0;
+      virtual MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Support::Messager&) = 0;
+      virtual MiniMC::Model::Program loadFromString(const std::string& str, MiniMC::Support::Messager&) = 0;
 
     protected:
       MiniMC::Model::TypeFactory_ptr tfactory;

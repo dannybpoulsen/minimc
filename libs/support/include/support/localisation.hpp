@@ -12,14 +12,14 @@ namespace MiniMC {
       Localiser(const std::string& str) : formatter(str) {}
 
       template <typename... Args>
-      std::string format(Args... args) {
+      std::string format(Args&&... args) const {
         formatter.clear();
         (formatter.operator%(std::forward<Args>(args)), ...);
         return formatter.str();
       }
 
     private:
-      boost::format formatter;
+      mutable boost::format formatter;
     };
   } // namespace Support
 } // namespace MiniMC

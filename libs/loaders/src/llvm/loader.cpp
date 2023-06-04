@@ -52,8 +52,20 @@
 namespace MiniMC {
   namespace Loaders {
 
+    class FunctionNotDefined : public MiniMC::Support::WarningMessage {
+    public:
+      FunctionNotDefined (const std::string& funcname) : funcname(funcname) {}
+      std::ostream& to_string (std::ostream& os) const override {
+	return os << loc.format (funcname);
+      }
+      
+    private:
+      std::string funcname;
+      MiniMC::Support::Localiser loc{"Function '%1%' only declared in LLVM assembly. Treating it as a non-determinstic function"};
+    };
+    
     MiniMC::Model::TypeID getTypeID(llvm::Type* type);
-
+    
     MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg) {
       static std::size_t nb = 0;
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
@@ -107,20 +119,20 @@ namespace MiniMC {
                  std::vector<std::string> entry,
                  bool disablePromotion,
                  bool printPass) : Loader(tfac, cfac), stacksize(stacksize), entry(entry), disablePromotion(disablePromotion), printLLVMPass(printPass) {}
-      MiniMC::Model::Program loadFromFile(const std::string& file) override {
+      MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Support::Messager& mess) override {
 	std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfactory, cfactory);
+        return readFromBuffer(buffer, tfactory, cfactory,mess);
       }
 
-      MiniMC::Model::Program loadFromString(const std::string& inp) override {
+      MiniMC::Model::Program loadFromString(const std::string& inp, MiniMC::Support::Messager& mess) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfactory, cfactory);
+        return readFromBuffer(buffer, tfactory, cfactory,mess);
       }
 
       auto createFunctionWorkList(llvm::Module& module) {
@@ -138,7 +150,7 @@ namespace MiniMC {
         return functions;
       }
 
-      void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module) {
+      void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module, MiniMC::Support::Messager&) {
         std::vector<MiniMC::Model::Instruction> instr;
 
         MiniMC::func_t fid = 0;
@@ -176,7 +188,7 @@ namespace MiniMC {
         }
       }
 
-      void instantiateFunction(llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program& prgm) {
+      void instantiateFunction(llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
 
         auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
         std::string fname = F.getName().str();
@@ -185,7 +197,7 @@ namespace MiniMC {
         std::vector<MiniMC::Model::Register_ptr> params;
         MiniMC::Model::RegisterDescr variablestack;
         MiniMC::Model::LocationInfoCreator locinfoc(variablestack);
-        // auto sp = variablestack.addRegister (frame.makeFresh ("sp"), lcontext.getTypeFactory().makePointerType ());
+   
         auto sp_mem = variablestack.addRegister(frame.makeFresh("sp_mem"), lcontext.getTypeFactory().makePointerType());
 
         LoadContext load{lcontext, variablestack, sp, sp_mem, frame};
@@ -219,7 +231,7 @@ namespace MiniMC {
         }
 
         if (F.isDeclaration()) {
-          MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning>(MiniMC::Support::Localiser{"Function '%1%' only declared in LLVM assembly. Treating it as a non-determinstic function"}.format(F.getName().str()));
+          mess << FunctionNotDefined {F.getName().str()};
 
           auto iinit = locinfoc.make(MiniMC::Model::LocFlags{}, *source_loc);
           auto init = cfg.makeLocation(frame.makeSymbol("init"), iinit);
@@ -378,14 +390,14 @@ namespace MiniMC {
         }
       }
 
-      void instantiateFunctions(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module) {
+      void instantiateFunctions(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module,  MiniMC::Support::Messager& mess) {
         std::unordered_set<llvm::Function*> functions = createFunctionWorkList(module);
         for (auto& F : functions) {
-          instantiateFunction(*F, lcontext, prgm);
+          instantiateFunction(*F, lcontext, prgm,mess);
         }
       }
 
-      void llvmModifications(llvm::Module& module) {
+      void llvmModifications(llvm::Module& module, MiniMC::Support::Messager&) {
 
         llvm::legacy::PassManager lpm;
         lpm.add(llvm::createLowerSwitchPass());
@@ -431,7 +443,7 @@ namespace MiniMC {
         }
       }
 
-      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac) {
+      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) {
         MiniMC::Model::Program prgm {tfac, cfac};
 	
         sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), tfac->makePointerType());
@@ -444,9 +456,9 @@ namespace MiniMC {
           throw LoadError{};
         }
 
-        llvmModifications(*module);
-        loadGlobals(lcontext, prgm, *module);
-        instantiateFunctions(lcontext, prgm, *module);
+        llvmModifications(*module,mess);
+        loadGlobals(lcontext, prgm, *module,mess);
+        instantiateFunctions(lcontext, prgm, *module, mess);
 
         setupEntryPoints(prgm);
 

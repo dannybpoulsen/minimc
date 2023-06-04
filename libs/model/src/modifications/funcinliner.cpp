@@ -48,7 +48,7 @@ namespace MiniMC {
 	    break;
 	    
 	  case MiniMC::Model::InstructionCode::RetVoid: {
-	    ninstr.last().replace (Instruction::make<InstructionCode::Skip> (0));
+	    ninstr.last() = Instruction::make<InstructionCode::Skip> (0);
 	    cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 	    cfunc->getCFA().deleteEdge (ne.get());
 	    break;
@@ -56,11 +56,11 @@ namespace MiniMC {
 	    
 	  case MiniMC::Model::InstructionCode::Ret: {
 	    auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
-	    ninstr.last().replace(Instruction::make<InstructionCode::Assign> ( 
+	    ninstr.last() = Instruction::make<InstructionCode::Assign> ( 
 									      call_content.res,
 									      content.value 
-									       )
-				  );
+									 );
+				  
 	    cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 	    cfunc->getCFA ().deleteEdge (ne.get());
 	    break;

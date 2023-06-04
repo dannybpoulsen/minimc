@@ -530,7 +530,6 @@ namespace MiniMC {
 						     }
 						 ,*content.function
 						 );
-	  std::cerr << "Call " << func->getSymbol ().getFullName () << std::endl;
 	  if (func->isVarArgs()) {
 	    throw MiniMC::Support::Exception("Vararg functions are not supported");						   
 	  }

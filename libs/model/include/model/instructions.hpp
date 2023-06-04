@@ -75,11 +75,14 @@ namespace MiniMC {
   X(Skip)         \
   X(Call)         \
   X(Assign)       \
-  X(Ret)          \
-  X(RetVoid)      \
   X(NonDet)       \
   X(Uniform)
 
+#define RETS	  \
+    X(Ret)	  \
+    X(RetVoid)	  \
+  
+    
 #define ASSUMEASSERTS				\
     X(Assert)					\
     X(Assume)					\
@@ -105,10 +108,11 @@ namespace MiniMC {
   CASTOPS          \
   MEMORY           \
   INTERNAL         \
+  RETS		   \
   POINTEROPS       \
   AGGREGATEOPS     \
-  ASSUMEASSERTS		   \
-    PREDICATES
+  ASSUMEASSERTS	   \
+  PREDICATES
 
     enum class InstructionCode {
 #define X(OP) \
@@ -617,13 +621,7 @@ ASSUMEASSERTS
       
       
       
-      /**
-       * Replace this instruction with contents of \p i.
-       */
-      void replace(const Instruction& i) {
-        opcode = i.opcode;
-        content = i.content;
-      }
+      
 
       /**
        * \returns InstructionCode of this Instruction

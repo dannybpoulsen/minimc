@@ -52,16 +52,11 @@ namespace MiniMC {
     class MessageSink {
     public:
       virtual ~MessageSink() {}
-      /*virtual void error(const std::string&) {}
-      virtual void warning(const std::string&) {}
-      virtual void message(const std::string&) {}
-      virtual void progress(const std::string&) {}
-      */
       virtual void mess(const ErrorMessage&) {}
       virtual void mess(const WarningMessage&) {}
       virtual void mess(const InfoMessage&) {}
       virtual void mess(const ProgressMessage&) {}
-
+      
       static std::shared_ptr<MessageSink> make (MessageSinkType);
       
     };
@@ -72,6 +67,7 @@ namespace MiniMC {
     class Messager {
     public:
       Messager (std::shared_ptr<MessageSink>&& sink = MessageSink::make (MessageSinkType::Terminal)) : sink(std::move(sink)) {}
+
       template<Severity severity = Severity::Info>
       void message (const std::string& s) {
 	sink->mess (TMessage<std::string,severity> {s});
@@ -83,6 +79,11 @@ namespace MiniMC {
 	str << t;
 	message<s> ( str.str ());
       }
+      
+
+
+      template<class T>
+      auto& operator<< (T&& mess) {sink->mess(mess); return *this;}
       
       
     private:

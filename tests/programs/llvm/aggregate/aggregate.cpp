@@ -16,8 +16,9 @@
 auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s) {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+  MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.makeLoader (tfac,cfac)->loadFromFile (path);
+  return loader.makeLoader (tfac,cfac)->loadFromFile (path,mess);
   
 }
 

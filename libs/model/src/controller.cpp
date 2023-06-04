@@ -5,7 +5,6 @@
 #include "model/modifications/loops.hpp"
 #include "model/modifications/removephi.hpp"
 #include "model/modifications/replacesub.hpp"
-#include "model/modifications/rremoveretsentry.hpp"
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/expandnondet.hpp"
 
@@ -16,7 +15,7 @@
 namespace MiniMC {
   namespace Model {
     bool Controller::typecheck (MiniMC::Support::Messager mess) {
-      return MiniMC::Model::Checkers::TypeChecker{}.run (prgm,mess);
+      return MiniMC::Model::Checkers::TypeChecker{prgm}.Check (mess);
     }
     
     void Controller::lowerPhi (){

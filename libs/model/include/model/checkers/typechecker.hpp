@@ -21,8 +21,12 @@ namespace MiniMC {
 	   
 	   */
       struct TypeChecker  {
-        TypeChecker()  {}
-        virtual bool run(MiniMC::Model::Program& prgm, MiniMC::Support::Messager = MiniMC::Support::Messager{});
+        TypeChecker(MiniMC::Model::Program& prgm) : prgm(prgm)  {}
+	bool Check( MiniMC::Support::Messager = MiniMC::Support::Messager{});
+	bool Check(MiniMC::Model::Function&, MiniMC::Support::Messager = MiniMC::Support::Messager{});
+	
+      private:
+	MiniMC::Model::Program& prgm;
       };
 
     } // namespace Checkers
