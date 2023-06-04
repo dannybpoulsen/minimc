@@ -17,7 +17,7 @@ namespace {
 }
 
 MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager)  {
-  messager.message("Initiating EnumStates");
+  messager << MiniMC::Support::TInfo {"Initiating EnumStates"};
   
   auto& prgm = controller.getProgram ();
   auto initstate = cpa.makeInitialState(MiniMC::CPA::InitialiseDescr{
@@ -30,13 +30,11 @@ MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const 
     return false;
   };
   
-  auto notify = [&messager](auto& t) {messager.message<MiniMC::Support::Severity::Progress> (t);};
   MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer (prgm)};
-  reach.getPWProgresMeasure ().listen (notify);
   reach.search (messager,initstate,goal);
-
-  messager.message("Finished EnumStates");
-  messager.message(MiniMC::Support::Localiser("Total Number of States %1%").format(reach.getPWProgresMeasure ().get().passed));
+  
+  messager << MiniMC::Support::TInfo ("Finished EnumStates");
+  messager << MiniMC::Support::TInfo (MiniMC::Support::Localiser("Total Number of States %1%").format(reach.getNumberExploredStates()));
   
   return MiniMC::Host::ExitCodes::AllGood;
 }

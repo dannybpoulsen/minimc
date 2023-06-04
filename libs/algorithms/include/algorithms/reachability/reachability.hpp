@@ -1,6 +1,7 @@
 
 #include "algorithms/algorithms.hpp"
 #include "cpa/interface.hpp"
+#include "support/feedback.hpp"
 
 #include <iosfwd>
 
@@ -21,13 +22,16 @@ namespace MiniMC {
 	Found,
 	NotFound
       };
-      
+
+      struct Progress  {
+	Progress (std::size_t passed, std::size_t waiting) : passed(passed),waiting(waiting) {}
+	std::size_t passed{0};
+	std::size_t waiting{0};
+      };
+
       class Reachability {
       public:
-	struct Progress {
-	  std::size_t passed{0};
-	  std::size_t waiting{0};
-	};
+	
 	
 	Reachability (MiniMC::CPA::AnalysisTransfer transfer) : transfer(transfer)  {}
 	
@@ -37,21 +41,16 @@ namespace MiniMC {
 			FilterFunction = DefaultFilter
 			);
 
-
-	Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
-	MiniMC::CPA::AnalysisState foundState () const {return found;}
 	
+	//Observable<Progress>& getPWProgresMeasure ()  {return progress_indicator;}
+	MiniMC::CPA::AnalysisState foundState () const {return found;}
+	auto getNumberExploredStates () const {return nbExploredStates;};
       private:
-	Observable<Progress> progress_indicator;
 	MiniMC::CPA::AnalysisTransfer transfer;
 	MiniMC::CPA::AnalysisState found;
+	std::size_t nbExploredStates;
       };
       
-
-      inline std::ostream& operator<< (std::ostream& os, const Reachability::Progress& prgs) {
-	return os << "Passed: " << prgs.passed << " Waiting:" << prgs.waiting;
-	
-      }
       
     }
   }

@@ -19,7 +19,7 @@ namespace MiniMC {
               if (E->getInstructions ()) {
                 for (auto& I : E->getInstructions()) {
                   if (MiniMC::Model::isOneOf<codes...>(I)) {
-		    MiniMC::Support::Messager{}.message (error_mess.format(I.getOpcode()));
+		    MiniMC::Support::Messager{} << MiniMC::Support::TError {error_mess.format(I.getOpcode())};
                     return false;
                   }
                 }

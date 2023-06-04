@@ -38,8 +38,8 @@ namespace MiniMC {
     }
     
     
-    void Controller::expandNonDeterministic (){
-      MiniMC::Model::Modifications::expandNonDet (prgm);
+    void Controller::expandNonDeterministic (MiniMC::Support::Messager mess){
+      MiniMC::Model::Modifications::expandNonDet (prgm,mess);
       
     }
    

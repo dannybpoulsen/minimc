@@ -2,12 +2,18 @@
 #include "cpa/interface.hpp"
 #include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
+#include "support/localisation.hpp"
 #include "storage/storage.hpp"
 #include <algorithm>
 
 namespace MiniMC {
   namespace Algorithms {
     namespace Reachability {
+
+      inline std::ostream& operator<< (std::ostream& os, const Progress& p) {
+	return os << MiniMC::Support::Localiser {"Waiting / Passed : %1% / %2%"}.format(p.waiting,p.passed);
+      }
+
       StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
 	for (auto& dstate : state.dataStates ()) {
 	  auto solver = dstate.getConcretizer ();
@@ -44,6 +50,7 @@ namespace MiniMC {
 
 	  if (goal(searchee)) {
 	    found = std::move(searchee);
+	    nbExploredStates = storage.size ();
 	    return Verdict::Found;
 	  }
 
@@ -60,9 +67,10 @@ namespace MiniMC {
 	  
 
 
-	  mess.message<MiniMC::Support::Severity::Progress> (Progress{.passed = storage.size (), .waiting = waiting.size ()});
+	  mess << MiniMC::Support::TProgress {Progress{storage.size (), waiting.size ()}};
 	}
-	
+
+	nbExploredStates = storage.size ();
 	return Verdict::NotFound;
 	
       }

@@ -34,7 +34,7 @@ namespace MiniMC {
             return l.shared_from_this ();
           return nullptr;
         }
-
+	
       };
 
       struct CPA : public ICPA<CFAState> {

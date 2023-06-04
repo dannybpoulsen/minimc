@@ -39,11 +39,23 @@ namespace MiniMC {
       virtual std::ostream& to_string (std::ostream& os) const {
 	return os << item;
       }
-      
-    private:
+          private:
       T item;
     };
 
+    template<class T>
+    using TError = TMessage<T,Severity::Error>;
+
+    template<class T>
+    using TWarning = TMessage<T,Severity::Warning>;
+
+    template<class T>
+    using TInfo = TMessage<T,Severity::Info>;
+
+    template<class T>
+    using TProgress = TMessage<T,Severity::Progress>;
+    
+    
     enum class MessageSinkType {
       Terminal
     };
@@ -68,18 +80,6 @@ namespace MiniMC {
     public:
       Messager (std::shared_ptr<MessageSink>&& sink = MessageSink::make (MessageSinkType::Terminal)) : sink(std::move(sink)) {}
 
-      template<Severity severity = Severity::Info>
-      void message (const std::string& s) {
-	sink->mess (TMessage<std::string,severity> {s});
-      }
-      
-      template<Severity s = Severity::Info, class T>   requires (!std::is_same_v<T,std::string>)
-      void message (const T& t) {
-	std::stringstream str;
-	str << t;
-	message<s> ( str.str ());
-      }
-      
 
 
       template<class T>

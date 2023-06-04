@@ -60,11 +60,11 @@ namespace {
 MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager) {
   auto& prgm = controller.getProgram ();
   if (prgm.getEntryPoints().size () <= 0) {
-    messager. message<MiniMC::Support::Severity::Error>("Nothing to analyse --- No Entry Points in loaded program");
+    messager << MiniMC::Support::TError<std::string> {"Nothing to analyse --- No Entry Points in loaded program"};
     return MiniMC::Host::ExitCodes::ConfigurationError;
   }
 
-  messager.message("Initiating Reachability");
+  messager << MiniMC::Support::TInfo<std::string> {"Initiating Reachability"};
   auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm.getInitialiser (),
@@ -86,11 +86,11 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   
   MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
   auto verdict = reach.search (messager,initstate,goal);
-  messager.message("Finished Reachability");
+  messager << MiniMC::Support::TInfo<std::string> {"Finished Reachability"};
   
   
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
-    std::cerr << MiniMC::Support::Localiser ("Found Violation").format () << std::endl;
+    messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
     MiniMC::CPA::StateOutputter{prgm}.output (reach.foundState(),std::cerr) << std::endl;
     
     if (locoptions.expect == ExpectReach::Reachable)
@@ -100,7 +100,7 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   }
   
   if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
-    MiniMC::Support::Messager{}.message (MiniMC::Support::Localiser ("No violation found").format ());
+    messager <<  MiniMC::Support::TInfo<std::string> {"No violation found"};
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Host::ExitCodes::UnexpectedResult;
     else

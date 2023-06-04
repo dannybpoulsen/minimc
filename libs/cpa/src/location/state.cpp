@@ -116,8 +116,7 @@ namespace MiniMC {
 							 auto func = prgm.getFunction(symb);
 							 return func;
 						       },
-						       [](const auto&) -> MiniMC::Model::Function_ptr {
-							 
+						       [](const auto&) -> MiniMC::Model::Function_ptr {							 
 							 throw MiniMC::Support::Exception("Shouldn't happen");
 						       }
 						       }

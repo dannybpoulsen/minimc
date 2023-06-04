@@ -64,7 +64,7 @@ namespace MiniMC {
       
       
       ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type& t) const {
-	MiniMC::Support::Messager{}.message<MiniMC::Support::Severity::Warning> ("Getting nondeterministic values for concrete values - using default value");
+	MiniMC::Support::Messager{} << MiniMC::Support::TWarning {"Getting nondeterministic values for concrete values - using default value"};
 	return defaultValue (t);
       }
 

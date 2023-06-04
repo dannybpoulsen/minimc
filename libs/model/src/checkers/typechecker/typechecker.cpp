@@ -391,25 +391,23 @@ namespace MiniMC {
 						    if (prgm.functionExists (ptr.base))
 						      return prgm.getFunction (ptr.base);
 						    else {
-						      mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(MiniMC::getFunctionId(ptr)));
+						      mess << MiniMC::Support::TError<std::string> {function_not_exists.format(MiniMC::getFunctionId(ptr))};
 						      return nullptr;
 						    }
 						  },
 						    [&prgm,&mess,&function_not_exists](const MiniMC::Model::Pointer32& val) -> Function_ptr {
 						      auto ptr = val.getValue ();
-							if (prgm.functionExists (ptr.base))
-							  return prgm.getFunction (ptr.base);
-							else {
-							  mess.message<MiniMC::Support::Severity::Error>(function_not_exists.format(ptr.base));
-							  return nullptr;
-							}
+						      if (prgm.functionExists (ptr.base))
+							return prgm.getFunction (ptr.base);
+						      else {
+							mess << MiniMC::Support::TError<std::string> {function_not_exists.format(ptr.base)};
+							return nullptr;
+						      }
 						    },
 						    [&prgm](const MiniMC::Model::SymbolicConstant& sc) -> Function_ptr {
 						      return prgm.getFunction (sc.getValue ());
 						    },
 						    [&fun,&inst,&mess](const auto&) -> Function_ptr {
-						      MiniMC::Support::Localiser must_be_constant("'%1%' can only use constant function pointers. ");
-						      mess.message<MiniMC::Support::Severity::Error>(must_be_constant.format(i));
 						      mess << MustBeConstant {inst,fun};
 						      return nullptr;
 						    }
@@ -425,7 +423,7 @@ namespace MiniMC {
 	  MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");
 	  if (!func->isVarArgs ()) {
 	    if (func->getParameters().size() != content.params.size() ) {
-	      mess.message<MiniMC::Support::Severity::Error>(inconsistent_parameters.format (func->getSymbol ().getName ()));
+	      mess << MiniMC::Support::TError<std::string> {inconsistent_parameters.format (func->getSymbol ().getName ())};
 	      return false;
 	    }
 	    
@@ -443,13 +441,12 @@ namespace MiniMC {
 	    }
 	  }
 	  else {
-	    mess.message<MiniMC::Support::Severity::Warning>(function_is_var_args.format (func->getSymbol ().getName ()));
-	      
+	    mess << MiniMC::Support::TWarning<std::string> {function_is_var_args.format (func->getSymbol ().getName ())};
 	  }
 	  if (content.res) {
 	    auto resType = content.res->getType();
 	    if (resType != func->getReturnType()) {
-	      mess.message<MiniMC::Support::Severity::Error>(inconsistent_parameters.format (func->getSymbol ().getName ()));
+	      mess << MiniMC::Support::TError {inconsistent_parameters.format (func->getSymbol ().getName ())};
 	      return false;
 	    }
 	  }
@@ -458,7 +455,6 @@ namespace MiniMC {
 	}
 
         else if constexpr (i == InstructionCode::Assign) {
-          MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
           auto valT = content.op1->getType();
           auto resT = content.res->getType();
           if (valT != resT) {
@@ -480,8 +476,7 @@ namespace MiniMC {
         else if constexpr (i == InstructionCode::RetVoid) {
           if (tt->getTypeID() != MiniMC::Model::TypeID::Void) {
             MiniMC::Support::Localiser must_be_same_type("Return type of function with '%1%' must be void  ");
-            mess.message<MiniMC::Support::Severity::Error>(must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid));
-	    
+            mess << MiniMC::Support::TError {must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid)};
             return false;
           }
           return true;
@@ -489,10 +484,8 @@ namespace MiniMC {
 
         else if constexpr (i == InstructionCode::NonDet) {
           auto type = inst.getOps<i>().res->getType();
-          MiniMC::Support::Localiser must_be_integer("'%1% must return Integers");
           if (!type->isInteger ()) {
-            mess.message<MiniMC::Support::Severity::Error>(must_be_integer.format(i));
-	    mess << MustBeInteger {inst,inst.getOps<i> ().res};
+            mess << MustBeInteger {inst,inst.getOps<i> ().res};
 	    return false;
           }
 
@@ -502,8 +495,7 @@ namespace MiniMC {
         else if constexpr (i == InstructionCode::Assert ||
                            i == InstructionCode::Assume ||
                            i == InstructionCode::NegAssume) {
-          MiniMC::Support::Localiser must_be_bool("'%1%' must take boolean or integer as input. ");
-
+          
           auto type = content.expr->getType();
           if (type->getTypeID() != MiniMC::Model::TypeID::Bool ) {
 	    mess << MustBeGivenTypeID {inst,content.expr,MiniMC::Model::TypeID::Bool};
@@ -538,7 +530,7 @@ namespace MiniMC {
         
         else if constexpr (i == InstructionCode::BitCast) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
-	  mess.message<MiniMC::Support::Severity::Warning> (warning.format(i));
+	  mess << MiniMC::Support::TWarning {warning.format(i)};
           return true;
         }
 

@@ -100,8 +100,8 @@ namespace MiniMC {
 	  );
       }
 
-      void expandNonDet (MiniMC::Model::Program& prgm) {
-	MiniMC::Support::Messager{}.message (MiniMC::Support::Localiser{"Unfolding non-determinstic values"}.format ());
+      void expandNonDet (MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {
+	mess << MiniMC::Support::TInfo {"Unfolding non-determinstic values"};
 	for (auto& function : prgm.getFunctions ()) {
 	  expandNonDetCFAEdges (function->getCFA (),prgm.getConstantFactory ());
 	}

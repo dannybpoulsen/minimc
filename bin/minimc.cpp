@@ -67,17 +67,17 @@ int main(int argc, char* argv[]) {
       }
       
       else {
-	messager.message<MiniMC::Support::Severity::Error> ("No subcommand selected");
+	messager << MiniMC::Support::TError<std::string> {"No subcommand selected"};
 	return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
       }
     }
   }
   catch (MiniMC::Support::ConfigurationException& e) {
-    messager.message<MiniMC::Support::Severity::Error> (e.what ());
+    messager << MiniMC::Support::TError { e.what ()};
     return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError); 
   }
   catch (MiniMC::Support::Exception& e) {
-    messager.message<MiniMC::Support::Severity::Error> (e.what ());
+    messager << MiniMC::Support::TError {e.what ()};
     return static_cast<int>(MiniMC::Host::ExitCodes::RuntimeError); 
   }
   

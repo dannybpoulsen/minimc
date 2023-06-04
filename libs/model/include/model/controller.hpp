@@ -25,7 +25,7 @@ namespace MiniMC {
       void createAssertViolateLocations ();
       void inlineFunctions (std::size_t);
       void unrollLoops (std::size_t);
-      void expandNonDeterministic ();
+      void expandNonDeterministic (MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
       void onlyOneMemAccessPerEdge ();
 
       auto& getProgram () const {return prgm;}
