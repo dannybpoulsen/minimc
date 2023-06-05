@@ -86,10 +86,17 @@ namespace MiniMC {
       virtual void popNoReturn () = 0;
       using Value = T;
     };
+
+    struct SimpStackControl {
+      virtual ~SimpStackControl ()  {}
+      virtual void  push (MiniMC::Model::Location_ptr ,std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
+      virtual void popNoReturn () = 0;
+    };
     
     
     template<class T>  
     struct VMState {
+      using Domain = T;
       using VLookup  =  ValueLookup<T>;
       using MLookup  =  Memory<T>;
       using PControl =  PathControl<T>;
@@ -110,6 +117,33 @@ namespace MiniMC {
       VLookup& lookup;
     };
 
+    template<class State>
+    concept StackControllable = requires (State& state) {
+      {state.getStackControl ()} ->std::convertible_to<StackControl<typename State::Domain>&>;
+    };
+
+    template<class State>
+    concept SimpStackControllable = requires (State& state) {
+      {state.getStackControl ()} ->std::convertible_to<SimpStackControl&>;
+    };
+
+
+
+    template<class State>
+    concept MemoryControllable = requires (State& state) {
+      {state.getMemory ()} ->std::convertible_to<Memory<typename State::Domain>&>;
+    };
+
+    template<class State>
+    concept PathControllable = requires (State& state) {
+      {state.getPath ()} ->std::convertible_to<PathControl<typename State::Domain>&>;
+    };
+
+    template<class State>
+    concept ValueLookupable = requires (State& state) {
+      {state.getValueLookup ()} ->std::convertible_to<ValueLookup<typename State::Domain>&>;
+    };
+    
     enum class  Status{
       Ok,
       AssumeViolated,
@@ -235,39 +269,25 @@ namespace MiniMC {
     };
     
     
-    template<class T,class Operations,class Caster>
-    concept VMCompatible = requires {
-      requires IntOperationCompatible<typename T::I8,typename T::Bool,Operations>;
-      requires IntOperationCompatible<typename T::I16,typename T::Bool,Operations>;
-      requires IntOperationCompatible<typename T::I32,typename T::Bool,Operations>;
-      requires IntOperationCompatible<typename T::I64,typename T::Bool,Operations>;
-      requires AggregateCompatible<typename T::I8,typename T::Aggregate,Operations>; 
-      requires AggregateCompatible<typename T::I16,typename T::Aggregate,Operations>;
-      requires AggregateCompatible<typename T::I32,typename T::Aggregate,Operations>;
-      requires AggregateCompatible<typename T::I64,typename T::Aggregate,Operations>;
-      requires PointerOperationCompatible<typename T::I8,typename T::Pointer,typename T::Bool,Operations>;
-      requires PointerOperationCompatible<typename T::I16,typename T::Pointer,typename T::Bool,Operations>;
-      requires PointerOperationCompatible<typename T::I32,typename T::Pointer,typename T::Bool,Operations>;
-      requires PointerOperationCompatible<typename T::I64,typename T::Pointer,typename T::Bool,Operations>;
-      requires CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,typename T::Pointer32, Caster>;
-    };
 
     struct EngineConfiguration  {
       template<MiniMC::Model::InstructionCode Opcode>
       static consteval bool isEnabled () {return true;}
     };
+
     
-    template<class T,class Operations,class Caster>
+      
+    
+    template<class State,class Operations ,class Caster>
     class Engine {
     public:
-      using State = VMState<T>;
-      
+      using VState = State;
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
 
       
-      Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
-      Status execute (const MiniMC::Model::Instruction&, State& ) ;
+      Status execute (const MiniMC::Model::InstructionStream&, VState& ) ;
+      Status execute (const MiniMC::Model::Instruction&, VState& ) ;
       
       using OperationsT = Operations;
       using CasterT = Caster;

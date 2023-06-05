@@ -3,6 +3,7 @@
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
 #include "model/valuevisitor.hpp"
+#include "vm/vmt.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -80,6 +81,31 @@ namespace MiniMC {
         std::vector<LocationState> locations;
       };
 
+      class DummyOperations {};
+      class DummyCaster {};
+      
+      
+      struct VMState : public MiniMC::VMT::SimpStackControl{
+	using Domain = int;
+	VMState (State& s, std::size_t id) : state(s), id(id) {
+	  
+	}
+
+	void  push (MiniMC::Model::Location_ptr loc ,std::size_t,  const MiniMC::Model::Value_ptr& ) {
+	  state.pushLocation(id, loc.get());
+	}
+	
+	void popNoReturn () {
+	  state.popLocation(id);
+	}
+
+	auto& getStackControl () {return *this;}
+	
+      private:
+	State& state;
+	std::size_t id;
+      };
+	
       MiniMC::CPA::State_ptr<CFAState> MiniMC::CPA::Location::Transferer::doTransfer(const CFAState& s, const Transition& transition ) {
 	const MiniMC::Model::Edge& edge = *transition.edge;
 	proc_id id = transition.proc;
@@ -95,7 +121,7 @@ namespace MiniMC {
 	  return nstate;
 	}
 
-	auto& inst = edge.getInstructions ().last();
+	/*auto& inst = edge.getInstructions ().last();
 	if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
 	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
 	  if (content.function->isConstant()) {
@@ -122,7 +148,8 @@ namespace MiniMC {
 						       }
 						   ,*content.function);
 	    
-	    nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
+						   nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
+	
 	    return nstate;
 	  }
 	}
@@ -131,9 +158,11 @@ namespace MiniMC {
 		 MiniMC::Model::InstructionCode::Ret>(inst)) {
 	  nstate->popLocation(id);
 	  return nstate;
-	}
-	
-	return nstate;
+	  }*/
+	MiniMC::VMT::Engine<VMState,DummyOperations, DummyCaster> engine {DummyOperations{},DummyCaster{},prgm};
+        VMState vmstate{*nstate, id};
+	engine.execute (edge.getInstructions (),vmstate);
+        return nstate;
 	
       }
       

@@ -19,8 +19,8 @@ namespace SMTLib {
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {      
-      
-      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal, Operations<PathFormulaVMVal>, Casts<PathFormulaVMVal>> ;
+      using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal>;
+      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaState, Operations<PathFormulaVMVal>, Casts<PathFormulaVMVal>> ;
       
       class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
       public:

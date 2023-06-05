@@ -162,7 +162,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::PathControl control;
 	StackControl scontrol {state->getProc (0)};
 	MiniMC::VMT::Concrete::ValueLookup lookup (state->getProc (0));
-	decltype(engine)::State newvm {state->getHeap (),control,scontrol,lookup};
+	decltype(engine)::VState newvm {state->getHeap (),control,scontrol,lookup};
 	engine.execute(descr.getInit (),newvm);
 	
         return state;
@@ -181,7 +181,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::ValueLookup lookup (nstate.getProc (id));
 	
 	
-	decltype(_internal->engine)::State newvm {nstate.getHeap (),control,scontrol,lookup};
+	decltype(_internal->engine)::VState newvm {nstate.getHeap (),control,scontrol,lookup};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	
