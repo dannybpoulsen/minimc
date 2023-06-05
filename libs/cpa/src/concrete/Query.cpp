@@ -52,7 +52,7 @@ namespace MiniMC {
       class StackControl : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
       public:
 	StackControl (MiniMC::VMT::Concrete::ActivationStack& s) : stack (s) {}
-	void  push (std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
+	void  push (MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
 	  MiniMC::VMT::Concrete::ActivationRecord sf {{registers},ret};
 	  stack.push (std::move(sf));
 	}

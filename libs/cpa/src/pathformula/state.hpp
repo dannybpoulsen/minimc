@@ -33,7 +33,7 @@ namespace MiniMC {
       public:
         StackControl(MiniMC::VMT::Pathformula::ActivationStack& stack, SMTLib::Context& context) : stack(stack), context(context) {}
         // StackControl API
-        void push(std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
+        void push(MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
           MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values{registers};
 	  stack.push({std::move(values), ret});
         }

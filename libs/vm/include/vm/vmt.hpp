@@ -3,8 +3,10 @@
 
 #include "hash/hashing.hpp"
 #include "vm/value.hpp"
+#include "model/cfg.hpp"
 #include "model/instructions.hpp"
 #include "model/heaplayout.hpp"
+
 #include <type_traits>
 
 namespace MiniMC {
@@ -59,7 +61,7 @@ namespace MiniMC {
       virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
       using Value = T;
     };
-
+    
     enum class TriBool {
       True,
       False,
@@ -79,7 +81,7 @@ namespace MiniMC {
     template<class  T>
     struct StackControl {
       virtual ~StackControl ()  {}
-      virtual void  push (std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
+      virtual void  push (MiniMC::Model::Location_ptr ,std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
       virtual void pop (T&&) = 0;
       virtual void popNoReturn () = 0;
       using Value = T;
@@ -231,8 +233,8 @@ namespace MiniMC {
       {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;
       
     };
-
-
+    
+    
     template<class T,class Operations,class Caster>
     concept VMCompatible = requires {
       requires IntOperationCompatible<typename T::I8,typename T::Bool,Operations>;
@@ -250,14 +252,20 @@ namespace MiniMC {
       requires CastCompatible<typename T::I8,typename T::I16, typename T::I32, typename T::I64, typename T::Bool,typename T::Pointer,typename T::Pointer32, Caster>;
     };
 
+    struct EngineConfiguration  {
+      template<MiniMC::Model::InstructionCode Opcode>
+      static consteval bool isEnabled () {return true;}
+    };
+    
     template<class T,class Operations,class Caster>
-    requires VMCompatible<T,Operations,Caster>
     class Engine {
     public:
       using State = VMState<T>;
       
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
+
+      
       Status execute (const MiniMC::Model::InstructionStream&, State& ) ;
       Status execute (const MiniMC::Model::Instruction&, State& ) ;
       
