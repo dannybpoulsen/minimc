@@ -43,7 +43,7 @@ namespace MiniMC {
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{termbuilder},descr.getProgram ()};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	StackControl stackcontrol{state->getStack (),*context};
-	decltype(engine)::State newvm {state->getMemory (),control,stackcontrol,lookup};
+	decltype(engine)::VState newvm {state->getMemory (),control,stackcontrol,lookup};
 	
 	engine.execute(descr.getInit (),newvm);
 	
@@ -80,7 +80,7 @@ namespace MiniMC {
 	StackControl stackcontrol{nstate.getStack (),*_internal->context};
 	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),termbuilder};
 	
-	decltype(_internal->engine)::State newvm {nstate.getMemory (),control,stackcontrol,lookup};
+	decltype(_internal->engine)::VState newvm {nstate.getMemory (),control,stackcontrol,lookup};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	
