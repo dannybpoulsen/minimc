@@ -583,6 +583,34 @@ ASSUMEASSERTS
       static const bool hasResVar = false;
       using Content = int;
     };
+
+    template<InstructionCode opc> 
+    struct TInstruction {
+      TInstruction (typename InstructionData<opc>::Content content ) :  content(content) {}
+      auto& getOps () const {return content;}
+      static consteval auto getOpcode () {return opc;}
+    private:
+      typename InstructionData<opc>::Content content;
+    };
+
+#define X(OP)					\
+    , TInstruction<InstructionCode::OP>
+
+    using Instruction_internal = std::variant <
+      TInstruction<InstructionCode::Not>
+      TACOPS
+      COMPARISONS
+      CASTOPS
+      MEMORY
+      INTERNAL
+      RETS
+      POINTEROPS
+      AGGREGATEOPS
+      ASSUMEASSERTS
+      PREDICATES
+      >;
+
+#undef X
     
     using Instruction_content = std::variant<TACContent,
 					     UnaryContent,
@@ -598,41 +626,41 @@ ASSUMEASSERTS
 					     CallContent,
 					     int
 					     >;
-
+    
     using ReplaceFunction = std::function<Value_ptr(const Value_ptr&)>;
+
+    
     
     struct Instruction {
     public:
-      Instruction (InstructionCode code, Instruction_content content) : opcode(code),
-								       content(content) {}
-
+      Instruction (Instruction_internal internal) : internal(internal) {}
+      
       //Copy Consructor with Replacement :-)
       Instruction (const Instruction&, ReplaceFunction);
+
+      template<InstructionCode op> 
+      static Instruction make (InstructionData<op>::Content d) {
+	return Instruction_internal{TInstruction<op>(d)};
+      }
+      
       
       template<InstructionCode op,class... Args>
       static Instruction make (Args... args) {
-	return Instruction(op,typename InstructionData<op>::Content (std::forward<Args> (args)...));
-      }
-      
-      template<InstructionCode op> 
-      static Instruction make (InstructionData<op>::Content d) {
-	return Instruction(op,d);
+	return make<op> (typename InstructionData<op>::Content (std::forward<Args> (args)...));
       }
       
       
-      
-      
-
       /**
        * \returns InstructionCode of this Instruction
        */
-      auto getOpcode() const { return opcode; }
+      auto getOpcode() const { return std::visit ([](auto& t) {return t.getOpcode ();}, internal);}
 
       template<InstructionCode c>
       auto& getOps () const {
-	return std::get<typename InstructionData<c>::Content> (content);
+	return std::get<TInstruction<c>> (internal).getOps ();
       }
 
+      auto visit (auto v) const {return std::visit(v,internal);}
       
       /** 
        * Write a textual representation to \p os
@@ -644,8 +672,8 @@ ASSUMEASSERTS
       std::ostream& output(std::ostream& os) const;
 
     private:
-      InstructionCode opcode;
-      Instruction_content content;
+
+      Instruction_internal internal;
     };
     
 

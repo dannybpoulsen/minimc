@@ -197,17 +197,12 @@ namespace MiniMC {
     
 
     //Copy Consructor with Replacement :-)
-    Instruction::Instruction (const Instruction& oth, ReplaceFunction replace) : opcode(oth.opcode),content(oth.content) {
-      switch (oth.getOpcode ()) {
-#define X(OP)					\
-	case InstructionCode::OP:					\
-	  content =  copyReplace (oth.getOps<InstructionCode::OP> (), replace); \
-	  break;
-	OPERATIONS
-#undef X
-      default:
-	__builtin_unreachable ();
+    Instruction::Instruction (const Instruction& oth, ReplaceFunction replace)  : internal(oth.internal) {
+      internal = oth.visit ([replace] (auto& tc) ->Instruction_internal  {
+	return TInstruction<tc.getOpcode ()>(copyReplace (tc.getOps (), replace));
       }
+	);
+      
     }
       
     
