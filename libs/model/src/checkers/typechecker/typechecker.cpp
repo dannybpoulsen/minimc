@@ -562,22 +562,17 @@ namespace MiniMC {
       bool TypeChecker::Check(MiniMC::Model::Function& F, MiniMC::Support::Messager mess) {
 	bool res{true};
 	for (auto& E : F.getCFA().getEdges()) {
-	    const auto& instrkeeper = E->getInstructions ();
-            if (instrkeeper) {
-              for (auto& I : instrkeeper) {
-
-                switch (I.getOpcode()) {
-#define X(OP)                                                                                      \
-  case MiniMC::Model::InstructionCode::OP:                                                         \
-    if (!doCheck<MiniMC::Model::InstructionCode::OP>(I,  F.getReturnType(), prgm,mess)) { \
-      res = false;                                                                                 \
-    }                                                                                              \
-    break;
-		  OPERATIONS
-		}
-              }
-            }
-          }
+	  const auto& instrkeeper = E->getInstructions ();
+	  if (instrkeeper) {
+	    for (auto& I : instrkeeper) {
+	      if (!I.visit ([this,&F,&I,&mess](auto& instr) {
+		return doCheck<instr.getOpcode ()> (I,F.getReturnType (),prgm,mess);
+	      })) {
+		res = false;
+	      }
+	    }
+	  }
+	}
 	return res;
       }
       
