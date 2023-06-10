@@ -144,7 +144,8 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
-      static const bool isAssumeAssert = false;
+      static const bool isInternal = false;
+      static const bool isAssertAssume = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
     };
@@ -168,7 +169,9 @@ namespace MiniMC {
     static const bool isCast = false;           \
     static const bool isPointer = false;        \
     static const bool isPredicate = false;      \
-    static const bool isAggregate = false;      \
+    static const bool isInternal = false;	\
+    static const bool isAssertAssume = false;	\
+    static const bool isAggregate = false;	\
     static const std::size_t operands = 2;      \
     static const bool hasResVar = true;         \
     using Content = TACContent;			\
@@ -193,7 +196,9 @@ namespace MiniMC {
     static const bool isPointer = false;        \
     static const bool isAggregate = false;      \
     static const bool isPredicate = false;      \
-    static const std::size_t operands = 1;      \
+    static const bool isInternal = false;	\
+    static const bool isAssertAssume = false;	\
+    static const std::size_t operands = 1;	\
     static const bool hasResVar = true;         \
     using Content = UnaryContent;		\
   };
@@ -215,8 +220,10 @@ namespace MiniMC {
     static const bool isComparison = false;     \
     static const bool isCast = false;           \
     static const bool isPointer = false;        \
-    static const bool isAggregate = false;      \
     static const bool isPredicate = true;       \
+    static const bool isInternal = false;	\
+    static const bool isAssertAssume = false;	\
+    static const bool isAggregate = false;	\
     static const std::size_t operands = 2;      \
     static const bool hasResVar = false;        \
     using Content = BinaryContent;		\
@@ -235,6 +242,8 @@ namespace MiniMC {
     static const bool isPointer = false;        \
     static const bool isAggregate = false;      \
     static const bool isPredicate = false;      \
+    static const bool isInternal = false;	\
+    static const bool isAssertAssume = false;	\
     static const std::size_t operands = 2;      \
     static const bool hasResVar = true;         \
     using Content = TACContent;			\
@@ -253,6 +262,8 @@ namespace MiniMC {
     static const bool isPointer = false;        \
     static const bool isAggregate = false;      \
     static const bool isPredicate = false;      \
+    static const bool isInternal = false;	\
+    static const bool isAssertAssume = false;	\
     static const std::size_t operands = 1;      \
     static const bool hasResVar = true;         \
     using Content = UnaryContent;			\
@@ -279,6 +290,8 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = true;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	
+      static const bool isAssertAssume = false;	
       static const std::size_t operands = 3;
       static const bool hasResVar = true;
       using Content = ExtractContent;
@@ -308,6 +321,8 @@ namespace MiniMC {
       static const bool isPointer = false;
       static const bool isAggregate = true;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	\
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 4;
       static const bool hasResVar = true;
       using Content = InsertContent;
@@ -337,6 +352,8 @@ namespace MiniMC {
       static const bool isPointer = true;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	\
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 4;
       static const bool hasResVar = true;
       using Content = PtrAddContent;
@@ -352,6 +369,8 @@ namespace MiniMC {
       static const bool isPointer = true;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	\
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 4;
       static const bool hasResVar = true;
       using Content = PtrAddContent;
@@ -367,6 +386,8 @@ namespace MiniMC {
       static const bool isPointer = true;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	\
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
       using Content = TACContent;
@@ -385,6 +406,7 @@ namespace MiniMC {
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
+      static const bool isAssertAssume = false;
       static const std::size_t operands = 0;
       static const bool hasResVar = false;
       using Content = int;
@@ -407,6 +429,7 @@ namespace MiniMC {
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
       using Content = NonDetContent;
@@ -429,6 +452,7 @@ namespace MiniMC {
     static const bool isAggregate = false;		\
     static const bool isPredicate = false;		\
     static const bool isAssertAssume = true;		\
+    static const bool isInternal = false;		\
     static const std::size_t operands = 1;		\
     static const bool hasResVar = false;		\
     using Content = AssertAssumeContent;		\
@@ -457,7 +481,7 @@ ASSUMEASSERTS
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
-      
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = CallContent;
@@ -486,6 +510,8 @@ ASSUMEASSERTS
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = false;		\
+      static const bool isAssertAssume = false;		\
       static const std::size_t operands = 2;
       static const bool hasResVar = true;
       using Content = LoadContent;
@@ -507,6 +533,8 @@ ASSUMEASSERTS
       static const bool isPointer = false;
       static const bool isAggregate = false;
       static const bool isPredicate = false;
+      static const bool isInternal = false;	\
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 2;
       static const bool hasResVar = false;
       using Content = StoreContent;
@@ -524,6 +552,8 @@ ASSUMEASSERTS
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const std::size_t operands = 2;
+      static const bool isInternal = false;		\
+      static const bool isAssertAssume = false;		\
       static const bool hasResVar = true;
       using Content = NonDetContent;
     };
@@ -539,7 +569,7 @@ ASSUMEASSERTS
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
-      
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 1;
       static const bool hasResVar = true;
       using Content = UnaryContent;
@@ -561,7 +591,7 @@ ASSUMEASSERTS
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
-      
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = RetContent;
@@ -578,7 +608,7 @@ ASSUMEASSERTS
       static const bool isAggregate = false;
       static const bool isPredicate = false;
       static const bool isInternal = true;
-      
+      static const bool isAssertAssume = false;	\
       static const std::size_t operands = 1;
       static const bool hasResVar = false;
       using Content = int;
@@ -611,6 +641,39 @@ ASSUMEASSERTS
       >;
 
 #undef X
+
+    template<class T>
+    constexpr bool isInternal_v = InstructionData<T::getOpcode ()>::isInternal;
+
+    template<class T>
+    constexpr bool  isTAC_v = InstructionData<T::getOpcode ()>::isTAC;
+
+    template<class T>
+    constexpr bool isComparison_v = InstructionData<T::getOpcode ()>::isComparison;
+
+    
+    template<class T>
+    constexpr bool isUnary_v = InstructionData<T::getOpcode ()>::isUnary;
+
+    template<class T>
+    constexpr bool isMemory_v = InstructionData<T::getOpcode ()>::isMemory;
+
+    template<class T>
+    constexpr  bool isCast_v = InstructionData<T::getOpcode ()>::isCast;
+    
+    template<class T>
+    constexpr  bool isPointer_v = InstructionData<T::getOpcode ()>::isPointer;
+
+    template<class T>
+    constexpr bool isAggregate_v = InstructionData<T::getOpcode ()>::isAggregate;
+
+    template<class T>
+    constexpr bool isPredicate_v = InstructionData<T::getOpcode ()>::isPredicate;
+
+    template<class T>
+    constexpr bool isAssertAssume_v = InstructionData<T::getOpcode ()>::isAssertAssume;;
+    
+    
     
     using Instruction_content = std::variant<TACContent,
 					     UnaryContent,
@@ -660,6 +723,9 @@ ASSUMEASSERTS
 	return std::get<TInstruction<c>> (internal).getOps ();
       }
 
+      template<InstructionCode c>
+      auto& getAs () const {return std::get<TInstruction<c>> (internal);}
+      
       auto visit (auto v) const {return std::visit(v,internal);}
       
       /** 

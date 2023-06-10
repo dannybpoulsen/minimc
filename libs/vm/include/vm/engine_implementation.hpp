@@ -12,18 +12,19 @@ namespace MiniMC {
     template<class State, typename Operations, typename Caster>
     struct Impl {
       using T = typename State::Domain;
-      template <MiniMC::Model::InstructionCode opc>
-      static Status runInstruction(const MiniMC::Model::Instruction&, State&, Operations&, Caster&, const MiniMC::Model::Program&)  {
+      template <class I>
+      static Status runInstruction(const I&, State&, Operations&, Caster&, const MiniMC::Model::Program&)  {
 	return Status::Ok;
 	//throw NotImplemented<opc>();
       }
      
 
-      template <MiniMC::Model::InstructionCode op,class Value>
-      static Status runCMPAdd(const MiniMC::Model::Instruction& instr, State& writeState, Operations& operations, Caster&)
-        requires MiniMC::Model::InstructionData<op>::isTAC || MiniMC::Model::InstructionData<op>::isComparison
+      template <class Value, class I>
+      static Status runCMPAdd(const I& instr, State& writeState, Operations& operations, Caster&)
+        requires MiniMC::Model::isTAC_v<I> || MiniMC::Model::isComparison_v<I>
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps ();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
         auto lval = writeState.getValueLookup().lookupValue(*content.op1).template as<Value>();
@@ -88,11 +89,12 @@ namespace MiniMC {
         }
       }
 
-      template <MiniMC::Model::InstructionCode op, class Value>
-      static Status runPointerCMP(const MiniMC::Model::Instruction& instr, State& writeState, Operations& operations, Caster& caster)
-        requires MiniMC::Model::InstructionData<op>::isComparison
+      template <class Value,class T>
+      static Status runPointerCMP(const T& instr, State& writeState, Operations& operations, Caster& caster)
+        requires MiniMC::Model::isComparison_v<T>
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = T::getOpcode ();
+        auto& content = instr.getOps ();
         assert(content.op1->getType()->getTypeID() == MiniMC::Model::TypeID::Pointer);
         assert(content.op2->getType()->getTypeID() == MiniMC::Model::TypeID::Pointer);
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
@@ -127,36 +129,36 @@ namespace MiniMC {
         return Status::Ok;
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isTAC &&
-                 IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I64, typename T::Bool, Operations> &&
-                 ValueLookupable<State>
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isTAC_v<I> &&
+	IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
+	IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
+	IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
+	IntOperationCompatible<typename T::I64, typename T::Bool, Operations> &&
+      ValueLookupable<State>
 
       {
-        auto& content = instr.getOps<op>();
+        auto& content = instr.getOps();
         auto op1 = content.op1;
 
         switch (op1->getType()->getTypeID()) {
           case MiniMC::Model::TypeID::I8:
-            return runCMPAdd<op, typename T::I8>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I8>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I16:
-            return runCMPAdd<op, typename T::I16>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I16>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I32:
-            return runCMPAdd<op, typename T::I32>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I32>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I64:
-            return runCMPAdd<op, typename T::I64>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I64>(instr, writeState, ops, caster);
           default:
-            throw NotImplemented<op>();
+            throw NotImplemented<I::getOpcode ()>();
         }
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isComparison &&
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isComparison_v<I> &&
                  IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
                  IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
                  IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
@@ -164,32 +166,32 @@ namespace MiniMC {
                  ValueLookupable<State>
 
       {
-        auto& content = instr.getOps<op>();
+        auto& content = instr.getOps ();
         auto op1 = content.op1;
 
         switch (op1->getType()->getTypeID()) {
           case MiniMC::Model::TypeID::I8:
-            return runCMPAdd<op, typename T::I8>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I8>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I16:
-            return runCMPAdd<op, typename T::I16>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I16>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I32:
-            return runCMPAdd<op, typename T::I32>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I32>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::I64:
-            return runCMPAdd<op, typename T::I64>(instr, writeState, ops, caster);
+            return runCMPAdd<typename T::I64>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::Pointer:
-            return runPointerCMP<op, typename T::Pointer>(instr, writeState, ops, caster);
+            return runPointerCMP<typename T::Pointer>(instr, writeState, ops, caster);
           case MiniMC::Model::TypeID::Pointer32:
-            return runPointerCMP<op, typename T::Pointer32>(instr, writeState, ops, caster);
+            return runPointerCMP<typename T::Pointer32>(instr, writeState, ops, caster);
 
           default:
             throw MiniMC::Support::Exception("Something wen't wrong");
         }
-        throw NotImplemented<op>();
+        throw NotImplemented<I::getOpcode()>();
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations& operations, Caster& caster, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isPointer &&
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations& operations, Caster& caster, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isPointer_v<I> &&
                  PointerOperationCompatible<typename T::I8, typename T::Pointer, typename T::Bool, Operations> &&
                  PointerOperationCompatible<typename T::I16, typename T::Pointer, typename T::Bool, Operations> &&
                  PointerOperationCompatible<typename T::I32, typename T::Pointer, typename T::Bool, Operations> &&
@@ -197,7 +199,8 @@ namespace MiniMC {
                  ValueLookupable<State>
 
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps ();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
         auto addrConverter = [&caster](const auto& addrVal) {
@@ -266,13 +269,14 @@ namespace MiniMC {
         throw NotImplemented<op>();
       }
       
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isMemory &&
+      template <class  I>
+      static Status runInstruction(const I& instr, State& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isMemory_v<I> &&
         CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Caster> &&
 	ValueLookupable<State> 
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps();
 
         auto addrConverter = [&caster](const auto& addrVal) {
           return addrVal.visit([&caster](const auto& value) -> T::Pointer {
@@ -329,12 +333,13 @@ namespace MiniMC {
 	  
       }
       
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isAssertAssume &&
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isAssertAssume_v<I> &&
 	ValueLookupable<State>
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = instr.getOpcode ();
+        auto& content = instr.getOps();
         auto& pathcontrol = writeState.getPathControl();
         auto obj = writeState.getValueLookup().lookupValue(*content.expr).template as<typename T::Bool>();
         if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
@@ -393,13 +398,14 @@ namespace MiniMC {
         }
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isCast &&
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isCast_v<I> &&
 	         CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Caster> &&
          	ValueLookupable<State>
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps ();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
         if constexpr (op == MiniMC::Model::InstructionCode::Trunc ||
@@ -531,11 +537,12 @@ namespace MiniMC {
         return Status::Ok;
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations&, Caster&, const MiniMC::Model::Program& prgm)
-        requires MiniMC::Model::InstructionData<op>::isInternal
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations&, Caster&, const MiniMC::Model::Program& prgm)
+        requires MiniMC::Model::isInternal_v<I>
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps();
 
         if constexpr (op == MiniMC::Model::InstructionCode::Assign && ValueLookupable<State>) {
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
@@ -651,9 +658,9 @@ namespace MiniMC {
         return Status::Ok;
       }
 
-      template <MiniMC::Model::InstructionCode op>
-      static Status runInstruction(const MiniMC::Model::Instruction& instr, State& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&)
-        requires MiniMC::Model::InstructionData<op>::isAggregate &&
+      template <class I>
+      static Status runInstruction(const I& instr, State& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&)
+        requires MiniMC::Model::isAggregate_v<I> &&
                  AggregateCompatible<typename T::I8, typename T::Aggregate, Operations> &&
                  AggregateCompatible<typename T::I16, typename T::Aggregate, Operations> &&
                  AggregateCompatible<typename T::I32, typename T::Aggregate, Operations> &&
@@ -661,7 +668,8 @@ namespace MiniMC {
                  ValueLookupable<State>
 
       {
-        auto& content = instr.getOps<op>();
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps ();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
         assert(content.offset->isConstant());
         auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
@@ -741,21 +749,10 @@ namespace MiniMC {
 
     template <class State, class Operations, class Caster>
     Status Engine<State, Operations, Caster>::execute(const MiniMC::Model::Instruction& instr,
-                                                  State& wstate) {
-      switch (instr.getOpcode()) {
-#define X(OP)                                                                                                                        \
-	case MiniMC::Model::InstructionCode::OP:			\
-	  if constexpr (EngineConfiguration::isEnabled<MiniMC::Model::InstructionCode::OP> ()) \
-	    return Impl<State,Operations,Caster>::template runInstruction<MiniMC::Model::InstructionCode::OP>(instr, wstate, operations, caster, prgm); \
-	  								\
-	  else return Status::Ok;
-    break;
-        OPERATIONS
+						      State& wstate) {
+      
+      return instr.visit ([this,&wstate](auto& t) {return Impl<State,Operations,Caster>::template runInstruction (t, wstate, operations, caster, prgm);});
 
-#undef X
-        default:
-          return Status::UnsupportedOperation;
-      }
     }
 
     template <class State, class Operations, class Caster>
