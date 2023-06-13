@@ -3,6 +3,7 @@
 #include "support/workinglist.hpp"
 #include "support/feedback.hpp"
 #include "support/localisation.hpp"
+#include "support/overload.hpp"
 
 
 #include <limits>
@@ -40,51 +41,54 @@ namespace MiniMC {
 	  auto goal =  edge->getTo ();
 	  
 	  for (auto& i : instr) {
-	    if (i.getOpcode () != MiniMC::Model::InstructionCode::NonDet) {
-	      nstr.add (i);
-	    }
-
-	    else {
-	      auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
-	      auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
+	    i.visit ( MiniMC::Support::Overload {
+		  [&edge, &cfa,&prev,&nstr,&cfac](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::NonDet>& instr) {
+		    auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
+		    auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
 	      
-	      cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
-	      nstr.clear ();
-	      MiniMC::BV64 min{0};
-	      MiniMC::BV64 max{0};
-	      auto assign = i.template getOps<InstructionCode::NonDet> ().res;
-	      switch (assign->getType()->getTypeID ()) {
-	      case TypeID::I8:
-		min = std::numeric_limits<MiniMC::BV8>::min ();
-		max = std::numeric_limits<MiniMC::BV8>::max ();
-		break;
-	      case TypeID::I16:
-		min = std::numeric_limits<MiniMC::BV16>::min ();
-		max = std::numeric_limits<MiniMC::BV16>::max ();
-		break;
-	      case TypeID::I32:
-		min = std::numeric_limits<MiniMC::BV32>::min ();
-		max = std::numeric_limits<MiniMC::BV32>::max ();
-		break;
-	      case TypeID::I64:
-		min = std::numeric_limits<MiniMC::BV64>::min ();
-		max = std::numeric_limits<MiniMC::BV64>::max ();
-		break;
-	      default:
-		throw MiniMC::Support::Exception ("Cann't unfold this type");
-	      }
-	      
-	      NonDetGenerator gen {min,max};
-	      for (;!gen.finished (); 	gen.increment ()) {
-		nstr.add<InstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
-		cfa.makeEdge (nloc,nnondet,std::move(nstr));
-		nstr.clear ();
-	      }
-
-	      prev = nnondet;
-	      
-	      
-	    }
+		    cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
+		    nstr.clear ();
+		    MiniMC::BV64 min{0};
+		    MiniMC::BV64 max{0};
+		    auto assign = instr.getOps ().res;
+		    switch (assign->getType()->getTypeID ()) {
+		    case TypeID::I8:
+		      min = std::numeric_limits<MiniMC::BV8>::min ();
+		      max = std::numeric_limits<MiniMC::BV8>::max ();
+		      break;
+		    case TypeID::I16:
+		      min = std::numeric_limits<MiniMC::BV16>::min ();
+		      max = std::numeric_limits<MiniMC::BV16>::max ();
+		      break;
+		    case TypeID::I32:
+		      min = std::numeric_limits<MiniMC::BV32>::min ();
+		      max = std::numeric_limits<MiniMC::BV32>::max ();
+		      break;
+		    case TypeID::I64:
+		      min = std::numeric_limits<MiniMC::BV64>::min ();
+		      max = std::numeric_limits<MiniMC::BV64>::max ();
+		      break;
+		    default:
+		      throw MiniMC::Support::Exception ("Cann't unfold this type");
+		    }
+		    
+		    NonDetGenerator gen {min,max};
+		    for (;!gen.finished (); 	gen.increment ()) {
+		      nstr.add<InstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
+		      cfa.makeEdge (nloc,nnondet,std::move(nstr));
+		    nstr.clear ();
+		    }
+		    
+		    prev = nnondet;
+		    
+		    
+		  },
+		  [&i,&nstr](auto& ) {
+		    nstr.add (i);
+		  }
+		    
+		    }
+	      );
 	  }
 	  cfa.makeEdge (prev,goal,std::move(nstr));
 	  cfa.deleteEdge ( edge);

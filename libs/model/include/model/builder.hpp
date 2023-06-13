@@ -31,9 +31,10 @@ namespace MiniMC {
 	cfa.makeEdge (from,to,std::move(stream),isPhi);
       }
 
-      template<MiniMC::Model::InstructionCode code>
-      EdgeBuilder& addInstr (typename MiniMC::Model::InstructionData<code>::Content content) requires (!isPhi) {
-	auto instr = MiniMC::Model::Instruction::make<code> (content);
+      template<MiniMC::Model::InstructionCode code,class... Args>
+      EdgeBuilder& addInstr (Args... args) requires (!isPhi && hasOperands<code>) {
+	//typename InstructionData<code>::Content  content(args...);
+	auto instr = MiniMC::Model::Instruction::make<code> (args...);
 	if constexpr (code == MiniMC::Model::InstructionCode::Call ||
 		      code == MiniMC::Model::InstructionCode::NonDet ||
 		      code == MiniMC::Model::InstructionCode::Uniform ||	  
@@ -52,14 +53,14 @@ namespace MiniMC {
 	
 	else {
 	  if constexpr (code == MiniMC::Model::InstructionCode::ZExt) {
-	    if (content.op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
-	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolZExt> (content);
+	    if (instr. template getAs<MiniMC::Model::InstructionCode::ZExt> ().getOps ().op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolZExt> (args...);
 	    }
 	  }
 
 	  if constexpr (code == MiniMC::Model::InstructionCode::SExt) {
-	    if (content.op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
-	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolSExt> (content);
+	    if (instr.template  getAs<MiniMC::Model::InstructionCode::SExt> ().getOps ().op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
+	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolSExt> (args...);
 	    }
 	  }
 	  
@@ -73,9 +74,17 @@ namespace MiniMC {
       }
 
       template<MiniMC::Model::InstructionCode code>
-      EdgeBuilder& addInstr (typename MiniMC::Model::InstructionData<code>::Content content) requires (isPhi) {
+      EdgeBuilder& addInstr () requires (!isPhi && !hasOperands<code>) {
+	
+	auto instr = MiniMC::Model::Instruction::make<code> ();
+	stream.add (instr);
+	return *this;
+      }
+
+      template<MiniMC::Model::InstructionCode code,class... Args>
+      EdgeBuilder& addInstr (Args... args) requires (isPhi) {
 	static_assert(code==MiniMC::Model::InstructionCode::Assign && "Phi edges can only have assign");
-	auto instr = MiniMC::Model::Instruction::make<code> (content);
+	auto instr = MiniMC::Model::Instruction::make<code> (args...);
 	stream.add (instr);
 	
 	

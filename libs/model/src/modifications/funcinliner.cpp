@@ -5,6 +5,7 @@
 #include "support/exceptions.hpp"
 #include "support/sequencer.hpp"
 #include "support/workinglist.hpp"
+#include "support/overload.hpp"
 
 #include <functional>
 
@@ -17,8 +18,7 @@ namespace MiniMC {
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
         auto& instrs = edge->getInstructions();
-        assert(instrs.last().getOpcode() == MiniMC::Model::InstructionCode::Call);
-	auto call_content = instrs.last ().getOps<MiniMC::Model::InstructionCode::Call> ();
+        auto call_content = instrs.last ().getAs<MiniMC::Model::InstructionCode::Call>().getOps ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::pointer_t loadPtr =  constant->getValue (); 
 	auto cfunc = prgm.getFunction(MiniMC::getFunctionId(loadPtr));
@@ -42,35 +42,30 @@ namespace MiniMC {
 	  auto ne_from = ne->getFrom ();
 	  if (!ninstr)
 	    continue;
-	  switch (ninstr.last().getOpcode()) {
-	  case MiniMC::Model::InstructionCode::Call: 
-	    newCall (ne);
-	    break;
-	    
-	  case MiniMC::Model::InstructionCode::RetVoid: {
-	    ninstr.last() = Instruction::make<InstructionCode::Skip> (0);
-	    cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
-	    cfunc->getCFA().deleteEdge (ne.get());
-	    break;
-	  }
-	    
-	  case MiniMC::Model::InstructionCode::Ret: {
-	    auto& content = ninstr.last().getOps<MiniMC::Model::InstructionCode::Ret> ();
-	    ninstr.last() = Instruction::make<InstructionCode::Assign> ( 
-									      call_content.res,
-									      content.value 
-									 );
-				  
-	    cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
-	    cfunc->getCFA ().deleteEdge (ne.get());
-	    break;
-	  }
-	  default:
-	    break;
-	  }
-        }
-	
-        
+	  ninstr.last ().visit (MiniMC::Support::Overload {
+	      [&ne,newCall](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Call>&) {
+		newCall (ne);
+	      },
+	      [&ne,newCall,&edge,&cfunc,&ne_from,&ninstr](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::RetVoid>&) {
+		ninstr.last() = Instruction::make<InstructionCode::Skip> (0);
+		cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
+		cfunc->getCFA().deleteEdge (ne.get());		
+	      },
+		[&cfunc,&ninstr,&edge,&call_content,&ne_from,&ne](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Ret>& instr) {
+		  auto& content = instr.getOps ();
+		ninstr.last() = Instruction::make<InstructionCode::Assign> ( 
+									    call_content.res,
+									    content.value 
+									       );
+		
+		cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
+		cfunc->getCFA ().deleteEdge (ne.get());
+		
+	      },
+	      [](auto&) {}
+		}
+	    );
+	  
         auto& parameters = cfunc->getParameters();
         
         MiniMC::Model::InstructionStream str;
@@ -88,6 +83,7 @@ namespace MiniMC {
 	cfunc->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation()->getSymbol ()),std::move(str));
 	cfunc->getCFA ().deleteEdge (edge.get ());
 	
+	}
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
@@ -99,12 +95,18 @@ namespace MiniMC {
         std::for_each(cfg.getEdges().begin(),
                       cfg.getEdges().end(),
                       [&inserter,depth](const MiniMC::Model::Edge_ptr& e) {
-			if (e->getInstructions () && e->getInstructions().last().getOpcode() == MiniMC::Model::InstructionCode::Call)
-			  inserter = std::make_pair (depth,e);
+			if (e->getInstructions ()){
+			  e->getInstructions().last().visit (MiniMC::Support::Overload {
+
+			      [&inserter,depth,&e](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Call>& ) {
+				inserter = std::make_pair (depth,e);
+			      },
+			      [](auto&) {}
+				});
+			}
 		      }
 		      );
-
-
+	
 	/*if (depth - 1) 
 	  inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1,frame);
 	else {

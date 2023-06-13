@@ -2,7 +2,6 @@
 #define _PATHFORMULA__
 
 #include "cpa/interface.hpp"
-#include "model/checkers/HasInstruction.hpp"
 #include "support/localisation.hpp"
 #include "smt/smt.hpp"
 

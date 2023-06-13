@@ -138,7 +138,7 @@ namespace MiniMC {
     concept PathControllable = requires (State& state) {
       {state.getPath ()} ->std::convertible_to<PathControl<typename State::Domain>&>;
     };
-
+    
     template<class State>
     concept ValueLookupable = requires (State& state) {
       {state.getValueLookup ()} ->std::convertible_to<ValueLookup<typename State::Domain>&>;

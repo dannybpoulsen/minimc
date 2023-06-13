@@ -7,7 +7,7 @@ add_subdirectory (checkers)
 add_subdirectory (modifications)
 
 
-target_link_libraries (model checkers modifications modelanalysis )
+target_link_libraries (model modelisa checkers modifications modelanalysis )
 
 	
 	

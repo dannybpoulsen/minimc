@@ -100,8 +100,8 @@ namespace MiniMC {
       }
       {
 	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
-	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>({sp_reg, sp,stacksize_p,nb_skips});
-	builder.addInstr<MiniMC::Model::InstructionCode::Call>({result, funcpointer, params});
+	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
+	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
       }
       return program.addFunction(program.getRootFrame().makeSymbol (name), {},
                                  program.getTypeFactory().makeVoidType(),
@@ -179,7 +179,7 @@ namespace MiniMC {
           lcontext.addValue(&g, gvar);
           if (g.hasInitializer()) {
             auto val = lcontext.findValue(g.getInitializer());
-            instr.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Store>({gvar, val}));
+            instr.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Store>(gvar, val));
           }
         }
         if (instr.size()) {
@@ -268,13 +268,13 @@ namespace MiniMC {
 
               auto retVar = variablestack.addRegister(frame.makeFresh(), returnTy);
 
-              edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet>({.res = retVar, .min = min, .max = max});
-              edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret>({retVar});
+              edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet>(retVar, min, max);
+              edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret>(retVar);
 
             }
 
             else {
-              edgebuilder.addInstr<MiniMC::Model::InstructionCode::RetVoid>(0);
+              edgebuilder.addInstr<MiniMC::Model::InstructionCode::RetVoid>();
             }
           }
 
@@ -311,7 +311,7 @@ namespace MiniMC {
             for (auto& phi : to->phis()) {
               auto ass = load.findValue(&phi);
               auto incoming = load.findValue(phi.getIncomingValueForBlock(from));
-              builder.template addInstr<MiniMC::Model::InstructionCode::Assign>({ass, incoming});
+              builder.template addInstr<MiniMC::Model::InstructionCode::Assign>(ass, incoming);
             }
           };
 
@@ -350,14 +350,14 @@ namespace MiniMC {
                   {
                     auto ttloc = enqueue(term->getSuccessor(0));
                     auto ttloc_tmp = cfg.makeLocation(frame.makeFresh(), to->getInfo());
-                    MiniMC::Model::EdgeBuilder{cfg, to, ttloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::Assume>({cond});
+                    MiniMC::Model::EdgeBuilder{cfg, to, ttloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
                     buildphi(cur_bb, term->getSuccessor(0), MiniMC::Model::EdgeBuilder<true>{cfg, ttloc_tmp, ttloc, frame});
                   }
 
                   {
                     auto ffloc = enqueue(term->getSuccessor(1));
                     auto ffloc_tmp = cfg.makeLocation(frame.makeFresh(), to->getInfo());
-                    MiniMC::Model::EdgeBuilder{cfg, to, ffloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::NegAssume>({cond});
+                    MiniMC::Model::EdgeBuilder{cfg, to, ffloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::NegAssume>(cond);
                     buildphi(cur_bb, term->getSuccessor(1), MiniMC::Model::EdgeBuilder<true>{cfg, ffloc_tmp, ffloc, frame});
                   }
                 }
@@ -374,10 +374,10 @@ namespace MiniMC {
                   auto btype = load.getTypeFactory().makeBoolType();
                   auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
 
-                  MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::PtrEq>({cond,
+                  MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::PtrEq>(cond,
 		      value,
-		      valComp})
-		    .addInstr<MiniMC::Model::InstructionCode::Assume>({cond});
+		      valComp)
+		    .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
                   buildphi(cur_bb, brterm->getDestination(i), MiniMC::Model::EdgeBuilder<true>{cfg, splitloc, dest, frame});
                 }
               } else if (term->getOpcode() == llvm::Instruction::Ret) {

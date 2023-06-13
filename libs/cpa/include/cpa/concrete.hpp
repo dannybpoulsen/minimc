@@ -2,7 +2,6 @@
 #ifndef _CPA_CONCRETE_INTERFACE__
 #define _CPA_CONCRETE_INTERFACE__
 
-#include "model/checkers/HasInstruction.hpp"
 #include <memory>
 #include <ostream>
 

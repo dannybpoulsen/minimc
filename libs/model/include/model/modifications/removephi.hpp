@@ -23,7 +23,7 @@ namespace MiniMC {
                 if (E->isPhi ()) {
                   for (auto& inst : instrstream) {
 		    
-		    auto& content = inst.getOps<InstructionCode::Assign>();
+		    auto& content = inst.getAs<InstructionCode::Assign>().getOps ();
                     auto nvar = F->getRegisterDescr().addRegister( frame.makeFresh ("Phi"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 
@@ -31,7 +31,7 @@ namespace MiniMC {
                   }
 
                   for (auto& inst : instrstream) {
-                    auto& content = inst.getOps<InstructionCode::Assign>();
+                    auto& content = inst.getAs<InstructionCode::Assign>().getOps ();
 
                     auto val = replacemap.count(content.op1.get()) ? replacemap.at(content.op1.get()) : content.op1;
                     stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), val);

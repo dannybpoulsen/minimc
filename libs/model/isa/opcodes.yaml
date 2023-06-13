@@ -1,0 +1,646 @@
+TAC:
+  add:
+    opcode: Add
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+  
+  sub:
+    opcode: Sub
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  mul:
+    opcode: Mul
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+
+  udiv:
+    opcode: UDiv
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  sdiv:
+    opcode: SDiv
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+
+  Shl:
+    opcode: Shl
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  lshr:
+    opcode: LShr
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  ashr:
+    opcode: AShr
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  and:
+    opcode: And
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  or:
+    opcode: Or
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+
+  xor:
+    opcode: Xor
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+Unary:
+  not:
+    opcode: Not
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+    types:
+      t1: Integer      
+Comparison:
+  isgt:
+    opcode: ICMP_SGT
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+  iugt:
+    opcode: ICMP_UGT
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+  
+
+  isge:
+    opcode: ICMP_SGE
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+  iuge:
+    opcode: ICMP_UGE
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+  islt:
+    opcode: ICMP_SLT
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+  
+
+  iult:
+    opcode: ICMP_ULT
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+  isle:
+    opcode: ICMP_SLE
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+  
+
+  iule:
+    opcode: ICMP_ULE
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+
+  ieq:
+    opcode: ICMP_EQ
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+
+
+  ineq:
+    opcode: ICMP_NEQ
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Integer
+Pointer:
+  ptradd:
+    opcode: PtrAdd
+    params:
+      - name: res
+        type: t1
+      - name: ptr
+        type: t1
+      - name: skipsize
+        type: t2
+      - name: nbSkips
+        type: t2
+    types:
+      t1: Pointer
+      t2: Integer
+  ptrsub:
+    opcode: PtrSub
+    params:
+      - name: res
+        type: t1
+      - name: ptr
+        type: t1
+      - name: skipsize
+        type: t2
+      - name: nbSkips
+        type: t2
+    types:
+      t1: Pointer
+      t2: Integer
+  ptreq:
+    opcode: PtrEq
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+      - name: op2
+        type: t2
+    types:
+      t1: Bool
+      t2: Pointer
+Aggregate:
+  extractvalue:
+    opcode: ExtractValue
+    params:
+      - name: res
+        type: t1
+      - name: aggregate
+        type: t2
+      - name : offset
+        type: t3
+    types:
+      t1: Any
+      t2: Aggregate
+      t3: Integer
+  
+  insertvalue:
+    opcode: InsertValue
+    params:
+      - name: res
+        type: t1
+      - name: aggregate
+        type: t1
+      - name: offset
+        type: t2
+      - name: insertee
+        type: t3
+    types:
+      t1: Aggregate
+      t2: Integer
+      t3: Any
+Cast:
+  trunc:
+    opcode: Trunc
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Integer
+  bitcast:
+    opcode: BitCast
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Integer
+  
+  zext:
+    opcode: ZExt
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Integer
+  sext:
+    opcode: SExt
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Integer
+  ptrtoint:
+    opcode: PtrToInt
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Pointer
+  inttoptr:
+    opcode: IntToPtr
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t2: Integer
+      t1: Pointer
+  BoolZExt:
+    opcode: BoolZExt
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Bool
+  BoolSExt:
+    opcode: BoolSExt
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t1: Integer
+      t2: Bool
+  IntToBool:
+    opcode: IntToBool
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t2
+    types:
+      t2: Integer
+      t1: Bool
+Memory:
+  store:
+    opcode: Store
+    params:
+      - name: addr
+        type: t1
+      - name: storee
+        type: t2
+    types:
+      t1: Pointer
+      t2: Any
+  load:
+    opcode: Load
+    params:
+      - name: res
+        type: t1
+      - name: addr
+        type: t2
+    types:
+      t1: Any
+      t2: Pointer
+Internal:
+  skip:
+    opcode: Skip
+    params:  []
+  call:
+    opcode: Call
+    params:
+      - name: res
+        type: t1
+      - name: function
+        type: t2
+      - name: "params*"
+        type: t3
+    types:
+      t1: Any
+      t2: Pointer
+      t3: Vector
+  assign:
+    opcode: Assign
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+    types:
+      t1: Any
+  nondet:
+    opcode: NonDet
+    params:
+      - name: res
+        type: t1
+      - name: min
+        type: t1
+      - name: max
+        type: t2
+    types:
+      t1: Integer
+  uniform:
+    opcode: Uniform
+    params:
+      - name: res
+        type: t1
+      - name: min
+        type: t1
+      - name: max
+        type: t1
+    types:
+      t1: Integer
+  ret:
+    opcode: Ret
+    params:
+      - name: value
+        type: t1
+    types:
+      t1: Any
+  
+  retvoid:
+    opcode: RetVoid
+    params: []
+AssertAssume:
+  assert:
+    opcode: Assert
+    params:
+      - name: expr
+        type: t1
+    types:
+      t1: Bool
+  assume:
+    opcode: Assume
+    params:
+      - name: expr
+        type: t1
+    types:
+      t1: Bool
+  negassume:
+    opcode: NegAssume
+    params:
+      - name: expr
+        type: t1
+    types:
+      t1: Bool
+Predicate:
+  predicmpsgt:
+    opcode: PRED_ICMP_SGT
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+  
+  predicmpugt:
+    opcode: PRED_ICMP_UGT
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+  
+  predicmpse:
+    opcode: PRED_ICMP_SGE
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpue:
+    opcode: PRED_ICMP_UGE
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpslt:
+    opcode: PRED_ICMP_SLT
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpult:
+    opcode: PRED_ICMP_ULT
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpsle:
+    opcode: PRED_ICMP_SLE
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpule:
+    opcode: PRED_ICMP_ULE
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+  predicmpeq:
+    opcode: PRED_ICMP_EQ
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer
+
+
+  predicmpneq:
+    opcode: PRED_ICMP_NEQ
+    params:
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1: Integer

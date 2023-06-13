@@ -542,17 +542,19 @@ namespace MiniMC {
         requires MiniMC::Model::isInternal_v<I>
       {
 	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps();
+        
 
         if constexpr (op == MiniMC::Model::InstructionCode::Assign && ValueLookupable<State>) {
-          auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+	  auto& content = instr.getOps();
+	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1);
           writeState.getValueLookup().saveValue(res, std::move(op1));
           return Status::Ok;
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Call && (StackControllable<State> || SimpStackControllable<State>)) {
-          auto& scontrol = writeState.getStackControl();
+	  auto& content = instr.getOps();
+	  auto& scontrol = writeState.getStackControl();
           assert(content.function->isConstant());
 
           auto func = MiniMC::Model::visitValue(
@@ -613,6 +615,7 @@ namespace MiniMC {
 	}
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
+	  auto& content = instr.getOps();
 	  if constexpr (StackControllable<State> ) {
 	    auto ret = writeState.getValueLookup().lookupValue(*content.value);
 	    writeState.getStackControl().pop(std::move(ret));
@@ -638,6 +641,7 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::NonDet && ValueLookupable<State>) {
+	  auto& content = instr.getOps();
           auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
           auto ret = writeState.getValueLookup().unboundValue(*content.res->getType());
           writeState.getValueLookup().saveValue(res, std::move(ret));
@@ -676,12 +680,12 @@ namespace MiniMC {
         MiniMC::BV64 offset{0};
 
         offset = MiniMC::Model::visitValue(MiniMC::Model::Overload{
-                                               [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
-                                               [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
-                                               [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
-                                               [](const auto&) -> MiniMC::BV64 { throw MiniMC::Support::Exception("Invalid aggregate offset"); }},
-                                           *offset_constant);
-
+	      [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const auto&) -> MiniMC::BV64 { throw MiniMC::Support::Exception("Invalid aggregate offset"); }},
+	  *offset_constant);
+	
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
           auto val_v = content.insertee;
 
