@@ -83,9 +83,9 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   messager.message("Finished Reachability");
   
   
-  if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
-    MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("Found Violation").format ());
-    std::cerr << reach.foundState () << std::endl;
+  if (verdict.getVerdict() == MiniMC::Algorithms::Reachability::Verdict::Verdict::ReachabilityFound) {
+    MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("ReachabilityFounD Violation").format ());
+    std::cerr << verdict.getContent<MiniMC::Algorithms::Reachability::Verdict::Verdict::ReachabilityFound>().state << std::endl;
     
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Host::ExitCodes::AllGood;
@@ -93,7 +93,7 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
       return MiniMC::Host::ExitCodes::UnexpectedResult;
   }
 
-  if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
+  if (verdict.getVerdict() == MiniMC::Algorithms::Reachability::Verdict::Verdict::ReachabilityNotFound) {
     MiniMC::Support::getMessager ().message (MiniMC::Support::Localiser ("No violation found").format ());
     if (locoptions.expect == ExpectReach::Reachable)
       return MiniMC::Host::ExitCodes::UnexpectedResult;

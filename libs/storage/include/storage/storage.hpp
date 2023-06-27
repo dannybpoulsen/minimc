@@ -1,4 +1,5 @@
 #ifndef _STORAGE__
+#define _STORAGE__
 
 #include "cpa/interface.hpp"
 #include "cpa/state.hpp"

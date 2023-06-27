@@ -26,7 +26,7 @@ namespace MiniMC {
       }
       
 
-      Verdict Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
+      Verdict::Details Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	std::list<MiniMC::CPA::AnalysisState> waiting;
 	MiniMC::Storage::HashStorage storage;
 	
@@ -45,8 +45,7 @@ namespace MiniMC {
 	  waiting.pop_back ();
 
 	  if (goal(searchee)) {
-	    found = std::move(searchee);
-	    return Verdict::Found;
+	    return Verdict::createResult<Verdict::Verdict::ReachabilityFound>({.state=std::move(searchee),.storage=storage});
 	  }
 
 	  if (searchee.getCFAState ()->getLocationState().nbOfProcesses ()) {
@@ -66,7 +65,7 @@ namespace MiniMC {
 	  progress_indicator.notif_listeners ();
 	}
 	
-	return Verdict::NotFound;
+	return Verdict::createResult<Verdict::Verdict::ReachabilityNotFound>({});
 	
       }
       

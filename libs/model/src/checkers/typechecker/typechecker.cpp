@@ -323,7 +323,7 @@ namespace MiniMC {
             if (content.res) {
               auto resType = content.res->getType();
               if (resType != func->getReturnType()) {
-                mess.message<MiniMC::Support::Severity::Error>("Result and return type of functions must match.");
+                mess.message<MiniMC::Support::Severity::Error>("Details and return type of functions must match.");
                 return false;
               }
             }
@@ -333,7 +333,7 @@ namespace MiniMC {
         }
 
         else if constexpr (i == InstructionCode::Assign) {
-          MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
+          MiniMC::Support::Localiser must_be_same_type("Details and assignee must be same type for '%1%' ");
           auto valT = content.op1->getType();
           auto resT = content.res->getType();
           if (valT != resT) {
@@ -421,8 +421,8 @@ namespace MiniMC {
         }
 
         else if constexpr (i == InstructionCode::Uniform) {
-          MiniMC::Support::Localiser must_be_same_type("Result and assignee must be same type for '%1%' ");
-          MiniMC::Support::Localiser must_be_integer("Result must be integer for '%1%' ");
+          MiniMC::Support::Localiser must_be_same_type("Details and assignee must be same type for '%1%' ");
+          MiniMC::Support::Localiser must_be_integer("Details must be integer for '%1%' ");
 
           if (!MiniMC::Model::hasSameTypeID({content.res->getType(),
                                              content.max->getType(),
