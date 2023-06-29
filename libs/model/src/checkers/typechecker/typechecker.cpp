@@ -530,14 +530,14 @@ namespace MiniMC {
           }
 
 	  if (!content.aggregate->getType ()->isAggregate ()) {
-	    mess << MustBeGivenTypeID {inst,content.aggregate, MiniMC::Model::TypeID::Array};
+	    mess << MustBeGivenTypeID {inst,content.aggregate, MiniMC::Model::TypeID::Aggregate};
             return false;
           }
 
 	  if constexpr (i == InstructionCode::InsertValue) {
 	    auto& content = tinst.getOps ();
 	    if (!content.res->getType ()->isAggregate ()) {
-	      mess << MustBeGivenTypeID {inst,content.res, MiniMC::Model::TypeID::Array};
+	      mess << MustBeGivenTypeID {inst,content.res, MiniMC::Model::TypeID::Aggregate};
             return false;
 	    }
 	  }

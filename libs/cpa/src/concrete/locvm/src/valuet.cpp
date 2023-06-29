@@ -52,8 +52,7 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::I64:
 	  return Value::I64(0);
 
-	case MiniMC::Model::TypeID::Array:
-	case MiniMC::Model::TypeID::Struct:
+	case MiniMC::Model::TypeID::Aggregate:
 	  return Value::Aggregate{MiniMC::Util::Array{t.getSize()}};
 	default:
 	  break;

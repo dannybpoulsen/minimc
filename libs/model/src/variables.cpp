@@ -138,11 +138,8 @@ namespace MiniMC {
       case TypeID::Pointer:
 	type = typefact->makePointerType ();
 	break;
-      case TypeID::Struct:
-	type = typefact->makeStructType (size);
-	break;
-      case TypeID::Array:
-	type = typefact->makeArrayType (size);
+      case TypeID::Aggregate:
+	type = typefact->makeAggregateType (size);
 	break;
       default:
 	throw MiniMC::Support::Exception ("Errror");
@@ -152,7 +149,7 @@ namespace MiniMC {
       return val;
     }
 
-    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp, bool isArray) {
+    const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp) {
       std::size_t size = 0;
       for (auto& v : inp) {
         size += v->getType()->getSize();
@@ -188,8 +185,7 @@ namespace MiniMC {
           case MiniMC::Model::TypeID::Pointer:
             addType(*std::static_pointer_cast<MiniMC::Model::Pointer>(c));
             break;
-          case MiniMC::Model::TypeID::Struct:
-          case MiniMC::Model::TypeID::Array: {
+          case MiniMC::Model::TypeID::Aggregate: {
             auto aggr = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(c);
             out = std::copy(aggr->getData().begin(), aggr->getData().end(), out);
 	    break;
@@ -199,10 +195,8 @@ namespace MiniMC {
         }
       }
       Type_ptr type;
-      if (isArray)
-	type = typefact->makeArrayType (size);
-      else
-	type = typefact->makeStructType (size);
+      
+      type = typefact->makeAggregateType (size);
       
       Value_ptr v = std::make_shared<MiniMC::Model::AggregateConstant>(MiniMC::Util::Array{size,std::move(data)});
       v->setType (type);

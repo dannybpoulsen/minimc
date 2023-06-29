@@ -257,7 +257,7 @@ namespace MiniMC {
       virtual ~ConstantFactory() {}
       
       using aggr_input = std::vector<Constant_ptr>;
-      virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool) = 0;
+      virtual const Value_ptr makeAggregateConstant(const aggr_input& inp) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
       virtual const Value_ptr makeHeapPointer(MiniMC::base_t) = 0;
@@ -274,16 +274,16 @@ namespace MiniMC {
     public:
       ConstantFactory64(TypeFactory_ptr tfac) : ConstantFactory(tfac) {}
       virtual ~ConstantFactory64() {}
-      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID);
-      virtual const Value_ptr makeAggregateConstant(const aggr_input& inp, bool);
-      virtual const Value_ptr makeFunctionPointer(MiniMC::func_t);
-      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t);
+      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) override;
+      const Value_ptr makeAggregateConstant(const aggr_input& inp) override ;
+      const Value_ptr makeFunctionPointer(MiniMC::func_t) override ;
+      const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) override;
       
-      virtual const Value_ptr makeHeapPointer(MiniMC::base_t);
-      virtual const Value_ptr makeNullPointer();
-      virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&);
+      const Value_ptr makeHeapPointer(MiniMC::base_t) override;
+      const Value_ptr makeNullPointer() override ;
+      const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) override ;
       
-      virtual const Value_ptr makeUndef(TypeID,std::size_t = 0);
+      const Value_ptr makeUndef(TypeID,std::size_t = 0) override;
     };
 
 

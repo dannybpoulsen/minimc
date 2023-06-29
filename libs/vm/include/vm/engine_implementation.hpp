@@ -708,8 +708,7 @@ namespace MiniMC {
             case MiniMC::Model::TypeID::Pointer:
               writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::Pointer>(aggr, offset, value.template as<typename T::Pointer>()));
               break;
-            case MiniMC::Model::TypeID::Array:
-            case MiniMC::Model::TypeID::Struct:
+            case MiniMC::Model::TypeID::Aggregate:
               writeState.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value.template as<typename T::Aggregate>()));
               break;
             default:
@@ -737,8 +736,7 @@ namespace MiniMC {
             case MiniMC::Model::TypeID::Pointer:
               writeState.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
               break;
-            case MiniMC::Model::TypeID::Array:
-            case MiniMC::Model::TypeID::Struct:
+            case MiniMC::Model::TypeID::Aggregate:
               writeState.getValueLookup().saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
               break;
             default:

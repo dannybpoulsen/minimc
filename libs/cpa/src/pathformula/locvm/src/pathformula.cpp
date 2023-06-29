@@ -31,8 +31,7 @@ namespace MiniMC {
             return I32Value(builder.makeVar(builder.makeBVSort(32), str.str()));
           case MiniMC::Model::TypeID::I64:
             return I64Value(builder.makeVar(builder.makeBVSort(64), str.str()));
-          case MiniMC::Model::TypeID::Array:
-          case MiniMC::Model::TypeID::Struct:
+          case MiniMC::Model::TypeID::Aggregate:
             return AggregateValue(builder.makeVar(builder.makeBVSort(8 * t.getSize()), str.str()), t.getSize());
 	    
           default:
@@ -117,8 +116,7 @@ namespace MiniMC {
 	  return Value::Pointer{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer32:
 	  return Value::Pointer32{concat.getTerm()};
-	case MiniMC::Model::TypeID::Struct:
-	case MiniMC::Model::TypeID::Array:
+	case MiniMC::Model::TypeID::Aggregate:
 	  return Value::Aggregate{concat.getTerm(),t->getSize ()};
 	case MiniMC::Model::TypeID::Float:
 	case MiniMC::Model::TypeID::Double:

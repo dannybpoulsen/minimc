@@ -119,8 +119,7 @@ namespace MiniMC {
 	    return performRead.template operator()<Value::Pointer32>();
 	  case MiniMC::Model::TypeID::Pointer:
 	    return performRead.template operator()<Value::Pointer>();
-	  case MiniMC::Model::TypeID::Struct:
-	  case MiniMC::Model::TypeID::Array:
+	  case MiniMC::Model::TypeID::Aggregate:
 	  default:
 	    throw MiniMC::Support::Exception("Error");
 	    

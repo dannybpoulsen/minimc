@@ -33,8 +33,7 @@ namespace MiniMC {
       Double,
       Pointer,
       Pointer32,
-      Struct,
-      Array
+      Aggregate
     };
 
     inline std::ostream& operator<< (std::ostream& os, TypeID id) {
@@ -49,8 +48,7 @@ namespace MiniMC {
       case TypeID::Double: return os << "Double";
       case TypeID::Pointer: return os << "Pointer";
       case TypeID::Pointer32: return os << "Pointer32";
-      case TypeID::Struct: return os << "Struct";
-      case TypeID::Array: return os << "Array";
+      case TypeID::Aggregate: return os << "Aggregate";
       default:
 	throw MiniMC::Support::Exception ("Not a Typeid");
       }
@@ -125,26 +123,9 @@ namespace MiniMC {
       virtual const Type_ptr makePointerType() = 0;
       virtual const Type_ptr makeVoidType() = 0;
 
-      /** 
-	   * Create an array type exactly \p t bytes long.  
-	   *
-	   * @param t  The size in bytes
-	   * 
-	   * @return  The created array type
-	   */
-      virtual const Type_ptr makeArrayType(size_t t) = 0;
-
-      /** 
-	   * Create a struct type exactly \p t bytes long.  
-	   *
-	   * @param t  The size in bytes
-	   * 
-	   * @return  The created struct type
-	   */
-
-      virtual const Type_ptr makeStructType(size_t t) = 0;
+      virtual const Type_ptr makeAggregateType(size_t t) = 0;
     };
-
+    
     using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
 
     /** 
@@ -160,9 +141,8 @@ namespace MiniMC {
       virtual const Type_ptr makeDoubleType();
       virtual const Type_ptr makePointerType();
       virtual const Type_ptr makeVoidType();
-      virtual const Type_ptr makeArrayType(size_t);
-      virtual const Type_ptr makeStructType(size_t);
-
+      virtual const Type_ptr makeAggregateType(size_t);
+      
     private:
       struct Inner;
       std::unique_ptr<Inner> impl;

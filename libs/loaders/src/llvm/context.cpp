@@ -38,11 +38,11 @@ namespace MiniMC {
         else if (bits <= 64)
           return MiniMC::Model::TypeID::I64;
       } else if (type->isStructTy()) {
-        return MiniMC::Model::TypeID::Struct;
+        return MiniMC::Model::TypeID::Aggregate;
       }
 
       else if (type->isArrayTy()) {
-        return MiniMC::Model::TypeID::Array;
+        return MiniMC::Model::TypeID::Aggregate;
       }
 
       throw MiniMC::Support::Exception("Unknown Type");
@@ -64,17 +64,14 @@ namespace MiniMC {
 	return tfact.makeIntegerType (64);
       case MiniMC::Model::TypeID::Pointer:
 	return tfact.makePointerType ();
-      case MiniMC::Model::TypeID::Array:
-	return tfact.makeArrayType (computeSizeInBytes (type));
-      case MiniMC::Model::TypeID::Struct:
-	return tfact.makeStructType (computeSizeInBytes (type));
+      case MiniMC::Model::TypeID::Aggregate:
+	return tfact.makeAggregateType (computeSizeInBytes (type));
       case MiniMC::Model::TypeID::Void:
 	  return tfact.makeVoidType ();
       case MiniMC::Model::TypeID::Float:
 	  return tfact.makeFloatType ();
       case MiniMC::Model::TypeID::Double:
 	  return tfact.makeDoubleType ();
-	  
       default:
 	throw MiniMC::Support::Exception ("Unsupported type");
       }
@@ -131,32 +128,32 @@ namespace MiniMC {
               assert(nconstant->isConstant());
               vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
             }
-            auto cst = cfact.makeAggregateConstant(vals, ltype->isArrayTy());
+            auto cst = cfact.makeAggregateConstant(vals);
 
             return cst;
           }
 
           if (auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate>(val)) {
             MiniMC::Model::ConstantFactory::aggr_input const_vals;
-
+	    
             const size_t oper = cstAggr2->getNumOperands();
             for (size_t i = 0; i < oper; ++i) {
               auto elem = cstAggr2->getOperand(i);
               auto nconstant =findValue (elem);
               const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
             }
-            auto cst = cfact.makeAggregateConstant(const_vals, ltype->isArrayTy());
+            auto cst = cfact.makeAggregateConstant(const_vals);
             return cst;
           }
           // assert(false && "FAil");
-
+	  
         } else if (llvm::isa<llvm::Function>(val) ||
                    llvm::isa<llvm::GlobalVariable>(val)) {
           return values.at(val);
         } else if (const llvm::BlockAddress* block = llvm::dyn_cast<const llvm::BlockAddress>(val)) {
           return values.at(block->getBasicBlock());
         }
-
+	
         else if (ltype->isPointerTy()) {
 	  if (llvm::isa<llvm::ConstantPointerNull> (val)) {
 	    return cfact.makeNullPointer ();
@@ -164,7 +161,7 @@ namespace MiniMC {
           constant->print(llvm::errs(), true);
           throw MiniMC::Support::Exception("Pointer Not Quite there");
         }
-
+	
         MiniMC::Support::Localiser local("LLVM '%1%' not implemented");
         std::string str;
         llvm::raw_string_ostream output(str);
