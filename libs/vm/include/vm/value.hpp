@@ -46,24 +46,15 @@ namespace MiniMC {
 	return std::get<T> (content);
       }
 
-      template<class Func>
-      auto visit (Func f) {
-	return std::visit(f,content);
+      
+      template<class Func,class... Oths>
+      auto visit (Func f,Oths&&... oths) {
+	return std::visit(f,content,oths.content...);
       }
 
-      template<class Func>
-      auto visit (Func f) const {
-	return std::visit(f,content);
-      }
-
-      template<class Func>
-      auto visit (Func f, GenericVal& v) {
-	return std::visit(f,content,v.content);
-      }
-
-      template<class Func>
-      auto visit (Func f, GenericVal& v) const {
-	return std::visit(f,content,v.content);
+      template<class Func,class... Oths>
+      auto visit (Func f,Oths&&... oths) const {
+	return std::visit(f,content,oths.content...);
       }
       
       template<typename T>

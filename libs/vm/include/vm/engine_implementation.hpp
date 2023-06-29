@@ -5,10 +5,18 @@
 #include "model/valuevisitor.hpp"
 #include "vm/value.hpp"
 #include "vm/vmt.hpp"
+#include "support/overload.hpp"
 
 namespace MiniMC {
   namespace VMT {
 
+    template<class T,class R>
+    concept Integer = std::is_same_v<R,typename T::I8> || std::is_same_v<R,typename T::I16> || std::is_same_v<R,typename T::I32> || std::is_same_v<R,typename T::I64>;
+
+    template<class T,class R>
+    concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
+
+    
     template<class State, typename Operations, typename Caster>
     struct Impl {
       using T = typename State::Domain;
@@ -17,67 +25,8 @@ namespace MiniMC {
 	return Status::Ok;
 	//throw NotImplemented<opc>();
       }
-     
 
-      template <class Value, class I>
-      static Status runCMPAdd(const I& instr, State& writeState, Operations& operations, Caster&)
-        requires MiniMC::Model::isTAC_v<I> || MiniMC::Model::isComparison_v<I>
-      {
-	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-
-        auto lval = writeState.getValueLookup().lookupValue(*content.op1).template as<Value>();
-        auto rval = writeState.getValueLookup().lookupValue(*content.op2).template as<Value>();
-        if constexpr (op == MiniMC::Model::InstructionCode::Add)
-          writeState.getValueLookup().saveValue(res, operations.Add(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::Sub)
-          writeState.getValueLookup().saveValue(res, operations.Sub(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::Mul)
-          writeState.getValueLookup().saveValue(res, operations.Mul(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::UDiv)
-          writeState.getValueLookup().saveValue(res, operations.UDiv(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::SDiv)
-          writeState.getValueLookup().saveValue(res, operations.SDiv(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::Shl)
-          writeState.getValueLookup().saveValue(res, operations.LShl(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::LShr)
-          writeState.getValueLookup().saveValue(res, operations.LShr(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::AShr)
-          writeState.getValueLookup().saveValue(res, operations.AShr(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::And)
-          writeState.getValueLookup().saveValue(res, operations.And(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::Or)
-          writeState.getValueLookup().saveValue(res, operations.Or(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::Xor)
-          writeState.getValueLookup().saveValue(res, operations.Xor(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
-          writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
-          writeState.getValueLookup().saveValue(res, operations.SGe(lval, rval));
-        } else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
-          writeState.getValueLookup().saveValue(res, operations.SLe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
-          writeState.getValueLookup().saveValue(res, operations.SLt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGT)
-          writeState.getValueLookup().saveValue(res, operations.UGt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGE)
-          writeState.getValueLookup().saveValue(res, operations.UGe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULE)
-          writeState.getValueLookup().saveValue(res, operations.ULe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULT)
-          writeState.getValueLookup().saveValue(res, operations.ULt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_EQ)
-          writeState.getValueLookup().saveValue(res, operations.Eq(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
-          writeState.getValueLookup().saveValue(res, operations.NEq(lval, rval));
-
-        else
-          throw NotImplemented<op>();
-
-        return Status::Ok;
-      }
-
+      
       template <class Value>
       static auto castPtrToAppropriateInteger(const Value& v, Caster& caster) {
         if constexpr (std::is_same_v<Value, typename T::Pointer>) {
@@ -85,52 +34,14 @@ namespace MiniMC {
         } else if constexpr (std::is_same_v<Value, typename T::Pointer32>) {
           return caster.template Ptr32ToInt<typename T::I32>(v);
         } else {
-          static_assert("Not a pointer you try converting");
+          return v;
         }
       }
+      
 
-      template <class Value,class T>
-      static Status runPointerCMP(const T& instr, State& writeState, Operations& operations, Caster& caster)
-        requires MiniMC::Model::isComparison_v<T>
-      {
-	constexpr auto op = T::getOpcode ();
-        auto& content = instr.getOps ();
-        assert(content.op1->getType()->getTypeID() == MiniMC::Model::TypeID::Pointer);
-        assert(content.op2->getType()->getTypeID() == MiniMC::Model::TypeID::Pointer);
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
-
-        auto lval = castPtrToAppropriateInteger<Value>(writeState.getValueLookup().lookupValue(*content.op1).template as<Value>(), caster);
-        auto rval = castPtrToAppropriateInteger<Value>(writeState.getValueLookup().lookupValue(*content.op2).template as<Value>(), caster);
-
-        if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
-          writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
-          writeState.getValueLookup().saveValue(res, operations.SGe(lval, rval));
-        } else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
-          writeState.getValueLookup().saveValue(res, operations.SLe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
-          writeState.getValueLookup().saveValue(res, operations.SLt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGT)
-          writeState.getValueLookup().saveValue(res, operations.UGt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGE)
-          writeState.getValueLookup().saveValue(res, operations.UGe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULE)
-          writeState.getValueLookup().saveValue(res, operations.ULe(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULT)
-          writeState.getValueLookup().saveValue(res, operations.ULt(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_EQ)
-          writeState.getValueLookup().saveValue(res, operations.Eq(lval, rval));
-        else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
-          writeState.getValueLookup().saveValue(res, operations.NEq(lval, rval));
-
-        else
-          throw NotImplemented<op>();
-
-        return Status::Ok;
-      }
-
+      
       template <class I>
-      static Status runInstruction(const I& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
+      static Status runInstruction(const I& instr, State& writeState, Operations& operations, Caster&, const MiniMC::Model::Program&)
         requires MiniMC::Model::isTAC_v<I> &&
 	IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
 	IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
@@ -139,25 +50,52 @@ namespace MiniMC {
       ValueLookupable<State>
 
       {
-        auto& content = instr.getOps();
-        auto op1 = content.op1;
+	constexpr auto op = I::getOpcode ();
+        auto& content = instr.getOps ();
+        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
-        switch (op1->getType()->getTypeID()) {
-          case MiniMC::Model::TypeID::I8:
-            return runCMPAdd<typename T::I8>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I16:
-            return runCMPAdd<typename T::I16>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I32:
-            return runCMPAdd<typename T::I32>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I64:
-            return runCMPAdd<typename T::I64>(instr, writeState, ops, caster);
-          default:
-            throw NotImplemented<I::getOpcode ()>();
-        }
+        auto lval = writeState.getValueLookup().lookupValue(*content.op1);
+        auto rval = writeState.getValueLookup().lookupValue(*content.op2);
+	lval.visit (MiniMC::Support::Overload {
+	    [&writeState,&operations,&res]<typename R>(R& lval, R& rval) requires Integer<T,R> {
+	      
+	      if constexpr (op == MiniMC::Model::InstructionCode::Add)
+	        writeState.getValueLookup().saveValue(res, operations.Add(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::Sub)
+	        writeState.getValueLookup().saveValue(res, operations.Sub(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::Mul)
+	        writeState.getValueLookup().saveValue(res, operations.Mul(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::UDiv)
+	        writeState.getValueLookup().saveValue(res, operations.UDiv(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::SDiv)
+	        writeState.getValueLookup().saveValue(res, operations.SDiv(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::Shl)
+	        writeState.getValueLookup().saveValue(res, operations.LShl(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::LShr)
+	        writeState.getValueLookup().saveValue(res, operations.LShr(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::AShr)
+	        writeState.getValueLookup().saveValue(res, operations.AShr(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::And)
+	        writeState.getValueLookup().saveValue(res, operations.And(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::Or)
+	        writeState.getValueLookup().saveValue(res, operations.Or(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::Xor)
+	        writeState.getValueLookup().saveValue(res, operations.Xor(lval, rval));
+	       else
+		throw NotImplemented<op>();
+		},
+	     [] (auto&, auto&) {
+	       throw NotImplemented<op>();
+	     }
+	      },
+	  rval
+	  );
+	return Status::Ok;
+	  
       }
-
+	  
       template <class I>
-      static Status runInstruction(const I& instr, State& writeState, Operations& ops, Caster& caster, const MiniMC::Model::Program&)
+      static Status runInstruction(const I& instr, State& writeState, Operations& operations, Caster& caster, const MiniMC::Model::Program&)
         requires MiniMC::Model::isComparison_v<I> &&
                  IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
                  IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
@@ -166,27 +104,49 @@ namespace MiniMC {
                  ValueLookupable<State>
 
       {
+	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto op1 = content.op1;
+        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
-        switch (op1->getType()->getTypeID()) {
-          case MiniMC::Model::TypeID::I8:
-            return runCMPAdd<typename T::I8>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I16:
-            return runCMPAdd<typename T::I16>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I32:
-            return runCMPAdd<typename T::I32>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::I64:
-            return runCMPAdd<typename T::I64>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::Pointer:
-            return runPointerCMP<typename T::Pointer>(instr, writeState, ops, caster);
-          case MiniMC::Model::TypeID::Pointer32:
-            return runPointerCMP<typename T::Pointer32>(instr, writeState, ops, caster);
-
-          default:
-            throw MiniMC::Support::Exception("Something wen't wrong");
-        }
-        throw NotImplemented<I::getOpcode()>();
+        auto lval = writeState.getValueLookup().lookupValue(*content.op1);
+        auto rval = writeState.getValueLookup().lookupValue(*content.op2);
+	lval.visit (MiniMC::Support::Overload {
+	    [&writeState,&operations,&res,&caster]<typename R>(R& l, R& r) requires Integer<T,R> || Pointer<T,R> {
+	      auto lval = Impl::castPtrToAppropriateInteger (l,caster);
+	      auto rval = Impl::castPtrToAppropriateInteger (r,caster);
+	      
+	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
+	        writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
+		writeState.getValueLookup().saveValue(res, operations.SGe(lval, rval));
+	      }
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
+	         writeState.getValueLookup().saveValue(res, operations.SLe(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
+	         writeState.getValueLookup().saveValue(res, operations.SLt(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGT)
+	         writeState.getValueLookup().saveValue(res, operations.UGt(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGE)
+	         writeState.getValueLookup().saveValue(res, operations.UGe(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULE)
+	         writeState.getValueLookup().saveValue(res, operations.ULe(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULT)
+	         writeState.getValueLookup().saveValue(res, operations.ULt(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_EQ)
+	         writeState.getValueLookup().saveValue(res, operations.Eq(lval, rval));
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
+	         writeState.getValueLookup().saveValue(res, operations.NEq(lval, rval));
+	      
+	      else
+		throw NotImplemented<op>();
+		},
+	     [] (auto&, auto&) {
+	       throw NotImplemented<op>();
+	     }
+	   }
+	  
+	  ,rval);
+	return Status::Ok;
       }
 
       template <class I>
@@ -219,25 +179,18 @@ namespace MiniMC {
 
         if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
           auto ptr = addrConverter(writeState.getValueLookup().lookupValue(*content.ptr));
-          auto calc = [&]<typename ValT>() {
-            auto skipsize = writeState.getValueLookup().lookupValue(*content.skipsize).template as<ValT>();
-            auto nbskips = writeState.getValueLookup().lookupValue(*content.nbSkips).template as<ValT>();
-            auto totalskip = operations.Mul(skipsize, nbskips);
-            writeState.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
-            return Status::Ok;
-          };
-          switch (content.skipsize->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8:
-              return calc.template operator()<typename T::I8>();
-            case MiniMC::Model::TypeID::I16:
-              return calc.template operator()<typename T::I16>();
-            case MiniMC::Model::TypeID::I32:
-              return calc.template operator()<typename T::I32>();
-            case MiniMC::Model::TypeID::I64:
-              return calc.template operator()<typename T::I64>();
-            default:
-              throw MiniMC::Support::Exception("Invalid Skip-type type");
-          }
+	  return writeState.getValueLookup ().lookupValue(*content.skipsize).visit (MiniMC::Support::Overload {
+	      [&operations,&writeState,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
+		  auto totalskip = operations.Mul(skipsize, nbskips);
+		  writeState.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
+		  return Status::Ok;
+		},
+		[](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
+	      }
+		},
+	    writeState.getValueLookup().lookupValue(*content.nbSkips)
+	    );
+		
         }
         if constexpr (op == MiniMC::Model::InstructionCode::PtrSub) {
           auto ptr = addrConverter(writeState.getValueLookup().lookupValue(*content.ptr));
