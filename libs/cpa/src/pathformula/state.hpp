@@ -135,7 +135,8 @@ namespace MiniMC {
 		    auto res = val.interpretValue (*solver);
 		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
 		  },
-		  });
+		  }
+		);
 	      
           }
 	  

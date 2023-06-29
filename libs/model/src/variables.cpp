@@ -1,4 +1,6 @@
 #include "model/variables.hpp"
+#include "model/valuevisitor.hpp"
+#include "support/overload.hpp"
 #include "support/exceptions.hpp"
 
 #include <memory>
@@ -159,44 +161,32 @@ namespace MiniMC {
       auto out = data.get();
       for (auto& v : inp) {
         assert(v->isConstant());
-        auto c = std::static_pointer_cast<MiniMC::Model::Constant>(v);
-        auto type = v->getType();
         auto addType = [&out](auto& value) {
           auto value_insert = value.getValue();
           out = std::copy(reinterpret_cast<MiniMC::BV8*>(&value_insert), reinterpret_cast<MiniMC::BV8*>(&value_insert) + sizeof(value_insert), out);
         };
 
-        switch (type->getTypeID()) {
-          case MiniMC::Model::TypeID::I8:
-            addType(*std::static_pointer_cast<MiniMC::Model::I8Integer>(c));
-            break;
-          case MiniMC::Model::TypeID::I16:
-            addType(*std::static_pointer_cast<MiniMC::Model::I16Integer>(c));
-            break;
-          case MiniMC::Model::TypeID::I32:
-            addType(*std::static_pointer_cast<MiniMC::Model::I32Integer>(c));
-            break;
-          case MiniMC::Model::TypeID::I64:
-            addType(*std::static_pointer_cast<MiniMC::Model::I64Integer>(c));
-            break;
-	case MiniMC::Model::TypeID::Bool:
-	    addType(*std::static_pointer_cast<MiniMC::Model::Bool>(c));
-            break;
-          case MiniMC::Model::TypeID::Pointer:
-            addType(*std::static_pointer_cast<MiniMC::Model::Pointer>(c));
-            break;
-          case MiniMC::Model::TypeID::Aggregate: {
-            auto aggr = std::static_pointer_cast<MiniMC::Model::AggregateConstant>(c);
-            out = std::copy(aggr->getData().begin(), aggr->getData().end(), out);
-	    break;
-	  }
-          default:
-            throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
-        }
+	MiniMC::Model::visitValue(
+				  MiniMC::Support::Overload {
+				    [addType](const MiniMC::Model::I8Integer& c) {addType(c);},
+				    [addType](const MiniMC::Model::I16Integer& c) {addType(c);},
+				    [addType](const MiniMC::Model::I32Integer& c) {addType(c);},
+				    [addType](const MiniMC::Model::I64Integer& c) {addType(c);},
+				    [addType](const MiniMC::Model::Bool& c) {addType(c);},
+				    [addType](const MiniMC::Model::Pointer& c) {addType(c);},
+				    [addType](const MiniMC::Model::Pointer32& c) {addType(c);},
+				    [&out](const MiniMC::Model::AggregateConstant& aggr) {
+				      out = std::copy(aggr.getData().begin(), aggr.getData().end(), out);
+				    },
+				    [](auto& l) {
+				      std::cerr << l << std::endl; 
+				      throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
+				    }
+				      },
+				  *v);
       }
-      Type_ptr type;
       
-      type = typefact->makeAggregateType (size);
+      Type_ptr type = typefact->makeAggregateType (size);
       
       Value_ptr v = std::make_shared<MiniMC::Model::AggregateConstant>(MiniMC::Util::Array{size,std::move(data)});
       v->setType (type);

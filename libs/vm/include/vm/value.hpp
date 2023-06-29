@@ -18,11 +18,7 @@ namespace MiniMC {
     struct Overload : Ts ... { 
       using Ts::operator() ...;
     };
-    
-    
-
-    
-    
+        
     template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename Pointer32T, typename BoolT,typename Ag>
     struct GenericVal {
       using I8 = Int8;
@@ -59,6 +55,16 @@ namespace MiniMC {
       auto visit (Func f) const {
 	return std::visit(f,content);
       }
+
+      template<class Func>
+      auto visit (Func f, GenericVal& v) {
+	return std::visit(f,content,v.content);
+      }
+
+      template<class Func>
+      auto visit (Func f, GenericVal& v) const {
+	return std::visit(f,content,v.content);
+      }
       
       template<typename T>
       auto& as () const {	
@@ -72,7 +78,7 @@ namespace MiniMC {
       
       auto hash () const {return std::hash<decltype(content)>{} (content);}
 
-      auto& output (std::ostream& os) const {return std::visit([&](const auto& x) ->std::ostream&  { return os << x; }, content);}
+      auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, content);}
 
       bool operator== (const GenericVal& oth) const {return oth.content == content;} 
       
