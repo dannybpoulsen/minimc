@@ -8,29 +8,29 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
 
-      template <size_t>
+      template <MiniMC::Model::TypeID>
       struct RetTyp;
 
       template <>
-      struct RetTyp<1> {
+      struct RetTyp<MiniMC::Model::TypeID::I8> {
         using backtype = MiniMC::BV8;
         using type = TValue<MiniMC::BV8>;
       };
 
       template <>
-      struct RetTyp<2> {
+      struct RetTyp<MiniMC::Model::TypeID::I16> {
         using backtype = MiniMC::BV16;
         using type = TValue<MiniMC::BV16>;
       };
 
       template <>
-      struct RetTyp<4> {
+      struct RetTyp<MiniMC::Model::TypeID::I32> {
         using backtype = MiniMC::BV32;
         using type = TValue<MiniMC::BV32>;
       };
 
       template <>
-      struct RetTyp<8> {
+      struct RetTyp<MiniMC::Model::TypeID::I64> {
         using backtype = MiniMC::BV64;
         using type = TValue<MiniMC::BV64>;
       };
@@ -199,14 +199,14 @@ namespace MiniMC {
 
   
       struct Caster {
-        template <std::size_t bw>
-        RetTyp<bw>::type BoolZExt(const BoolValue& val) {
-          return typename RetTyp<bw>::type(val.getValue() ? 1 : 0);
+        template <MiniMC::Model::TypeID to>
+        RetTyp<to>::type BoolZExt(const BoolValue& val) {
+          return typename RetTyp<to>::type(val.getValue() ? 1 : 0);
         }
 
-        template <std::size_t bw>
-        RetTyp<bw>::type BoolSExt(const BoolValue& val) {
-          return typename RetTyp<bw>::type(val.getValue() ? std::numeric_limits<typename RetTyp<bw>::backtype>::max() : 0);
+        template <MiniMC::Model::TypeID to>
+        RetTyp<to>::type BoolSExt(const BoolValue& val) {
+          return typename RetTyp<to>::type(val.getValue() ? std::numeric_limits<typename RetTyp<to>::backtype>::max() : 0);
         }
 
         template <class T>
@@ -282,18 +282,18 @@ namespace MiniMC {
 	  return p;
 	}
 	
-        template <size_t bw, typename T>
-        typename RetTyp<bw>::type Trunc(const T& t) const {
+        template <MiniMC::Model::TypeID to, typename T>
+        typename RetTyp<to>::type Trunc(const T& t) const {
           using U = T::underlying_type;
-          if constexpr (sizeof(U) < bw) {
+          if constexpr (sizeof(U)*8 < MiniMC::Model::BitWidth<to>) {
             throw MiniMC::Support::Exception("Improper Truncation");
-          } else if constexpr (bw == 1) {
+          } else if constexpr (to == MiniMC::Model::TypeID::I8) {
             return TValue<MiniMC::BV8>(MiniMC::Host::trunc<U, MiniMC::BV8>(t.getValue()));
-          } else if constexpr (bw == 2) {
+          } else if constexpr (to == MiniMC::Model::TypeID::I16) {
             return TValue<MiniMC::BV16>(MiniMC::Host::trunc<U, MiniMC::BV16>(t.getValue()));
-          } else if constexpr (bw == 4) {
+          } else if constexpr (to ==  MiniMC::Model::TypeID::I32) {
             return TValue<MiniMC::BV32>(MiniMC::Host::trunc<U, MiniMC::BV32>(t.getValue()));
-          } else if constexpr (bw == 8) {
+          } else if constexpr (to == MiniMC::Model::TypeID::I64) {
             return TValue<MiniMC::BV64>(MiniMC::Host::trunc<U, MiniMC::BV64>(t.getValue()));
           } else {
             []<bool t = false>() { static_assert(t); }
@@ -301,19 +301,19 @@ namespace MiniMC {
           }
         }
 
-        template <size_t bw, typename T>
-        typename RetTyp<bw>::type ZExt(const T& t) const {
+        template <MiniMC::Model::TypeID to, typename T>
+        typename RetTyp<to>::type ZExt(const T& t) const {
           using U = T::underlying_type;
-          if constexpr (sizeof(U) > bw) {
+          if constexpr (sizeof(U) > MiniMC::Model::BitWidth<to>) {
             throw MiniMC::Support::Exception("Improper Extention");
           } else {
-            if constexpr (bw == 1)
+            if constexpr (to == MiniMC::Model::TypeID::I8)
               return TValue<MiniMC::BV8>(MiniMC::Host::zext<U, MiniMC::BV8>(t.getValue()));
-            else if constexpr (bw == 2)
+            else if constexpr (to == MiniMC::Model::TypeID::I16)
               return TValue<MiniMC::BV16>(MiniMC::Host::zext<U, MiniMC::BV16>(t.getValue()));
-            else if constexpr (bw == 4)
+            else if constexpr (to == MiniMC::Model::TypeID::I32)
               return TValue<MiniMC::BV32>(MiniMC::Host::zext<U, MiniMC::BV32>(t.getValue()));
-            else if constexpr (bw == 8)
+            else if constexpr (to == MiniMC::Model::TypeID::I64)
               return TValue<MiniMC::BV64>(MiniMC::Host::zext<U, MiniMC::BV64>(t.getValue()));
 
             else {
@@ -323,19 +323,19 @@ namespace MiniMC {
           }
         }
 
-        template <size_t bw, typename T>
-        typename RetTyp<bw>::type SExt(const T& t) const {
+        template <MiniMC::Model::TypeID to, typename T>
+        typename RetTyp<to>::type SExt(const T& t) const {
           using U = T::underlying_type;
-          if constexpr (sizeof(T) > bw) {
+          if constexpr (sizeof(T) > MiniMC::Model::BitWidth<to>) {
             throw MiniMC::Support::Exception("Improper Extention");
           } else {
-            if constexpr (bw == 1)
+            if constexpr (to == MiniMC::Model::TypeID::I8)
               return TValue<MiniMC::BV8>(MiniMC::Host::sext<U, MiniMC::BV8>(t.getValue()));
-            else if constexpr (bw == 2)
+            else if constexpr (to == MiniMC::Model::TypeID::I16)
               return TValue<MiniMC::BV16>(MiniMC::Host::sext<U, MiniMC::BV16>(t.getValue()));
-            else if constexpr (bw == 4)
+            else if constexpr (to == MiniMC::Model::TypeID::I32)
               return TValue<MiniMC::BV32>(MiniMC::Host::sext<U, MiniMC::BV32>(t.getValue()));
-            else if constexpr (bw == 8)
+            else if constexpr (to == MiniMC::Model::TypeID::I64)
               return TValue<MiniMC::BV64>(MiniMC::Host::sext<U, MiniMC::BV64>(t.getValue()));
             else {
               []<bool t = false>() { static_assert(t); }

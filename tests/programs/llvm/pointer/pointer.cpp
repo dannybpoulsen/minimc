@@ -85,3 +85,29 @@ TEST_CASE("Pointer") {
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
 }
+
+TEST_CASE("Pointer") {
+    MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
+  REQUIRE (loadRegistrar != nullptr);
+  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
+  MiniMC::Model::Controller control(std::move(prgm));
+  control.createAssertViolateLocations ();
+  
+  auto& program = control.getProgram ();
+  MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
+  analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
+  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
+      program.getHeapLayout (),
+      program.getInitialiser (),
+      program});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
+  auto verdict = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
+}

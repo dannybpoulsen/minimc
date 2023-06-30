@@ -107,30 +107,30 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      template <class Value,size_t>
+      template <class Value,MiniMC::Model::TypeID>
       struct RetTyp;
       
       template<class Value>
-      struct RetTyp<Value,1> {
+      struct RetTyp<Value,MiniMC::Model::TypeID::I8> {
         using type = Value::I8;
 	using underlying_type = MiniMC::BV8;
       };
 
       template<class Value>
-      struct RetTyp<Value,2> {
+      struct RetTyp<Value,MiniMC::Model::TypeID::I16> {
         using type = Value::I16;
 	using underlying_type = MiniMC::BV16;
       };
 
       template<class Value>
-      struct RetTyp<Value,4> {
+      struct RetTyp<Value,MiniMC::Model::TypeID::I32> {
         using type = Value::I32;
 	using underlying_type = MiniMC::BV32;
 	
       };
 
       template<class Value>
-      struct RetTyp<Value,8> {
+      struct RetTyp<Value,MiniMC::Model::TypeID::I64> {
         using type = Value::I64;
 	using underlying_type = MiniMC::BV64;
 	
@@ -140,11 +140,11 @@ namespace MiniMC {
       struct Casts {
 	Casts (SMTLib::TermBuilder& builder) : builder(builder) {}
 
-	template <std::size_t bw>
-	typename RetTyp<Value,bw>::type BoolZExt(const BoolValue& val);
+	template <MiniMC::Model::TypeID to>
+	typename RetTyp<Value,to>::type BoolZExt(const BoolValue& val);
 
-	template <std::size_t bw>
-	typename RetTyp<Value,bw>::type BoolSExt(const BoolValue& val);
+	template <MiniMC::Model::TypeID to>
+	typename RetTyp<Value,to>::type BoolSExt(const BoolValue& val);
 
 	template <class T>
         Value::Bool IntToBool(const T& t);
@@ -168,14 +168,14 @@ namespace MiniMC {
 	
 	
 	
-	template <size_t bw, class T>
-        typename RetTyp<Value,bw>::type Trunc(const T& t) const;
+	template <MiniMC::Model::TypeID to, class T>
+        typename RetTyp<Value,to>::type Trunc(const T& t) const;
 
-	template <size_t bw, typename T>
-        typename RetTyp<Value,bw>::type ZExt(const T& t) const;
+	template <MiniMC::Model::TypeID to, typename T>
+        typename RetTyp<Value,to>::type ZExt(const T& t) const;
 
-	template <size_t bw, typename T>
-        typename RetTyp<Value,bw>::type SExt(const T& t) const;
+	template <MiniMC::Model::TypeID to, typename T>
+        typename RetTyp<Value,to>::type SExt(const T& t) const;
       private:
 	SMTLib::TermBuilder& builder;
       

@@ -195,49 +195,49 @@ namespace MiniMC {
 
     template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Caster>
     concept CastCompatible = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
-      {op.template ZExt<1> (i8)} -> std::convertible_to<I8>;
-      {op.template ZExt<2> (i8)} -> std::convertible_to<I16>;
-      {op.template ZExt<4> (i8)} -> std::convertible_to<I32>;
-      {op.template ZExt<8> (i8)} -> std::convertible_to<I64>;
-      {op.template ZExt<2> (i16)} -> std::convertible_to<I16>;
-      {op.template ZExt<4> (i16)} -> std::convertible_to<I32>;
-      {op.template ZExt<8> (i16)} -> std::convertible_to<I64>;
-      {op.template ZExt<4> (i32)} -> std::convertible_to<I32>;
-      {op.template ZExt<8> (i32)} -> std::convertible_to<I64>;
-      {op.template ZExt<8> (i64)} -> std::convertible_to<I64>;
+      {op.template ZExt<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
+      {op.template ZExt<MiniMC::Model::TypeID::I16> (i8)} -> std::convertible_to<I16>;
+      {op.template ZExt<MiniMC::Model::TypeID::I32> (i8)} -> std::convertible_to<I32>;
+      {op.template ZExt<MiniMC::Model::TypeID::I64> (i8)} -> std::convertible_to<I64>;
+      {op.template ZExt<MiniMC::Model::TypeID::I16> (i16)} -> std::convertible_to<I16>;
+      {op.template ZExt<MiniMC::Model::TypeID::I32> (i16)} -> std::convertible_to<I32>;
+      {op.template ZExt<MiniMC::Model::TypeID::I64> (i16)} -> std::convertible_to<I64>;
+      {op.template ZExt<MiniMC::Model::TypeID::I32> (i32)} -> std::convertible_to<I32>;
+      {op.template ZExt<MiniMC::Model::TypeID::I64> (i32)} -> std::convertible_to<I64>;
+      {op.template ZExt<MiniMC::Model::TypeID::I64> (i64)} -> std::convertible_to<I64>;
 
-      {op.template SExt<1> (i8)} -> std::convertible_to<I8>;
-      {op.template SExt<2> (i8)} -> std::convertible_to<I16>;
-      {op.template SExt<4> (i8)} -> std::convertible_to<I32>;
-      {op.template SExt<8> (i8)} -> std::convertible_to<I64>;
-      {op.template SExt<2> (i16)} -> std::convertible_to<I16>;
-      {op.template SExt<4> (i16)} -> std::convertible_to<I32>;
-      {op.template SExt<8> (i16)} -> std::convertible_to<I64>;
-      {op.template SExt<4> (i32)} -> std::convertible_to<I32>;
-      {op.template SExt<8> (i32)} -> std::convertible_to<I64>;
-      {op.template SExt<8> (i64)} -> std::convertible_to<I64>;
+      {op.template SExt<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
+      {op.template SExt<MiniMC::Model::TypeID::I16> (i8)} -> std::convertible_to<I16>;
+      {op.template SExt<MiniMC::Model::TypeID::I32> (i8)} -> std::convertible_to<I32>;
+      {op.template SExt<MiniMC::Model::TypeID::I64> (i8)} -> std::convertible_to<I64>;
+      {op.template SExt<MiniMC::Model::TypeID::I16> (i16)} -> std::convertible_to<I16>;
+      {op.template SExt<MiniMC::Model::TypeID::I32> (i16)} -> std::convertible_to<I32>;
+      {op.template SExt<MiniMC::Model::TypeID::I64> (i16)} -> std::convertible_to<I64>;
+      {op.template SExt<MiniMC::Model::TypeID::I32> (i32)} -> std::convertible_to<I32>;
+      {op.template SExt<MiniMC::Model::TypeID::I64> (i32)} -> std::convertible_to<I64>;
+      {op.template SExt<MiniMC::Model::TypeID::I64> (i64)} -> std::convertible_to<I64>;
       
-      {op.template Trunc<8> (i64)} -> std::convertible_to<I64>;
-      {op.template Trunc<4> (i64)} -> std::convertible_to<I32>;
-      {op.template Trunc<2> (i64)} -> std::convertible_to<I16>;
-      {op.template Trunc<1> (i64)} -> std::convertible_to<I8>;
-      {op.template Trunc<4> (i32)} -> std::convertible_to<I32>;
-      {op.template Trunc<2> (i32)} -> std::convertible_to<I16>;
-      {op.template Trunc<1> (i32)} -> std::convertible_to<I8>;
-      {op.template Trunc<2> (i16)} -> std::convertible_to<I16>;
-      {op.template Trunc<1> (i16)} -> std::convertible_to<I8>;
-      {op.template Trunc<1> (i8)} -> std::convertible_to<I8>;
+      {op.template Trunc<MiniMC::Model::TypeID::I64> (i64)} -> std::convertible_to<I64>;
+      {op.template Trunc<MiniMC::Model::TypeID::I32> (i64)} -> std::convertible_to<I32>;
+      {op.template Trunc<MiniMC::Model::TypeID::I16> (i64)} -> std::convertible_to<I16>;
+      {op.template Trunc<MiniMC::Model::TypeID::I8> (i64)} -> std::convertible_to<I8>;
+      {op.template Trunc<MiniMC::Model::TypeID::I32> (i32)} -> std::convertible_to<I32>;
+      {op.template Trunc<MiniMC::Model::TypeID::I16> (i32)} -> std::convertible_to<I16>;
+      {op.template Trunc<MiniMC::Model::TypeID::I8> (i32)} -> std::convertible_to<I8>;
+      {op.template Trunc<MiniMC::Model::TypeID::I16> (i16)} -> std::convertible_to<I16>;
+      {op.template Trunc<MiniMC::Model::TypeID::I8> (i16)} -> std::convertible_to<I8>;
+      {op.template Trunc<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
 
 
-      {op.template BoolZExt<1> (b)} -> std::convertible_to<I8>;
-      {op.template BoolZExt<2> (b)} -> std::convertible_to<I16>;
-      {op.template BoolZExt<4> (b)} -> std::convertible_to<I32>;
-      {op.template BoolZExt<8> (b)} -> std::convertible_to<I64>;
+      {op.template BoolZExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
+      {op.template BoolZExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
+      {op.template BoolZExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
+      {op.template BoolZExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
 
-      {op.template BoolSExt<1> (b)} -> std::convertible_to<I8>;
-      {op.template BoolSExt<2> (b)} -> std::convertible_to<I16>;
-      {op.template BoolSExt<4> (b)} -> std::convertible_to<I32>;
-      {op.template BoolSExt<8> (b)} -> std::convertible_to<I64>;
+      {op.template BoolSExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
+      {op.template BoolSExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
+      {op.template BoolSExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
+      {op.template BoolSExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
 
       {op.template IntToBool<I8> (i8)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I16> (i16)} -> std::convertible_to<Bool>;

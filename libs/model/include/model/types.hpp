@@ -53,6 +53,34 @@ namespace MiniMC {
 	throw MiniMC::Support::Exception ("Not a Typeid");
       }
     }
+
+    template<TypeID id>
+    struct Type_trait {
+    };
+
+    template<>
+    struct Type_trait<TypeID::I8> {
+      constexpr static std::size_t bitwidth () {return 8;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::I16> {
+      constexpr static std::size_t bitwidth () {return 16;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::I32> {
+      constexpr static std::size_t bitwidth () {return 32;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::I64> {
+      constexpr static std::size_t bitwidth () {return 64;}
+    };
+
+    template<TypeID id>
+    constexpr std::size_t BitWidth = Type_trait<id>::bitwidth();
+    
     
     /** 
 	 * Representation of a type in MiniMC. 

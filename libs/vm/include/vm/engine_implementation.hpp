@@ -163,59 +163,51 @@ namespace MiniMC {
         auto& content = instr.getOps ();
         auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 
-        auto addrConverter = [&caster](const auto& addrVal) {
-          return addrVal.visit([&caster](const auto& value) -> T::Pointer {
-            if constexpr (std::is_same_v<const typename T::Pointer&, decltype(value)>) {
-              return value;
-            }
+        auto addrConverter = MiniMC::Support::Overload {
+	  [](typename T::Pointer& addrVal) {
+	    return addrVal;
+	  },
+	  [&caster] (typename T::Pointer32& addrVal) {
+	    return caster.Ptr32ToPtr (addrVal);
+	  },
+	  [](auto& )->T::Pointer { throw MiniMC::Support::Exception("SHouldn't get here");
+	  }
 
-            else if constexpr (std::is_same_v<const typename T::Pointer32&, decltype(value)>) {
-              return caster.Ptr32ToPtr(value);
-            } else {
-              throw MiniMC::Support::Exception("SHouldn't get here");
-            }
-          });
-        };
-
+	};
+	
         if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
-          auto ptr = addrConverter(writeState.getValueLookup().lookupValue(*content.ptr));
-	  return writeState.getValueLookup ().lookupValue(*content.skipsize).visit (MiniMC::Support::Overload {
-	      [&operations,&writeState,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
-		  auto totalskip = operations.Mul(skipsize, nbskips);
-		  writeState.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
-		  return Status::Ok;
-		},
-		[](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
-	      }
-		},
-	    writeState.getValueLookup().lookupValue(*content.nbSkips)
-	    );
-		
+          auto ptr = writeState.getValueLookup().lookupValue(*content.ptr).visit (addrConverter);;
+	  auto visitor = MiniMC::Support::Overload {
+	    [&operations,&writeState,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
+	      auto totalskip = operations.Mul(skipsize, nbskips);
+	      writeState.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
+	      return Status::Ok;
+	    },
+	    [](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
+	    }
+	  };
+	  return writeState.getValueLookup ().lookupValue(*content.skipsize).visit (visitor,
+										    writeState.getValueLookup().lookupValue(*content.nbSkips)
+										    );
+	  
         }
         if constexpr (op == MiniMC::Model::InstructionCode::PtrSub) {
-          auto ptr = addrConverter(writeState.getValueLookup().lookupValue(*content.ptr));
-          auto calc = [&]<typename ValT>() {
-            auto skipsize = writeState.getValueLookup().lookupValue(*content.skipsize).template as<ValT>();
-            auto nbskips = writeState.getValueLookup().lookupValue(*content.nbSkips).template as<ValT>();
-            auto totalskip = operations.Mul(skipsize, nbskips);
-            writeState.getValueLookup().saveValue(res, operations.PtrSub(ptr, totalskip));
-            return Status::Ok;
-          };
-          switch (content.skipsize->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8:
-              return calc.template operator()<typename T::I8>();
-            case MiniMC::Model::TypeID::I16:
-              return calc.template operator()<typename T::I16>();
-            case MiniMC::Model::TypeID::I32:
-              return calc.template operator()<typename T::I32>();
-            case MiniMC::Model::TypeID::I64:
-              return calc.template operator()<typename T::I64>();
-            default:
-              throw MiniMC::Support::Exception("Invalid Skip-type type");
-          }
+          auto ptr = writeState.getValueLookup().lookupValue(*content.ptr).visit (addrConverter);;
+	  auto visitor = MiniMC::Support::Overload {
+	    [&operations,&writeState,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
+	      auto totalskip = operations.Mul(skipsize, nbskips);
+	      writeState.getValueLookup().saveValue(res, operations.PtrSub(ptr, totalskip));
+	      return Status::Ok;
+	    },
+	    [](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
+	    }
+	  };
+	  return writeState.getValueLookup ().lookupValue(*content.skipsize).visit (visitor,
+										    writeState.getValueLookup().lookupValue(*content.nbSkips)
+										    ); 
         } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
-          auto lval = addrConverter(writeState.getValueLookup().lookupValue(*content.op1));
-          auto rval = addrConverter(writeState.getValueLookup().lookupValue(*content.op2));
+          auto lval = writeState.getValueLookup().lookupValue(*content.op1).visit (addrConverter);
+          auto rval = writeState.getValueLookup().lookupValue(*content.op2).visit (addrConverter);
           writeState.getValueLookup().saveValue(res, operations.PtrEq(lval, rval));
           return Status::Ok;
         }
@@ -231,26 +223,22 @@ namespace MiniMC {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps();
 
-        auto addrConverter = [&caster](const auto& addrVal) {
-          return addrVal.visit([&caster](const auto& value) -> T::Pointer {
-            if constexpr (std::is_same_v<const typename T::Pointer&, decltype(value)>) {
-              return value;
-            }
+	auto addrConverter = MiniMC::Support::Overload {
+	  [](typename T::Pointer& addrVal) {
+	    return addrVal;
+	  },
+	  [&caster] (typename T::Pointer32& addrVal) {
+	    return caster.Ptr32ToPtr (addrVal);
+	  },
+	  [](auto& )->T::Pointer { throw MiniMC::Support::Exception("SHouldn't get here");
+	  }
 
-            else if constexpr (std::is_same_v<const typename T::Pointer32&, decltype(value)>) {
-              return caster.Ptr32ToPtr(value);
-            } else {
-              throw MiniMC::Support::Exception("SHouldn't get here");
-            }
-          });
-        };
-
+	};
+	
         if constexpr (op == MiniMC::Model::InstructionCode::Load ) {
 	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
 	  if constexpr (MemoryControllable<State>) {
-
-	    auto addr = addrConverter(writeState.getValueLookup().lookupValue(*content.addr));
-	    
+	    auto addr = writeState.getValueLookup().lookupValue(*content.addr).visit (addrConverter);
 	    writeState.getValueLookup().saveValue(res, writeState.getMemory().loadValue(addr, res.getType()));
 	  }
 	  else {
@@ -265,13 +253,13 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
 	  if constexpr (MemoryControllable<State>) {
 	    auto value = writeState.getValueLookup().lookupValue(*content.storee);
-	    auto addr = addrConverter(writeState.getValueLookup().lookupValue(*content.addr));
+	    auto addr = writeState.getValueLookup().lookupValue(*content.addr).visit(addrConverter);
 	    
 	    value.visit([&writeState, &addr](const auto& t) {
 	      if constexpr (!std::is_same_v<const typename T::Bool&, decltype(t)>)
 		writeState.getMemory().storeValue(addr, t);
-            else {
-              throw MiniMC::Support::Exception("Cannot Store this type");
+	      else {
+		throw MiniMC::Support::Exception("Cannot Store this type");
             }
 	    });
 	    
@@ -312,49 +300,36 @@ namespace MiniMC {
           throw NotImplemented<op>();
       }
 
-      template <MiniMC::Model::InstructionCode opc, class LeftOp, size_t bw>
-      static T doOp(const LeftOp& op, Caster& caster) {
-        if constexpr (opc == MiniMC::Model::InstructionCode::Trunc) {
-          if constexpr (bw * 8 > LeftOp::intbitsize()) {
-            throw MiniMC::Support::Exception("Invalid Truncaation");
+      
+      template <MiniMC::Model::InstructionCode opc, class LeftOp, MiniMC::Model::TypeID to>
+      static T doCastOp(const LeftOp& op, Caster& caster) {
+	constexpr auto bw = MiniMC::Model::BitWidth<to>; 
+	if constexpr (opc == MiniMC::Model::InstructionCode::Trunc) {
+          if constexpr (bw  > LeftOp::intbitsize()) {
+            throw MiniMC::Support::Exception("Invalid Truntion");
           } else
-            return caster.template Trunc<bw, LeftOp>(op);
+            return caster.template Trunc<to, LeftOp>(op);
         } else if constexpr (opc == MiniMC::Model::InstructionCode::ZExt) {
-          if constexpr (bw * 8 < LeftOp::intbitsize()) {
+          if constexpr (bw  < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           } else
-            return caster.template ZExt<bw, LeftOp>(op);
+            return caster.template ZExt<to, LeftOp>(op);
         } else if constexpr (opc == MiniMC::Model::InstructionCode::SExt) {
-          if constexpr (bw * 8 < LeftOp::intbitsize()) {
+          if constexpr (bw < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           } else
-            return caster.template SExt<bw, LeftOp>(op);
+            return caster.template SExt<to, LeftOp>(op);
         } else {
           []<bool b = false>() { static_assert(b); }
           ();
         }
       }
 
-      template <MiniMC::Model::InstructionCode opc, class LeftOp>
-      static T doOp(const LeftOp& op, Caster& caster, const MiniMC::Model::Type_ptr& p) {
-        switch (p->getSize()) {
-          case 1:
-            return doOp<opc, LeftOp, 1>(op, caster);
-          case 2:
-            return doOp<opc, LeftOp, 2>(op, caster);
-          case 4:
-            return doOp<opc, LeftOp, 4>(op, caster);
-          case 8:
-            return doOp<opc, LeftOp, 8>(op, caster);
-          default:
-            throw MiniMC::Support::Exception("Error");
-        }
-      }
-
+     
       template <class I>
       static Status runInstruction(const I& instr, State& writeState, Operations&, Caster& caster, const MiniMC::Model::Program&)
         requires MiniMC::Model::isCast_v<I> &&
-	         CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Caster> &&
+	CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Caster> &&
          	ValueLookupable<State>
       {
 	constexpr auto op = I::getOpcode ();
@@ -365,40 +340,45 @@ namespace MiniMC {
                       op == MiniMC::Model::InstructionCode::ZExt ||
                       op == MiniMC::Model::InstructionCode::SExt) {
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1);
-          switch (content.op1->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8:
-              writeState.getValueLookup().saveValue(res, doOp<op, typename T::I8>(op1.template as<typename T::I8>(), caster, res.getType()));
-              break;
-            case MiniMC::Model::TypeID::I16:
-              writeState.getValueLookup().saveValue(res, doOp<op, typename T::I16>(op1.template as<typename T::I16>(), caster, res.getType()));
-              break;
-            case MiniMC::Model::TypeID::I32:
-              writeState.getValueLookup().saveValue(res, doOp<op, typename T::I32>(op1.template as<typename T::I32>(), caster, res.getType()));
-              break;
-
-	  case MiniMC::Model::TypeID::I64:
-	    writeState.getValueLookup().saveValue(res, doOp<op, typename T::I64>(op1.template as<typename T::I64>(), caster, res.getType()));
-              break;
-            default:
-              throw MiniMC::Support::Exception("Invalid Trunc/Extenstion");
-          }
-          return MiniMC::VMT::Status::Ok;
-        }
+	  
+	  auto result = op1.visit (MiniMC::Support::Overload {
+	      [&op1,&res,&caster,&writeState]<typename K>(K& val) -> T requires Integer<T,K> {
+		switch (res.getType ()->getTypeID ()) {
+		  case MiniMC::Model::TypeID::I8:
+		     return doCastOp<op, K, MiniMC::Model::TypeID::I8>(val, caster);
+		  case MiniMC::Model::TypeID::I16:
+		     return doCastOp<op, K, MiniMC::Model::TypeID::I16>(val, caster);
+		  case MiniMC::Model::TypeID::I32:
+		     return doCastOp<op, K, MiniMC::Model::TypeID::I32>(val, caster);
+		  case MiniMC::Model::TypeID::I64:
+ 		     return doCastOp<op, K, MiniMC::Model::TypeID::I64>(val, caster);
+		  default:
+		     throw MiniMC::Support::Exception("Error");
+		}
+	      },
+	      [](auto& ) -> T {throw MiniMC::Support::Exception("Invalid Trunc/Extenstion");}
+	    
+		}
+	    );
+	  writeState.getValueLookup().saveValue(res, std::move(result));
+	    
+	  return MiniMC::VMT::Status::Ok;
+	}
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolSExt) {
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::Bool>();
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
-              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<1>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<MiniMC::Model::TypeID::I8>(op1));
               break;
             case MiniMC::Model::TypeID::I16:
-              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<2>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<MiniMC::Model::TypeID::I16>(op1));
               break;
             case MiniMC::Model::TypeID::I32:
-              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<4>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<MiniMC::Model::TypeID::I32>(op1));
               break;
             case MiniMC::Model::TypeID::I64:
-              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<8>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolSExt<MiniMC::Model::TypeID::I64>(op1));
               break;
             default:
               throw MiniMC::Support::Exception("Invalid Extenstion");
@@ -409,16 +389,16 @@ namespace MiniMC {
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::Bool>();
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
-              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<1>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<MiniMC::Model::TypeID::I8>(op1));
               break;
             case MiniMC::Model::TypeID::I16:
-              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<2>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<MiniMC::Model::TypeID::I16>(op1));
               break;
             case MiniMC::Model::TypeID::I32:
-              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<4>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<MiniMC::Model::TypeID::I32>(op1));
               break;
             case MiniMC::Model::TypeID::I64:
-              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<8>(op1));
+              writeState.getValueLookup().saveValue(res, caster.template BoolZExt<MiniMC::Model::TypeID::I64>(op1));
               break;
             default:
               throw MiniMC::Support::Exception("Invalid Extenstion");
@@ -427,35 +407,20 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToPtr) {
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1);
-          T result;
-          if (res.getType()->getTypeID() == MiniMC::Model::TypeID::Pointer) {
-            result = op1.visit([&caster](const auto& val) -> T {
-              if constexpr (std::is_same_v<const typename T::I8&, decltype(val)> ||
-                            std::is_same_v<const typename T::I16&, decltype(val)> ||
-                            std::is_same_v<const typename T::I32&, decltype(val)> ||
-                            std::is_same_v<const typename T::I64&, decltype(val)>) {
-                return T{caster.IntToPtr(val)};
-              } else {
-                throw MiniMC::Support::Exception("Shouldn't get her");
-              }
-            });
-
-          }
-
-          else {
-            result = op1.visit([&caster](const auto& val) -> T {
-              if constexpr (std::is_same_v<const typename T::I8&, decltype(val)> ||
-                            std::is_same_v<const typename T::I16&, decltype(val)> ||
-                            std::is_same_v<const typename T::I32&, decltype(val)> ||
-                            std::is_same_v<const typename T::I64&, decltype(val)>) {
-                return T{caster.IntToPtr32(val)};
-              } else {
-                throw MiniMC::Support::Exception("Shouldn't get her");
-              }
-            });
-          }
-          writeState.getValueLookup().saveValue(res, std::move(result));
-
+          T result = op1.visit (MiniMC::Support::Overload {
+	      [&caster,&res]<typename K>(K& val) requires Integer<T,K> {
+		if (res.getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer) {
+		  return T{caster.IntToPtr(val)};
+		}
+		else {
+		  return T{caster.IntToPtr32(val)};
+		}
+	      },
+	      [](auto&)->T { throw MiniMC::Support::Exception("Shouldn't get her");}
+	    }
+	    );
+	  writeState.getValueLookup().saveValue(res, std::move(result));
+	  
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {
