@@ -19,10 +19,17 @@ namespace MiniMC {
 	
 	//get rid of override virtual function warning
 	using FlexLexer::yylex;
-
+	
 	int makeToken (TokenType type) {
-	  *token = Token {type,yytext};
-	  return type;
+	  switch (type) {
+	  case HEXANUMBER:
+	    *token = Token {type,std::stoi (yytext,nullptr,16)};
+	    return NUMBER;
+	  default:
+	    *token = Token {type,yytext};
+	    return type;
+	  }
+	  
 	}
 	
 	virtual int yylex(Token* lval);   

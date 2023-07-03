@@ -1,10 +1,13 @@
 #include "model/instructions.hpp"
 #include <cstdint>
+#include <variant>
+#include <ostream>
 
 namespace MiniMC {
   namespace Loaders {
     namespace MMC {
       enum TokenType {
+	END,
 	LBRACK,
 	RBRACK,
 	LANGLE,
@@ -27,16 +30,24 @@ namespace MiniMC {
 	RETURNS,
 	CFA,
 	IDENTIFIER,
+	HEXANUMBER,
 	NUMBER,
 	QUALIFIEDNAME,
-	END
+	ASSIGN,
+	ARROW
       };
 
       struct Token {
-	Token (TokenType type = END, std::string s =  "") : text(std::move(s)),type(type) {}
-	std::string text;
+	Token (TokenType type = END, std::string s =  "") : content(std::move(s)),type(type) {}
+	Token (TokenType type, std::int64_t s ) : content(s),type(type) {}
+	
+	std::variant<std::string,std::int64_t> content;
 	TokenType type;
       };
+
+      inline std::ostream& operator<< (std::ostream& os, const Token& tok) {
+	return std::visit ([&os](auto& r)->std::ostream& {return os << r;},tok.content);
+      }
       
     }
   }
