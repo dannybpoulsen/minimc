@@ -31,12 +31,27 @@ namespace MiniMC {
 	CFA,
 	IDENTIFIER,
 	HEXANUMBER,
+	HEAPPOINTERLITERAL,
+	FUNCTIONPOINTERLITERAL,
 	NUMBER,
 	QUALIFIEDNAME,
 	ASSIGN,
-	ARROW
+	ARROW,
+	COLON
       };
 
+      enum class PointerSegment {
+	Function,
+	Heap
+      };
+      
+      struct PointerLiteral {
+	PointerLiteral (PointerSegment seg, std::int64_t b, std::int64_t offset) : segment(seg),base(b),offset(offset)  {}
+	PointerSegment segment;
+	std::int64_t base;
+	std::int64_t offset;
+      };
+      
       struct Token {
 	Token (TokenType type = END, std::string s =  "") : content(std::move(s)),type(type) {}
 	Token (TokenType type, std::int64_t s ) : content(s),type(type) {}

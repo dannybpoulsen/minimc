@@ -23,7 +23,7 @@ num2    [-+]?{dig}*\.{dig}+([eE][-+]?{dig}+)?
 hexa    "0x"[0-9A-F]+
 
 number  {num1}|{num2}
-name    [a-zA-Z\_][a-zA-Z0-9\_\.]+
+name    [a-zA-Z\_][a-zA-Z0-9\_\.-]*
 
 %%
 %{
@@ -35,8 +35,10 @@ token = lval;
 "#"  {return makeToken (HASH);}
 "<"  {return makeToken (LANGLE);}
 ">"  {return makeToken (RANGLE);}
+"->" {return makeToken (ARROW);}
+F\({dig}+\+{dig}+\) {return makeToken (FUNCTIONPOINTERLITERAL);}
+H\({dig}+\+{dig}+\) {return makeToken (HEAPPOINTERLITERAL);}
 
-{name} {return makeToken (IDENTIFIER);}
 {name}([:]{name})+ {return makeToken (QUALIFIEDNAME);}
 "{" {return makeToken (LBRACE);}
 "}" {return makeToken (LBRACE);}
@@ -51,6 +53,9 @@ token = lval;
 "Void" {return makeToken (VOID);}
 "Bool" {return makeToken (BOOL);}
 "Aggr" {return makeToken (AGGR);}
+":"    {return makeToken (COLON);}
+
+{name} {return makeToken (IDENTIFIER);}
 
 
 ".registers" {return makeToken (REGISTERS);}
@@ -59,7 +64,8 @@ token = lval;
 ".cfa" {return makeToken (CFA);}
 "=" {return makeToken (ASSIGN);}
 {hexa} {return makeToken (HEXANUMBER);}
-
+{number} {return makeToken (NUMBER);} 
+  
 
 <<EOF>> {return END;}
 

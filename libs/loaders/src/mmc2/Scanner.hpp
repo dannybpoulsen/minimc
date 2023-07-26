@@ -25,6 +25,9 @@ namespace MiniMC {
 	  case HEXANUMBER:
 	    *token = Token {type,std::stoi (yytext,nullptr,16)};
 	    return NUMBER;
+	  case NUMBER:
+	    *token = Token {type,std::stoi (yytext,nullptr,10)};
+	    return NUMBER;
 	  default:
 	    *token = Token {type,yytext};
 	    return type;
