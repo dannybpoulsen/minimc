@@ -203,6 +203,8 @@ namespace MiniMC {
       
     }
       
+
+    #include "model/instruction_constructors.inc"
     
   }
 }

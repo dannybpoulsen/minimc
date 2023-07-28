@@ -192,7 +192,8 @@ namespace MiniMC {
     };
     
     std::ostream& operator<<(std::ostream& os, const InstructionStream& str);
-    
+
+    Instruction makeInstruction (InstructionCode code, std::vector<Value_ptr> values);
     
     
   } // namespace Model

@@ -25,7 +25,7 @@ namespace MiniMC {
 	int makeToken (TokenType type) {
 	  switch (type) {
 	  case HEXANUMBER:
-	    *token = Token {type,std::stoll (yytext,nullptr,16)};
+	    *token = Token {NUMBER,std::stoll (yytext,nullptr,16)};
 	    return NUMBER;
 	  case NUMBER:
 	    *token = Token {type,std::stoll (yytext,nullptr,10)};

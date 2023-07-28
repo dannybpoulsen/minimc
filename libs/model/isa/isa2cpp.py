@@ -7,7 +7,21 @@ def writeEnumDeclaration (ISA,output):
     output.write (",\n".join ([f"  {i.getName ()}" for i in ISA.getInstructions ()]))
     output.write ("\n};\n")
     output.write ("using ReplaceFunction = std::function<Value_ptr(const Value_ptr&)>;\n");
+
+
+def writeInstructionConstructors (ISA,output):
+    output.write ("Instruction makeInstruction (InstructionCode code, std::vector<Value_ptr> values) {\n  switch(code) {")
     
+    for i in ISA.getInstructions ():
+        params = []
+        for j,o in enumerate(i.getOperands ()):
+            if not o. isMultiParam ():
+                params.append (f"values.at({j})")
+            else:
+                params.append (f"std::vector<Value_ptr> {{values.begin()+{j},values.end ()}}")
+        output.write (f"case InstructionCode::{i.getName ()}: return Instruction::make<InstructionCode::{i.getName ()}> ({','.join (params)});\n")
+    output.write ("default: std::unreachable ();");
+    output.write ("}\n}")
     
 def writeInstructionData (ISA,output):
     instrgroups = list([g.getName () for g in ISA.getGroups ()])
@@ -82,10 +96,20 @@ def writeFooter (ISA,output):
     retline = ";\n".join ([f' case InstructionCode::{i.getName()}: return os << "{i.getName ()}";' for i in ISA.getInstructions ()])  
     output.write (f"inline std::ostream& operator<< (std::ostream& os, InstructionCode oc) {{ switch (oc) {{ {retline} \n default: std::unreachable ();  }} }}")  
     
-inp = sys.argv[1]
+    map_line = ",\n".join ([f'{{"{i.getName ()}",MiniMC::Model::InstructionCode::{i.getName ()}}}' for i in ISA.getInstructions ()])
+    output.write (f"const std::unordered_map<std::string,MiniMC::Model::InstructionCode> str2opcode = {{ {map_line} }};")
 
+    retline = ";\n".join ([f' case InstructionCode::{i.getName()}: return InstructionData<InstructionCode::{i.getName()}>::isCast;' for i in ISA.getInstructions ()])  
+    output.write (f"inline bool isCast (InstructionCode oc) {{ switch (oc) {{ {retline} \n default: std::unreachable ();  }} }}")  
+    
+    
+inp = sys.argv[1]
+ISA = isa.readISA (inp)
 with open(sys.argv[2],'w') as output:
-    ISA = isa.readISA (inp)
     writeEnumDeclaration (ISA,output)
     writeInstructionData( ISA,output)
     writeFooter (ISA,output)
+    
+with open(sys.argv[3],'w') as output:
+    writeInstructionConstructors (ISA,output)
+    

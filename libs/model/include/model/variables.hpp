@@ -260,7 +260,7 @@ namespace MiniMC {
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
       virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
-      virtual const Value_ptr makeHeapPointer(MiniMC::base_t) = 0;
+      virtual const Value_ptr makeHeapPointer(MiniMC::base_t, MiniMC::offset_t = 0) = 0;
       virtual const Value_ptr makeNullPointer() = 0;
       virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) = 0;
       
@@ -279,7 +279,7 @@ namespace MiniMC {
       const Value_ptr makeFunctionPointer(MiniMC::func_t) override ;
       const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) override;
       
-      const Value_ptr makeHeapPointer(MiniMC::base_t) override;
+      const Value_ptr makeHeapPointer(MiniMC::base_t, MiniMC::offset_t = 0) override;
       const Value_ptr makeNullPointer() override ;
       const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) override ;
       

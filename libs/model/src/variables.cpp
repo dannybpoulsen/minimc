@@ -86,16 +86,16 @@ namespace MiniMC {
     
     
     
-    const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base) {
+    const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base,MiniMC::offset_t offset) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeHeapPointer (base,0));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeHeapPointer (base,offset));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeHeapPointer (base,0));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeHeapPointer (base,offset));  
       }
       v->setType (ptrtype);
       return v;
