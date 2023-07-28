@@ -16,6 +16,7 @@ namespace MiniMC {
 	RBRACE,
 	AT,
 	HASH,
+	DOUBLEHASH,
 	//TYPES
 	INT8,
 	INT16,
@@ -24,20 +25,26 @@ namespace MiniMC {
 	VOID,
 	BOOL,
 	AGGR,
+	POINTER,
 	//SEGMENTS
 	REGISTERS,
 	PARAMETERS,
 	RETURNS,
 	CFA,
+	GLOBALS,
+	FUNCTIONS,
+	ENTRYPOINTS,
+	HEAP,
+	INITIALISER,
 	IDENTIFIER,
 	HEXANUMBER,
-	HEAPPOINTERLITERAL,
-	FUNCTIONPOINTERLITERAL,
+	POINTERLITERAL,
 	NUMBER,
 	QUALIFIEDNAME,
 	ASSIGN,
 	ARROW,
-	COLON
+	COLON,
+	NEWLINE
       };
 
       enum class PointerSegment {
@@ -51,13 +58,25 @@ namespace MiniMC {
 	std::int64_t base;
 	std::int64_t offset;
       };
+
+      inline std::ostream& operator<< (std::ostream& os, const PointerLiteral& lit) {
+	return os << ((lit.segment == PointerSegment::Function) ? 'F' : 'H')  <<":" << lit.base << "+" <<lit.offset;
+      }
       
       struct Token {
 	Token (TokenType type = END, std::string s =  "") : content(std::move(s)),type(type) {}
 	Token (TokenType type, std::int64_t s ) : content(s),type(type) {}
+	Token (TokenType type, PointerLiteral s ) : content(s),type(type) {}
 	
-	std::variant<std::string,std::int64_t> content;
+	std::variant<std::string,std::int64_t,PointerLiteral> content;
 	TokenType type;
+
+	template<class T>
+	auto get () const {
+	  return std::get<T> (content);
+	}
+	
+	operator bool () const {return type != END;}
       };
 
       inline std::ostream& operator<< (std::ostream& os, const Token& tok) {

@@ -62,8 +62,9 @@ namespace MiniMC {
       bool resolveQualified (const std::string&, Symbol& s) const ;
       
       Symbol makeSymbol (const std::string& s);
-      Symbol makeFresh (const std::string& = "fresh");
       
+      Symbol makeFresh (const std::string& = "fresh");
+      Frame& operator= (const Frame& f) = default;
     private:
       struct Internal;
       Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}

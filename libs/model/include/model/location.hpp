@@ -86,6 +86,7 @@ namespace MiniMC {
       
       MiniMC::offset_t getID() const { return id; }
       const auto& getSymbol () const {return symb;}
+      void rename (MiniMC::Model::Symbol symb)  {this->symb = symb;}
       
       bool isOutgoing(const MiniMC::Model::Edge_ptr& e) {
         auto it = std::find_if(edges.begin(), edges.end(),
@@ -102,7 +103,7 @@ namespace MiniMC {
                                });
         return it != incomingEdges.end();
       }
-
+      
       
     protected:
       /** 

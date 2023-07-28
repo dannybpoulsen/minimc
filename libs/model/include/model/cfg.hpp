@@ -200,6 +200,11 @@ namespace MiniMC {
         entrypoints.push_back(function);
       }
 
+      void addEntryPoint(MiniMC::Model::Symbol symb) {
+        auto function = getFunction(symb);
+        entrypoints.push_back(function);
+      }
+      
       Function_ptr getFunction(MiniMC::func_t id) const {
         return functions.at(id);
       }

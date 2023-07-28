@@ -1,6 +1,7 @@
 #include "loaders/loader.hpp"
 #include "model/cfg.hpp"
 #include "Scanner.hpp"
+#include "parser.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -16,17 +17,12 @@ public:
       : Loader(tfac, cfac) {}
 
   MiniMC::Model::Program loadFromFile(const std::string &file, MiniMC::Support::Messager&) override {
-    MiniMC::Model::Program program(tfactory, cfactory);
     std::fstream str;
     str.open(file);
-    MiniMC::Loaders::MMC::Scanner scanner {str};
+    MiniMC::Loaders::MMC::Parser parser {str};
     MiniMC::Loaders::MMC::Token tt;
-    while(scanner.yylex(&tt) != 0) {
-      std::cout << tt << std::endl;			   
-    };
-    /*Parser parser = Parser(str, *tfactory, *cfactory, program);
-    parser.run();*/
-    return program;
+
+    return parser.parse (tfactory,cfactory);
   }
   MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Support::Messager&) override {
    MiniMC::Model::Program program (tfactory, cfactory);

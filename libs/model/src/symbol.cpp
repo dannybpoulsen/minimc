@@ -246,6 +246,8 @@ namespace MiniMC {
     
     Symbol Frame::makeSymbol (const std::string& s) {
       Symbol symb{_internal->symb,s};
+      if (_internal->symbols.count (s))
+	throw MiniMC::Support::Exception (MiniMC::Support::Localiser ("Symbol '%1%' already defined").format (symb));
       _internal->symbols.emplace (s,symb);
       return symb;
     }
