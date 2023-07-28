@@ -37,7 +37,7 @@ public:
 class MMCLoadRegistrar2 : public LoaderRegistrar {
 public:
   MMCLoadRegistrar2()
-      : LoaderRegistrar("MMC2", {}) {}
+      : LoaderRegistrar("MMC", {}) {}
 
   Loader_ptr makeLoader(MiniMC::Model::TypeFactory_ptr &tfac,
                         Model::ConstantFactory_ptr cfac) override {
