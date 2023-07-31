@@ -1,4 +1,4 @@
-add_library (support STATIC feedback.cpp)
+add_library (support STATIC feedback.cpp base64encode.cpp)
 
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -13,4 +13,5 @@ configure_file (
 )
 
 target_include_directories (support PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include  )
+target_link_libraries (support PUBLIC host )
 

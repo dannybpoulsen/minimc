@@ -5,7 +5,7 @@ int mylineno = 0;
 
 #undef  YY_DECL
 #define YY_DECL int MiniMC::Loaders::MMC::Scanner::yylex(MiniMC::Loaders::MMC::Token * const lval)
-
+#define YY_USER_ACTION  end+=yyleng;
 %}
 
 %option nodefault
@@ -28,12 +28,12 @@ name    [a-zA-Z\_][a-zA-Z0-9\_\.-]*
 %%
 %{
 token = lval;
+step ();
 %}
 {ws}    /* skip blanks and tabs */
 [\n] { return makeToken (NEWLINE);}
 
 
-"#"  {return makeToken (HASH);}
 "##"  {return makeToken (DOUBLEHASH);}
 
 "<"  {return makeToken (LANGLE);}
@@ -55,7 +55,7 @@ token = lval;
 "Void" {return makeToken (VOID);}
 "Bool" {return makeToken (BOOL);}
 "Pointer" {return makeToken (POINTER);}
-"Aggr" {return makeToken (AGGR);}
+Aggr[0-9]+ {return makeToken (AGGR);}
 ":"    {return makeToken (COLON);}
 
 {name} {return makeToken (IDENTIFIER);}
@@ -74,9 +74,9 @@ token = lval;
 "=" {return makeToken (ASSIGN);}
 {hexa} {return makeToken (HEXANUMBER);}
 {number} {return makeToken (NUMBER);} 
-  
+\$([0-9A-Fa-f][0-9A-Fa-f][ ])+\$ {return makeToken(AGGRCONSTANT);}  
 
 <<EOF>> {return END;}
-
+.	printf("bad input character '%s'", yytext);
 %%
 
