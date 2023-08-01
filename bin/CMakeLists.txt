@@ -7,7 +7,7 @@ endif(ENABLE_SYMBOLIC)
 
 add_subdirectory (interpreter)
 
-add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp)
+add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp convert.cpp)
 
 target_link_libraries  (minimc minimclib interpreter ${Boost_LIBRARIES})
 
