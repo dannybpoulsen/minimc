@@ -1,6 +1,7 @@
 #include "Scanner.hpp"
 #include "model/cfg.hpp"
 #include <istream>
+#include <unordered_set>
 
 
 namespace MiniMC {
@@ -12,17 +13,7 @@ namespace MiniMC {
 	  advance ();
 	}
 	
-	MiniMC::Model::Program parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac) {
-	  MiniMC::Model::Program program(tfac, cfac);
-	  prgm = &program;
-	  MiniMC::Loaders::MMC::Token tt;
-	  parseGlobalDeclaration ();
-	  parseFunctionDeclarations ();
-	  parseEntryPoints ();
-	  parseHeapSetup ();
-	  return program;
-	}
-	
+	MiniMC::Model::Program parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac);
 	
 	
       private:
@@ -90,6 +81,8 @@ namespace MiniMC {
 	MiniMC::Model::Program* prgm;
 	MiniMC::Model::Frame curFrame;
 	MiniMC::Model::SymbolTable<MiniMC::Model::Register_ptr> variableMap;
+	std::unordered_set<MiniMC::Model::Symbol> symbolsUsedBeforeDef;
+	
       };
     }
   }

@@ -8,8 +8,23 @@ namespace MiniMC {
 	Token tok;
 	if (!match (IDENTIFIER,&tok))
 	  expect (QUALIFIEDNAME,&tok);
-	auto symb = MiniMC::Model::Symbol::from_string (tok.get<std::string> ());
-	return (fresh) ? curFrame.makeFresh (symb.getName ()) : curFrame.makeSymbol (symb.getName ());	
+
+	MiniMC::Model::Symbol symbol;
+	if (curFrame.resolveQualified (tok.get<std::string> (),symbol)) {
+	  if (symbolsUsedBeforeDef.count (symbol)) {
+	    symbolsUsedBeforeDef.erase (symbol);
+	    return symbol;
+	  }
+	  else {
+	    throw MiniMC::Support::Exception (MiniMC::Support::Localiser{"Symbol '%1' already exists"}.format (symbol));
+	
+	  }
+	  
+	}
+	else {
+	  auto symb = MiniMC::Model::Symbol::from_string (tok.get<std::string> ());
+	  return (fresh) ? curFrame.makeFresh (symb.getName ()) : curFrame.makeSymbol (symb.getName ());	
+	}
       }
 
       MiniMC::Model::Symbol Parser::parseSymbol () {
@@ -26,9 +41,12 @@ namespace MiniMC {
 	}
 	if (res)
 	  return symb;
-	else
-	  throw MiniMC::Support::Exception ("Error");
-					   
+	else {
+	  symb = MiniMC::Model::Symbol::from_string (tok.get<std::string> ());
+	  auto res =  prgm->getRootFrame().makeSymbol (symb.getName ());
+	  symbolsUsedBeforeDef.insert (res);
+	  return res;
+	}
       }
       
       MiniMC::Model::Type_ptr Parser::parseType () {
@@ -352,7 +370,26 @@ namespace MiniMC {
 	
 	return cfa;
       }
-	
+
+
+      
+      MiniMC::Model::Program Parser::parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac) {
+	MiniMC::Model::Program program(tfac, cfac);
+	prgm = &program;
+	MiniMC::Loaders::MMC::Token tt;
+	parseGlobalDeclaration ();
+	parseFunctionDeclarations ();
+	parseEntryPoints ();
+	parseHeapSetup ();
+	if (symbolsUsedBeforeDef.size ()) {
+	  std::stringstream str;
+	  for (auto& s : symbolsUsedBeforeDef) {
+	    str << s << "," ;
+	  }
+	  throw MiniMC::Support::Exception (MiniMC::Support::Localiser {"Symbols '%1%' used by not defined"}.format (str.str()));
+	}
+	return program;
+      }
       
     }
   }
