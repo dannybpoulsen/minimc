@@ -118,5 +118,15 @@ TEST_CASE("Frame Resolve") {
   CHECK (symb.getFullName () == "delta");
 }
 
+TEST_CASE("Frame Resolve Root") {
+  MiniMC::Model::Frame frame;
+  frame.makeSymbol ("delta");
+  
+  MiniMC::Model::Symbol symb;
+  REQUIRE (frame.resolveQualified ("delta",symb));
+  
+  CHECK (symb.getName () == "delta");
+  CHECK (symb.getFullName () == "delta");
+}
 
 

@@ -136,7 +136,7 @@ namespace MiniMC {
       return symbol;
     }
     
-    struct Frame::Internal {
+    struct Frame::Internal : public std::enable_shared_from_this<Internal> {
       Internal (Symbol symb) : symb(symb) {}
       Internal (Symbol symb,std::weak_ptr<Internal> p) : symb(symb),parent(p) {}
       
@@ -186,6 +186,8 @@ namespace MiniMC {
       }
       
       bool qualifiedResolve (const std::string& s, Symbol& symb)const {
+	if (parent.expired ())
+	  return resolveRecursive (s,symb,this->shared_from_this());
 	auto p = parent;
 	while (!p.expired ()) {
 	  auto q = p.lock ();
@@ -194,7 +196,7 @@ namespace MiniMC {
 	  else
 	    p = q->parent;
 	}
-      throw std::runtime_error ("Can't find root frame");
+	throw std::runtime_error ("Can't find root frame");
       }
 
       Symbol symb;
