@@ -74,10 +74,8 @@ namespace MiniMC {
 	  case AGGRCONSTANT: {
 	    std::regex literal_regex("\\$(([0-9a-fA-F][0-9a-fA-F][ ])+)\\$");
 	    std::cmatch m;
-	    std::cerr << "'" << yytext <<"'" << std::endl;
- 	    if (std::regex_match (yytext,m,literal_regex)) {
+	    if (std::regex_match (yytext,m,literal_regex)) {
 	      auto text = m[1].str ();
-	      std::cerr << text << std::endl;
 	      *token = Token {type,text,loc};
 	    }
 	    else {

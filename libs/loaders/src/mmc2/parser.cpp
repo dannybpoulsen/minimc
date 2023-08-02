@@ -1,5 +1,4 @@
 #include "parser.hpp"
-#include <iostream>
 
 namespace MiniMC {
   namespace  Loaders {
@@ -79,6 +78,8 @@ namespace MiniMC {
       
       bool Parser::parseGlobalDeclaration  () {
 	if (match (GLOBALS)) {
+	  expect(NEWLINE);
+	  expect(REGISTERS);
 	  skipBlanks ();
 	  curFrame = prgm->getRootFrame ();
 	  parseRegisterDeclarations (prgm->getCPURegs ());
@@ -202,26 +203,36 @@ namespace MiniMC {
 	    auto symbol = parseSymbol ();
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    auto res = variableMap.at (symbol);
-	    return res;
+	    if (variableMap.count (symbol)) {
+	      auto res = variableMap.at (symbol);
+	      res->setType (type);
+	      return res;
+	    }
+
+	    else {
+	      auto res = prgm->getConstantFactory ().makeSymbolicConstant (symbol);
+	      res->setType (type);
+	      return res;
+	    }
 	    
 	  }
 	  else if (match (AGGRCONSTANT,&tok)) {
 	    std::vector<MiniMC::Model::Constant_ptr> inputs;
 	    auto aggr_str_encoded = tok.get<std::string> ();
 	    MiniMC::Support::STDEncode encode;
-	    auto res= encode.decode (aggr_str_encoded);
-	    inputs.reserve (res.size ());
-	    for (char c : res) {
+	    auto decoded= encode.decode (aggr_str_encoded);
+	    inputs.reserve (decoded.size ());
+	    for (char c : decoded) {
 	      inputs.push_back (std::static_pointer_cast<MiniMC::Model::Constant> (prgm->getConstantFactory ().makeIntegerConstant (c,MiniMC::Model::TypeID::I8)));
 	    }
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    return prgm->getConstantFactory ().makeAggregateConstant (inputs);
+	    auto res = prgm->getConstantFactory ().makeAggregateConstant (inputs);
+	    res->setType (type);
+	    return res;
 	  }
-	  else {
-	    throw MiniMC::Support::Exception (MiniMC::Support::Localiser ("Don't know how to parse value '%1%'").format (get ()));
-	  }
+	  throw MiniMC::Support::Exception ("Don't know how to create type");
+	  
 	}
       }
 
