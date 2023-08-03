@@ -258,7 +258,10 @@ namespace MiniMC {
       std::size_t fresh_counter{0};
       auto newName = [first,&fresh_counter]() {
 	std::stringstream str;
-	str << "__minimc." << first << "_" <<++ fresh_counter;
+	str << first;
+	if (fresh_counter != 0)
+	  str << "_" << fresh_counter;
+	fresh_counter++;
 	return str.str();
       };
       

@@ -8,7 +8,6 @@ namespace MiniMC {
 	Token tok;
 	if (!match (IDENTIFIER,&tok))
 	  expect (QUALIFIEDNAME,&tok);
-
 	MiniMC::Model::Symbol symbol;
 	if (curFrame.resolveQualified (tok.get<std::string> (),symbol)) {
 	  if (symbolsUsedBeforeDef.count (symbol)) {
@@ -16,7 +15,10 @@ namespace MiniMC {
 	    return symbol;
 	  }
 	  else {
-	    throw MiniMC::Support::Exception (MiniMC::Support::Localiser{"Symbol '%1' already exists"}.format (symbol));
+	    if (fresh)
+	      return curFrame.makeFresh (symbol.getName ());
+	    else 
+	      throw MiniMC::Support::Exception (MiniMC::Support::Localiser{"Symbol '%1%' already exists"}.format (symbol));
 	
 	  }
 	  
@@ -32,13 +34,10 @@ namespace MiniMC {
 	bool res = false;
 	MiniMC::Model::Symbol symb;
 	
-	if (match (IDENTIFIER,&tok)) {
-	  res = curFrame.resolve (tok.get<std::string> (),symb);
-	}
-	else {
+	if (!match (IDENTIFIER,&tok) ) {
 	  expect (QUALIFIEDNAME,&tok);
-	  res = curFrame.resolveQualified (tok.get<std::string> (),symb);
 	}
+	res = curFrame.resolveQualified (tok.get<std::string> (),symb);
 	if (res)
 	  return symb;
 	else {
@@ -124,13 +123,13 @@ namespace MiniMC {
       bool Parser::parseFunction () {
 	auto oldVarmap = variableMap;
 	Token tok;
-	expect (IDENTIFIER,&tok);
-	auto symbol = curFrame.makeSymbol (tok.get<std::string> ());
+	//expect (IDENTIFIER,&tok);
+	auto symbol = parseNewSymbol ();
 	expect (NEWLINE);
 	MiniMC::Model::RegisterDescr rdescr;
 	std::vector<MiniMC::Model::Register_ptr> params;
 	
-	curFrame = curFrame.create (tok.get<std::string> ());
+	curFrame = curFrame.create (symbol.getName ());
 	if (match (REGISTERS)) {
 	  expect (NEWLINE);
 	  parseRegisterDeclarations(rdescr);
