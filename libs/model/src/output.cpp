@@ -29,6 +29,9 @@ namespace MiniMC {
         if(cur->getInfo().getFlags ().isSet(Attributes::AssertViolated)){
           os << "    @AssertViolated\n";
         }
+	else if (cur->getInfo().getFlags ().isSet(Attributes::UnrollFailed)){
+          os << "    @UnrollFailed\n";
+        }
 	os << "    [" << "\n";
 	auto it = cur->ebegin ();
 	auto end = cur->eend ();

@@ -15,29 +15,24 @@ namespace MiniMC {
 	auto inf = locInf.make ( {});
 	auto deadLoc = cfg.makeLocation(frame.makeFresh (),inf);
         deadLoc->getInfo().getFlags() |= MiniMC::Model::Attributes::UnrollFailed ;
-        for (size_t i = 0; i < amount; i++) {
-          std::stringstream str;
-          str << "L" << i;
+	for (size_t i = 0; i < amount; i++) {
           SymbolTable<MiniMC::Model::Location_ptr> map;
           auto inserter = std::inserter(map, map.begin());
-          copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf,frame);
+	  copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf,frame);
 
           std::for_each(loop->body_begin(), loop->body_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, locInf,frame); });
-          unrolledLocations.push_back(map);
+	  std::for_each(loop->latch_begin(), loop->latch_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, locInf,frame); });
+          
+	  unrolledLocations.push_back(map);
         }
-
-        std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
-	  auto instructions = e->getInstructions ();
-	  cfg.makeEdge (e->getFrom (),unrolledLocations[0].at(loop->getHeader()->getSymbol ()),std::move(instructions),e->isPhi ());
-	  cfg.deleteEdge (e);
-	});
-
+	
+        
         for (size_t i = 0; i < amount; i++) {
           auto& locations = unrolledLocations[i];
-          std::for_each(loop->internal_begin(), loop->internal_end(), [&](auto& e) { copyEdge(e, locations, cfg); });
-          std::for_each(loop->exiting_begin(), loop->exiting_end(), [&](auto& e) { copyEdge(e, locations, cfg); });
-
-          std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
+          std::for_each(loop->internal_begin(), loop->internal_end(), [&locations,&cfg](auto& e) { copyEdge(e, locations, cfg); });
+          std::for_each(loop->exiting_begin(), loop->exiting_end(), [&locations,&cfg](auto& e) { copyEdge(e, locations, cfg); });
+	  
+          std::for_each(loop->back_begin(), loop->back_end(), [amount,i,&loop,&unrolledLocations,&deadLoc,&cfg](auto& e) {
             auto& locmap = unrolledLocations[i];
             MiniMC::Model::Location_ptr from = locmap.at(e->getFrom()->getSymbol());
             MiniMC::Model::Location_ptr to;
@@ -48,8 +43,16 @@ namespace MiniMC {
               to = deadLoc;
             auto nedge = cfg.makeEdge(from, to,MiniMC::Model::InstructionStream{e->getInstructions ()});
             
-          });
+	  });
         }
+
+	std::for_each(loop->back_begin(), loop->back_end(), [&](auto& e) {
+	  auto instructions = e->getInstructions ();
+	  cfg.makeEdge (e->getFrom (),unrolledLocations[0].at(loop->getHeader()->getSymbol ()),std::move(instructions),e->isPhi ());
+	  cfg.deleteEdge (e);
+	});
+	
+	
       }
 
       bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func,std::size_t maxAmount) {

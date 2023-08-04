@@ -143,9 +143,8 @@ namespace MiniMC {
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl) {
 	//For now we don't need to do anything special...except run thorough all blocks and ensure out start block number is less than the one used by the heap
 	for (auto& block : hl) {
-	  if (next_block <= block.baseobj) {
-	    next_block = block.baseobj +1;
-	  }
+	  auto baseobj = MiniMC::getBase(block.baseobj);
+	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
 	}
 
       }

@@ -26,15 +26,14 @@ namespace MiniMC {
 		    auto& content = inst.getAs<InstructionCode::Assign>().getOps ();
                     auto nvar = F->getRegisterDescr().addRegister( frame.makeFresh ("Phi"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
-
-                    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), content.op1);
+		    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
                   }
-
+		  
                   for (auto& inst : instrstream) {
                     auto& content = inst.getAs<InstructionCode::Assign>().getOps ();
 
                     auto val = replacemap.count(content.op1.get()) ? replacemap.at(content.op1.get()) : content.op1;
-                    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), val);
+                    stream.add<MiniMC::Model::InstructionCode::Assign>(content.res, val);
                   }
 
 		  E->getInstructions () = stream;

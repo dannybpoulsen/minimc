@@ -268,14 +268,6 @@ namespace MiniMC {
       
     };
     
-    
-
-    struct EngineConfiguration  {
-      template<MiniMC::Model::InstructionCode Opcode>
-      static consteval bool isEnabled () {return true;}
-    };
-
-    
       
     
     template<class State,class Operations ,class Caster>

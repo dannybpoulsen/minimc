@@ -66,51 +66,7 @@ namespace MiniMC {
     
     MiniMC::Model::TypeID getTypeID(llvm::Type* type);
     
-    MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg) {
-      static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
-      auto frame = program.getRootFrame().create(name);
-      MiniMC::Model::CFA cfg;
-      MiniMC::Model::RegisterDescr vstack;
-      MiniMC::Model::LocationInfoCreator locinf(vstack);
-
-      auto funcpointer = program.getConstantFactory().makeSymbolicConstant(function->getSymbol());
-      funcpointer->setType(program.getTypeFactory().makePointerType());
-      auto iinfo = locinf.make({});
-      auto init = cfg.makeLocation(frame.makeFresh("init"), iinfo);
-      auto einfo = locinf.make({});
-
-      auto end = cfg.makeLocation(frame.makeFresh("end"), einfo);
-
-      cfg.setInitial(init);
-
-      std::vector<MiniMC::Model::Value_ptr> params;
-      MiniMC::Model::Value_ptr result = nullptr;
-      MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(program.getHeapLayout().addBlock(stacksize));
-      sp->setType(program.getTypeFactory().makePointerType());
-
-      MiniMC::Model::Value_ptr stacksize_p = program.getConstantFactory().makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);
-      MiniMC::Model::Value_ptr nb_skips = program.getConstantFactory().makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
-      
-      
-      
-      auto restype = function->getReturnType();
-      if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack.addRegister(frame.makeFresh(), restype);
-      }
-      {
-	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
-	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
-	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
-      }
-      return program.addFunction(program.getRootFrame().makeSymbol (name), {},
-                                 program.getTypeFactory().makeVoidType(),
-                                 std::move(vstack),
-                                 std::move(cfg),
-                                 false,
-                                 frame);
-    }
-
+    
     class LLVMLoader : public Loader {
     public:
       LLVMLoader(MiniMC::Model::TypeFactory_ptr& tfac,
@@ -174,8 +130,9 @@ namespace MiniMC {
 
         for (auto& g : module.getGlobalList()) {
           auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
-
-          auto gvar = lcontext.getConstantFactory().makeHeapPointer(prgm.getHeapLayout().addBlock(pointTySize));
+	  
+	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize);
+	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::getBase(the_pointer),MiniMC::getOffset (the_pointer));
           lcontext.addValue(&g, gvar);
           if (g.hasInitializer()) {
             auto val = lcontext.findValue(g.getInitializer());
@@ -434,6 +391,53 @@ namespace MiniMC {
         mpm.run(module, mam);
       }
 
+      MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg) {
+      static std::size_t nb = 0;
+      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
+      auto frame = program.getRootFrame().create(name);
+      MiniMC::Model::CFA cfg;
+      MiniMC::Model::RegisterDescr vstack;
+      MiniMC::Model::LocationInfoCreator locinf(vstack);
+
+      auto funcpointer = program.getConstantFactory().makeSymbolicConstant(function->getSymbol());
+      funcpointer->setType(program.getTypeFactory().makePointerType());
+      auto iinfo = locinf.make({});
+      auto init = cfg.makeLocation(frame.makeFresh("init"), iinfo);
+      auto einfo = locinf.make({});
+
+      auto end = cfg.makeLocation(frame.makeFresh("end"), einfo);
+
+      cfg.setInitial(init);
+
+      std::vector<MiniMC::Model::Value_ptr> params;
+      MiniMC::Model::Value_ptr result = nullptr;
+      auto the_pointer = program.getHeapLayout().addBlock(MiniMC::pointer_t::makeHeapPointer (++nextHeap,0),stacksize);
+      MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(MiniMC::getBase (the_pointer),MiniMC::getOffset (the_pointer));
+      sp->setType(program.getTypeFactory().makePointerType());
+
+      MiniMC::Model::Value_ptr stacksize_p = program.getConstantFactory().makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);
+      MiniMC::Model::Value_ptr nb_skips = program.getConstantFactory().makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
+      
+      
+      
+      auto restype = function->getReturnType();
+      if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
+        result = vstack.addRegister(frame.makeFresh(), restype);
+      }
+      {
+	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
+	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
+	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
+      }
+      return program.addFunction(program.getRootFrame().makeSymbol (name), {},
+                                 program.getTypeFactory().makeVoidType(),
+                                 std::move(vstack),
+                                 std::move(cfg),
+                                 false,
+                                 frame);
+    }
+      
+      
       void setupEntryPoints(MiniMC::Model::Program& prgm) {
         for (const auto& e : entry) {
           auto func = prgm.getFunction(e);
@@ -472,6 +476,7 @@ namespace MiniMC {
       bool printLLVMPass;
       MiniMC::Model::Register_ptr sp;
       std::unordered_map<llvm::Function*,MiniMC::Model::Symbol> function2symb;
+      std::size_t nextHeap{0};
     };
 
     class LLVMLoadRegistrar : public LoaderRegistrar {

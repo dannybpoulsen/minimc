@@ -8,14 +8,14 @@
 namespace MiniMC {
   namespace Model {
     struct HeapBlock {
-      MiniMC::base_t baseobj;
+      MiniMC::pointer_t baseobj;
       MiniMC::offset_t size;
     };
 
     class HeapLayout {
     public:
-      auto addBlock (MiniMC::offset_t size) {
-	blocks.push_back ({static_cast<MiniMC::base_t>(blocks.size ()),size});
+      auto addBlock (MiniMC::pointer_t ptr, MiniMC::offset_t size) {
+	blocks.push_back ({ptr,size});
 	return blocks.back().baseobj;
       }
 

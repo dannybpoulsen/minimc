@@ -188,6 +188,9 @@ namespace MiniMC {
 	  if (tok.get<std::string> () == "AssertViolated") {
 	    flags |= MiniMC::Model::Attributes::AssertViolated;
 	  }
+	  else if (tok.get<std::string> () == "UnrollFailed") {
+	    flags |= MiniMC::Model::Attributes::UnrollFailed;
+	  }
 	  expect(NEWLINE);
 	}
 	
@@ -293,17 +296,41 @@ namespace MiniMC {
 	expect (NEWLINE);
 	return MiniMC::Model::makeInstruction (opcode,params);
       }
-
+      
       void Parser::parseHeapSetup () {
 	expect (HEAP);
 	expect (NEWLINE);
-	Token num_tok;
+	
+	auto oldStyle = [this](auto& p) -> bool {
+	  Token num_tok;
+	  if  (match (NUMBER,&num_tok)) {
+	    p = MiniMC::pointer_t::makeHeapPointer(num_tok.get<int64_t> (),0);
+	    return true;
+	  }
+	  return false;
+	};
+
+	auto newStyle = [this](auto& p) -> bool {
+	  Token ptr_tok;
+	  if  (match (POINTERLITERAL,&ptr_tok)) {
+	    auto literal = ptr_tok.get<PointerLiteral> ();
+	    p = MiniMC::pointer_t::makeHeapPointer(literal.base,0);
+	    return true;
+	  }
+	  return false;
+	};
+	
 	Token size_tok;
-	while (match (NUMBER,&num_tok)) {
+	MiniMC::pointer_t pointer;
+	
+	while (oldStyle (pointer) || newStyle(pointer)) {
+	  
+	  
 	  expect (COLON);
 	  expect (NUMBER,&size_tok);
 	  expect (NEWLINE);
-	  prgm->getHeapLayout ().addBlock (size_tok.get<int64_t> ());
+	  prgm->getHeapLayout ().addBlock (pointer,size_tok.get<int64_t> ());
+	    
 	  
 	}
 	

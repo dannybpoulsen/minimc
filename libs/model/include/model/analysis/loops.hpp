@@ -16,7 +16,7 @@ namespace MiniMC {
 
         auto latch_begin() const { return latches.begin(); }
         auto latch_end() const { return latches.end(); }
-
+	
         auto body_begin() const { return body.begin(); }
         auto body_end() const { return body.end(); }
 
@@ -49,9 +49,7 @@ namespace MiniMC {
           internal.clear();
           for (auto& b : body) {
             std::for_each(b->ebegin(), b->eend(), [&](const auto& e) { this->insertEdge(e); });
-          }
-
-          
+          }          
           std::for_each(header->ebegin(), header->eend(), [&](const auto& e) { this->insertEdge(e); });
         }
 
@@ -79,7 +77,7 @@ namespace MiniMC {
 
       private:
         void insertEdge(MiniMC::Model::Edge* e) {
-          if (e->getTo() == header) {
+	  if (e->getTo() == header) {
             back_edges.insert(e);
           } else if (contains(e->getTo())) {
             internal.insert(e);

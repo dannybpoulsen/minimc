@@ -27,8 +27,10 @@ namespace MiniMC {
       
       template <class LocInsert, class LocInserter>
       void copyLocation(MiniMC::Model::CFA& to, const MiniMC::Model::Location_ptr& loc, LocInsert inserter, LocInserter linserter, MiniMC::Model::LocationInfoCreator& linfo, Frame frame) {
+	std::stringstream str;
+	str << loc->getSymbol ().getName () <<"_U";
 	auto info = linfo.make(loc->getInfo());
-	auto nloc = to.makeLocation(frame.makeFresh (),info);
+	auto nloc = to.makeLocation(frame.makeFresh (str.str()),info);
         inserter = std::make_pair(loc->getSymbol (), nloc);
         linserter = nloc;
       }
