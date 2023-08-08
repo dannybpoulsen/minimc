@@ -1,6 +1,5 @@
 #include "algorithms/reachability/reachability.hpp"
 #include "cpa/interface.hpp"
-#include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include "support/localisation.hpp"
 #include "storage/storage.hpp"

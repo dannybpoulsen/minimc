@@ -1,5 +1,4 @@
 #include "task.hpp"
-#include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include "cpa/interface.hpp"
 #include "model/edge.hpp"

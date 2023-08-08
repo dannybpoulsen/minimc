@@ -1,6 +1,5 @@
 #include "parser.hpp"
 #include "lexer.hpp"
-#include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include <stdlib.h>
 

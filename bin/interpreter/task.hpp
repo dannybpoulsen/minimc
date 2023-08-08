@@ -2,7 +2,6 @@
 #define MINIMC_TASK_HPP
 #include "cpa/interface.hpp"
 #include "cpa/state.hpp"
-#include "algorithms/algorithms.hpp"
 #include "algorithms/successorgen.hpp"
 #include <queue>
 #include <unordered_map>
