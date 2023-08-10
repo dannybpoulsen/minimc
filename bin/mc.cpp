@@ -18,7 +18,8 @@ namespace {
   };
   
   struct LocalOptions {
-    ExpectReach expect{ExpectReach::Inconclusive};	
+    ExpectReach expect{ExpectReach::Inconclusive};
+    MiniMC::Algorithms::Reachability::SearchStrategy search_strat{MiniMC::Algorithms::Reachability::SearchStrategy::DFS};
   };
   
   LocalOptions locoptions;
@@ -26,7 +27,7 @@ namespace {
   
   void addOptions (po::options_description& op) {
 	
-    auto setExpected= [&] (int val) {
+    auto setExpected= [] (int val) {
       switch (val) {
       case 1:
 	locoptions.expect = ExpectReach::Reachable;
@@ -41,14 +42,28 @@ namespace {
       }
     };
 
+    auto setSearchStrategy= [] (const std::string val) {
+      if (val == "DFS") {
+	locoptions.search_strat = MiniMC::Algorithms::Reachability::SearchStrategy::DFS;
+      }
+
+      else if (val == "BFS") {
+	locoptions.search_strat = MiniMC::Algorithms::Reachability::SearchStrategy::BFS;      
+      }
+    };
+    
     po::options_description desc("MC Options");
     desc.add_options()
       ("mc.expect",po::value<int> ()->default_value (0)->notifier (setExpected),"Set the expected verification result\n"
        "\t 1 AssertViolation\n"
        "\t 2 Inconclusive\n"
        "\t 0 NoViolation\n")
-	  
+      ("mc.strategy",po::value<std::string> ()->default_value ({"DFS"})->notifier (setSearchStrategy),"Select search strategy\n"
+       "\t BFS\n"
+       "\t DFS\n"
+       )
       ;
+       
     
     op.add(desc);
   }
@@ -63,8 +78,8 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
     messager << MiniMC::Support::TError<std::string> {"Nothing to analyse --- No Entry Points in loaded program"};
     return MiniMC::Host::ExitCodes::ConfigurationError;
   }
-
-  messager << MiniMC::Support::TInfo<std::string> {"Initiating Reachability"};
+  
+  
   auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm.getInitialiser (),
@@ -83,8 +98,10 @@ MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const Mi
   };
   
   
-  
+  messager << MiniMC::Support::TInfo<std::string> {"Initiating Reachability"};
   MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
+  reach.setSearchStrategy (locoptions.search_strat);
+    
   auto verdict = reach.search (messager,initstate,goal);
   messager << MiniMC::Support::TInfo<std::string> {"Finished Reachability"};
   
