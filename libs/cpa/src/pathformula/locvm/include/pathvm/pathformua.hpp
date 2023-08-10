@@ -20,7 +20,10 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {      
       using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal>;
-      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaState, Operations<PathFormulaVMVal>, Casts<PathFormulaVMVal>> ;
+      using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal>;
+      
+      //PathFormulaState, 
+      using PathFormulaEngine = MiniMC::VMT::Engine<Operations<PathFormulaVMVal>, Casts<PathFormulaVMVal>> ;
       
       class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
       public:
@@ -55,18 +58,42 @@ namespace MiniMC {
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
       
       
-      class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<PathFormulaVMVal> {
+      class ValueLookupBase : public MiniMC::VMT::ValueLookup<PathFormulaVMVal> {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<PathFormulaVMVal>& values, SMTLib::TermBuilder& b) : BaseValueLookup(values),builder(b) {}
-	ValueLookup (const ValueLookup&) = default;
+	ValueLookupBase (SMTLib::TermBuilder& b) : builder(b) {}
+	ValueLookupBase (const ValueLookupBase&) = default;
         PathFormulaVMVal lookupValue (const MiniMC::Model::Value& ) const override;
         PathFormulaVMVal unboundValue(const MiniMC::Model::Type&) const override;
 	PathFormulaVMVal defaultValue(const MiniMC::Model::Type&) const override;
       
 	MiniMC::Hash::hash_t hash() const { return 0;}
+
+	void saveValue(const MiniMC::Model::Register&, PathFormulaVMVal&&) override {
+	  throw MiniMC::Support::Exception ("Can't save values");
+	} 
+
+	virtual PathFormulaVMVal lookupRegisterValue (const MiniMC::Model::Register&) const {
+	  throw MiniMC::Support::Exception ("Can't lookupRegisters");
+	}
 	
-      private:
+	  
+      
 	SMTLib::TermBuilder& builder;
+      };
+
+      class ValueLookup : public ValueLookupBase,
+			  private MiniMC::CPA::Common::BaseValueLookup<PathFormulaVMVal>
+      {
+      public:
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<PathFormulaVMVal>& values, SMTLib::TermBuilder& b) : ValueLookupBase(b),BaseValueLookup(values) {}
+
+	void saveValue(const MiniMC::Model::Register& v, PathFormulaVMVal&& value) override {
+	  this->saveRegister (v,std::move(value));
+	}
+
+	PathFormulaVMVal lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
+	
+	
       };
       
       class PathControl : public MiniMC::VMT::PathControl<PathFormulaVMVal> {

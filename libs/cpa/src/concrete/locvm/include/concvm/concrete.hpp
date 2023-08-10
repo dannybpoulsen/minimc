@@ -42,13 +42,27 @@ namespace MiniMC {
         struct internal;
         std::unique_ptr<internal> _internal;
       };
+       
+      class ValueLookupBase : public MiniMC::VMT::ValueLookup<ConcreteVMVal> {
+      public:
+	ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const override;
+	ConcreteVMVal unboundValue (const MiniMC::Model::Type&) const override;
+	ConcreteVMVal defaultValue(const MiniMC::Model::Type&) const override;
+	void saveValue(const MiniMC::Model::Register&, ConcreteVMVal&& ) override {throw MiniMC::Support::Exception ("Can't save values");}
+	virtual ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register&) const {throw MiniMC::Support::Exception ("Can't lookupRegisters");}
+      };
       
-      class ValueLookup : public MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
+      class ValueLookup : public ValueLookupBase,
+			  private MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
       public:
 	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
-        ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const override;
-	Value unboundValue (const MiniMC::Model::Type&) const override;
-	Value defaultValue(const MiniMC::Model::Type&) const override;
+        void saveValue(const MiniMC::Model::Register& v, ConcreteVMVal&& value) override {
+	  this->saveRegister (v,std::move(value));
+	}
+	
+	ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
+      
+	
       };
       
       class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {
@@ -67,8 +81,10 @@ namespace MiniMC {
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::ConcreteVMVal>;
       using ConcreteVMState = MiniMC::VMT::VMState<MiniMC::VMT::Concrete::ConcreteVMVal>;
+      using ConcreteVMInitState = MiniMC::VMT::VMInitState<MiniMC::VMT::Concrete::ConcreteVMVal>;
       
-      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMState, MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Caster >;
+      //ConcreteVMState 
+      using ConcreteEngine = MiniMC::VMT::Engine<MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Caster >;
       
       
     } // namespace Concrete
@@ -101,12 +117,7 @@ namespace std {
   struct hash<MiniMC::VMT::Concrete::ConcreteVMVal> {
     auto operator()(const MiniMC::VMT::Concrete::ConcreteVMVal& t) { return t.hash(); }
   };
-
-  template <>
-  struct hash<MiniMC::VMT::Concrete::ValueLookup> {
-    auto operator()(const MiniMC::VMT::Concrete::ValueLookup& t) { return t.hash(); }
-  };
-
+  
   template <>
   struct hash<MiniMC::VMT::Concrete::Memory> {
     auto operator()(const MiniMC::VMT::Concrete::Memory& t) { return t.hash(); }

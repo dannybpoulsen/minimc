@@ -9,7 +9,7 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
 
-      ValueLookup::Value ValueLookup::lookupValue(const MiniMC::Model::Value& v) const {
+      ConcreteVMVal ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
 					 
 	       MiniMC::Model::Overload{
@@ -25,7 +25,7 @@ namespace MiniMC {
 		 },
 		 [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (*und.getType ()); },
 		 [this](const MiniMC::Model::Register& val) -> Value {
-		     return lookupRegister (val);
+		   return lookupRegisterValue (val);
                 },
 		 [this](const MiniMC::Model::SymbolicConstant&) -> Value {
 		   throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
@@ -34,7 +34,7 @@ namespace MiniMC {
             v);
       }
       
-      ValueLookup::Value ValueLookup::defaultValue(const MiniMC::Model::Type& t) const {
+      ConcreteVMVal ValueLookupBase::defaultValue(const MiniMC::Model::Type& t) const {
 	switch (t.getTypeID()) {
 	case MiniMC::Model::TypeID::Bool:
 	  return BoolValue(0);
@@ -62,7 +62,7 @@ namespace MiniMC {
       }
       
       
-      ValueLookup::Value ValueLookup::unboundValue(const MiniMC::Model::Type& t) const {
+      ConcreteVMVal ValueLookupBase::unboundValue(const MiniMC::Model::Type& t) const {
 	MiniMC::Support::Messager{} << MiniMC::Support::TWarning {"Getting nondeterministic values for concrete values - using default value"};
 	return defaultValue (t);
       }

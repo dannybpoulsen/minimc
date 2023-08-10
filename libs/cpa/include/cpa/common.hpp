@@ -24,6 +24,8 @@ namespace MiniMC {
     template <class Value>
     struct ActivationStack {
       using ActRecord = ActivationRecord<Value>;
+      ActivationStack(MiniMC::Model::VariableMap<Value>&& cpuregs) : cpuregs(std::move(cpuregs)) {
+      }
       ActivationStack(MiniMC::Model::VariableMap<Value>&& cpuregs, ActRecord&& sf) : cpuregs(std::move(cpuregs)) {
         frames.push_back(std::move(sf));
       }
@@ -60,22 +62,11 @@ namespace MiniMC {
 
 
     template<class T>
-    struct BaseValueLookup : MiniMC::VMT::ValueLookup<T> {
+    struct BaseValueLookup  {
     public:
       BaseValueLookup (ActivationStack<T>& values) : values(values) {}
       BaseValueLookup (const BaseValueLookup&) = delete;
       virtual  ~BaseValueLookup () {}
-      virtual T lookupValue (const MiniMC::Model::Value& v) const override = 0;
-      void saveValue(const MiniMC::Model::Register& v, T&& value) override {
-	if (v.getRegType () == MiniMC::Model::RegType::Local) {
-	  values.back().values.set (v,std::move(value));
-	}
-	else {
-	  values.cpus ().set (v,std::move(value));
-	}
-      }
-      virtual T unboundValue(const MiniMC::Model::Type&) const override = 0;
-      virtual T defaultValue(const MiniMC::Model::Type&) const override = 0;
       
       MiniMC::Hash::hash_t hash() const { return values.hash(); }
       using Value = T;
@@ -84,6 +75,17 @@ namespace MiniMC {
 	return (reg.getRegType () == MiniMC::Model::RegType::Local) ? values.back().values[reg]
 	                                                            : values.cpus()[reg];
       }
+      
+      void saveRegister(const MiniMC::Model::Register& v, T&& value)  {
+	if (v.getRegType () == MiniMC::Model::RegType::Local) {
+	  values.back().values.set (v,std::move(value));
+	}
+	else {
+	  values.cpus ().set (v,std::move(value));
+	}
+      }
+      
+      
     private:
       ActivationStack<T>& values;
     };

@@ -159,7 +159,7 @@ namespace MiniMC {
 	  nstate->popLocation(id);
 	  return nstate;
 	  }*/
-	MiniMC::VMT::Engine<VMState,DummyOperations, DummyCaster> engine {DummyOperations{},DummyCaster{},prgm};
+	MiniMC::VMT::Engine<DummyOperations, DummyCaster> engine {DummyOperations{},DummyCaster{},prgm};
         VMState vmstate{*nstate, id};
 	engine.execute (edge.getInstructions (),vmstate);
         return nstate;

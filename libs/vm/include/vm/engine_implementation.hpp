@@ -47,7 +47,7 @@ namespace MiniMC {
 	IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
 	IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
 	IntOperationCompatible<typename T::I64, typename T::Bool, Operations> &&
-      ValueLookupable<State>
+	ValueLookupable<State>
 
       {
 	constexpr auto op = I::getOpcode ();
@@ -545,13 +545,18 @@ namespace MiniMC {
 	  else{
 	    throw NotImplemented<op> {};
 	  }
-		 
+	  
           return Status::Ok;
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::RetVoid) {
-          writeState.getStackControl().popNoReturn();
-          return Status::Ok;
+	  if constexpr (SimpStackControllable<State> || StackControllable<State> ) {
+	    writeState.getStackControl().popNoReturn();
+	    return Status::Ok;
+	  }
+	  else
+	   throw NotImplemented<op> {};
+	  
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Skip) {
@@ -667,16 +672,18 @@ namespace MiniMC {
 
       };
 
-    template <class State, class Operations, class Caster>
-    Status Engine<State, Operations, Caster>::execute(const MiniMC::Model::Instruction& instr,
+    template <class Operations, class Caster>
+    template<class State>
+    Status Engine<Operations, Caster>::execute(const MiniMC::Model::Instruction& instr,
 						      State& wstate) {
       
       return instr.visit ([this,&wstate](auto& t) {return Impl<State,Operations,Caster>::template runInstruction (t, wstate, operations, caster, prgm);});
 
     }
 
-    template <class State, class Operations, class Caster>
-    Status Engine<State, Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
+    template <class Operations, class Caster>
+    template<class State>
+    Status Engine<Operations, Caster>::execute(const MiniMC::Model::InstructionStream& instr,
                                                   State& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;

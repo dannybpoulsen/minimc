@@ -10,7 +10,7 @@ namespace MiniMC {
       DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& entrypoints = descr.getEntries ();
 
-	if (entrypoints.size () > 1) {
+	if (entrypoints.size () != 1) {
 	  throw MiniMC::Support::ConfigurationException ("Pathformula only supports one entry point");
 	}
 	
@@ -39,11 +39,10 @@ namespace MiniMC {
 
 	memory.createHeapLayout (descr.getHeap ());
 	
-	
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{termbuilder},descr.getProgram ()};
+	MiniMC::VMT::Pathformula::ValueLookupBase blookup{termbuilder};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	StackControl stackcontrol{state->getStack (),*context};
-	decltype(engine)::VState newvm {state->getMemory (),control,stackcontrol,lookup};
+	MiniMC::VMT::Pathformula::PathFormulaInitState newvm {state->getMemory (),control,blookup};
 	
 	engine.execute(descr.getInit (),newvm);
 	
@@ -80,7 +79,7 @@ namespace MiniMC {
 	StackControl stackcontrol{nstate.getStack (),*_internal->context};
 	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),termbuilder};
 	
-	decltype(_internal->engine)::VState newvm {nstate.getMemory (),control,stackcontrol,lookup};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,stackcontrol,lookup};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

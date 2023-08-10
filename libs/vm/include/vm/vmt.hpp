@@ -117,6 +117,26 @@ namespace MiniMC {
       VLookup& lookup;
     };
 
+    template<class T>  
+    struct VMInitState {
+      using Domain = T;
+      using VLookup  =  ValueLookup<T>;
+      using MLookup  =  Memory<T>;
+      using PControl =  PathControl<T>;
+      
+      
+      VMInitState (MLookup& m, PControl& path, VLookup& vlook) : memory(m),control(path),lookup(vlook) {}
+      auto& getValueLookup () {return lookup;}
+      auto& getMemory () {return memory;}
+      auto& getValueLookup () const {return lookup;}
+      auto& getMemory () const {return memory;}
+      auto& getPathControl () const {return control;}
+    private:
+      MLookup& memory;
+      PControl& control;
+      VLookup& lookup;
+    };
+
     template<class State>
     concept StackControllable = requires (State& state) {
       {state.getStackControl ()} ->std::convertible_to<StackControl<typename State::Domain>&>;
@@ -270,15 +290,16 @@ namespace MiniMC {
     
       
     
-    template<class State,class Operations ,class Caster>
+    template<class Operations ,class Caster>
     class Engine {
     public:
-      using VState = State;
       Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
       ~Engine ()  {}
 
-      
+      template<class VState>
       Status execute (const MiniMC::Model::InstructionStream&, VState& ) ;
+
+      template<class VState>
       Status execute (const MiniMC::Model::Instruction&, VState& ) ;
       
       using OperationsT = Operations;

@@ -93,7 +93,7 @@ namespace MiniMC {
         }
 
       private:
-      MiniMC::VMT::Pathformula::ActivationStack call_stack;
+	MiniMC::VMT::Pathformula::ActivationStack call_stack;
         MiniMC::VMT::Pathformula::Memory memory;
         SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;

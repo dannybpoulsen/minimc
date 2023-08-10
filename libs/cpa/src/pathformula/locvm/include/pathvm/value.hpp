@@ -13,35 +13,6 @@ namespace SMTLib {
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
-      /*enum class ValType {
-        I8,
-        I16,
-        I32,
-        I64,
-        Bool,
-        Pointer,
-        Aggregate
-	};*/
-      
-      /*template <ValType t>
-      constexpr auto intbitsize_v() {
-        if constexpr (t == ValType::I8)
-          return 8;
-        else if constexpr (t == ValType::I16)
-          return 16;
-        else if constexpr (t == ValType::I32)
-          return 32;
-        else if constexpr (t == ValType::I64)
-          return 64;
-        else if constexpr (t == ValType::Pointer)
-          return sizeof(MiniMC::Support::PtrBV)*8;
-        else if constexpr (t == ValType::Bool)
-          return 8;
-        else
-          []<bool b = false>() { static_assert(b); }
-        ();
-      }
-      */
       
       template <typename v>
       class Value {

@@ -41,17 +41,17 @@ namespace MiniMC {
       }
 
        
-      PathFormulaVMVal ValueLookup::unboundValue(const MiniMC::Model::Type& t) const {
+      PathFormulaVMVal ValueLookupBase::unboundValue(const MiniMC::Model::Type& t) const {
         return unboundVal(t, builder);
       }
 
-      PathFormulaVMVal ValueLookup::defaultValue(const MiniMC::Model::Type& t) const {
+      PathFormulaVMVal ValueLookupBase::defaultValue(const MiniMC::Model::Type& t) const {
         return unboundValue(t);
       }
 
       
       
-      PathFormulaVMVal ValueLookup::lookupValue(const MiniMC::Model::Value& v) const {
+      PathFormulaVMVal ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
             MiniMC::Model::Overload{
                 [this](const MiniMC::Model::I8Integer& val) -> PathFormulaVMVal { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
@@ -73,7 +73,7 @@ namespace MiniMC {
 		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
 			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
 			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		  return Value::Pointer32(chainer.getTerm ());
+		  return PathFormulaVMVal::Pointer32(chainer.getTerm ());
 		},
 		[this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
 		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
@@ -84,9 +84,9 @@ namespace MiniMC {
                 },
 		[this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(*val.getType()); },
 		[this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
-		  return lookupRegister (val);
+		  return lookupRegisterValue (val);
 		},
-		[this](const MiniMC::Model::SymbolicConstant&) -> Value {
+		[this](const MiniMC::Model::SymbolicConstant&) -> PathFormulaVMVal {
 		  throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
 		}
 	    },
