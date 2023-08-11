@@ -41,19 +41,19 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
-  MiniMC::Model::Controller control(std::move(prgm));
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
-  auto &program = control.getProgram ();
+  
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
-  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
-      program.getHeapLayout (),
-      program.getInitialiser (),
-      program});
+  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm.getInitialiser (),
+      prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
   auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
@@ -67,19 +67,18 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
-  MiniMC::Model::Controller control(std::move(prgm));
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
-  auto& program = control.getProgram ();
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
-  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
-      program.getHeapLayout (),
-      program.getInitialiser (),
-      program});
+  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm.getInitialiser (),
+      prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
   auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
@@ -93,19 +92,19 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
-  MiniMC::Model::Controller control(std::move(prgm));
+  MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   
-  auto& program = control.getProgram ();
+
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
-  auto initialState = analysis_builder.makeInitialState({program.getEntryPoints (),
-      program.getHeapLayout (),
-      program.getInitialiser (),
-      program});
+  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm.getInitialiser (),
+      prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (program)};
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
   auto verdict = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 

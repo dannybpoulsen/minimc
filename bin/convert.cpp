@@ -12,8 +12,8 @@ namespace {
   void addOptions (po::options_description&) {  }  
 }
   
-MiniMC::Host::ExitCodes convert_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder&, MiniMC::Support::Messager& )  {
-  MiniMC::Model::writeProgram (std::cout,controller.getProgram ());
+MiniMC::Host::ExitCodes convert_main (MiniMC::Model::Program&& prgm, const MiniMC::CPA::AnalysisBuilder&, MiniMC::Support::Messager& )  {
+  MiniMC::Model::writeProgram (std::cout,prgm);
   
   return MiniMC::Host::ExitCodes::AllGood;
 }

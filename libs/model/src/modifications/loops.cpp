@@ -55,7 +55,7 @@ namespace MiniMC {
 	
       }
 
-      bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func,std::size_t maxAmount) {
+      bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func) {
         MiniMC::Support::Messager{} << MiniMC::Support::TWarning {(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getSymbol()))};
         auto& cfg = func->getCFA();
 	MiniMC::Model::LocationInfoCreator locc {func->getRegisterDescr ()};
@@ -67,13 +67,13 @@ namespace MiniMC {
           auto parent = l->getParent();
           if (parent) {
             
-            unrollLoop(cfg, l, maxAmount, parent->body_insert(), locc,func->getFrame ());
+            unrollLoop(cfg, l, amount, parent->body_insert(), locc,func->getFrame ());
             parent->finalise();
           } else {
             struct Dummy {
               void operator=(MiniMC::Model::Location_ptr) {}
             } dummy;
-            unrollLoop(cfg, l, maxAmount, dummy, locc,func->getFrame ());
+            unrollLoop(cfg, l, amount, dummy, locc,func->getFrame ());
           }
         }
         return true;

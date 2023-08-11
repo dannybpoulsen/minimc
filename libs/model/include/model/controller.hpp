@@ -12,14 +12,13 @@ namespace MiniMC {
   namespace Model {
     
     //Helper class for running modifications on a Program
-    class Controller {
+    
+    class [[deprecated]] Controller {
     public:
-      Controller (MiniMC::Model::Program&& p) : prgm(std::move(p)) {
+      Controller (MiniMC::Model::Program& p) : prgm(p) {
 	lowerPhi ();
       }
       
-      bool typecheck (MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
-
       void lowerPhi ();
       void makeMemNonDet ();
       void createAssertViolateLocations ();
@@ -28,10 +27,8 @@ namespace MiniMC {
       void expandNonDeterministic (MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
       void onlyOneMemAccessPerEdge ();
 
-      auto& getProgram () const {return prgm;}
-      
     private:
-      MiniMC::Model::Program prgm;
+      MiniMC::Model::Program& prgm;
     };
   }
 }

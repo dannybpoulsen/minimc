@@ -5,14 +5,15 @@
 
 #include "model/cfg.hpp"
 #include "model/instructions.hpp"
+#include "model/modifications/modifications.hpp"
 #include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
-
-      struct LowerPhi : public MiniMC::Support::Sink<MiniMC::Model::Program> {
-        virtual bool run(MiniMC::Model::Program& prgm) {
+      
+      struct LowerPhi : public ProgramModifier {
+	MiniMC::Model::Program operator() (MiniMC::Model::Program&& prgm) override {
           for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
 	      auto frame = F->getFrame ();
@@ -41,7 +42,7 @@ namespace MiniMC {
               }
             }
           }
-          return true;
+          return prgm;
         }
       };
 

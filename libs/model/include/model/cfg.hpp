@@ -193,6 +193,8 @@ namespace MiniMC {
         return functions.back();
       }
 
+      Program& operator= (Program&&) = default;
+      
       auto& getFunctions() const { return functions; }
 
       void addEntryPoint(const std::string& str) {

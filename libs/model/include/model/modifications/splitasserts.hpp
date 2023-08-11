@@ -7,19 +7,20 @@
  * 
  */
 #ifndef _SPLITASSERTS__
-#define _SPLITASSERT__
+#define _SPLITASSERTS__
 
 #include <algorithm>
 
 #include "model/cfg.hpp"
 #include "support/sequencer.hpp"
 #include "support/workinglist.hpp"
+#include "model/modifications/modifications.hpp"
 
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
       /**
-	   *
+       *
 	   * For each \ref MiniMC::Model::InstructionCode::Assert
 	   * instruction, a special Location with \ref
 	   * MiniMC::Location::Attributes::AssertViolated set is inserted.
@@ -31,13 +32,13 @@ namespace MiniMC {
 	   * instructions, but can instead for locations with \ref
 	   * MiniMC::Location::Attributes::AssertViolated set.
 	   */
-      struct SplitAsserts : public MiniMC::Support::Sink<MiniMC::Model::Program> {
+      struct SplitAsserts : public ProgramModifier {
 	virtual bool runFunction(const MiniMC::Model::Function_ptr& F);
-	virtual bool run(MiniMC::Model::Program& prgm) {
+	MiniMC::Model::Program operator() (MiniMC::Model::Program&& prgm) override {
           for (auto& F : prgm.getFunctions()) {
             runFunction(F);
           }
-          return true;
+          return prgm;
         }
       };
 

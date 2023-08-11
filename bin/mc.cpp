@@ -72,9 +72,7 @@ namespace {
 }
 
 
-MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager) {
-  auto& prgm = controller.getProgram ();
-    
+MiniMC::Host::ExitCodes mc_main (MiniMC::Model::Program&& prgm, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager) {    
   auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm.getInitialiser (),

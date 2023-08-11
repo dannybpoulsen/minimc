@@ -16,10 +16,9 @@ namespace {
   }
 }
 
-MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager)  {
+MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Program&& prgm, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager)  {
   messager << MiniMC::Support::TInfo {"Initiating EnumStates"};
   
-  auto& prgm = controller.getProgram ();
   auto initstate = cpa.makeInitialState(MiniMC::CPA::InitialiseDescr{
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),

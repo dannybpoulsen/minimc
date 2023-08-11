@@ -15,7 +15,7 @@ namespace MiniMC {
 
     template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
-
+    
     
     template<class State, typename Operations, typename Caster>
     struct Impl {

@@ -30,7 +30,7 @@ void addOptions (po::options_description& op) {
   op.add(desc);
 }
 
-MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Controller& controller, const MiniMC::CPA::AnalysisBuilder& builder, MiniMC::Support::Messager& ) {
+MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Program&& prgm, const MiniMC::CPA::AnalysisBuilder& builder, MiniMC::Support::Messager& ) {
   std::queue<MiniMC::Interpreter::Task*> queue;
   char* tok;
   char delim[] = " ";
@@ -45,7 +45,7 @@ MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Controller& controller, const M
     }
   }
 
-  auto& prgm = controller.getProgram ();
+
   auto transferer = builder.makeTransfer(prgm);
   // Build Initial state
   MiniMC::Interpreter::StateMap statemap(builder.makeInitialState(

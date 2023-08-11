@@ -130,7 +130,7 @@ namespace MiniMC {
 	  };
 	  
 	  
-	  inlineCallEdgeToFunction(prgm,F, e.second, linfoc, newCallEdge, F->getFrame ());
+	  inlineCallEdgeToFunction(*prgm,F, e.second, linfoc, newCallEdge, F->getFrame ());
 	}
 	
         return true;

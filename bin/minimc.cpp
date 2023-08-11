@@ -2,6 +2,8 @@
 #include "model/output.hpp"
 #include "plugin.hpp"
 #include "support/localisation.hpp"
+#include "model/checkers/typechecker.hpp"
+#include "model/modifications/modifications.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
@@ -19,17 +21,21 @@
 
 namespace po = boost::program_options;
 
-void transformProgram (auto& controller, const transform_options& options) {
-  controller.createAssertViolateLocations();      
-  if (options.expand_nondet) {
-    controller.expandNonDeterministic ();
-  }
+MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Support::Messager& mess) {
+  MiniMC::Model::Modifications::ProgramManager manager;
+  using namespace  MiniMC::Model::Modifications;
+  //MiniMC::Model::Controller controller(prgm); 
+  manager.add<SplitAsserts> ();
   if (options.unrollLoops) {
-    controller.unrollLoops (options.unrollLoops);
+    manager.add<UnrollLoops> (options.unrollLoops);
+  }
+  if (options.expand_nondet) {
+    manager.add<NonDetExpander> (mess);
   }
   if (options.inlineFunctions) {
-    controller.inlineFunctions (options.inlineFunctions);
+    manager.add<InlineFunctions> (options.inlineFunctions);
   }
+  return manager (std::move(prgm));
 }
 
 int main(int argc, char* argv[]) {
@@ -48,21 +54,20 @@ int main(int argc, char* argv[]) {
       MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
       auto loader = options.load.registrar->makeLoader  (tfac,cfac);
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,messager);
-      MiniMC::Model::Controller control(std::move(prgm));
       
-      if (!control.typecheck (messager)) {
+      if (!MiniMC::Model::Checkers::TypeChecker{prgm}.Check (messager)) {
 	return -1;
       }
-      transformProgram (control,options.transform);
+      MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);
       
       if (options.outputname != "") {
 	std::ofstream stream;
 	stream.open (options.outputname, std::ofstream::out);
-	MiniMC::Model::writeProgram (stream,control.getProgram ());
+	MiniMC::Model::writeProgram (stream,prgm2);
 	stream.close ();
       }
       if (options.command) {
-	auto res =  static_cast<int>(options.command->getFunction()(control,options.cpa,messager));
+	auto res =  static_cast<int>(options.command->getFunction()(std::move(prgm2),options.cpa,messager));
 	return res;
       }
       

@@ -1,10 +1,7 @@
 #include "model/cfg.hpp"
-#include "model/modifications/constantfolding.hpp"
 #include "model/modifications/func_inliner.hpp"
-#include "model/modifications/insertboolcasts.hpp"
 #include "model/modifications/loops.hpp"
 #include "model/modifications/removephi.hpp"
-#include "model/modifications/replacesub.hpp"
 #include "model/modifications/splitasserts.hpp"
 #include "model/modifications/expandnondet.hpp"
 
@@ -14,32 +11,28 @@
 
 namespace MiniMC {
   namespace Model {
-    bool Controller::typecheck (MiniMC::Support::Messager mess) {
-      return MiniMC::Model::Checkers::TypeChecker{prgm}.Check (mess);
-    }
     
     void Controller::lowerPhi (){
-      MiniMC::Model::Modifications::LowerPhi{}.run (prgm);
+      prgm = MiniMC::Model::Modifications::LowerPhi{} (std::move(prgm));
     }
-
+    
     void Controller::createAssertViolateLocations (){
-      MiniMC::Model::Modifications::SplitAsserts{}.run (prgm);
+      prgm = MiniMC::Model::Modifications::SplitAsserts{} (std::move(prgm));
     }
     
     void Controller::inlineFunctions (std::size_t depth){
-      for (auto& func : prgm.getEntryPoints ()) {
-	MiniMC::Model::Modifications::InlineFunctions{prgm}.runFunction (func,depth);
-      }
+      prgm = MiniMC::Model::Modifications::InlineFunctions{depth} (std::move(prgm));
+	
     }
     
     void Controller::unrollLoops (std::size_t iterations){
-      for (auto& func : prgm.getFunctions ()) 
-	MiniMC::Model::Modifications::UnrollLoops{}.runFunction (func,iterations);
+      prgm = MiniMC::Model::Modifications::UnrollLoops{iterations}(std::move(prgm));
     }
     
     
     void Controller::expandNonDeterministic (MiniMC::Support::Messager mess){
-      MiniMC::Model::Modifications::expandNonDet (prgm,mess);
+      prgm = MiniMC::Model::Modifications::NonDetExpander{mess}(std::move(prgm));
+      //MiniMC::Model::Modifications::expandNonDet (prgm,mess);
       
     }
    
