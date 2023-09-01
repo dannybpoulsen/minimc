@@ -45,17 +45,12 @@ namespace MiniMC {
 				      BoolOption>;
 
     struct Loader {
-      Loader(MiniMC::Model::TypeFactory_ptr& tfac,
-             Model::ConstantFactory_ptr& cfac) : tfactory(tfac),
-                                                 cfactory(cfac) {}
+      Loader()  {}
       
       virtual ~Loader() {}
-      virtual MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Support::Messager&) = 0;
-      virtual MiniMC::Model::Program loadFromString(const std::string& str, MiniMC::Support::Messager&) = 0;
+      virtual MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
+      virtual MiniMC::Model::Program loadFromString(const std::string& str, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
 
-    protected:
-      MiniMC::Model::TypeFactory_ptr tfactory;
-      MiniMC::Model::ConstantFactory_ptr cfactory;
     };
 
     using Loader_ptr = std::unique_ptr<Loader>;
@@ -64,7 +59,7 @@ namespace MiniMC {
 
       LoaderRegistrar(std::string name, std::initializer_list<LoaderOption> opts);
       LoaderRegistrar(std::string name) : LoaderRegistrar (std::move(name),{}) {}
-      virtual Loader_ptr makeLoader(MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) = 0;
+      virtual Loader_ptr makeLoader() = 0;
       auto& getName() const { return name; }
       auto& getOptions () {return options;}
 
