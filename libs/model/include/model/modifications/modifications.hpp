@@ -1,6 +1,7 @@
 #ifndef _MODIFICATIONS__
 #define _MODIFICATIONS__
 
+#include "model/cfg.hpp"
 #include "support/pipes.hpp"
 
 

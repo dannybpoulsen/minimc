@@ -2,7 +2,7 @@
 #include "doctest/doctest.h"
 
 
-#include "model/controller.hpp"
+#include "model/modifications/modifications.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/concrete.hpp"
@@ -17,7 +17,13 @@ auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.makeLoader (tfac,cfac)->loadFromFile (path,mess);
+
+  MiniMC::Model::Modifications::ProgramManager manager;
+  manager.add<MiniMC::Model::Modifications::LowerPhi> ();
+  manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
+  
+  
+  return manager(loader.makeLoader (tfac,cfac)->loadFromFile (path,mess));
   
 }
 
@@ -41,8 +47,6 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
   
   
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
@@ -67,8 +71,6 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
   
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
@@ -92,8 +94,6 @@ TEST_CASE("Pointer") {
   REQUIRE (loadRegistrar != nullptr);
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
   
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
