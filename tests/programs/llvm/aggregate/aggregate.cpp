@@ -4,6 +4,7 @@
 
 #include "model/controller.hpp"
 #include "model/cfg.hpp"
+#include "model/modifications/modifications.hpp"
 #include "model/checkers/typechecker.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/concrete.hpp"
@@ -14,21 +15,27 @@
 #include "loaders/loader.hpp"
 #include <filesystem>
 
+auto loadProgram (auto& loader, const std::string& s) {
+  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+  MiniMC::Support::Messager mess;
+  auto path = std::filesystem::path {__FILE__}.parent_path () / s;
+
+  MiniMC::Model::Modifications::ProgramManager manager;
+  manager.add<MiniMC::Model::Modifications::LowerPhi> ();
+  manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
+  
+  
+  return manager(loader.loadFromFile (path,tfac,cfac,mess));
+  
+}
+
 auto makeLoader () {
   auto registrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (registrar != nullptr);
   return registrar->makeLoader ();
 }
 
-
-auto loadProgram (auto& loader, const std::string& s) {
-  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
-  MiniMC::Support::Messager mess;
-  auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.loadFromFile (path,tfac,cfac,mess);
-  
-}
 
 auto goal (const MiniMC::CPA::AnalysisState& state) {
   auto& locationstate = state.getCFAState ().getLocationState ();
@@ -58,8 +65,6 @@ TEST_CASE("Frame") {
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
   
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
@@ -83,8 +88,6 @@ TEST_CASE("Frame") {
   auto loadRegistrar = makeLoader (); //MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
   
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());

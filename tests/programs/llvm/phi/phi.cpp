@@ -8,6 +8,7 @@
 #include "cpa/concrete.hpp"
 #include "cpa/location.hpp"
 #include "cpa/location.hpp"
+#include "model/modifications/modifications.hpp"
 #include "algorithms/reachability/reachability.hpp"
 #include "loaders/loader.hpp"
 #include <filesystem>
@@ -17,8 +18,12 @@ auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.loadFromFile (path,tfac,cfac,mess);
+  //return loader.makeLoader (tfac,cfac)->loadFromFile (path,mess);
+  MiniMC::Model::Modifications::ProgramManager manager;
+  manager.add<MiniMC::Model::Modifications::LowerPhi> ();
+  manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
+  return manager (loader.loadFromFile (path,tfac,cfac,mess));
 }
 
 auto goal (const MiniMC::CPA::AnalysisState& state) {
@@ -42,9 +47,6 @@ TEST_CASE("Phi") {
   auto loader = loadRegistrar->makeLoader ();
   loader->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loader,"phi_atomic.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
-  
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());

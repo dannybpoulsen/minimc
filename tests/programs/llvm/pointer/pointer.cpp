@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 
-
+#include "model/modifications/modifications.hpp"
 #include "model/controller.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
@@ -17,7 +17,13 @@ auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.loadFromFile (path,tfac,cfac,mess);
+
+  MiniMC::Model::Modifications::ProgramManager manager;
+  manager.add<MiniMC::Model::Modifications::LowerPhi> ();
+  manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
+  
+  
+  return manager(loader.loadFromFile (path,tfac,cfac,mess));
   
 }
 
@@ -45,10 +51,7 @@ TEST_CASE("Pointer") {
   //Arrange
   auto loadRegistrar = makeLoader ();
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
-  
+  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
@@ -56,11 +59,11 @@ TEST_CASE("Pointer") {
       prgm.getHeapLayout (),
       prgm.getInitialiser (),
       prgm});
-  
+
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
   auto verdict = reachabilityChecker.search (mess,initialState,goal);
-  
+
   //Assert 
   CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound);
 }
@@ -71,9 +74,7 @@ TEST_CASE("Pointer") {
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
-  
+
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
@@ -95,9 +96,7 @@ TEST_CASE("Pointer") {
   auto loadRegistrar = makeLoader ();
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
-  MiniMC::Model::Controller control(prgm);
-  control.createAssertViolateLocations ();
-  
+
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
