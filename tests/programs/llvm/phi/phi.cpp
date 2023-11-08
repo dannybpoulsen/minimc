@@ -13,7 +13,7 @@
 #include "loaders/loader.hpp"
 #include <filesystem>
 
-auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s) {
+auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
@@ -23,7 +23,7 @@ auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s
   manager.add<MiniMC::Model::Modifications::LowerPhi> ();
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
-  return manager (loader.makeLoader (tfac,cfac)->loadFromFile (path,mess));
+  return manager (loader.loadFromFile (path,tfac,cfac,mess));
 }
 
 auto goal (const MiniMC::CPA::AnalysisState& state) {
@@ -44,11 +44,9 @@ TEST_CASE("Phi") {
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
-  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto prgm = loadProgram (*loadRegistrar,"phi_atomic.ll");
-  //MiniMC::Model::Controller control(prgm);
-  //control.createAssertViolateLocations ();
-  
+  auto loader = loadRegistrar->makeLoader ();
+  loader->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  auto prgm = loadProgram (*loader,"phi_atomic.ll");
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());

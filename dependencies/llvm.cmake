@@ -8,8 +8,8 @@ if (NOT LLVM_FOUND)
    include(FetchContent)
    FetchContent_Declare(
    llvmext13
-   URL https://github.com/llvm/llvm-project/releases/download/llvmorg-13.0.1/clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-   URL_HASH SHA256=84a54c69781ad90615d1b0276a83ff87daaeded99fbc64457c350679df7b4ff0
+   URL https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.4/clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
+   URL_HASH SHA256=fd464333bd55b482eb7385f2f4e18248eb43129a3cda4c0920ad9ac3c12bdacf
    )
 
    FetchContent_MakeAvailable (llvmext13)

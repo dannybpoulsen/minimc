@@ -52,8 +52,8 @@ int main(int argc, char* argv[]) {
       // Load Program
       MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
       MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
-      auto loader = options.load.registrar->makeLoader  (tfac,cfac);
-      MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,messager);
+      auto loader = options.load.loader;
+      MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
       
       if (!MiniMC::Model::Checkers::TypeChecker{prgm}.Check (messager)) {
 	return -1;

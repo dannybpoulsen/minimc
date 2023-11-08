@@ -26,7 +26,7 @@ namespace MiniMC {
     
     
     
-    LoaderRegistrar::LoaderRegistrar (std::string name,std::initializer_list<LoaderOption> opts) : name(std::move(name)),options(opts) {
+    LoaderRegistrar::LoaderRegistrar (std::string name) : name(std::move(name)) {
       internalGetRegistrars ().push_back (this);
     }
 

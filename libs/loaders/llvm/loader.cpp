@@ -69,26 +69,28 @@ namespace MiniMC {
     
     class LLVMLoader : public Loader {
     public:
-      LLVMLoader(MiniMC::Model::TypeFactory_ptr& tfac,
-                 Model::ConstantFactory_ptr& cfac,
-                 std::size_t stacksize,
-                 std::vector<std::string> entry,
-                 bool disablePromotion,
-                 bool printPass) : Loader(tfac, cfac), stacksize(stacksize), entry(entry), disablePromotion(disablePromotion), printLLVMPass(printPass) {}
-      MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Support::Messager& mess) override {
+      LLVMLoader()  {
+
+	addOption<IntOption>("stack", "StackSize", &stacksize);
+	addOption<VecStringOption>("entry", "Entry point function", &entry);
+	addOption<BoolOption>("disable_promote_pass", "Disable the promotion of allocas to registers", &disablePromotion);
+	addOption<BoolOption>("print", "Print LLVM module to stderr", &printLLVMPass);
+	
+      }
+      MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) override {
 	std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfactory, cfactory,mess);
+        return readFromBuffer(buffer, tfac, cfac,mess);
       }
 
-      MiniMC::Model::Program loadFromString(const std::string& inp, MiniMC::Support::Messager& mess) override {
+      MiniMC::Model::Program loadFromString(const std::string& inp, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager& mess) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, tfactory, cfactory,mess);
+        return readFromBuffer(buffer, tfac, cfac,mess);
       }
 
       auto createFunctionWorkList(llvm::Module& module) {
@@ -470,7 +472,7 @@ namespace MiniMC {
       }
 
     private:
-      std::size_t stacksize;
+      std::size_t stacksize{200};
       std::vector<std::string> entry;
       bool disablePromotion;
       bool printLLVMPass;
@@ -482,18 +484,10 @@ namespace MiniMC {
     class LLVMLoadRegistrar : public LoaderRegistrar {
     public:
       LLVMLoadRegistrar() : LoaderRegistrar("LLVM") {
-        addOption<IntOption>("stack", "StackSize", 200uL);
-        addOption<VecStringOption>("entry", "Entry point function", std::vector<std::string>{});
-        addOption<BoolOption>("disable_promote_pass", "Disable the promotion of allocas to registers", false);
-        addOption<BoolOption>("print", "Print LLVM module to stderr", false);
-      }
+    }
 
-      Loader_ptr makeLoader(MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr cfac) override {
-        auto stacksize = getOption<IntOption>(0).value;
-        auto entry = getOption<VecStringOption>(1).value;
-        auto disablePromotion = getOption<BoolOption>(2).value;
-        auto printPass = getOption<BoolOption>(3).value;
-        return std::make_unique<LLVMLoader>(tfac, cfac, stacksize, entry, disablePromotion, printPass);
+      Loader_ptr makeLoader() override {
+        return std::make_shared<LLVMLoader>();
       }
     };
 

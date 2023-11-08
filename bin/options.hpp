@@ -18,7 +18,7 @@ struct SMTOption {
 
 struct load_options{
   std::string inputname;
-  MiniMC::Loaders::LoaderRegistrar* registrar{nullptr};
+  MiniMC::Loaders::Loader_ptr loader{nullptr};
 };
 
 struct transform_options {

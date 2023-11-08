@@ -2,8 +2,9 @@
 #include "doctest/doctest.h"
 
 
-#include "model/modifications/modifications.hpp"
+#include "model/controller.hpp"
 #include "model/cfg.hpp"
+#include "model/modifications/modifications.hpp"
 #include "model/checkers/typechecker.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/concrete.hpp"
@@ -14,7 +15,7 @@
 #include "loaders/loader.hpp"
 #include <filesystem>
 
-auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s) {
+auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
@@ -25,9 +26,16 @@ auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
-  return manager(loader.makeLoader (tfac,cfac)->loadFromFile (path,mess));
+  return manager(loader.loadFromFile (path,tfac,cfac,mess));
   
 }
+
+auto makeLoader () {
+  auto registrar = MiniMC::Loaders::findLoader ("LLVM");
+  REQUIRE (registrar != nullptr);
+  return registrar->makeLoader ();
+}
+
 
 auto goal (const MiniMC::CPA::AnalysisState& state) {
   auto& locationstate = state.getCFAState ().getLocationState ();
@@ -44,8 +52,7 @@ auto goal (const MiniMC::CPA::AnalysisState& state) {
 TEST_CASE("Frame") {
   //Arrange
   MiniMC::Support::Messager mess;
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   CHECK(MiniMC::Model::Checkers::TypeChecker{prgm}.Check (mess));
@@ -55,8 +62,7 @@ TEST_CASE("Frame") {
 TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   
@@ -79,8 +85,7 @@ TEST_CASE("Frame") {
 TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader (); //MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
   

@@ -1,8 +1,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 
-
 #include "model/modifications/modifications.hpp"
+#include "model/controller.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/concrete.hpp"
@@ -12,7 +12,7 @@
 #include "loaders/loader.hpp"
 #include <filesystem>
 
-auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s) {
+auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
@@ -23,7 +23,7 @@ auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
-  return manager(loader.makeLoader (tfac,cfac)->loadFromFile (path,mess));
+  return manager(loader.loadFromFile (path,tfac,cfac,mess));
   
 }
 
@@ -40,14 +40,18 @@ auto goal (const MiniMC::CPA::AnalysisState& state) {
 };
 
 
+auto makeLoader () {
+  auto registrar = MiniMC::Loaders::findLoader ("LLVM");
+  REQUIRE (registrar != nullptr);
+  return registrar->makeLoader ();
+}
+
 TEST_CASE("Pointer") {
   MiniMC::Support::Messager mess;
   //Arrange
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader ();
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll");
-  
+  auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
@@ -65,13 +69,12 @@ TEST_CASE("Pointer") {
 }
 
 TEST_CASE("Pointer") {
-    MiniMC::Support::Messager mess;
+  MiniMC::Support::Messager mess;
   //Arrange
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
-  
+
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
@@ -88,13 +91,12 @@ TEST_CASE("Pointer") {
 }
 
 TEST_CASE("Pointer") {
-    MiniMC::Support::Messager mess;
+  MiniMC::Support::Messager mess;
   //Arrange
-  auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
-  REQUIRE (loadRegistrar != nullptr);
+  auto loadRegistrar = makeLoader ();
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
-  
+
 
   MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
