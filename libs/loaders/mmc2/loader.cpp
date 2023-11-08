@@ -36,10 +36,10 @@ public:
 class MMCLoadRegistrar2 : public LoaderRegistrar {
 public:
   MMCLoadRegistrar2()
-      : LoaderRegistrar("MMC", {}) {}
+      : LoaderRegistrar("MMC") {}
 
   Loader_ptr makeLoader() override {
-    return std::make_unique<MMCLoader2>();
+    return std::make_shared<MMCLoader2>();
   }
 };
 

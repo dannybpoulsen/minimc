@@ -12,12 +12,12 @@
 #include "loaders/loader.hpp"
 #include <filesystem>
 
-auto loadProgram (MiniMC::Loaders::LoaderRegistrar& loader, const std::string& s) {
+auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-  return loader.makeLoader ()->loadFromFile (path,tfac,cfac,mess);
+  return loader.loadFromFile (path,tfac,cfac,mess);
   
 }
 
@@ -39,8 +39,9 @@ TEST_CASE("Phi") {
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
-  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
-  auto prgm = loadProgram (*loadRegistrar,"phi_atomic.ll");
+  auto loader = loadRegistrar->makeLoader ();
+  loader->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  auto prgm = loadProgram (*loader,"phi_atomic.ll");
   MiniMC::Model::Controller control(prgm);
   control.createAssertViolateLocations ();
   

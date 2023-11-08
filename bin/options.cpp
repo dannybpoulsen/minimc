@@ -35,13 +35,16 @@ struct Overload : Ts ... {
     using Ts::operator() ...;
 };
 
+std::unordered_map<std::string,MiniMC::Loaders::Loader_ptr > loaders;
+
 po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
   
   auto setLoader = [&options](auto& val) {
-    if (auto load = MiniMC::Loaders::findLoader (val)) {
-      options.load.registrar = load;
+    auto load = loaders.find (val);
+    if ( load != loaders.end ()) {
+      options.load.loader = load->second;
     }
     else
       throw MiniMC::Support::ConfigurationException ("Can't find specificed Loader");
@@ -59,24 +62,26 @@ po::options_description loadOptions (SetupOptions& options) {
   general.add_options ()
     ("loader",po::value<std::string> ()->default_value(std::string{"LLVM"})->notifier (setLoader),str.str().c_str());
 
-  for (auto& loader : MiniMC::Loaders::getLoaders ()) {
+  for (auto& loader_reg : MiniMC::Loaders::getLoaders ()) {
+    auto loader = loader_reg->makeLoader ();
+    loaders.insert (std::make_pair (loader_reg->getName (),loader));
     
-    po::options_description opt_arr(loader->getName ());
+    po::options_description opt_arr(loader_reg->getName ());
     for (auto& opt : loader->getOptions ()) {
       std::visit (
 		  Overload {
-		    [loader,&opt_arr](MiniMC::Loaders::BoolOption& t) {
+		    [loader_reg,&opt_arr](MiniMC::Loaders::BoolOption& t) {
 		      std::stringstream str;
-		      str << loader->getName() <<"."<<t.name;
+		      str << loader_reg->getName() <<"."<<t.name;
 		      opt_arr.add_options ()
-			(str.str().c_str (),boost::program_options::bool_switch(&t.value),t.description.c_str());
+			(str.str().c_str (),boost::program_options::bool_switch(t.value),t.description.c_str());
 		    
 		    },
-		    [loader,&opt_arr](auto& t){
+		    [loader_reg,&opt_arr](auto& t){
 		      std::stringstream str;
-		      str << loader->getName() <<"."<<t.name;
+		      str << loader_reg->getName() <<"."<<t.name;
 		      opt_arr.add_options ()
-			(str.str().c_str (),boost::program_options::value(&t.value),t.description.c_str());
+			(str.str().c_str (),boost::program_options::value(t.value),t.description.c_str());
 		    },
 		      
 		      },

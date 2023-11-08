@@ -69,10 +69,14 @@ namespace MiniMC {
     
     class LLVMLoader : public Loader {
     public:
-      LLVMLoader(std::size_t stacksize,
-                 std::vector<std::string> entry,
-                 bool disablePromotion,
-                 bool printPass) : stacksize(stacksize), entry(entry), disablePromotion(disablePromotion), printLLVMPass(printPass) {}
+      LLVMLoader()  {
+
+	addOption<IntOption>("stack", "StackSize", &stacksize);
+	addOption<VecStringOption>("entry", "Entry point function", &entry);
+	addOption<BoolOption>("disable_promote_pass", "Disable the promotion of allocas to registers", &disablePromotion);
+	addOption<BoolOption>("print", "Print LLVM module to stderr", &printLLVMPass);
+	
+      }
       MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) override {
 	std::fstream str;
         str.open(file);
@@ -468,7 +472,7 @@ namespace MiniMC {
       }
 
     private:
-      std::size_t stacksize;
+      std::size_t stacksize{200};
       std::vector<std::string> entry;
       bool disablePromotion;
       bool printLLVMPass;
@@ -480,18 +484,10 @@ namespace MiniMC {
     class LLVMLoadRegistrar : public LoaderRegistrar {
     public:
       LLVMLoadRegistrar() : LoaderRegistrar("LLVM") {
-        addOption<IntOption>("stack", "StackSize", 200uL);
-        addOption<VecStringOption>("entry", "Entry point function", std::vector<std::string>{});
-        addOption<BoolOption>("disable_promote_pass", "Disable the promotion of allocas to registers", false);
-        addOption<BoolOption>("print", "Print LLVM module to stderr", false);
-      }
+    }
 
       Loader_ptr makeLoader() override {
-        auto stacksize = getOption<IntOption>(0).value;
-        auto entry = getOption<VecStringOption>(1).value;
-        auto disablePromotion = getOption<BoolOption>(2).value;
-        auto printPass = getOption<BoolOption>(3).value;
-        return std::make_unique<LLVMLoader>(stacksize, entry, disablePromotion, printPass);
+        return std::make_shared<LLVMLoader>();
       }
     };
 
