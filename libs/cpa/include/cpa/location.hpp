@@ -40,8 +40,6 @@ namespace MiniMC {
       struct CPA : public ICPA<CFAState> {
 	State_ptr<CFAState> makeInitialState(const InitialiseDescr&) override;
 	TTransferer_ptr<CFAState> makeTransfer(const MiniMC::Model::Program& prgm ) const override {return std::make_shared<Transferer> (prgm);}
-	TJoiner_ptr<CFAState> makeJoin( ) const override {return std::make_shared<Joiner> ();} 
-	
       };
       
       

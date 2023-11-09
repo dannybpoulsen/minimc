@@ -85,7 +85,7 @@ namespace MiniMC {
       virtual ~ICPA() {}
       virtual State_ptr<T> makeInitialState(const InitialiseDescr&) = 0;
       virtual TTransferer_ptr<T> makeTransfer(const MiniMC::Model::Program& ) const = 0;
-      virtual TJoiner_ptr<T> makeJoin() const {return std::make_shared<TJoiner<T>> ();}
+      //virtual TJoiner_ptr<T> makeJoin() const {return std::make_shared<TJoiner<T>> ();}
       
     };
 

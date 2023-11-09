@@ -690,8 +690,6 @@ namespace MiniMC {
       auto it = instr.begin();
       for (it = instr.begin(); it != end && status == Status::Ok; ++it) {
         status = execute (*it,wstate);
-	if (status != Status::Ok)
-	  return status;
       }
       return status;
     }

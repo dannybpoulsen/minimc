@@ -49,11 +49,6 @@ namespace MiniMC {
 	return state;
       }
 
-      MiniMC::CPA::DataState_ptr Joiner::doJoin(const DataState&, const DataState&) {
-	return nullptr;
-      }
-
-
       struct Transferer::Internal {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
 		      engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm) {}

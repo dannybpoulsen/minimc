@@ -16,23 +16,15 @@ namespace MiniMC {
 	~Transferer ();
 	MiniMC::CPA::State_ptr<DataState> doTransfer(const DataState& s, const MiniMC::CPA::Transition&) override;
       private:
-	class Internal;
+	struct Internal;
 	std::unique_ptr<Internal> _internal;
       };
       
-      struct Joiner : public MiniMC::CPA::TJoiner<DataState> {
-	Joiner (const SMTLib::Context_ptr& context) : context(context) {}
-	MiniMC::CPA::DataState_ptr doJoin(const DataState& l, const DataState& r);
-	
-      private:
-	SMTLib::Context_ptr context;
-      };
-      
+
       struct CPA : public ICPA<DataState> {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	MiniMC::CPA::DataState_ptr makeInitialState(const InitialiseDescr&) override;
 	TTransferer_ptr<DataState> makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
-	TJoiner_ptr<DataState> makeJoin() const { return std::make_shared<Joiner>(context); }
       private:
 	SMTLib::Context_ptr context;
       };

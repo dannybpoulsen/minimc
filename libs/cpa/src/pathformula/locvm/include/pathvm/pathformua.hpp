@@ -109,7 +109,7 @@ namespace MiniMC {
 	SMTLib::Term_ptr asserts;
 	
 	SMTLib::TermBuilder& builder;
-	};
+      };
       
       
       
