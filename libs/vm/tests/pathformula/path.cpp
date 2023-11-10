@@ -15,12 +15,13 @@ TEST_CASE ("Check Pointer interpretation") {
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas {0};
   MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   REQUIRE (descrs.size () > 0);
   
   auto context = descrs.at(0).makeContext ();
-  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,context->getBuilder ()};
+  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,metas,context->getBuilder ()};
   auto input = MiniMC::pointer_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer> (input);
 
@@ -42,13 +43,15 @@ TEST_CASE ("Check Pointer32 interpretation") {
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
+  
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas {0};
   MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);
 
   auto context = descrs.at(0).makeContext ();
-  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,context->getBuilder ()};
+  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,metas,context->getBuilder ()};
   auto input = MiniMC::pointer32_t{1,2,3};
   MiniMC::Model::Value_ptr ptr = std::make_shared<MiniMC::Model::Pointer32> (input);
 
@@ -69,13 +72,14 @@ TEST_CASE ("Pointer to Pointer32") {
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas {0};
   MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);
 
   auto context = descrs.at(0).makeContext ();
-  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,context->getBuilder ()};
+  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,metas,context->getBuilder ()};
   MiniMC::VMT::Pathformula::Casts<MiniMC::VMT::Pathformula::PathFormulaVMVal> caster{context->getBuilder ()};
   
   auto input = MiniMC::pointer_t{1,2,3};
@@ -101,13 +105,14 @@ TEST_CASE ("Pointer32 to Pointer") {
   MiniMC::Support::SMT::getSMTBackends (std::back_inserter(descrs));
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {0};
   MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {0};
+  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas {0};
   MiniMC::VMT::Pathformula::ActivationStack stack {std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
   
   
   REQUIRE (descrs.size () > 0);
 
   auto context = descrs.at(0).makeContext ();
-  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,context->getBuilder ()};
+  MiniMC::VMT::Pathformula::ValueLookup vlookup{stack,metas,context->getBuilder ()};
   MiniMC::VMT::Pathformula::Casts<MiniMC::VMT::Pathformula::PathFormulaVMVal> caster{context->getBuilder ()};
   
   auto input = MiniMC::pointer32_t{1,2,3};

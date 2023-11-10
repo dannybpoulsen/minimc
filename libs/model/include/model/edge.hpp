@@ -5,8 +5,8 @@
 #include <ostream>
 #include <utility>
 
-#include "model/location.hpp"
 #include "model/variables.hpp"
+#include "model/location.hpp"
 #include "model/instructions.hpp"
 
 namespace MiniMC {
@@ -20,6 +20,7 @@ namespace MiniMC {
 												     to(to),
 												     instructions(std::move(stream)),
 												     phi(isPhi)
+												     
 									   
       { }
 
@@ -38,7 +39,6 @@ namespace MiniMC {
     private:
       Location_ptr from;
       Location_ptr to;
-      Value_ptr value;
       InstructionStream instructions;
       bool phi = false;
     };

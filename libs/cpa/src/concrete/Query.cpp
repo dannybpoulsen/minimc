@@ -76,8 +76,13 @@ namespace MiniMC {
       };
       
       struct Transferer::Internal {
-	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm) {}
+	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},
+							       MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm),
+							metas(prgm.getMetaRegs().getTotalRegisters())
+	{}
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
+	MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas;
+	
       };
       
       Transferer::Transferer (const MiniMC::Model::Program& p) : _internal(new Internal (p)) {}
@@ -120,8 +125,8 @@ namespace MiniMC {
 	  if (p >= proc_vars.size ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  
-	  MiniMC::VMT::Concrete::ValueLookup lookup{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p))};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas{1};
+	  MiniMC::VMT::Concrete::ValueLookup lookup{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p)),metas};
 	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
 	  
 	}
@@ -149,7 +154,8 @@ namespace MiniMC {
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> values{vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
 	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
-	  MiniMC::VMT::Concrete::ValueLookup lookup {cs};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas{1};
+	  MiniMC::VMT::Concrete::ValueLookup lookup {cs,metas};
 	  for (auto& v : vstack.getRegisters()) {
             lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
 	    
@@ -180,7 +186,7 @@ namespace MiniMC {
 	  
 	MiniMC::VMT::Concrete::PathControl control;
 	StackControl scontrol {nstate.getProc (id)};
-	MiniMC::VMT::Concrete::ValueLookup lookup (nstate.getProc (id));
+	MiniMC::VMT::Concrete::ValueLookup lookup (nstate.getProc (id),_internal->metas);
 	
 	
 	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,scontrol,lookup};

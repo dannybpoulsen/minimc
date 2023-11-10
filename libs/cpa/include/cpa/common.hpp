@@ -64,30 +64,39 @@ namespace MiniMC {
     template<class T>
     struct BaseValueLookup  {
     public:
-      BaseValueLookup (ActivationStack<T>& values) : values(values) {}
+      BaseValueLookup (ActivationStack<T>& values,MiniMC::Model::VariableMap<T>& metas) : values(values),metas(metas) {}
       BaseValueLookup (const BaseValueLookup&) = delete;
       virtual  ~BaseValueLookup () {}
       
-      MiniMC::Hash::hash_t hash() const { return values.hash(); }
       using Value = T;
     protected:
       T lookupRegister (const MiniMC::Model::Register& reg) const  {
-	return (reg.getRegType () == MiniMC::Model::RegType::Local) ? values.back().values[reg]
-	                                                            : values.cpus()[reg];
+	switch (reg.getRegType ()) {
+	case MiniMC::Model::RegType::Local: return values.back().values[reg];
+	case MiniMC::Model::RegType::CPU: return values.cpus()[reg];
+	case MiniMC::Model::RegType::Meta: return metas[reg];
+	default:
+	  throw MiniMC::Support::Exception ("Temporaries not fulle implemented yet");
+	  
+	}
       }
       
       void saveRegister(const MiniMC::Model::Register& v, T&& value)  {
-	if (v.getRegType () == MiniMC::Model::RegType::Local) {
-	  values.back().values.set (v,std::move(value));
+	switch (v.getRegType ()) {
+	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
+	case MiniMC::Model::RegType::CPU:   values.cpus ().set (v,std::move(value));break;
+	case MiniMC::Model::RegType::Meta: return metas.set(v,std::move(value));
+	
+	default:
+	  throw MiniMC::Support::Exception ("Temporaries not fulle implemented yet");
 	}
-	else {
-	  values.cpus ().set (v,std::move(value));
-	}
+	
       }
       
       
     private:
       ActivationStack<T>& values;
+      MiniMC::Model::VariableMap<T>& metas;
     };
     
     

@@ -35,6 +35,9 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
   if (options.inlineFunctions) {
     manager.add<InlineFunctions> (options.inlineFunctions);
   }
+  if (options.lower_phi) {
+    manager.add<LowerPhi> ();
+  }
   return manager (std::move(prgm));
 }
 

@@ -101,6 +101,11 @@ namespace MiniMC {
 	  curFrame = prgm->getRootFrame ();
 	  parseRegisterDeclarations (prgm->getCPURegs ());
 	  skipBlanks ();
+	  expect(METAREGISTERS);
+	  skipBlanks ();
+	  curFrame = prgm->getRootFrame ();
+	  parseRegisterDeclarations (prgm->getMetaRegs ());
+	  skipBlanks ();
 	  
 	  
 	  return true;

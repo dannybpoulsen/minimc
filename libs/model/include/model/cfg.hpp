@@ -174,7 +174,8 @@ namespace MiniMC {
               const MiniMC::Model::ConstantFactory_ptr& cfact
 	      ) : cfact(cfact),
 		  tfact(tfact),
-		  cpu_regs(RegType::CPU)
+		  cpu_regs(RegType::CPU),
+		  meta_regs(RegType::Meta)
       {
       }
 
@@ -244,6 +245,9 @@ namespace MiniMC {
       
       auto& getCPURegs () {return cpu_regs;}
       const auto& getCPURegs () const  {return cpu_regs;}
+      auto& getMetaRegs () {return meta_regs;}
+      const auto& getMetaRegs () const  {return meta_regs;}
+      
       
       auto& getRootFrame () {return frame;}
     private:
@@ -255,7 +259,9 @@ namespace MiniMC {
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;
+      MiniMC::Model::RegisterDescr meta_regs;
       MiniMC::Model::Frame frame;
+      
     };
     
     Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);
