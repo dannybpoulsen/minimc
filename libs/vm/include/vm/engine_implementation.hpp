@@ -14,6 +14,9 @@ namespace MiniMC {
     concept Integer = std::is_same_v<R,typename T::I8> || std::is_same_v<R,typename T::I16> || std::is_same_v<R,typename T::I32> || std::is_same_v<R,typename T::I64>;
 
     template<class T,class R>
+    concept Boolean = std::is_same_v<R,typename T::Bool>;    
+    
+    template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
     
     
@@ -115,8 +118,9 @@ namespace MiniMC {
 	      auto lval = Impl::castPtrToAppropriateInteger (l,caster);
 	      auto rval = Impl::castPtrToAppropriateInteger (r,caster);
 	      
-	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
-	        writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
+	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT) {
+		writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
+	      }
 	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
 		writeState.getValueLookup().saveValue(res, operations.SGe(lval, rval));
 	      }
@@ -689,7 +693,7 @@ namespace MiniMC {
       Status status = Status::Ok;
       auto it = instr.begin();
       for (it = instr.begin(); it != end && status == Status::Ok; ++it) {
-        status = execute (*it,wstate);
+	status = execute (*it,wstate);
       }
       return status;
     }

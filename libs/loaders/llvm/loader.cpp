@@ -158,14 +158,16 @@ namespace MiniMC {
         MiniMC::Model::LocationInfoCreator locinfoc(variablestack);
    
         auto sp_mem = variablestack.addRegister(frame.makeFresh("sp_mem"), lcontext.getTypeFactory().makePointerType());
-
+	
         LoadContext load{lcontext, variablestack, sp, sp_mem, frame};
         auto returnTy = load.getType(F.getReturnType());
 
         auto makeVariable = [&load, &frame](auto val) {
           if (!load.hasValue(val)) {
             auto type = load.getType(val->getType());
-            load.addValue(val, load.getStack().addRegister(frame.makeSymbol(val->getName().str()), type));
+	    std::string name{val->getName().str()};
+	    MiniMC::Model::Symbol symb = (name != "") ? frame.makeSymbol (name) : frame.makeFresh ();  
+	    load.addValue(val, load.getStack().addRegister(std::move(symb), type));
           }
           return load.findValue(val);
         };
@@ -276,7 +278,15 @@ namespace MiniMC {
 
           auto& BB = F.getEntryBlock();
           auto entry = enqueue(&BB);
-          cfg.setInitial(entry);
+
+	  //Set up pre-header for storing sp in sp_mem
+	  auto init = cfg.makeLocation (frame.makeFresh (),entry->getInfo());
+	  {
+	    MiniMC::Model::EdgeBuilder edgebuilder{cfg, init, entry, frame};
+	    edgebuilder.template addInstr<MiniMC::Model::InstructionCode::Assign>(sp_mem, sp );
+	  }
+	  cfg.setInitial(init);
+          
           InstructionTranslator translate{load};
 
           while (waiting.size()) {
@@ -321,7 +331,7 @@ namespace MiniMC {
                   }
                 }
               }
-
+	      
               else if (term->getOpcode() == llvm::Instruction::IndirectBr) {
                 auto brterm = llvm::dyn_cast<llvm::IndirectBrInst>(term);
                 std::size_t dests = brterm->getNumDestinations();
@@ -339,7 +349,8 @@ namespace MiniMC {
 		    .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
                   buildphi(cur_bb, brterm->getDestination(i), MiniMC::Model::EdgeBuilder<true>{cfg, splitloc, dest, frame});
                 }
-              } else if (term->getOpcode() == llvm::Instruction::Ret) {
+              }
+	      else if (term->getOpcode() == llvm::Instruction::Ret) {
                 translate(term, edgebuilder);
               }
             }

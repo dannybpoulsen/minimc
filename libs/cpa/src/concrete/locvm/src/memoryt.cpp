@@ -127,7 +127,6 @@ namespace MiniMC {
         auto base = MiniMC::getBase(pointer);
         auto offset = MiniMC::getOffset(pointer);
 	auto base_pointer = MiniMC::pointer_t::makeHeapPointer (base,0);
-	std::cerr << base_pointer << std::endl;
 	if (_internal->entries.count(base_pointer)) {
           auto performRead = [this,base,offset,&base_pointer]<typename T>() {
             typename T::underlying_type readVal{0};
