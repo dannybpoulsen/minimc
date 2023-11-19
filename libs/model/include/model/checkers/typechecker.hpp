@@ -11,7 +11,6 @@
 
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
-#include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -34,3 +33,4 @@ namespace MiniMC {
 } // namespace MiniMC
 
 #endif
+ 

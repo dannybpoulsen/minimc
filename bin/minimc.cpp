@@ -3,6 +3,7 @@
 #include "plugin.hpp"
 #include "support/localisation.hpp"
 #include "model/checkers/typechecker.hpp"
+#include "model/checkers/structuralchecker.hpp"
 #include "model/modifications/modifications.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
@@ -58,7 +59,9 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.loader;
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
       
-      if (!MiniMC::Model::Checkers::TypeChecker{prgm}.Check (messager)) {
+      if (!MiniMC::Model::Checkers::TypeChecker{prgm}.Check (messager) ||
+	  !MiniMC::Model::Checkers::StructuralChecker{}.Check (prgm,messager)
+	  ) {
 	return -1;
       }
       MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);

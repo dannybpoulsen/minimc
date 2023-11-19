@@ -51,7 +51,7 @@ namespace MiniMC {
     template<class T>
     constexpr bool isAssertAssume_v = InstructionData<T::getOpcode ()>::isAssertAssume;;
     
-   
+    
     
     
     struct Instruction {
