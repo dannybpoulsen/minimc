@@ -58,8 +58,22 @@ def writeInstructionData (ISA,output):
                     if "std::vector"  in o[0]:
                         output.write (f"std::for_each (oth.{o[1]}.begin (),oth.{o[1]}.end (),[replacer,this](auto& v) {{ {o[1]}.push_back (replacer(v));}});")
                     
-                
+                        
                 output.write (f"}}")
+
+                output.write ("template<class Adder>")
+                output.write ("void getUsages (Adder add) const {")
+                for o in ops:
+                    if o[1]  != "res":
+                        if "std::vector"  in o[0]:
+                            output.write (f"std::for_each ({o[1]}.begin (),{o[1]}.end (),[&add](auto& v) {{ add = v;}});")
+                        else:
+                            output.write  (f"add = {o[1]};")
+
+                
+            
+                output.write ("}")
+
                 
                 output.write ("};")
             output.write (f"\n}};\n\n")
@@ -71,6 +85,12 @@ def writeFooter (ISA,output):
     concept hasOperands =  requires  {
       typename InstructionData<opc>::Content;
     };
+
+    template<InstructionCode opc>
+    concept hasRes =  requires (const typename InstructionData<opc>::Content& c) {
+      c.res;
+    };
+    
     
     template<InstructionCode>
     struct TInstruction;
@@ -80,6 +100,17 @@ def writeFooter (ISA,output):
       TInstruction (typename InstructionData<opc>::Content content ) :  content(content) {}
       auto& getOps () const {return content;}
       static consteval auto getOpcode () {return opc;}
+      Value_ptr getDefines () const requires hasRes<opc> {return content.res;} 
+      template<class Adder>
+      void getUsages (Adder add) const {content.getUsages (add);}
+      static constexpr bool hasOperands () {return true;}
+      static constexpr bool hasResult () requires hasRes<opc> {
+        return true;
+      }
+      static constexpr bool hasResult () requires (!hasRes<opc>) {
+        return false;
+      }
+    
     private:
       typename InstructionData<opc>::Content content;
     };
@@ -87,9 +118,11 @@ def writeFooter (ISA,output):
     template<InstructionCode opc> requires (!hasOperands<opc>)
     struct TInstruction<opc> {
       TInstruction ()  {}
-      static consteval auto getOpcode () {return opc;}
+      static constexpr auto getOpcode () {return opc;}
+      static constexpr bool hasOperands () {return false;}
+      static constexpr bool hasRes () {return false;}
     };''')
-
+    
     instrline = ",\n".join ([f"TInstruction<InstructionCode::{i.getName ()}>" for i in ISA.getInstructions ()])
     output.write (f"using Instruction_internal = std::variant<{instrline}>;")
 

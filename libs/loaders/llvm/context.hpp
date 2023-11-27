@@ -223,18 +223,16 @@ namespace MiniMC {
 	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
 	    params.push_back(context.findValue(*it));
 	  }
-	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(context.getStackPointerMem (),context.getStackPointer ());
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>(
 	      res,
 	      func_ptr,
 	      params);
-	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(context.getStackPointer (),context.getStackPointerMem ());
-	  
 	}
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Ret == code) {
 	auto retinst = llvm::dyn_cast<llvm::ReturnInst>(inst);
+	gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(context.getStackPointer (),context.getStackPointerMem());
 	if (retinst->getReturnValue()) {
 	  
 	  auto res = context.findValue(retinst->getReturnValue());

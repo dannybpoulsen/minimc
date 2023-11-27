@@ -85,7 +85,7 @@ namespace MiniMC {
 			  private MiniMC::CPA::Common::BaseValueLookup<PathFormulaVMVal>
       {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<PathFormulaVMVal>& values, SMTLib::TermBuilder& b) : ValueLookupBase(b),BaseValueLookup(values) {}
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<PathFormulaVMVal>& values, MiniMC::Model::VariableMap<PathFormulaVMVal>& metas,SMTLib::TermBuilder& b) : ValueLookupBase(b),BaseValueLookup(values,metas) {}
 
 	void saveValue(const MiniMC::Model::Register& v, PathFormulaVMVal&& value) override {
 	  this->saveRegister (v,std::move(value));
@@ -109,7 +109,7 @@ namespace MiniMC {
 	SMTLib::Term_ptr asserts;
 	
 	SMTLib::TermBuilder& builder;
-	};
+      };
       
       
       

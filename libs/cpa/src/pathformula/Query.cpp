@@ -28,8 +28,9 @@ namespace MiniMC {
 	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(stack),
 									std::move(memory),
 									std::move(term),
-									*context);	
-	MiniMC::VMT::Pathformula::ValueLookup lookup{state->getStack (),termbuilder};
+									*context);
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas{1};
+	MiniMC::VMT::Pathformula::ValueLookup lookup{state->getStack (),metas,termbuilder};
 	
 	for (auto& reg : vstack.getRegisters ()) {
 	  auto val = lookup.defaultValue (*reg->getType ());
@@ -49,18 +50,15 @@ namespace MiniMC {
 	return state;
       }
 
-      MiniMC::CPA::DataState_ptr Joiner::doJoin(const DataState&, const DataState&) {
-	return nullptr;
-      }
-
-
       struct Transferer::Internal {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
-		      engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm) {}
+										    engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm),
+										    metas(prgm.getMetaRegs().getTotalRegisters())
+	{}
 	SMTLib::Context_ptr context;
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
-	
-	
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas;
+	  
       };
 
       Transferer::Transferer (const SMTLib::Context_ptr& context,const MiniMC::Model::Program& prgm) : _internal(new Internal (context,prgm)) {}
@@ -77,7 +75,7 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	StackControl stackcontrol{nstate.getStack (),*_internal->context};
-	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),termbuilder};
+	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),_internal->metas,termbuilder};
 	
 	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,stackcontrol,lookup};
 	auto& instr = e.getInstructions();

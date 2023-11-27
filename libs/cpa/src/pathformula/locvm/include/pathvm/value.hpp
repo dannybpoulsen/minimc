@@ -71,7 +71,7 @@ namespace MiniMC {
                                                        I32Value,
                                                        I64Value,
 						       PointerValue,
-						       Value<MiniMC::pointer32_t>,
+						       Pointer32Value,
 						       BoolValue,
                                                        AggregateValue>;
 

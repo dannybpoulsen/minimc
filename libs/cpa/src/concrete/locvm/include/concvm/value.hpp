@@ -14,7 +14,7 @@ namespace MiniMC {
         MiniMC::Hash::hash_t hash() const {
           return val;
         }
-
+	
         auto getValue() const { return val; }
 	using underlying_type = MiniMC::BV8;
         
@@ -39,7 +39,7 @@ namespace MiniMC {
         }
 
         static constexpr std::size_t intbitsize() { return sizeof(T) * 8; }
-
+	
         auto getValue() const { return value; }
 
       private:

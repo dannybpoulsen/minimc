@@ -88,7 +88,8 @@ namespace MiniMC {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
-	  MiniMC::VMT::Pathformula::ValueLookup lookup {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (call_stack),context.getBuilder ()};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas{1};  
+	  MiniMC::VMT::Pathformula::ValueLookup lookup {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (call_stack),metas,context.getBuilder ()};
           return std::make_unique<QExpr>(lookup.lookupValue(*val));
         }
 

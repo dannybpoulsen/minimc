@@ -55,7 +55,7 @@ namespace MiniMC {
       class ValueLookup : public ValueLookupBase,
 			  private MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values) : BaseValueLookup<ConcreteVMVal>(values) {}
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values,MiniMC::Model::VariableMap<ConcreteVMVal>& metas) : BaseValueLookup<ConcreteVMVal>(values,metas) {}
         void saveValue(const MiniMC::Model::Register& v, ConcreteVMVal&& value) override {
 	  this->saveRegister (v,std::move(value));
 	}

@@ -14,9 +14,9 @@ namespace MiniMC {
       
       struct LowerPhi : public ProgramModifier {
 	MiniMC::Model::Program operator() (MiniMC::Model::Program&& prgm) override {
-          for (auto& F : prgm.getFunctions()) {
+	  for (auto& F : prgm.getFunctions()) {
             for (auto& E : F->getCFA().getEdges()) {
-	      auto frame = F->getFrame ();
+	      auto frame = prgm.getRootFrame ();
 	      if (E->getInstructions () ) {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
@@ -25,7 +25,7 @@ namespace MiniMC {
                   for (auto& inst : instrstream) {
 		    
 		    auto& content = inst.getAs<InstructionCode::Assign>().getOps ();
-                    auto nvar = F->getRegisterDescr().addRegister( frame.makeFresh ("Phi"), content.res->getType());
+                    auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
                     replacemap.insert(std::make_pair(content.res.get(), nvar));
 		    stream.add<MiniMC::Model::InstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
                   }

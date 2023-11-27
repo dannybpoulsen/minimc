@@ -62,6 +62,7 @@ Aggr[0-9]+ {return makeToken (AGGR);}
 
 
 ".registers" {return makeToken (REGISTERS);}
+".metaregisters" {return makeToken (METAREGISTERS);}
 ".parameters" {return makeToken (PARAMETERS);}
 ".returns" {return makeToken (RETURNS);}
 ".cfa" {return makeToken (CFA);}

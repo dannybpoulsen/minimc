@@ -1,8 +1,7 @@
-add_library (checkers INTERFACE)
+add_library (checkers STATIC typechecker.cpp structurechecker.cpp)
+target_link_libraries (checkers modelisa support util host)
+target_include_directories (checkers PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-add_subdirectory (typechecker)
-
-target_link_libraries (checkers INTERFACE typechecker  )
 
 	
 	
