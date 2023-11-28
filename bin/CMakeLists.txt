@@ -5,10 +5,10 @@ if(ENABLE_SYMBOLIC)
     target_compile_options (support PUBLIC -DMINIMC_SYMBOLIC)
 endif(ENABLE_SYMBOLIC)
 
-add_subdirectory (interpreter)
+#add_subdirectory (interpreter)
 
-add_executable (minimc minimc.cpp enum.cpp mc.cpp plugin.cpp options.cpp convert.cpp)
+add_executable (minimc minimc.cpp mc.cpp plugin.cpp options.cpp convert.cpp)
 
-target_link_libraries  (minimc minimclib interpreter ${Boost_LIBRARIES})
+target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})
 
 INSTALL (TARGETS minimc )

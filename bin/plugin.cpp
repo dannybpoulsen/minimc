@@ -5,11 +5,11 @@
 
 
 auto& getMap () {
-  static std::unordered_map<std::string,CommandRegistrar*> map;
+  static std::unordered_map<std::string,Command*> map;
   return map;
 }
 
-void registerCommand (const std::string& s,CommandRegistrar& r) {
+void registerCommand (const std::string& s,Command& r) {
   getMap().insert(std::make_pair(s,&r));
 }
 
@@ -17,19 +17,13 @@ bool isCommand (const std::string& s) {
   return getMap().count (s);
 }
 
-subcommandfunc getCommand (const std::string& s) {
-  return getMap().at(s)->getFunction ();
+
+CommandOldStyle::CommandOldStyle(std::string s, subcommandfunc func, std::string desc, options_func ofunc) : s(s), func(func), desc(desc), opt(ofunc) {
 }
 
-CommandRegistrar* getRegistrar (const std::string& s) {
+Command* getRegistrar (const std::string& s) {
   return getMap().at(s);
 }
-
-options_func getOptionsFunc (const std::string& s) {
-    return getMap().at(s)->getOptions ();
-	
-}
-
 
 std::unordered_map<std::string,std::string> getCommandNameAndDescr () {
   std::unordered_map<std::string,std::string>res;
@@ -46,31 +40,31 @@ bool parseOptionsAddHelp (boost::program_options::variables_map& vm, boost::prog
   
   try {
     boost::program_options::store(boost::program_options::command_line_parser(params).
-								  options(desc) 
-								  .run(), vm);
-	boost::program_options::notify (vm);
-	
+				  options(desc) 
+				  .run(), vm);
+    boost::program_options::notify (vm);
+    
   }
   catch(boost::program_options::error& e) {
-	if (help) {
-	  std::cerr << desc << std::endl;
-	}
-	else 
-	  std::cerr << e.what () << std::endl;
-	
-	return false;
+    if (help) {
+      std::cerr << desc << std::endl;
+    }
+    else 
+      std::cerr << e.what () << std::endl;
+    
+    return false;
   }
-
+  
   if (help) {
-	std::cerr << desc << std::endl;
-	return false;
+    std::cerr << desc << std::endl;
+    return false;
   }
   
   
-
+  
   return true;
   
-
+  
 }
 
 

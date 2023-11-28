@@ -16,7 +16,7 @@ namespace {
   }
 }
 
-MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Program&& prgm, const MiniMC::CPA::AnalysisBuilder& cpa, MiniMC::Support::Messager& messager)  {
+MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager& messager)  {
   messager << MiniMC::Support::TInfo {"Initiating EnumStates"};
   
   auto initstate = cpa.makeInitialState(MiniMC::CPA::InitialiseDescr{
@@ -38,5 +38,5 @@ MiniMC::Host::ExitCodes enum_main (MiniMC::Model::Program&& prgm, const MiniMC::
   return MiniMC::Host::ExitCodes::AllGood;
 }
 
-static CommandRegistrar enum_reg ("enum",enum_main,"Enumerate total number of states in CPA",addOptions);
+static CommandOldStyle enum_reg ("enum",enum_main,"Enumerate total number of states in CPA",addOptions);
 

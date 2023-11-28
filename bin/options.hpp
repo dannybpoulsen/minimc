@@ -6,7 +6,7 @@
 #include "cpa/location.hpp"
 #include "loaders/loader.hpp"
 
-struct CommandRegistrar;
+struct Command;
 
 #include <vector>
 #include <string>
@@ -35,8 +35,7 @@ struct SetupOptions {
   transform_options transform;
   
   
-  MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
-  CommandRegistrar* command = nullptr;
+  Command* command = nullptr;
   bool help;
   std::string outputname = "";
 };

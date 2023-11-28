@@ -142,44 +142,11 @@ po::options_description defOptions (SetupOptions& options) {
 }
 
 
-
-
-po::options_description cpaOptions (std::vector<int>& select) {  
-  po::options_description general("CPA Options");
-  general.add_options ()
-    ("cpa", po::value<std::vector<int>>(&select), "CPA\n 2: Concrete\n"
-#ifdef MINIMC_SYMBOLIC
-     "\t 3: PathFormula\n"
-#endif
-     );
-  
-  return general;
-}
-
-MiniMC::CPA::AnalysisBuilder createUserDefinedCPA(std::vector<int> selected,const SetupOptions& opt) {
-  MiniMC::CPA::AnalysisBuilder builder{std::make_shared<MiniMC::CPA::Location::CPA> ()};
-  
-  for (auto& sel : selected) {
-    switch (sel) {
-    case 3:
-      builder.addDataCPA(std::make_shared<MiniMC::CPA::PathFormula::CPA>(opt.smt.selsmt));
-      break;
-    case 2:
-      builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA>());
-      break;
-      
-    }
-  }
-  return builder;
-  
-}
-
-
 void addCommandOptions (po::options_description& general) {
   auto commands = getCommandNameAndDescr ();
   for (auto it : commands) {
     auto registrar = getRegistrar (it.first);
-    registrar->getOptions()(general);
+    registrar->addOptions(general);
   }
 }
 
@@ -198,8 +165,6 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
   general.add(smtOptions (opt));
   general.add(transformOptions (opt));
   
-  std::vector<int> cpasel;
-  general.add(cpaOptions (cpasel));
   addCommandOptions (general);
 
   options.add(defOptions (opt));
@@ -236,9 +201,7 @@ bool parseOptions(int argc, char* argv[], SetupOptions& opt)  {
       
       return false;
     }
-    
-    opt.cpa = createUserDefinedCPA (cpasel,opt);
-    
+
     return true;
     
   }

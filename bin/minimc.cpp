@@ -12,11 +12,7 @@
 #include <vector>
 #include <fstream>
 
-#include "cpa/location.hpp"
-#ifdef MINIMC_SYMBOLIC
-#include "cpa/pathformula.hpp"
-#endif
-#include "cpa/concrete.hpp"
+
 #include "loaders/loader.hpp"
 #include "options.hpp"
 
@@ -25,7 +21,7 @@ namespace po = boost::program_options;
 MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Support::Messager& mess) {
   MiniMC::Model::Modifications::ProgramManager manager;
   using namespace  MiniMC::Model::Modifications;
-  //MiniMC::Model::Controller controller(prgm); 
+  
   manager.add<SplitAsserts> ();
   if (options.unrollLoops) {
     manager.add<UnrollLoops> (options.unrollLoops);
@@ -73,7 +69,7 @@ int main(int argc, char* argv[]) {
 	stream.close ();
       }
       if (options.command) {
-	auto res =  static_cast<int>(options.command->getFunction()(std::move(prgm2),options.cpa,messager));
+	auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
 	return res;
       }
       

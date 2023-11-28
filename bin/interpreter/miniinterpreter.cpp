@@ -66,4 +66,4 @@ MiniMC::Host::ExitCodes intp_main(MiniMC::Model::Program&& prgm, const MiniMC::C
 
 }
 
-static CommandRegistrar intp_reg ("intp",intp_main,"Running the interpreter on the given configuration. ", addOptions);
+static CommandOldStyle intp_reg ("intp",intp_main,"Running the interpreter on the given configuration. ", addOptions);
