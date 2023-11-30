@@ -15,7 +15,8 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  cfastate.getLocationState ().getLocation (i).getSymbol ().getFullName ();
+	if (cfastate.isActive (i))
+	  os <<  cfastate.getLocationState ().getLocation (i).getSymbol ().getFullName ();
       }
       os << "]\n";
 
@@ -32,7 +33,9 @@ namespace MiniMC {
       };
       
       for (std::size_t p = 0; p < nbProcs; p++) {
-	printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+	if (cfastate.isActive (p)) {
+	  printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+	}
       }
       
       

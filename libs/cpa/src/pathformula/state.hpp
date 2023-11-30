@@ -41,7 +41,8 @@ namespace MiniMC {
         void pop(MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
           auto ret = stack.back().ret;
           stack.pop();
-          stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register>(ret), std::move(val));
+	  if (ret) 
+	    stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register>(ret), std::move(val));
         }
 
         void popNoReturn() override {

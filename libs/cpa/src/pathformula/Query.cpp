@@ -14,7 +14,7 @@ namespace MiniMC {
 	  throw MiniMC::Support::ConfigurationException ("Pathformula only supports one entry point");
 	}
 	
-	auto& func = entrypoints[0];
+	auto& func = entrypoints[0].getFunction();
 	auto& vstack = func->getRegisterDescr ();
 	auto& termbuilder =  context->getBuilder ();
 	
@@ -36,7 +36,20 @@ namespace MiniMC {
 	  auto val = lookup.defaultValue (*reg->getType ());
 	  lookup.saveValue (*reg,std::move(val));
 	}
+
+	for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
+	  auto val = lookup.defaultValue (*reg->getType ());
+	  lookup.saveValue (*reg,std::move(val));
+	}
+
 	
+	
+	auto pit = entrypoints[0].getParams ().begin ();
+	auto rit = func->getParameters().begin ();
+	for (; pit != entrypoints[0].getParams ().end ();++pit,++rit) {
+	  lookup.saveValue  (**rit,lookup.lookupValue (**pit));
+	} 
+	  
 
 	memory.createHeapLayout (descr.getHeap ());
 	

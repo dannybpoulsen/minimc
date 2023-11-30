@@ -25,23 +25,38 @@
 namespace MiniMC {
   namespace CPA {
 
+    struct FunctionInit {
+      FunctionInit (MiniMC::Model::Function_ptr function,
+		    std::vector<MiniMC::Model::Value_ptr> params = {}) : function(function),
+								    params(params) {}
+      auto& getFunction () const {return function;}
+      auto& getParams () const {return params;}
+      MiniMC::Model::Function_ptr function;
+      std::vector<MiniMC::Model::Value_ptr> params;
+    };
+    
     struct InitialiseDescr {
     public:
-      InitialiseDescr(std::vector<MiniMC::Model::Function_ptr> entries,
+      InitialiseDescr(std::vector<MiniMC::Model::Function_ptr> entri_func,
                       MiniMC::Model::HeapLayout heap,
                       MiniMC::Model::InstructionStream init,
-                      const MiniMC::Model::Program& program) : entries(std::move(entries)),
-                                                               heap(std::move(heap)),
+                      const MiniMC::Model::Program& program) : heap(std::move(heap)),
                                                                init(std::move(init)),
-                                                               prgm(program) {}
+                                                               prgm(program) {
+	
+	for (auto& F : entri_func) {
+	  entries.push_back (F);
+	}
+      }
 
       auto& getEntries() const { return entries; }
       auto& getHeap() const { return heap; }
       auto& getInit() const { return init; }
       auto& getProgram() const { return prgm; }
       
+      
     private:
-      std::vector<MiniMC::Model::Function_ptr> entries;
+      std::vector<FunctionInit> entries;
       MiniMC::Model::HeapLayout heap;
       MiniMC::Model::InstructionStream init;
       const MiniMC::Model::Program& prgm;
@@ -85,7 +100,6 @@ namespace MiniMC {
       virtual ~ICPA() {}
       virtual State_ptr<T> makeInitialState(const InitialiseDescr&) = 0;
       virtual TTransferer_ptr<T> makeTransfer(const MiniMC::Model::Program& ) const = 0;
-      //virtual TJoiner_ptr<T> makeJoin() const {return std::make_shared<TJoiner<T>> ();}
       
     };
 

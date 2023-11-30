@@ -60,7 +60,7 @@ namespace MiniMC {
       virtual const LocationInfo& getLocationState () const  = 0;
       virtual std::shared_ptr<CFAState> copy() const = 0;
       virtual MiniMC::Hash::hash_t hash() const = 0;
-    
+      virtual bool isActive(size_t i) const = 0;
     };
     
     

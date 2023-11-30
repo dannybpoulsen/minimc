@@ -15,9 +15,8 @@ namespace MiniMC {
         }
 
         void pop() {
-	  if (stack.size() > 1)
+	  if (stack.size() >= 1)
             stack.pop_back();
-          assert(stack.back());
         }
 
 
@@ -30,6 +29,11 @@ namespace MiniMC {
           assert(stack.size());
           return stack.back();
         }
+
+	bool active () const {
+	  return stack.size();
+	}
+	
         virtual MiniMC::Hash::hash_t hash() const {
 	  MiniMC::Hash::Hasher hash;
 	  for (auto& t : stack)
@@ -68,14 +72,15 @@ namespace MiniMC {
 	
         size_t nbOfProcesses() const override { return locations.size(); }
         MiniMC::Model::Location& getLocation(size_t i) const override { return *locations.at(i).cur(); }
-        void setLocation(size_t i, MiniMC::Model::Location* l) { 
+	bool isActive(size_t i) const override  { return locations.at(i).active(); }
+	void setLocation(size_t i, MiniMC::Model::Location* l) { 
 	  locations[i].setLocation(l);
         }
         void pushLocation(size_t i, MiniMC::Model::Location* l) { locations[i].push(l); }
         void popLocation(size_t i) { locations[i].pop(); }
         
 	virtual const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
-      
+	
 	
       private:
         std::vector<LocationState> locations;
@@ -120,45 +125,7 @@ namespace MiniMC {
 	if (!edge.getInstructions ()) {
 	  return nstate;
 	}
-
-	/*auto& inst = edge.getInstructions ().last();
-	if (inst.getOpcode() == MiniMC::Model::InstructionCode::Call) {
-	  auto& content = inst.getOps<MiniMC::Model::InstructionCode::Call> ();
-	  if (content.function->isConstant()) {
-	    auto func = MiniMC::Model::visitValue (
-						   MiniMC::Model::Overload {
-						     [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
-						       auto loadPtr = t.getValue ();
-						       auto func = prgm.getFunction(loadPtr.base);
-						       return func;
-						     },
-						       [this] (const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
-							 auto loadPtr = t.getValue ();
-							 auto func = prgm.getFunction(loadPtr.base);
-							 return func;
-						       },
-						       [this] (const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
-							 auto symb = t.getValue ();
-							 auto func = prgm.getFunction(symb);
-							 return func;
-						       },
-						       [](const auto&) -> MiniMC::Model::Function_ptr {							 
-							 throw MiniMC::Support::Exception("Shouldn't happen");
-						       }
-						       }
-						   ,*content.function);
-	    
-						   nstate->pushLocation(id, func->getCFA().getInitialLocation().get());
 	
-	    return nstate;
-	  }
-	}
-	
-	else if (MiniMC::Model::isOneOf<MiniMC::Model::InstructionCode::RetVoid,
-		 MiniMC::Model::InstructionCode::Ret>(inst)) {
-	  nstate->popLocation(id);
-	  return nstate;
-	  }*/
 	MiniMC::VMT::Engine<DummyOperations, DummyCaster> engine {DummyOperations{},DummyCaster{},prgm};
         VMState vmstate{*nstate, id};
 	engine.execute (edge.getInstructions (),vmstate);
@@ -172,7 +139,7 @@ namespace MiniMC {
         std::vector<LocationState> locs;
         for (auto& f : p.getEntries()) {
           locs.emplace_back();
-          locs.back().push(f->getCFA().getInitialLocation().get());
+          locs.back().push(f.getFunction()->getCFA().getInitialLocation().get());
         }
         return std::make_shared<State>(locs);
       }

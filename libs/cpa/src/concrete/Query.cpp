@@ -62,7 +62,8 @@ namespace MiniMC {
 	void pop (MiniMC::VMT::Concrete::ConcreteVMVal&& val) override {
 	  auto ret = stack.back ().ret;
 	  stack.pop ();
-	  stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	  if (ret)
+	    stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
 	}
 	
 	void popNoReturn () override {
@@ -149,7 +150,7 @@ namespace MiniMC {
 	
         std::vector<MiniMC::VMT::Concrete::ActivationStack> stack;
 	for (auto& f : descr.getEntries()) {
-          auto& vstack = f->getRegisterDescr();
+          auto& vstack = f.getFunction()->getRegisterDescr();
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> values{vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
@@ -158,12 +159,25 @@ namespace MiniMC {
 	  MiniMC::VMT::Concrete::ValueLookup lookup {cs,metas};
 	  for (auto& v : vstack.getRegisters()) {
             lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
-	    
 	  }
+
+	  for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
+	    auto val = lookup.defaultValue (*reg->getType ());
+	    lookup.saveValue (*reg,std::move(val));
+	  }
+	  
+	  
+	  auto pit = f.getParams ().begin ();
+	  auto rit = f.getFunction()->getParameters().begin ();
+	  for (; pit != f.getParams ().end ();++pit,++rit) {
+	    lookup.saveValue  (**rit,lookup.lookupValue (**pit));
+	  } 
 	  
           stack.push_back(cs);
 	  
         }
+	
+	
 	
 	auto state = std::make_shared<State>(stack,heap);
 	

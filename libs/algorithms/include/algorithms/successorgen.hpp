@@ -2,6 +2,7 @@
 #define _SUCCESSOR_GEN__
 
 #include "cpa/interface.hpp"
+#include "cpa/state.hpp"
 #include "support/exceptions.hpp"
 #include "host/types.hpp"
 
@@ -20,10 +21,7 @@ namespace MiniMC {
     
     class TransitionEnumerator {
     public:
-      TransitionEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state),
-								 iter(orig.getCFAState ().getLocationState().getLocation(0).ebegin ()),
-								 end(orig.getCFAState ().getLocationState().getLocation(0).eend ())
-	
+      TransitionEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state)	
       {
 	done = !next ();
       }
@@ -43,6 +41,11 @@ namespace MiniMC {
 
       bool next () {
 	if (init ) {
+	  while(!orig.getCFAState().isActive (proc)){
+	    proc++;
+	    if (proc >=orig.getCFAState ().getLocationState().nbOfProcesses ())
+	      return false;
+	  }
 	  iter = orig.getCFAState ().getLocationState().getLocation(proc).ebegin ();
 	  end = orig.getCFAState ().getLocationState().getLocation(proc).eend ();
 	  init = false;
@@ -52,9 +55,12 @@ namespace MiniMC {
 	else {
 	  ++iter;
 	  if (iter == end) {
-	    proc++;
-	    if (proc >=orig.getCFAState ().getLocationState().nbOfProcesses ())
-	      return false;
+	    do {
+	      proc++;
+	      
+	      if (proc >=orig.getCFAState ().getLocationState().nbOfProcesses ())
+		return false;
+	    }while(!orig.getCFAState().isActive (proc));
 	    iter = orig.getCFAState ().getLocationState().getLocation(proc).ebegin ();
 	    end = orig.getCFAState ().getLocationState().getLocation(proc).eend ();
 	    return iter != end;
@@ -70,6 +76,45 @@ namespace MiniMC {
       bool init{true};
       MiniMC::Model::Location::edge_iterator iter;
       MiniMC::Model::Location::edge_iterator end;
+      bool done{false};
+    };
+
+    class SuccessorEnumerator {
+    public:
+      SuccessorEnumerator (const MiniMC::CPA::AnalysisState& s,MiniMC::CPA::AnalysisTransfer& transfer) : ee(s),transfer(transfer),_enumFrom(s) {
+	done = next ();
+      }
+      
+      auto operator* () {
+	return _next;
+      }
+      
+      auto operator++ () {
+	done = next();
+      }
+
+      explicit operator bool () const {return !done;}
+      
+      
+      
+    private:
+      bool next () {
+	while (ee) {
+	  if (transfer.Transfer (_enumFrom,*ee,_next)) {
+	    ++ee;
+	    return false;
+	  }
+	  ++ee;
+	}
+	return true;
+      }
+      
+
+      TransitionEnumerator ee;
+      MiniMC::CPA::AnalysisState _next;
+      MiniMC::CPA::AnalysisTransfer& transfer;
+      MiniMC::CPA::AnalysisState _enumFrom;
+      
       bool done{false};
     };
     
