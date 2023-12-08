@@ -1,3 +1,3 @@
-add_library (algorithms STATIC)
-add_subdirectory (reachability)
-target_link_libraries (algorithms PUBLIC algo_reach )
+add_library (algorithms STATIC reachability.cpp gencases.cpp)
+target_link_libraries (algorithms PUBLIC cpa storage  smt)
+target_include_directories (algorithms PUBLIC ${PROJECT_SOURCE_DIR}/include)

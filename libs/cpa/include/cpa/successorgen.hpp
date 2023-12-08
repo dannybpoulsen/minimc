@@ -7,7 +7,7 @@
 #include "host/types.hpp"
 
 namespace MiniMC {
-  namespace Algorithms {
+  namespace CPA {
     /*struct EnumResult {
       EnumResult () : edge(nullptr),proc(0) {}
       EnumResult (MiniMC::Model::Edge* edge,MiniMC::proc_t p) : edge(edge),proc(p) {}

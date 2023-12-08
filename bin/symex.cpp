@@ -1,13 +1,9 @@
 #include <boost/program_options.hpp>
 
 
-#include "algorithms/successorgen.hpp"
+#include "cpa/successorgen.hpp"
 #include "loaders/loader.hpp"
-#include "algorithms/reachability/reachability.hpp"
-#include "cpa/concrete.hpp"
-#include "cpa/pathformula.hpp"
-#include "cpa/state.hpp"
-
+#include "algorithms/gencases.hpp"
 #include "options.hpp"
 #include "plugin.hpp"
 
@@ -31,53 +27,20 @@ namespace {
     }
     
     MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager& messager,const SetupOptions& sopt) {    
-      MiniMC::CPA::AnalysisBuilder cpa = makeCPABuilder (sopt);
-
       auto func = prgm.getFunction (locoptions.function);
       
-      auto initstate = cpa.makeInitialState({
-	  {func},
-	  prgm.getHeapLayout (),
-	    {},
-	  prgm});
+      MiniMC::Algorithms::GenCases::TestCaseGenerator generator {prgm};
+      auto res = generator.generate (messager,func,sopt.smt.selsmt);
 
-      std::vector<MiniMC::Model::Register_ptr> params = func->getParameters ();;
-      std::vector<MiniMC::CPA::QueryExpr_ptr> params_sym; 
- 
-      for (auto p : params) {
-	params_sym.push_back (initstate.dataStates()[0].getBuilder().buildValue (0,p));
-      }
-      
-
-      auto transfer =  cpa.makeTransfer (prgm);
-      std::vector<MiniMC::CPA::AnalysisState> waiting;
-      waiting.push_back (initstate);
-      while (waiting.size ()) {
-	auto s = waiting.back();
-	waiting.pop_back();
-	MiniMC::Algorithms::SuccessorEnumerator enumerator {s,transfer};
-	
-	for (; enumerator; ++enumerator) {
-	  auto state =   *enumerator;
-	  auto concretizer = state.dataStates()[0].getConcretizer ();
-	  if (concretizer->isFeasible () == MiniMC::CPA::Solver::Feasibility::Feasible) {
-	    if (!state.getCFAState().isActive (0))  {
-	      auto pit = params.begin ();
-	      auto vit = params_sym.begin ();
-	      for (; pit != params.end (); ++pit,++vit) {
-		std::cerr << (*pit)->getSymbol().getFullName () << ":\t "<< * concretizer->evaluate (**vit) << std::endl;; 
-	      }
-	      std::cerr << "==============" << std::endl;
-	    }
-	    
-	    else {
-	      waiting.push_back (state);
-	    }
-	  }
+      for (auto& casee : res.cases ()) {
+	auto reg_it = res.vars().begin ();
+	auto val_it = casee.values().begin ();
+	for (; reg_it != res.vars().end () && val_it != casee.values().end (); ++reg_it, ++val_it) {
+	  std::cout << **reg_it  << " : " << **val_it << std::endl;
+	  
 	}
+	std::cout << "=====================" << std::endl;
       }
-      
-            
       
       return MiniMC::Host::ExitCodes::AllGood;
     }
@@ -87,13 +50,6 @@ namespace {
     std::string getDescritpion () const override {return "Execute function symbolically. ";}
     
   private:
-    MiniMC::CPA::AnalysisBuilder
-    makeCPABuilder (const SetupOptions& sopt) {
-      MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
-      
-      cpa.addDataCPA (std::make_shared<MiniMC::CPA::PathFormula::CPA>(sopt.smt.selsmt));
-      return cpa;
-    }
     LocalOptions locoptions;
     
   };

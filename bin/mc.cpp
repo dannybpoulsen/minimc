@@ -2,7 +2,7 @@
 
 
 #include "loaders/loader.hpp"
-#include "algorithms/reachability/reachability.hpp"
+#include "algorithms/reachability.hpp"
 #include "cpa/concrete.hpp"
 #include "cpa/pathformula.hpp"
 
@@ -98,12 +98,12 @@ namespace {
       MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
       reach.setSearchStrategy (locoptions.search_strat);
       
-      auto verdict = reach.search (messager,initstate,goal);
+      auto result = reach.search (messager,initstate,goal);
       
       
-      if (verdict == MiniMC::Algorithms::Reachability::Verdict::Found) {
+      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
 	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
-	MiniMC::CPA::StateOutputter{prgm}.output (reach.foundState(),std::cerr) << std::endl;
+	MiniMC::CPA::StateOutputter{prgm}.output (result.foundState(),std::cout) << std::endl;
 	
 	if (locoptions.expect == ExpectReach::Reachable)
 	  return MiniMC::Host::ExitCodes::AllGood;
@@ -111,7 +111,7 @@ namespace {
 	  return MiniMC::Host::ExitCodes::UnexpectedResult;
       }
       
-      if (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
+      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
 	messager <<  MiniMC::Support::TInfo<std::string> {"No violation found"};
 	if (locoptions.expect == ExpectReach::Reachable)
 	  return MiniMC::Host::ExitCodes::UnexpectedResult;

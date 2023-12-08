@@ -8,7 +8,7 @@
 #include "cpa/concrete.hpp"
 #include "cpa/location.hpp"
 #include "cpa/location.hpp"
-#include "algorithms/reachability/reachability.hpp"
+#include "algorithms/reachability.hpp"
 #include "loaders/loader.hpp"
 #include <filesystem>
 
@@ -62,10 +62,10 @@ TEST_CASE("Pointer") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto verdict = reachabilityChecker.search (mess,initialState,goal);
+  auto res = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
-  CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::NotFound);
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::NotFound);
 }
 
 TEST_CASE("Pointer") {
@@ -84,10 +84,10 @@ TEST_CASE("Pointer") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto verdict = reachabilityChecker.search (mess,initialState,goal);
+  auto res = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
-  CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
+  CHECK (res.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found);
 }
 
 TEST_CASE("Pointer") {
@@ -107,8 +107,8 @@ TEST_CASE("Pointer") {
 
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto verdict = reachabilityChecker.search (mess,initialState,goal);
+  auto res = reachabilityChecker.search (mess,initialState,goal);
 
   //Assert 
-  CHECK (verdict == MiniMC::Algorithms::Reachability::Verdict::Found);
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
 }

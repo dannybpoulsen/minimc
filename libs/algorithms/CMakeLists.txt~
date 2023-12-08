@@ -1,5 +1,0 @@
-add_library (algorithms)
-target_link_libraries (algorithms PUBLIC support)
-target_link_directories (algorithms PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-add_subdirectory(tests)

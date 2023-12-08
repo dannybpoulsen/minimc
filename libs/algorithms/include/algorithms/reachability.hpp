@@ -35,27 +35,49 @@ namespace MiniMC {
 	DFS,
 	BFS
       };
+
+
+      class Result {
+      public:
+	Result (MiniMC::CPA::AnalysisState&& state,
+		std::size_t exploredStates) : _verdict(Verdict::Found),
+					      _state(std::move(state)),
+					      _exploredStates(exploredStates) {}
+
+	Result (std::size_t exploredStates) : _verdict(Verdict::NotFound),
+					      _exploredStates(exploredStates) {}
+
+	auto verdict () const {return _verdict;}
+	auto foundState () const {return _state;}
+	auto exploredStates () const {return _exploredStates;}
+	
+	
+      private:
+	
+	Verdict _verdict;
+	MiniMC::CPA::AnalysisState _state;
+	std::size_t _exploredStates;
+      };
+      
+
       
       class Reachability {
       public:
 	Reachability (MiniMC::CPA::AnalysisTransfer transfer);
 	~Reachability ();
-	Verdict search (MiniMC::Support::Messager& mess,
+	[[nodiscard]] Result search (MiniMC::Support::Messager& mess,
 			const MiniMC::CPA::AnalysisState&,
-			GoalFunction,
-			FilterFunction = DefaultFilter
-			);
+				     GoalFunction,
+				     FilterFunction = DefaultFilter
+				     );
 	
 	
-	MiniMC::CPA::AnalysisState foundState () const;
-	std::size_t getNumberExploredStates () const;
-
 	void setSearchStrategy (SearchStrategy);
 	
       private:
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
-};
+      };
       
       
     }
