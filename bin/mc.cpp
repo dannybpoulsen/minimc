@@ -1,5 +1,5 @@
 #include <boost/program_options.hpp>
-
+#include <sstream>
 
 #include "loaders/loader.hpp"
 #include "algorithms/reachability.hpp"
@@ -103,7 +103,9 @@ namespace {
       
       if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
 	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
-	MiniMC::CPA::StateOutputter{prgm}.output (result.foundState(),std::cout) << std::endl;
+	std::stringstream str;
+	MiniMC::CPA::StateOutputter{prgm}.output (result.foundState(),str) << std::endl;
+	messager << MiniMC::Support::TInfo<std::string> {str.str()};
 	
 	if (locoptions.expect == ExpectReach::Reachable)
 	  return MiniMC::Host::ExitCodes::AllGood;

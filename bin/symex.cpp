@@ -1,6 +1,6 @@
 #include <boost/program_options.hpp>
 
-
+#include "support/localisation.hpp"
 #include "cpa/successorgen.hpp"
 #include "loaders/loader.hpp"
 #include "algorithms/gencases.hpp"
@@ -36,10 +36,11 @@ namespace {
 	auto reg_it = res.vars().begin ();
 	auto val_it = casee.values().begin ();
 	for (; reg_it != res.vars().end () && val_it != casee.values().end (); ++reg_it, ++val_it) {
-	  std::cout << **reg_it  << " : " << **val_it << std::endl;
+	  messager << MiniMC::Support::TInfo<std::string> (MiniMC::Support::Localiser{"%1%            : %2%"}.format (**reg_it,**val_it));
+	    //std::cout << **reg_it  << " : " << **val_it << std::endl;
 	  
 	}
-	std::cout << "=====================" << std::endl;
+	messager << MiniMC::Support::TInfo<std::string> ( "=====================");
       }
       
       return MiniMC::Host::ExitCodes::AllGood;
