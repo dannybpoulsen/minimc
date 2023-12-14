@@ -2,7 +2,6 @@
 #define _PLUGIN__
 
 #include "cpa/interface.hpp"
-#include "model/controller.hpp"
 #include "options.hpp"
 #include "host/host.hpp"
 #include "support/feedback.hpp"

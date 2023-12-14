@@ -1,4 +1,3 @@
-#include "model/controller.hpp"
 #include "model/output.hpp"
 #include "plugin.hpp"
 #include "support/localisation.hpp"

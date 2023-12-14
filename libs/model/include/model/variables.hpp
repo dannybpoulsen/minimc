@@ -3,7 +3,6 @@
 
 #include "model/types.hpp"
 #include "model/symbol.hpp"
-#include "support/binary_encode.hpp"
 #include "support/exceptions.hpp"
 #include "host/types.hpp"
 #include "util/valuemap.hpp"

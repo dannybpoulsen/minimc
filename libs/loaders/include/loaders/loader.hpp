@@ -2,7 +2,6 @@
 #define _LOADER__
 
 #include "model/cfg.hpp"
-#include "model/controller.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
 #include "support/feedback.hpp"
