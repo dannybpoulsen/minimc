@@ -207,7 +207,7 @@ namespace MiniMC {
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	
-	if (status ==MiniMC::VMT::Status::Ok)
+	if (status == MiniMC::VMT::Status::Ok)
 	  return resstate;
 	else {
 	  

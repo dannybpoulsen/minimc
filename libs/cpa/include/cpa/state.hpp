@@ -62,8 +62,7 @@ namespace MiniMC {
       virtual MiniMC::Hash::hash_t hash() const = 0;
       virtual bool isActive(size_t i) const = 0;
     };
-    
-    
+
     class DataState 
     {
     public:
@@ -72,9 +71,11 @@ namespace MiniMC {
       virtual const QueryBuilder& getBuilder () const = 0;
       virtual std::shared_ptr<DataState> copy() const = 0;
       virtual MiniMC::Hash::hash_t hash() const = 0;
+    private:
+      
       
     };
-
+    
     template<class T>
     using State_ptr = std::shared_ptr<const T>;
     

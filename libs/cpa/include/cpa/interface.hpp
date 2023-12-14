@@ -90,7 +90,7 @@ namespace MiniMC {
       virtual ~TJoiner () {} 
       virtual State_ptr<State> doJoin(const State&, const State&) {return nullptr;}
     };
-
+    
     
     template<class State>
     using TJoiner_ptr = std::shared_ptr<TJoiner<State>>;
