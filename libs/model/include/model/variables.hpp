@@ -16,8 +16,157 @@
 #include <vector>
 
 namespace MiniMC {
+    
   namespace Model {
 
+    enum class PointerSegments {
+    Stack = 'D',
+    Heap = 'H',
+    Location = 'L',
+    Function = 'F'
+  };
+  using seg_t = BV8;//decltype(pointer_t::segment);
+  using base_t = BV16;//decltype(pointer_t::base);
+  using func_t = base_t;
+  using proc_t = base_t;
+  using offset_t = BV32; // decltype(pointer_t::offset);
+
+  
+
+  
+  template <typename seg_t = BV16,
+            typename base_t = BV16,
+            typename offset_t = BV32,
+            typename Ptrbv = BV64>
+  struct __attribute__((packed)) pointer_struct {
+    //Used for identifying if the pointer is a
+    // data pointer
+    // location pointer
+    // function pointer
+    seg_t segment{0};
+    //base pointer
+    //for function and location pointers base is the function_id
+    base_t base{0};
+    // offset into base_object
+    //for function pointer offset must be zero
+    //for location pointer offset is the location inside the function jumped to
+    offset_t offset{0};
+    using PtrBV = Ptrbv;  
+    pointer_struct add (offset_t off) const  {
+      return pointer_struct {.segment = segment,.base = base,.offset = offset+off};
+    }
+
+    pointer_struct sub (offset_t off) const  {
+      return pointer_struct {.segment = segment,.base = base,.offset = offset-off};
+    }
+    
+    bool is_null () const {return base == 0 && segment == 0 && offset == 0;}
+
+    static auto makeFunctionPointer (func_t f) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerSegments::Function);
+      ptr.base = f;
+      ptr.offset = 0;
+      return ptr;
+    }
+
+    static auto makeLocationPointer (func_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerSegments::Location);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+
+    static auto makeHeapPointer (base_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerSegments::Heap);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+
+    static auto makeStackPointer (base_t f,offset_t o) {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = static_cast<decltype(ptr.segment)> (PointerSegments::Stack);
+      ptr.base = f;
+      ptr.offset = o;
+      return ptr;
+    }
+
+    static auto makeNullPointer () {
+      pointer_struct<seg_t,base_t,offset_t,Ptrbv> ptr{};
+      ptr.segment = 0;
+      ptr.base = 0;
+      ptr.offset = 0;
+      return ptr;
+    }
+    
+  };
+  
+
+  
+  
+  
+  using pointer64_t = pointer_struct<BV16,BV16,BV32,BV64>;
+  using pointer32_t = pointer_struct<BV8,BV8,BV16,BV32>;
+
+  using pointer_t = pointer64_t;
+  
+
+  
+
+  inline bool operator==(const pointer_t& l, const pointer_t& r) {
+    return l.segment == r.segment &&
+           l.base == r.base &&
+           l.offset == r.offset;
+  }
+
+  
+  template<typename T>
+  struct is_pointer : public std::false_type {};
+
+  template<>
+  struct is_pointer<pointer32_t> : public std::true_type {};
+
+    template<>
+  struct is_pointer<pointer64_t> : public std::true_type {};
+
+  
+  template<typename T>
+  constexpr bool is_pointer_v = is_pointer<T>::value;
+
+  template<class P>
+  bool is_null(const P& t) requires (is_pointer_v<P>) {
+    return t.segment == 0 &&
+           t.base == 0 &&
+           t.offset == 0;
+  }
+
+  inline func_t getFunctionId(const pointer_t& p) {
+    return p.base;
+  }
+  
+  inline base_t getBase(const pointer_t& p) {
+    return p.base;
+  }
+  
+  inline offset_t getOffset(const pointer_t& p) {
+    return p.offset;
+  }
+  
+  template <class T, class P>
+  T& operator<<(T& os, const P& p)  requires (is_pointer_v<P>) {
+    if (is_null(p)) {
+      return os << std::string("nullptr", 7);
+    }
+    return os << static_cast<BV8> (p.segment) << "(" << static_cast<int64_t>(p.base) << "+" << p.offset << ")";
+  }
+    
+    
+    
+    
+    
     using type_id_t = MiniMC::BV8;
     const type_id_t untyped = std::numeric_limits<type_id_t>::max();
 
@@ -117,7 +266,7 @@ namespace MiniMC {
       bool isBool() const override { return is_bool; }
       bool isInteger() const override { return std::is_integral_v<T>; }
       bool isPointer() const override {
-        return MiniMC::is_pointer_v<T>;
+        return MiniMC::Model::is_pointer_v<T>;
       }
       
       std::ostream& output(std::ostream& os) const override {
@@ -142,8 +291,8 @@ namespace MiniMC {
     using I16Integer = TConstant<MiniMC::BV16>;
     using I32Integer = TConstant<MiniMC::BV32>;
     using I64Integer = TConstant<MiniMC::BV64>;
-    using Pointer = TConstant<MiniMC::pointer64_t>;
-    using Pointer32 = TConstant<MiniMC::pointer32_t>;
+    using Pointer = TConstant<MiniMC::Model::pointer64_t>;
+    using Pointer32 = TConstant<MiniMC::Model::pointer32_t>;
     using SymbolicConstant = TConstant<MiniMC::Model::Symbol>;
     
     
@@ -258,12 +407,12 @@ namespace MiniMC {
       using aggr_input = std::vector<Constant_ptr>;
       virtual const Value_ptr makeAggregateConstant(const aggr_input& inp) = 0;
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
-      virtual const Value_ptr makeFunctionPointer(MiniMC::func_t) = 0;
-      virtual const Value_ptr makeHeapPointer(MiniMC::base_t, MiniMC::offset_t = 0) = 0;
+      virtual const Value_ptr makeFunctionPointer(MiniMC::Model::func_t) = 0;
+      virtual const Value_ptr makeHeapPointer(MiniMC::Model::base_t, MiniMC::Model::offset_t = 0) = 0;
       virtual const Value_ptr makeNullPointer() = 0;
       virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) = 0;
       
-      virtual const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) = 0;
+      virtual const Value_ptr makeLocationPointer(MiniMC::Model::func_t, MiniMC::Model::base_t) = 0;
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
     protected:
       TypeFactory_ptr typefact;
@@ -275,10 +424,10 @@ namespace MiniMC {
       virtual ~ConstantFactory64() {}
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) override;
       const Value_ptr makeAggregateConstant(const aggr_input& inp) override ;
-      const Value_ptr makeFunctionPointer(MiniMC::func_t) override ;
-      const Value_ptr makeLocationPointer(MiniMC::func_t, MiniMC::base_t) override;
+      const Value_ptr makeFunctionPointer(MiniMC::Model::func_t) override ;
+      const Value_ptr makeLocationPointer(MiniMC::Model::func_t, MiniMC::Model::base_t) override;
       
-      const Value_ptr makeHeapPointer(MiniMC::base_t, MiniMC::offset_t = 0) override;
+      const Value_ptr makeHeapPointer(MiniMC::Model::base_t, MiniMC::Model::offset_t = 0) override;
       const Value_ptr makeNullPointer() override ;
       const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) override ;
       

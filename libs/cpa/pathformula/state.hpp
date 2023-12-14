@@ -85,7 +85,7 @@ namespace MiniMC {
         auto& getPathformula() const { return pathformula; }
 
         virtual const QueryBuilder& getBuilder() const { return *this; }
-        virtual QueryExpr_ptr buildValue(MiniMC::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }

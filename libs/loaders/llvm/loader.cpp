@@ -111,7 +111,7 @@ namespace MiniMC {
       void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module, MiniMC::Support::Messager&) {
         std::vector<MiniMC::Model::Instruction> instr;
 
-        MiniMC::func_t fid = 0;
+        MiniMC::Model::func_t fid = 0;
         for (auto& F : createFunctionWorkList(module)) {
 	  std::string fname = F->getName().str();
 	  auto fsymbol = prgm.getRootFrame ().makeSymbol (fname);
@@ -120,7 +120,7 @@ namespace MiniMC {
           auto ptr = lcontext.getConstantFactory().makeSymbolicConstant(fsymbol);
           ptr->setType(lcontext.getTypeFactory().makePointerType());
           lcontext.addValue(&Func, ptr);
-          MiniMC::offset_t lid = 0;
+          MiniMC::Model::offset_t lid = 0;
           for (auto& BB : Func) {
             auto ptr = lcontext.getConstantFactory().makeLocationPointer(fid, lid);
             ptr->setType(lcontext.getTypeFactory().makePointerType());
@@ -133,8 +133,8 @@ namespace MiniMC {
         for (auto& g : module.getGlobalList()) {
           auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
 	  
-	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize);
-	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::getBase(the_pointer),MiniMC::getOffset (the_pointer));
+	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize);
+	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::Model::getBase(the_pointer),MiniMC::Model::getOffset (the_pointer));
           lcontext.addValue(&g, gvar);
           if (g.hasInitializer()) {
             auto val = lcontext.findValue(g.getInitializer());
@@ -424,8 +424,8 @@ namespace MiniMC {
 
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
-      auto the_pointer = program.getHeapLayout().addBlock(MiniMC::pointer_t::makeHeapPointer (++nextHeap,0),stacksize);
-      MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(MiniMC::getBase (the_pointer),MiniMC::getOffset (the_pointer));
+      auto the_pointer = program.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),stacksize);
+      MiniMC::Model::Value_ptr sp = program.getConstantFactory().makeHeapPointer(MiniMC::Model::getBase (the_pointer),MiniMC::Model::getOffset (the_pointer));
       sp->setType(program.getTypeFactory().makePointerType());
 
       MiniMC::Model::Value_ptr stacksize_p = program.getConstantFactory().makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);

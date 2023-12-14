@@ -19,8 +19,8 @@ namespace MiniMC {
         auto& instrs = edge->getInstructions();
         auto call_content = instrs.last ().getAs<MiniMC::Model::InstructionCode::Call>().getOps ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
-        MiniMC::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = prgm.getFunction(MiniMC::getFunctionId(loadPtr));
+        MiniMC::Model::pointer_t loadPtr =  constant->getValue (); 
+	auto cfunc = prgm.getFunction(MiniMC::Model::getFunctionId(loadPtr));
 	auto frame = cframe.create (cfunc->getSymbol ().getName ());
 	MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr> valmap;
         auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {

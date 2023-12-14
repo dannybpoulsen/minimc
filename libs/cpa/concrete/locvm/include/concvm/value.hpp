@@ -25,7 +25,7 @@ namespace MiniMC {
       inline std::ostream& operator<<(std::ostream& os, const BoolValue& v) { return os << v.getValue(); }
       
       template <typename T>
-      requires std::is_integral_v<T> || MiniMC::is_pointer_v<T>
+      requires std::is_integral_v<T> || MiniMC::Model::is_pointer_v<T>
       struct TValue {
         using underlying_type = T;
         TValue(T val) : value(val) {}
@@ -33,7 +33,7 @@ namespace MiniMC {
         MiniMC::Hash::hash_t hash() const {
 	  if constexpr (std::is_integral_v<T>) 
 	    return value;
-	  else if constexpr (MiniMC::is_pointer_v<T>)  {
+	  else if constexpr (MiniMC::Model::is_pointer_v<T>)  {
 	    return std::bit_cast<typename T::PtrBV>(value);  
 	  }
         }
@@ -46,7 +46,7 @@ namespace MiniMC {
         T value;
       };
 
-      using PointerValue = TValue<MiniMC::pointer64_t>;
+      using PointerValue = TValue<MiniMC::Model::pointer64_t>;
       
       struct AggregateValue {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
@@ -75,7 +75,7 @@ namespace MiniMC {
                                                     TValue<MiniMC::BV32>,
                                                     TValue<MiniMC::BV64>,
 						    PointerValue,
-						    TValue<MiniMC::pointer32_t>,
+						    TValue<MiniMC::Model::pointer32_t>,
                                                     BoolValue,
                                                     AggregateValue>;
       

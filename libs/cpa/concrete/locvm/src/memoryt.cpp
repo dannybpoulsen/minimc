@@ -76,14 +76,14 @@ namespace std {
   };
 
   template<>
-  struct hash<MiniMC::pointer_t> {
-    auto operator()(const MiniMC::pointer_t& op)  const {return std::bit_cast<MiniMC::pointer_t::PtrBV> (op);
+  struct hash<MiniMC::Model::pointer_t> {
+    auto operator()(const MiniMC::Model::pointer_t& op)  const {return std::bit_cast<MiniMC::Model::pointer_t::PtrBV> (op);
     }
   };
 
   template<>
-  struct hash<MiniMC::pointer32_t> {
-    auto operator()(const MiniMC::pointer32_t& op) const {return std::bit_cast<MiniMC::pointer32_t::PtrBV> (op);}
+  struct hash<MiniMC::Model::pointer32_t> {
+    auto operator()(const MiniMC::Model::pointer32_t& op) const {return std::bit_cast<MiniMC::Model::pointer32_t::PtrBV> (op);}
   };
 
 } // namespace std
@@ -92,16 +92,16 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
       struct Memory::internal {
-	MiniMC::pointer_t allocate (const Memory::Value::I64& size) {
-	  auto pointer = MiniMC::pointer_t::makeHeapPointer(next, 0);
+	MiniMC::Model::pointer_t allocate (const Memory::Value::I64& size) {
+	  auto pointer = MiniMC::Model::pointer_t::makeHeapPointer(next, 0);
 	  return allocate (size,pointer);
 	}
 
 	
-	MiniMC::pointer_t allocate (const Memory::Value::I64& size, MiniMC::pointer_t pointer) {
-	  if (!entries.count(pointer) && MiniMC::getOffset (pointer)==0) { 
+	MiniMC::Model::pointer_t allocate (const Memory::Value::I64& size, MiniMC::Model::pointer_t pointer) {
+	  if (!entries.count(pointer) && MiniMC::Model::getOffset (pointer)==0) { 
 	    auto size_ = size.getValue();
-	    auto base = MiniMC::getBase (pointer);
+	    auto base = MiniMC::Model::getBase (pointer);
 	    next = (base > next) ? base +1 : next;
 	    allocated_ptrs.push_back (pointer);
 	    entries.emplace(pointer,size_);
@@ -111,9 +111,9 @@ namespace MiniMC {
 	  throw MiniMC::Support::Exception ("Error allocating memory");
 	}
 	
-        std::unordered_map<MiniMC::pointer_t, HeapEntry> entries;
-	std::vector<MiniMC::pointer_t> allocated_ptrs;
-	MiniMC::base_t next{0};
+        std::unordered_map<MiniMC::Model::pointer_t, HeapEntry> entries;
+	std::vector<MiniMC::Model::pointer_t> allocated_ptrs;
+	MiniMC::Model::base_t next{0};
       };
       Memory::Memory() : _internal(std::make_unique<internal>()) {}
       Memory::Memory(const Memory& m) : _internal(std::make_unique<internal>(*m._internal)) {
@@ -124,9 +124,9 @@ namespace MiniMC {
 
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
-	auto base_pointer = MiniMC::pointer_t::makeHeapPointer (base,0);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
+	auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
 	if (_internal->entries.count(base_pointer)) {
           auto performRead = [this,base,offset,&base_pointer]<typename T>() {
             typename T::underlying_type readVal{0};
@@ -168,9 +168,9 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I8& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-        auto offset = MiniMC::getOffset(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
         if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = &value, .size = sizeof(value)}, offset);
         }
@@ -179,8 +179,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I16& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
@@ -190,8 +190,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
@@ -201,8 +201,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::I64& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
@@ -212,8 +212,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Aggregate& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = value.get_direct_access(), .size = value.getSize ()}, offset);
@@ -223,8 +223,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
@@ -234,8 +234,8 @@ namespace MiniMC {
       void Memory::storeValue(const Memory::Value::Pointer& p, const Memory::Value::Pointer32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::getBase(pointer);
-        auto offset = MiniMC::getOffset(pointer);
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
           _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);

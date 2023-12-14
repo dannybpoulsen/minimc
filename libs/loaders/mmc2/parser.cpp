@@ -309,7 +309,7 @@ namespace MiniMC {
 	auto oldStyle = [this](auto& p) -> bool {
 	  Token num_tok;
 	  if  (match (NUMBER,&num_tok)) {
-	    p = MiniMC::pointer_t::makeHeapPointer(num_tok.get<int64_t> (),0);
+	    p = MiniMC::Model::pointer_t::makeHeapPointer(num_tok.get<int64_t> (),0);
 	    return true;
 	  }
 	  return false;
@@ -319,14 +319,14 @@ namespace MiniMC {
 	  Token ptr_tok;
 	  if  (match (POINTERLITERAL,&ptr_tok)) {
 	    auto literal = ptr_tok.get<PointerLiteral> ();
-	    p = MiniMC::pointer_t::makeHeapPointer(literal.base,0);
+	    p = MiniMC::Model::pointer_t::makeHeapPointer(literal.base,0);
 	    return true;
 	  }
 	  return false;
 	};
 	
 	Token size_tok;
-	MiniMC::pointer_t pointer;
+	MiniMC::Model::pointer_t pointer;
 	
 	while (oldStyle (pointer) || newStyle(pointer)) {
 	  

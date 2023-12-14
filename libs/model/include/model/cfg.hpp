@@ -121,7 +121,7 @@ namespace MiniMC {
     
     class Function  {
     public:
-      Function(MiniMC::func_t id,
+      Function(MiniMC::Model::func_t id,
                const Symbol& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
@@ -161,7 +161,7 @@ namespace MiniMC {
       std::vector<Register_ptr> parameters;
       RegisterDescr registerdescr;
       CFA cfa;
-      MiniMC::func_t id;
+      MiniMC::Model::func_t id;
       Program& prgm;
       Type_ptr retType;
       bool varargs;
@@ -208,7 +208,7 @@ namespace MiniMC {
         entrypoints.push_back(function);
       }
       
-      Function_ptr getFunction(MiniMC::func_t id) const {
+      Function_ptr getFunction(MiniMC::Model::func_t id) const {
         return functions.at(id);
       }
 
@@ -228,7 +228,7 @@ namespace MiniMC {
 	throw MiniMC::Support::FunctionDoesNotExist(symb.getFullName ());
       }
       
-      bool functionExists(MiniMC::func_t id) const {
+      bool functionExists(MiniMC::Model::func_t id) const {
         return static_cast<std::size_t> (id) < functions.size();
       }
       

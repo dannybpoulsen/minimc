@@ -72,7 +72,7 @@ namespace MiniMC {
       }
 
       const MiniMC::CPA::AnalysisState& orig;
-      proc_t proc{0};
+      MiniMC::Model::proc_t proc{0};
       bool init{true};
       MiniMC::Model::Location::edge_iterator iter;
       MiniMC::Model::Location::edge_iterator end;
