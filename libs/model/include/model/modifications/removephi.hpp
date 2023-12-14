@@ -6,7 +6,6 @@
 #include "model/cfg.hpp"
 #include "model/instructions.hpp"
 #include "model/modifications/modifications.hpp"
-#include "support/sequencer.hpp"
 
 namespace MiniMC {
   namespace Model {

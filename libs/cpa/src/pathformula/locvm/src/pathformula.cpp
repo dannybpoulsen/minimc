@@ -253,7 +253,7 @@ namespace MiniMC {
 	  MiniMC::Util::Array res{size()};
 	  
 	  auto aggrres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
-	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.get_direct_access());
+	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.begin());
 	  return res;
 	  
 	}

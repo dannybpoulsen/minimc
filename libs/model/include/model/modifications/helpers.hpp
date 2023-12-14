@@ -3,7 +3,6 @@
 
 #include "model/cfg.hpp"
 #include "support/exceptions.hpp"
-#include "support/sequencer.hpp"
 #include <algorithm>
 #include <unordered_map>
 

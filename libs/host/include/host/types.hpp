@@ -169,11 +169,7 @@ namespace MiniMC {
   using pointer64_t = pointer_struct<BV16,BV16,BV32,BV64>;
   using pointer32_t = pointer_struct<BV8,BV8,BV16,BV32>;
 
-#ifndef MINIMC32
   using pointer_t = pointer64_t;
-#else
-  using pointer_t = pointer64_t;
-#endif
   
 
   

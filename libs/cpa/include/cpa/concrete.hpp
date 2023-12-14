@@ -10,7 +10,6 @@
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
 #include "support/feedback.hpp"
-#include "support/sequencer.hpp"
 #include <unordered_map>
 
 

@@ -172,9 +172,7 @@ namespace MiniMC {
 	}
 
 	ConcreteVMVal::Aggregate ExtractAggregateValue(const ConcreteVMVal::Aggregate& value, const MiniMC::BV64 offset, std::size_t size) {
-          MiniMC::Util::Array extract{size};
-          value.getValue().get_block(offset, size, extract.get_direct_access());
-          return extract;
+          return value.getValue().get_block(offset, size);
         }
 
         template <class T>

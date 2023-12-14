@@ -29,10 +29,6 @@ namespace MiniMC {
         return mem.get()[Index{}(f)];
       }
       
-      /*T& operator[](const F& f) {
-        assert(Index{}(f) < size);
-        return mem.get()[Index{}(f)];
-	}*/
 
       void set (const F& f, T&& t) {
 	assert(Index{}(f) < size);

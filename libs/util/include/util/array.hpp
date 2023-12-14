@@ -65,18 +65,27 @@ namespace MiniMC {
       }
 
       void get_block(std::size_t byte, std::size_t block_size, MiniMC::BV8* block)  const {
-        assert(byte + block_size <= size);
+	assert(byte + block_size <= size);
         std::copy(buffer.get() + byte, buffer.get() + byte + block_size, block);
       }
 
+      Array get_block(std::size_t byte, std::size_t block_size)  const {
+	Array arr{block_size};
+        assert(byte + block_size <= size);
+        std::copy(buffer.get() + byte, buffer.get() + byte + block_size, arr.buffer.get());
+	return arr;
+      }
+
+      
+      
       const MiniMC::BV8* get_direct_access() const {
         return buffer.get();
       }
-      
+      /*
       MiniMC::BV8* get_direct_access()  {
         return buffer.get();
-      }
-
+        }*/
+      
       std::size_t getSize() const { return size; }
 
       std::ostream& output(std::ostream& os) const {

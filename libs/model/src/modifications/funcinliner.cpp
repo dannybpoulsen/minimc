@@ -3,7 +3,6 @@
 #include "model/modifications/func_inliner.hpp"
 #include "model/modifications/helpers.hpp"
 #include "support/exceptions.hpp"
-#include "support/sequencer.hpp"
 #include "support/workinglist.hpp"
 #include "support/overload.hpp"
 

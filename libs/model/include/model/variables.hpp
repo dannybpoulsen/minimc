@@ -5,7 +5,6 @@
 #include "model/symbol.hpp"
 #include "support/binary_encode.hpp"
 #include "support/exceptions.hpp"
-#include "support/storehelp.hpp"
 #include "host/types.hpp"
 #include "util/valuemap.hpp"
 #include "util/array.hpp"
@@ -157,11 +156,11 @@ namespace MiniMC {
     public:
       //AggregateConstant(MiniMC::BV8* data, std::size_t s);
       AggregateConstant(MiniMC::Util::Array&& arr);
-      template <class T>
+      /*template <class T>
       auto& getValue() const {
         assert(sizeof(T) == data.getSize ());
         return *reinterpret_cast<T*>(data.get_direct_access ());
-      }
+	}*/
       
       auto& getData () const  {return data;}
       
