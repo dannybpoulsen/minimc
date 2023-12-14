@@ -1,5 +1,12 @@
 project (cpa CXX)
 
-add_library (cpa_headers INTERFACE)
+add_library(cpa_headers INTERFACE)
 target_include_directories (cpa_headers INTERFACE ${PROJECT_SOURCE_DIR}/include)
+
+
+add_subdirectory(internal) 
+add_subdirectory(concrete) 
+add_subdirectory(pathformula) 
+
+
 add_subdirectory (src)

@@ -24,5 +24,5 @@ target_link_libraries (minimclib PUBLIC util)
 target_link_libraries (minimclib PUBLIC host)
 target_link_libraries (minimclib PUBLIC smt)
 
-INSTALL (TARGETS minimclib )
+INSTALL (TARGETS minimclib)
  
