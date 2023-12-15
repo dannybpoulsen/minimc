@@ -16,7 +16,7 @@
 #include "model/cfg.hpp"
 #include "support/exceptions.hpp"
 #include "support/localisation.hpp"
-#include "util/array.hpp"
+#include "model/array.hpp"
 #include "cpa/query.hpp"
 #include <iosfwd>
 #include <memory>

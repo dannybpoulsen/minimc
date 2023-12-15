@@ -1,4 +1,5 @@
 #include "model/modifications/splitasserts.hpp"
+#include "support/workinglist.hpp"
 #include "support/overload.hpp"
 
 namespace MiniMC {

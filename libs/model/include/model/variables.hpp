@@ -6,7 +6,7 @@
 #include "support/exceptions.hpp"
 #include "host/types.hpp"
 #include "util/valuemap.hpp"
-#include "util/array.hpp"
+#include "model/array.hpp"
 #include <algorithm>
 #include <limits>
 #include <memory>

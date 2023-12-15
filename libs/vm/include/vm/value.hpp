@@ -5,7 +5,7 @@
 #include <memory>
 #include <variant>
 #include "model/variables.hpp"
-#include "util/array.hpp"
+#include "model/array.hpp"
 #include "support/exceptions.hpp"
 #include "hash/hashing.hpp"
 

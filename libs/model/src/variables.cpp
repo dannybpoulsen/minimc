@@ -178,8 +178,7 @@ namespace MiniMC {
 				    [&out](const MiniMC::Model::AggregateConstant& aggr) {
 				      out = std::copy(aggr.getData().begin(), aggr.getData().end(), out);
 				    },
-				    [](auto& l) {
-				      std::cerr << l << std::endl; 
+				    []([[maybe_unused]]auto& l) {
 				      throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
 				    }
 				      },

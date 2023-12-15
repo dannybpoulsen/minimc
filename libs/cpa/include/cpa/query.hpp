@@ -1,7 +1,6 @@
 #ifndef _CPA_QUERY__
 #define _CPA_QUERY__
 
-#include "util/array.hpp"
 #include "model/variables.hpp"
 
 #include <iosfwd>

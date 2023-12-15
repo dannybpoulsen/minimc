@@ -74,8 +74,7 @@ namespace MiniMC {
   using BV16 = HostType<16>::Unsigned;
   using BV32 = HostType<32>::Unsigned;
   using BV64 = HostType<64>::Unsigned;
-  using proba_t = double;
-
+  
   
   
 } // namespace MiniMC
