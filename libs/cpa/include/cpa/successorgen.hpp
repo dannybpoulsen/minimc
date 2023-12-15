@@ -4,22 +4,10 @@
 #include "cpa/interface.hpp"
 #include "cpa/state.hpp"
 #include "support/exceptions.hpp"
-#include "host/types.hpp"
+#include "model/types.hpp"
 
 namespace MiniMC {
-  namespace CPA {
-    /*struct EnumResult {
-      EnumResult () : edge(nullptr),proc(0) {}
-      EnumResult (MiniMC::Model::Edge* edge,MiniMC::proc_t p) : edge(edge),proc(p) {}
-      
-      MiniMC::Model::Edge* edge;
-      MiniMC::proc_t proc; 
-    };*/
-
-
-    
-    
-    class TransitionEnumerator {
+  namespace CPA {    class TransitionEnumerator {
     public:
       TransitionEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state)	
       {
