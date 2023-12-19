@@ -1,8 +1,6 @@
 #ifndef _OPERATIONS__
 #define _OPERATIONS__
 #include "host/types.hpp"
-#include "support/exceptions.hpp"
-
 
 namespace MiniMC {
   namespace Host {
@@ -92,9 +90,9 @@ namespace MiniMC {
       else if constexpr (o == TAC::Xor) {
 	return l ^  r;
       }
-
+      
       else {
-	throw MiniMC::Support::Exception ("Not implemented");
+	static_assert(false,"Not implemented operations");
       }
       
     }
