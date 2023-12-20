@@ -92,7 +92,7 @@ namespace MiniMC {
       }
       
       else {
-	static_assert(false,"Not implemented operations");
+	[]<bool b=false>(){static_assert(b,"Not implemented operations");}();
       }
       
     }
