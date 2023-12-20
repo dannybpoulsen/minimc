@@ -29,10 +29,4 @@ target_sources(model
 	  
 	  )
 
- 	
-target_sources(model
-    PUBLIC FILE_SET HEADERS 
-    BASE_DIRS ${PROJECT_BINARY_DIR}/isa	
-    FILES ${PROJECT_BINARY_DIR}/isa/model/instruction_constructors.inc
-	  ${PROJECT_BINARY_DIR}/isa/model/instructions.inc
-	  )
+

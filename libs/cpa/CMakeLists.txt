@@ -10,3 +10,4 @@ add_subdirectory(pathformula)
 
 
 add_subdirectory (src)
+install (TARGETS cpa  FILE_SET HEADERS)

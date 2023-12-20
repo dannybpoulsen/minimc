@@ -9,3 +9,6 @@ target_sources(util
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
     FILES ${PROJECT_SOURCE_DIR}/include/util/valuemap.hpp
 )
+
+
+install (TARGETS  util  FILE_SET HEADERS)

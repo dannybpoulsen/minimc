@@ -25,4 +25,4 @@ target_link_libraries (minimclib INTERFACE host)
 target_link_libraries (minimclib INTERFACE smt)
 
 
-install (TARGETS model support hash cpa algorithms util host smt FILE_SET HEADERS)
+install (TARGETS host smt FILE_SET HEADERS)
