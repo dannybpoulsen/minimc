@@ -26,7 +26,7 @@ namespace MiniMC {
 
       using edge_iterator = std::vector<Edge*>::iterator;
 
-      Location(MiniMC::Model::Symbol symb,const LocationInfo& n, MiniMC::offset_t id) : symb(symb),info(n), id(id) {}
+      Location(MiniMC::Model::Symbol symb,const LocationInfo& n, MiniMC::Model::offset_t id) : symb(symb),info(n), id(id) {}
       
       void addEdge(Edge* e) { edges.push_back(e); }
       void addIncomingEdge(Edge* e) { incomingEdges.push_back(e); }
@@ -84,7 +84,7 @@ namespace MiniMC {
         return incomingEdges.size();
       }
       
-      MiniMC::offset_t getID() const { return id; }
+      MiniMC::Model::offset_t getID() const { return id; }
       const auto& getSymbol () const {return symb;}
       void rename (MiniMC::Model::Symbol symb)  {this->symb = symb;}
       
@@ -142,7 +142,7 @@ namespace MiniMC {
       std::vector<Edge*> edges;
       std::vector<Edge*> incomingEdges;
       LocationInfo info;
-      MiniMC::offset_t id;
+      MiniMC::Model::offset_t id;
 
     };
 

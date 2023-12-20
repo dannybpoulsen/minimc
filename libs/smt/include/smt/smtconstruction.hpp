@@ -41,8 +41,8 @@ namespace MiniMC {
 
       SMTLib::Term_ptr isStackConstraint(SMTLib::Term_ptr& term) {
         // Extract last eight bits;
-        auto stack_seg = builder->buildTerm(SMTLib::Ops::Extract, {term}, {63, 63 - sizeof(MiniMC::seg_t) * 8});
-        auto stack_id = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::PointerType::Stack), 8);
+        auto stack_seg = builder->buildTerm(SMTLib::Ops::Extract, {term}, {63, 63 - sizeof(MiniMC::Model::seg_t) * 8});
+        auto stack_id = builder->makeBVIntConst(static_cast<MiniMC::Model::seg_t>(MiniMC::Model::PointerSegments::Stack), 8);
         return builder->buildTerm(SMTLib::Ops::Equal, {stack_seg, stack_id});
       }
 
@@ -55,16 +55,16 @@ namespace MiniMC {
       }
 
      
-      SMTLib::Term_ptr makeHeapPointer(MiniMC::base_t base, MiniMC::offset_t offset) {
+      SMTLib::Term_ptr makeHeapPointer(MiniMC::Model::base_t base, MiniMC::Model::offset_t offset) {
 
-        auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::seg_t>(MiniMC::PointerType::Heap), 8 * sizeof(MiniMC::seg_t));
-        auto base_term = builder->makeBVIntConst(base, 8 * sizeof(MiniMC::base_t));
-        auto offset_term = builder->makeBVIntConst(offset, 8 * sizeof(MiniMC::offset_t));
+        auto stack_term = builder->makeBVIntConst(static_cast<MiniMC::Model::seg_t>(MiniMC::Model::PointerSegments::Heap), 8 * sizeof(MiniMC::Model::seg_t));
+        auto base_term = builder->makeBVIntConst(base, 8 * sizeof(MiniMC::Model::base_t));
+        auto offset_term = builder->makeBVIntConst(offset, 8 * sizeof(MiniMC::Model::offset_t));
 
         return (Chainer<SMTLib::Ops::Concat>{builder} << stack_term <<  base_term << offset_term).getTerm();
       }
 
-      SMTLib::Term_ptr makePointer(const MiniMC::pointer_t& pointer) {
+      SMTLib::Term_ptr makePointer(const MiniMC::Model::pointer_t& pointer) {
         auto seg_term = builder->makeBVIntConst(pointer.segment, 8 * sizeof(pointer.segment));
         auto base_term = builder->makeBVIntConst(pointer.base, 8 * sizeof(pointer.base));
         auto offset_term = builder->makeBVIntConst(pointer.offset, 8 * sizeof(pointer.offset));

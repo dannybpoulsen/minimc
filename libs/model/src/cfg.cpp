@@ -1,44 +1,23 @@
 #include "model/cfg.hpp"
 #include "model/instructions.hpp"
+#include "support/workinglist.hpp"
 
-#include "support/localisation.hpp"
 
 namespace MiniMC {
   namespace Model {
-    Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&) {
-      auto source_loc = std::make_shared<MiniMC::Model::SourceInfo>();
-
-      static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getName(), ++nb);
-      MiniMC::Model::CFA cfg;
-      MiniMC::Model::RegisterDescr vstack{name};
-      MiniMC::Model::LocationInfoCreator locinf (function->getName(),&vstack);
-      auto funcpointer = program.getConstantFactory()->makeFunctionPointer(function->getID());
-      auto init = cfg.makeLocation(locinf.make("init", 0, *source_loc));
-      auto end = cfg.makeLocation(locinf.make("end", 0, *source_loc));
-
-      cfg.setInitial(init);
-      auto edge = cfg.makeEdge(init, end);
-
-      Value_ptr result = nullptr;
-      std::vector<Value_ptr> params;
-      auto restype = function->getReturnType();
-      if (restype->getTypeID() != TypeID::Void) {
-        result = vstack.addRegister("_", restype);
+    void CFA::deleteLocation(const Location_ptr& location) {
+        MiniMC::Support::WorkingList<MiniMC::Model::Edge*> wlist;
+        auto insert = wlist.inserter();
+        std::for_each(location->ebegin(), location->eend(), [&](const auto& e) { insert = e; });
+        std::for_each(location->iebegin(), location->ieend(), [&](const auto& e) { insert = e; });
+	
+        std::for_each(wlist.begin(), wlist.end(), [&](const auto& e) { this->deleteEdge(e); });
+	
+        auto it = std::find(locations.begin(), locations.end(), location);
+        if (it != locations.end()) {
+          locations.erase(it);
+        }
       }
-      edge->setAttribute<AttributeType::Instructions>(InstructionStream({createInstruction<InstructionCode::Call> ( {
-		.res = result,
-		.function = funcpointer,
-		.params = params
-	      })}
-	  )
-	);
-	  
-      
-      return program.addFunction(name, {},
-				 program.getTypeFactory()->makeVoidType(),
-				 std::move(vstack),
-				 std::move(cfg)); 
-    }
+    
   } // namespace Model
 } // namespace MiniMC

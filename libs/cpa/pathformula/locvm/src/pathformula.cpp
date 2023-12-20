@@ -143,7 +143,7 @@ namespace MiniMC {
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl) {
 	//For now we don't need to do anything special...except run thorough all blocks and ensure out start block number is less than the one used by the heap
 	for (auto& block : hl) {
-	  auto baseobj = MiniMC::getBase(block.baseobj);
+	  auto baseobj = MiniMC::Model::getBase(block.baseobj);
 	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
 	}
 
@@ -232,7 +232,7 @@ namespace MiniMC {
 
       template<class T>
       T Value<T>::interpretValue (const SMTLib::Solver& solver) const {
-	if constexpr (MiniMC::is_pointer_v<T>) {
+	if constexpr (MiniMC::Model::is_pointer_v<T>) {
 	  T pointer;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
 	  
@@ -284,8 +284,8 @@ namespace MiniMC {
       
       
       template class Value<bool>;
-      template class Value<MiniMC::pointer64_t>;
-      template class Value<MiniMC::pointer32_t>;
+      template class Value<MiniMC::Model::pointer64_t>;
+      template class Value<MiniMC::Model::pointer32_t>;
       template class Value<MiniMC::BV8>;
       template class Value<MiniMC::BV16>;
       template class Value<MiniMC::BV32>;

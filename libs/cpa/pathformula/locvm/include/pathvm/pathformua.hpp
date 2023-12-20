@@ -48,7 +48,7 @@ namespace MiniMC {
 	MiniMC::Hash::hash_t hash() const {return std::bit_cast<uint64_t> (this);}// }throw MiniMC::Support::Exception ("Not implemented");}
       private:
 	SMTLib::TermBuilder& builder;
-	MiniMC::base_t next_block = 0;
+	MiniMC::Model::base_t next_block = 0;
 	SMTLib::Term_ptr mem_var{nullptr};
       };
 

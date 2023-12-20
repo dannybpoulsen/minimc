@@ -1,7 +1,11 @@
 #include <unordered_map>
 
 #include "model/types.hpp"
-#include "host/types.hpp"
+#include "model/variables.hpp"
+
+
+#include "support/exceptions.hpp"
+
 
 namespace MiniMC {
   namespace Model {
@@ -45,7 +49,7 @@ namespace MiniMC {
     class PointerType : public Type {
     public:
       PointerType() : Type(TypeID::Pointer32) {}
-      std::size_t getSize() const { return sizeof(MiniMC::pointer32_t); }
+      std::size_t getSize() const { return sizeof(MiniMC::Model::pointer32_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer32"; }
       bool innerEq(const Type& ) { return true; }
     };
@@ -53,7 +57,7 @@ namespace MiniMC {
     class PointerType : public Type {
     public:
       PointerType() : Type(TypeID::Pointer) {}
-      std::size_t getSize() const { return sizeof(MiniMC::pointer_t); }
+      std::size_t getSize() const { return sizeof(MiniMC::Model::pointer_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
       bool innerEq(const Type& ) { return true; }
     };
@@ -145,5 +149,25 @@ class BoolType : public Type {
       return impl->arrays.at(t);
     }
 
+
+    std::ostream& operator<< (std::ostream& os, TypeID id){
+      switch (id) {
+      case TypeID::Void: return os << "Void";
+      case TypeID::Bool: return os << "Bool";
+      case TypeID::I8: return os << "I8";
+      case TypeID::I16: return os << "I16";
+      case TypeID::I32: return os << "I32";
+      case TypeID::I64: return os << "I64";
+      case TypeID::Float: return os << "Float";
+      case TypeID::Double: return os << "Double";
+      case TypeID::Pointer: return os << "Pointer";
+      case TypeID::Pointer32: return os << "Pointer32";
+      case TypeID::Aggregate: return os << "Aggregate";
+      default:
+	throw MiniMC::Support::Exception ("Not a Typeid");
+      }
+    }
+    
+    
   } // namespace Model
 } // namespace MiniMC

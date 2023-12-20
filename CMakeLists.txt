@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.23..3.27)
 project(minimc VERSION 0.4.0)	
 
 if(POLICY CMP0135)

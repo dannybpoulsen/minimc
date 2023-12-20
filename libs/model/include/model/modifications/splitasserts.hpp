@@ -12,7 +12,6 @@
 #include <algorithm>
 
 #include "model/cfg.hpp"
-#include "support/workinglist.hpp"
 #include "model/modifications/modifications.hpp"
 
 namespace MiniMC {

@@ -45,16 +45,16 @@ namespace MiniMC {
     }
 
 
-    const Value_ptr ConstantFactory64::makeFunctionPointer(MiniMC::func_t id) {
+    const Value_ptr ConstantFactory64::makeFunctionPointer(MiniMC::Model::func_t id) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeFunctionPointer (id));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeFunctionPointer (id));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeFunctionPointer (id));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeFunctionPointer (id));  
       }
       
       
@@ -67,16 +67,16 @@ namespace MiniMC {
     }
       
     
-    const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::func_t id,MiniMC::base_t lid) {
+    const Value_ptr ConstantFactory64::makeLocationPointer(MiniMC::Model::func_t id,MiniMC::Model::base_t lid) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
 
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeLocationPointer (id,lid));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeLocationPointer (id,lid));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeLocationPointer (id,lid));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeLocationPointer (id,lid));  
       }
       
 
@@ -86,16 +86,16 @@ namespace MiniMC {
     
     
     
-    const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::base_t base,MiniMC::offset_t offset) {
+    const Value_ptr ConstantFactory64::makeHeapPointer(MiniMC::Model::base_t base,MiniMC::Model::offset_t offset) {
       auto ptrtype = typefact->makePointerType ();
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::pointer32_t::makeHeapPointer (base,offset));  
+	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeHeapPointer (base,offset));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeHeapPointer (base,offset));  
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeHeapPointer (base,offset));  
       }
       v->setType (ptrtype);
       return v;
@@ -106,11 +106,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v =  std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeNullPointer ());	
+	v =  std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeNullPointer ());	
       }
       
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::pointer64_t::makeNullPointer ());	
+	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeNullPointer ());	
       
       }
       v->setType(ptrtype);
@@ -178,8 +178,7 @@ namespace MiniMC {
 				    [&out](const MiniMC::Model::AggregateConstant& aggr) {
 				      out = std::copy(aggr.getData().begin(), aggr.getData().end(), out);
 				    },
-				    [](auto& l) {
-				      std::cerr << l << std::endl; 
+				    []([[maybe_unused]]auto& l) {
 				      throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
 				    }
 				      },

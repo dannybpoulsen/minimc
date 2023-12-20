@@ -16,7 +16,6 @@
 #include "cpa/state.hpp"
 #include "hash/hashing.hpp"
 #include "model/cfg.hpp"
-#include "support/feedback.hpp"
 #include <memory>
 #include <ostream>
 #include <unordered_map>
@@ -62,10 +61,10 @@ namespace MiniMC {
     };
 
     struct Transition {
-      Transition (MiniMC::Model::Edge* e, MiniMC::proc_t p) : edge(e),proc(p) {}
+      Transition (MiniMC::Model::Edge* e, MiniMC::Model::proc_t p) : edge(e),proc(p) {}
       Transition ( const Transition&) = default;
       MiniMC::Model::Edge* edge;
-      MiniMC::proc_t proc;
+      MiniMC::Model::proc_t proc;
     };
     
     template<class State>

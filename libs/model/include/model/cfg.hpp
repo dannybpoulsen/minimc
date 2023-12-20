@@ -21,7 +21,6 @@
 #include "model/heaplayout.hpp"
 #include "model/symbol.hpp"
 #include "host/types.hpp"
-#include "support/workinglist.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -88,19 +87,7 @@ namespace MiniMC {
         }
       }
       
-      void deleteLocation(const Location_ptr& location) {
-        MiniMC::Support::WorkingList<MiniMC::Model::Edge*> wlist;
-        auto insert = wlist.inserter();
-        std::for_each(location->ebegin(), location->eend(), [&](const auto& e) { insert = e; });
-        std::for_each(location->iebegin(), location->ieend(), [&](const auto& e) { insert = e; });
-	
-        std::for_each(wlist.begin(), wlist.end(), [&](const auto& e) { this->deleteEdge(e); });
-	
-        auto it = std::find(locations.begin(), locations.end(), location);
-        if (it != locations.end()) {
-          locations.erase(it);
-        }
-      }
+      void deleteLocation(const Location_ptr& location);
 
       auto& getLocations() const { return locations; }
       auto& getLocations() { return locations; }
@@ -121,7 +108,7 @@ namespace MiniMC {
     
     class Function  {
     public:
-      Function(MiniMC::func_t id,
+      Function(MiniMC::Model::func_t id,
                const Symbol& name,
                const std::vector<Register_ptr>& params,
                const Type_ptr rtype,
@@ -161,7 +148,7 @@ namespace MiniMC {
       std::vector<Register_ptr> parameters;
       RegisterDescr registerdescr;
       CFA cfa;
-      MiniMC::func_t id;
+      MiniMC::Model::func_t id;
       Program& prgm;
       Type_ptr retType;
       bool varargs;
@@ -208,7 +195,7 @@ namespace MiniMC {
         entrypoints.push_back(function);
       }
       
-      Function_ptr getFunction(MiniMC::func_t id) const {
+      Function_ptr getFunction(MiniMC::Model::func_t id) const {
         return functions.at(id);
       }
 
@@ -228,7 +215,7 @@ namespace MiniMC {
 	throw MiniMC::Support::FunctionDoesNotExist(symb.getFullName ());
       }
       
-      bool functionExists(MiniMC::func_t id) const {
+      bool functionExists(MiniMC::Model::func_t id) const {
         return static_cast<std::size_t> (id) < functions.size();
       }
       

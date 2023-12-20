@@ -2,7 +2,6 @@
 #include "doctest/doctest.h"
 
 #include "model/modifications/modifications.hpp"
-#include "model/controller.hpp"
 #include "model/cfg.hpp"
 #include "cpa/interface.hpp"
 #include "cpa/concrete.hpp"

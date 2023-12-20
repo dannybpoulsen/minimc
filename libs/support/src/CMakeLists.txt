@@ -1,4 +1,4 @@
-add_library (support STATIC feedback.cpp base64encode.cpp)
+add_library (support SHARED feedback.cpp base64encode.cpp)
 
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -15,3 +15,15 @@ configure_file (
 target_include_directories (support PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/include  )
 target_link_libraries (support PUBLIC host )
 
+target_sources(support
+    PUBLIC FILE_SET HEADERS 
+    BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
+    FILES ${PROJECT_SOURCE_DIR}/include/support/exceptions.hpp
+    	  ${PROJECT_SOURCE_DIR}/include/support/feedback.hpp
+	  ${PROJECT_SOURCE_DIR}/include/support/localisation.hpp
+	  ${PROJECT_SOURCE_DIR}/include/support/overload.hpp
+	  ${PROJECT_SOURCE_DIR}/include/support/pipes.hpp
+	  ${PROJECT_SOURCE_DIR}/include/support/workinglist.hpp
+	  
+
+)

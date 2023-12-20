@@ -122,7 +122,7 @@ namespace MiniMC {
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
 	//QueryBuilder
-	QueryExpr_ptr buildValue (MiniMC::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
 	  if (p >= proc_vars.size ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }

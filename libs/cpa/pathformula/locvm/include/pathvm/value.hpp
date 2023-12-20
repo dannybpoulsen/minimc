@@ -20,7 +20,7 @@ namespace MiniMC {
         Value() = default;
 	
         Value(SMTLib::Term_ptr&& term) requires (std::is_integral_v<v> ||
-						 MiniMC::is_pointer_v<v>
+						 MiniMC::Model::is_pointer_v<v>
 						 ) :
 						     term(std::move(term)),
 						     bytesize(intbitsize<v>() / 8) {}
@@ -28,16 +28,16 @@ namespace MiniMC {
 	
         Value(SMTLib::Term_ptr&& term,std::size_t b) requires (
 							       !std::is_integral_v<v> &&
-							       !MiniMC::is_pointer_v<v>
+							       !MiniMC::Model::is_pointer_v<v>
 							       ) : term(std::move(term)),
-							      bytesize(b) {}
+								   bytesize(b) {}
 		
 	auto& getTerm() const { return term; }
 
         std::ostream& output(std::ostream& os) const;
 	
         template <typename t = v>
-        static constexpr std::size_t intbitsize() requires (std::is_integral_v<v> || MiniMC::is_pointer_v<v>) { return sizeof(v)*8; }
+        static constexpr std::size_t intbitsize() requires (std::is_integral_v<v> || MiniMC::Model::is_pointer_v<v>) { return sizeof(v)*8; }
 
         bool operator==(const Value& vv) const { return term.get() == vv.term.get(); }
 
@@ -63,8 +63,8 @@ namespace MiniMC {
       using I16Value = Value<MiniMC::BV16>;
       using I8Value = Value<MiniMC::BV8>;
       using BoolValue = Value<bool>;
-      using PointerValue = Value<MiniMC::pointer64_t>;
-      using Pointer32Value = Value<MiniMC::pointer32_t>;
+      using PointerValue = Value<MiniMC::Model::pointer64_t>;
+      using Pointer32Value = Value<MiniMC::Model::pointer32_t>;
       
       using PathFormulaVMVal = MiniMC::VMT::GenericVal<I8Value,
                                                        I16Value,

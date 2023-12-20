@@ -404,7 +404,7 @@ namespace MiniMC {
 						    if (prgm.functionExists (ptr.base))
 						      return prgm.getFunction (ptr.base);
 						    else {
-						      mess << MiniMC::Support::TError<std::string> {function_not_exists.format(MiniMC::getFunctionId(ptr))};
+						      mess << MiniMC::Support::TError<std::string> {function_not_exists.format(MiniMC::Model::getFunctionId(ptr))};
 						      return nullptr;
 						    }
 						  },

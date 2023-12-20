@@ -1,7 +1,6 @@
 #ifndef _CASTS__
 #define _CASTS__
 
-#include "support/exceptions.hpp"
 #include "host/types.hpp"
 
 namespace MiniMC {
