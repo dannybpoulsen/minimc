@@ -1,9 +1,9 @@
-#include "model/modifications/expandnondet.hpp"
-#include "model/instructions.hpp"
-#include "support/workinglist.hpp"
-#include "support/feedback.hpp"
-#include "support/localisation.hpp"
-#include "support/overload.hpp"
+#include "minimc/model/modifications/expandnondet.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/support/workinglist.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/support/localisation.hpp"
+#include "minimc/support/overload.hpp"
 
 
 #include <limits>

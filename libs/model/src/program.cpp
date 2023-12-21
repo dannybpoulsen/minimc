@@ -1,6 +1,6 @@
-#include "model/cfg.hpp"
-#include "model/instructions.hpp"
-#include "model/variables.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/model/variables.hpp"
 
 #include <memory>
 #include <unordered_map>

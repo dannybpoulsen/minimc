@@ -1,5 +1,5 @@
-#include "loaders/loader.hpp"
-#include "model/cfg.hpp"
+#include "minimc/loaders/loader.hpp"
+#include "minimc/model/cfg.hpp"
 #include "Scanner.hpp"
 #include "parser.hpp"
 

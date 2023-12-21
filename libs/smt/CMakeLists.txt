@@ -2,4 +2,7 @@ project (smt CXX)
 add_subdirectory (src)
 
 
-install (TARGETS smt FILE_SET HEADERS)
+
+add_library(MiniMC::smt ALIAS smt)
+install (TARGETS smt EXPORT MiniMCTargets FILE_SET HEADERS
+)

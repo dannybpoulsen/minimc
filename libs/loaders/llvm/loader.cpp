@@ -40,14 +40,14 @@
 #include <variant>
 
 #include "llvmpasses.hpp"
-#include "loaders/loader.hpp"
-#include "model/cfg.hpp"
-#include "support/exceptions.hpp"
-#include "support/feedback.hpp"
-#include "support/localisation.hpp"
+#include "minimc/loaders/loader.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/support/exceptions.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/support/localisation.hpp"
 
 #include "context.hpp"
-#include "model/builder.hpp"
+#include "minimc/model/builder.hpp"
 
 namespace MiniMC {
   namespace Loaders {

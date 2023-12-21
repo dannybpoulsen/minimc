@@ -1,10 +1,10 @@
 #ifndef _PLUGIN__
 #define _PLUGIN__
 
-#include "cpa/interface.hpp"
+#include "minimc/cpa/interface.hpp"
 #include "options.hpp"
-#include "host/host.hpp"
-#include "support/feedback.hpp"
+#include "minimc/host/host.hpp"
+#include "minimc/support/feedback.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>

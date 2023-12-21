@@ -2,8 +2,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "model/analysis/dominator.hpp"
-#include "model/analysis/loops.hpp"
+#include "minimc/model/analysis/dominator.hpp"
+#include "minimc/model/analysis/loops.hpp"
 
 namespace MiniMC {
   namespace Model {

@@ -1,6 +1,6 @@
-#include "model/symbol.hpp"
-#include "support/exceptions.hpp"
-#include "hash/hashing.hpp"
+#include "minimc/model/symbol.hpp"
+#include "minimc/support/exceptions.hpp"
+#include "minimc/hash/hashing.hpp"
 
 #include <stdexcept>
 #include <string>

@@ -1,10 +1,10 @@
 
-#include "model/cfg.hpp"
-#include "model/modifications/func_inliner.hpp"
-#include "model/modifications/helpers.hpp"
-#include "support/exceptions.hpp"
-#include "support/workinglist.hpp"
-#include "support/overload.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/model/modifications/func_inliner.hpp"
+#include "helpers.hpp"
+#include "minimc/support/exceptions.hpp"
+#include "minimc/support/workinglist.hpp"
+#include "minimc/support/overload.hpp"
 
 #include <functional>
 

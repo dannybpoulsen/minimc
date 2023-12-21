@@ -1,7 +1,7 @@
 #ifndef _VM_CONCRETE_OPS__
 #define _VM_CONCRETE_OPS__
 
-#include "host/operataions.hpp"
+#include "minimc/host/operataions.hpp"
 #include "concvm/value.hpp"
 
 namespace MiniMC {

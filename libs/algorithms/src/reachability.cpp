@@ -1,8 +1,8 @@
-#include "algorithms/reachability.hpp"
-#include "cpa/interface.hpp"
-#include "cpa/successorgen.hpp"
-#include "support/localisation.hpp"
-#include "storage/storage.hpp"
+#include "minimc/algorithms/reachability.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/cpa/successorgen.hpp"
+#include "minimc/support/localisation.hpp"
+#include "minimc/storage/storage.hpp"
 #include <algorithm>
 
 namespace MiniMC {

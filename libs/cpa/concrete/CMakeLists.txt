@@ -9,9 +9,9 @@ add_library(concrete_headers INTERFACE)
 target_sources(concrete_headers
     PUBLIC FILE_SET HEADERS 
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
-    FILES ${PROJECT_SOURCE_DIR}/include/cpa/concrete.hpp
+    FILES ${PROJECT_SOURCE_DIR}/include/minimc/cpa/concrete.hpp
 )
 
-install(TARGETS concrete_headers FILE_SET HEADERS)
+install(TARGETS concrete_headers EXPORT MiniMCTargets FILE_SET HEADERS)
 
 

@@ -1,4 +1,4 @@
-#include "model/instructions.hpp"
+#include "minimc/model/instructions.hpp"
 #include <cstdint>
 #include <variant>
 #include <ostream>

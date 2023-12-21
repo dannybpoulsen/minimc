@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "support/binary_encode.hpp"
+#include "minimc/support/binary_encode.hpp"
 
 namespace MiniMC {
   namespace Support {

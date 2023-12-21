@@ -1,10 +1,10 @@
-#include "model/valuevisitor.hpp"
+#include "minimc/model/valuevisitor.hpp"
 #include "smt/builder.hpp"
-#include "smt/smtconstruction.hpp"
+#include "minimc/smt/smtconstruction.hpp"
 #include "pathvm/pathformua.hpp"
 #include "pathvm/value.hpp"
 #include "smt/solver.hpp"
-#include "smt/smt.hpp"
+#include "minimc/smt/smt.hpp"
 #include <sstream>
 
 namespace MiniMC {

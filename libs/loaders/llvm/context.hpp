@@ -1,6 +1,6 @@
-#include "model/variables.hpp"
-#include "model/instructions.hpp"
-#include "model/builder.hpp"
+#include "minimc/model/variables.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/model/builder.hpp"
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>

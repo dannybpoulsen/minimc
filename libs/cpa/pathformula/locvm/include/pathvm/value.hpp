@@ -1,7 +1,7 @@
 #ifndef _VM_PATHFORMULA_VALUES__
 #define _VM_PATHFORMULA_VALUES__
 
-#include "vm/vmt.hpp"
+#include "minimc/vm/vmt.hpp"
 #include <memory>
 
 namespace SMTLib {

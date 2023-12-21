@@ -26,3 +26,8 @@ target_link_libraries (minimclib INTERFACE smt)
 
 
 install (TARGETS host smt FILE_SET HEADERS)
+install(
+  EXPORT MiniMCTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/minimc
+  NAMESPACE MyPack::
+  )

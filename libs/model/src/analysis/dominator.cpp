@@ -1,4 +1,4 @@
-#include "model/analysis/dominator.hpp"
+#include "minimc/model/analysis/dominator.hpp"
 #include <algorithm>
 #include <queue>
 

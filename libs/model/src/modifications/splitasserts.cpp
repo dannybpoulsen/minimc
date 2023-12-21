@@ -1,6 +1,6 @@
-#include "model/modifications/splitasserts.hpp"
-#include "support/workinglist.hpp"
-#include "support/overload.hpp"
+#include "minimc/model/modifications/splitasserts.hpp"
+#include "minimc/support/workinglist.hpp"
+#include "minimc/support/overload.hpp"
 
 namespace MiniMC {
   namespace Model {

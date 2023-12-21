@@ -1,4 +1,7 @@
 project (hash CXX)
 add_subdirectory (src)
 
-install (TARGETS hash  FILE_SET HEADERS)
+install (TARGETS hash  			       EXPORT MiniMCTargets
+
+		 			       FILE_SET HEADERS)
+add_library(MiniMC::hash ALIAS hash)

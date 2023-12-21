@@ -13,3 +13,4 @@ target_link_libraries (minimcloader PUBLIC loaderinter model)
 target_include_directories (minimcloader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 INSTALL (TARGETS minimcloader)
+add_library(MiniMC::minimcloader ALIAS minimcloader)

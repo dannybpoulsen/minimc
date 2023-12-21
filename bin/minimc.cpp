@@ -1,9 +1,9 @@
-#include "model/output.hpp"
+#include "minimc/model/output.hpp"
 #include "plugin.hpp"
-#include "support/localisation.hpp"
-#include "model/checkers/typechecker.hpp"
-#include "model/checkers/structuralchecker.hpp"
-#include "model/modifications/modifications.hpp"
+#include "minimc/support/localisation.hpp"
+#include "minimc/model/checkers/typechecker.hpp"
+#include "minimc/model/checkers/structuralchecker.hpp"
+#include "minimc/model/modifications/modifications.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
@@ -12,7 +12,7 @@
 #include <fstream>
 
 
-#include "loaders/loader.hpp"
+#include "minimc/loaders/loader.hpp"
 #include "options.hpp"
 
 namespace po = boost::program_options;

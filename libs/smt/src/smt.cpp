@@ -1,6 +1,6 @@
-#include "smt/smt.hpp"
+#include "minimc/smt/smt.hpp"
 #include "smt/context.hpp"
-#include "support/exceptions.hpp"
+#include "minimc/support/exceptions.hpp"
 #include <vector>
 
 namespace MiniMC {

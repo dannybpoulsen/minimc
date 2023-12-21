@@ -1,6 +1,6 @@
 #include <boost/program_options.hpp>
-#include "model/output.hpp"
-#include "host/host.hpp"
+#include "minimc/model/output.hpp"
+#include "minimc/host/host.hpp"
 
 
 #include "plugin.hpp"

@@ -1,8 +1,8 @@
-#include "algorithms/gencases.hpp"
-#include "cpa/pathformula.hpp"
-#include "cpa/location.hpp"
-#include "cpa/successorgen.hpp"
-#include "smt/smt.hpp"
+#include "minimc/algorithms/gencases.hpp"
+#include "minimc/cpa/pathformula.hpp"
+#include "minimc/cpa/location.hpp"
+#include "minimc/cpa/successorgen.hpp"
+#include "minimc/smt/smt.hpp"
 
 namespace MiniMC {
   namespace Algorithms {

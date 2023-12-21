@@ -1,11 +1,11 @@
-#include "model/checkers/typechecker.hpp"
+#include "minimc/model/checkers/typechecker.hpp"
 
-#include "model/cfg.hpp"
-#include "model/instructions.hpp"
-#include "model/valuevisitor.hpp"
-#include "model/variables.hpp"
-#include "support/feedback.hpp"
-#include "support/localisation.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/model/valuevisitor.hpp"
+#include "minimc/model/variables.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/support/localisation.hpp"
 
 namespace MiniMC {
   namespace Model {

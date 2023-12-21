@@ -1,9 +1,9 @@
 #include <boost/program_options.hpp>
 
-#include "support/localisation.hpp"
-#include "cpa/successorgen.hpp"
-#include "loaders/loader.hpp"
-#include "algorithms/gencases.hpp"
+#include "minimc/support/localisation.hpp"
+#include "minimc/cpa/successorgen.hpp"
+#include "minimc/loaders/loader.hpp"
+#include "minimc/algorithms/gencases.hpp"
 #include "options.hpp"
 #include "plugin.hpp"
 

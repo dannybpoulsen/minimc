@@ -1,10 +1,10 @@
 #ifndef _OPTIONS__
 #define _OPTIONS__
 
-#include "smt/smt.hpp"
-#include "cpa/interface.hpp"
-#include "cpa/location.hpp"
-#include "loaders/loader.hpp"
+#include "minimc/smt/smt.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/cpa/location.hpp"
+#include "minimc/loaders/loader.hpp"
 
 struct Command;
 

@@ -1,6 +1,6 @@
-#include "cpa/interface.hpp"
-#include "hash/hashing.hpp"
-#include "model/cfg.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/hash/hashing.hpp"
+#include "minimc/model/cfg.hpp"
 #include <ostream>
 
 namespace MiniMC {

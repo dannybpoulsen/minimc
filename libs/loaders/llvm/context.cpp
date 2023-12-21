@@ -1,5 +1,5 @@
 #include "context.hpp"
-#include "model/variables.hpp"
+#include "minimc/model/variables.hpp"
 
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
