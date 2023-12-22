@@ -78,7 +78,7 @@ namespace MiniMC {
       
       struct Transferer::Internal {
 	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},
-							       MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},prgm),
+							       prgm),
 							metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
@@ -181,7 +181,7 @@ namespace MiniMC {
 	
 	auto state = std::make_shared<State>(stack,heap);
 	
-	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},MiniMC::VMT::Concrete::ConcreteEngine::CasterT{},descr.getProgram ()};
+	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},descr.getProgram ()};
 	MiniMC::VMT::Concrete::PathControl control;
 	MiniMC::VMT::Concrete::ValueLookupBase lookup;
 	MiniMC::VMT::Concrete::ConcreteVMInitState newvm {state->getHeap (),control,lookup};

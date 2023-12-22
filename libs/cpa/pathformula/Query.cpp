@@ -53,7 +53,7 @@ namespace MiniMC {
 
 	memory.createHeapLayout (descr.getHeap ());
 	
-	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{termbuilder},descr.getProgram ()};
+	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},descr.getProgram ()};
 	MiniMC::VMT::Pathformula::ValueLookupBase blookup{termbuilder};
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	MiniMC::VMT::Pathformula::PathFormulaInitState newvm {state->getMemory (),control,blookup};
@@ -65,7 +65,7 @@ namespace MiniMC {
 
       struct Transferer::Internal {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
-										    engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},MiniMC::VMT::Pathformula::PathFormulaEngine::CasterT{context->getBuilder()},prgm),
+										    engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},prgm),
 										    metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	SMTLib::Context_ptr context;

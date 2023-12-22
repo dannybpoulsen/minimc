@@ -9,7 +9,7 @@ namespace MiniMC {
       
       template<class Value>
       template <MiniMC::Model::TypeID to>
-      typename RetTyp<Value,to>::type Casts<Value>::BoolZExt(const BoolValue& val) {
+      typename RetTyp<Value,to>::type Operations<Value>::BoolZExt(const BoolValue& val) {
         constexpr std::size_t bitsize = MiniMC::Model::BitWidth<to>;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(1, bitsize);
@@ -18,7 +18,7 @@ namespace MiniMC {
 
       template<class Value>
       template <MiniMC::Model::TypeID to>
-      typename RetTyp<Value,to>::type Casts<Value>::BoolSExt(const BoolValue& val) {
+      typename RetTyp<Value,to>::type Operations<Value>::BoolSExt(const BoolValue& val) {
         constexpr std::size_t bitsize = MiniMC::Model::BitWidth<to>;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(~0, bitsize);
@@ -28,7 +28,7 @@ namespace MiniMC {
 
       template<class Value>
       template <class T>
-      Value::Bool Casts<Value>::IntToBool(const T& t) {
+      Value::Bool Operations<Value>::IntToBool(const T& t) {
         auto tt = builder.makeBoolConst(true);
         auto ff = builder.makeBoolConst(false);
         auto zeros = builder.makeBVIntConst(0,  T::intbitsize());
@@ -38,7 +38,7 @@ namespace MiniMC {
 
       template<class Value>
       template <class T>
-      Value::Pointer Casts<Value>::IntToPtr(const T& t) {
+      Value::Pointer Operations<Value>::IntToPtr(const T& t) {
 	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
 	if constexpr (ptrsize >= tsize) {
@@ -52,7 +52,7 @@ namespace MiniMC {
 
       template<class Value>
       template <class T>
-      T Casts<Value>::PtrToInt(const typename Value::Pointer& ptr) {
+      T Operations<Value>::PtrToInt(const typename Value::Pointer& ptr) {
 	constexpr std::size_t ptrsize = Value::Pointer::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
 	if constexpr (ptrsize < tsize) {
@@ -66,7 +66,7 @@ namespace MiniMC {
 
       template<class Value>
       template <class T>
-      T Casts<Value>::Ptr32ToInt(const typename Value::Pointer32& ptr) {
+      T Operations<Value>::Ptr32ToInt(const typename Value::Pointer32& ptr) {
 	constexpr std::size_t ptrsize =  Value::Pointer32::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
 	if constexpr (ptrsize < tsize) {
@@ -80,7 +80,7 @@ namespace MiniMC {
       
       template<class Value>
       template <class T>
-      Value::Pointer32 Casts<Value>::IntToPtr32(const T& t) {
+      Value::Pointer32 Operations<Value>::IntToPtr32(const T& t) {
 	constexpr std::size_t ptrsize = Value::Pointer32::intbitsize ();
 	constexpr std::size_t tsize = T::intbitsize ();
 	if constexpr (ptrsize >= tsize) {
@@ -90,7 +90,7 @@ namespace MiniMC {
       }
 
       template<class Value>
-      Value::Pointer32 Casts<Value>::PtrToPtr32 (const typename Value::Pointer& p) {
+      Value::Pointer32 Operations<Value>::PtrToPtr32 (const typename Value::Pointer& p) {
 	constexpr std::size_t fromsize = Value::Pointer::intbitsize ();
 
 	using FromPtr = std::decay_t<decltype(p)>;
@@ -120,7 +120,7 @@ namespace MiniMC {
       }
 
       template<class Value>
-      Value::Pointer Casts<Value>::Ptr32ToPtr (const typename Value::Pointer32& p32) {
+      Value::Pointer Operations<Value>::Ptr32ToPtr (const typename Value::Pointer32& p32) {
 	using FromPtr = std::decay_t<decltype(p32)>;
 	
 	auto term = p32.getTerm ();
@@ -155,99 +155,99 @@ namespace MiniMC {
       
       template<class Value>
       template <MiniMC::Model::TypeID to, class T>
-      typename RetTyp<Value,to>::type Casts<Value>::Trunc (const T& t) const {
+      typename RetTyp<Value,to>::type Operations<Value>::Trunc (const T& t) const {
         constexpr std::size_t highbit = MiniMC::Model::BitWidth<to> - 1;
         return builder.buildTerm(SMTLib::Ops::Extract, {t.getTerm()}, {highbit, 0});
       }
 
       template<class Value>
       template <MiniMC::Model::TypeID to, typename T>
-      typename RetTyp<Value,to>::type Casts<Value>::ZExt(const T& t) const {
+      typename RetTyp<Value,to>::type Operations<Value>::ZExt(const T& t) const {
         constexpr std::size_t bits = MiniMC::Model::BitWidth<to> - T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::ZExt, {t.getTerm()}, {bits});
       }
 
       template<class Value>
       template <MiniMC::Model::TypeID to, typename T>
-      typename RetTyp<Value,to>::type Casts<Value>::SExt(const T& t) const {
+      typename RetTyp<Value,to>::type Operations<Value>::SExt(const T& t) const {
         constexpr std::size_t bits = MiniMC::Model::BitWidth<to>  -T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::SExt, {t.getTerm()}, {bits});
       }
 
       
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::BoolZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::Bool&);
 
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::Bool&);
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::Bool&);
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::BoolSExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::Bool&);
       
-      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Bool Casts<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
+      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::IntToBool<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
 
-      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
-      template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::IntToPtr<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
+      template PathFormulaVMVal::Pointer32 Operations<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I8> (const PathFormulaVMVal::I8&);
+      template PathFormulaVMVal::Pointer32 Operations<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I16> (const PathFormulaVMVal::I16&);
+      template PathFormulaVMVal::Pointer32 Operations<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I32> (const PathFormulaVMVal::I32&);
+      template PathFormulaVMVal::Pointer32 Operations<PathFormulaVMVal>::IntToPtr32<PathFormulaVMVal::I64> (const PathFormulaVMVal::I64&);
 
-      template PathFormulaVMVal::I8 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer&);
-      template PathFormulaVMVal::I16 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer&);
-      template PathFormulaVMVal::I32 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer&);
-      template PathFormulaVMVal::I64 Casts<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I8 Operations<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I16 Operations<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I32 Operations<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::I64 Operations<PathFormulaVMVal>::PtrToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer&);
 
-      template PathFormulaVMVal::I8 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer32&);
-      template PathFormulaVMVal::I16 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer32&);
-      template PathFormulaVMVal::I32 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer32&);
-      template PathFormulaVMVal::I64 Casts<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer32&);
-      
-      
-
-      
-      template PathFormulaVMVal::Pointer32 Casts<PathFormulaVMVal>::PtrToPtr32 (const PathFormulaVMVal::Pointer&);
-      template PathFormulaVMVal::Pointer Casts<PathFormulaVMVal>::Ptr32ToPtr (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I8 Operations<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I8> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I16 Operations<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I16> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I32 Operations<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I32> (const PathFormulaVMVal::Pointer32&);
+      template PathFormulaVMVal::I64 Operations<PathFormulaVMVal>::Ptr32ToInt<PathFormulaVMVal::I64> (const PathFormulaVMVal::Pointer32&);
       
       
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8,I8Value> (const PathFormulaVMVal::I8&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I32&) const ;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I64&) const ;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I64&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I64&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
 
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I16&) const ;      
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I8&) const ;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I8&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I8&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I8&) const;
+      
+      template PathFormulaVMVal::Pointer32 Operations<PathFormulaVMVal>::PtrToPtr32 (const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::Ptr32ToPtr (const PathFormulaVMVal::Pointer32&);
+      
+      
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8,I8Value> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I32&) const ;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I64&) const ;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::Trunc<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
 
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I32&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I16&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I16&) const ;      
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I8&) const ;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I8&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I8&) const;
-      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Casts<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I16&) const ;      
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I8&) const ;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::ZExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I8&) const;
+
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I64&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I32&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I16&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I16&) const ;      
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I8>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I8> (const PathFormulaVMVal::I8&) const ;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I16>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I16> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I32>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I32> (const PathFormulaVMVal::I8&) const;
+      template RetTyp<PathFormulaVMVal,MiniMC::Model::TypeID::I64>::type Operations<PathFormulaVMVal>::SExt<MiniMC::Model::TypeID::I64> (const PathFormulaVMVal::I8&) const;
 
       //template Value<ValType::Pointer> Casts::Trunc (const I64Value&);
       

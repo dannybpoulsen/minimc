@@ -290,10 +290,10 @@ namespace MiniMC {
     
       
     
-    template<class Operations ,class Caster>
+    template<class Operations>
     class Engine {
     public:
-      Engine (Operations&& ops, Caster&& caster,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)), caster(std::move(caster)),prgm(prgm){}
+      Engine (Operations&& ops,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)),prgm(prgm){}
       ~Engine ()  {}
 
       template<class VState>
@@ -303,10 +303,8 @@ namespace MiniMC {
       Status execute (const MiniMC::Model::Instruction&, VState& ) ;
       
       using OperationsT = Operations;
-      using CasterT = Caster;
     private:
       Operations operations;
-      Caster caster;
       const MiniMC::Model::Program& prgm;
     };
     

@@ -192,12 +192,8 @@ namespace MiniMC {
 	ConcreteVMVal::Bool BoolNegate (const ConcreteVMVal::Bool& negate) {
 	  return negate.BoolNegate ();
 	}
-	
-      };
 
-  
-      struct Caster {
-        template <MiniMC::Model::TypeID to>
+	        template <MiniMC::Model::TypeID to>
         RetTyp<to>::type BoolZExt(const BoolValue& val) {
           return typename RetTyp<to>::type(val.getValue() ? 1 : 0);
         }
@@ -341,6 +337,7 @@ namespace MiniMC {
             }
           }
         }
+	
       };
 
     } // namespace Concrete

@@ -126,7 +126,7 @@ namespace MiniMC {
 	  return nstate;
 	}
 	
-	MiniMC::VMT::Engine<DummyOperations, DummyCaster> engine {DummyOperations{},DummyCaster{},prgm};
+	MiniMC::VMT::Engine<DummyOperations> engine {DummyOperations{},prgm};
         VMState vmstate{*nstate, id};
 	engine.execute (edge.getInstructions (),vmstate);
         return nstate;

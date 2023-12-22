@@ -13,6 +13,38 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
 
+      template <class Value,MiniMC::Model::TypeID>
+      struct RetTyp;
+      
+      template<class Value>
+      struct RetTyp<Value,MiniMC::Model::TypeID::I8> {
+        using type = Value::I8;
+	using underlying_type = MiniMC::BV8;
+      };
+
+      template<class Value>
+      struct RetTyp<Value,MiniMC::Model::TypeID::I16> {
+        using type = Value::I16;
+	using underlying_type = MiniMC::BV16;
+      };
+
+      template<class Value>
+      struct RetTyp<Value,MiniMC::Model::TypeID::I32> {
+        using type = Value::I32;
+	using underlying_type = MiniMC::BV32;
+	
+      };
+
+      template<class Value>
+      struct RetTyp<Value,MiniMC::Model::TypeID::I64> {
+        using type = Value::I64;
+	using underlying_type = MiniMC::BV64;
+
+	
+	
+      };
+
+      
       template<class Value>
       struct Operations {
 	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
@@ -102,43 +134,6 @@ namespace MiniMC {
         Value::Aggregate InsertBaseValue(const Value::Aggregate&, const MiniMC::BV64, const T&);
 
 	Value::Aggregate  InsertAggregateValue(const Value::Aggregate&, const MiniMC::BV64, const Value::Aggregate&);
-	
-      private:
-	SMTLib::TermBuilder& builder;
-      };
-
-      template <class Value,MiniMC::Model::TypeID>
-      struct RetTyp;
-      
-      template<class Value>
-      struct RetTyp<Value,MiniMC::Model::TypeID::I8> {
-        using type = Value::I8;
-	using underlying_type = MiniMC::BV8;
-      };
-
-      template<class Value>
-      struct RetTyp<Value,MiniMC::Model::TypeID::I16> {
-        using type = Value::I16;
-	using underlying_type = MiniMC::BV16;
-      };
-
-      template<class Value>
-      struct RetTyp<Value,MiniMC::Model::TypeID::I32> {
-        using type = Value::I32;
-	using underlying_type = MiniMC::BV32;
-	
-      };
-
-      template<class Value>
-      struct RetTyp<Value,MiniMC::Model::TypeID::I64> {
-        using type = Value::I64;
-	using underlying_type = MiniMC::BV64;
-	
-      };
-
-      template<class Value>
-      struct Casts {
-	Casts (SMTLib::TermBuilder& builder) : builder(builder) {}
 
 	template <MiniMC::Model::TypeID to>
 	typename RetTyp<Value,to>::type BoolZExt(const BoolValue& val);
@@ -176,11 +171,10 @@ namespace MiniMC {
 
 	template <MiniMC::Model::TypeID to, typename T>
         typename RetTyp<Value,to>::type SExt(const T& t) const;
+	
       private:
 	SMTLib::TermBuilder& builder;
-      
       };
-
       
       
     }
