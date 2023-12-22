@@ -46,7 +46,7 @@ namespace MiniMC {
       }
 
       struct Operations {
-
+	using Domain = ConcreteVMVal;
         template <typename T>
         T Add(const T& l, const T& r) const {
           return performOp<MiniMC::Host::TAC::Add>(l.getValue(), r.getValue());

@@ -293,9 +293,9 @@ namespace MiniMC {
     template<class Operations>
     class Engine {
     public:
-      Engine (Operations&& ops,const MiniMC::Model::Program& prgm)  : operations(std::move(ops)),prgm(prgm){}
-      ~Engine ()  {}
-
+      Engine (Operations&& ops,const MiniMC::Model::Program& prgm);
+      ~Engine ();
+      
       template<class VState>
       Status execute (const MiniMC::Model::InstructionStream&, VState& ) ;
 
@@ -304,8 +304,8 @@ namespace MiniMC {
       
       using OperationsT = Operations;
     private:
-      Operations operations;
-      const MiniMC::Model::Program& prgm;
+      class Impl;
+      std::unique_ptr<Impl> _impl;
     };
     
     

@@ -86,8 +86,10 @@ namespace MiniMC {
         std::vector<LocationState> locations;
       };
 
-      class DummyOperations {};
-      class DummyCaster {};
+      class DummyOperations {
+      public:
+	using Domain = int;
+      };
       
       
       struct VMState : public MiniMC::VMT::SimpStackControl{
