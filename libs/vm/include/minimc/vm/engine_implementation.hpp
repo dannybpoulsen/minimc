@@ -20,9 +20,8 @@ namespace MiniMC {
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
     
    
-    template<typename Operations>
-    struct Engine<Operations>::Impl {
-      using T = typename Operations::Domain;
+    template<typename T, typename Operations>
+    struct Engine<T,Operations>::Impl {
     private:
       const MiniMC::Model::Program& prgm;
       Operations operations;
@@ -36,11 +35,11 @@ namespace MiniMC {
 
       
       template <class Value>
-      static auto castPtrToAppropriateInteger(const Value& v, Operations& caster) {
+      auto castPtrToAppropriateInteger(const Value& v) {
         if constexpr (std::is_same_v<Value, typename T::Pointer>) {
-          return caster.template PtrToInt<typename T::I64>(v);
+          return operations.template PtrToInt<typename T::I64>(v);
         } else if constexpr (std::is_same_v<Value, typename T::Pointer32>) {
-          return caster.template Ptr32ToInt<typename T::I32>(v);
+          return operations.template Ptr32ToInt<typename T::I32>(v);
         } else {
           return v;
         }
@@ -51,10 +50,7 @@ namespace MiniMC {
       template <class I,class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isTAC_v<I> &&
-	IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
-	IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
-	IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
-	IntOperationCompatible<typename T::I64, typename T::Bool, Operations> &&
+	IntOperationCompatible<T, Operations> &&
 	ValueLookupable<State>
 
       {
@@ -105,10 +101,8 @@ namespace MiniMC {
       template <class I, class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isComparison_v<I> &&
-                 IntOperationCompatible<typename T::I8, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I16, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I32, typename T::Bool, Operations> &&
-                 IntOperationCompatible<typename T::I64, typename T::Bool, Operations> &&
+                 IntOperationCompatible<T, Operations> &&
+                
                  ValueLookupable<State>
 
       {
@@ -120,8 +114,8 @@ namespace MiniMC {
         auto rval = writeState.getValueLookup().lookupValue(*content.op2);
 	lval.visit (MiniMC::Support::Overload {
 	    [&writeState,this,&res]<typename R>(R& l, R& r) requires Integer<T,R> || Pointer<T,R> {
-	      auto lval = Impl::castPtrToAppropriateInteger (l,operations);
-	      auto rval = Impl::castPtrToAppropriateInteger (r,operations);
+	      auto lval = Impl::castPtrToAppropriateInteger (l);
+	      auto rval = Impl::castPtrToAppropriateInteger (r);
 	      
 	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT) {
 		writeState.getValueLookup().saveValue(res, operations.SGt(lval, rval));
@@ -161,11 +155,8 @@ namespace MiniMC {
       template <class I,class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isPointer_v<I> &&
-                 PointerOperationCompatible<typename T::I8, typename T::Pointer, typename T::Bool, Operations> &&
-                 PointerOperationCompatible<typename T::I16, typename T::Pointer, typename T::Bool, Operations> &&
-                 PointerOperationCompatible<typename T::I32, typename T::Pointer, typename T::Bool, Operations> &&
-                 PointerOperationCompatible<typename T::I64, typename T::Pointer, typename T::Bool, Operations> &&
-                 ValueLookupable<State>
+	PointerOperationCompatible<T, Operations> &&
+	ValueLookupable<State>
 
       {
 	constexpr auto op = I::getOpcode ();
@@ -226,7 +217,7 @@ namespace MiniMC {
       template <class  I,class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isMemory_v<I> &&
-        CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Operations> &&
+        CastCompatible<T, Operations> &&
 	ValueLookupable<State> 
       {
 	constexpr auto op = I::getOpcode ();
@@ -338,7 +329,7 @@ namespace MiniMC {
       template <class I,class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isCast_v<I> &&
-	CastCompatible<typename T::I8, typename T::I16, typename T::I32, typename T::I64, typename T::Bool, typename T::Pointer, typename T::Pointer32, Operations> &&
+	CastCompatible<T, Operations> &&
          	ValueLookupable<State>
       {
 	constexpr auto op = I::getOpcode ();
@@ -673,18 +664,18 @@ namespace MiniMC {
 
       };
 
-    template <class Operations>
+    template <class Value,class Operations>
     template<class State>
-    Status Engine<Operations>::execute(const MiniMC::Model::Instruction& instr,
+    Status Engine<Value,Operations>::execute(const MiniMC::Model::Instruction& instr,
 				       State& wstate) {
       
       return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate);});
 
     }
 
-    template <class Operations>
+    template <class Value,class Operations>
     template<class State>
-    Status Engine<Operations>::execute(const MiniMC::Model::InstructionStream& instr,
+    Status Engine<Value,Operations>::execute(const MiniMC::Model::InstructionStream& instr,
 				       State& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
@@ -695,13 +686,13 @@ namespace MiniMC {
       return status;
     }
 
-    template<class Operations>
-    Engine<Operations>::Engine (Operations&& ops,const MiniMC::Model::Program& prgm)   {
+    template<class Value,class Operations>
+    Engine<Value,Operations>::Engine (Operations&& ops,const MiniMC::Model::Program& prgm)   {
       _impl = std::make_unique<Impl> (std::move(ops),prgm);
     }
      
-    template<class Operations>
-    Engine<Operations>::~Engine () {}
+    template<class Value,class Operations>
+    Engine<Value,Operations>::~Engine () {}
     
   } // namespace VMT
 } // namespace MiniMC

@@ -84,7 +84,7 @@ namespace MiniMC {
       using ConcreteVMInitState = MiniMC::VMT::VMInitState<MiniMC::VMT::Concrete::ConcreteVMVal>;
       
       //ConcreteVMState 
-      using ConcreteEngine = MiniMC::VMT::Engine<MiniMC::VMT::Concrete::Operations >;
+      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, MiniMC::VMT::Concrete::Operations >;
       
       
     } // namespace Concrete

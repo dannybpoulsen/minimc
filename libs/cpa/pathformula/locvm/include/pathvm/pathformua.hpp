@@ -23,7 +23,7 @@ namespace MiniMC {
       using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal>;
       
       //PathFormulaState, 
-      using PathFormulaEngine = MiniMC::VMT::Engine<Operations<PathFormulaVMVal>> ;
+      using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal,Operations<PathFormulaVMVal>> ;
       
       class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
       public:

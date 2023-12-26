@@ -86,10 +86,6 @@ namespace MiniMC {
         std::vector<LocationState> locations;
       };
 
-      class DummyOperations {
-      public:
-	using Domain = int;
-      };
       
       
       struct VMState : public MiniMC::VMT::SimpStackControl{
@@ -128,7 +124,7 @@ namespace MiniMC {
 	  return nstate;
 	}
 	
-	MiniMC::VMT::Engine<DummyOperations> engine {DummyOperations{},prgm};
+	MiniMC::VMT::Engine<int, MiniMC::VMT::DummyOperations> engine {MiniMC::VMT::DummyOperations{},prgm};
         VMState vmstate{*nstate, id};
 	engine.execute (edge.getInstructions (),vmstate);
         return nstate;

@@ -106,10 +106,8 @@ namespace MiniMC {
       VMState (MLookup& m, PControl& path, StControl& stack,VLookup& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
-      auto& getValueLookup () const {return lookup;}
-      auto& getMemory () const {return memory;}
-      auto& getPathControl () const {return control;}
-      auto& getStackControl () const {return scontrol;}
+      auto& getPathControl ()  {return control;}
+      auto& getStackControl ()  {return scontrol;}
     private:
       MLookup& memory;
       PControl& control;
@@ -128,8 +126,6 @@ namespace MiniMC {
       VMInitState (MLookup& m, PControl& path, VLookup& vlook) : memory(m),control(path),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
-      auto& getValueLookup () const {return lookup;}
-      auto& getMemory () const {return memory;}
       auto& getPathControl () const {return control;}
     private:
       MLookup& memory;
@@ -173,7 +169,7 @@ namespace MiniMC {
 
 
     template<class Int, class Bool,class Operation>
-    concept IntOperationCompatible = requires (Operation op, const Int&left) {
+    concept IntOperationCompatible_ = requires (Operation op, const Int&left) {
       {op.template Add<Int> (left,left)} -> std::convertible_to<Int>;
       {op.template Sub<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template Mul<Int> (left,left) } -> std::convertible_to<Int>;
@@ -197,13 +193,26 @@ namespace MiniMC {
       {op.template NEq<Int> (left,left)  } -> std::convertible_to<Bool>;
     };
 
+    template<class Value,class Operation>
+    concept IntOperationCompatible =  (IntOperationCompatible_<typename Value::I8,typename Value::Bool,Operation> &&
+				       IntOperationCompatible_<typename Value::I16,typename Value::Bool,Operation> &&
+				       IntOperationCompatible_<typename Value::I32,typename Value::Bool,Operation> &&
+				       IntOperationCompatible_<typename Value::I64,typename Value::Bool,Operation>
+				       );
+
     template<class Int, class Pointer,class Bool,class Operation>
-    concept PointerOperationCompatible = requires (Operation op, const Int&left, const Pointer& ptr) {
+    concept PointerOperationCompatible_ = requires (Operation op, const Int&left, const Pointer& ptr) {
       {op.PtrAdd (ptr,left)} -> std::convertible_to<Pointer>;
       {op.PtrSub (ptr,left)} -> std::convertible_to<Pointer>;
-      {op.PtrEq (ptr,ptr)} -> std::convertible_to<Bool>;
-      
+      {op.PtrEq (ptr,ptr)} -> std::convertible_to<Bool>; 
     };
+
+    template<class Value, class Operation>
+    concept PointerOperationCompatible = (PointerOperationCompatible_<typename Value::I8,typename Value::Pointer,typename Value::Bool,Operation>&&
+					   PointerOperationCompatible_<typename Value::I16,typename Value::Pointer,typename Value::Bool,Operation>&&
+					   PointerOperationCompatible_<typename Value::I32,typename Value::Pointer,typename Value::Bool,Operation>&&
+					  PointerOperationCompatible_<typename Value::I64,typename Value::Pointer,typename Value::Bool,Operation>
+					   );
     
     template<class Int, class Aggregate,class Operation>
     concept AggregateCompatible = requires (Operation op, const Aggregate& aggr, MiniMC::BV64 index, const Int& insertee,size_t s) {
@@ -214,7 +223,7 @@ namespace MiniMC {
     };
 
     template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Caster>
-    concept CastCompatible = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
+    concept CastCompatible_ = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
       {op.template ZExt<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
       {op.template ZExt<MiniMC::Model::TypeID::I16> (i8)} -> std::convertible_to<I16>;
       {op.template ZExt<MiniMC::Model::TypeID::I32> (i8)} -> std::convertible_to<I32>;
@@ -287,10 +296,18 @@ namespace MiniMC {
       {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;
       
     };
+
+    template<class T,class Operation>
+    concept CastCompatible = CastCompatible_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
+					     typename T::Bool,typename T::Pointer,typename T::Pointer32,Operation>;
     
-      
+    class DummyOperations {
+    public:
+      using Domain = int;
+    };
     
-    template<class Operations>
+    
+    template<class Value, class Operations>
     class Engine {
     public:
       Engine (Operations&& ops,const MiniMC::Model::Program& prgm);
