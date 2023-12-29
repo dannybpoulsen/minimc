@@ -208,7 +208,7 @@ namespace MiniMC {
 				       IntOperationCompatible_<typename Value::I32,typename Value::Bool,Operation> &&
 				       IntOperationCompatible_<typename Value::I64,typename Value::Bool,Operation>
 				       );
-
+    
     template<class Int, class Pointer,class Bool,class Operation>
     concept PointerOperationCompatible_ = requires (Operation op, const Int&left, const Pointer& ptr) {
       {op.PtrAdd (ptr,left)} -> std::convertible_to<Pointer>;

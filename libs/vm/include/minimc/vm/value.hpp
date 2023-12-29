@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <type_traits>
 #include <variant>
 #include "minimc/model/variables.hpp"
 #include "minimc/model/array.hpp"
@@ -12,6 +13,11 @@
 
 namespace MiniMC {
   namespace VMT {
+
+    template<class T, class... Ts>
+    concept is_same = 
+    (... && std::is_same<T, Ts>::value);
+    
     template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename Pointer32T, typename BoolT,typename Ag>
     struct GenericVal {
       using I8 = Int8;
@@ -34,12 +40,12 @@ namespace MiniMC {
       GenericVal (Bool val) : content(val) {}
       GenericVal (Aggregate ag) : content(ag) {}
       
-      
+      /*
       template<class Func>
       auto visit (Func f) {
 	return std::visit(f,content);
       }
-
+      
       template<class Func>
       auto visit (Func f) const {
 	return std::visit(f,content);
@@ -54,9 +60,12 @@ namespace MiniMC {
       auto visit (Func f,Oths&&... oths) const {
 	return std::visit(f,content,oths.content...);
       }
-      
-      
-      
+      */
+      template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
+      static auto visit (Func f,Values... values)  {
+	return std::visit (f,values.content...);
+      }
+    
       auto hash () const {return std::hash<decltype(content)>{} (content);}
 
       auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, content);}
@@ -68,6 +77,7 @@ namespace MiniMC {
       std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag> content;
     };
 
+    
     template<class G>
     concept Outputtable = requires (std::ostream& os, const G&g) {g.output (os);};
     

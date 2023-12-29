@@ -125,7 +125,7 @@ namespace MiniMC {
 	MiniMC::Model::Constant_ptr evaluate(const QueryExpr& expr) const override {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
-	    return myexpr.getValue ().visit (MiniMC::Support::Overload {
+	    return MiniMC::VMT::Pathformula::PathFormulaVMVal::visit (MiniMC::Support::Overload {
 		[this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I8& val) ->MiniMC::Model::Constant_ptr {
 		  return std::make_shared<MiniMC::Model::I8Integer> (val.interpretValue (*solver));
 		},
@@ -138,9 +138,10 @@ namespace MiniMC {
 		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Aggregate& val) ->MiniMC::Model::Constant_ptr {
 		    auto res = val.interpretValue (*solver);
 		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
-		  },
 		  }
-		);
+		  },
+	      myexpr.getValue ()
+	      );
 	      
           }
 	  
