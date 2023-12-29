@@ -12,13 +12,6 @@
 
 namespace MiniMC {
   namespace VMT {
-    
-    
-    template<typename ... Ts>                                                  
-    struct Overload : Ts ... { 
-      using Ts::operator() ...;
-    };
-        
     template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename Pointer32T, typename BoolT,typename Ag>
     struct GenericVal {
       using I8 = Int8;
@@ -41,11 +34,7 @@ namespace MiniMC {
       GenericVal (Bool val) : content(val) {}
       GenericVal (Aggregate ag) : content(ag) {}
       
-      template<typename T>
-      T& as () {	
-	return std::get<T> (content);
-      }
-
+      
       template<class Func>
       auto visit (Func f) {
 	return std::visit(f,content);
@@ -66,15 +55,7 @@ namespace MiniMC {
 	return std::visit(f,content,oths.content...);
       }
       
-      template<typename T>
-      auto& as () const {	
-	return std::get<T> (content);
-      }
       
-      template<typename T>
-      bool is () const {
-	return std::holds_alternative<T> (content);
-      }
       
       auto hash () const {return std::hash<decltype(content)>{} (content);}
 

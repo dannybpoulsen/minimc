@@ -101,8 +101,7 @@ namespace MiniMC {
       template <class I, class State>
       Status runInstruction(const I& instr, State& writeState)
         requires MiniMC::Model::isComparison_v<I> &&
-                 IntOperationCompatible<T, Operations> &&
-                
+                 IntOperationCompatible<T, Operations> &&                
                  ValueLookupable<State>
 
       {
@@ -282,8 +281,12 @@ namespace MiniMC {
 	constexpr auto op = instr.getOpcode ();
         auto& content = instr.getOps();
         auto& pathcontrol = writeState.getPathControl();
-        auto obj = writeState.getValueLookup().lookupValue(*content.expr).template as<typename T::Bool>();
-        if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
+        auto obj = writeState.getValueLookup().lookupValue(*content.expr).visit (MiniMC::Support::Overload {
+	    [](const T::Bool& b) {return b;},
+	      [](const auto&) -> typename T::Bool {throw MiniMC::Support::Exception ("Should be a boolean");}
+	    }
+	  );
+	if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
           auto res = pathcontrol.addAssumption(obj);
           return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
         } else if constexpr (op == MiniMC::Model::InstructionCode::NegAssume) {
@@ -291,11 +294,11 @@ namespace MiniMC {
           auto res = pathcontrol.addAssumption(neg);
           return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
         }
-
+	
         else if constexpr (op == MiniMC::Model::InstructionCode::Assert) {
           auto res = pathcontrol.addAssert(obj);
           return (res == TriBool::False ? Status::AssertViolated : Status::Ok);
-
+	  
         } else
           throw NotImplemented<op>();
       }
@@ -366,8 +369,12 @@ namespace MiniMC {
 	}
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolSExt) {
-          auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::Bool>();
-          switch (res.getType()->getTypeID()) {
+          auto op1 = writeState.getValueLookup().lookupValue(*content.op1).visit (MiniMC::Support::Overload {
+	      [](const typename T::Bool& b) {return b;},
+	      [](const auto& ) -> T::Bool {throw MiniMC::Support::Exception ("Must be bool");},
+		}
+	    );
+	  switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, operations.template BoolSExt<MiniMC::Model::TypeID::I8>(op1));
               break;
@@ -386,8 +393,13 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolZExt) {
-          auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::Bool>();
-          switch (res.getType()->getTypeID()) {
+          auto op1 = writeState.getValueLookup().lookupValue(*content.op1).visit (MiniMC::Support::Overload {
+	      [](const typename T::Bool& b) {return b;},
+		[](const auto& ) -> T::Bool {throw MiniMC::Support::Exception ("Must be bool");},
+		}
+	    );
+	  
+	  switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, operations.template BoolZExt<MiniMC::Model::TypeID::I8>(op1));
               break;
@@ -424,32 +436,20 @@ namespace MiniMC {
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {
-          switch (content.op1->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8: {
-              auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::I8>();
-
-              writeState.getValueLookup().saveValue(res, operations.IntToBool(op1));
-            } break;
-            case MiniMC::Model::TypeID::I16: {
-              auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::I16>();
-
-              writeState.getValueLookup().saveValue(res, operations.IntToBool(op1));
-            } break;
-            case MiniMC::Model::TypeID::I32: {
-              auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::I32>();
-
-              writeState.getValueLookup().saveValue(res, operations.IntToBool(op1));
-            } break;
-            case MiniMC::Model::TypeID::I64: {
-              auto op1 = writeState.getValueLookup().lookupValue(*content.op1).template as<typename T::I64>();
-
-              writeState.getValueLookup().saveValue(res, operations.IntToBool(op1));
-            } break;
-            default:
-              throw MiniMC::Support::Exception("Invalied IntToBool");
-          }
-        }
-
+	  auto resVal = writeState.getValueLookup().lookupValue (*content.op1).visit (
+										   MiniMC::Support::Overload {
+										     [this](const typename T::I8 v)->T::Bool {return operations.IntToBool (v);},
+										       [this](const typename T::I16 v)->T::Bool {return operations.IntToBool (v);},
+										       [this](const typename T::I32 v)->T::Bool {return operations.IntToBool (v);},
+										       [this](const typename T::I64 v)->T::Bool {return operations.IntToBool (v);},
+										       [](auto& ) ->T::Bool {throw MiniMC::Support::Exception ("Must be integer");}
+										       }
+										   
+										   );
+	  writeState.getValueLookup().saveValue(res, resVal);
+	  
+	}
+	
         else
           throw NotImplemented<op>();
         return Status::Ok;
@@ -476,7 +476,7 @@ namespace MiniMC {
           assert(content.function->isConstant());
 
           auto func = MiniMC::Model::visitValue(
-              MiniMC::Model::Overload{
+              MiniMC::Support::Overload{
                   [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
                     auto loadPtr = t.getValue();
                     auto func = prgm.getFunction(loadPtr.base);
@@ -594,7 +594,7 @@ namespace MiniMC {
         auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
         MiniMC::BV64 offset{0};
 
-        offset = MiniMC::Model::visitValue(MiniMC::Model::Overload{
+        offset = MiniMC::Model::visitValue(MiniMC::Support::Overload{
 	      [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
@@ -604,36 +604,34 @@ namespace MiniMC {
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
           auto val_v = content.insertee;
 
-          auto aggr = writeState.getValueLookup().lookupValue(*content.aggregate).template as<typename T::Aggregate>();
-          auto value = writeState.getValueLookup().lookupValue(*val_v);
+          auto aggr = writeState.getValueLookup().lookupValue(*content.aggregate);
+          auto value = writeState.getValueLookup().lookupValue(*content.insertee);
 
-          switch (val_v->getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8:
-              writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::I8>(aggr, offset, value.template as<typename T::I8>()));
-              break;
-            case MiniMC::Model::TypeID::I16:
-              writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::I16>(aggr, offset, value.template as<typename T::I16>()));
-              break;
-            case MiniMC::Model::TypeID::I32:
-              writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::I32>(aggr, offset, value.template as<typename T::I32>()));
-              break;
-            case MiniMC::Model::TypeID::I64:
-              writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::I64>(aggr, offset, value.template as<typename T::I64>()));
-              break;
-            case MiniMC::Model::TypeID::Pointer:
-              writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue<typename T::Pointer>(aggr, offset, value.template as<typename T::Pointer>()));
-              break;
-            case MiniMC::Model::TypeID::Aggregate:
-              writeState.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value.template as<typename T::Aggregate>()));
-              break;
-            default:
-              throw MiniMC::Support::Exception("Invalid Insert");
-          }
+	  aggr.visit (MiniMC::Support::Overload {
+	      [this,&writeState,&res,&offset](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
+		writeState.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
+	      },
+		[this,&writeState,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
+		  writeState.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
+		},
+	      [](const auto&,const auto&){
+		throw MiniMC::Support::Exception ("Incompatible insert aggregate");
+	      }
+		}
+ 	    ,
+	    value);
+	    
         }
 
         else if constexpr (op == MiniMC::Model::InstructionCode::ExtractValue) {
-          auto aggr = writeState.getValueLookup().lookupValue(*content.aggregate).template as<typename T::Aggregate>();
+          auto aggr = writeState.getValueLookup().lookupValue(*content.aggregate).visit (MiniMC::Support::Overload {
+	      [](const typename T::Aggregate& aggr) {return aggr;},
+		[](const auto& )->T::Aggregate {throw MiniMC::Support::Exception ("Not an aggregate");},
+	      	
 
+	    }
+	    );
+	  
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
               writeState.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));

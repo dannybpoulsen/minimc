@@ -35,7 +35,18 @@ namespace MiniMC {
 
       using Value = T;
       
-    };    
+    };
+
+    
+
+    template<class Eval,class T >
+    concept Evaluator = requires (const MiniMC::Model::Value& v, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t,MiniMC::Model::Type& ty) {
+      {ceval.lookupValue (v)} -> std::convertible_to<T>;
+      {ceval.unboundValue (ty)}->std::convertible_to<T>;
+      {ceval.defaultValue (ty)}->std::convertible_to<T>;
+      {eval.saveValue (reg,std::move(t))};
+    } ;
+    
     
     template<class T>
     struct Memory {
@@ -94,16 +105,15 @@ namespace MiniMC {
     };
     
     
-    template<class T>  
+    template<class T,Evaluator<T> Eval>  
     struct VMState {
       using Domain = T;
-      using VLookup  =  ValueLookup<T>;
       using MLookup  =  Memory<T>;
       using PControl =  PathControl<T>;
       using StControl = StackControl<T>;
       
       
-      VMState (MLookup& m, PControl& path, StControl& stack,VLookup& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
+      VMState (MLookup& m, PControl& path, StControl& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
       auto& getPathControl ()  {return control;}
@@ -112,25 +122,24 @@ namespace MiniMC {
       MLookup& memory;
       PControl& control;
       StControl& scontrol;
-      VLookup& lookup;
+      Eval& lookup;
     };
 
-    template<class T>  
+    template<class T,Evaluator<T> Eval>  
     struct VMInitState {
       using Domain = T;
-      using VLookup  =  ValueLookup<T>;
       using MLookup  =  Memory<T>;
       using PControl =  PathControl<T>;
       
       
-      VMInitState (MLookup& m, PControl& path, VLookup& vlook) : memory(m),control(path),lookup(vlook) {}
+      VMInitState (MLookup& m, PControl& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
       auto& getPathControl () const {return control;}
     private:
       MLookup& memory;
       PControl& control;
-      VLookup& lookup;
+      Eval& lookup;
     };
 
     template<class State>

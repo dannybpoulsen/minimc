@@ -157,6 +157,7 @@ namespace MiniMC {
       template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::I64&);
 
       template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Pointer&);
+      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Pointer32&); 
       template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Bool&);
 
       template class Operations<PathFormulaVMVal>;

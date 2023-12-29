@@ -19,8 +19,6 @@ namespace SMTLib {
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {      
-      using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal>;
-      using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal>;
       
       //PathFormulaState, 
       using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal,Operations<PathFormulaVMVal>> ;
@@ -110,6 +108,9 @@ namespace MiniMC {
 	
 	SMTLib::TermBuilder& builder;
       };
+
+      using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal,ValueLookupBase>;
+      using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal,ValueLookupBase>;
       
       
       

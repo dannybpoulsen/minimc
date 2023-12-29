@@ -1,4 +1,4 @@
-add_compile_options(-Wall -Wextra )
+add_compile_options(-Wall -Wextra -fconcepts-diagnostics-depth=2)
 
 add_subdirectory (host)
 add_subdirectory (model)
