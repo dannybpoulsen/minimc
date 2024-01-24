@@ -11,7 +11,7 @@ add_library(pathformula_headers INTERFACE)
 target_sources(pathformula_headers
     PUBLIC FILE_SET HEADERS 
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
-    FILES ${PROJECT_SOURCE_DIR}/include/cpa/pathformula.hpp
+    FILES ${PROJECT_SOURCE_DIR}/include/minimc/cpa/pathformula.hpp
 )
 
-install(TARGETS pathformula_headers FILE_SET HEADERS)
+install(TARGETS pathformula_headers EXPORT MiniMCTargets FILE_SET HEADERS)

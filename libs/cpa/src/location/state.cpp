@@ -1,9 +1,9 @@
-#include "cpa/interface.hpp"
-#include "cpa/location.hpp"
-#include "hash/hashing.hpp"
-#include "model/cfg.hpp"
-#include "model/valuevisitor.hpp"
-#include "vm/vmt.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/cpa/location.hpp"
+#include "minimc/hash/hashing.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/model/valuevisitor.hpp"
+#include "minimc/vm/vmt.hpp"
 
 namespace MiniMC {
   namespace CPA {

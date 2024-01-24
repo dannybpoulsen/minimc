@@ -7,7 +7,7 @@ add_library(loaderheaders INTERFACE)
 target_sources(loaderheaders
     PUBLIC FILE_SET HEADERS 
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
-    FILES ${PROJECT_SOURCE_DIR}/include/loaders/loader.hpp
+    FILES ${PROJECT_SOURCE_DIR}/include/minimc/loaders/loader.hpp
 )
 
 install(TARGETS loaderheaders FILE_SET HEADERS)

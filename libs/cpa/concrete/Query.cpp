@@ -1,8 +1,8 @@
 #include <memory>
 
-#include "cpa/concrete.hpp"
+#include "minimc/cpa/concrete.hpp"
 #include "cpa/common.hpp"
-#include "hash/hashing.hpp"
+#include "minimc/hash/hashing.hpp"
 //#include "heap.hpp"
 //#include "instructionimpl.hpp"
 //#include "util/vm.hpp"

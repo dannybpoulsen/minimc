@@ -2,7 +2,7 @@
 #define _SMT_PATH__AGGRHELPER
 
 #include "pathvm/value.hpp"
-#include "smt/smtconstruction.hpp"
+#include "minimc/smt/smtconstruction.hpp"
 #include "smt/builder.hpp"
 #include <bit>
 #include <type_traits>

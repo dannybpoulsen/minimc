@@ -1,4 +1,4 @@
-#include "model/instructions.hpp"
+#include "minimc/model/instructions.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -204,7 +204,7 @@ namespace MiniMC {
     }
       
 
-    #include "model/instruction_constructors.inc"
+    #include "minimc/model/instruction_constructors.inc"
     
   }
 }

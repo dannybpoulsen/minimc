@@ -2,11 +2,11 @@
 #define _pathSTATE__
 
 #include "cpa/common.hpp"
-#include "cpa/interface.hpp"
+#include "minimc/cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "smt/solver.hpp"
-#include "support/feedback.hpp"
-#include "support/exceptions.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/support/exceptions.hpp"
 #include "pathvm/pathformua.hpp"
 #include <cstring>
 #include <memory>

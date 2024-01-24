@@ -1,7 +1,7 @@
-#include "model/valuevisitor.hpp"
-#include "host/casts.hpp"
-#include "host/operataions.hpp"
-#include "support/feedback.hpp"
+#include "minimc/model/valuevisitor.hpp"
+#include "minimc/host/casts.hpp"
+#include "minimc/host/operataions.hpp"
+#include "minimc/support/feedback.hpp"
 #include "concvm/concrete.hpp"
 
 

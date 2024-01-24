@@ -1,10 +1,10 @@
 #include <boost/program_options.hpp>
 #include <sstream>
 
-#include "loaders/loader.hpp"
-#include "algorithms/reachability.hpp"
-#include "cpa/concrete.hpp"
-#include "cpa/pathformula.hpp"
+#include "minimc/loaders/loader.hpp"
+#include "minimc/algorithms/reachability.hpp"
+#include "minimc/cpa/concrete.hpp"
+#include "minimc/cpa/pathformula.hpp"
 
 
 #include "options.hpp"

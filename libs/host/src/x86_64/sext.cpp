@@ -1,5 +1,5 @@
-#include "host/casts.hpp"
-#include "host/types.hpp"
+#include "minimc/host/casts.hpp"
+#include "minimc/host/types.hpp"
 #include <iostream>
 
 namespace MiniMC {

@@ -1,8 +1,8 @@
 
 #include <sstream>
 #include "doctest/doctest.h"
-#include "host/types.hpp"
-#include "host/operataions.hpp"
+#include "minimc/host/types.hpp"
+#include "minimc/host/operataions.hpp"
 
 
 TEST_SUITE ("Addition") {

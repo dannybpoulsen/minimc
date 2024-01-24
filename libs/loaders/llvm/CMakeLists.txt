@@ -3,3 +3,4 @@ target_link_libraries (llvmloader PUBLIC loaderinter support model util PUBLIC l
 
 
 INSTALL (TARGETS llvmloader)
+add_library(MiniMC::llvmloader ALIAS llvmloader)

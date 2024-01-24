@@ -1,4 +1,4 @@
-#include "loaders/loader.hpp"
+#include "minimc/loaders/loader.hpp"
 
 #include <vector>
 #include <unordered_map>

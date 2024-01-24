@@ -1,4 +1,4 @@
-#include "host/rightshifts.hpp"
+#include "minimc/host/rightshifts.hpp"
 #include <cstdint>
 
 namespace MiniMC {

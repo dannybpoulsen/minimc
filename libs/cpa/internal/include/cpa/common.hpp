@@ -1,7 +1,7 @@
 #ifndef _CPA_COMMON__
 #define _CPA_COMMON__
 
-#include "vm/vmt.hpp"
+#include "minimc/vm/vmt.hpp"
 
 namespace MiniMC {
   namespace CPA {

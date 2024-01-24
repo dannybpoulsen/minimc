@@ -1,17 +1,16 @@
 add_subdirectory (location)
 
 add_library (cpa SHARED interface.cpp )
-target_link_libraries (cpa PUBLIC  hash location concrete pathformula)
-		      
+target_link_libraries (cpa PUBLIC  pathformula_headers concrete_headers model hash PRIVATE -Wl,-whole-archive location concrete pathformula -Wl,-no-whole-archive)
 
-target_include_directories (cpa PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories (cpa PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 target_sources(cpa
     PUBLIC FILE_SET HEADERS 
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include	
-    FILES ${PROJECT_SOURCE_DIR}/include/cpa/interface.hpp
-    	  ${PROJECT_SOURCE_DIR}/include/cpa/location.hpp
-	  ${PROJECT_SOURCE_DIR}/include/cpa/query.hpp
-	  ${PROJECT_SOURCE_DIR}/include/cpa/state.hpp
-  	  ${PROJECT_SOURCE_DIR}/include/cpa/successorgen.hpp
+    FILES ${PROJECT_SOURCE_DIR}/include/minimc/cpa/interface.hpp
+    	  ${PROJECT_SOURCE_DIR}/include/minimc/cpa/location.hpp
+	  ${PROJECT_SOURCE_DIR}/include/minimc/cpa/query.hpp
+	  ${PROJECT_SOURCE_DIR}/include/minimc/cpa/state.hpp
+  	  ${PROJECT_SOURCE_DIR}/include/minimc/cpa/successorgen.hpp
 		  
 )

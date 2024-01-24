@@ -1,0 +1,265 @@
+
+/**
+ * @file   cfg.hpp
+ * @date   Sun Apr 19 20:16:17 2020
+ * 
+ * 
+ */
+#ifndef _CFG__
+#define _CFG__
+
+#include <algorithm>
+#include <functional>
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+#include "minimc/model/edge.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/model/location.hpp"
+#include "minimc/model/variables.hpp"
+#include "minimc/model/heaplayout.hpp"
+#include "minimc/model/symbol.hpp"
+#include "minimc/host/types.hpp"
+
+namespace MiniMC {
+  namespace Model {
+
+    class Function;
+    using Function_ptr = std::shared_ptr<Function>;
+    
+    /**
+	 *
+	 * Representation of an Control Flow Automaton. 
+	 * The CFA is responsible for creating( and deleting) edges and
+	 * locations of a function. It will also make sure that  the
+	 * incoming/outgoing edges of locations are properly update when
+	 * deleting edges. This 
+	 *
+	 */
+    class CFA  {
+    public:
+      CFA () {}
+      CFA (const CFA& ) = delete;
+      CFA (CFA&& cfa) = default;
+      Location_ptr makeLocation(MiniMC::Model::Symbol symbol, const LocationInfo& info) {
+        locations.push_back(std::make_shared<Location>(symbol,info, locations.size()));
+        return locations.back();
+      }
+
+      /** 
+       * Make a new edge 
+       *
+       * @param from source of the edge
+       * @param to target of the edge
+       *
+       * @return 
+       */
+      Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream,bool isPhi = false  ) {
+        edges.push_back(std::make_shared<Edge>(from, to,std::move(istream),isPhi));
+        to->addIncomingEdge(edges.back().get());
+        from->addEdge(edges.back().get());
+        return edges.back();
+      }
+
+      Location_ptr getInitialLocation() const {
+        assert(initial);
+        return initial;
+      }
+
+      void setInitial(Location_ptr loc) {
+        initial = loc;
+      }
+
+      /** 
+       * Delete \p edge from this CFG. Update also the
+       * incoming/outgoing edges of the target/source of \p edge. 
+       *
+       * @param edge The edge to delete
+       */
+      void deleteEdge(const Edge* edge) {
+        edge->getFrom()->removeEdge(edge);
+        edge->getTo()->removeIncomingEdge(edge);
+
+        auto it = std::find_if(edges.begin(), edges.end(), [edge](auto& e) {return e.get() == edge;});
+        if (it != edges.end()) {
+          edges.erase(it);
+        }
+      }
+      
+      void deleteLocation(const Location_ptr& location);
+
+      auto& getLocations() const { return locations; }
+      auto& getLocations() { return locations; }
+      auto& getEdges() const { return edges; }
+      
+      
+
+    private:
+      std::vector<Location_ptr> locations;
+      std::vector<Edge_ptr> edges;
+      Location_ptr initial = nullptr;
+    };
+
+    
+    class Program;
+    using Program_ptr = std::shared_ptr<Program>;
+    
+    
+    class Function  {
+    public:
+      Function(MiniMC::Model::func_t id,
+               const Symbol& name,
+               const std::vector<Register_ptr>& params,
+               const Type_ptr rtype,
+               RegisterDescr&& registerdescr,
+	       CFA&& cfa,
+               Program& prgm,
+	       bool varargs,
+	       MiniMC::Model::Frame frame
+	       ) : name(name),
+		   parameters(params),
+		   registerdescr(std::move(registerdescr)),
+		   cfa(std::move(cfa)),
+		   id(id),
+		   prgm(prgm),
+		   retType(rtype),
+		   varargs(varargs),
+		   frame(frame)
+                                          
+      {
+      }
+      Function (const Function&) = delete;
+      Function (Function&&) = default;
+      auto& getSymbol() const { return name; }
+      auto& getParameters() const { return parameters; }
+      auto& getRegisterDescr() const { return registerdescr; }
+      auto& getRegisterDescr() { return registerdescr; }
+      auto& getCFA() const { return cfa; }
+      auto& getCFA()  { return cfa; }
+      
+      auto& getID() const { return id; }
+      auto& getReturnType() const { return retType; }
+      auto& getFrame () {return frame;}
+      Program& getPrgm() const { return prgm; }
+      auto isVarArgs () const {return varargs;}
+    private:
+      Symbol name;
+      std::vector<Register_ptr> parameters;
+      RegisterDescr registerdescr;
+      CFA cfa;
+      MiniMC::Model::func_t id;
+      Program& prgm;
+      Type_ptr retType;
+      bool varargs;
+      MiniMC::Model::Frame frame;
+    };
+    
+    class Program  {
+    public:
+      Program(const MiniMC::Model::TypeFactory_ptr &tfact,
+              const MiniMC::Model::ConstantFactory_ptr& cfact
+	      ) : cfact(cfact),
+		  tfact(tfact),
+		  cpu_regs(RegType::CPU),
+		  meta_regs(RegType::Meta)
+      {
+      }
+
+      Program (const Program&) = delete ;
+      Program (Program&&) = default;
+      Function_ptr addFunction(const MiniMC::Model::Symbol& symbol,
+			       const std::vector<Register_ptr>& params,
+			       const Type_ptr retType,
+			       RegisterDescr&& registerdescr,
+			       CFA&& cfg,
+			       bool varargs,
+			       Frame frame
+		) {
+        functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
+        function_map.emplace(symbol, functions.back());
+        return functions.back();
+      }
+
+      Program& operator= (Program&&) = default;
+      
+      auto& getFunctions() const { return functions; }
+
+      void addEntryPoint(const std::string& str) {
+        auto function = getFunction(str);
+        entrypoints.push_back(function);
+      }
+
+      void addEntryPoint(MiniMC::Model::Symbol symb) {
+        auto function = getFunction(symb);
+        entrypoints.push_back(function);
+      }
+      
+      Function_ptr getFunction(MiniMC::Model::func_t id) const {
+        return functions.at(id);
+      }
+
+      Function_ptr getFunction(const std::string& name) const {
+	Symbol symb;
+	if (frame.resolve (name,symb)) {
+	  return getFunction (symb);
+	}
+	throw MiniMC::Support::FunctionDoesNotExist(name);	
+      }
+
+      Function_ptr getFunction(const MiniMC::Model::Symbol& symb) const {
+	
+	if (function_map.count(symb)) {
+	  return function_map.at(symb);
+	}
+	throw MiniMC::Support::FunctionDoesNotExist(symb.getFullName ());
+      }
+      
+      bool functionExists(MiniMC::Model::func_t id) const {
+        return static_cast<std::size_t> (id) < functions.size();
+      }
+      
+      auto& getEntryPoints() const { return entrypoints; }
+
+      auto& getConstantFactory() { return *cfact; }
+      auto& getTypeFactory() { return *tfact; }
+      
+      const auto& getInitialiser () const { return initialiser; }
+      void setInitialiser (const InstructionStream& instr) { initialiser = instr; }
+
+      HeapLayout& getHeapLayout () {return heaplayout;}
+      const HeapLayout& getHeapLayout () const  {return heaplayout;}
+      
+      auto& getCPURegs () {return cpu_regs;}
+      const auto& getCPURegs () const  {return cpu_regs;}
+      auto& getMetaRegs () {return meta_regs;}
+      const auto& getMetaRegs () const  {return meta_regs;}
+      
+      
+      auto& getRootFrame () {return frame;}
+    private:
+      std::vector<Function_ptr> functions;
+      std::vector<Function_ptr> entrypoints;
+      MiniMC::Model::ConstantFactory_ptr cfact;
+      MiniMC::Model::TypeFactory_ptr tfact;
+      InstructionStream initialiser;
+      SymbolTable<Function_ptr> function_map;
+      HeapLayout heaplayout;
+      MiniMC::Model::RegisterDescr cpu_regs;
+      MiniMC::Model::RegisterDescr meta_regs;
+      MiniMC::Model::Frame frame;
+      
+    };
+    
+    Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);
+  } // namespace Model
+} // namespace MiniMC
+
+namespace std {
+  template <>
+  struct hash<MiniMC::Model::Location> {
+    std::size_t operator()(const MiniMC::Model::Location& loc) { return reinterpret_cast<size_t>(&loc); }
+  };
+} // namespace std
+
+#endif

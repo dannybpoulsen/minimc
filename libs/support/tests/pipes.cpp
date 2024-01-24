@@ -4,7 +4,7 @@
 #include "doctest/doctest.h"
 
 
-#include <support/pipes.hpp>
+#include <minimc/support/pipes.hpp>
 
 struct Data {
   int k{0};

@@ -1,13 +1,13 @@
-#include "config.h"
+#include "minimc/support/config.h"
 #include "options.hpp"
-#include "smt/smt.hpp"
+#include "minimc/smt/smt.hpp"
 #include "plugin.hpp"
-#include "cpa/location.hpp"
+#include "minimc/cpa/location.hpp"
 #ifdef MINIMC_SYMBOLIC
-#include "cpa/pathformula.hpp"
+#include "minimc/cpa/pathformula.hpp"
 #endif
-#include "cpa/concrete.hpp"
-#include "loaders/loader.hpp"
+#include "minimc/cpa/concrete.hpp"
+#include "minimc/loaders/loader.hpp"
 #include <boost/program_options.hpp>
 
 

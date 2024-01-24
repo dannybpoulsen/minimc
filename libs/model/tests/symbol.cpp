@@ -4,7 +4,7 @@
 #include "doctest/doctest.h"
 
 
-#include <model/symbol.hpp>
+#include <minimc/model/symbol.hpp>
 
 
 

@@ -1,7 +1,7 @@
-#include "cpa/pathformula.hpp"
+#include "minimc/cpa/pathformula.hpp"
 #include "smt/context.hpp"
 #include "state.hpp"
-#include "smt/smt.hpp"
+#include "minimc/smt/smt.hpp"
 
 namespace MiniMC {
   namespace CPA {

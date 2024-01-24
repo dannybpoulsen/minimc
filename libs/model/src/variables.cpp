@@ -1,7 +1,7 @@
-#include "model/variables.hpp"
-#include "model/valuevisitor.hpp"
-#include "support/overload.hpp"
-#include "support/exceptions.hpp"
+#include "minimc/model/variables.hpp"
+#include "minimc/model/valuevisitor.hpp"
+#include "minimc/support/overload.hpp"
+#include "minimc/support/exceptions.hpp"
 
 #include <memory>
 

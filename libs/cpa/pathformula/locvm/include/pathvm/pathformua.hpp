@@ -1,10 +1,10 @@
 #ifndef _PATH_VM__
 #define _PATH_VM__
 
-#include "hash/hashing.hpp"
+#include "minimc/hash/hashing.hpp"
 
 #include "cpa/common.hpp"
-#include "vm/vmt.hpp"
+#include "minimc/vm/vmt.hpp"
 #include "pathvm/value.hpp"
 #include "pathvm/operations.hpp"
 

@@ -1,8 +1,8 @@
-#include "model/analysis/loops.hpp"
-#include "model/modifications/helpers.hpp"
-#include "model/modifications/loops.hpp"
-#include "support/feedback.hpp"
-#include "support/localisation.hpp"
+#include "minimc/model/analysis/loops.hpp"
+#include "helpers.hpp"
+#include "minimc/model/modifications/loops.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/support/localisation.hpp"
 #include <sstream>
 
 namespace MiniMC {

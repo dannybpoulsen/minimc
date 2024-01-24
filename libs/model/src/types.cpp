@@ -1,10 +1,10 @@
 #include <unordered_map>
 
-#include "model/types.hpp"
-#include "model/variables.hpp"
+#include "minimc/model/types.hpp"
+#include "minimc/model/variables.hpp"
 
 
-#include "support/exceptions.hpp"
+#include "minimc/support/exceptions.hpp"
 
 
 namespace MiniMC {

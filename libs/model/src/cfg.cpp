@@ -1,6 +1,6 @@
-#include "model/cfg.hpp"
-#include "model/instructions.hpp"
-#include "support/workinglist.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/model/instructions.hpp"
+#include "minimc/support/workinglist.hpp"
 
 
 namespace MiniMC {

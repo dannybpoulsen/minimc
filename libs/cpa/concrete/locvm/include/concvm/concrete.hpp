@@ -1,12 +1,12 @@
 #ifndef _CONCRETE_VM__
 #define _CONCRETE_VM__
 
-#include "hash/hashing.hpp"
-#include "host/casts.hpp"
-#include "host/operataions.hpp"
+#include "minimc/hash/hashing.hpp"
+#include "minimc/host/casts.hpp"
+#include "minimc/host/operataions.hpp"
 
 #include "cpa/common.hpp"
-#include "vm/vmt.hpp"
+#include "minimc/vm/vmt.hpp"
 #include "concvm/value.hpp"
 #include "concvm/operations.hpp"
 

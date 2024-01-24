@@ -1,14 +1,14 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 
-#include "model/modifications/modifications.hpp"
-#include "model/cfg.hpp"
-#include "cpa/interface.hpp"
-#include "cpa/concrete.hpp"
-#include "cpa/location.hpp"
-#include "cpa/location.hpp"
-#include "algorithms/reachability.hpp"
-#include "loaders/loader.hpp"
+#include "minimc/model/modifications/modifications.hpp"
+#include "minimc/model/cfg.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/cpa/concrete.hpp"
+#include "minimc/cpa/location.hpp"
+#include "minimc/cpa/location.hpp"
+#include "minimc/algorithms/reachability.hpp"
+#include "minimc/loaders/loader.hpp"
 #include <filesystem>
 
 auto loadProgram (auto& loader, const std::string& s) {
