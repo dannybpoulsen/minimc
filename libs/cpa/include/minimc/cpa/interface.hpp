@@ -37,9 +37,7 @@ namespace MiniMC {
     public:
       InitialiseDescr(std::vector<MiniMC::Model::Function_ptr> entri_func,
                       MiniMC::Model::HeapLayout heap,
-                      MiniMC::Model::InstructionStream init,
                       const MiniMC::Model::Program& program) : heap(std::move(heap)),
-                                                               init(std::move(init)),
                                                                prgm(program) {
 	
 	for (auto& F : entri_func) {
@@ -49,14 +47,14 @@ namespace MiniMC {
 
       auto& getEntries() const { return entries; }
       auto& getHeap() const { return heap; }
-      auto& getInit() const { return init; }
+    
       auto& getProgram() const { return prgm; }
       
       
     private:
       std::vector<FunctionInit> entries;
       MiniMC::Model::HeapLayout heap;
-      MiniMC::Model::InstructionStream init;
+   
       const MiniMC::Model::Program& prgm;
     };
 

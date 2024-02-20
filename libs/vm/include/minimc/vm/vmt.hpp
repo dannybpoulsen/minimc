@@ -21,23 +21,6 @@ namespace MiniMC {
       NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not supported."}.format (c)) {}
     };
     
-    class Value;
-    using Value_ptr = std::shared_ptr<Value>;
-    
-    template<class T>
-    struct ValueLookup {
-    public:
-      virtual ~ValueLookup ()  {}
-      virtual T lookupValue (const MiniMC::Model::Value&) const = 0;
-      virtual void saveValue (const MiniMC::Model::Register&, T&&)  = 0;
-      virtual T unboundValue (const MiniMC::Model::Type&) const = 0;
-      virtual T defaultValue(const MiniMC::Model::Type&) const  = 0;
-
-      using Value = T;
-      
-    };
-
-    
 
     template<class Eval,class T >
     concept Evaluator = requires (const MiniMC::Model::Value& v, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t,MiniMC::Model::Type& ty) {
@@ -166,7 +149,7 @@ namespace MiniMC {
     
     template<class State>
     concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->std::convertible_to<ValueLookup<typename State::Domain>&>;
+      {state.getValueLookup ()} ->std::convertible_to<Evaluator<typename State::Domain>&>;
     };
     
     enum class  Status{

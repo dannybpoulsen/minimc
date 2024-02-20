@@ -2,6 +2,7 @@
 #include "smt/context.hpp"
 #include "state.hpp"
 #include "minimc/smt/smt.hpp"
+#include "minimc/support/overload.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -52,13 +53,26 @@ namespace MiniMC {
 	  
 
 	memory.createHeapLayout (descr.getHeap ());
-	
-	MiniMC::VMT::Pathformula::PathFormulaEngine engine{MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{termbuilder},descr.getProgram ()};
-	MiniMC::VMT::Pathformula::ValueLookupBase blookup{termbuilder};
-	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	MiniMC::VMT::Pathformula::PathFormulaInitState newvm {state->getMemory (),control,blookup};
-	
-	engine.execute(descr.getInit (),newvm);
+	for (auto& b : descr.getHeap ()) {
+	  if (b.value) {
+	    VMT::Pathformula::PathFormulaVMVal ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
+            VMT::Pathformula::PathFormulaVMVal valueToStor = lookup.lookupValue(*b.value);
+	    VMT::Pathformula::PathFormulaVMVal::visit (MiniMC::Support::Overload {
+		
+		[&memory]<typename K>(VMT::Pathformula::PathFormulaVMVal::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::PathFormulaVMVal::Bool>) {
+		  memory.storeValue (ptr,value);
+		},
+		  [](auto&, auto&) {
+		    throw MiniMC::Support::Exception ("Error");
+		  },
+		
+		  
+		  },
+	      ptr,
+	      valueToStor
+	      );
+	    }
+	}
 	
 	return state;
       }

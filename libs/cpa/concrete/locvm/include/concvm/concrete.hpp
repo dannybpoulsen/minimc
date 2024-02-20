@@ -43,12 +43,12 @@ namespace MiniMC {
         std::unique_ptr<internal> _internal;
       };
        
-      class ValueLookupBase : public MiniMC::VMT::ValueLookup<ConcreteVMVal> {
+      class ValueLookupBase  {
       public:
-	ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const override;
-	ConcreteVMVal unboundValue (const MiniMC::Model::Type&) const override;
-	ConcreteVMVal defaultValue(const MiniMC::Model::Type&) const override;
-	void saveValue(const MiniMC::Model::Register&, ConcreteVMVal&& ) override {throw MiniMC::Support::Exception ("Can't save values");}
+	ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const ;
+	ConcreteVMVal unboundValue (const MiniMC::Model::Type&) const ;
+	ConcreteVMVal defaultValue(const MiniMC::Model::Type&) const ;
+	virtual void saveValue(const MiniMC::Model::Register&, ConcreteVMVal&& )  {throw MiniMC::Support::Exception ("Can't save values");}
 	virtual ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register&) const {throw MiniMC::Support::Exception ("Can't lookupRegisters");}
       };
       
@@ -61,7 +61,7 @@ namespace MiniMC {
 	}
 	
 	ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
-      
+	
 	
       };
       

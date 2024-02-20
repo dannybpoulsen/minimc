@@ -79,7 +79,6 @@ namespace {
       
       auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
 	  prgm.getHeapLayout (),
-	  prgm.getInitialiser (),
 	  prgm});
       
       auto goal = [](const MiniMC::CPA::AnalysisState& state) {

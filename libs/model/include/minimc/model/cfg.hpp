@@ -224,9 +224,6 @@ namespace MiniMC {
       auto& getConstantFactory() { return *cfact; }
       auto& getTypeFactory() { return *tfact; }
       
-      const auto& getInitialiser () const { return initialiser; }
-      void setInitialiser (const InstructionStream& instr) { initialiser = instr; }
-
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}
       
@@ -242,7 +239,6 @@ namespace MiniMC {
       std::vector<Function_ptr> entrypoints;
       MiniMC::Model::ConstantFactory_ptr cfact;
       MiniMC::Model::TypeFactory_ptr tfact;
-      InstructionStream initialiser;
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;

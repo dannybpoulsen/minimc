@@ -132,19 +132,16 @@ namespace MiniMC {
 
         for (auto& g : module.getGlobalList()) {
           auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
-	  
-	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize);
+	  MiniMC::Model::Value_ptr val = nullptr;
+	  if (g.hasInitializer()) {
+	    val = lcontext.findValue(g.getInitializer());
+          }
+	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,val);
 	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::Model::getBase(the_pointer),MiniMC::Model::getOffset (the_pointer));
           lcontext.addValue(&g, gvar);
-          if (g.hasInitializer()) {
-            auto val = lcontext.findValue(g.getInitializer());
-            instr.push_back(MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Store>(gvar, val));
-          }
+          
         }
-        if (instr.size()) {
-          MiniMC::Model::InstructionStream str(instr);
-          prgm.setInitialiser(str);
-        }
+ 
       }
 
       void instantiateFunction(llvm::Function& F, GLoadContext& lcontext, MiniMC::Model::Program& prgm, MiniMC::Support::Messager& mess) {

@@ -56,7 +56,6 @@ TEST_CASE("Pointer") {
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
-      prgm.getInitialiser (),
       prgm});
 
   //ACT 
@@ -78,7 +77,6 @@ TEST_CASE("Pointer") {
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
-      prgm.getInitialiser (),
       prgm});
 
   //ACT 
@@ -101,7 +99,6 @@ TEST_CASE("Pointer") {
   analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
-      prgm.getInitialiser (),
       prgm});
 
   //ACT 

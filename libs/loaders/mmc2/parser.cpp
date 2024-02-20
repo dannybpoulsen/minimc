@@ -333,8 +333,9 @@ namespace MiniMC {
 	  
 	  expect (COLON);
 	  expect (NUMBER,&size_tok);
+	  auto value = parseValue();
 	  expect (NEWLINE);
-	  prgm->getHeapLayout ().addBlock (pointer,size_tok.get<int64_t> ());
+	  prgm->getHeapLayout ().addBlock (pointer,size_tok.get<int64_t> (),value);
 	    
 	  
 	}

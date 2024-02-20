@@ -31,7 +31,6 @@ namespace MiniMC {
 	auto initstate = cpa.makeInitialState({
 	    {func},
 	    {},
-	    {},
 	    _internal->program}
 	  );
 	

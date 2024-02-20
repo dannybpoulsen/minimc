@@ -88,13 +88,12 @@ namespace MiniMC {
 
       os << "# Heap" <<"\n";
       for (auto b : p.getHeapLayout ()) {
-	os << b.baseobj << " : " << b.size << "\n"; 
+	os << b.baseobj << " : " << b.size;
+	if (b.value )
+	  os << " " << *b.value; 
+	     os << "\n"; 
       }
       
-      os << "# Initialiser" <<"\n";
-      for (auto i : p.getInitialiser ()) {
-	i.output (os <<"  ") << "\n";
-      }
       
       
     }

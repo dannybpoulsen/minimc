@@ -56,17 +56,17 @@ namespace MiniMC {
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
       
       
-      class ValueLookupBase : public MiniMC::VMT::ValueLookup<PathFormulaVMVal> {
+      class ValueLookupBase  {
       public:
 	ValueLookupBase (SMTLib::TermBuilder& b) : builder(b) {}
 	ValueLookupBase (const ValueLookupBase&) = default;
-        PathFormulaVMVal lookupValue (const MiniMC::Model::Value& ) const override;
-        PathFormulaVMVal unboundValue(const MiniMC::Model::Type&) const override;
-	PathFormulaVMVal defaultValue(const MiniMC::Model::Type&) const override;
+        PathFormulaVMVal lookupValue (const MiniMC::Model::Value& ) const ;
+        PathFormulaVMVal unboundValue(const MiniMC::Model::Type&) const ;
+	PathFormulaVMVal defaultValue(const MiniMC::Model::Type&) const ;
       
 	MiniMC::Hash::hash_t hash() const { return 0;}
 
-	void saveValue(const MiniMC::Model::Register&, PathFormulaVMVal&&) override {
+	virtual void saveValue(const MiniMC::Model::Register&, PathFormulaVMVal&&)  {
 	  throw MiniMC::Support::Exception ("Can't save values");
 	} 
 
@@ -74,8 +74,6 @@ namespace MiniMC {
 	  throw MiniMC::Support::Exception ("Can't lookupRegisters");
 	}
 	
-	  
-      
 	SMTLib::TermBuilder& builder;
       };
 

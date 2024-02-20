@@ -1,4 +1,5 @@
 #include <memory>
+#include <iostream>
 
 #include "minimc/cpa/concrete.hpp"
 #include "cpa/common.hpp"
@@ -143,8 +144,7 @@ namespace MiniMC {
       
       MiniMC::CPA::DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 
-	MiniMC::VMT::Concrete::Memory heap;
-	heap.createHeapLayout (descr.getHeap ());
+	
 	
 	
         std::vector<MiniMC::VMT::Concrete::ActivationStack> stack;
@@ -175,16 +175,33 @@ namespace MiniMC {
           stack.push_back(cs);
 	  
         }
+	MiniMC::VMT::Concrete::ValueLookupBase lookup;
+	MiniMC::VMT::Concrete::Memory heap;
+	heap.createHeapLayout (descr.getHeap ());
 	
-	
+	for (auto& b : descr.getHeap ()) {
+	  if (b.value) {
+	    VMT::Concrete::ConcreteVMVal ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
+            VMT::Concrete::ConcreteVMVal valueToStor = lookup.lookupValue(*b.value);
+	    VMT::Concrete::ConcreteVMVal::visit (MiniMC::Support::Overload {
+		
+		[&heap]<typename K>(VMT::Concrete::ConcreteVMVal::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Concrete::ConcreteVMVal::Bool>) {
+		  heap.storeValue (ptr,value);
+		},
+		  [](auto&, auto&) {
+		    throw MiniMC::Support::Exception ("Error");
+		  },
+		  
+		  
+		  },
+	      ptr,
+	      valueToStor
+	      );
+	    }
+	}
 	
 	auto state = std::make_shared<State>(stack,heap);
-	
-	MiniMC::VMT::Concrete::ConcreteEngine engine{MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},descr.getProgram ()};
-	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::VMT::Concrete::ValueLookupBase lookup;
-	MiniMC::VMT::Concrete::ConcreteVMInitState newvm {state->getHeap (),control,lookup};
-	engine.execute(descr.getInit (),newvm);
+
 	
         return state;
       }

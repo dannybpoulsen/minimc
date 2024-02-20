@@ -40,27 +40,7 @@ namespace MiniMC {
       GenericVal (Bool val) : content(val) {}
       GenericVal (Aggregate ag) : content(ag) {}
       
-      /*
-      template<class Func>
-      auto visit (Func f) {
-	return std::visit(f,content);
-      }
-      
-      template<class Func>
-      auto visit (Func f) const {
-	return std::visit(f,content);
-      }
-      
-      template<class Func,class... Oths>
-      auto visit (Func f,Oths&&... oths) {
-	return std::visit(f,content,oths.content...);
-      }
 
-      template<class Func,class... Oths>
-      auto visit (Func f,Oths&&... oths) const {
-	return std::visit(f,content,oths.content...);
-      }
-      */
       template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
       static auto visit (Func f,Values... values)  {
 	return std::visit (f,values.content...);

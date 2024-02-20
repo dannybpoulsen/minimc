@@ -13,21 +13,21 @@ namespace MiniMC {
 	return MiniMC::Model::visitValue(
 					 
 	       MiniMC::Model::Overload{
-		 [](const MiniMC::Model::I8Integer& val) -> Value { return Value::I8{val.getValue()}; },
-		 [](const MiniMC::Model::I16Integer& val) -> Value { return Value::I16{val.getValue()}; },
-		 [](const MiniMC::Model::I32Integer& val) -> Value { return Value::I32{val.getValue()}; },
-		 [](const MiniMC::Model::I64Integer& val) -> Value { return Value::I64{val.getValue()}; },
-		 [](const MiniMC::Model::Bool& val) -> Value { return Value::Bool{val.getValue()}; },
-		 [](const MiniMC::Model::Pointer& val) -> Value { return Value::Pointer{val.getValue()}; },
-		 [](const MiniMC::Model::Pointer32& val) -> Value { return Value::Pointer32{val.getValue()}; },
-		 [](const MiniMC::Model::AggregateConstant& val) -> Value {
+		 [](const MiniMC::Model::I8Integer& val) -> ConcreteVMVal { return ConcreteVMVal::I8{val.getValue()}; },
+		 [](const MiniMC::Model::I16Integer& val) -> ConcreteVMVal { return ConcreteVMVal::I16{val.getValue()}; },
+		 [](const MiniMC::Model::I32Integer& val) -> ConcreteVMVal { return ConcreteVMVal::I32{val.getValue()}; },
+		 [](const MiniMC::Model::I64Integer& val) -> ConcreteVMVal { return ConcreteVMVal::I64{val.getValue()}; },
+		 [](const MiniMC::Model::Bool& val) -> ConcreteVMVal { return ConcreteVMVal::Bool{val.getValue()}; },
+		 [](const MiniMC::Model::Pointer& val) -> ConcreteVMVal { return ConcreteVMVal::Pointer{val.getValue()}; },
+		 [](const MiniMC::Model::Pointer32& val) -> ConcreteVMVal { return ConcreteVMVal::Pointer32{val.getValue()}; },
+		 [](const MiniMC::Model::AggregateConstant& val) -> ConcreteVMVal {
 		     return AggregateValue(val.getData());
 		 },
-		 [this](const MiniMC::Model::Undef& und) ->  Value { return this->unboundValue (*und.getType ()); },
-		 [this](const MiniMC::Model::Register& val) -> Value {
+		 [this](const MiniMC::Model::Undef& und) ->  ConcreteVMVal { return this->unboundValue (*und.getType ()); },
+		 [this](const MiniMC::Model::Register& val) -> ConcreteVMVal {
 		   return lookupRegisterValue (val);
                 },
-		 [this](const MiniMC::Model::SymbolicConstant&) -> Value {
+		 [this](const MiniMC::Model::SymbolicConstant&) -> ConcreteVMVal {
 		   throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
 		 }
             },
@@ -39,21 +39,21 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Bool:
 	  return BoolValue(0);
 	case MiniMC::Model::TypeID::Pointer32:
-	  return Value::Pointer32{Value::Pointer32::underlying_type {}};
+	  return ConcreteVMVal::Pointer32(ConcreteVMVal::Pointer32::underlying_type {});
 	  
 	case MiniMC::Model::TypeID::Pointer:
-	  return Value::Pointer{PointerValue::underlying_type {}};
+	  return ConcreteVMVal::Pointer(ConcreteVMVal::Pointer::underlying_type {});
 	case MiniMC::Model::TypeID::I8:
-	  return Value::I8(0);
+	  return ConcreteVMVal::I8(0);
 	case MiniMC::Model::TypeID::I16:
-	  return Value::I16(0);
+	  return ConcreteVMVal::I16(0);
 	case MiniMC::Model::TypeID::I32:
-	  return Value::I32(0);
+	  return ConcreteVMVal::I32(0);
 	case MiniMC::Model::TypeID::I64:
-	  return Value::I64(0);
+	  return ConcreteVMVal::I64(0);
 
 	case MiniMC::Model::TypeID::Aggregate:
-	  return Value::Aggregate{MiniMC::Util::Array{t.getSize()}};
+	  return ConcreteVMVal::Aggregate{MiniMC::Util::Array{t.getSize()}};
 	default:
 	  break;
         }
