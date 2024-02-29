@@ -30,10 +30,10 @@ namespace MiniMC {
       private:
         MiniMC::VMT::Pathformula::PathFormulaVMVal value;
       };
-
-      class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
+      
+      /*class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
       public:
-        StackControl(MiniMC::VMT::Pathformula::ActivationStack& stack, SMTLib::Context& context) : stack(stack), context(context) {}
+        StackControl(MiniMC::VMT::Pathformula::ActivationStack& stack, SMTLib::Context& context) : stack(stack) {}
         // StackControl API
         void push(MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
           MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values{registers};
@@ -53,9 +53,8 @@ namespace MiniMC {
 
       private:
         MiniMC::VMT::Pathformula::ActivationStack& stack;
-        SMTLib::Context& context;
       };
-
+      */
       class State : public MiniMC::CPA::DataState,
                     private MiniMC::CPA::QueryBuilder {
       public:

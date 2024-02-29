@@ -29,32 +29,9 @@ namespace MiniMC {
       {ceval.defaultValue (ty)}->std::convertible_to<T>;
       {eval.saveValue (reg,std::move(t))};
     } ;
+
     
     
-    template<class T>
-    struct Memory {
-    public:
-      virtual ~Memory ()  {}
-      virtual T loadValue (const typename T::Pointer&, const MiniMC::Model::Type_ptr& ) const  = 0;
-      //First parameter is address to store at, second is the value to state
-      virtual void storeValue (const typename T::Pointer&, const typename T::I8&) = 0;
-      virtual void storeValue (const typename T::Pointer&, const typename T::I16&) = 0;
-      virtual void storeValue (const typename T::Pointer&, const typename T::I32&) = 0;
-      virtual void storeValue (const typename T::Pointer&, const typename T::I64&) = 0;
-      virtual void storeValue (const typename T::Pointer&, const typename T::Aggregate&) = 0; 
-      virtual void storeValue (const typename T::Pointer&, const typename T::Pointer&) = 0;
-      virtual void storeValue (const typename T::Pointer&, const typename T::Pointer32&) = 0;
-      
-      virtual void free (const typename T::Pointer&) = 0;
-      
-      
-      //PArameter is size to allocate
-      virtual T alloca (const typename T::I64& ) = 0;
-      
-      
-      virtual void createHeapLayout (const MiniMC::Model::HeapLayout& layout) = 0;
-      using Value = T;
-    };
     
     enum class TriBool {
       True,
@@ -63,22 +40,50 @@ namespace MiniMC {
     };
     
     
-    template<class  T>
-    struct PathControl {
-      virtual ~PathControl ()  {}
-      virtual TriBool addAssumption (const typename T::Bool&) = 0;
-      virtual TriBool addAssert (const typename T::Bool&) = 0;
-      using Value = T;
+    template<class Mem,class T>
+    concept Memory = requires (Mem& mem,
+			       const typename T::Pointer& p,
+			       const typename T::I8& i8,
+			       const typename T::I16& i16,
+			       const typename T::I32& i32,
+			       const typename T::I64& i64,
+			       const typename T::Aggregate& aggr,
+			       const typename T::Pointer& ptr,
+			       const typename T::Pointer32& ptr32,
+				const MiniMC::Model::HeapLayout& heapl
+				) {
+      {mem.storeValue (p,i8)};
+      {mem.storeValue (p,i16)};
+      {mem.storeValue (p,i32)};
+      {mem.storeValue (p,i64)};
+      {mem.storeValue (p,aggr)};
+      {mem.storeValue (p,ptr)};
+      {mem.storeValue (p,ptr32)};
+      {mem.alloca(i64)}->std::convertible_to<typename T::Pointer>;
+      {mem.createHeapLayout (heapl)};
+      {mem.free (p)};
+    };
+			       
+    template<class PathC,class T>
+    concept PathControl = requires (const typename T::Bool& b,
+                                    PathC& p)
+    {
+      {p.addAssumption (b)}->std::convertible_to<TriBool>;
+      {p.addAssert (b)}->std::convertible_to<TriBool>;
+      
     };
 
-    
-    template<class  T>
-    struct StackControl {
-      virtual ~StackControl ()  {}
-      virtual void  push (MiniMC::Model::Location_ptr ,std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
-      virtual void pop (T&&) = 0;
-      virtual void popNoReturn () = 0;
-      using Value = T;
+    template<class StackC,class T>
+    concept StackControl = requires (const typename T::Bool& b,
+				     StackC& p,
+				     MiniMC::Model::Location_ptr loc,
+				     std::size_t s,
+				     MiniMC::Model::Value_ptr value,
+				     T&& t)
+    {
+      {p.push (loc,s,value)};
+      {p.pop (std::move(t))};
+      {p.popNoReturn ()};
     };
 
     struct SimpStackControl {
@@ -88,40 +93,35 @@ namespace MiniMC {
     };
     
     
-    template<class T,Evaluator<T> Eval>  
+    template<class T,Evaluator<T> Eval, Memory<T> Mem,PathControl<T> PathC,StackControl<T> stackC>  
     struct VMState {
       using Domain = T;
-      using MLookup  =  Memory<T>;
-      using PControl =  PathControl<T>;
-      using StControl = StackControl<T>;
       
       
-      VMState (MLookup& m, PControl& path, StControl& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
+      VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
       auto& getPathControl ()  {return control;}
       auto& getStackControl ()  {return scontrol;}
     private:
-      MLookup& memory;
-      PControl& control;
-      StControl& scontrol;
+      Mem& memory;
+      PathC& control;
+      stackC& scontrol;
       Eval& lookup;
     };
 
-    template<class T,Evaluator<T> Eval>  
+    
+    template<class T,Evaluator<T> Eval,Memory<T> Mem,PathControl<T> PathC>  
     struct VMInitState {
       using Domain = T;
-      using MLookup  =  Memory<T>;
-      using PControl =  PathControl<T>;
       
       
-      VMInitState (MLookup& m, PControl& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
+      VMInitState (Mem& m, PathC& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
-      auto& getMemory () {return memory;}
       auto& getPathControl () const {return control;}
     private:
-      MLookup& memory;
-      PControl& control;
+      Mem& memory;
+      PathC& control;
       Eval& lookup;
     };
 

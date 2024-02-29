@@ -23,26 +23,26 @@ namespace MiniMC {
       //PathFormulaState, 
       using PathFormulaEngine = MiniMC::VMT::Engine<PathFormulaVMVal,Operations<PathFormulaVMVal>> ;
       
-      class Memory : public MiniMC::VMT::Memory<PathFormulaVMVal> {
+      class Memory  {
       public:
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
 	
-	PathFormulaVMVal loadValue(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const override;
+	PathFormulaVMVal loadValue(const typename PathFormulaVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const ;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const Value::Pointer&, const Value::I8&) override;
-	void storeValue(const Value::Pointer&, const Value::I16&) override;
-        void storeValue(const Value::Pointer&, const Value::I32&) override;
-        void storeValue(const Value::Pointer&, const Value::I64&) override;
-	void storeValue(const Value::Pointer&, const Value::Aggregate&) override;
-	void storeValue(const Value::Pointer&, const Value::Pointer&) override;
-	void storeValue(const Value::Pointer&, const Value::Pointer32&) override;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I8&) ;
+	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I16&) ;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I32&) ;
+        void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::I64&) ;
+	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Aggregate&) ;
+	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Pointer&) ;
+	void storeValue(const PathFormulaVMVal::Pointer&, const PathFormulaVMVal::Pointer32&) ;
 	
 	// PArameter is size to allocate
-        PathFormulaVMVal alloca(const Value::I64&) override;
+	PathFormulaVMVal::Pointer alloca(const PathFormulaVMVal::I64&) ;
 	
-        void free(const Value::Pointer&) override {}
-        void createHeapLayout(const MiniMC::Model::HeapLayout& ) override;
+        void free(const PathFormulaVMVal::Pointer&)  {}
+        void createHeapLayout(const MiniMC::Model::HeapLayout& ) ;
 	MiniMC::Hash::hash_t hash() const {return std::bit_cast<uint64_t> (this);}// }throw MiniMC::Support::Exception ("Not implemented");}
       private:
 	SMTLib::TermBuilder& builder;
@@ -92,11 +92,11 @@ namespace MiniMC {
 	
       };
       
-      class PathControl : public MiniMC::VMT::PathControl<PathFormulaVMVal> {
+      class PathControl  {
       public:
 	PathControl (SMTLib::TermBuilder& builder);
-        TriBool addAssumption(const Value::Bool&) override;
-        TriBool addAssert(const Value::Bool&) override;
+        TriBool addAssumption(const PathFormulaVMVal::Bool&);
+        TriBool addAssert(const PathFormulaVMVal::Bool&);
 	auto& getAssump () const {return assump;}
 	auto& getAsserts () const {return asserts;}
 	
@@ -107,8 +107,9 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal,ValueLookupBase>;
-      using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal,ValueLookupBase>;
+      using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal>;
+      using PathFormulaState = MiniMC::VMT::VMState<PathFormulaVMVal,ValueLookupBase,Memory,PathControl,StackControl>;
+      using PathFormulaInitState = MiniMC::VMT::VMInitState<PathFormulaVMVal,ValueLookupBase,Memory,PathControl>;
       
       
       

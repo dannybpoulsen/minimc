@@ -16,27 +16,27 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
       
-      class Memory : public MiniMC::VMT::Memory<ConcreteVMVal> {
+      class Memory  {
       public:
 	Memory ();
 	Memory (const Memory&);
 	~Memory ();
-        ConcreteVMVal loadValue(const typename ConcreteVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const override;
+        ConcreteVMVal loadValue(const typename ConcreteVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const Value::Pointer&, const ConcreteVMVal::I8&) override;
-	void storeValue(const Value::Pointer&, const Value::I16&) override;
-        void storeValue(const Value::Pointer&, const Value::I32&) override;
-        void storeValue(const Value::Pointer&, const Value::I64&) override;
-	void storeValue(const Value::Pointer&, const Value::Aggregate&) override;
-	void storeValue(const Value::Pointer&, const Value::Pointer&) override;
-	void storeValue(const Value::Pointer&, const Value::Pointer32&) override;
+        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I8&) ;
+	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I16&) ;
+        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I32&) ;
+        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I64&) ;
+	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Aggregate&) ;
+	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Pointer&) ;
+	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Pointer32&) ;
         
 	
 	// PArameter is size to allocate
-        Value alloca(const Value::I64&) override;
+	ConcreteVMVal::Pointer alloca(const ConcreteVMVal::I64&) ;
 	
-        void free(const Value::Pointer&) override;
-        void createHeapLayout(const MiniMC::Model::HeapLayout& layout) override;
+        void free(const ConcreteVMVal::Pointer&);
+        void createHeapLayout(const MiniMC::Model::HeapLayout& layout);
         MiniMC::Hash::hash_t hash() const;
       private:
         struct internal;
@@ -65,12 +65,13 @@ namespace MiniMC {
 	
       };
       
-      class PathControl : public MiniMC::VMT::PathControl<ConcreteVMVal> {
+      class PathControl  {
       public:
-        TriBool addAssumption(const Value::Bool& b) override{
+        TriBool addAssumption(const ConcreteVMVal::Bool& b) {
 	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
-        TriBool addAssert(const Value::Bool& b) override {
+	
+        TriBool addAssert(const ConcreteVMVal::Bool& b) {
 	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
 
@@ -80,8 +81,9 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::ConcreteVMVal>;
-      using ConcreteVMState = MiniMC::VMT::VMState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase>;
-      using ConcreteVMInitState = MiniMC::VMT::VMInitState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase>;
+      using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal>;
+      using ConcreteVMState = MiniMC::VMT::VMState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase,Memory,PathControl,StackControl>;
+      using ConcreteVMInitState = MiniMC::VMT::VMInitState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase,Memory,PathControl>;
       
       //ConcreteVMState 
       using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, MiniMC::VMT::Concrete::Operations >;

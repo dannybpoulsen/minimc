@@ -60,6 +60,30 @@ namespace MiniMC {
       std::vector<ActRecord> frames;
     };
 
+    template<class Value>
+    class StackControl {
+    public:
+      StackControl (ActivationStack<Value>& stack) : stack(stack) {}
+      void  push (MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret)  {
+	ActivationRecord<Value> sf {{registers},ret};
+	stack.push (std::move(sf));
+      }
+      
+      void pop (Value&& val) {
+	auto ret = stack.back ().ret;
+	stack.pop ();
+	if (ret)
+	  stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+      }
+      
+      void popNoReturn ()  {
+	stack.pop ();
+      }
+      
+      
+    private:
+      ActivationStack<Value>& stack;
+    };
 
     template<class T>
     struct BaseValueLookup  {

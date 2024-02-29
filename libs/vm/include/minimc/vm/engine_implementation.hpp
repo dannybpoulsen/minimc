@@ -544,7 +544,7 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
 	  auto& content = instr.getOps();
-	  if constexpr (StackControllable<State> ) {
+	  if constexpr (StackControllable<State> && ValueLookupable<State>  ) {
 	    auto ret = writeState.getValueLookup().lookupValue(*content.value);
 	    writeState.getStackControl().pop(std::move(ret));
 	  }

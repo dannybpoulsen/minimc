@@ -101,7 +101,7 @@ namespace MiniMC {
 	auto& termbuilder = _internal->context->getBuilder ();
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	StackControl stackcontrol{nstate.getStack (),*_internal->context};
+	MiniMC::VMT::Pathformula::StackControl stackcontrol{nstate.getStack ()};
 	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),_internal->metas,termbuilder};
 	
 	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,stackcontrol,lookup};

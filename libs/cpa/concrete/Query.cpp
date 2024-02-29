@@ -51,7 +51,7 @@ namespace MiniMC {
       };
 
       
-      class StackControl : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
+      /*class StackControl1 : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
       public:
 	StackControl (MiniMC::VMT::Concrete::ActivationStack& s) : stack (s) {}
 	void  push (MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
@@ -75,7 +75,7 @@ namespace MiniMC {
 	MiniMC::VMT::Concrete::ActivationStack& stack;
 	
       };
-      
+      */
       struct Transferer::Internal {
 	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},
 							       prgm),
@@ -215,7 +215,7 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	StackControl scontrol {nstate.getProc (id)};
+	MiniMC::VMT::Concrete::StackControl scontrol {nstate.getProc (id)};
 	MiniMC::VMT::Concrete::ValueLookup lookup (nstate.getProc (id),_internal->metas);
 	
 	

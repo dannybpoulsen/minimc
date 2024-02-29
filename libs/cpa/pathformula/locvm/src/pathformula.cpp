@@ -103,21 +103,21 @@ namespace MiniMC {
         }
 	switch (t->getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
-	  return Value::Bool{concat.getTerm()};
+	  return PathFormulaVMVal::Bool{concat.getTerm()};
 	case MiniMC::Model::TypeID::I8:
-	  return Value::I8{concat.getTerm()};
+	  return PathFormulaVMVal::I8{concat.getTerm()};
 	case MiniMC::Model::TypeID::I16:
-	  return Value::I16{concat.getTerm()};
+	  return PathFormulaVMVal::I16{concat.getTerm()};
 	case MiniMC::Model::TypeID::I32:
-	  return Value::I32{concat.getTerm()};
+	  return PathFormulaVMVal::I32{concat.getTerm()};
 	case MiniMC::Model::TypeID::I64:
-	  return Value::I64{concat.getTerm()};
+	  return PathFormulaVMVal::I64{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer:
-	  return Value::Pointer{concat.getTerm()};
+	  return PathFormulaVMVal::Pointer{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer32:
-	  return Value::Pointer32{concat.getTerm()};
+	  return PathFormulaVMVal::Pointer32{concat.getTerm()};
 	case MiniMC::Model::TypeID::Aggregate:
-	  return Value::Aggregate{concat.getTerm(),t->getSize ()};
+	  return PathFormulaVMVal::Aggregate{concat.getTerm(),t->getSize ()};
 	case MiniMC::Model::TypeID::Float:
 	case MiniMC::Model::TypeID::Double:
 	case MiniMC::Model::TypeID::Void:
@@ -127,10 +127,10 @@ namespace MiniMC {
 	
       }
 
-      PathFormulaVMVal Memory::alloca(const PathFormulaVMVal::I64&) {
+      PathFormulaVMVal::Pointer Memory::alloca(const PathFormulaVMVal::I64&) {
 	MiniMC::Util::PointerHelper helper {&builder};
 	auto stack_pointer = helper.makeHeapPointer (++next_block,0);
-        return Value::Pointer(std::move(stack_pointer));
+        return PathFormulaVMVal::Pointer(std::move(stack_pointer));
       }
 
       Memory::Memory (SMTLib::TermBuilder& b) : builder(b) {
