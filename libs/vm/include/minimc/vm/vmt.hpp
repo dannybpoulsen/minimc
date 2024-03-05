@@ -74,7 +74,7 @@ namespace MiniMC {
     };
 
     template<class StackC,class T>
-    concept StackControl = requires (const typename T::Bool& b,
+    concept StackControl = requires (
 				     StackC& p,
 				     MiniMC::Model::Location_ptr loc,
 				     std::size_t s,
@@ -86,11 +86,18 @@ namespace MiniMC {
       {p.popNoReturn ()};
     };
 
-    struct SimpStackControl {
-      virtual ~SimpStackControl ()  {}
-      virtual void  push (MiniMC::Model::Location_ptr ,std::size_t,  const MiniMC::Model::Value_ptr& ) = 0;
-      virtual void popNoReturn () = 0;
+    template<class StackC>
+    concept SimpStackControl = requires (
+				     StackC& p,
+				     MiniMC::Model::Location_ptr loc,
+				     std::size_t s,
+				     MiniMC::Model::Value_ptr value
+					 )
+    {
+      {p.push (loc,s,value)};
+      {p.popNoReturn ()};
     };
+    
     
     
     template<class T,Evaluator<T> Eval, Memory<T> Mem,PathControl<T> PathC,StackControl<T> stackC>  
@@ -127,29 +134,29 @@ namespace MiniMC {
 
     template<class State>
     concept StackControllable = requires (State& state) {
-      {state.getStackControl ()} ->std::convertible_to<StackControl<typename State::Domain>&>;
+      {state.getStackControl ()} ->StackControl<typename State::Domain>;
     };
 
     template<class State>
     concept SimpStackControllable = requires (State& state) {
-      {state.getStackControl ()} ->std::convertible_to<SimpStackControl&>;
+      {state.getStackControl ()} ->SimpStackControl;
     };
 
 
 
     template<class State>
     concept MemoryControllable = requires (State& state) {
-      {state.getMemory ()} ->std::convertible_to<Memory<typename State::Domain>&>;
+      {state.getMemory ()} ->Memory<typename State::Domain>;
     };
 
     template<class State>
     concept PathControllable = requires (State& state) {
-      {state.getPath ()} ->std::convertible_to<PathControl<typename State::Domain>&>;
+      {state.getPath ()} ->PathControl<typename State::Domain>;
     };
     
     template<class State>
     concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->std::convertible_to<Evaluator<typename State::Domain>&>;
+      {state.getValueLookup ()} ->Evaluator<typename State::Domain>;
     };
     
     enum class  Status{

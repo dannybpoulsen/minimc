@@ -88,7 +88,7 @@ namespace MiniMC {
 
       
       
-      struct VMState : public MiniMC::VMT::SimpStackControl {
+      struct VMState {
 	VMState (State& s, std::size_t id) : state(s), id(id) {
 	  
 	}
