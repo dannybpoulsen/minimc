@@ -97,40 +97,6 @@ namespace MiniMC {
       {p.push (loc,s,value)};
       {p.popNoReturn ()};
     };
-    
-    
-    
-    template<class T,Evaluator<T> Eval, Memory<T> Mem,PathControl<T> PathC,StackControl<T> stackC>  
-    struct VMState {
-      using Domain = T;
-      
-      
-      VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
-      auto& getValueLookup () {return lookup;}
-      auto& getMemory () {return memory;}
-      auto& getPathControl ()  {return control;}
-      auto& getStackControl ()  {return scontrol;}
-    private:
-      Mem& memory;
-      PathC& control;
-      stackC& scontrol;
-      Eval& lookup;
-    };
-
-    
-    template<class T,Evaluator<T> Eval,Memory<T> Mem,PathControl<T> PathC>  
-    struct VMInitState {
-      using Domain = T;
-      
-      
-      VMInitState (Mem& m, PathC& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
-      auto& getValueLookup () {return lookup;}
-      auto& getPathControl () const {return control;}
-    private:
-      Mem& memory;
-      PathC& control;
-      Eval& lookup;
-    };
 
     template<class State>
     concept StackControllable = requires (State& state) {

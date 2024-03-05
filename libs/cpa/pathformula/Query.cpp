@@ -21,8 +21,8 @@ namespace MiniMC {
 	
 	
 	auto term = termbuilder.makeBoolConst (true);
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values {vstack.getTotalRegisters ()};
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> values {vstack.getTotalRegisters ()};
 	
 	MiniMC::VMT::Pathformula::ActivationStack stack{std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
@@ -30,7 +30,7 @@ namespace MiniMC {
 									std::move(memory),
 									std::move(term),
 									*context);
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas{1};
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};
 	MiniMC::VMT::Pathformula::ValueLookup lookup{state->getStack (),metas,termbuilder};
 	
 	for (auto& reg : vstack.getRegisters ()) {
@@ -55,11 +55,11 @@ namespace MiniMC {
 	memory.createHeapLayout (descr.getHeap ());
 	for (auto& b : descr.getHeap ()) {
 	  if (b.value) {
-	    VMT::Pathformula::PathFormulaVMVal ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
-            VMT::Pathformula::PathFormulaVMVal valueToStor = lookup.lookupValue(*b.value);
-	    VMT::Pathformula::PathFormulaVMVal::visit (MiniMC::Support::Overload {
+	    VMT::Pathformula::Value ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
+            VMT::Pathformula::Value valueToStor = lookup.lookupValue(*b.value);
+	    VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
 		
-		[&memory]<typename K>(VMT::Pathformula::PathFormulaVMVal::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::PathFormulaVMVal::Bool>) {
+		[&memory]<typename K>(VMT::Pathformula::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::Value::Bool>) {
 		  memory.storeValue (ptr,value);
 		},
 		  [](auto&, auto&) {
@@ -84,7 +84,7 @@ namespace MiniMC {
 	{}
 	SMTLib::Context_ptr context;
 	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas;
+	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas;
 	  
       };
 

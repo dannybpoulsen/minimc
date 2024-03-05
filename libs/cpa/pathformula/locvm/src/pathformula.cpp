@@ -11,7 +11,7 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
       static std::size_t next = 0;
-      inline PathFormulaVMVal unboundVal(const MiniMC::Model::Type& t, SMTLib::TermBuilder& builder) {
+      inline Value unboundVal(const MiniMC::Model::Type& t, SMTLib::TermBuilder& builder) {
         std::stringstream str;
         str << "Var" << ++next;
         switch (t.getTypeID()) {
@@ -41,25 +41,25 @@ namespace MiniMC {
       }
 
        
-      PathFormulaVMVal ValueLookupBase::unboundValue(const MiniMC::Model::Type& t) const {
+      Value ValueLookupBase::unboundValue(const MiniMC::Model::Type& t) const {
         return unboundVal(t, builder);
       }
 
-      PathFormulaVMVal ValueLookupBase::defaultValue(const MiniMC::Model::Type& t) const {
+      Value ValueLookupBase::defaultValue(const MiniMC::Model::Type& t) const {
         return unboundValue(t);
       }
 
       
       
-      PathFormulaVMVal ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
+      Value ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
             MiniMC::Model::Overload{
-                [this](const MiniMC::Model::I8Integer& val) -> PathFormulaVMVal { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
-                [this](const MiniMC::Model::I16Integer& val) -> PathFormulaVMVal { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); },
-		[this](const MiniMC::Model::I32Integer& val) -> PathFormulaVMVal { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
-                [this](const MiniMC::Model::I64Integer& val) -> PathFormulaVMVal { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
-                [this](const MiniMC::Model::Bool& val) -> PathFormulaVMVal { return BoolValue(builder.makeBoolConst(val.getValue())); },
-		[this](const MiniMC::Model::Pointer& val) -> PathFormulaVMVal { 
+                [this](const MiniMC::Model::I8Integer& val) -> Value { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
+                [this](const MiniMC::Model::I16Integer& val) -> Value { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); },
+		[this](const MiniMC::Model::I32Integer& val) -> Value { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
+                [this](const MiniMC::Model::I64Integer& val) -> Value { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
+                [this](const MiniMC::Model::Bool& val) -> Value { return BoolValue(builder.makeBoolConst(val.getValue())); },
+		[this](const MiniMC::Model::Pointer& val) -> Value { 
 		  auto pointer = val.getValue ();
 		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -67,57 +67,57 @@ namespace MiniMC {
 			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
 		  return PointerValue(chainer.getTerm ());
 		} ,
-		[this](const MiniMC::Model::Pointer32& val) -> PathFormulaVMVal { 
+		[this](const MiniMC::Model::Pointer32& val) -> Value { 
 		  auto pointer = val.getValue ();
 		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
 			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
 			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		  return PathFormulaVMVal::Pointer32(chainer.getTerm ());
+		  return Value::Pointer32(chainer.getTerm ());
 		},
-		[this](const MiniMC::Model::AggregateConstant& val) -> PathFormulaVMVal {
+		[this](const MiniMC::Model::AggregateConstant& val) -> Value {
 		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 		  for (auto byte : val.getData()) {
                     chainer >> (builder.makeBVIntConst(byte, 8));
                   }
                   return AggregateValue(chainer.getTerm(), val.getSize());
                 },
-		[this](const MiniMC::Model::Undef& val) -> PathFormulaVMVal { return unboundValue(*val.getType()); },
-		[this](const MiniMC::Model::Register& val) -> PathFormulaVMVal {
+		[this](const MiniMC::Model::Undef& val) -> Value { return unboundValue(*val.getType()); },
+		[this](const MiniMC::Model::Register& val) -> Value {
 		  return lookupRegisterValue (val);
 		},
-		[this](const MiniMC::Model::SymbolicConstant&) -> PathFormulaVMVal {
+		[this](const MiniMC::Model::SymbolicConstant&) -> Value {
 		  throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
 		}
 	    },
             v);
       }
       
-      PathFormulaVMVal Memory::loadValue(const typename PathFormulaVMVal::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
+      Value Memory::loadValue(const typename Value::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
 	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
         for (size_t i = 0; i < t->getSize (); ++i) {
-          auto ones = builder.makeBVIntConst(i, PathFormulaVMVal::Pointer::intbitsize());
+          auto ones = builder.makeBVIntConst(i, Value::Pointer::intbitsize());
           auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
           concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
         }
 	switch (t->getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
-	  return PathFormulaVMVal::Bool{concat.getTerm()};
+	  return Value::Bool{concat.getTerm()};
 	case MiniMC::Model::TypeID::I8:
-	  return PathFormulaVMVal::I8{concat.getTerm()};
+	  return Value::I8{concat.getTerm()};
 	case MiniMC::Model::TypeID::I16:
-	  return PathFormulaVMVal::I16{concat.getTerm()};
+	  return Value::I16{concat.getTerm()};
 	case MiniMC::Model::TypeID::I32:
-	  return PathFormulaVMVal::I32{concat.getTerm()};
+	  return Value::I32{concat.getTerm()};
 	case MiniMC::Model::TypeID::I64:
-	  return PathFormulaVMVal::I64{concat.getTerm()};
+	  return Value::I64{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer:
-	  return PathFormulaVMVal::Pointer{concat.getTerm()};
+	  return Value::Pointer{concat.getTerm()};
 	case MiniMC::Model::TypeID::Pointer32:
-	  return PathFormulaVMVal::Pointer32{concat.getTerm()};
+	  return Value::Pointer32{concat.getTerm()};
 	case MiniMC::Model::TypeID::Aggregate:
-	  return PathFormulaVMVal::Aggregate{concat.getTerm(),t->getSize ()};
+	  return Value::Aggregate{concat.getTerm(),t->getSize ()};
 	case MiniMC::Model::TypeID::Float:
 	case MiniMC::Model::TypeID::Double:
 	case MiniMC::Model::TypeID::Void:
@@ -127,15 +127,15 @@ namespace MiniMC {
 	
       }
 
-      PathFormulaVMVal::Pointer Memory::alloca(const PathFormulaVMVal::I64&) {
+      Value::Pointer Memory::alloca(const Value::I64&) {
 	MiniMC::Util::PointerHelper helper {&builder};
 	auto stack_pointer = helper.makeHeapPointer (++next_block,0);
-        return PathFormulaVMVal::Pointer(std::move(stack_pointer));
+        return Value::Pointer(std::move(stack_pointer));
       }
 
       Memory::Memory (SMTLib::TermBuilder& b) : builder(b) {
 	auto arr_sort = builder.makeSort(
-					 SMTLib::SortKind::Array, {builder.makeBVSort(PathFormulaVMVal::Pointer::intbitsize()),
+					 SMTLib::SortKind::Array, {builder.makeBVSort(Value::Pointer::intbitsize()),
 								   builder.makeBVSort(8)});
 	mem_var = builder.makeVar(arr_sort, "Mem");
       }
@@ -176,32 +176,32 @@ namespace MiniMC {
       }
 
       
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I8& val)  {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::I8& val)  {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I16& val) {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::I16& val) {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I32& val)  {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::I32& val)  {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::I64& val)  {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::I64& val)  {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer& val) {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::Pointer& val) {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Pointer32& val) {
-	mem_var = write<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::Pointer32& val) {
+	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const PathFormulaVMVal::Pointer& ptr, const PathFormulaVMVal::Aggregate& val) {
-	mem_var = writeAggr<PathFormulaVMVal::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
+      void Memory::storeValue(const Value::Pointer& ptr, const Value::Aggregate& val) {
+	mem_var = writeAggr<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
       
       
@@ -209,7 +209,7 @@ namespace MiniMC {
         assump = nullptr;
       }
 
-      TriBool PathControl::addAssumption(const PathFormulaVMVal::Bool& b) {
+      TriBool PathControl::addAssumption(const Value::Bool& b) {
         if (assump)
           assump = builder.buildTerm(SMTLib::Ops::And, {assump, b.getTerm()});
         else
@@ -217,7 +217,7 @@ namespace MiniMC {
         return TriBool::Unk;
       }
 
-      TriBool PathControl::addAssert(const PathFormulaVMVal::Bool& b) {
+      TriBool PathControl::addAssert(const Value::Bool& b) {
 	if (asserts)
           asserts = builder.buildTerm(SMTLib::Ops::And, {asserts, b.getTerm()});
         else
@@ -226,12 +226,12 @@ namespace MiniMC {
       }
 
       template <typename v>
-      std::ostream& Value<v>::output(std::ostream& os) const {
+      std::ostream& TValue<v>::output(std::ostream& os) const {
         return term->output(os);
       }
 
       template<class T>
-      T Value<T>::interpretValue (const SMTLib::Solver& solver) const {
+      T TValue<T>::interpretValue (const SMTLib::Solver& solver) const {
 	if constexpr (MiniMC::Model::is_pointer_v<T>) {
 	  T pointer;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
@@ -283,14 +283,14 @@ namespace MiniMC {
       }
       
       
-      template class Value<bool>;
-      template class Value<MiniMC::Model::pointer64_t>;
-      template class Value<MiniMC::Model::pointer32_t>;
-      template class Value<MiniMC::BV8>;
-      template class Value<MiniMC::BV16>;
-      template class Value<MiniMC::BV32>;
-      template class Value<MiniMC::BV64>;
-      template class Value<MiniMC::Util::Array>;
+      template class TValue<bool>;
+      template class TValue<MiniMC::Model::pointer64_t>;
+      template class TValue<MiniMC::Model::pointer32_t>;
+      template class TValue<MiniMC::BV8>;
+      template class TValue<MiniMC::BV16>;
+      template class TValue<MiniMC::BV32>;
+      template class TValue<MiniMC::BV64>;
+      template class TValue<MiniMC::Util::Array>;
 
     } // namespace Pathformula
   }   // namespace VMT

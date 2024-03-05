@@ -47,7 +47,7 @@ namespace MiniMC {
       
       template<class Value>
       struct Operations {
-	using Domain = PathFormulaVMVal;
+	using Domain = Value;
 	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
 	
 	template<class T>

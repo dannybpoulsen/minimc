@@ -46,7 +46,7 @@ namespace MiniMC {
       }
 
       struct Operations {
-	using Domain = ConcreteVMVal;
+	using Domain = Value;
         template <typename T>
         T Add(const T& l, const T& r) const {
           return performOp<MiniMC::Host::TAC::Add>(l.getValue(), r.getValue());
@@ -103,93 +103,93 @@ namespace MiniMC {
         }
 
         template <typename T>
-        ConcreteVMVal::Bool SGt(const T& l, const T& r) const {
+        Value::Bool SGt(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::SGT>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool SGe(const T& l, const T& r) const {
+        Value::Bool SGe(const T& l, const T& r) const {
 	  return performOp<MiniMC::Host::CMP::SGE>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool UGt(const T& l, const T& r) const {
+        Value::Bool UGt(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::UGT>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool UGe(const T& l, const T& r) const {
+        Value::Bool UGe(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::UGE>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool SLt(const T& l, const T& r) const {
+        Value::Bool SLt(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::SLT>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool SLe(const T& l, const T& r) const {
+        Value::Bool SLe(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::SLE>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool ULt(const T& l, const T& r) const {
+        Value::Bool ULt(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::ULT>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool ULe(const T& l, const T& r) const {
+        Value::Bool ULe(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::ULE>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool Eq(const T& l, const T& r) const {
+        Value::Bool Eq(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::EQ>(l.getValue(), r.getValue());
         }
 
         template <typename T>
-        ConcreteVMVal::Bool NEq(const T& l, const T& r) const {
+        Value::Bool NEq(const T& l, const T& r) const {
           return performOp<MiniMC::Host::CMP::NEQ>(l.getValue(), r.getValue());
         }
 
-        ConcreteVMVal::Bool PtrEq(const ConcreteVMVal::Pointer& xx, const ConcreteVMVal::Pointer& yy) {
-          return typename ConcreteVMVal::Bool(yy.getValue() == xx.getValue());
+        Value::Bool PtrEq(const Value::Pointer& xx, const Value::Pointer& yy) {
+          return typename Value::Bool(yy.getValue() == xx.getValue());
         }
 
         template <class T>
-        ConcreteVMVal::Pointer PtrAdd(const ConcreteVMVal::Pointer& p, const T& t) {
+        Value::Pointer PtrAdd(const Value::Pointer& p, const T& t) {
           return p.getValue().add( t.getValue());
         }
 
 	template <class T>
-        ConcreteVMVal::Pointer PtrSub(const ConcreteVMVal::Pointer& p, const T& t) {
+        Value::Pointer PtrSub(const Value::Pointer& p, const T& t) {
           return p.getValue().sub ( t.getValue());
         }
 	
         template <class T>
-        T ExtractBaseValue(const ConcreteVMVal::Aggregate& value, const MiniMC::BV64 offset) {
+        T ExtractBaseValue(const Value::Aggregate& value, const MiniMC::BV64 offset) {
 	  return value.getValue().template read<typename T::underlying_type> (offset);
 	}
 
-	ConcreteVMVal::Aggregate ExtractAggregateValue(const ConcreteVMVal::Aggregate& value, const MiniMC::BV64 offset, std::size_t size) {
+	Value::Aggregate ExtractAggregateValue(const Value::Aggregate& value, const MiniMC::BV64 offset, std::size_t size) {
           return value.getValue().get_block(offset, size);
         }
 
         template <class T>
-        ConcreteVMVal::Aggregate InsertBaseValue(const ConcreteVMVal::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee) {
+        Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee) {
           MiniMC::Util::Array arr{aggrvalue.getValue()};
           auto value = insertee.getValue();
           arr.set_block(offset, sizeof(value), reinterpret_cast<MiniMC::BV8*>(&value));
           return arr;
         }
 	
-	ConcreteVMVal::Aggregate InsertAggregateValue(const ConcreteVMVal::Aggregate& value, const MiniMC::BV64 offset, const AggregateValue& insertee) {
+	Value::Aggregate InsertAggregateValue(const Value::Aggregate& value, const MiniMC::BV64 offset, const AggregateValue& insertee) {
           MiniMC::Util::Array arr{value.getValue()};
           arr.set_block(offset, insertee.getValue().getSize(), insertee.getValue().get_direct_access());
           return arr;
         }
 
-	ConcreteVMVal::Bool BoolNegate (const ConcreteVMVal::Bool& negate) {
+	Value::Bool BoolNegate (const Value::Bool& negate) {
 	  return negate.BoolNegate ();
 	}
 
@@ -204,13 +204,13 @@ namespace MiniMC {
         }
 
         template <class T>
-        ConcreteVMVal::Bool IntToBool(const T& t) {
+        Value::Bool IntToBool(const T& t) {
           return BoolValue(t.getValue());
         }
 
         template <class T>
-        ConcreteVMVal::Pointer IntToPtr(const T& t) {
-	  ConcreteVMVal::Pointer::underlying_type::PtrBV n;
+        Value::Pointer IntToPtr(const T& t) {
+	  Value::Pointer::underlying_type::PtrBV n;
 	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(decltype(n))) {
 	    n = MiniMC::Host::zext<typename T::underlying_type, decltype(n)>(t.getValue());
 	  }
@@ -221,9 +221,9 @@ namespace MiniMC {
 	}
 
 	template <class T>
-        T PtrToInt(const ConcreteVMVal::Pointer& t) {
+        T PtrToInt(const Value::Pointer& t) {
 	  typename T::underlying_type n;
-	  auto ptrval = std::bit_cast<ConcreteVMVal::Pointer::underlying_type::PtrBV> (t.getValue());
+	  auto ptrval = std::bit_cast<Value::Pointer::underlying_type::PtrBV> (t.getValue());
 	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
 	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
 	  }
@@ -234,9 +234,9 @@ namespace MiniMC {
 	}
 
 	template <class T>
-        T Ptr32ToInt(const ConcreteVMVal::Pointer32& t) {
+        T Ptr32ToInt(const Value::Pointer32& t) {
 	  typename T::underlying_type n;
-	  auto ptrval = std::bit_cast<ConcreteVMVal::Pointer32::underlying_type::PtrBV> (t.getValue());
+	  auto ptrval = std::bit_cast<Value::Pointer32::underlying_type::PtrBV> (t.getValue());
 	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
 	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
 	  }
@@ -247,20 +247,20 @@ namespace MiniMC {
 	}
 	
 	template <class T>
-        ConcreteVMVal::Pointer32 IntToPtr32(const T& t) {
-	  ConcreteVMVal::Pointer32::underlying_type::PtrBV n;
+        Value::Pointer32 IntToPtr32(const T& t) {
+	  Value::Pointer32::underlying_type::PtrBV n;
 	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(decltype(n))) {
 	    n = MiniMC::Host::zext<typename T::underlying_type, decltype(n)>(t.getValue());
 	  }
 	  else {
 	    n = MiniMC::Host::trunc<typename T::underlying_type, decltype(n)>(t.getValue());
 	  }
-	  return std::bit_cast<ConcreteVMVal::Pointer32::underlying_type>(n);
+	  return std::bit_cast<Value::Pointer32::underlying_type>(n);
 	}
 	
 	
-	ConcreteVMVal::Pointer32 PtrToPtr32 (const ConcreteVMVal::Pointer& p ) {
-	  ConcreteVMVal::Pointer32::underlying_type p32{};
+	Value::Pointer32 PtrToPtr32 (const Value::Pointer& p ) {
+	  Value::Pointer32::underlying_type p32{};
 	  p32.base = p.getValue().base;
 	  p32.offset = p.getValue().offset;
 	  p32.segment = p.getValue().segment;
@@ -268,8 +268,8 @@ namespace MiniMC {
 	  return p32;
 	}
 
-	ConcreteVMVal::Pointer Ptr32ToPtr (const ConcreteVMVal::Pointer32& p32) {
-	  ConcreteVMVal::Pointer::underlying_type p{};
+	Value::Pointer Ptr32ToPtr (const Value::Pointer32& p32) {
+	  Value::Pointer::underlying_type p{};
 	  p.base = p32.getValue().base;
 	  p.offset = p32.getValue().offset;
 	  p.segment = p32.getValue().segment;

@@ -21,23 +21,23 @@ namespace MiniMC {
 	Memory ();
 	Memory (const Memory&);
 	~Memory ();
-        ConcreteVMVal loadValue(const typename ConcreteVMVal::Pointer&, const MiniMC::Model::Type_ptr&) const;
+        Value loadValue(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I8&) ;
-	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I16&) ;
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I32&) ;
-        void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::I64&) ;
-	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Aggregate&) ;
-	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Pointer&) ;
-	void storeValue(const ConcreteVMVal::Pointer&, const ConcreteVMVal::Pointer32&) ;
-        
+        void storeValue(const Value::Pointer&, const Value::I8&) ;
+	void storeValue(const Value::Pointer&, const Value::I16&) ;
+        void storeValue(const Value::Pointer&, const Value::I32&) ;
+        void storeValue(const Value::Pointer&, const Value::I64&) ;
+	void storeValue(const Value::Pointer&, const Value::Aggregate&) ;
+	void storeValue(const Value::Pointer&, const Value::Pointer&) ;
+	void storeValue(const Value::Pointer&, const Value::Pointer32&) ;
+	MiniMC::Hash::hash_t hash () const;
 	
 	// PArameter is size to allocate
-	ConcreteVMVal::Pointer alloca(const ConcreteVMVal::I64&) ;
+	Value::Pointer alloca(const Value::I64&) ;
 	
-        void free(const ConcreteVMVal::Pointer&);
+        void free(const Value::Pointer&);
         void createHeapLayout(const MiniMC::Model::HeapLayout& layout);
-        MiniMC::Hash::hash_t hash() const;
+	
       private:
         struct internal;
         std::unique_ptr<internal> _internal;
@@ -45,33 +45,33 @@ namespace MiniMC {
        
       class ValueLookupBase  {
       public:
-	ConcreteVMVal lookupValue (const MiniMC::Model::Value& v) const ;
-	ConcreteVMVal unboundValue (const MiniMC::Model::Type&) const ;
-	ConcreteVMVal defaultValue(const MiniMC::Model::Type&) const ;
-	virtual void saveValue(const MiniMC::Model::Register&, ConcreteVMVal&& )  {throw MiniMC::Support::Exception ("Can't save values");}
-	virtual ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register&) const {throw MiniMC::Support::Exception ("Can't lookupRegisters");}
+	Value lookupValue (const MiniMC::Model::Value& v) const ;
+	Value unboundValue (const MiniMC::Model::Type&) const ;
+	Value defaultValue(const MiniMC::Model::Type&) const ;
+	virtual void saveValue(const MiniMC::Model::Register&, Value&& )  {throw MiniMC::Support::Exception ("Can't save values");}
+	virtual Value lookupRegisterValue (const MiniMC::Model::Register&) const {throw MiniMC::Support::Exception ("Can't lookupRegisters");}
       };
       
       class ValueLookup : public ValueLookupBase,
-			  private MiniMC::CPA::Common::BaseValueLookup<ConcreteVMVal> {
+			  private MiniMC::CPA::Common::BaseValueLookup<Value> {
       public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<ConcreteVMVal > & values,MiniMC::Model::VariableMap<ConcreteVMVal>& metas) : BaseValueLookup<ConcreteVMVal>(values,metas) {}
-        void saveValue(const MiniMC::Model::Register& v, ConcreteVMVal&& value) override {
+	ValueLookup (MiniMC::CPA::Common::ActivationStack<Value > & values,MiniMC::Model::VariableMap<Value>& metas) : BaseValueLookup<Value>(values,metas) {}
+        void saveValue(const MiniMC::Model::Register& v, Value&& value) override {
 	  this->saveRegister (v,std::move(value));
 	}
 	
-	ConcreteVMVal lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
+	Value lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
 	
 	
       };
       
       class PathControl  {
       public:
-        TriBool addAssumption(const ConcreteVMVal::Bool& b) {
+        TriBool addAssumption(const Value::Bool& b) {
 	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
 	
-        TriBool addAssert(const ConcreteVMVal::Bool& b) {
+        TriBool addAssert(const Value::Bool& b) {
 	  return b.getValue () ? TriBool::True : TriBool::False;
 	}
 
@@ -79,14 +79,14 @@ namespace MiniMC {
 
       
       
-      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::ConcreteVMVal>;
-      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::ConcreteVMVal>;
-      using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal>;
-      using ConcreteVMState = MiniMC::VMT::VMState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase,Memory,PathControl,StackControl>;
-      using ConcreteVMInitState = MiniMC::VMT::VMInitState<MiniMC::VMT::Concrete::ConcreteVMVal,ValueLookupBase,Memory,PathControl>;
+      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
+      using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Concrete::Value>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,ValueLookupBase,Memory,PathControl,StackControl>;
+      using ConcreteVMInitState = MiniMC::CPA::Common::VMInitState<MiniMC::VMT::Concrete::Value,ValueLookupBase,Memory,PathControl>;
       
       //ConcreteVMState 
-      using ConcreteEngine = MiniMC::VMT::Engine<ConcreteVMVal, MiniMC::VMT::Concrete::Operations >;
+      using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations >;
       
       
     } // namespace Concrete
@@ -116,8 +116,8 @@ namespace std {
   };
   
   template <>
-  struct hash<MiniMC::VMT::Concrete::ConcreteVMVal> {
-    auto operator()(const MiniMC::VMT::Concrete::ConcreteVMVal& t) { return t.hash(); }
+  struct hash<MiniMC::VMT::Concrete::Value> {
+    auto operator()(const MiniMC::VMT::Concrete::Value& t) { return t.hash(); }
   };
   
   template <>

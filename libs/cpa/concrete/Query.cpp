@@ -15,7 +15,7 @@ namespace MiniMC {
     namespace Concrete {
       class QExpr : public MiniMC::CPA::QueryExpr {
       public:
-	QExpr (MiniMC::VMT::Concrete::ConcreteVMVal&& val) : value(std::move(val)) {}
+	QExpr (MiniMC::VMT::Concrete::Value&& val) : value(std::move(val)) {}
 	std::ostream& output (std::ostream& os) const override {
 	  return os << value; 
 	}
@@ -23,7 +23,7 @@ namespace MiniMC {
 	auto getValue () const {return value;}
 	
       private:
-	MiniMC::VMT::Concrete::ConcreteVMVal value;
+	MiniMC::VMT::Concrete::Value value;
       };
 
       class MConcretizer : public MiniMC::CPA::Solver {
@@ -32,15 +32,15 @@ namespace MiniMC {
 	MiniMC::CPA::Solver::Feasibility isFeasible() const override { return Feasibility::Feasible; }
 	MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
 	  auto& ref = static_cast<const QExpr&> (expr);
-	  return MiniMC::VMT::Concrete::ConcreteVMVal::visit (MiniMC::Support::Overload {
-	        [](MiniMC::VMT::Concrete::ConcreteVMVal::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::I32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I32Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::Pointer& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::Pointer32& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer32> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::Bool& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Bool> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::ConcreteVMVal::Aggregate& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::AggregateConstant> (val.getValue ());},
+	  return MiniMC::VMT::Concrete::Value::visit (MiniMC::Support::Overload {
+	        [](MiniMC::VMT::Concrete::Value::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I32Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Pointer& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer32> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Bool& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Bool> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::AggregateConstant> (val.getValue ());},
 		  },
 	    ref.getValue ()
 	    
@@ -51,38 +51,14 @@ namespace MiniMC {
       };
 
       
-      /*class StackControl1 : public  MiniMC::VMT::StackControl<MiniMC::VMT::Concrete::ConcreteVMVal> {
-      public:
-	StackControl (MiniMC::VMT::Concrete::ActivationStack& s) : stack (s) {}
-	void  push (MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
-	  MiniMC::VMT::Concrete::ActivationRecord sf {{registers},ret};
-	  stack.push (std::move(sf));
-	}
-	
-	void pop (MiniMC::VMT::Concrete::ConcreteVMVal&& val) override {
-	  auto ret = stack.back ().ret;
-	  stack.pop ();
-	  if (ret)
-	    stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
-	}
-	
-	void popNoReturn () override {
-	  stack.pop ();
-	}
-
-	
-      private:
-	MiniMC::VMT::Concrete::ActivationStack& stack;
-	
-      };
-      */
+      
       struct Transferer::Internal {
 	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},
 							       prgm),
 							metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	MiniMC::VMT::Concrete::ConcreteEngine engine;
-	MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas;
+	MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas;
 	
       };
       
@@ -126,7 +102,7 @@ namespace MiniMC {
 	  if (p >= proc_vars.size ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas{1};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
 	  MiniMC::VMT::Concrete::ValueLookup lookup{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p)),metas};
 	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
 	  
@@ -150,11 +126,11 @@ namespace MiniMC {
         std::vector<MiniMC::VMT::Concrete::ActivationStack> stack;
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> values{vstack.getTotalRegisters ()};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> values{vstack.getTotalRegisters ()};
 	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
 	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::ConcreteVMVal> metas{1};
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
 	  MiniMC::VMT::Concrete::ValueLookup lookup {cs,metas};
 	  for (auto& v : vstack.getRegisters()) {
             lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
@@ -181,11 +157,11 @@ namespace MiniMC {
 	
 	for (auto& b : descr.getHeap ()) {
 	  if (b.value) {
-	    VMT::Concrete::ConcreteVMVal ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
-            VMT::Concrete::ConcreteVMVal valueToStor = lookup.lookupValue(*b.value);
-	    VMT::Concrete::ConcreteVMVal::visit (MiniMC::Support::Overload {
+	    VMT::Concrete::Value ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
+            VMT::Concrete::Value valueToStor = lookup.lookupValue(*b.value);
+	    VMT::Concrete::Value::visit (MiniMC::Support::Overload {
 		
-		[&heap]<typename K>(VMT::Concrete::ConcreteVMVal::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Concrete::ConcreteVMVal::Bool>) {
+		[&heap]<typename K>(VMT::Concrete::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Concrete::Value::Bool>) {
 		  heap.storeValue (ptr,value);
 		},
 		  [](auto&, auto&) {

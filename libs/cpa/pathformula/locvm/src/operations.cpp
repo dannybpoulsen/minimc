@@ -57,18 +57,18 @@ namespace MiniMC {
       }
       
 #define X(OP)								\
-	template PathFormulaVMVal::I8 Operations<PathFormulaVMVal>::OP(const PathFormulaVMVal::I8& l, const I8Value& r); \
-  template I16Value Operations<PathFormulaVMVal>::OP(const I16Value& l, const I16Value& r); \
-  template I32Value Operations<PathFormulaVMVal>::OP(const I32Value& l, const I32Value& r); \
-  template I64Value Operations<PathFormulaVMVal>::OP(const I64Value& l, const I64Value& r);
+	template Value::I8 Operations<Value>::OP(const Value::I8& l, const I8Value& r); \
+  template I16Value Operations<Value>::OP(const I16Value& l, const I16Value& r); \
+  template I32Value Operations<Value>::OP(const I32Value& l, const I32Value& r); \
+  template I64Value Operations<Value>::OP(const I64Value& l, const I64Value& r);
 
       INTOPS
 #undef X
 #define X(OP, SMTOP)                                                                                        \
-      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::OP(const PathFormulaVMVal::I8& l, const PathFormulaVMVal::I8& r); \
-      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::OP(const I16Value& l, const I16Value& r); \
-      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::OP(const I32Value& l, const I32Value& r); \
-      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::OP(const I64Value& l, const I64Value& r);
+      template Value::Bool Operations<Value>::OP(const Value::I8& l, const Value::I8& r); \
+      template Value::Bool Operations<Value>::OP(const I16Value& l, const I16Value& r); \
+      template Value::Bool Operations<Value>::OP(const I32Value& l, const I32Value& r); \
+      template Value::Bool Operations<Value>::OP(const I64Value& l, const I64Value& r);
       
       CMPOPS
 #undef X
@@ -134,33 +134,33 @@ namespace MiniMC {
 	return {BVHelper{builder,aggr.getTerm (),aggr.size()}.storeBytes<LoadType::Straight> (offset,val.getTerm (),val.size()),aggr.size ()};
       }
 
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrAdd (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I64&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::PtrSub (const PathFormulaVMVal::Pointer&,const PathFormulaVMVal::I64&);
+      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I8&);
+      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I16&);
+      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I32&);
+      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I64&);
+      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I8&);
+      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I16&);
+      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I32&);
+      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I64&);
       
       
-      template PathFormulaVMVal::I8 Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
-      template PathFormulaVMVal::I16 Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
-      template PathFormulaVMVal::I32 Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
-      template PathFormulaVMVal::I64 Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
-      template PathFormulaVMVal::Pointer Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
-      template PathFormulaVMVal::Bool Operations<PathFormulaVMVal>::ExtractBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t);
+      template Value::I8 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I16 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I32 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I64 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::Pointer Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::Bool Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
       
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::I8&);
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::I16&);
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::I32&);
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::I64&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I8&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I16&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I32&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I64&);
 
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Pointer&);
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Pointer32&); 
-      template PathFormulaVMVal::Aggregate Operations<PathFormulaVMVal>::InsertBaseValue(const PathFormulaVMVal::Aggregate&, std::size_t, const PathFormulaVMVal::Bool&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer&);
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer32&); 
+      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Bool&);
 
-      template class Operations<PathFormulaVMVal>;
+      template class Operations<Value>;
       
     } // namespace Pathformula
   }   // namespace VMT

@@ -123,7 +123,37 @@ namespace MiniMC {
       MiniMC::Model::VariableMap<T>& metas;
     };
     
+    template<class T,MiniMC::VMT::Evaluator<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl<T> stackC>  
+    struct VMState {
+      using Domain = T;
+      
+      
+      VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
+      auto& getValueLookup () {return lookup;}
+      auto& getMemory () {return memory;}
+      auto& getPathControl ()  {return control;}
+      auto& getStackControl ()  {return scontrol;}
+    private:
+      Mem& memory;
+      PathC& control;
+      stackC& scontrol;
+      Eval& lookup;
+    };
+
     
+    template<class T,MiniMC::VMT::Evaluator<T> Eval,MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC>  
+    struct VMInitState {
+      using Domain = T;
+      
+      
+      VMInitState (Mem& m, PathC& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
+      auto& getValueLookup () {return lookup;}
+      auto& getPathControl () const {return control;}
+    private:
+      Mem& memory;
+      PathC& control;
+      Eval& lookup;
+    };
 
     
   }

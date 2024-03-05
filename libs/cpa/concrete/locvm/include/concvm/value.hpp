@@ -70,7 +70,7 @@ namespace MiniMC {
 	}
       }
 
-      using ConcreteVMVal = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
+      using Value = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
                                                     TValue<MiniMC::BV16>,
                                                     TValue<MiniMC::BV32>,
                                                     TValue<MiniMC::BV64>,

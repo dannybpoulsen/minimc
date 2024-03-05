@@ -20,7 +20,7 @@ namespace MiniMC {
       
       class QExpr : public MiniMC::CPA::QueryExpr {
       public:
-        QExpr(MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) : value(std::move(val)) {}
+        QExpr(MiniMC::VMT::Pathformula::Value&& val) : value(std::move(val)) {}
         std::ostream& output(std::ostream& os) const override {
           return os << value;
         }
@@ -28,33 +28,10 @@ namespace MiniMC {
         auto getValue() const { return value; }
 
       private:
-        MiniMC::VMT::Pathformula::PathFormulaVMVal value;
+        MiniMC::VMT::Pathformula::Value value;
       };
       
-      /*class StackControl : public MiniMC::VMT::StackControl<MiniMC::VMT::Pathformula::PathFormulaVMVal> {
-      public:
-        StackControl(MiniMC::VMT::Pathformula::ActivationStack& stack, SMTLib::Context& context) : stack(stack) {}
-        // StackControl API
-        void push(MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret) override {
-          MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> values{registers};
-	  stack.push({std::move(values), ret});
-        }
-
-        void pop(MiniMC::VMT::Pathformula::PathFormulaVMVal&& val) override {
-          auto ret = stack.back().ret;
-          stack.pop();
-	  if (ret) 
-	    stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register>(ret), std::move(val));
-        }
-
-        void popNoReturn() override {
-          stack.pop();
-        }
-
-      private:
-        MiniMC::VMT::Pathformula::ActivationStack& stack;
-      };
-      */
+      
       class State : public MiniMC::CPA::DataState,
                     private MiniMC::CPA::QueryBuilder {
       public:
@@ -64,13 +41,8 @@ namespace MiniMC {
                                                                                                                                       context(ctxt) {}
         State(const State& oth) : call_stack(oth.call_stack), memory(oth.memory), pathformula(oth.pathformula), context(oth.context), _hash(0) {}
         MiniMC::Hash::hash_t hash() const override {
-          // Hashes for pathformula states makes no sense
-          // Since they should be usable by all algorithms we just makes a fake hash that increments with each invocation of the hash function
-          static MiniMC::Hash::hash_t nextHash{0};
-          if (!_hash)
-            _hash = ++nextHash;
-          return _hash;
-        }
+          return reinterpret_cast<MiniMC::Hash::hash_t> (this);
+	}
 	
         virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
 
@@ -90,7 +62,7 @@ namespace MiniMC {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::PathFormulaVMVal> metas{1};  
+	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};  
 	  MiniMC::VMT::Pathformula::ValueLookup lookup {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (call_stack),metas,context.getBuilder ()};
           return std::make_unique<QExpr>(lookup.lookupValue(*val));
         }
@@ -124,17 +96,17 @@ namespace MiniMC {
 	MiniMC::Model::Constant_ptr evaluate(const QueryExpr& expr) const override {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
-	    return MiniMC::VMT::Pathformula::PathFormulaVMVal::visit (MiniMC::Support::Overload {
-		[this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I8& val) ->MiniMC::Model::Constant_ptr {
+	    return MiniMC::VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
+		[this](MiniMC::VMT::Pathformula::Value::I8& val) ->MiniMC::Model::Constant_ptr {
 		  return std::make_shared<MiniMC::Model::I8Integer> (val.interpretValue (*solver));
 		},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I32& val) ->MiniMC::Model::Constant_ptr { return std::make_shared<MiniMC::Model::I32Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Pointer32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer32> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Bool& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Bool> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::PathFormulaVMVal::Aggregate& val) ->MiniMC::Model::Constant_ptr {
+		  [this](MiniMC::VMT::Pathformula::Value::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I32& val) ->MiniMC::Model::Constant_ptr { return std::make_shared<MiniMC::Model::I32Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer32> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Bool& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Bool> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {
 		    auto res = val.interpretValue (*solver);
 		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
 		  }

@@ -92,13 +92,13 @@ namespace MiniMC {
   namespace VMT {
     namespace Concrete {
       struct Memory::internal {
-	MiniMC::Model::pointer_t allocate (const ConcreteVMVal::I64& size) {
+	MiniMC::Model::pointer_t allocate (const Value::I64& size) {
 	  auto pointer = MiniMC::Model::pointer_t::makeHeapPointer(next, 0);
 	  return allocate (size,pointer);
 	}
 
 	
-	MiniMC::Model::pointer_t allocate (const ConcreteVMVal::I64& size, MiniMC::Model::pointer_t pointer) {
+	MiniMC::Model::pointer_t allocate (const Value::I64& size, MiniMC::Model::pointer_t pointer) {
 	  if (!entries.count(pointer) && MiniMC::Model::getOffset (pointer)==0) { 
 	    auto size_ = size.getValue();
 	    auto base = MiniMC::Model::getBase (pointer);
@@ -120,7 +120,7 @@ namespace MiniMC {
       }
       Memory::~Memory() {}
 
-      ConcreteVMVal Memory::loadValue(const typename ConcreteVMVal::Pointer& p, const MiniMC::Model::Type_ptr& readType) const {
+      Value Memory::loadValue(const typename Value::Pointer& p, const MiniMC::Model::Type_ptr& readType) const {
 
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
@@ -141,19 +141,19 @@ namespace MiniMC {
 
           switch (readType->getTypeID()) {
 	  case MiniMC::Model::TypeID::Bool:
-	    return performRead.template operator()<ConcreteVMVal::Bool>();
+	    return performRead.template operator()<Value::Bool>();
 	  case MiniMC::Model::TypeID::I8: 
-	    return performRead.template operator()<ConcreteVMVal::I8>();
+	    return performRead.template operator()<Value::I8>();
 	  case MiniMC::Model::TypeID::I16:
-	    return performRead.template operator()<ConcreteVMVal::I16>();
+	    return performRead.template operator()<Value::I16>();
 	  case MiniMC::Model::TypeID::I32:
-	    return performRead.template operator()<ConcreteVMVal::I32>();
+	    return performRead.template operator()<Value::I32>();
 	  case MiniMC::Model::TypeID::I64:
-	    return performRead.template operator()<ConcreteVMVal::I64>();
+	    return performRead.template operator()<Value::I64>();
 	  case MiniMC::Model::TypeID::Pointer32:
-	    return performRead.template operator()<ConcreteVMVal::Pointer32>();
+	    return performRead.template operator()<Value::Pointer32>();
 	  case MiniMC::Model::TypeID::Pointer:
-	    return performRead.template operator()<ConcreteVMVal::Pointer>();
+	    return performRead.template operator()<Value::Pointer>();
 	  case MiniMC::Model::TypeID::Aggregate:
 	  default:
 	    throw MiniMC::Support::Exception("Error");
@@ -165,7 +165,7 @@ namespace MiniMC {
         throw MiniMC::Support::BufferOverread();
       }
       // First parameter is address to store at, second is the value to state
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I8& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::I8& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -176,7 +176,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I16& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::I16& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -187,7 +187,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I32& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::I32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -198,7 +198,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::I64& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::I64& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -209,7 +209,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::Aggregate& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::Aggregate& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -220,7 +220,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::Pointer& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::Pointer& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -231,7 +231,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const ConcreteVMVal::Pointer& p, const ConcreteVMVal::Pointer32& v) {
+      void Memory::storeValue(const Value::Pointer& p, const Value::Pointer32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -243,11 +243,11 @@ namespace MiniMC {
       }
       
       // PArameter is size to allocate
-      ConcreteVMVal::Pointer Memory::alloca(const ConcreteVMVal::I64& size) {
-        return ConcreteVMVal::Pointer(_internal->allocate (size));
+      Value::Pointer Memory::alloca(const Value::I64& size) {
+        return Value::Pointer(_internal->allocate (size));
       }
 
-      void Memory::free(const ConcreteVMVal::Pointer&) {
+      void Memory::free(const Value::Pointer&) {
       }
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout) {
 	for (auto block : layout) {
@@ -261,7 +261,7 @@ namespace MiniMC {
 	}
 	return hash;
       }
-
+      
     } // namespace Concrete
   }   // namespace VMT
 } // namespace MiniMC
