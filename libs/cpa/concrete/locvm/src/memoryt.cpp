@@ -120,7 +120,7 @@ namespace MiniMC {
       }
       Memory::~Memory() {}
 
-      Value Memory::loadValue(const typename Value::Pointer& p, const MiniMC::Model::Type_ptr& readType) const {
+      Value Memory::load(const typename Value::Pointer& p, const MiniMC::Model::Type_ptr& readType) const {
 
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
@@ -165,7 +165,7 @@ namespace MiniMC {
         throw MiniMC::Support::BufferOverread();
       }
       // First parameter is address to store at, second is the value to state
-      void Memory::storeValue(const Value::Pointer& p, const Value::I8& v) {
+      void Memory::store(const Value::Pointer& p, const Value::I8& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -176,7 +176,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::I16& v) {
+      void Memory::store(const Value::Pointer& p, const Value::I16& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -187,7 +187,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::I32& v) {
+      void Memory::store(const Value::Pointer& p, const Value::I32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -198,7 +198,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::I64& v) {
+      void Memory::store(const Value::Pointer& p, const Value::I64& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -209,7 +209,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::Aggregate& v) {
+      void Memory::store(const Value::Pointer& p, const Value::Aggregate& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -220,7 +220,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::Pointer& v) {
+      void Memory::store(const Value::Pointer& p, const Value::Pointer& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
@@ -231,7 +231,7 @@ namespace MiniMC {
         }
       }
 
-      void Memory::storeValue(const Value::Pointer& p, const Value::Pointer32& v) {
+      void Memory::store(const Value::Pointer& p, const Value::Pointer32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);

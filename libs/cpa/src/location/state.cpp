@@ -97,8 +97,9 @@ namespace MiniMC {
 	  state.pushLocation(id, loc.get());
 	}
 	
-	void popNoReturn () {
+	MiniMC::Model::Value_ptr pop () {
 	  state.popLocation(id);
+	  return nullptr;
 	}
 
 	auto& getStackControl () {return *this;}

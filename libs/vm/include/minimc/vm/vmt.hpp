@@ -50,18 +50,20 @@ namespace MiniMC {
 			       const typename T::Aggregate& aggr,
 			       const typename T::Pointer& ptr,
 			       const typename T::Pointer32& ptr32,
-				const MiniMC::Model::HeapLayout& heapl
+			       const MiniMC::Model::HeapLayout& heapl,
+			       MiniMC::Model::Type_ptr ty
 				) {
-      {mem.storeValue (p,i8)};
-      {mem.storeValue (p,i16)};
-      {mem.storeValue (p,i32)};
-      {mem.storeValue (p,i64)};
-      {mem.storeValue (p,aggr)};
-      {mem.storeValue (p,ptr)};
-      {mem.storeValue (p,ptr32)};
+      {mem.store (p,i8)};
+      {mem.store (p,i16)};
+      {mem.store (p,i32)};
+      {mem.store (p,i64)};
+      {mem.store (p,aggr)};
+      {mem.store (p,ptr)};
+      {mem.store (p,ptr32)};
       {mem.alloca(i64)}->std::convertible_to<typename T::Pointer>;
       {mem.createHeapLayout (heapl)};
       {mem.free (p)};
+      {mem.load (p,ty)}->std::convertible_to<T>;
     };
 			       
     template<class PathC,class T>
@@ -70,60 +72,20 @@ namespace MiniMC {
     {
       {p.addAssumption (b)}->std::convertible_to<TriBool>;
       {p.addAssert (b)}->std::convertible_to<TriBool>;
-      
     };
 
-    template<class StackC,class T>
+    template<class StackC>
     concept StackControl = requires (
 				     StackC& p,
 				     MiniMC::Model::Location_ptr loc,
 				     std::size_t s,
-				     MiniMC::Model::Register_ptr value,
-				     T&& t)
+				     MiniMC::Model::Register_ptr value
+				     )
     {
       {p.push (loc,s,value)};
       {p.pop ()}->std::convertible_to<MiniMC::Model::Value_ptr>;
-      {p.popNoReturn ()};
     };
 
-    template<class StackC>
-    concept SimpStackControl = requires (
-				     StackC& p,
-				     MiniMC::Model::Location_ptr loc,
-				     std::size_t s,
-				     MiniMC::Model::Value_ptr value
-					 )
-    {
-      {p.push (loc,s,value)};
-      {p.popNoReturn ()};
-    };
-
-    template<class State>
-    concept StackControllable = requires (State& state) {
-      {state.getStackControl ()} ->StackControl<typename State::Domain>;
-    };
-
-    template<class State>
-    concept SimpStackControllable = requires (State& state) {
-      {state.getStackControl ()} ->SimpStackControl;
-    };
-
-
-
-    template<class State>
-    concept MemoryControllable = requires (State& state) {
-      {state.getMemory ()} ->Memory<typename State::Domain>;
-    };
-
-    template<class State>
-    concept PathControllable = requires (State& state) {
-      {state.getPath ()} ->PathControl<typename State::Domain>;
-    };
-    
-    template<class State>
-    concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->Evaluator<typename State::Domain>;
-    };
     
     enum class  Status{
       Ok,
@@ -268,11 +230,10 @@ namespace MiniMC {
     
     class DummyOperations {
     public:
-      using Domain = int;
     };
     
     
-    template<class Value, class Operations>
+    template<class Value, class Operations = DummyOperations>
     class Engine {
     public:
       Engine (Operations&& ops,const MiniMC::Model::Program& prgm);

@@ -93,7 +93,7 @@ namespace MiniMC {
             v);
       }
       
-      Value Memory::loadValue(const typename Value::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
+      Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
 	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
         for (size_t i = 0; i < t->getSize (); ++i) {
@@ -176,31 +176,31 @@ namespace MiniMC {
       }
 
       
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::I8& val)  {
+      void Memory::store(const Value::Pointer& ptr, const Value::I8& val)  {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::I16& val) {
+      void Memory::store(const Value::Pointer& ptr, const Value::I16& val) {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::I32& val)  {
+      void Memory::store(const Value::Pointer& ptr, const Value::I32& val)  {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::I64& val)  {
+      void Memory::store(const Value::Pointer& ptr, const Value::I64& val)  {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::Pointer& val) {
+      void Memory::store(const Value::Pointer& ptr, const Value::Pointer& val) {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::Pointer32& val) {
+      void Memory::store(const Value::Pointer& ptr, const Value::Pointer32& val) {
 	mem_var = write<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
 
-      void Memory::storeValue(const Value::Pointer& ptr, const Value::Aggregate& val) {
+      void Memory::store(const Value::Pointer& ptr, const Value::Aggregate& val) {
 	mem_var = writeAggr<Value::Pointer::intbitsize()> (val.size(),builder,mem_var,ptr.getTerm (),val.getTerm ());
       }
       

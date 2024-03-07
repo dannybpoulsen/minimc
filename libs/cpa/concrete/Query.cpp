@@ -162,7 +162,7 @@ namespace MiniMC {
 	    VMT::Concrete::Value::visit (MiniMC::Support::Overload {
 		
 		[&heap]<typename K>(VMT::Concrete::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Concrete::Value::Bool>) {
-		  heap.storeValue (ptr,value);
+		  heap.store (ptr,value);
 		},
 		  [](auto&, auto&) {
 		    throw MiniMC::Support::Exception ("Error");

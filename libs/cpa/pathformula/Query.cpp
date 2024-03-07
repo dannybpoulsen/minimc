@@ -60,7 +60,7 @@ namespace MiniMC {
 	    VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
 		
 		[&memory]<typename K>(VMT::Pathformula::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::Value::Bool>) {
-		  memory.storeValue (ptr,value);
+		  memory.store (ptr,value);
 		},
 		  [](auto&, auto&) {
 		    throw MiniMC::Support::Exception ("Error");

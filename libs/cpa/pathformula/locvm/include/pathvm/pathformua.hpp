@@ -28,15 +28,15 @@ namespace MiniMC {
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
 	
-	Value loadValue(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const ;
+	Value load(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const ;
         // First parameter is address to store at, second is the value to state
-        void storeValue(const Value::Pointer&, const Value::I8&) ;
-	void storeValue(const Value::Pointer&, const Value::I16&) ;
-        void storeValue(const Value::Pointer&, const Value::I32&) ;
-        void storeValue(const Value::Pointer&, const Value::I64&) ;
-	void storeValue(const Value::Pointer&, const Value::Aggregate&) ;
-	void storeValue(const Value::Pointer&, const Value::Pointer&) ;
-	void storeValue(const Value::Pointer&, const Value::Pointer32&) ;
+        void store(const Value::Pointer&, const Value::I8&) ;
+	void store(const Value::Pointer&, const Value::I16&) ;
+        void store(const Value::Pointer&, const Value::I32&) ;
+        void store(const Value::Pointer&, const Value::I64&) ;
+	void store(const Value::Pointer&, const Value::Aggregate&) ;
+	void store(const Value::Pointer&, const Value::Pointer&) ;
+	void store(const Value::Pointer&, const Value::Pointer32&) ;
 	
 	// PArameter is size to allocate
 	Value::Pointer alloca(const Value::I64&) ;

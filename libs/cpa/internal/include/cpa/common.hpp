@@ -75,11 +75,6 @@ namespace MiniMC {
 	return ret;
       }
       
-      void popNoReturn ()  {
-	stack.pop ();
-      }
-      
-      
     private:
       ActivationStack<Value>& stack;
     };
@@ -118,13 +113,12 @@ namespace MiniMC {
       
       
     private:
-      ActivationStack<T>& values;
+      ActivationStack<T>& values; 
       MiniMC::Model::VariableMap<T>& metas;
     };
     
-    template<class T,MiniMC::VMT::Evaluator<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl<T> stackC>  
+    template<class T,MiniMC::VMT::Evaluator<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
     struct VMState {
-      using Domain = T;
       
       
       VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
@@ -142,8 +136,6 @@ namespace MiniMC {
     
     template<class T,MiniMC::VMT::Evaluator<T> Eval,MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC>  
     struct VMInitState {
-      using Domain = T;
-      
       
       VMInitState (Mem& m, PathC& path, Eval& vlook) : memory(m),control(path),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}
