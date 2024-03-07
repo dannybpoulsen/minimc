@@ -69,11 +69,10 @@ namespace MiniMC {
 	stack.push (std::move(sf));
       }
       
-      void pop (Value&& val) {
+      MiniMC::Model::Value_ptr pop () {
 	auto ret = stack.back ().ret;
 	stack.pop ();
-	if (ret)
-	  stack.back().values.set (*std::static_pointer_cast<MiniMC::Model::Register> (ret),std::move(val));
+	return ret;
       }
       
       void popNoReturn ()  {

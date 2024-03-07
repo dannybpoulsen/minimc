@@ -181,6 +181,7 @@ namespace MiniMC {
      * A Value is associated to Type, and be either Variables or Constants.
      * Values can also be local or global to a given function.
      */
+    class Register;
     class Value {
     public:
       Value(type_id_t v) : val_type(v) {}
@@ -189,7 +190,7 @@ namespace MiniMC {
       void setType(const Type_ptr& t) { type = t; }
       virtual bool isRegister() const { return false; }
       virtual bool isConstant() const { return false; }
-
+      
       virtual std::ostream& output(std::ostream& os) const = 0;
       const std::string string_repr() const {
         std::stringstream str;
@@ -200,7 +201,10 @@ namespace MiniMC {
       operator std::string() const {
         return this->string_repr();
       }
-
+      
+      virtual const Register& asRegister () const {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
+      virtual Register& asRegister () {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
+      
       type_id_t type_t() const { return val_type; }
     protected:
       std::ostream& outputType (std::ostream& os) const {
@@ -361,6 +365,9 @@ namespace MiniMC {
       auto getSymbol () const {return name;}
       auto getId  () const {return place.getId ();}
       auto getRegType () const {return place.getRegType ();}
+      const Register& asRegister () const {return *this;}
+      Register& asRegister () {return *this;}
+      
     private:
       RegisterInfo place;
       Symbol name;

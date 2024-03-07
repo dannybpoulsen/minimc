@@ -56,7 +56,7 @@ namespace MiniMC {
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+        auto& res = content.res->asRegister ();
 
         auto lval = writeState.getValueLookup().lookupValue(*content.op1);
         auto rval = writeState.getValueLookup().lookupValue(*content.op2);
@@ -108,7 +108,7 @@ namespace MiniMC {
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+        auto& res = content.res->asRegister ();
 
         auto lval = writeState.getValueLookup().lookupValue(*content.op1);
         auto rval = writeState.getValueLookup().lookupValue(*content.op2);
@@ -161,7 +161,7 @@ namespace MiniMC {
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+        auto& res = content.res->asRegister ();
 
         auto addrConverter = MiniMC::Support::Overload {
 	  [](typename T::Pointer& addrVal) {
@@ -238,7 +238,7 @@ namespace MiniMC {
 	};
 	
         if constexpr (op == MiniMC::Model::InstructionCode::Load ) {
-	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+	  auto& res = content.res->asRegister ();
 	  if constexpr (MemoryControllable<State>) {
 	    auto addr = T::visit (addrConverter,writeState.getValueLookup().lookupValue(*content.addr));
 	    writeState.getValueLookup().saveValue(res, writeState.getMemory().loadValue(addr, res.getType()));
@@ -343,7 +343,7 @@ namespace MiniMC {
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+        auto& res = content.res->asRegister ();
 
         if constexpr (op == MiniMC::Model::InstructionCode::Trunc ||
                       op == MiniMC::Model::InstructionCode::ZExt ||
@@ -474,7 +474,7 @@ namespace MiniMC {
 
         if constexpr (op == MiniMC::Model::InstructionCode::Assign && ValueLookupable<State>) {
 	  auto& content = instr.getOps();
-	  auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+	  auto& res = content.res->asRegister ();
           auto op1 = writeState.getValueLookup().lookupValue(*content.op1);
           writeState.getValueLookup().saveValue(res, std::move(op1));
           return Status::Ok;
@@ -546,7 +546,9 @@ namespace MiniMC {
 	  auto& content = instr.getOps();
 	  if constexpr (StackControllable<State>   ) {
 	    auto ret = writeState.getValueLookup().lookupValue(*content.value);
-	    writeState.getStackControl().pop(std::move(ret));
+	    auto ret_reg = writeState.getStackControl().pop();
+	    writeState.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
+	    
 	  }
 	  else if constexpr (SimpStackControllable<State> ) {
 	    writeState.getStackControl().popNoReturn();
@@ -575,7 +577,7 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::NonDet && ValueLookupable<State>) {
 	  auto& content = instr.getOps();
-          auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+          auto& res = content.res->asRegister ();
           auto ret = writeState.getValueLookup().unboundValue(*content.res->getType());
           writeState.getValueLookup().saveValue(res, std::move(ret));
           return Status::Ok;
@@ -599,7 +601,7 @@ namespace MiniMC {
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = static_cast<MiniMC::Model::Register&>(*content.res);
+        auto& res = content.res->asRegister ();
         assert(content.offset->isConstant());
         auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
         MiniMC::BV64 offset{0};

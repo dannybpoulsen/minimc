@@ -78,11 +78,11 @@ namespace MiniMC {
 				     StackC& p,
 				     MiniMC::Model::Location_ptr loc,
 				     std::size_t s,
-				     MiniMC::Model::Value_ptr value,
+				     MiniMC::Model::Register_ptr value,
 				     T&& t)
     {
       {p.push (loc,s,value)};
-      {p.pop (std::move(t))};
+      {p.pop ()}->std::convertible_to<MiniMC::Model::Value_ptr>;
       {p.popNoReturn ()};
     };
 
