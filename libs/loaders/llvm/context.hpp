@@ -194,9 +194,7 @@ namespace MiniMC {
 	
 	auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
 	auto func = cinst->getCalledFunction();
-	assert(func);
-	
-	if (func->getName() == "assert") {
+	if (func && func->getName() == "assert") {
 	  assert(cinst->arg_size() == 1);
 	  auto val = context.findValue(*cinst->arg_begin());
 	  if (val->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
@@ -214,7 +212,7 @@ namespace MiniMC {
 	}
 	else {
 	  std::vector<MiniMC::Model::Value_ptr> params;
-	  MiniMC::Model::Value_ptr func_ptr = context.findValue(func);
+	  MiniMC::Model::Value_ptr func_ptr = context.findValue(cinst->getCalledOperand ());
 	  MiniMC::Model::Value_ptr res = nullptr;
 	  if (!inst->getType()->isVoidTy()) {
 	    res = context.findValue(inst);
