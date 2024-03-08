@@ -79,16 +79,13 @@ namespace MiniMC {
       ActivationStack<Value>& stack;
     };
 
-    template<class T>
-    struct BaseValueLookup  {
+    template<class Value>
+    class RegisterStore {
     public:
-      BaseValueLookup (ActivationStack<T>& values,MiniMC::Model::VariableMap<T>& metas) : values(values),metas(metas) {}
-      BaseValueLookup (const BaseValueLookup&) = delete;
-      virtual  ~BaseValueLookup () {}
-      
-      using Value = T;
-    protected:
-      T lookupRegister (const MiniMC::Model::Register& reg) const  {
+      RegisterStore (ActivationStack<Value>& values,MiniMC::Model::VariableMap<Value>& metas) : values(values),
+												metas(metas) {}
+    public:
+      Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	switch (reg.getRegType ()) {
 	case MiniMC::Model::RegType::Local: return values.back().values[reg];
 	case MiniMC::Model::RegType::CPU: return values.cpus()[reg];
@@ -99,7 +96,7 @@ namespace MiniMC {
 	}
       }
       
-      void saveRegister(const MiniMC::Model::Register& v, T&& value)  {
+      void saveRegister(const MiniMC::Model::Register& v, Value&& value)  {
 	switch (v.getRegType ()) {
 	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   values.cpus ().set (v,std::move(value));break;
@@ -113,8 +110,58 @@ namespace MiniMC {
       
       
     private:
-      ActivationStack<T>& values; 
-      MiniMC::Model::VariableMap<T>& metas;
+      ActivationStack<Value>& values; 
+      MiniMC::Model::VariableMap<Value>& metas;
+    };
+
+    template<class Value>
+    class DummyRegisterStore {
+    public:  
+      DummyRegisterStore () {}
+      Value lookupRegister (const MiniMC::Model::Register& ) const  {
+	throw MiniMC::Support::Exception ("No registers to load fraom");
+        
+      }
+      
+      void saveRegister(const MiniMC::Model::Register&, Value&&)  {
+	throw MiniMC::Support::Exception ("Cannot save register");
+      }
+      
+      
+    };
+    
+    template<class Value,class Creator,class RegStore = DummyRegisterStore<Value>>
+    struct ValueLookup  {
+    public:
+      ValueLookup (Creator&& creator, RegStore&& store = RegStore{}) : store(std::move(store)),creator(std::move(creator)) {}
+      ValueLookup (const ValueLookup&) = delete;
+      virtual  ~ValueLookup () {}
+      
+      Value lookupValue (const MiniMC::Model::Value& v) const {
+	return MiniMC::Model::visitValue(
+				  MiniMC::Model::Overload{
+				    [this](const MiniMC::Model::Register& val) -> Value {
+				      return store.lookupRegister (val);
+				    },
+				      [this](const auto& v) -> Value {
+					return creator.create(v);
+				      }
+				      },
+				  v);
+
+      }
+
+      void saveValue(const MiniMC::Model::Register& r, Value&& v)  {
+	store.saveRegister (r,std::move(v));
+      } 
+	
+      
+      Value unboundValue(const MiniMC::Model::Type& t) const {return creator.unboundValue (t);}
+      Value defaultValue(const MiniMC::Model::Type& t) const {return creator.defaultValue (t);}
+            
+    private:
+      RegStore store;
+      Creator  creator;
     };
     
     template<class T,MiniMC::VMT::Evaluator<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
@@ -132,7 +179,7 @@ namespace MiniMC {
       stackC& scontrol;
       Eval& lookup;
     };
-
+    
     
     template<class T,MiniMC::VMT::Evaluator<T> Eval,MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC>  
     struct VMInitState {

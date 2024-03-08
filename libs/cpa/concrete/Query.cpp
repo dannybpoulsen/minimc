@@ -103,7 +103,7 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Concrete::ValueLookup lookup{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p)),metas};
+	  MiniMC::VMT::Concrete::ValueLookup lookup{MiniMC::VMT::Concrete::ValueCreator{},{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (proc_vars.at(p)),metas }};
 	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
 	  
 	}
@@ -131,7 +131,7 @@ namespace MiniMC {
 	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
 	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Concrete::ValueLookup lookup {cs,metas};
+	  MiniMC::VMT::Concrete::ValueLookup lookup {MiniMC::VMT::Concrete::ValueCreator{},{cs,metas}};
 	  for (auto& v : vstack.getRegisters()) {
             lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
 	  }
@@ -151,7 +151,7 @@ namespace MiniMC {
           stack.push_back(cs);
 	  
         }
-	MiniMC::VMT::Concrete::ValueLookupBase lookup;
+	MiniMC::VMT::Concrete::ValueLookupNoRegister lookup{MiniMC::VMT::Concrete::ValueCreator{}};
 	MiniMC::VMT::Concrete::Memory heap;
 	heap.createHeapLayout (descr.getHeap ());
 	
@@ -192,7 +192,7 @@ namespace MiniMC {
 	  
 	MiniMC::VMT::Concrete::PathControl control;
 	MiniMC::VMT::Concrete::StackControl scontrol {nstate.getProc (id)};
-	MiniMC::VMT::Concrete::ValueLookup lookup (nstate.getProc (id),_internal->metas);
+	MiniMC::VMT::Concrete::ValueLookup lookup (MiniMC::VMT::Concrete::ValueCreator{},{nstate.getProc (id),_internal->metas});
 	
 	
 	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,scontrol,lookup};

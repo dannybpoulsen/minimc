@@ -11,7 +11,11 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
       static std::size_t next = 0;
-      inline Value unboundVal(const MiniMC::Model::Type& t, SMTLib::TermBuilder& builder) {
+      Value ValueCreator::defaultValue(const MiniMC::Model::Type& t) const {
+	return unboundValue (t);
+      }
+	
+      Value ValueCreator::unboundValue(const MiniMC::Model::Type& t) const {
         std::stringstream str;
         str << "Var" << ++next;
         switch (t.getTypeID()) {
@@ -39,60 +43,54 @@ namespace MiniMC {
         }
         throw MiniMC::Support::Exception("Erro");
       }
-
-       
-      Value ValueLookupBase::unboundValue(const MiniMC::Model::Type& t) const {
-        return unboundVal(t, builder);
-      }
-
-      Value ValueLookupBase::defaultValue(const MiniMC::Model::Type& t) const {
-        return unboundValue(t);
-      }
-
       
       
-      Value ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
+      
+      Value ValueCreator::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
+      Value ValueCreator::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
+      Value ValueCreator::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
+      Value ValueCreator::create(const MiniMC::Model::I64Integer& val) const { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
+      Value ValueCreator::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
+      Value ValueCreator::create(const MiniMC::Model::Pointer& val) const { 
+	auto pointer = val.getValue ();
+	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+		<< builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+		<< builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+	return PointerValue(chainer.getTerm ());
+	} 
+
+      Value ValueCreator::create(const MiniMC::Model::Pointer32& val) const { 
+	auto pointer = val.getValue ();
+	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
+		  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
+		  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
+	  return Value::Pointer32(chainer.getTerm ());
+	}
+      Value ValueCreator::create(const MiniMC::Model::AggregateConstant& val) const {
+	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
+	for (auto byte : val.getData()) {
+	  chainer >> (builder.makeBVIntConst(byte, 8));
+	}
+	return AggregateValue(chainer.getTerm(), val.getSize());
+      }
+      Value ValueCreator::create(const MiniMC::Model::Undef& val) const { return unboundValue(*val.getType()); }
+      
+      
+      /*Value ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
 	return MiniMC::Model::visitValue(
             MiniMC::Model::Overload{
-                [this](const MiniMC::Model::I8Integer& val) -> Value { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); },
-                [this](const MiniMC::Model::I16Integer& val) -> Value { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); },
-		[this](const MiniMC::Model::I32Integer& val) -> Value { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); },
-                [this](const MiniMC::Model::I64Integer& val) -> Value { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); },
-                [this](const MiniMC::Model::Bool& val) -> Value { return BoolValue(builder.makeBoolConst(val.getValue())); },
-		[this](const MiniMC::Model::Pointer& val) -> Value { 
-		  auto pointer = val.getValue ();
-		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
-			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
-			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		  return PointerValue(chainer.getTerm ());
-		} ,
-		[this](const MiniMC::Model::Pointer32& val) -> Value { 
-		  auto pointer = val.getValue ();
-		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-		  chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
-			  << builder.makeBVIntConst(pointer.base, sizeof(pointer.base)*8)
-			  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
-		  return Value::Pointer32(chainer.getTerm ());
-		},
-		[this](const MiniMC::Model::AggregateConstant& val) -> Value {
-		  MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-		  for (auto byte : val.getData()) {
-                    chainer >> (builder.makeBVIntConst(byte, 8));
-                  }
-                  return AggregateValue(chainer.getTerm(), val.getSize());
-                },
-		[this](const MiniMC::Model::Undef& val) -> Value { return unboundValue(*val.getType()); },
-		[this](const MiniMC::Model::Register& val) -> Value {
-		  return lookupRegisterValue (val);
-		},
-		[this](const MiniMC::Model::SymbolicConstant&) -> Value {
-		  throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");
-		}
+	      [this](const MiniMC::Model::Register& val) -> Value {
+		return lookupRegisterValue (val);
+	      },
+	      [this](const auto& v) -> Value {
+		return creator.create(v);
+	      }
 	    },
             v);
       }
-      
+      */
       Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
 	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);

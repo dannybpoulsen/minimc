@@ -53,41 +53,29 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
-      
-      
-      class ValueLookupBase  {
-      public:
-	ValueLookupBase (SMTLib::TermBuilder& b) : builder(b) {}
-	ValueLookupBase (const ValueLookupBase&) = default;
-        Value lookupValue (const MiniMC::Model::Value& ) const ;
-        Value unboundValue(const MiniMC::Model::Type&) const ;
-	Value defaultValue(const MiniMC::Model::Type&) const ;
-      
-	virtual void saveValue(const MiniMC::Model::Register&, Value&&)  {
-	  throw MiniMC::Support::Exception ("Can't save values");
-	} 
 
-	virtual Value lookupRegisterValue (const MiniMC::Model::Register&) const {
-	  throw MiniMC::Support::Exception ("Can't lookupRegisters");
-	}
+      class ValueCreator {
+      public:
+	ValueCreator (SMTLib::TermBuilder& builder) : builder(builder) {}
+	Value create (const MiniMC::Model::I8Integer& val)  const; 
+	Value create (const MiniMC::Model::I16Integer& val) const ;
+	Value create (const MiniMC::Model::I32Integer& val) const ;
+	Value create (const MiniMC::Model::I64Integer& val) const ;
+	Value create (const MiniMC::Model::Bool& val) const   ;
+	Value create (const MiniMC::Model::Pointer& val) const ;
+	Value create (const MiniMC::Model::Pointer32& val) const;
+	Value create (const MiniMC::Model::AggregateConstant& val) const;
+	Value create (const MiniMC::Model::Undef& und) const ;
+	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}
+	Value unboundValue (const MiniMC::Model::Type&) const ;
+	Value defaultValue(const MiniMC::Model::Type&) const ;
 	
+      private:
 	SMTLib::TermBuilder& builder;
       };
-
-      class ValueLookup : public ValueLookupBase,
-			  private MiniMC::CPA::Common::BaseValueLookup<Value>
-      {
-      public:
-	ValueLookup (MiniMC::CPA::Common::ActivationStack<Value>& values, MiniMC::Model::VariableMap<Value>& metas,SMTLib::TermBuilder& b) : ValueLookupBase(b),BaseValueLookup(values,metas) {}
-
-	void saveValue(const MiniMC::Model::Register& v, Value&& value) override {
-	  this->saveRegister (v,std::move(value));
-	}
-	
-	Value lookupRegisterValue (const MiniMC::Model::Register& r) const  override {return lookupRegister (r);}
-	
-	
-      };
+      
+      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator,MiniMC::CPA::Common::RegisterStore<Value> >;
+      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator >;
       
       class PathControl  {
       public:
@@ -105,8 +93,8 @@ namespace MiniMC {
       };
 
       using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Pathformula::Value>;
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,ValueLookupBase,Memory,PathControl,StackControl>;
-      using PathFormulaInitState = MiniMC::CPA::Common::VMInitState<Value,ValueLookupBase,Memory,PathControl>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,ValueLookup,Memory,PathControl,StackControl>;
+      using PathFormulaInitState = MiniMC::CPA::Common::VMInitState<Value,ValueLookup,Memory,PathControl>;
       
       
       

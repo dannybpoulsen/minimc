@@ -31,7 +31,7 @@ namespace MiniMC {
 									std::move(term),
 									*context);
 	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};
-	MiniMC::VMT::Pathformula::ValueLookup lookup{state->getStack (),metas,termbuilder};
+	MiniMC::VMT::Pathformula::ValueLookup lookup{{termbuilder},{state->getStack (),metas}};
 	
 	for (auto& reg : vstack.getRegisters ()) {
 	  auto val = lookup.defaultValue (*reg->getType ());
@@ -53,10 +53,12 @@ namespace MiniMC {
 	  
 
 	memory.createHeapLayout (descr.getHeap ());
+	MiniMC::VMT::Pathformula::ValueLookupNoRegister vlookup{{termbuilder}};
 	for (auto& b : descr.getHeap ()) {
 	  if (b.value) {
-	    VMT::Pathformula::Value ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
-            VMT::Pathformula::Value valueToStor = lookup.lookupValue(*b.value);
+	    
+	    VMT::Pathformula::Value ptr = vlookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
+            VMT::Pathformula::Value valueToStor = vlookup.lookupValue(*b.value);
 	    VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
 		
 		[&memory]<typename K>(VMT::Pathformula::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::Value::Bool>) {
@@ -102,7 +104,7 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	MiniMC::VMT::Pathformula::StackControl stackcontrol{nstate.getStack ()};
-	MiniMC::VMT::Pathformula::ValueLookup lookup{nstate.getStack(),_internal->metas,termbuilder};
+	MiniMC::VMT::Pathformula::ValueLookup lookup{{termbuilder},{nstate.getStack(),_internal->metas}};
 	
 	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,stackcontrol,lookup};
 	auto& instr = e.getInstructions();
