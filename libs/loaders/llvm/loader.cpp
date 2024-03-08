@@ -100,7 +100,8 @@ namespace MiniMC {
           for (auto& B : F) {
             for (auto& I : B) {
               if (auto cinst = llvm::dyn_cast<llvm::CallInst>(&I)) {
-                functions.insert(cinst->getCalledFunction());
+		if (!cinst->isIndirectCall())
+		  functions.insert(cinst->getCalledFunction());
               }
             }
           }

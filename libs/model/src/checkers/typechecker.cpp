@@ -429,7 +429,7 @@ namespace MiniMC {
 						);
 	    
 	  
-	  if (!fun) {
+	  if (!func) {
 	    return false;
 	  }
 	  

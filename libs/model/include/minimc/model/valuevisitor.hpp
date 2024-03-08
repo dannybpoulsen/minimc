@@ -3,7 +3,7 @@
 
 #include "minimc/model/variables.hpp"
 #ifndef NDEBUG
-#include "support/exceptions.hpp"
+#include "minimc/support/exceptions.hpp"
 #endif
 
 namespace MiniMC {
