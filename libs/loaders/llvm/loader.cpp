@@ -7,6 +7,7 @@
 #include <llvm/IR/DebugInfo.h>
 #include <llvm/IR/GetElementPtrTypeIterator.h>
 #include <llvm/IR/IRPrintingPasses.h>
+#include <llvm/IRPrinter/IRPrintingPasses.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -98,7 +99,8 @@ namespace MiniMC {
           for (auto& B : F) {
             for (auto& I : B) {
               if (auto cinst = llvm::dyn_cast<llvm::CallInst>(&I)) {
-                functions.insert(cinst->getCalledFunction());
+		if (!cinst->isIndirectCall())
+		  functions.insert(cinst->getCalledFunction());
               }
             }
           }
