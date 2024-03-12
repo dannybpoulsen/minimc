@@ -39,11 +39,11 @@ namespace MiniMC {
 	    for (auto& instr : e->getInstructions ()) {
 	      if (!instr.visit (MiniMC::Model::Overload {
 		    [&defined,&instr,e,&mess]<typename T>(const T& a) requires (T::hasOperands())  {
-
+		      
 		      std::vector<MiniMC::Model::Value_ptr> vals;
 		      a.getUsages (std::back_inserter(vals));
 		      
-
+		      
 		      for (auto& v : vals) {
 			if (!defined.count (v)) {
 			  if (v->isRegister ()) {
@@ -66,7 +66,7 @@ namespace MiniMC {
 		    },
 		      [](auto&)   {return true;}
 		      
-		}
+		      }
 		  ) ) {
 		return false;
 	      }

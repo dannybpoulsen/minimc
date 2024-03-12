@@ -194,7 +194,7 @@ namespace MiniMC {
 
     Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
     Register::Register(const Symbol& name,RegisterInfo&& place) : Value(ValueInfo<Register>::type_t()),
-							  place (std::move(place)),
+								  place (std::move(place)),
 							    
 							    name(name) {}
 
