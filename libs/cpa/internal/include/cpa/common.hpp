@@ -8,17 +8,22 @@ namespace MiniMC {
   namespace Common {
     template<class Value>
     struct ActivationRecord {
-      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Value_ptr& ret) : values(std::move(values)), ret(ret) {}
+      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Value_ptr& ret, MiniMC::Model::Location_ptr l) : values(std::move(values)), ret(ret),loc(l) {}
       ActivationRecord(const ActivationRecord&) = default;
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
-	hash << values << ret.get();
+	hash << values << ret.get() << loc.get();
 	return hash;
       }
+
+      auto& getLocation () const {return loc;}
+      void setLocation (MiniMC::Model::Location_ptr l)  {loc = l;}
+      
       
       MiniMC::Model::VariableMap<Value> values;
       MiniMC::Model::Value_ptr ret{nullptr};
+      MiniMC::Model::Location_ptr loc;
     };
     
     template <class Value>
@@ -54,7 +59,7 @@ namespace MiniMC {
 	return hash;
       }
 
-      
+      auto getDepth () const {return frames.size();} 
       
       MiniMC::Model::VariableMap<Value> cpuregs;
       std::vector<ActRecord> frames;
@@ -64,8 +69,8 @@ namespace MiniMC {
     class StackControl {
     public:
       StackControl (ActivationStack<Value>& stack) : stack(stack) {}
-      void  push (MiniMC::Model::Location_ptr, std::size_t registers, const MiniMC::Model::Value_ptr& ret)  {
-	ActivationRecord<Value> sf {{registers},ret};
+      void  push (MiniMC::Model::Location_ptr loc, std::size_t registers, const MiniMC::Model::Value_ptr& ret)  {
+	ActivationRecord<Value> sf {{registers},ret,loc};
 	stack.push (std::move(sf));
       }
       

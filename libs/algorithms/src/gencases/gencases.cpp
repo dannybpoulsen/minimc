@@ -1,6 +1,5 @@
 #include "minimc/algorithms/gencases.hpp"
 #include "minimc/cpa/pathformula.hpp"
-#include "minimc/cpa/location.hpp"
 #include "minimc/cpa/successorgen.hpp"
 #include "minimc/smt/smt.hpp"
 
@@ -22,9 +21,8 @@ namespace MiniMC {
 				   MiniMC::Support::SMT::SMTDescr smt
 						      ) {
 	TestCaseGenResult res {func->getParameters()};
-	MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
-	
-	cpa.addDataCPA (std::make_shared<MiniMC::CPA::PathFormula::CPA>(smt));
+	MiniMC::CPA::AnalysisBuilder cpa;
+	cpa.add<MiniMC::CPA::PathFormula::CPA>(smt);
       
 	
 	      
@@ -53,7 +51,7 @@ namespace MiniMC {
 	    auto state =   *enumerator;
 	    auto concretizer = state.dataStates()[0].getConcretizer ();
 	    if (concretizer->isFeasible () == MiniMC::CPA::Solver::Feasibility::Feasible) {
-	      if (!state.getCFAState().isActive (0))  {
+	      if (!state.getLocationState().isActive (0))  {
 		std::vector<MiniMC::Model::Value_ptr> values;
 		auto inserter = std::back_inserter (values);
 		std::for_each (params_sym.begin (),params_sym.end (),[&inserter,&concretizer](auto& sym_val){inserter = concretizer->evaluate (*sym_val);});

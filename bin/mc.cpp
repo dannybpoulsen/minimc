@@ -82,7 +82,7 @@ namespace {
 	  prgm});
       
       auto goal = [](const MiniMC::CPA::AnalysisState& state) {
-	auto& locationstate = state.getCFAState ().getLocationState ();
+	auto& locationstate = state.getLocationState ();
 	auto procs = locationstate.nbOfProcesses ();
       
 	for (std::size_t i = 0; i < procs; ++i) {
@@ -132,13 +132,13 @@ namespace {
   private:
     MiniMC::CPA::AnalysisBuilder
     makeCPABuilder (const SetupOptions& sopt) {
-      MiniMC::CPA::AnalysisBuilder cpa{std::make_shared<MiniMC::CPA::Location::CPA> ()};
+      MiniMC::CPA::AnalysisBuilder cpa;
       
       if (locoptions.symbolic)
-	cpa.addDataCPA (std::make_shared<MiniMC::CPA::PathFormula::CPA>(sopt.smt.selsmt));
+	cpa.add<MiniMC::CPA::PathFormula::CPA>(sopt.smt.selsmt);
       
       else
-	cpa.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA>());
+	cpa.add<MiniMC::CPA::Concrete::CPA>();
       return cpa;
     }
     LocalOptions locoptions;

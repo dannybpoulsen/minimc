@@ -8,15 +8,14 @@ namespace MiniMC {
     
 
     std::ostream& operator<<(std::ostream& os, const AnalysisState& state) {
-      auto& cfastate = state.getCFAState ();
-      auto nbProcs = cfastate.getLocationState ().nbOfProcesses ();
+      auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
         if(i != 0){
           os << ",";
         }
-	if (cfastate.isActive (i))
-	  os <<  cfastate.getLocationState ().getLocation (i).getSymbol ().getFullName ();
+	if (state.getLocationState().isActive (i))
+	  os <<  state.getLocationState ().getLocation (i).getSymbol ().getFullName ();
       }
       os << "]\n";
 
@@ -33,8 +32,8 @@ namespace MiniMC {
       };
       
       for (std::size_t p = 0; p < nbProcs; p++) {
-	if (cfastate.isActive (p)) {
-	  printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+	if (state.getLocationState().isActive (p)) {
+	  printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
 	}
       }
       
@@ -43,14 +42,13 @@ namespace MiniMC {
     }
     
     std::ostream& StateOutputter::output (const AnalysisState& state, std::ostream& os) {
-      auto& cfastate = state.getCFAState ();
-      auto nbProcs = cfastate.getLocationState ().nbOfProcesses ();
+      auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
         if(i != 0){
           os << ",";
         }
-	os <<  cfastate.getLocationState ().getLocation (i).getSymbol().getName ();
+	os <<  state.getLocationState ().getLocation (i).getSymbol().getName ();
       }
       os << "]\n";
 
@@ -69,7 +67,7 @@ namespace MiniMC {
       
       for (std::size_t p = 0; p < nbProcs; p++) {
 	printVStack (prgm.getCPURegs (), p);
-	printVStack (cfastate.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+	printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
       }
       
       
@@ -78,7 +76,6 @@ namespace MiniMC {
     
     MiniMC::Hash::hash_t AnalysisState::hash() const {
       MiniMC::Hash::Hasher hashing;
-      hashing << *cfastate;
       for (auto& state : datastates) {
 	hashing << *state;
       }
@@ -88,26 +85,23 @@ namespace MiniMC {
     
     bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
       
-      auto locTrans = locTransfer->doTransfer (state.getCFAState (),trans);
-      if (!locTrans)
-	return false;
-      else {
-	std::vector<DataState_ptr> datas;
-	auto datastate_view = state.dataStates ();
-	auto dit = datastate_view.begin();
-	auto tit = dataTransfers.begin ();
-	for (; tit != dataTransfers.end (); ++tit,++dit) {
-	  auto res = (*tit)->doTransfer (*dit,trans);
-	  if (!res)
-	    return false;
-	  datas.push_back (std::move(res));
-	}
-	res = AnalysisState{std::move(locTrans),std::move(datas)};
-	
+      
+      std::vector<DataState_ptr> datas;
+      auto datastate_view = state.dataStates ();
+      auto dit = datastate_view.begin();
+      auto tit = dataTransfers.begin ();
+      for (; tit != dataTransfers.end (); ++tit,++dit) {
+	auto res = (*tit)->doTransfer (*dit,trans);
+	if (!res)
+	  return false;
+	datas.push_back (std::move(res));
       }
+      res = AnalysisState{std::move(datas)};
+      
+      
       return true;
     }
-   
+    
     
   } // namespace CPA
 } // namespace MiniMC

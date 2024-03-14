@@ -24,7 +24,7 @@ namespace MiniMC {
 	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> values {vstack.getTotalRegisters ()};
 	
-	MiniMC::VMT::Pathformula::ActivationStack stack{std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr}};
+	MiniMC::VMT::Pathformula::ActivationStack stack{std::move(gvalues),MiniMC::VMT::Pathformula::ActivationRecord{std::move(values),nullptr,func->getCFA().getInitialLocation ()}};
 	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
 	auto state =  std::make_shared<MiniMC::CPA::PathFormula::State>(std::move(stack),
 									std::move(memory),
@@ -99,6 +99,9 @@ namespace MiniMC {
 	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
+	if (nstate.getStack().back ().getLocation () != e.getFrom ())
+	  return nullptr;
+	nstate.getStack().back().setLocation (e.getTo ());
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = _internal->context->getBuilder ();
 	

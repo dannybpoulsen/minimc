@@ -33,7 +33,9 @@ namespace MiniMC {
       
       
       class State : public MiniMC::CPA::DataState,
-                    private MiniMC::CPA::QueryBuilder {
+                    private MiniMC::CPA::QueryBuilder,
+		    private MiniMC::CPA::LocationInfo
+      {
       public:
         State(MiniMC::VMT::Pathformula::ActivationStack&& vals, MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : call_stack(std::move(vals)),
                                                                                                                                       memory(std::move(memory)),
@@ -51,6 +53,11 @@ namespace MiniMC {
         auto& getMemory() { return memory; }
         auto& getStack() const { return call_stack; }
 
+	MiniMC::Model::Location& getLocation(proc_id) const override   {return *getStack().back().getLocation();}
+	size_t nbOfProcesses() const override {return 1;}
+	bool isActive(size_t) const override {return getStack().getDepth();}
+	const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
+	
         void addConstraints(const SMTLib::Term_ptr& term) {
           pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
         }
