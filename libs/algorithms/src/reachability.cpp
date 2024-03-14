@@ -105,17 +105,16 @@ namespace MiniMC {
 	    return Result {std::move(searchee),storage.size()};
 	  }
 	  
-	  if (searchee.getCFAState ().getLocationState().nbOfProcesses ()) {
 	  
-	    MiniMC::CPA::AnalysisState newstate;
-	    MiniMC::CPA::TransitionEnumerator enumerator{searchee};
-	    for (; enumerator; ++enumerator) {
-	      if (_internal->transfer.Transfer (searchee,*enumerator,newstate)) {
-		insert(newstate);
-	      }
+	  MiniMC::CPA::AnalysisState newstate;
+	  MiniMC::CPA::TransitionEnumerator enumerator{searchee};
+	  for (; enumerator; ++enumerator) {
+	    if (_internal->transfer.Transfer (searchee,*enumerator,newstate)) {
+	      insert(newstate);
 	    }
 	  }
 	  
+	
 
 
 	  mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};

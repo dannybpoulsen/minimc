@@ -29,13 +29,13 @@ namespace MiniMC {
 
       bool next () {
 	if (init ) {
-	  while(!orig.getCFAState().isActive (proc)){
+	  while(!orig.getLocationState().isActive (proc)){
 	    proc++;
-	    if (proc >=orig.getCFAState ().getLocationState().nbOfProcesses ())
+	    if (proc >=orig.getLocationState().nbOfProcesses ())
 	      return false;
 	  }
-	  iter = orig.getCFAState ().getLocationState().getLocation(proc).ebegin ();
-	  end = orig.getCFAState ().getLocationState().getLocation(proc).eend ();
+	  iter = orig.getLocationState().getLocation(proc).ebegin ();
+	  end = orig.getLocationState().getLocation(proc).eend ();
 	  init = false;
 	  return iter!=end;
 	}
@@ -46,11 +46,11 @@ namespace MiniMC {
 	    do {
 	      proc++;
 	      
-	      if (proc >=orig.getCFAState ().getLocationState().nbOfProcesses ())
+	      if (proc >=orig.getLocationState().nbOfProcesses ())
 		return false;
-	    }while(!orig.getCFAState().isActive (proc));
-	    iter = orig.getCFAState ().getLocationState().getLocation(proc).ebegin ();
-	    end = orig.getCFAState ().getLocationState().getLocation(proc).eend ();
+	    }while(!orig.getLocationState().isActive (proc));
+	    iter = orig.getLocationState().getLocation(proc).ebegin ();
+	    end = orig.getLocationState().getLocation(proc).eend ();
 	    return iter != end;
 	  }
 	  return true;

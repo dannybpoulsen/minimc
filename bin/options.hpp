@@ -3,7 +3,6 @@
 
 #include "minimc/smt/smt.hpp"
 #include "minimc/cpa/interface.hpp"
-#include "minimc/cpa/location.hpp"
 #include "minimc/loaders/loader.hpp"
 
 struct Command;

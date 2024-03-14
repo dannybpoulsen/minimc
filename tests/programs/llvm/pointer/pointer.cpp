@@ -5,8 +5,6 @@
 #include "minimc/model/cfg.hpp"
 #include "minimc/cpa/interface.hpp"
 #include "minimc/cpa/concrete.hpp"
-#include "minimc/cpa/location.hpp"
-#include "minimc/cpa/location.hpp"
 #include "minimc/algorithms/reachability.hpp"
 #include "minimc/loaders/loader.hpp"
 #include <filesystem>
@@ -27,7 +25,7 @@ auto loadProgram (auto& loader, const std::string& s) {
 }
 
 auto goal (const MiniMC::CPA::AnalysisState& state) {
-  auto& locationstate = state.getCFAState ().getLocationState ();
+  auto& locationstate = state.getLocationState ();
   auto procs = locationstate.nbOfProcesses ();
   
   for (std::size_t i = 0; i < procs; ++i) {
@@ -52,8 +50,8 @@ TEST_CASE("Pointer") {
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
-  analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
@@ -73,8 +71,8 @@ TEST_CASE("Pointer") {
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
 
-  MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
-  analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
@@ -95,8 +93,8 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
 
 
-  MiniMC::CPA::AnalysisBuilder analysis_builder (std::make_shared<MiniMC::CPA::Location::CPA> ());
-  analysis_builder.addDataCPA (std::make_shared<MiniMC::CPA::Concrete::CPA> ());
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});

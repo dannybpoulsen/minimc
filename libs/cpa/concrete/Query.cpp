@@ -66,7 +66,8 @@ namespace MiniMC {
       Transferer::~Transferer () {}
       
       class State : public MiniMC::CPA::DataState,
-		    private MiniMC::CPA::QueryBuilder
+		    private MiniMC::CPA::QueryBuilder,
+		    private MiniMC::CPA::LocationInfo
       {
       public:
         State( const std::vector<MiniMC::VMT::Concrete::ActivationStack>& var, MiniMC::VMT::Concrete::Memory& mem) :  proc_vars(var),heap(mem) {
@@ -88,6 +89,8 @@ namespace MiniMC {
 	  MiniMC::VMT::Concrete::Memory heap2(heap);
 	  return std::make_shared<State>(proc_vars2,heap2); 
 	}
+
+	
 	
         auto& getProc(std::size_t i) { return proc_vars.at(i); }
         auto& getHeap() { return heap; }
@@ -110,7 +113,11 @@ namespace MiniMC {
 	
 	const QueryBuilder& getBuilder () const override  {return *this;}
 	
-	
+	MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).back().getLocation();}
+	size_t nbOfProcesses() const override {return proc_vars.size();}
+	bool isActive(size_t id) const override {return getProc(id).getDepth();}
+	const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
+
 	
       private:
         std::vector<MiniMC::VMT::Concrete::ActivationStack> proc_vars;
@@ -119,16 +126,12 @@ namespace MiniMC {
 
       
       MiniMC::CPA::DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
-
-	
-	
-	
         std::vector<MiniMC::VMT::Concrete::ActivationStack> stack;
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> values{vstack.getTotalRegisters ()};
-	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr};
+	  MiniMC::VMT::Concrete::ActivationRecord sf {std::move(values),nullptr,f.getFunction()->getCFA().getInitialLocation ()};
 	  MiniMC::VMT::Concrete::ActivationStack cs {std::move(gvalues),std::move(sf)};
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
 	  MiniMC::VMT::Concrete::ValueLookup lookup {MiniMC::VMT::Concrete::ValueCreator{},{cs,metas}};
@@ -188,6 +191,11 @@ namespace MiniMC {
 	
 	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
+
+	if (nstate.getProc(id).back ().getLocation () != e.getFrom ())
+	  return nullptr;
+	nstate.getProc(id).back().setLocation (e.getTo ());
+	
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;

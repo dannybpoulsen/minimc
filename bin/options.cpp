@@ -2,7 +2,6 @@
 #include "options.hpp"
 #include "minimc/smt/smt.hpp"
 #include "plugin.hpp"
-#include "minimc/cpa/location.hpp"
 #ifdef MINIMC_SYMBOLIC
 #include "minimc/cpa/pathformula.hpp"
 #endif
