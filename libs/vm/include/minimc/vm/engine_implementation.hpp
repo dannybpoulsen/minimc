@@ -576,7 +576,8 @@ namespace MiniMC {
 	    if  constexpr (ValueLookupable<State,T>) {
 	      auto ret = state.getValueLookup().lookupValue(*content.value);
 	      auto ret_reg = state.getStackControl().pop();
-	      state.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
+	      if (ret_reg)
+		state.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
 	    }
 	    else {
 	      state.getStackControl().pop();
