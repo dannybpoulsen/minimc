@@ -33,30 +33,26 @@ namespace MiniMC {
       
       
       class State : public MiniMC::CPA::DataState,
-                    private MiniMC::CPA::QueryBuilder,
-		    private MiniMC::CPA::LocationInfo
+                    private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::VMT::Pathformula::ActivationStack&& vals, MiniMC::VMT::Pathformula::Memory&& memory, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : call_stack(std::move(vals)),
-                                                                                                                                      memory(std::move(memory)),
-                                                                                                                                      pathformula(std::move(formula)),
-                                                                                                                                      context(ctxt) {}
-        State(const State& oth) : call_stack(oth.call_stack), memory(oth.memory), pathformula(oth.pathformula), context(oth.context), _hash(0) {}
-        MiniMC::Hash::hash_t hash() const override {
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
+																					      pathformula(std::move(formula)),
+																					      context(ctxt) {}
+        State(const State& oth) =default;
+	
+	MiniMC::Hash::hash_t hash() const override {
           return reinterpret_cast<MiniMC::Hash::hash_t> (this);
 	}
 	
         virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
 
         const Solver_ptr getConcretizer() const override;
-        auto& getStack() { return call_stack; }
-        auto& getMemory() { return memory; }
-        auto& getStack() const { return call_stack; }
+        auto& getStack() { return mixin.getProc(0); }
+        auto& getMemory() { return mixin.getMemory(); }
+        auto& getStack() const { return mixin.getProc(0); }
 
-	MiniMC::Model::Location& getLocation(proc_id) const override   {return *getStack().back().getLocation();}
-	size_t nbOfProcesses() const override {return 1;}
-	bool isActive(size_t) const override {return getStack().getDepth();}
-	const MiniMC::CPA::LocationInfo& getLocationState () const {return *this;}
+	const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
 	
         void addConstraints(const SMTLib::Term_ptr& term) {
           pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
@@ -70,18 +66,17 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};  
-	  MiniMC::VMT::Pathformula::ValueLookup lookup {MiniMC::VMT::Pathformula::ValueCreator{context.getBuilder ()},{const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (call_stack),metas}};
+	  MiniMC::VMT::Pathformula::ValueLookup lookup {MiniMC::VMT::Pathformula::ValueCreator{context.getBuilder ()},{const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),metas}};
           return std::make_unique<QExpr>(lookup.lookupValue(*val));
         }
 
       private:
-	MiniMC::VMT::Pathformula::ActivationStack call_stack;
-        MiniMC::VMT::Pathformula::Memory memory;
-        SMTLib::Term_ptr pathformula;
+	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory> mixin;
+	  
+	SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;
-        mutable MiniMC::Hash::hash_t _hash = 0;
       };
-
+      
       class Concretizer : public MiniMC::CPA::Solver {
       public:
         Concretizer(const State& s, SMTLib::Solver_ptr&& solver) : state(s), solver(std::move(solver)) {

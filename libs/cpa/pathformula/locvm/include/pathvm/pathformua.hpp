@@ -92,9 +92,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using StackControl = MiniMC::CPA::Common::StackControl<MiniMC::VMT::Pathformula::Value>;
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,ValueLookup,Memory,PathControl,StackControl>;
-      using PathFormulaInitState = MiniMC::CPA::Common::VMInitState<Value,ValueLookup,Memory,PathControl>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,ValueLookup,Memory,PathControl,ActivationStack>;
       
       
       
