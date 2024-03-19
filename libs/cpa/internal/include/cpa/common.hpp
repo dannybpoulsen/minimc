@@ -5,6 +5,7 @@
 #include "minimc/cpa/state.hpp"
 #include "minimc/cpa/interface.hpp"
 
+#include <iostream>
 
 namespace MiniMC {
   namespace CPA {
@@ -200,14 +201,14 @@ namespace MiniMC {
 	  if (b.value) {
 	    Value ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
             Value valueToStor = lookup.lookupValue(*b.value);
+	    std::cerr << *b.value << std::endl;
 	    Value::visit (MiniMC::Support::Overload {
-		
-		[&heap]<typename K>(Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,Value::Bool>) {
+		[&heap]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
 		  heap.store (ptr,value);
 		},
-		  [](auto&, auto&) {
+		[](const auto& l, const auto& ll) {
 		    throw MiniMC::Support::Exception ("Error");
-		  },
+		},
 		  
 		  
 		  },
