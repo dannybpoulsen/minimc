@@ -43,7 +43,8 @@ namespace MiniMC {
                                                                                                                                       context(ctxt) {}
         State(const State& oth) : call_stack(oth.call_stack), memory(oth.memory), pathformula(oth.pathformula), context(oth.context), _hash(0) {}
         MiniMC::Hash::hash_t hash() const override {
-          return reinterpret_cast<MiniMC::Hash::hash_t> (this);
+	  static MiniMC::Hash::hash_t i= 0;
+	  return ++i;
 	}
 	
         virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
