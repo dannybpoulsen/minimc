@@ -42,7 +42,8 @@ namespace MiniMC {
         State(const State& oth) =default;
 	
 	MiniMC::Hash::hash_t hash() const override {
-          return reinterpret_cast<MiniMC::Hash::hash_t> (this);
+	  static MiniMC::Hash::hash_t i= 0;
+	  return ++i;
 	}
 	
         virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
