@@ -19,32 +19,10 @@ namespace MiniMC {
     template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
     
-    
-    template<class State>
-    concept StackControllable = requires (State& state) {
-      {state.getStackControl ()} ->StackControl;
-    };
 
     
-
-
-    template<class State,typename T>
-    concept HasMemory = requires (State& state) {
-      {state.getMemory ()} ->Memory<T>;
-    };
-
-    template<class State,typename T>
-    concept HasPathcontrol = requires (State& state) {
-      {state.getPathControl ()} ->PathControl<T>;
-    };
     
-    template<class State,typename T>
-    concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->Evaluator<T>;
-    };
-    
-    
-    template<typename T, typename Operations>
+    template<typename T, Ops<T> Operations>
     struct Engine<T,Operations>::Impl {
     private:
       const MiniMC::Model::Program& prgm;
@@ -53,8 +31,7 @@ namespace MiniMC {
       Impl (Operations&& operations, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations) {}
       template <class I,class State>
       static Status runInstruction(const I&, State&)  {
-	return Status::Ok;
-	//throw NotImplemented<opc>();
+	throw NotImplemented<I::getOpcode()> ();
       }
 
       
@@ -71,11 +48,9 @@ namespace MiniMC {
       
 
       
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isTAC_v<I> &&
-	IntOperationCompatible<T, Operations> &&
-	ValueLookupable<State,T>
+        requires MiniMC::Model::isTAC_v<I> 
 
       {
 	constexpr auto op = I::getOpcode ();
@@ -123,12 +98,9 @@ namespace MiniMC {
 	  
       }
 	  
-      template <class I, class State>
+      template <class I, VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isComparison_v<I> &&
-                 IntOperationCompatible<T, Operations> &&                
-	ValueLookupable<State,T>
-
+        requires MiniMC::Model::isComparison_v<I>
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -176,12 +148,9 @@ namespace MiniMC {
 	return Status::Ok;
       }
 
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isPointer_v<I> &&
-	PointerOperationCompatible<T, Operations> &&
-	ValueLookupable<State,T>
-
+        requires MiniMC::Model::isPointer_v<I> 
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -240,12 +209,9 @@ namespace MiniMC {
         throw NotImplemented<op>();
       }
       
-      template <class  I,class State>
+      template <class  I, VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isMemory_v<I> &&
-        CastCompatible<T, Operations> &&
-	ValueLookupable<State,T> 
-      {
+        requires MiniMC::Model::isMemory_v<I> {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps();
 
@@ -302,19 +268,16 @@ namespace MiniMC {
 	  
       }
       
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isAssertAssume_v<I> &&
-	ValueLookupable<State,T> &&
-	HasPathcontrol<State,T>
-      {
+        requires MiniMC::Model::isAssertAssume_v<I>       {
 	constexpr auto op = instr.getOpcode ();
 	auto& content = instr.getOps();
 	  
 	auto obj = T::visit (MiniMC::Support::Overload {
 	    [](const T::Bool& b) {return b;},
-	      [](const auto&) -> typename T::Bool {throw MiniMC::Support::Exception ("Should be a boolean");}
-	      },
+	    [](const auto&) -> typename T::Bool {throw MiniMC::Support::Exception ("Should be a boolean");}
+	  },
 	  state.getValueLookup().lookupValue(*content.expr)
 	  );
 	
@@ -363,11 +326,9 @@ namespace MiniMC {
       }
 
      
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isCast_v<I> &&
-	CastCompatible<T, Operations> &&
-	ValueLookupable<State,T>
+        requires MiniMC::Model::isCast_v<I>
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -493,7 +454,7 @@ namespace MiniMC {
         return Status::Ok;
       }
 
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
         requires MiniMC::Model::isInternal_v<I>
       {
@@ -540,15 +501,13 @@ namespace MiniMC {
 	  
 	  
 	  
-	  if constexpr (ValueLookupable<State,T>) {
-	    if (func->isVarArgs()) {
-	      throw MiniMC::Support::Exception("Vararg functions are not supported");
-	    }
-	    
-	    
-	    auto inserter = std::back_inserter(params);
-	    std::for_each(content.params.begin(), content.params.end(), [&inserter, &state](auto& v) { inserter = state.getValueLookup().lookupValue(*v); });
+	  if (func->isVarArgs()) {
+	    throw MiniMC::Support::Exception("Vararg functions are not supported");
 	  }
+	  
+	    
+	  auto inserter = std::back_inserter(params);
+	  std::for_each(content.params.begin(), content.params.end(), [&inserter, &state](auto& v) { inserter = state.getValueLookup().lookupValue(*v); });
 	  
 	  
 	  auto res = content.res;
@@ -572,32 +531,19 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
 	  auto& content = instr.getOps();
-	  if constexpr (StackControllable<State>   ) {
-	    if  constexpr (ValueLookupable<State,T>) {
-	      auto ret = state.getValueLookup().lookupValue(*content.value);
-	      auto ret_reg = state.getStackControl().pop();
-	      if (ret_reg)
-		state.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
-	    }
-	    else {
-	      state.getStackControl().pop();
-	    }
-	  }
+	  auto ret = state.getValueLookup().lookupValue(*content.value);
+	  auto ret_reg = state.getStackControl().pop();
+	  if (ret_reg)
+	    state.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
+	  	  
 	  
-	  else{
-	    throw NotImplemented<op> {};
-	  }
+	  return Status::Ok;
 	  
-          return Status::Ok;
-        }
+	}
 
         else if constexpr (op == MiniMC::Model::InstructionCode::RetVoid) {
-	  if constexpr (StackControllable<State> ) {
-	    state.getStackControl().pop();
-	    return Status::Ok;
-	  }
-	  else
-	   throw NotImplemented<op> {};
+	  state.getStackControl().pop();
+	  return Status::Ok;
 	  
         }
 
@@ -605,7 +551,7 @@ namespace MiniMC {
           return Status::Ok;
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::NonDet && ValueLookupable<State,T>) {
+        else if constexpr (op == MiniMC::Model::InstructionCode::NonDet) {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
           auto ret = state.getValueLookup().unboundValue(*content.res->getType());
@@ -614,26 +560,18 @@ namespace MiniMC {
         }
 
         else {
-	  return Status::Ok;
-	  //throw NotImplemented<op>();
+	  throw NotImplemented<op>();
         }
       }
 
-      template <class I,class State>
+      template <class I,VMState<T> State>
       Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isAggregate_v<I> &&
-                 AggregateCompatible<typename T::I8, typename T::Aggregate, Operations> &&
-                 AggregateCompatible<typename T::I16, typename T::Aggregate, Operations> &&
-                 AggregateCompatible<typename T::I32, typename T::Aggregate, Operations> &&
-                 AggregateCompatible<typename T::I64, typename T::Aggregate, Operations> &&
-      ValueLookupable<State,T>
-
+        requires MiniMC::Model::isAggregate_v<I> 
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
         auto& res = content.res->asRegister ();
         assert(content.offset->isConstant());
-        auto offset_constant = std::static_pointer_cast<MiniMC::Model::Constant>(content.offset);
         MiniMC::BV64 offset{0};
 
         offset = MiniMC::Model::visitValue(MiniMC::Support::Overload{
@@ -641,7 +579,7 @@ namespace MiniMC {
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const auto&) -> MiniMC::BV64 { throw MiniMC::Support::Exception("Invalid aggregate offset"); }},
-	  *offset_constant);
+	  *content.offset);
 	
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
           auto val_v = content.insertee;
@@ -656,9 +594,9 @@ namespace MiniMC {
 		[this,&state,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
 		  state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
 		},
-	      [](const auto&,const auto&){
-		throw MiniMC::Support::Exception ("Incompatible insert aggregate");
-	      }
+		[](const auto&,const auto&){
+		  throw MiniMC::Support::Exception ("Incompatible insert aggregate");
+		}
 		}
  	    ,
 	    aggr,
@@ -669,10 +607,10 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::ExtractValue) {
           auto aggr = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Aggregate& aggr) {return aggr;},
-		[](const auto& )->T::Aggregate {throw MiniMC::Support::Exception ("Not an aggregate");},
+	      [](const auto& )->T::Aggregate {throw MiniMC::Support::Exception ("Not an aggregate");},
 	      	
 
-		},
+	    },
 	    state.getValueLookup().lookupValue(*content.aggregate)
 	    );
 	  
@@ -699,24 +637,25 @@ namespace MiniMC {
             default:
               throw MiniMC::Support::Exception("Invalid Extract");
           }
-        } else
+        }
+	else
           throw NotImplemented<op>();
         return Status::Ok;
       }
-
+      
       };
 
-    template <class Value,class Operations>
-    template<class State>
+    template <class Value,Ops<Value> Operations>
+    template<VMState<Value> State>
     Status Engine<Value,Operations>::execute(const MiniMC::Model::Instruction& instr,
 				       State& wstate) {
       
       return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate);});
-
+      
     }
 
-    template <class Value,class Operations>
-    template<class State>
+    template <class Value,Ops<Value> Operations>
+    template<VMState<Value> State>
     Status Engine<Value,Operations>::execute(const MiniMC::Model::InstructionStream& instr,
 				       State& wstate) {
       auto end = instr.end();
@@ -728,12 +667,12 @@ namespace MiniMC {
       return status;
     }
 
-    template<class Value,class Operations>
+    template<class Value,Ops<Value> Operations>
     Engine<Value,Operations>::Engine (Operations&& ops,const MiniMC::Model::Program& prgm)   {
       _impl = std::make_unique<Impl> (std::move(ops),prgm);
     }
      
-    template<class Value,class Operations>
+    template<class Value,Ops<Value> Operations>
     Engine<Value,Operations>::~Engine () {}
     
   } // namespace VMT

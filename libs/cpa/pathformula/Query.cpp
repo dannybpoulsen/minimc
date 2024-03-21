@@ -17,77 +17,11 @@ namespace MiniMC {
 	return std::make_shared<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::ValueCreator>(descr,MiniMC::VMT::Pathformula::ValueCreator{termbuilder},std::move(mem)),
 								 std::move(term),
 								 *context);
-      
-      /*auto& entrypoints = descr.getEntries ();
-
-	if (entrypoints.size () != 1) {
-	  throw MiniMC::Support::ConfigurationException ("Pathformula only supports one entry point");
-	}
-	
-	auto& func = entrypoints[0].getFunction();
-	auto& vstack = func->getRegisterDescr ();
-	auto& termbuilder =  context->getBuilder ();
-	
-	
-	auto term = termbuilder.makeBoolConst (true);
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> values {vstack.getTotalRegisters ()};
-	
-	MiniMC::VMT::Pathformula::ActivationStack stack{std::move(gvalues)};
-	stack.push(func->getCFA().getInitialLocation (), vstack.getTotalRegisters (),nullptr);
-	MiniMC::VMT::Pathformula::Memory memory{termbuilder};
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};
-	MiniMC::VMT::Pathformula::ValueLookup lookup{{termbuilder},{state->getStack (),metas}};
-	
-	for (auto& reg : vstack.getRegisters ()) {
-	  auto val = lookup.defaultValue (*reg->getType ());
-	  lookup.saveValue (*reg,std::move(val));
-	}
-
-	for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
-	  auto val = lookup.defaultValue (*reg->getType ());
-	  lookup.saveValue (*reg,std::move(val));
-	}
-
-	
-	
-	auto pit = entrypoints[0].getParams ().begin ();
-	auto rit = func->getParameters().begin ();
-	for (; pit != entrypoints[0].getParams ().end ();++pit,++rit) {
-	  lookup.saveValue  (**rit,lookup.lookupValue (**pit));
-	} 
-	  
-
-	memory.createHeapLayout (descr.getHeap ());
-	MiniMC::VMT::Pathformula::ValueLookupNoRegister vlookup{{termbuilder}};
-	for (auto& b : descr.getHeap ()) {
-	  if (b.value) {
-	    
-	    VMT::Pathformula::Value ptr = vlookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
-            VMT::Pathformula::Value valueToStor = vlookup.lookupValue(*b.value);
-	    VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
-		
-		[&memory]<typename K>(VMT::Pathformula::Value::Pointer& ptr, K& value) requires (!std::is_same_v<K,VMT::Pathformula::Value::Bool>) {
-		  memory.store (ptr,value);
-		},
-		[](auto&, auto&) {
-		   throw MiniMC::Support::Exception ("Error");
-		},
-		
-		  
-		  },
-	      ptr,
-	      valueToStor
-	      );
-	    }
-	}
-	
-	return state;*/
       }
 
       struct Transferer::Internal {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
-										    engine(MiniMC::VMT::Pathformula::PathFormulaEngine::OperationsT{context->getBuilder()},prgm),
+										    engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},prgm),
 										    metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	SMTLib::Context_ptr context;

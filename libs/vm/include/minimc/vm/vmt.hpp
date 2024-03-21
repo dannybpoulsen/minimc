@@ -142,12 +142,19 @@ namespace MiniMC {
 					   );
     
     template<class Int, class Aggregate,class Operation>
-    concept AggregateCompatible = requires (Operation op, const Aggregate& aggr, MiniMC::BV64 index, const Int& insertee,size_t s) {
+    concept AggregateCompatible_ = requires (Operation op, const Aggregate& aggr, MiniMC::BV64 index, const Int& insertee,size_t s) {
       {op.template ExtractBaseValue<Int> (aggr,index)} -> std::convertible_to<Int>;
       {op.ExtractAggregateValue (aggr,index,s)} -> std::convertible_to<Aggregate>;
       {op.template InsertBaseValue<Int> (aggr,index, insertee)} -> std::convertible_to<Aggregate>;
       {op.InsertAggregateValue (aggr,index,aggr)} -> std::convertible_to<Aggregate>;
     };
+
+    template<class Value,class Operation>
+    concept AggregateCompatible = (AggregateCompatible_<typename Value::I8,typename Value::Aggregate,Operation> &&
+				   AggregateCompatible_<typename Value::I16,typename Value::Aggregate,Operation> &&
+				   AggregateCompatible_<typename Value::I32,typename Value::Aggregate,Operation> &&
+				   AggregateCompatible_<typename Value::I64,typename Value::Aggregate,Operation>
+				   ) ;
 
     template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Caster>
     concept CastCompatible_ = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
@@ -228,24 +235,57 @@ namespace MiniMC {
     concept CastCompatible = CastCompatible_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
 					     typename T::Bool,typename T::Pointer,typename T::Pointer32,Operation>;
     
-    class DummyOperations {
-    public:
+
+    
+    template<class Operation,class Value>
+    concept Ops = CastCompatible<Value,Operation> &&
+                  IntOperationCompatible<Value,Operation> &&
+                  PointerOperationCompatible<Value,Operation> &&
+                  AggregateCompatible<Value,Operation>
+      ;
+
+
+    template<class State>
+    concept StackControllable = requires (State& state) {
+      {state.getStackControl ()} ->StackControl;
+    };
+
+    
+
+
+    template<class State,typename T>
+    concept HasMemory = requires (State& state) {
+      {state.getMemory ()} ->Memory<T>;
+    };
+
+    template<class State,typename T>
+    concept HasPathcontrol = requires (State& state) {
+      {state.getPathControl ()} ->PathControl<T>;
     };
     
+    template<class State,typename T>
+    concept ValueLookupable = requires (State& state) {
+      {state.getValueLookup ()} ->Evaluator<T>;
+    };
+
     
-    template<class Value, class Operations = DummyOperations>
+    template<class State,class V>
+    concept VMState =  StackControllable<State> &&
+      ValueLookupable<State,V> &&
+      HasMemory<State,V>; 
+    
+    template<class Value, Ops<Value> Operations>
     class Engine {
     public:
       Engine (Operations&& ops,const MiniMC::Model::Program& prgm);
       ~Engine ();
       
-      template<class VState>
+      template<VMState<Value> VState>
       Status execute (const MiniMC::Model::InstructionStream&, VState& ) ;
 
-      template<class VState>
+      template<VMState<Value> VState>
       Status execute (const MiniMC::Model::Instruction&, VState& ) ;
       
-      using OperationsT = Operations;
     private:
       class Impl;
       std::unique_ptr<Impl> _impl;

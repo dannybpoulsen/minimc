@@ -53,7 +53,7 @@ namespace MiniMC {
       
       
       struct Transferer::Internal {
-	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::ConcreteEngine::OperationsT{},
+	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::Operations{},
 							       prgm),
 							metas(prgm.getMetaRegs().getTotalRegisters())
 	{}

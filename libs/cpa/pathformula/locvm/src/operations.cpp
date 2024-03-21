@@ -35,47 +35,43 @@ namespace MiniMC {
   X(NEq, NotEqual)
 
 #define X(OP)								\
-      template<class Value>						\
       template <class T>						\
-      T Operations<Value>::OP(const T& l, const T& r) {			\
+      T Operations::OP(const T& l, const T& r) {			\
 	return builder.buildTerm(SMTLib::Ops::BV##OP, {l.getTerm(), r.getTerm()}); \
       }
       INTOPS
 #undef X
 
 #define X(OP, SMTOP)							\
-      template<class Value>						\
       template <class T>						\
-      Value::Bool Operations<Value>::OP(const T& l, const T& r) {		\
+      Value::Bool Operations::OP(const T& l, const T& r) {		\
 	return builder.buildTerm(SMTLib::Ops::SMTOP, {l.getTerm(), r.getTerm()}); \
       }
       CMPOPS
 #undef X
-      template<class Value>
-      Value::Bool Operations<Value>::BoolNegate(const Value::Bool& bv) {
+      Value::Bool Operations::BoolNegate(const Value::Bool& bv) {
         return BoolValue(builder.buildTerm(SMTLib::Ops::Not, {bv.getTerm()}));
       }
       
 #define X(OP)								\
-	template Value::I8 Operations<Value>::OP(const Value::I8& l, const I8Value& r); \
-  template I16Value Operations<Value>::OP(const I16Value& l, const I16Value& r); \
-  template I32Value Operations<Value>::OP(const I32Value& l, const I32Value& r); \
-  template I64Value Operations<Value>::OP(const I64Value& l, const I64Value& r);
+	template Value::I8 Operations::OP(const Value::I8& l, const I8Value& r); \
+  template I16Value Operations::OP(const I16Value& l, const I16Value& r); \
+  template I32Value Operations::OP(const I32Value& l, const I32Value& r); \
+  template I64Value Operations::OP(const I64Value& l, const I64Value& r);
 
       INTOPS
 #undef X
 #define X(OP, SMTOP)                                                                                        \
-      template Value::Bool Operations<Value>::OP(const Value::I8& l, const Value::I8& r); \
-      template Value::Bool Operations<Value>::OP(const I16Value& l, const I16Value& r); \
-      template Value::Bool Operations<Value>::OP(const I32Value& l, const I32Value& r); \
-      template Value::Bool Operations<Value>::OP(const I64Value& l, const I64Value& r);
+      template Value::Bool Operations::OP(const Value::I8& l, const Value::I8& r); \
+      template Value::Bool Operations::OP(const I16Value& l, const I16Value& r); \
+      template Value::Bool Operations::OP(const I32Value& l, const I32Value& r); \
+      template Value::Bool Operations::OP(const I64Value& l, const I64Value& r);
       
       CMPOPS
 #undef X
 
-      template<class Value>
       template <class T>
-      Value::Pointer Operations<Value>::PtrAdd(const Value::Pointer& ptrvalue, const T& addend) {
+      Value::Pointer Operations::PtrAdd(const Value::Pointer& ptrvalue, const T& addend) {
 	SMTLib::Term_ptr extended;
 	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
 	if constexpr (T::intbitsize () == ptrsize) {
@@ -90,9 +86,8 @@ namespace MiniMC {
 	
       }
 
-      template<class Value>
       template <class T>
-      Value::Pointer Operations<Value>::PtrSub(const Value::Pointer& ptrvalue, const T& addend) {
+      Value::Pointer Operations::PtrSub(const Value::Pointer& ptrvalue, const T& addend) {
 	SMTLib::Term_ptr extended;
 	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
 	if constexpr (T::intbitsize () == ptrsize) {
@@ -107,61 +102,56 @@ namespace MiniMC {
 	
       }
       
-      template<class Value>
       template <class T>
-      T Operations<Value>::ExtractBaseValue(const Value::Aggregate& aggr, const std::size_t offset) {
+      T Operations::ExtractBaseValue(const Value::Aggregate& aggr, const std::size_t offset) {
 	auto aggrTerm = aggr.getTerm();
 	return BVHelper{builder,aggrTerm,aggr.size()}.extractBytes<NativeLoad ()> (offset,T::intbitsize () /8);
 	
       }
       
-      template<class Value>
-      Value::Aggregate Operations<Value>::ExtractAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, std::size_t size) {
+      Value::Aggregate Operations::ExtractAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, std::size_t size) {
 	auto aggrTerm = aggr.getTerm();
         
 	return {BVHelper{builder,aggrTerm,aggr.size()}.extractBytes<LoadType::Straight> (offset,size),size};
 	
       }
 
-      template<class Value>
       template <class T>
-      Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate& aggr, const std::size_t offset, const T& val) {
+      Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate& aggr, const std::size_t offset, const T& val) {
 	return {BVHelper{builder,aggr.getTerm (),aggr.size()}.storeBytes<NativeLoad ()> (offset,val.getTerm (),T::intbitsize() / 8),aggr.size ()};
       }
 
-      template<class Value>
-      Value::Aggregate Operations<Value>::InsertAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, const Value::Aggregate& val) {
+
+      Value::Aggregate Operations::InsertAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, const Value::Aggregate& val) {
 	return {BVHelper{builder,aggr.getTerm (),aggr.size()}.storeBytes<LoadType::Straight> (offset,val.getTerm (),val.size()),aggr.size ()};
       }
 
-      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I8&);
-      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I16&);
-      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I32&);
-      template Value::Pointer Operations<Value>::PtrAdd (const Value::Pointer&,const Value::I64&);
-      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I8&);
-      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I16&);
-      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I32&);
-      template Value::Pointer Operations<Value>::PtrSub (const Value::Pointer&,const Value::I64&);
+      template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I8&);
+      template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I16&);
+      template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I32&);
+      template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I64&);
+      template Value::Pointer Operations::PtrSub (const Value::Pointer&,const Value::I8&);
+      template Value::Pointer Operations::PtrSub (const Value::Pointer&,const Value::I16&);
+      template Value::Pointer Operations::PtrSub (const Value::Pointer&,const Value::I32&);
+      template Value::Pointer Operations::PtrSub (const Value::Pointer&,const Value::I64&);
       
       
-      template Value::I8 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
-      template Value::I16 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
-      template Value::I32 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
-      template Value::I64 Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
-      template Value::Pointer Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
-      template Value::Bool Operations<Value>::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I8 Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I16 Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I32 Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::I64 Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::Pointer Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
+      template Value::Bool Operations::ExtractBaseValue(const Value::Aggregate&, std::size_t);
       
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I8&);
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I16&);
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I32&);
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I64&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I8&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I16&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I32&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::I64&);
 
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer&);
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer32&); 
-      template Value::Aggregate Operations<Value>::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Bool&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer&);
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer32&); 
+      template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Bool&);
 
-      template class Operations<Value>;
-      
     } // namespace Pathformula
   }   // namespace VMT
 } // namespace MiniMC

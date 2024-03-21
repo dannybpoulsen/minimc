@@ -21,7 +21,7 @@ namespace MiniMC {
     namespace Pathformula {      
       
       //PathFormulaState, 
-      using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations<Value>> ;
+      using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations> ;
       
       class Memory  {
       public:

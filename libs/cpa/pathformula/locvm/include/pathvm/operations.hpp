@@ -32,20 +32,15 @@ namespace MiniMC {
       struct RetTyp<Value,MiniMC::Model::TypeID::I32> {
         using type = Value::I32;
 	using underlying_type = MiniMC::BV32;
-	
       };
 
       template<class Value>
       struct RetTyp<Value,MiniMC::Model::TypeID::I64> {
         using type = Value::I64;
 	using underlying_type = MiniMC::BV64;
-
-	
-	
       };
 
       
-      template<class Value>
       struct Operations {
 	using Domain = Value;
 	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
