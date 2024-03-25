@@ -14,9 +14,7 @@ namespace MiniMC {
 	auto term = termbuilder.makeBoolConst (true);
 	MiniMC::VMT::Pathformula::Memory mem{termbuilder};
 	
-	return std::make_shared<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::ValueCreator>(descr,MiniMC::VMT::Pathformula::ValueCreator{termbuilder},std::move(mem)),
-								 std::move(term),
-								 *context);
+	return std::make_shared<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},std::move(mem)), std::move(term), *context);
       }
 
       struct Transferer::Internal {

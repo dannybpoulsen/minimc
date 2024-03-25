@@ -337,6 +337,20 @@ namespace MiniMC {
             }
           }
         }
+
+	Value create (const MiniMC::Model::I8Integer& val)  const  { return Value::I8{val.getValue()}; }
+	Value create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }
+	Value create (const MiniMC::Model::I32Integer& val) const  { return Value::I32{val.getValue()}; }
+	Value create (const MiniMC::Model::I64Integer& val) const  { return Value::I64{val.getValue()}; }
+	Value create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
+	Value create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
+	Value create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
+	Value create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}
+	Value create (const MiniMC::Model::Undef& und) const { return this->unboundValue (*und.getType ()); }
+	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}
+	Value unboundValue (const MiniMC::Model::Type&) const ;
+	Value defaultValue(const MiniMC::Model::Type&) const ;
+	
 	
       };
 

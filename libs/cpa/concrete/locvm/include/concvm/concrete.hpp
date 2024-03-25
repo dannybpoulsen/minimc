@@ -60,9 +60,9 @@ namespace MiniMC {
 	
       };
 
-      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator>;
+      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,Operations>;
    
-      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator,MiniMC::CPA::Common::RegisterStore<Value>>;
+      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,Operations,MiniMC::CPA::Common::RegisterStore<Value>>;
       
       
       class PathControl  {

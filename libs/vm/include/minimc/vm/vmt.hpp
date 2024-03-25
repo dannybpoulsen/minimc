@@ -23,16 +23,39 @@ namespace MiniMC {
     
 
     template<class Eval,class T >
-    concept Evaluator = requires (const MiniMC::Model::Value& v, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t,MiniMC::Model::Type& ty) {
+    concept RegisterStore = requires (const MiniMC::Model::Value& v, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t) {
       {ceval.lookupValue (v)} -> std::convertible_to<T>;
-      {ceval.unboundValue (ty)}->std::convertible_to<T>;
-      {ceval.defaultValue (ty)}->std::convertible_to<T>;
       {eval.saveValue (reg,std::move(t))};
     } ;
 
     
     
-    
+    template<class Creato,class Res>
+    concept Creator = requires (const Creato e,
+				const MiniMC::Model::I8Integer& i8,
+				const MiniMC::Model::I16Integer& i16,
+				const MiniMC::Model::I32Integer& i32,
+				const MiniMC::Model::I64Integer& i64,
+				const MiniMC::Model::Bool& b,
+				const MiniMC::Model::Pointer& ptr,
+				const MiniMC::Model::Pointer32& ptr32,
+				const MiniMC::Model::AggregateConstant& aggrc,
+				const MiniMC::Model::Undef& und,
+				const MiniMC::Model::SymbolicConstant& sc,
+				const MiniMC::Model::Type& ty) {
+      {e.create(i8)}->std::convertible_to<Res>;
+      {e.create(i16)}->std::convertible_to<Res>;
+      {e.create(i32)}->std::convertible_to<Res>;
+      {e.create(i64)}->std::convertible_to<Res>;
+      {e.create(b)}->std::convertible_to<Res>;
+      {e.create(ptr)}->std::convertible_to<Res>;
+      {e.create(ptr32)}->std::convertible_to<Res>;
+      {e.create(aggrc)}->std::convertible_to<Res>;
+      {e.create(und)}->std::convertible_to<Res>;
+      {e.create(sc)}->std::convertible_to<Res>;
+      {e.defaultValue (ty)}->std::convertible_to<Res>;
+    };
+      
     enum class TriBool {
       True,
       False,
@@ -77,12 +100,11 @@ namespace MiniMC {
     template<class StackC>
     concept StackControl = requires (
 				     StackC& p,
-				     MiniMC::Model::Location_ptr loc,
-				     std::size_t s,
+				     MiniMC::Model::Location_ptr loc,				     
 				     MiniMC::Model::Register_ptr value
 				     )
     {
-      {p.push (loc,s,value)};
+      {p.push (loc,value)};
       {p.pop ()}->std::convertible_to<MiniMC::Model::Value_ptr>;
     };
 
@@ -241,7 +263,8 @@ namespace MiniMC {
     concept Ops = CastCompatible<Value,Operation> &&
                   IntOperationCompatible<Value,Operation> &&
                   PointerOperationCompatible<Value,Operation> &&
-                  AggregateCompatible<Value,Operation>
+                  AggregateCompatible<Value,Operation> &&
+                  Creator<Operation,Value>
       ;
 
 
@@ -265,7 +288,7 @@ namespace MiniMC {
     
     template<class State,typename T>
     concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->Evaluator<T>;
+      {state.getValueLookup ()} ->RegisterStore<T>;
     };
 
     

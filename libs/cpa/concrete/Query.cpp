@@ -101,7 +101,8 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Concrete::ValueLookup lookup{MiniMC::VMT::Concrete::ValueCreator{},{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas }};
+	  MiniMC::VMT::Concrete::ValueLookup lookup{MiniMC::VMT::Concrete::Operations{},
+	    {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas }};
 	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
 	    
 	}
@@ -118,7 +119,7 @@ namespace MiniMC {
       
       MiniMC::CPA::DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	MiniMC::VMT::Concrete::Memory mem;
-	return std::make_shared<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState<MiniMC::VMT::Concrete::ValueCreator>(descr,MiniMC::VMT::Concrete::ValueCreator{},std::move(mem)));
+	return std::make_shared<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
       }
 
       MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
@@ -135,7 +136,7 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::VMT::Concrete::ValueLookup lookup (MiniMC::VMT::Concrete::ValueCreator{},{nstate.getProc (id),_internal->metas});
+	MiniMC::VMT::Concrete::ValueLookup lookup (MiniMC::VMT::Concrete::Operations{},{nstate.getProc (id),_internal->metas});
 	
 	
 	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),lookup};

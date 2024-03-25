@@ -396,7 +396,7 @@ namespace MiniMC {
 	  MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
 	  auto& content = tinst.getOps ();
 	  auto fun = content.function;
-	  auto func = MiniMC::Model::visitValue(
+	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
 						
 						MiniMC::Model::Overload{
 						  [&prgm,&function_not_exists,&mess](const MiniMC::Model::Pointer& val) -> Function_ptr {

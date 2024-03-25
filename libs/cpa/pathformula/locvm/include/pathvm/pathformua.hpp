@@ -54,28 +54,9 @@ namespace MiniMC {
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
 
-      class ValueCreator {
-      public:
-	ValueCreator (SMTLib::TermBuilder& builder) : builder(builder) {}
-	Value create (const MiniMC::Model::I8Integer& val)  const; 
-	Value create (const MiniMC::Model::I16Integer& val) const ;
-	Value create (const MiniMC::Model::I32Integer& val) const ;
-	Value create (const MiniMC::Model::I64Integer& val) const ;
-	Value create (const MiniMC::Model::Bool& val) const   ;
-	Value create (const MiniMC::Model::Pointer& val) const ;
-	Value create (const MiniMC::Model::Pointer32& val) const;
-	Value create (const MiniMC::Model::AggregateConstant& val) const;
-	Value create (const MiniMC::Model::Undef& und) const ;
-	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}
-	Value unboundValue (const MiniMC::Model::Type&) const ;
-	Value defaultValue(const MiniMC::Model::Type&) const ;
-	
-      private:
-	SMTLib::TermBuilder& builder;
-      };
       
-      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator,MiniMC::CPA::Common::RegisterStore<Value> >;
-      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,ValueCreator >;
+      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,Operations,MiniMC::CPA::Common::RegisterStore<Value> >;
+      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,Operations >;
       
       class PathControl  {
       public:

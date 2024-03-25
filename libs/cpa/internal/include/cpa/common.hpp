@@ -42,8 +42,8 @@ namespace MiniMC {
         return val.ret;
       }
 
-      void push(MiniMC::Model::Location_ptr loc, std::size_t registers, const MiniMC::Model::Value_ptr& ret) {
-        frames.push_back (ActRecord{{registers},ret,loc});
+      void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Value_ptr& ret) {
+        frames.push_back (ActRecord{{loc->getInfo().getRegisters().getTotalRegisters()},ret,loc});
       }
 
       auto& back () {return frames.back ();}
@@ -116,38 +116,39 @@ namespace MiniMC {
       
     };
     
-    template<class Value,class Creator,class RegStore = DummyRegisterStore<Value>>
-    struct ValueLookup  {
+    template<class Value,class Operations,class RegStore = DummyRegisterStore<Value>>
+    struct ValueLookup   {
     public:
-      ValueLookup (Creator creator, RegStore&& store = RegStore{}) : store(std::move(store)),creator(std::move(creator)) {}
+      ValueLookup (Operations ops, RegStore&& store = RegStore{}) : store(std::move(store)),operations(std::move(ops)) {}
       ValueLookup (const ValueLookup&) = delete;
       virtual  ~ValueLookup () {}
       
       Value lookupValue (const MiniMC::Model::Value& v) const {
-	return MiniMC::Model::visitValue(
-				  MiniMC::Model::Overload{
-				    [this](const MiniMC::Model::Register& val) -> Value {
-				      return store.lookupRegister (val);
-				    },
-				    [this](const auto& v) -> Value {
-				      return creator.create(v);
-				    }
-				      },
-				  v);
+	return MiniMC::Model::visitValue<Value>(*this,v);
 
       }
-
+      
       void saveValue(const MiniMC::Model::Register& r, Value&& v)  {
 	store.saveRegister (r,std::move(v));
       } 
-	
+
+      template<class T>
+      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !std::is_same_v<T,MiniMC::Model::AddExpr>) {
+	return operations.create(t);
+      }
+
+      Value operator() (const MiniMC::Model::AddExpr&) const  {
+	throw MiniMC::Support::Exception ("H");
+      }
       
-      Value unboundValue(const MiniMC::Model::Type& t) const {return creator.unboundValue (t);}
-      Value defaultValue(const MiniMC::Model::Type& t) const {return creator.defaultValue (t);}
-            
+      Value operator() (const MiniMC::Model::Register& reg) const  {
+	return store.lookupRegister (reg);
+      }
+
+      
     private:
       RegStore store;
-      Creator  creator;
+      Operations operations;
     };
 
     template<class Value,MiniMC::VMT::Memory<Value> Mem>
@@ -161,23 +162,23 @@ namespace MiniMC {
       StateMixin (const StateMixin&) = default;
       
       
-      template<class Creator>
-      static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Creator&& creator,Mem&& heap) {
+      template<class Operations>
+      static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops,Mem&& heap) {
 	std::vector<ActivationStack<Value>> stack;
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
 	  MiniMC::Model::VariableMap<Value> gvalues {descr.getProgram().getCPURegs().getTotalRegisters ()};
 	  
 	  ActivationStack<Value> cs {std::move(gvalues)};
-	  cs.push (f.getFunction()->getCFA().getInitialLocation (),{vstack.getTotalRegisters ()},nullptr);
+	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
 	  MiniMC::Model::VariableMap<Value> metas{1};
-	  ValueLookup<Value,Creator, RegisterStore<Value>> lookup {creator,{cs,metas}};
+	  ValueLookup<Value,Operations,RegisterStore<Value>> lookup {ops,{cs,metas}};
 	  for (auto& v : vstack.getRegisters()) {
-            lookup.saveValue  (*v,lookup.defaultValue (*v->getType ()));
+            lookup.saveValue  (*v,ops.defaultValue (*v->getType ()));
 	  }
 
 	  for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
-	    auto val = lookup.defaultValue (*reg->getType ());
+	    auto val = ops.defaultValue (*reg->getType ());
 	    lookup.saveValue (*reg,std::move(val));
 	  }
 	  
@@ -191,7 +192,7 @@ namespace MiniMC {
           stack.push_back(cs);
 	  
         }
-	ValueLookup<Value,Creator> lookup{creator};
+	ValueLookup<Value,Operations> lookup{ops};
 	
 	heap.createHeapLayout (descr.getHeap ());
 	
@@ -245,7 +246,7 @@ namespace MiniMC {
     };
     
     
-    template<class T,MiniMC::VMT::Evaluator<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
+    template<class T,MiniMC::VMT::RegisterStore<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
     struct VMState {
       VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
       auto& getValueLookup () {return lookup;}

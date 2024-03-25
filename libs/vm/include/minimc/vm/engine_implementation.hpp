@@ -19,8 +19,32 @@ namespace MiniMC {
     template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
     
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    class Evaluator {
+      Evaluator (const Operations& ops, const RegStore& regstore) : ops(ops),regstore(regstore) {}
 
-    
+      Value Eval (MiniMC::Model::Value& v) {
+	MiniMC::Model::visitValue(*this,v);
+      }
+      
+      template<class T>
+      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !std::is_same_v<T,MiniMC::Model::AddExpr>) {
+	return ops.create(t);
+      }
+
+      Value operator() (const MiniMC::Model::AddExpr&) const  {
+	throw MiniMC::Support::Exception ("H");
+      }
+      
+      Value operator() (const MiniMC::Model::Register& reg) const  {
+	return regstore.lookupValue (reg);
+      }
+      
+      
+    private:
+      const Operations& ops;
+      const RegStore& regstore;
+    };
     
     template<typename T, Ops<T> Operations>
     struct Engine<T,Operations>::Impl {
@@ -49,8 +73,7 @@ namespace MiniMC {
 
       
       template <class I,VMState<T> State>
-      Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isTAC_v<I> 
+      Status runInstruction(const I& instr, State& state) requires MiniMC::Model::isTAC_v<I> 
 
       {
 	constexpr auto op = I::getOpcode ();
@@ -63,9 +86,9 @@ namespace MiniMC {
 	    [&state,this,&res]<typename R>(R& lval, R& rval) requires Integer<T,R> {
 	      
 	      if constexpr (op == MiniMC::Model::InstructionCode::Add)
-	        state.getValueLookup().saveValue(res, operations.Add(lval, rval));
+	         state.getValueLookup().saveValue(res, operations.Add(lval, rval));
 	      else if constexpr (op == MiniMC::Model::InstructionCode::Sub)
-	        state.getValueLookup().saveValue(res, operations.Sub(lval, rval));
+	         state.getValueLookup().saveValue(res, operations.Sub(lval, rval));
 	      else if constexpr (op == MiniMC::Model::InstructionCode::Mul)
 	        state.getValueLookup().saveValue(res, operations.Mul(lval, rval));
 	      else if constexpr (op == MiniMC::Model::InstructionCode::UDiv)
@@ -84,12 +107,12 @@ namespace MiniMC {
 	        state.getValueLookup().saveValue(res, operations.Or(lval, rval));
 	      else if constexpr (op == MiniMC::Model::InstructionCode::Xor)
 	        state.getValueLookup().saveValue(res, operations.Xor(lval, rval));
-	       else
+	      else
 		throw NotImplemented<op>();
-		},
-	     [] (auto&, auto&) {
-	       throw NotImplemented<op>();
-	     }
+	    },
+	      [] (auto&, auto&) {
+		throw NotImplemented<op>();
+	      }
 	      },
 	  lval,
 	  rval
@@ -99,8 +122,7 @@ namespace MiniMC {
       }
 	  
       template <class I, VMState<T> State>
-      Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isComparison_v<I>
+      Status runInstruction(const I& instr, State& state) requires MiniMC::Model::isComparison_v<I>
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -113,12 +135,10 @@ namespace MiniMC {
 	      auto lval = Impl::castPtrToAppropriateInteger (l);
 	      auto rval = Impl::castPtrToAppropriateInteger (r);
 	      
-	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT) {
+	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
 		state.getValueLookup().saveValue(res, operations.SGt(lval, rval));
-	      }
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) {
+	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) 
 		state.getValueLookup().saveValue(res, operations.SGe(lval, rval));
-	      }
 	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
 	         state.getValueLookup().saveValue(res, operations.SLe(lval, rval));
 	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
@@ -149,8 +169,7 @@ namespace MiniMC {
       }
 
       template <class I,VMState<T> State>
-      Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isPointer_v<I> 
+      Status runInstruction(const I& instr, State& state) requires MiniMC::Model::isPointer_v<I> 
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -229,14 +248,8 @@ namespace MiniMC {
 	
         if constexpr (op == MiniMC::Model::InstructionCode::Load ) {
 	  auto& res = content.res->asRegister ();
-	  if constexpr (HasMemory<State,T>) {
-	    auto addr = T::visit (addrConverter,state.getValueLookup().lookupValue(*content.addr));
-	    state.getValueLookup().saveValue(res, state.getMemory().load(addr, res.getType()));
-	  }
-	  else {
-	    state.getValueLookup().saveValue(res, state.getValueLookUp ().unboundValue (res.getType ()));
-	  }
-
+	  auto addr = T::visit (addrConverter,state.getValueLookup().lookupValue(*content.addr));
+	  state.getValueLookup().saveValue(res, state.getMemory().load(addr, res.getType()));
 	  return Status::Ok;
 	  
 	  
@@ -269,8 +282,7 @@ namespace MiniMC {
       }
       
       template <class I,VMState<T> State>
-      Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isAssertAssume_v<I>       {
+      Status runInstruction(const I& instr, State& state) requires MiniMC::Model::isAssertAssume_v<I>       {
 	constexpr auto op = instr.getOpcode ();
 	auto& content = instr.getOps();
 	  
@@ -327,8 +339,7 @@ namespace MiniMC {
 
      
       template <class I,VMState<T> State>
-      Status runInstruction(const I& instr, State& state)
-        requires MiniMC::Model::isCast_v<I>
+      Status runInstruction(const I& instr, State& state) requires MiniMC::Model::isCast_v<I>
       {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
@@ -461,7 +472,7 @@ namespace MiniMC {
 	constexpr auto op = I::getOpcode ();
         
 
-        if constexpr (op == MiniMC::Model::InstructionCode::Assign && ValueLookupable<State,T>) {
+        if constexpr (op == MiniMC::Model::InstructionCode::Assign ) {
 	  auto& content = instr.getOps();
 	  auto& res = content.res->asRegister ();
           auto op1 = state.getValueLookup().lookupValue(*content.op1);
@@ -469,38 +480,35 @@ namespace MiniMC {
           return Status::Ok;
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::Call && StackControllable<State> ) {
+        else if constexpr (op == MiniMC::Model::InstructionCode::Call) {
 	  auto& content = instr.getOps();
 	  auto& scontrol = state.getStackControl();
           assert(content.function->isConstant());
+	  
+          auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+									     MiniMC::Support::Overload{
+									       [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
+										 auto loadPtr = t.getValue();
+										 auto func = prgm.getFunction(loadPtr.base);
+										 return func;
+									       },
+										 [this](const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
+										   auto loadPtr = t.getValue();
+										   auto func = prgm.getFunction(loadPtr.base);
+										   return func;
+										 },
+										 [this](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
+										   auto symb = t.getValue();
+										   auto func = prgm.getFunction(symb);
+										   return func;
+										 },
+										 [](const auto&) -> MiniMC::Model::Function_ptr {
+										   throw MiniMC::Support::Exception("Shouldn't happen");
+										 }},
+									     *content.function
+									     );
 
-          auto func = MiniMC::Model::visitValue(
-              MiniMC::Support::Overload{
-                  [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
-                    auto loadPtr = t.getValue();
-                    auto func = prgm.getFunction(loadPtr.base);
-                    return func;
-                  },
-                  [this](const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
-                    auto loadPtr = t.getValue();
-                    auto func = prgm.getFunction(loadPtr.base);
-                    return func;
-                  },
-                  [this](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
-                    auto symb = t.getValue();
-                    auto func = prgm.getFunction(symb);
-                    return func;
-                  },
-                  [](const auto&) -> MiniMC::Model::Function_ptr {
-                    throw MiniMC::Support::Exception("Shouldn't happen");
-                  }},
-              *content.function);
-
-	  auto& vstack = func->getRegisterDescr();
 	  std::vector<T> params;
-	  
-	  
-	  
 	  if (func->isVarArgs()) {
 	    throw MiniMC::Support::Exception("Vararg functions are not supported");
 	  }
@@ -511,20 +519,14 @@ namespace MiniMC {
 	  
 	  
 	  auto res = content.res;
-	  scontrol.push(func->getCFA().getInitialLocation(), vstack.getTotalRegisters(), res);
+	  scontrol.push(func->getCFA().getInitialLocation(),  res);
 	  
-	  if constexpr (ValueLookupable<State,T>) {
-	    for (auto& v : vstack.getRegisters()) {
-	      state.getValueLookup().saveValue(*v, state.getValueLookup().defaultValue(*v->getType()));
-	    }
-	    
-	    auto it = params.begin();
-	    for (auto& p : func->getParameters()) {
+	  auto it = params.begin();
+	  for (auto& p : func->getParameters()) {
 	    state.getValueLookup().saveValue(*p, std::move(*it));
 	    ++it;
-	    }
-
 	  }
+
 	
 	  return Status::Ok;
 	}
@@ -554,7 +556,9 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::NonDet) {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
-          auto ret = state.getValueLookup().unboundValue(*content.res->getType());
+	  MiniMC::Model::Undef val;
+	  val.setType (res.getType());
+          auto ret = state.getValueLookup().lookupValue(val);
           state.getValueLookup().saveValue(res, std::move(ret));
           return Status::Ok;
         }
@@ -574,7 +578,7 @@ namespace MiniMC {
         assert(content.offset->isConstant());
         MiniMC::BV64 offset{0};
 
-        offset = MiniMC::Model::visitValue(MiniMC::Support::Overload{
+        offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
 	      [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
@@ -591,12 +595,12 @@ namespace MiniMC {
 	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
 		state.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
 	      },
-		[this,&state,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
-		  state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
-		},
-		[](const auto&,const auto&){
-		  throw MiniMC::Support::Exception ("Incompatible insert aggregate");
-		}
+	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
+		state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
+	      },
+	      [](const auto&,const auto&){
+		throw MiniMC::Support::Exception ("Incompatible insert aggregate");
+	      }
 		}
  	    ,
 	    aggr,
@@ -657,7 +661,7 @@ namespace MiniMC {
     template <class Value,Ops<Value> Operations>
     template<VMState<Value> State>
     Status Engine<Value,Operations>::execute(const MiniMC::Model::InstructionStream& instr,
-				       State& wstate) {
+					     State& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
       auto it = instr.begin();
@@ -666,7 +670,7 @@ namespace MiniMC {
       }
       return status;
     }
-
+    
     template<class Value,Ops<Value> Operations>
     Engine<Value,Operations>::Engine (Operations&& ops,const MiniMC::Model::Program& prgm)   {
       _impl = std::make_unique<Impl> (std::move(ops),prgm);

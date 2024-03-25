@@ -22,7 +22,7 @@ namespace MiniMC {
             v);
       }
       */
-      Value ValueCreator::defaultValue(const MiniMC::Model::Type& t) const {
+      Value Operations::defaultValue(const MiniMC::Model::Type& t) const {
 	switch (t.getTypeID()) {
 	case MiniMC::Model::TypeID::Bool:
 	  return BoolValue(0);
@@ -50,7 +50,7 @@ namespace MiniMC {
       }
       
       
-      Value ValueCreator::unboundValue(const MiniMC::Model::Type& t) const {
+      Value Operations::unboundValue(const MiniMC::Model::Type& t) const {
 	MiniMC::Support::Messager{} << MiniMC::Support::TWarning {"Getting nondeterministic values for concrete values - using default value"};
 	return defaultValue (t);
       }

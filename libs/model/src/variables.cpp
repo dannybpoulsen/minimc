@@ -166,7 +166,7 @@ namespace MiniMC {
           out = std::copy(reinterpret_cast<MiniMC::BV8*>(&value_insert), reinterpret_cast<MiniMC::BV8*>(&value_insert) + sizeof(value_insert), out);
         };
 
-	MiniMC::Model::visitValue(
+	MiniMC::Model::visitValue<void>(
 				  MiniMC::Support::Overload {
 				    [addType](const MiniMC::Model::I8Integer& c) {addType(c);},
 				    [addType](const MiniMC::Model::I16Integer& c) {addType(c);},

@@ -3,6 +3,8 @@
 #include "minimc/smt/smtconstruction.hpp"
 #include "pathvm/pathformua.hpp"
 #include "pathvm/value.hpp"
+#include "pathvm/operations.hpp"
+
 #include "smt/solver.hpp"
 #include "minimc/smt/smt.hpp"
 #include <sstream>
@@ -11,11 +13,11 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
       static std::size_t next = 0;
-      Value ValueCreator::defaultValue(const MiniMC::Model::Type& t) const {
+      Value Operations::defaultValue(const MiniMC::Model::Type& t) const {
 	return unboundValue (t);
       }
 	
-      Value ValueCreator::unboundValue(const MiniMC::Model::Type& t) const {
+      Value Operations::unboundValue(const MiniMC::Model::Type& t) const {
         std::stringstream str;
         str << "Var" << ++next;
         switch (t.getTypeID()) {
@@ -46,12 +48,12 @@ namespace MiniMC {
       
       
       
-      Value ValueCreator::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
-      Value ValueCreator::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
-      Value ValueCreator::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
-      Value ValueCreator::create(const MiniMC::Model::I64Integer& val) const { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
-      Value ValueCreator::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
-      Value ValueCreator::create(const MiniMC::Model::Pointer& val) const { 
+      Value Operations::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
+      Value Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
+      Value Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
+      Value Operations::create(const MiniMC::Model::I64Integer& val) const { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
+      Value Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
+      Value Operations::create(const MiniMC::Model::Pointer& val) const { 
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -60,7 +62,7 @@ namespace MiniMC {
 	return PointerValue(chainer.getTerm ());
 	} 
 
-      Value ValueCreator::create(const MiniMC::Model::Pointer32& val) const { 
+      Value Operations::create(const MiniMC::Model::Pointer32& val) const { 
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -68,14 +70,14 @@ namespace MiniMC {
 		  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
 	  return Value::Pointer32(chainer.getTerm ());
 	}
-      Value ValueCreator::create(const MiniMC::Model::AggregateConstant& val) const {
+      Value Operations::create(const MiniMC::Model::AggregateConstant& val) const {
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	for (auto byte : val.getData()) {
 	  chainer >> (builder.makeBVIntConst(byte, 8));
 	}
 	return AggregateValue(chainer.getTerm(), val.getSize());
       }
-      Value ValueCreator::create(const MiniMC::Model::Undef& val) const { return unboundValue(*val.getType()); }
+      Value Operations::create(const MiniMC::Model::Undef& val) const { return unboundValue(*val.getType()); }
       
       
       /*Value ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {

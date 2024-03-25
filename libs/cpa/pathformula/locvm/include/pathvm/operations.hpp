@@ -167,6 +167,21 @@ namespace MiniMC {
 
 	template <MiniMC::Model::TypeID to, typename T>
         typename RetTyp<Value,to>::type SExt(const T& t) const;
+
+
+	Value create (const MiniMC::Model::I8Integer& val)  const; 
+	Value create (const MiniMC::Model::I16Integer& val) const ;
+	Value create (const MiniMC::Model::I32Integer& val) const ;
+	Value create (const MiniMC::Model::I64Integer& val) const ;
+	Value create (const MiniMC::Model::Bool& val) const   ;
+	Value create (const MiniMC::Model::Pointer& val) const ;
+	Value create (const MiniMC::Model::Pointer32& val) const;
+	Value create (const MiniMC::Model::AggregateConstant& val) const;
+	Value create (const MiniMC::Model::Undef& und) const ;
+	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}
+	Value unboundValue (const MiniMC::Model::Type&) const ;
+	Value defaultValue(const MiniMC::Model::Type&) const ;
+	
 	
       private:
 	SMTLib::TermBuilder& builder;
