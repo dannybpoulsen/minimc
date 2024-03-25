@@ -44,9 +44,9 @@ namespace MiniMC {
 	auto& termbuilder = _internal->context->getBuilder ();
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	MiniMC::VMT::Pathformula::ValueLookup lookup{{termbuilder},{nstate.getStack(),_internal->metas}};
+	MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value> regstore{nstate.getStack(),_internal->metas};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),lookup};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),regstore};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

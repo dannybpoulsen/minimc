@@ -6,6 +6,8 @@
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/instructions.hpp"
 #include "minimc/model/heaplayout.hpp"
+#include "minimc/model/valuevisitor.hpp"
+#include "minimc/support/overload.hpp"
 
 #include <type_traits>
 
@@ -23,8 +25,8 @@ namespace MiniMC {
     
 
     template<class Eval,class T >
-    concept RegisterStore = requires (const MiniMC::Model::Value& v, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t) {
-      {ceval.lookupValue (v)} -> std::convertible_to<T>;
+    concept RegisterStore = requires (const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t) {
+      {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {eval.saveValue (reg,std::move(t))};
     } ;
 
@@ -296,6 +298,50 @@ namespace MiniMC {
     concept VMState =  StackControllable<State> &&
       ValueLookupable<State,V> &&
       HasMemory<State,V>; 
+
+    template<class T,class R>
+    concept Integer = std::is_same_v<R,typename T::I8> || std::is_same_v<R,typename T::I16> || std::is_same_v<R,typename T::I32> || std::is_same_v<R,typename T::I64>;
+
+    template<class T,class R>
+    concept Boolean = std::is_same_v<R,typename T::Bool>;    
+    
+    template<class T,class R>
+    concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
+
+    
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    class Evaluator {
+    public:
+      Evaluator (Operations ops, const RegStore& regstore) : ops(ops),regstore(regstore) {}
+      
+      Value Eval (const MiniMC::Model::Value& v)  const {
+	return MiniMC::Model::visitValue<Value>(*this,v);
+      }
+      
+      template<class T>
+      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !std::is_same_v<T,MiniMC::Model::AddExpr>) {
+	return ops.create(t);
+      }
+      
+      Value operator() (const MiniMC::Model::AddExpr& add) const  {
+	auto l = Eval (add.getLeft ());
+	auto r = Eval (add.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.Add (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+      
+      Value operator() (const MiniMC::Model::Register& reg) const  {
+	return regstore.lookupRegister (reg);
+      }
+      
+      
+    private:
+      Operations ops;
+      const RegStore& regstore;
+    };
     
     template<class Value, Ops<Value> Operations>
     class Engine {

@@ -46,116 +46,116 @@ namespace MiniMC {
 	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
 	
 	template<class T>
-	T Add (const T&, const T&);
+	T Add (const T&, const T&) const;
 
 	template<class T>
-	T Sub (const T&, const T&);
+	T Sub (const T&, const T&) const;
 
 	template<class T>
-	T Mul (const T&, const T&);
+	T Mul (const T&, const T&) const;
 
 	template<class T>
-	T UDiv (const T&, const T&);
+	T UDiv (const T&, const T&) const;
 
 	template<class T>
-	T SDiv (const T&, const T&);
+	T SDiv (const T&, const T&)const ;
 
 	template<class T>
-	T LShl (const T&, const T&);
+	T LShl (const T&, const T&) const;
 
 	template<class T>
-	T LShr (const T&, const T&);
+	T LShr (const T&, const T&) const;
 
 	template<class T>
-	T AShr (const T&, const T&);
+	T AShr (const T&, const T&) const;
 
 	template<class T>
-	T And (const T&, const T&);
+	T And (const T&, const T&) const;
 
 	template<class T>
-	T Or (const T&, const T&);
+	T Or (const T&, const T&) const;
 
 	template<class T>
-	T Xor (const T&, const T&);
+	T Xor (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool SGt (const T&, const T&);
+	Value::Bool SGt (const T&, const T&) const;
 	
 	template<class T>
-	Value::Bool SGe (const T&, const T&);
+	Value::Bool SGe (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool SLt (const T&, const T&);
+	Value::Bool SLt (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool SLe (const T&, const T&);
+	Value::Bool SLe (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool UGt (const T&, const T&);
+	Value::Bool UGt (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool UGe (const T&, const T&);
+	Value::Bool UGe (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool ULt (const T&, const T&);
+	Value::Bool ULt (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool ULe (const T&, const T&);
+	Value::Bool ULe (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool Eq (const T&, const T&);
+	Value::Bool Eq (const T&, const T&) const;
 
 	template<class T>
-	Value::Bool NEq (const T&, const T&);
+	Value::Bool NEq (const T&, const T&) const;
 
-	Value::Bool PtrEq(const PointerValue&, const PointerValue&) {
+	Value::Bool PtrEq(const PointerValue&, const PointerValue&) const {
 	    throw MiniMC::Support::Exception ("Not Implemented");
 	}
 
-	Value::Bool  BoolNegate(const Value::Bool&);
+	Value::Bool  BoolNegate(const Value::Bool&) const;
 	
         template <class T>
-        Value::Pointer PtrAdd(const Value::Pointer& ptrvalue, const T& adddend);
+        Value::Pointer PtrAdd(const Value::Pointer& ptrvalue, const T& adddend) const;
 
 	template <class T>
-        Value::Pointer PtrSub(const Value::Pointer& ptrvalue, const T& adddend);
+        Value::Pointer PtrSub(const Value::Pointer& ptrvalue, const T& adddend) const;
 	
 	
 	template <class T>
-        T ExtractBaseValue(const Value::Aggregate&, const MiniMC::BV64);
+        T ExtractBaseValue(const Value::Aggregate&, const MiniMC::BV64) const;
 	
-	Value::Aggregate ExtractAggregateValue(const Value::Aggregate&, const MiniMC::BV64, std::size_t);
+	Value::Aggregate ExtractAggregateValue(const Value::Aggregate&, const MiniMC::BV64, std::size_t) const;
 
 	template <class T>
-        Value::Aggregate InsertBaseValue(const Value::Aggregate&, const MiniMC::BV64, const T&);
+        Value::Aggregate InsertBaseValue(const Value::Aggregate&, const MiniMC::BV64, const T&) const;
 
-	Value::Aggregate  InsertAggregateValue(const Value::Aggregate&, const MiniMC::BV64, const Value::Aggregate&);
+	Value::Aggregate  InsertAggregateValue(const Value::Aggregate&, const MiniMC::BV64, const Value::Aggregate&) const;
 
 	template <MiniMC::Model::TypeID to>
-	typename RetTyp<Value,to>::type BoolZExt(const BoolValue& val);
+	typename RetTyp<Value,to>::type BoolZExt(const BoolValue& val) const;
 
 	template <MiniMC::Model::TypeID to>
-	typename RetTyp<Value,to>::type BoolSExt(const BoolValue& val);
+	typename RetTyp<Value,to>::type BoolSExt(const BoolValue& val) const;
 
 	template <class T>
-        Value::Bool IntToBool(const T& t);
+        Value::Bool IntToBool(const T& t) const;
 
 	template <class T>
-        Value::Pointer IntToPtr(const T& t);
+        Value::Pointer IntToPtr(const T& t) const;
 
 	template <class T>
-        Value::Pointer32 IntToPtr32(const T& t);
+        Value::Pointer32 IntToPtr32(const T& t) const;
 	
 	
-	Value::Pointer32 PtrToPtr32 (const Value::Pointer&);
+	Value::Pointer32 PtrToPtr32 (const Value::Pointer&) const;
 
-	Value::Pointer Ptr32ToPtr (const Value::Pointer32&);
-
-	template<class T>
-	T PtrToInt (const Value::Pointer&);
+	Value::Pointer Ptr32ToPtr (const Value::Pointer32&) const;
 
 	template<class T>
-	T Ptr32ToInt (const Value::Pointer32&);
+	T PtrToInt (const Value::Pointer&) const;
+
+	template<class T>
+	T Ptr32ToInt (const Value::Pointer32&) const;
 	
 	
 	

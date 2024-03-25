@@ -101,9 +101,8 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Concrete::ValueLookup lookup{MiniMC::VMT::Concrete::Operations{},
-	    {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas }};
-	  return std::make_unique<QExpr> (lookup.lookupValue(*val));
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations> eval (MiniMC::VMT::Concrete::Operations{},{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas });
+	  return std::make_unique<QExpr> (eval.Eval(*val));
 	    
 	}
 	
@@ -136,10 +135,10 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::VMT::Concrete::ValueLookup lookup (MiniMC::VMT::Concrete::Operations{},{nstate.getProc (id),_internal->metas});
+	MiniMC::CPA::Common::RegisterStore regstore {nstate.getProc (id),_internal->metas};
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),lookup};
+	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),regstore};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

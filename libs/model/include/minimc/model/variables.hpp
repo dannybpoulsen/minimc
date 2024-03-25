@@ -326,11 +326,11 @@ namespace MiniMC {
 	return *right;
       }
       
-      auto& getLeft () const{
+      const auto& getLeft () const{
 	return *left;
       }
 
-      auto& getRight () const {
+      const auto& getRight () const {
 	return *right;
       }
       

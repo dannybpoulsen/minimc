@@ -82,7 +82,7 @@ namespace MiniMC {
 	}
       }
       
-      void saveRegister(const MiniMC::Model::Register& v, Value&& value)  {
+      void saveValue(const MiniMC::Model::Register& v, Value&& value)  {
 	switch (v.getRegType ()) {
 	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   values.cpus ().set (v,std::move(value));break;
@@ -109,48 +109,15 @@ namespace MiniMC {
         
       }
       
-      void saveRegister(const MiniMC::Model::Register&, Value&&)  {
+      void saveValue(const MiniMC::Model::Register&, Value&&)  {
 	throw MiniMC::Support::Exception ("Cannot save register");
       }
       
       
     };
     
-    template<class Value,class Operations,class RegStore = DummyRegisterStore<Value>>
-    struct ValueLookup   {
-    public:
-      ValueLookup (Operations ops, RegStore&& store = RegStore{}) : store(std::move(store)),operations(std::move(ops)) {}
-      ValueLookup (const ValueLookup&) = delete;
-      virtual  ~ValueLookup () {}
-      
-      Value lookupValue (const MiniMC::Model::Value& v) const {
-	return MiniMC::Model::visitValue<Value>(*this,v);
-
-      }
-      
-      void saveValue(const MiniMC::Model::Register& r, Value&& v)  {
-	store.saveRegister (r,std::move(v));
-      } 
-
-      template<class T>
-      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !std::is_same_v<T,MiniMC::Model::AddExpr>) {
-	return operations.create(t);
-      }
-
-      Value operator() (const MiniMC::Model::AddExpr&) const  {
-	throw MiniMC::Support::Exception ("H");
-      }
-      
-      Value operator() (const MiniMC::Model::Register& reg) const  {
-	return store.lookupRegister (reg);
-      }
-
-      
-    private:
-      RegStore store;
-      Operations operations;
-    };
-
+   
+    
     template<class Value,MiniMC::VMT::Memory<Value> Mem>
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
@@ -172,34 +139,36 @@ namespace MiniMC {
 	  ActivationStack<Value> cs {std::move(gvalues)};
 	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
 	  MiniMC::Model::VariableMap<Value> metas{1};
-	  ValueLookup<Value,Operations,RegisterStore<Value>> lookup {ops,{cs,metas}};
+	  RegisterStore<Value> regstore {cs,metas};
 	  for (auto& v : vstack.getRegisters()) {
-            lookup.saveValue  (*v,ops.defaultValue (*v->getType ()));
+            regstore.saveValue  (*v,ops.defaultValue (*v->getType ()));
 	  }
 
 	  for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
 	    auto val = ops.defaultValue (*reg->getType ());
-	    lookup.saveValue (*reg,std::move(val));
+	    regstore.saveValue (*reg,std::move(val));
 	  }
 	  
-	  
+
 	  auto pit = f.getParams ().begin ();
 	  auto rit = f.getFunction()->getParameters().begin ();
+	  MiniMC::VMT::Evaluator<Value,RegisterStore<Value>,Operations> eval {ops,regstore};
 	  for (; pit != f.getParams ().end ();++pit,++rit) {
-	    lookup.saveValue  (**rit,lookup.lookupValue (**pit));
+	    //TODO: Updatee this 
+	    regstore.saveValue  (**rit,eval.Eval (**pit));
 	  } 
 	  
           stack.push_back(cs);
 	  
         }
-	ValueLookup<Value,Operations> lookup{ops};
-	
+
+	MiniMC::VMT::Evaluator<Value,DummyRegisterStore<Value>,Operations> eval {ops,DummyRegisterStore<Value>{}};
 	heap.createHeapLayout (descr.getHeap ());
 	
 	for (auto& b : descr.getHeap ()) {
 	  if (b.value) {
-	    Value ptr = lookup.lookupValue (MiniMC::Model::Pointer (b.baseobj));
-            Value valueToStor = lookup.lookupValue(*b.value);
+	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
+            Value valueToStor = eval.Eval(*b.value);
 	    Value::visit (MiniMC::Support::Overload {
 		[&heap]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
 		  heap.store (ptr,value);

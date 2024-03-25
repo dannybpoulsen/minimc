@@ -60,9 +60,7 @@ namespace MiniMC {
 	
       };
 
-      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,Operations>;
-   
-      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,Operations,MiniMC::CPA::Common::RegisterStore<Value>>;
+      
       
       
       class PathControl  {
@@ -81,7 +79,7 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
-      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,ValueLookup,Memory,PathControl,ActivationStack>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
       
       //ConcreteVMState 
       using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations >;

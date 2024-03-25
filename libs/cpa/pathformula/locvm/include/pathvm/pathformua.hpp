@@ -55,9 +55,6 @@ namespace MiniMC {
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
 
       
-      using ValueLookup = MiniMC::CPA::Common::ValueLookup<Value,Operations,MiniMC::CPA::Common::RegisterStore<Value> >;
-      using ValueLookupNoRegister = MiniMC::CPA::Common::ValueLookup<Value,Operations >;
-      
       class PathControl  {
       public:
 	PathControl (SMTLib::TermBuilder& builder);
@@ -73,7 +70,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,ValueLookup,Memory,PathControl,ActivationStack>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,MiniMC::CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
       
       
       
