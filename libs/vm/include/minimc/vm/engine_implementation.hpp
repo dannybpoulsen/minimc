@@ -83,10 +83,8 @@ namespace MiniMC {
 	      else
 		throw NotImplemented<op>();
 	    },
-	      [] (auto&, auto&) {
-		throw NotImplemented<op>();
-	      }
-	      },
+	      MiniMC::Support::Error<void>{}
+	  },
 	  lval,
 	  rval
 	  );
@@ -132,9 +130,7 @@ namespace MiniMC {
 	      else
 		throw NotImplemented<op>();
 		},
-	     [] (auto&, auto&) {
-	       throw NotImplemented<op>();
-	     }
+	      MiniMC::Support::Error<void>{}
 	      },
 	  lval
 	  ,rval);
@@ -155,9 +151,8 @@ namespace MiniMC {
 	  [this] (typename T::Pointer32& addrVal) {
 	    return operations.Ptr32ToPtr (addrVal);
 	  },
-	  [](auto& )->T::Pointer { throw MiniMC::Support::Exception("SHouldn't get here");
-	  }
-
+	  MiniMC::Support::Error<typename T::Pointer>{}
+	  
 	};
 	
         if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
@@ -168,8 +163,7 @@ namespace MiniMC {
 	      state.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
 	      return Status::Ok;
 	    },
-	    [](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
-	    }
+	    MiniMC::Support::Error<Status>{}
 	  };
 	  return T::visit (visitor,
 			   eval.Eval(*content.skipsize),
@@ -185,8 +179,7 @@ namespace MiniMC {
 	      state.getValueLookup().saveValue(res, operations.PtrSub(ptr, totalskip));
 	      return Status::Ok;
 	    },
-	    [](auto&,  auto& )->Status {      throw MiniMC::Support::Exception("Invalid Skip-type type");
-	    }
+	    MiniMC::Support::Error<Status>{}
 	  };
 	  return T::visit (visitor,
 			   eval.Eval(*content.skipsize),
@@ -214,9 +207,7 @@ namespace MiniMC {
 	  [this] (typename T::Pointer32& addrVal) {
 	    return operations.Ptr32ToPtr (addrVal);
 	  },
-	  [](auto& )->T::Pointer { throw MiniMC::Support::Exception("SHouldn't get here");
-	  }
-
+	  MiniMC::Support::Error<typename T::Pointer> {}
 	};
 	
         if constexpr (op == MiniMC::Model::InstructionCode::Load ) {
@@ -229,30 +220,24 @@ namespace MiniMC {
 	}
 	
         else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
-	  if constexpr (HasMemory<State,T>) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    
-	    T::visit([&state, &addr](const auto& t) {
-	      if constexpr (!std::is_same_v<const typename T::Bool&, decltype(t)>)
-		state.getMemory().store(addr, t);
-	      else {
-		throw MiniMC::Support::Exception("Cannot Store this type");
-            }
-	    },
+	    T::visit(MiniMC::Support::Overload {
+		[&state,&addr]<typename V>(const V& t) requires (!Boolean<T,V>) {
+		  state.getMemory().store(addr, t);
+		},
+		MiniMC::Support::Error<void> {}
+	      },
 	      value
 	      );
-	    
-	  }
-	  return Status::Ok;
+	    return Status::Ok;
 	  
+	
+       
 	}
-	  
-	else {
-	  throw NotImplemented<op>();
-	}
-	  
       }
+
       
       template <class I,VMState<T> State,class Evaluator>
       Status runInstruction(const I& instr, State& state,Evaluator eval) requires MiniMC::Model::isAssertAssume_v<I>       {
@@ -261,7 +246,7 @@ namespace MiniMC {
 	  
 	auto obj = T::visit (MiniMC::Support::Overload {
 	    [](const T::Bool& b) {return b;},
-	    [](const auto&) -> typename T::Bool {throw MiniMC::Support::Exception ("Should be a boolean");}
+	    MiniMC::Support::Error<typename T::Bool>{}
 	  },
 	  eval.Eval(*content.expr)
 	  );
@@ -292,19 +277,24 @@ namespace MiniMC {
 	if constexpr (opc == MiniMC::Model::InstructionCode::Trunc) {
           if constexpr (bw  > LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Truntion");
-          } else
+          }
+	  else
             return ops.template Trunc<to, LeftOp>(op);
-        } else if constexpr (opc == MiniMC::Model::InstructionCode::ZExt) {
+        }
+	else if constexpr (opc == MiniMC::Model::InstructionCode::ZExt) {
           if constexpr (bw  < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
-          } else
+          }
+	  else
             return ops.template ZExt<to, LeftOp>(op);
-        } else if constexpr (opc == MiniMC::Model::InstructionCode::SExt) {
+        }
+	else if constexpr (opc == MiniMC::Model::InstructionCode::SExt) {
           if constexpr (bw < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           } else
             return ops.template SExt<to, LeftOp>(op);
-        } else {
+        }
+	else {
           []<bool b = false>() { static_assert(b); }
           ();
         }
@@ -338,8 +328,7 @@ namespace MiniMC {
 		throw MiniMC::Support::Exception("Error");
 		}
 	      },
-		[](auto& ) -> T {throw MiniMC::Support::Exception("Invalid Trunc/Extenstion");}
-		
+		MiniMC::Support::Error<T> {}		 
 		},
 	    op1
 	    );
@@ -351,8 +340,8 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolSExt) {
           auto op1 = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Bool& b) {return b;},
-	      [](const auto& ) -> T::Bool {throw MiniMC::Support::Exception ("Must be bool");},
-		},
+	      MiniMC::Support::Error<typename T::Bool> {}
+	    },
 	    eval.Eval(*content.op1)
 	    );
 	  switch (res.getType()->getTypeID()) {
@@ -376,7 +365,7 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::BoolZExt) {
 	  typename T::Bool op1 = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Bool& b) {return b;},
-	      [](const auto& ) -> T::Bool {throw MiniMC::Support::Exception ("Must be bool");},
+	      MiniMC::Support::Error<typename T::Bool> {}
 	    },
 	    eval.Eval(*content.op1)
 	    );
@@ -410,8 +399,8 @@ namespace MiniMC {
 		  return T{operations.IntToPtr32(val)};
 		}
 	      },
-	      [](auto&)->T { throw MiniMC::Support::Exception("Shouldn't get her");}
-		},
+	      MiniMC::Support::Error<T> {}
+	    },
 	    op1
 	    );
 	  state.getValueLookup().saveValue(res, std::move(result));
@@ -424,7 +413,7 @@ namespace MiniMC {
 		[this](const typename T::I16 v)->T::Bool {return operations.IntToBool (v);},
 		[this](const typename T::I32 v)->T::Bool {return operations.IntToBool (v);},
 		[this](const typename T::I64 v)->T::Bool {return operations.IntToBool (v);},
-		[](auto& ) ->T::Bool {throw MiniMC::Support::Exception ("Must be integer");}
+		MiniMC::Support::Error<typename T::Bool>{}
 		},
 	    eval.Eval (*content.op1)
 										   
@@ -475,9 +464,8 @@ namespace MiniMC {
 										   auto func = prgm.getFunction(symb);
 										   return func;
 										 },
-										 [](const auto&) -> MiniMC::Model::Function_ptr {
-										   throw MiniMC::Support::Exception("Shouldn't happen");
-										 }},
+										 MiniMC::Support::Error<MiniMC::Model::Function_ptr> {}
+									     },
 									     *content.function
 									     );
 
@@ -555,7 +543,8 @@ namespace MiniMC {
 	      [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
-	      [](const auto&) -> MiniMC::BV64 { throw MiniMC::Support::Exception("Invalid aggregate offset"); }},
+	      MiniMC::Support::Error<MiniMC::BV64> {}
+	  },
 	  *content.offset);
 	
         if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
@@ -571,10 +560,8 @@ namespace MiniMC {
 	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
 		state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
 	      },
-	      [](const auto&,const auto&){
-		throw MiniMC::Support::Exception ("Incompatible insert aggregate");
-	      }
-		}
+	      MiniMC::Support::Error<void> {}
+	    }
  	    ,
 	    aggr,
 	    value);
@@ -584,9 +571,7 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::InstructionCode::ExtractValue) {
 	  typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Aggregate& aggr) {return aggr;},
-	      [](const auto& )->T::Aggregate {throw MiniMC::Support::Exception ("Not an aggregate");}
-	      	
-
+	      MiniMC::Support::Error<typename T::Aggregate> {}	
 		},
 	    eval.Eval(*content.aggregate)
 	    );

@@ -18,10 +18,10 @@ namespace MiniMC {
 	for (size_t i = 0; i < amount; i++) {
           SymbolTable<MiniMC::Model::Location_ptr> map;
           auto inserter = std::inserter(map, map.begin());
-	  copyLocation(cfg, loop->getHeader(), inserter, linserter, locInf,frame);
+	  copyLocation(cfg, loop->getHeader(), inserter, linserter, frame);
 
-          std::for_each(loop->body_begin(), loop->body_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, locInf,frame); });
-	  std::for_each(loop->latch_begin(), loop->latch_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, locInf,frame); });
+          std::for_each(loop->body_begin(), loop->body_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, frame); });
+	  std::for_each(loop->latch_begin(), loop->latch_end(), [&](auto& t) { copyLocation(cfg, t, inserter, linserter, frame); });
           
 	  unrolledLocations.push_back(map);
         }

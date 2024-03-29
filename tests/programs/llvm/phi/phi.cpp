@@ -50,7 +50,7 @@ TEST_CASE("Phi") {
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
-
+  
   //ACT 
   MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
   auto res = reachabilityChecker.search (mess,initialState,goal);

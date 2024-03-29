@@ -47,8 +47,10 @@ namespace MiniMC {
     
     struct LocationInfo {
       explicit LocationInfo(LocFlags flags, MiniMC::Model::RegisterDescr registers,  SourceInfo info = SourceInfo{})  : flags(flags), source(std::move(info)),active_registers(std::move(registers)) {}
+      LocationInfo (const LocationInfo&) = default;
+
       
-      //const std::string getName() const { return name.getFullName(); }
+      
       const RegisterDescr& getRegisters () const {return active_registers;}
       
       auto& getFlags () const  {return flags;} 
@@ -58,7 +60,7 @@ namespace MiniMC {
       SourceInfo source;
       const MiniMC::Model::RegisterDescr active_registers;
     };
-
+    
     struct LocationInfoCreator {
       LocationInfoCreator(const MiniMC::Model::RegisterDescr& regs) : registers(regs) {}
       
@@ -67,14 +69,14 @@ namespace MiniMC {
       }
 
       
-      LocationInfo make(const LocationInfo& loc) {	
+      /*LocationInfo make(const LocationInfo& loc) {	
         return LocationInfo(loc.flags, loc.active_registers, loc.source);
-      }
+	}*/
 
     private:
       const MiniMC::Model::RegisterDescr registers;
     };
-
+    
   } // namespace Model
 } // namespace MiniMC
 

@@ -7,14 +7,14 @@ namespace MiniMC {
     namespace Modifications {
       bool SplitAsserts::runFunction(const MiniMC::Model::Function_ptr& F) {
 	auto frame = F->getFrame ();
-	MiniMC::Model::LocationInfoCreator locc(F->getRegisterDescr ());
+	//MiniMC::Model::LocationInfoCreator locc(F->getRegisterDescr ());
 	auto& cfg = F->getCFA();
 	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
 	auto inserter = wlist.inserter();
 	std::for_each(cfg.getEdges().begin(),
                         cfg.getEdges().end(),
 		      [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
-	auto info = locc.make({MiniMC::Model::Attributes::AssertViolated});
+	auto info = MiniMC::Model::LocationInfo{{MiniMC::Model::Attributes::AssertViolated},F->getRegisterDescr()};
 	auto eloc = cfg.makeLocation(frame.makeFresh (),info);
 	eloc->getInfo().getFlags () |= MiniMC::Model::Attributes::AssertViolated;
 	
@@ -22,10 +22,10 @@ namespace MiniMC {
 	  if (E->getInstructions ()) {
 	    auto instrs = E->getInstructions ();
 	    instrs.last().visit (MiniMC::Support::Overload {
-		[&instrs,&locc,&cfg,&frame,&E,&eloc](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Assert>& instr) {
+		[&instrs,&cfg,&frame,&E,&eloc,&F](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Assert>& instr) {
 		  auto val = instr.getOps ().expr;
 		  instrs.erase((instrs.rbegin() + 1).base());
-		  auto info = locc.make( {});
+		  MiniMC::Model::LocationInfo info{ {},F->getRegisterDescr()};
 		  auto nloc = cfg.makeLocation(frame.makeFresh (), info);
 		  auto ttloc = E->getTo();
 		  

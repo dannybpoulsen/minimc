@@ -2,6 +2,7 @@
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/modifications/func_inliner.hpp"
 #include "helpers.hpp"
+#include "minimc/model/source.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/support/workinglist.hpp"
 #include "minimc/support/overload.hpp"
@@ -12,7 +13,7 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
 
-      void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge, MiniMC::Model::LocationInfoCreator& locinfoc,  std::function<void(MiniMC::Model::Edge_ptr)> newCall, MiniMC::Model::Frame cframe) {
+      void inlineCallEdgeToFunction(const MiniMC::Model::Program& prgm, const MiniMC::Model::Function_ptr& func, const MiniMC::Model::Edge_ptr& edge,   std::function<void(MiniMC::Model::Edge_ptr)> newCall, MiniMC::Model::Frame cframe) {
         
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
@@ -34,7 +35,7 @@ namespace MiniMC {
 	MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr> locmap;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 	
-        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, wlist.inserter(), locinfoc,frame);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, wlist.inserter(), frame);
 
         for (auto& ne : wlist) {
 	  auto& ninstr = ne->getInstructions ();
@@ -61,8 +62,8 @@ namespace MiniMC {
 		cfunc->getCFA ().deleteEdge (ne.get());
 		
 	      },
-	      [](auto&) {}
-		}
+		MiniMC::Support::Error<void>{}
+	      }
 	    );
 	  
         auto& parameters = cfunc->getParameters();
@@ -86,11 +87,10 @@ namespace MiniMC {
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
-        MiniMC::Model::LocationInfoCreator linfoc(F->getRegisterDescr ());
         MiniMC::Support::WorkingList<std::pair<std::size_t,Edge_ptr>> wlist;
         auto inserter = wlist.inserter();
         auto& cfg = F->getCFA();
-	auto unrollFailed = F->getCFA().makeLocation (F->getFrame ().makeFresh (),linfoc.make ({}));
+	auto unrollFailed = F->getCFA().makeLocation (F->getFrame ().makeFresh (),MiniMC::Model::LocationInfo{{},F->getRegisterDescr()});
         std::for_each(cfg.getEdges().begin(),
                       cfg.getEdges().end(),
                       [&inserter,depth](const MiniMC::Model::Edge_ptr& e) {
@@ -129,7 +129,7 @@ namespace MiniMC {
 	  };
 	  
 	  
-	  inlineCallEdgeToFunction(*prgm,F, e.second, linfoc, newCallEdge, F->getFrame ());
+	  inlineCallEdgeToFunction(*prgm,F, e.second, newCallEdge, F->getFrame ());
 	}
 	
         return true;

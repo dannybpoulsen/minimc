@@ -47,11 +47,12 @@ namespace MiniMC {
         return locations.back();
       }
 
-      /** 
-       * Make a new edge 
+      /**
+       * Make a new edge
        *
        * @param from source of the edge
-       * @param to target of the edge
+
+* @param to target of the edge
        *
        * @return 
        */
