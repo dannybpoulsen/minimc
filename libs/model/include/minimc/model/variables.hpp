@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+
+
 namespace MiniMC {
     
   namespace Model {
@@ -286,94 +288,8 @@ namespace MiniMC {
     private:
       T value;
     };
-
-    enum class BinOps {
-      Add,
-      Sub,
-      Mul,
-      UDiv,
-      SDiv,
-      LShr,
-      AShr,
-      And,
-      Or,
-      Xor,
-      SGt,
-      UGt,
-      SGe,
-      UGe,
-      SLt,
-      ULt,
-      SLe,
-      ULe,
-      Eq,
-      NEq,
-      PtrAdd,
-      PtrSub,
-      PtrEq
-    };
-
-    template<BinOps>
-    class BinaryExpression : public Value{
-    public:
-      BinaryExpression (Value_ptr l, Value_ptr r);
-
-      auto& getLeft () {
-	return *left;
-      }
-
-      auto& getRight () {
-	return *right;
-      }
-      
-      const auto& getLeft () const{
-	return *left;
-      }
-
-      const auto& getRight () const {
-	return *right;
-      }
-      
-      std::ostream& output(std::ostream& os) const override {
-	return os <<*left << " BINOP " << *right;
-      }
-      
-    private:
-      Value_ptr left;
-      Value_ptr right;
-    };
     
-    using Bool = TConstant<MiniMC::BV8, true>;
-    using I8Integer = TConstant<MiniMC::BV8>;
-    using I16Integer = TConstant<MiniMC::BV16>;
-    using I32Integer = TConstant<MiniMC::BV32>;
-    using I64Integer = TConstant<MiniMC::BV64>;
-    using Pointer = TConstant<MiniMC::Model::pointer64_t>;
-    using Pointer32 = TConstant<MiniMC::Model::pointer32_t>;
-    using SymbolicConstant = TConstant<MiniMC::Model::Symbol>;
-
-    using AddExpr = BinaryExpression<BinOps::Add>;
-    using SubExpr = BinaryExpression<BinOps::Sub>;
-    using MulExpr = BinaryExpression<BinOps::Mul>;
-    using UDivExpr = BinaryExpression<BinOps::UDiv>;
-    using SDivExpr = BinaryExpression<BinOps::SDiv>;
-    using LShrExpr = BinaryExpression<BinOps::LShr>;
-    using AShrExpr = BinaryExpression<BinOps::AShr>;
-    using AndExpr = BinaryExpression<BinOps::And>;
-    using OrExpr = BinaryExpression<BinOps::Or>;
-    using XOrExpr = BinaryExpression<BinOps::Xor>;
-    using SGtExpr = BinaryExpression<BinOps::SGt>;
-    using UGtExpr = BinaryExpression<BinOps::UGt>;
-    using SGeExpr = BinaryExpression<BinOps::SGe>;
-    using UGeExpr = BinaryExpression<BinOps::UGe>;
-    using SLtExpr = BinaryExpression<BinOps::SLt>;
-    using ULtExpr = BinaryExpression<BinOps::ULt>;
-    using SLeExpr = BinaryExpression<BinOps::SLe>;
-    using ULeExpr = BinaryExpression<BinOps::ULe>;
-    using EqExpr = BinaryExpression<BinOps::Eq>;
-    using NEqExpr = BinaryExpression<BinOps::NEq>;
-    
-    
+        
     /**
      * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
      *
@@ -526,79 +442,7 @@ namespace MiniMC {
     template <class T>
     using VariableMap = MiniMC::Util::FixedVector<Register, T, VariablePtrIndexer>;
 
-    template<type_id_t i , class T, class F, class... Args>
-    constexpr auto  auto_index ()  {
-      if constexpr ( std::is_same_v<T,F>) {
-	return i;
-      }
-      else {
-	return auto_index<i+1,T,Args...> ();
-      }
-    }
-    
-    template<type_id_t i , class T, class F>
-    constexpr auto  auto_index ()  {
-      if constexpr ( std::is_same_v<T,F>) {
-	return i;
-      }
-      else {
-	return []<bool b = false> {static_assert (b);}();
-      }
-    }
-    
-    template <class T>
-    struct ValueInfo {
-      static constexpr auto type_t () {
-	return auto_index<0,T,
-			  I8Integer,
-			  I16Integer,
-			  I32Integer,
-			  I64Integer,
-			  Bool,
-			  Pointer,
-			  Pointer32, 
-			  AggregateConstant,
-			  Register,
-			  Undef,
-			  SymbolicConstant,
-			  AddExpr,
-			  SubExpr,
-			  MulExpr,
-			  UDivExpr,
-			  SDivExpr,
-			  LShrExpr,
-			  AShrExpr,
-			  AndExpr,
-			  OrExpr,
-			  XOrExpr,
-			  SGtExpr,
-			  UGtExpr,
-			  SGeExpr,
-			  UGeExpr,
-			  SLtExpr,
-			  ULtExpr,
-			  SLeExpr,
-			  ULeExpr,
-			  EqExpr,
-			  NEqExpr
-
-
-			  > ();
-      }
-    };
-    
-    
-    template <class T, bool is_bool>
-    inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo<TConstant<T, is_bool>>::type_t()),
-                                                     value(val) {
-    }
-
-    template <BinOps b>
-    inline BinaryExpression<b>::BinaryExpression(Value_ptr left, Value_ptr right) : Value(ValueInfo<BinaryExpression<b>>::type_t()),
-										    left(left),right(right) {
-    }
-
-    
+    #include "minimc/model/expr.inc"
     
   } // namespace Model
 } // namespace MiniMC

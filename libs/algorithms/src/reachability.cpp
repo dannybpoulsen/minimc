@@ -4,6 +4,7 @@
 #include "minimc/support/localisation.hpp"
 #include "minimc/storage/storage.hpp"
 #include <algorithm>
+#include <iostream>
 
 namespace MiniMC {
   namespace Algorithms {
@@ -100,7 +101,6 @@ namespace MiniMC {
 	insert(state);
 	while (*_internal->waiting) {
 	  auto searchee = _internal->waiting->pop ();
-	  
 	  if (goal(searchee)) {
 	    return Result {std::move(searchee),storage.size()};
 	  }

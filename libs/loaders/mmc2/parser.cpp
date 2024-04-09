@@ -262,8 +262,11 @@ namespace MiniMC {
       }
 
       MiniMC::Model::InstructionCode Parser::parseOpcode () {
-	if (get().type  != IDENTIFIER)
+	if (get().type  != IDENTIFIER) {
+	  std::cerr << get().type << std::endl; 
 	  return MiniMC::Model::InstructionCode::Assign;
+	  
+	}
 	Token tok;
 	expect (IDENTIFIER,&tok);
 	

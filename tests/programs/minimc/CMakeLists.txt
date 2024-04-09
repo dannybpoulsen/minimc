@@ -1,3 +1,5 @@
+add_subdirectory(arith)
+
 add_mmc_test("mmc" "array2")
 add_mmc_test("mmc" "array")
 add_mmc_test("mmc" "hh")

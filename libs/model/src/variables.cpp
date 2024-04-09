@@ -4,6 +4,7 @@
 #include "minimc/support/exceptions.hpp"
 
 #include <memory>
+#include <iostream>
 
 namespace MiniMC {
   namespace Model {
@@ -178,10 +179,11 @@ namespace MiniMC {
 				    [&out](const MiniMC::Model::AggregateConstant& aggr) {
 				      out = std::copy(aggr.getData().begin(), aggr.getData().end(), out);
 				    },
-				    []([[maybe_unused]]auto& l) {
+				    []([[maybe_unused]]const auto& l) {
+				      std::cerr << l << std::endl;
 				      throw MiniMC::Support::Exception("Unknown how to convert to aggregate");
 				    }
-				      },
+				  },
 				  *v);
       }
       

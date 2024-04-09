@@ -52,7 +52,7 @@ TEST_CASE("Frame") {
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  CHECK(MiniMC::Model::Checkers::TypeChecker{prgm}.Check (mess));
+  CHECK(MiniMC::Model::Checkers::TypeChecker{prgm,mess}.Check ());
   
 }
 

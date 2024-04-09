@@ -1,0 +1,40 @@
+# Globals
+    .registers
+# Functions
+## main
+  .registers
+    <main:tmp Int32>
+    <main:cmp Bool>
+  .parameters
+  .returns
+   Void
+  .cfa
+    BB0  {main:bb}
+    [
+      <main:tmp Int32> = Mul <0x2 Int32> <0x2 Int32>
+      <main:cmp Bool> = ICMP_EQ <main:tmp Int32> <0x4 Int32>
+      -> BB1
+    ]
+    BB1  {main:bb}
+    [
+	Assume <main:cmp Bool>
+	-> BB3
+	NegAssume <main:cmp Bool>
+	-> BB4
+     ]    
+    BB3 {main:bb3}
+    @AssertViolated
+    [
+    ]
+    BB4 {main:bb4}
+    [
+    RetVoid
+    -> BB5
+    ]
+    BB5 {main:bb5}
+    [
+    ]
+# Entrypoints
+  main
+# Heap
+0 : 200

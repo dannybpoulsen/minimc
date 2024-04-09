@@ -57,7 +57,7 @@ namespace MiniMC {
 	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolZExt> (args...);
 	    }
 	  }
-
+	  
 	  if constexpr (code == MiniMC::Model::InstructionCode::SExt) {
 	    if (instr.template  getAs<MiniMC::Model::InstructionCode::SExt> ().getOps ().op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
 	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolSExt> (args...);

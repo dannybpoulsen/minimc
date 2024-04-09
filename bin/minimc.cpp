@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.loader;
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
       
-      if (!MiniMC::Model::Checkers::TypeChecker{prgm}.Check (messager) ||
+      if (!MiniMC::Model::Checkers::TypeChecker{prgm,messager}.Check () ||
 	  !MiniMC::Model::Checkers::StructuralChecker{}.Check (prgm,messager)
 	  ) {
 	return -1;

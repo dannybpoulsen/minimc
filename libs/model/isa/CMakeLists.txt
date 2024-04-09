@@ -5,9 +5,11 @@ message (STATUS "${Python3_EXECUTABLE}")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/minimc/model")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc"
 	           OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc"
-    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py" "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc"  "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc"	     
+		   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc"
+    COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py" "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc"  "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc"	     
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa.py"
 )
 
 add_custom_target(generateISAHEADER ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc")
@@ -21,5 +23,6 @@ target_sources(modelisa
     BASE_DIRS ${CMAKE_CURRENT_BINARY_DIR}	
     FILES ${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc
 	  ${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc
+	  ${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc
 	  )	
 

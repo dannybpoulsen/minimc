@@ -2,6 +2,7 @@
 #define _VM_VMT__
 
 #include "minimc/hash/hashing.hpp"
+#include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/instructions.hpp"
@@ -10,6 +11,7 @@
 #include "minimc/support/overload.hpp"
 
 #include <type_traits>
+#include <iostream>
 
 namespace MiniMC {
   namespace Model {
@@ -319,7 +321,7 @@ namespace MiniMC {
       }
       
       template<class T>
-      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !std::is_same_v<T,MiniMC::Model::AddExpr>) {
+      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !MiniMC::Model::is_bin_arith<T>) {
 	return ops.create(t);
       }
       
@@ -332,6 +334,74 @@ namespace MiniMC {
 	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
 	  },l,r);
       }
+
+      Value operator() (const MiniMC::Model::SubExpr& sub) const  {
+	auto l = Eval (sub.getLeft ());
+	auto r = Eval (sub.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.Sub (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      Value operator() (const MiniMC::Model::MulExpr& mul) const  {
+	auto l = Eval (mul.getLeft ());
+	auto r = Eval (mul.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.Mul (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      Value operator() (const MiniMC::Model::UDivExpr& div) const  {
+	auto l = Eval (div.getLeft ());
+	auto r = Eval (div.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.UDiv (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      Value operator() (const MiniMC::Model::SDivExpr& div) const  {
+	auto l = Eval (div.getLeft ());
+	auto r = Eval (div.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.SDiv (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      Value operator() (const MiniMC::Model::ShlExpr& div) const  {
+	auto l = Eval (div.getLeft ());
+	auto r = Eval (div.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.LShl (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      Value operator() (const MiniMC::Model::AShrExpr& div) const  {
+	auto l = Eval (div.getLeft ());
+	auto r = Eval (div.getRight ());
+	return Value::visit (MiniMC::Support::Overload {
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
+	      return ops.AShr (ll,rr);},
+	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
+	  },l,r);
+      }
+
+      
+      
+      template<class T>
+      Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T>) {
+	throw MiniMC::Support::Exception ("Not Implemented");
+      }
+      
       
       Value operator() (const MiniMC::Model::Register& reg) const  {
 	return regstore.lookupRegister (reg);

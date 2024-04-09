@@ -39,7 +39,7 @@ namespace MiniMC {
       virtual std::ostream& to_string (std::ostream& os) const {
 	return os << item;
       }
-          private:
+    private:
       T item;
     };
 

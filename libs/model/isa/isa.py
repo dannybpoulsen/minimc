@@ -16,16 +16,20 @@ class Operand:
         return f"{self._name}{str}"
     
 class Instruction:
-    def __init__(self,name, operands = []):
+    def __init__(self,name, operands = [],assign = False):
         self._name = name
         self._operands = operands
-
+        self._assign = assign
+        
     def getName (self):
         return self._name
 
     def getOperands (self):
         return self._operands
 
+    def isAssignConvertible (self):
+        return self._assign
+    
     def __str__ (self):
         l = ",".join ([str(o) for o in self._operands])
         return f"{self._name} {l}"
@@ -55,6 +59,11 @@ class ISA:
         for i in self._groups:
             yield from i.getInstructions ()
 
+    def getInstructionsWithGroupName (self):
+        for i in self._groups:
+            yield from [(i.getName(),j) for j in i.getInstructions ()]
+    
+            
 def readISA (path):
     import yaml
     with open(path) as ff:
@@ -69,7 +78,8 @@ def readISA (path):
                     name = p["name"]
                     mname = name.replace("*","")
                     ops.append (Operand(mname,"*" in name))
-                instr.append (Instruction (opcode,ops))
+                assign_convertible = data.get("assign_convertible",False)
+                instr.append (Instruction (opcode,ops,assign_convertible))
             groups.append (InstructionGroup (gname,instr))
         return ISA(groups)
     
