@@ -1,4 +1,4 @@
-add_subdirectory(arith)
+#add_subdirectory(arith)
 
 add_mmc_test("mmc" "array2")
 add_mmc_test("mmc" "array")

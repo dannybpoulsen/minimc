@@ -1,0 +1,125 @@
+#include <utility>
+enum class InstructionCode {	
+     {%for i in ISA.getInstructions () %}{{i.getName ()}}{%if not loop.last %},{%endif%}    
+{% endfor %}
+};
+
+using ReplaceFunction = std::function<MiniMC::Model::Value_ptr(const MiniMC::Model::Value_ptr&)>;
+    
+
+template<InstructionCode>
+struct InstructionData {};
+
+ {%for group in ISA.getGroups () %}
+       {%for i in group.getInstructions () %}
+       	     template<>
+       	      struct InstructionData<MiniMC::Model::InstructionCode::{{i.getName ()}}> {
+	     	    {%for group2 in ISA.getGroups () %}
+		    	  static constexpr bool is{{group2.getName ()}} = {%if group.getName () == group2.getName () %} true {%else %} false {%endif%}; 
+		    {%endfor %}
+		    {% if i.getOperands()|length > 0 %}
+		    struct Content {
+		    	   Content ({%for o in i.getOperands () %} {%if not o.isMultiParam () %} MiniMC::Model::Value_ptr {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}} {%if not loop.last %},{%endif%} {%endfor%})
+			   	   : {%for o in i.getOperands () %} {{o.getName ()}}(std::move({{o.getName()}})) {%if not loop.last%},{%endif%}  {%endfor%} {}
+			   {%for o in i.getOperands () %} {%if not o.isMultiParam () %} MiniMC::Model::Value_ptr {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}};
+			   {%endfor%}
+
+			   Content (const Content& oth,ReplaceFunction replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}}(replacer(oth.{{o.getName()}})) {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
+			   {%for o in i.getOperands () %} {%if o.isMultiParam () %}
+			   	 std::for_each (oth.{{o.getName ()}}.begin(),oth.{{o.getName ()}}.end(),[&replacer,this](auto& v) { {{o.getName()}}.push_back (replacer(v));}); 
+			   {%endif%}
+			   {%endfor%}
+			   }
+
+			   template<class Adder>
+			   void getUsages (Adder add) const {
+ 			     {%for o in i.getOperands () %}
+			     {%if o.getName () != "res" %}
+			     	  {%if o.isMultiParam () %}
+				       std::for_each ({{o.getName()}}.begin(),{{o.getName()}}.end(),[&add](auto& v) {add = v;});
+				  {%else%}
+					add = {{o.getName ()}};
+				{%endif%}
+		             {%endif %}
+			     {%endfor %}
+			   }                	    
+
+
+	            };
+		    {%endif%}
+	     };
+       {%endfor %}
+ {%endfor %}
+ 
+
+ template<InstructionCode opc>
+    concept hasOperands =  requires  {
+      typename InstructionData<opc>::Content;
+    };
+
+ template<InstructionCode opc>
+     concept hasRes =  requires (const typename InstructionData<opc>::Content& c) {
+      c.res;
+    };
+    
+
+template<InstructionCode>
+    struct TInstruction;
+    
+    template<InstructionCode opc> requires hasOperands<opc>
+    struct TInstruction<opc> {
+      TInstruction (typename InstructionData<opc>::Content content ) :  content(content) {}
+      auto& getOps () const {return content;}
+      static consteval auto getOpcode () {return opc;}
+      Value_ptr getDefines () const requires hasRes<opc> {return content.res;} 
+      template<class Adder>
+      void getUsages (Adder add) const {content.getUsages (add);}
+      static constexpr bool hasOperands () {return true;}
+      static constexpr bool hasResult () requires hasRes<opc> {
+        return true;
+      }
+      static constexpr bool hasResult () requires (!hasRes<opc>) {
+        return false;
+      }
+    
+    private:
+      typename InstructionData<opc>::Content content;
+    };
+    
+    template<InstructionCode opc> requires (!hasOperands<opc>)
+    struct TInstruction<opc> {
+      TInstruction ()  {}
+      static constexpr auto getOpcode () {return opc;}
+      static constexpr bool hasOperands () {return false;}
+      static constexpr bool hasRes () {return false;}
+    };
+
+    using Instruction_internal = std::variant<
+    {%for i in ISA.getInstructions() %} TInstruction<InstructionCode::{{i.getName()}}> {%if not loop.last %},{%endif%}
+    {%endfor%}
+    >;
+
+    inline std::ostream& operator<< (std::ostream& os, InstructionCode oc) {
+    	   switch (oc) {
+	  	  {%for i in ISA.getInstructions() %} case InstructionCode::{{i.getName()}}:return os << "{{i.getName()}}";
+		  {%endfor%}	   
+	   	  default:
+		  std::unreachable();
+	   }
+   }
+
+    const std::unordered_map<std::string,MiniMC::Model::InstructionCode> str2opcode = {
+    	  {%for i in ISA.getInstructions() %} { "{{i.getName()}}",  MiniMC::Model::InstructionCode::{{i.getName()}} } {%if not loop.last %},{%endif%}
+	  {% endfor %}
+	  };
+
+
+    inline bool isCast (InstructionCode oc) {
+    	   switch (oc) {
+	   {%for i in ISA.getInstructions() %} case InstructionCode::{{i.getName()}}: return InstructionData<InstructionCode::{{i.getName ()}}>::isCast;
+	   {%endfor%}
+	   default:
+	   std::unreachable ();
+	   
+	   }
+    }

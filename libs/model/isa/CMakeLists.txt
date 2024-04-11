@@ -10,7 +10,11 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py"
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa.py"
-)
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/expr_inc.jinja"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_inc.jinja"
+	DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_constructors_inc.jinja"
+	
+    )
 
 add_custom_target(generateISAHEADER ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc")
 

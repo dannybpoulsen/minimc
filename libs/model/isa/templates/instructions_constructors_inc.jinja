@@ -1,0 +1,58 @@
+{% macro reg_instruction(i) %}
+    case MiniMC::Model::InstructionCode::{{i.getName ()}}: {
+    	 return Instruction::make<MiniMC::Model::InstructionCode::{{i.getName()}} >(
+    	 {%for o in i.getOperands () %}
+	       {%if o.isMultiParam () %}
+	       std::vector<MiniMC::Model::Value_ptr> {values.begin()+{{loop.index0 }},values.end()}
+	       {%else %}
+	       values.at ({{loop.index0}})
+	       {%endif %}
+	       {%if not loop.last %}, {%endif%} 
+	 {%endfor %}
+	 );
+    }
+{% endmacro %}
+
+
+{% macro reg_instructions(instructions) %}
+{%for i in instructions %}
+    {{reg_instruction(i)}}
+{% endfor %}
+{% endmacro %}
+
+
+{% macro bin_ass_convertible_instruction(i) %}
+    case MiniMC::Model::InstructionCode::{{i.getName ()}}: {
+    	 MiniMC::Model::Value_ptr op = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (values.at(1),values.at(2));
+	   return makeInstruction (MiniMC::Model::InstructionCode::Assign,{values.at(0),op});
+	 }
+
+{% endmacro %}
+
+
+{% macro bin_instructions(instructions) %}
+{% for i in instructions %}
+       	 {%if i.isAssignConvertible () %}
+	 {{bin_ass_convertible_instruction(i)}}
+	 {%else %}
+	 {{reg_instruction(i)}}	 
+ 	 {%endif%}   	 
+{% endfor %}
+{% endmacro %}
+
+
+
+
+Instruction makeInstruction (InstructionCode code,std::vector<MiniMC::Model::Value_ptr> values) {
+	    switch (code) {
+	    {%for g in ISA.getGroups () %}
+	    {%if g.getName () == "TAC" %}
+	    {{bin_instructions (g.getInstructions ()) }}
+	    {%else %}
+	    {{reg_instructions(g.getInstructions())}}	    
+	    {%endif%}
+	    {%endfor%}
+	    default:
+	    std::unreachable();
+	    }
+}
