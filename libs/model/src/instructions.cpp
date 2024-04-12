@@ -16,9 +16,6 @@ namespace MiniMC {
 	  return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op2;   
 	}
 	
-	else if constexpr (InstructionData<i>::isPredicate) {
-	  return os << i << " " << *content.op1 << " " << *content.op2;
-	}
 	
 	else if constexpr (InstructionData<i>::isUnary) {
 	  return os << *content.res << " = " << i << " " << *content.op1;

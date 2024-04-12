@@ -131,10 +131,10 @@ enum class BinOps {
       {% endfor %}
     ;
     {%endif%}
-    {%if bin_ops|length > 0 %}  
+    {%if cmp_ops|length > 0 %}  
     template<class A>
-    constexpr bool is_bin_cmp = false ||
-      {% for N in bin_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+    constexpr bool is_bin_cmp = 
+      {% for N in cmp_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     
     ;

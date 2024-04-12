@@ -173,7 +173,7 @@ TEST_CASE("AShr") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
-  auto prgm = loadProgram (*loadRegistrar,"AShr.mmc"); 
+  auto prgm = loadProgram (*loadRegistrar,"Ashr.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
   analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
@@ -189,6 +189,134 @@ TEST_CASE("AShr") {
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
 }
+
+TEST_CASE("LShr") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"LShr.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("And") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"And.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("Or") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"Or.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("XOr") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"Xor.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("SGt") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"SGt.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+TEST_CASE("UGt") {
+  MiniMC::Support::Messager mess;
+  //Arrange
+  auto loadRegistrar = makeLoader ();
+  auto prgm = loadProgram (*loadRegistrar,"UGt.mmc"); 
+  
+  MiniMC::CPA::AnalysisBuilder analysis_builder;
+  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  auto initialState = analysis_builder.makeInitialState({
+      prgm.getEntryPoints (),
+      prgm.getHeapLayout (),
+      prgm});
+
+  //ACT 
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
+  auto res = reachabilityChecker.search (mess,initialState,goal);
+
+  //Assert 
+  CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
+}
+
+
 
 
 

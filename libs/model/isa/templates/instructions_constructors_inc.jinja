@@ -46,7 +46,7 @@
 Instruction makeInstruction (InstructionCode code,std::vector<MiniMC::Model::Value_ptr> values) {
 	    switch (code) {
 	    {%for g in ISA.getGroups () %}
-	    {%if g.getName () == "TAC" %}
+	    {%if g.getName () == "TAC" or g.getName () == "Comparison"%}
 	    {{bin_instructions (g.getInstructions ()) }}
 	    {%else %}
 	    {{reg_instructions(g.getInstructions())}}	    

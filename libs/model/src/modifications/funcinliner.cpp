@@ -47,7 +47,7 @@ namespace MiniMC {
 		newCall (ne);
 	      },
 	      [&ne,newCall,&edge,&cfunc,&ne_from,&ninstr](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::RetVoid>&) {
-		ninstr.last() = Instruction::make<InstructionCode::Skip> (0);
+		ninstr.last() = Instruction::make<InstructionCode::Skip> ();
 		cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 		cfunc->getCFA().deleteEdge (ne.get());		
 	      },

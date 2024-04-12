@@ -141,6 +141,23 @@ namespace MiniMC {
 	return res;
 	  
       }
+
+      template<class T>
+      MiniMC::Model::Type_ptr  TypeChecker::operator() (T& expr) const requires is_bin_cmp<T> {
+	auto lty = CheckType(expr.getLeft());
+	auto rty = CheckType(expr.getRight());
+	MiniMC::Model::Type_ptr res = nullptr;;
+	if (lty == rty) {
+	  res = prgm.getTypeFactory().makeBoolType ();
+	}
+	else {
+	  messager << MustBeSameTypeExpr{expr.getLeft(),expr.getRight()}
+	  ;
+	}
+	expr.setType (res);
+	return res;
+	  
+      }
 	
       
       
@@ -159,16 +176,7 @@ namespace MiniMC {
             return false;
           }
           return true;
-        } else if constexpr (InstructionData<i>::isPredicate) {
-	  auto& content = tinst.getOps ();
-	  auto lType = CheckType(*content.op1);
-          auto rType = CheckType(*content.op2);
-          if (lType != rType) {
-            messager << MustBeSameType {inst,content.op1,content.op2};
-            return false;
-          }
-          return true;
-        }
+        } 
 
         else if constexpr (InstructionData<i>::isUnary) {
 	  auto& content = tinst.getOps ();

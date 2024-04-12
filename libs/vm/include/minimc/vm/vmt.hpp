@@ -321,91 +321,63 @@ namespace MiniMC {
       }
       
       template<class T>
-      Value operator() (const T& t) const requires (!std::is_same_v<T,MiniMC::Model::Register> && !MiniMC::Model::is_bin_arith<T>) {
+      Value operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
 	return ops.create(t);
       }
+
+      Value operator() (const MiniMC::Model::Register& reg) const  {
+	return regstore.lookupRegister (reg);
+      }
       
-      Value operator() (const MiniMC::Model::AddExpr& add) const  {
-	auto l = Eval (add.getLeft ());
-	auto r = Eval (add.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.Add (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::SubExpr& sub) const  {
-	auto l = Eval (sub.getLeft ());
-	auto r = Eval (sub.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.Sub (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::MulExpr& mul) const  {
-	auto l = Eval (mul.getLeft ());
-	auto r = Eval (mul.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.Mul (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::UDivExpr& div) const  {
-	auto l = Eval (div.getLeft ());
-	auto r = Eval (div.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.UDiv (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::SDivExpr& div) const  {
-	auto l = Eval (div.getLeft ());
-	auto r = Eval (div.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.SDiv (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::ShlExpr& div) const  {
-	auto l = Eval (div.getLeft ());
-	auto r = Eval (div.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.LShl (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
-      Value operator() (const MiniMC::Model::AShrExpr& div) const  {
-	auto l = Eval (div.getLeft ());
-	auto r = Eval (div.getRight ());
-	return Value::visit (MiniMC::Support::Overload {
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  {
-	      return ops.AShr (ll,rr);},
-	    [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");}
-	  },l,r);
-      }
-
+#define OPSI					\
+      X(AddExpr,Add)				\
+      X(SubExpr,Sub)				\
+      X(MulExpr, Mul)				\
+      X(UDivExpr, UDiv)				\
+      X(SDivExpr, SDiv)				\
+      X(ShlExpr, LShl)				\
+      X(AShrExpr, AShr)				\
+      X(LShrExpr, LShr)				\
+      X(AndExpr, And)				\
+      X(OrExpr, Or)				\
+      X(XorExpr, Xor)				\
+      X(ICMP_SGTExpr, SGt)			\
+      X(ICMP_UGTExpr, UGt)			\
+      X(ICMP_SGEExpr, SGe)			\
+      X(ICMP_UGEExpr, UGe)			\
+      X(ICMP_SLTExpr, SLt)			\
+      X(ICMP_ULTExpr, ULt)			\
+      X(ICMP_SLEExpr, SLe)			\
+      X(ICMP_ULEExpr, ULe)			\
+      X(ICMP_EQExpr, Eq)			\
+      X(ICMP_NEQExpr, NEq)			\
       
+      
+#define X(CC,op)							\
+      Value operator() (const MiniMC::Model::CC& cc) const  {		\
+	auto l = Eval (cc.getLeft ());					\
+	auto r = Eval (cc.getRight ());					\
+	return Value::visit (MiniMC::Support::Overload {		\
+	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
+	      return ops.op (ll,rr);},					\
+	      [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
+	      },l,r);							\
+      }									
+      OPSI
+#undef X
+#undef OPSI
+     
+      
+      
+      
+            
       
       template<class T>
-      Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T>) {
+      Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {
 	throw MiniMC::Support::Exception ("Not Implemented");
       }
       
       
-      Value operator() (const MiniMC::Model::Register& reg) const  {
-	return regstore.lookupRegister (reg);
-      }
       
       
     private:

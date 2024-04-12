@@ -36,6 +36,9 @@ namespace MiniMC {
 
 	template<class T>
 	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_bin_arith<T>;
+
+	template<class T>
+	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_bin_cmp<T>;
 	
       private:
 	template<class Inst>

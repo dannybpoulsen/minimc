@@ -96,27 +96,6 @@ namespace MiniMC {
         return SMTLib::Ops::Equal;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_NEQ) {
         return SMTLib::Ops::NotEqual;
-      }
-      if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_SGT) {
-        return SMTLib::Ops::BVSGt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_UGT) {
-        return SMTLib::Ops::BVUGt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_SGE) {
-        return SMTLib::Ops::BVSGEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_UGE) {
-        return SMTLib::Ops::BVUGEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_SLT) {
-        return SMTLib::Ops::BVSLt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_ULT) {
-        return SMTLib::Ops::BVULt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_SLE) {
-        return SMTLib::Ops::BVSLEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_ULE) {
-        return SMTLib::Ops::BVULEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_EQ) {
-        return SMTLib::Ops::Equal;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::PRED_ICMP_NEQ) {
-        return SMTLib::Ops::NotEqual;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::Add) {
         return SMTLib::Ops::BVAdd;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::Sub) {
