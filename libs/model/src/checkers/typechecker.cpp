@@ -164,7 +164,7 @@ namespace MiniMC {
       template <class Inst>
       bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
 	constexpr auto i = tinst.getOpcode ();
-	if constexpr (InstructionData<i>::isTAC ||  i  == MiniMC::Model::InstructionCode::PtrEq) {
+	if constexpr (InstructionData<i>::isTAC ) {
 	  auto& content = tinst.getOps ();
 	  auto resType = CheckType(*content.res);
           auto lType = CheckType(*content.op1);
@@ -189,12 +189,23 @@ namespace MiniMC {
             }
             return true;
           }
+	  if constexpr (i == MiniMC::Model::InstructionCode::LogNot) {
+            auto resType = CheckType(*content.res);
+            auto lType = CheckType(*content.op1);
+            if (resType != lType) {
+              messager << MustBeSameType {inst,content.res,content.op1};
+              return false;
+            }
+	    if (resType->getTypeID () != MiniMC::Model::TypeID::Bool) {
+	      messager << MustBeGivenTypeID (inst,content.res,MiniMC::Model::TypeID::Bool);
+	      return false;
+	    }
+            return true;
+          }
         }
 
         else if constexpr (InstructionData<i>::isComparison) {
 	  auto& content = tinst.getOps ();
-	  MiniMC::Support::Localiser res_must_be_bool("The result of '%1% must be boolean.");
-	  MiniMC::Support::Localiser  must_be_integers("Comparisons must be integers");
 	  
 	  
           auto resType = content.res->getType();

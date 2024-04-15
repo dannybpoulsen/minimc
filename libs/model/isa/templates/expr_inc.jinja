@@ -42,7 +42,44 @@ enum class BinOps {
       Value_ptr left;
       Value_ptr right;
     };
+
+    enum class UnaryOps {
+     {% for N in all_unary_ops %}{{N}} {% if not loop.alast %}, {%endif %}
+     {% endfor %}
+    };
+
+    template<UnaryOps>
+    struct UnaryOpsDetails {};
+
+     {% for N in all_unary_ops %}
+     template<> struct UnaryOpsDetails<UnaryOps::{{N}}> {
+      		static consteval auto text () {return "{{N}}";}
+     }; 
+     {% endfor %}
     
+    template<UnaryOps op>
+    class UnaryExpression : public Value{
+    public:
+      UnaryExpression (Value_ptr l);
+
+      auto& getInner () {
+        return *left;
+      }
+
+	
+     const auto& getLeft () const{
+	return *left;
+      }
+
+      
+      std::ostream& output(std::ostream& os) const override {
+	return os << "(" <<UnaryOpsDetails<op>::text()   << *left << ")";
+      }
+      
+    private:
+      Value_ptr left;
+    };
+
     using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
     using I16Integer = TConstant<MiniMC::BV16>;
@@ -55,7 +92,10 @@ enum class BinOps {
     	  
    {% for N in all_bin_ops %}using {{N}}Expr = BinaryExpression<BinOps::{{N}}>;
    {% endfor %}
-    
+
+   {% for N in all_unary_ops %}using {{N}}Expr = UnaryExpression<UnaryOps::{{N}}>;
+   {% endfor %}
+   
     
     template<type_id_t i , class T, class F, class... Args>
     constexpr auto  auto_index ()  {
@@ -92,9 +132,9 @@ enum class BinOps {
 			  Register,
 			  Undef,
 			  SymbolicConstant,
-			  {% for N in all_bin_ops %}{{N}}Expr{% if not loop.last %},{%endif%}
+			  {% for N in all_bin_ops+all_unary_ops %}{{N}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
-
+			  
 			  > ();
       }
     };
@@ -108,6 +148,11 @@ enum class BinOps {
     template <BinOps b>
     inline BinaryExpression<b>::BinaryExpression(Value_ptr left, Value_ptr right) : Value(ValueInfo<BinaryExpression<b>>::type_t()),
 										    left(left),right(right) {
+    }
+
+    template <UnaryOps b>
+    inline UnaryExpression<b>::UnaryExpression(Value_ptr left) : Value(ValueInfo<UnaryExpression<b>>::type_t()),
+										    left(left) {
     }
 
     template<class A>
@@ -138,6 +183,14 @@ enum class BinOps {
       {% endfor %}
     
     ;
+
+    template<class A>
+    constexpr bool is_unary = 
+      {% for N in all_unary_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+      {% endfor %}
+    
+    ;
+
     {%endif %}
     
     template<class... Ts> struct Overload : Ts... {

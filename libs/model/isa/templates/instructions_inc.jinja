@@ -1,4 +1,5 @@
 #include <utility>
+#include <tuple>
 enum class InstructionCode {	
      {%for i in ISA.getInstructions () %}{{i.getName ()}}{%if not loop.last %},{%endif%}    
 {% endfor %}
@@ -164,19 +165,50 @@ template<InstructionCode>
       
       //Copy Consructor with Replacement :-)
       Instruction (const Instruction&, ReplaceFunction);
-      
+
+
+{% macro reg_instruction(i) %}
+    return make<op> (typename InstructionData<op>::Content{std::forward<Args>(args)...});	     
+{% endmacro %}
+
+{% macro bin_instruction(i) %}
+   {%if i.isAssignConvertible () %} 
+   	auto tup = std::make_tuple (args...);
+    	auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (std::get<1>(tup),std::get<2> (tup));
+    	return make<InstructionCode::Assign> (std::get<0>(tup),expr);	     
+    {%else %}
+    	{{reg_instruction (i) }}
+    {%endif%}
+{% endmacro %}
+
+{% macro unary_instruction(i) %}
+    {%if i.isAssignConvertible () %}
+    auto tup = std::make_tuple (args...);
+    auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (std::get<1>(tup));
+    return make<InstructionCode::Assign> (std::get<0>(tup),expr);	     
+    {%else %}
+    {{reg_instruction(i)}}
+    {%endif %}
+{% endmacro %}
+
       
       template<InstructionCode op,class... Args>
       static Instruction make (Args... args) {
-      	  {% for i in ISA.getInstructions () %}
+      	  {% for g in ISA.getGroups () %}
+      	  {% for i in g.getInstructions () %}
           if constexpr (op == InstructionCode::{{i.getName ()}}) {
-	     {%if i.getOperands ()| length > 0 %}
-	     return make<op> (typename InstructionData<op>::Content{std::forward<Args>(args)...});
+	     {%if g.getName () == "TAC"  or g.getName () == "Comparison"  %}
+	     {{bin_instruction(i) }}
+	     {%elif g.getName () == "Unary"  %}
+	     {{unary_instruction (i)}}
+	     {%elif i.getOperands ()| length > 0  %}
+	     {{reg_instruction(i) }}
 	     {%else%}
 	     return Instruction_internal{TInstruction<op>()};
 	     {%endif%}
 	  }
     	  {% endfor %}
+	  {%endfor %}
     
       }     
         

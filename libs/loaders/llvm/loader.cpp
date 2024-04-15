@@ -341,7 +341,7 @@ namespace MiniMC {
                   auto btype = load.getTypeFactory().makeBoolType();
                   auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
 
-                  MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::PtrEq>(cond,
+                  MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::ICMP_EQ>(cond,
 		      value,
 		      valComp)
 		    .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
@@ -376,7 +376,7 @@ namespace MiniMC {
         llvm::FunctionAnalysisManager fam;
         llvm::CGSCCAnalysisManager cgam;
         llvm::ModuleAnalysisManager mam;
-
+	
         llvm::LoopPassManager loopmanager;
         llvm::FunctionPassManager funcmanagerllvm;
         llvm::FunctionPassManager funcmanager;

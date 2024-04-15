@@ -12,6 +12,7 @@
 
 #include <type_traits>
 #include <iostream>
+#include <utility>
 
 namespace MiniMC {
   namespace Model {
@@ -227,7 +228,7 @@ namespace MiniMC {
       {op.template BoolSExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
       {op.template BoolSExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
       {op.template BoolSExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
-
+      {op.template BoolNegate (b)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I8> (i8)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I16> (i16)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I32> (i32)} -> std::convertible_to<Bool>;
@@ -319,6 +320,18 @@ namespace MiniMC {
       Value Eval (const MiniMC::Model::Value& v)  const {
 	return MiniMC::Model::visitValue<Value>(*this,v);
       }
+
+      template <class Castee>
+      auto castPtrToAppropriateInteger(Castee&& v) const   {
+        if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
+          return ops.template PtrToInt<typename Value::I64>(v);
+        } else if constexpr (std::is_same_v<Castee, typename Value::Pointer32>) {
+          return ops.template Ptr32ToInt<typename Value::I32>(v);
+        } else {
+          return v;
+        }
+      }
+
       
       template<class T>
       Value operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
@@ -341,6 +354,22 @@ namespace MiniMC {
       X(AndExpr, And)				\
       X(OrExpr, Or)				\
       X(XorExpr, Xor)				\
+      
+#define X(CC,op)							\
+      Value operator() (const MiniMC::Model::CC& cc) const  {		\
+      auto l = Eval (cc.getLeft ());					\
+      auto r = Eval (cc.getRight ());					\
+      return Value::visit (MiniMC::Support::Overload {			\
+      [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
+	return ops.op (ll,rr);},					\
+      [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
+    },l,r);								\
+}									
+      OPSI
+#undef X
+#undef OPSI
+
+#define OPSI					\
       X(ICMP_SGTExpr, SGt)			\
       X(ICMP_UGTExpr, UGt)			\
       X(ICMP_SGEExpr, SGe)			\
@@ -351,8 +380,7 @@ namespace MiniMC {
       X(ICMP_ULEExpr, ULe)			\
       X(ICMP_EQExpr, Eq)			\
       X(ICMP_NEQExpr, NEq)			\
-      
-      
+
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
 	auto l = Eval (cc.getLeft ());					\
@@ -360,16 +388,34 @@ namespace MiniMC {
 	return Value::visit (MiniMC::Support::Overload {		\
 	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
 	      return ops.op (ll,rr);},					\
+	      [this]<typename T> (T& ll, T& rr) -> Value requires Pointer<Value,T>  { \
+		return ops.op (castPtrToAppropriateInteger<T>(std::forward<T>(ll)),castPtrToAppropriateInteger<T>(std::forward<T>(rr)));}, \
 	      [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
 	      },l,r);							\
       }									
       OPSI
 #undef X
-#undef OPSI
-     
+#undef OPSI     
       
       
+#define OPSI								\
+      X(LogNotExpr, BoolNegate)						
+
+#define X(CC,op)							\
+      Value operator() (const MiniMC::Model::CC& cc) const  {		\
+	auto l = Eval (cc.getInner ());					\
+	return Value::visit (MiniMC::Support::Overload {		\
+	  [this] (typename Value::Bool& l) -> Value    {		\
+	    return ops.op (ll,rr);					\
+	  },								\
+	  [](auto&) -> Value {throw MiniMC::Support::Exception ("Error");} \
+	    },l								\
+	  );								\
+      }									\
+									
       
+#undef X
+#undef OPSI   
             
       
       template<class T>

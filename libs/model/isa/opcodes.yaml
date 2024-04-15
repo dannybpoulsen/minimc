@@ -152,8 +152,17 @@ Unary:
       - name: op1
         type: t1
     types:
-      t1: Integer      
-
+      t1: Integer
+  lnot:
+    opcode: LogNot
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+    types:
+      t1: Bool    
+    assign_convertible: True
 Comparison:
   isgt:
     opcode: ICMP_SGT
@@ -295,19 +304,6 @@ Comparison:
     types:
       t1: Bool
       t2: Integer
-    assign_convertible: True
-  ptreq:
-    opcode: PtrEq
-    params:
-      - name: res
-        type: t1
-      - name: op1
-        type: t2
-      - name: op2
-        type: t2
-    types:
-      t1: Bool
-      t2: Pointer
     assign_convertible: True
 
 Pointer:

@@ -12,7 +12,7 @@ namespace MiniMC {
       else {
 	
 	auto& content = inst.getOps  ();
-	if constexpr (InstructionData<i>::isTAC || InstructionData<i>::isComparison || i == MiniMC::Model::InstructionCode::PtrEq) {
+	if constexpr (InstructionData<i>::isTAC || InstructionData<i>::isComparison ) {
 	  return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op2;   
 	}
 	

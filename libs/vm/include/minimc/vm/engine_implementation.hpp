@@ -185,12 +185,7 @@ namespace MiniMC {
 			   eval.Eval(*content.skipsize),
 			   eval.Eval(*content.nbSkips)
 										    ); 
-        } else if constexpr (op == MiniMC::Model::InstructionCode::PtrEq) {
-          auto lval = T::visit (addrConverter,eval.Eval(*content.op1));
-          auto rval = T::visit (addrConverter,eval.Eval(*content.op2));
-          state.getValueLookup().saveValue(res, operations.PtrEq(lval, rval));
-          return Status::Ok;
-        }
+        } 
         throw NotImplemented<op>();
       }
       
