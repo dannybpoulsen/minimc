@@ -46,6 +46,23 @@ namespace MiniMC {
 	std::string message;
 	
       };
+
+      class MustBeBoolExpr : public ExprTypeError{
+      public:
+	MustBeBoolExpr (const MiniMC::Model::Value& l1 )  {
+	  message = MiniMC::Support::Localiser {"'%1%' must be bool."}.format(l1);
+	
+	}
+	
+	virtual std::ostream& to_string (std::ostream& os) const {
+	  return os << message;
+	}
+	
+      private:
+	std::string message;
+	
+      };
+      
       
       
       class MustBeSameType : public InstrTypeError{
@@ -158,29 +175,30 @@ namespace MiniMC {
 	return res;
 	  
       }
+
+      MiniMC::Model::Type_ptr  TypeChecker::operator() (MiniMC::Model::LogNotExpr& expr) const  {
+	auto lty = CheckType(expr.getInner());
+	
+	MiniMC::Model::Type_ptr res = nullptr;;
+	if (lty->getTypeID () == MiniMC::Model::TypeID::Bool ) {
+	  res = prgm.getTypeFactory().makeBoolType ();
+	}
+	else {
+	  messager << MustBeBoolExpr{expr.getInner()};
+	}
+	expr.setType (res);
+	return res;
+	  
+      }
 	
       
       
       template <class Inst>
       bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
-	constexpr auto i = tinst.getOpcode ();
-	if constexpr (InstructionData<i>::isTAC ) {
+	constexpr auto i = tinst.getOpcode (); 
+        if constexpr (isUnary_v<Inst>) {
 	  auto& content = tinst.getOps ();
-	  auto resType = CheckType(*content.res);
-          auto lType = CheckType(*content.op1);
-          auto rType = CheckType(*content.op2);
-          if (resType != lType ||
-              lType != rType ||
-              rType != resType) {
-            messager << MustBeSameType {inst,content.op1,content.op2};
-            return false;
-          }
-          return true;
-        } 
-
-        else if constexpr (InstructionData<i>::isUnary) {
-	  auto& content = tinst.getOps ();
-	  if constexpr (i == MiniMC::Model::InstructionCode::Not) {
+	  if constexpr (i == MiniMC::Model::VMInstructionCode::Not) {
             auto resType = CheckType(*content.res);
             auto lType = CheckType(*content.op1);
             if (resType != lType) {
@@ -189,42 +207,9 @@ namespace MiniMC {
             }
             return true;
           }
-	  if constexpr (i == MiniMC::Model::InstructionCode::LogNot) {
-            auto resType = CheckType(*content.res);
-            auto lType = CheckType(*content.op1);
-            if (resType != lType) {
-              messager << MustBeSameType {inst,content.res,content.op1};
-              return false;
-            }
-	    if (resType->getTypeID () != MiniMC::Model::TypeID::Bool) {
-	      messager << MustBeGivenTypeID (inst,content.res,MiniMC::Model::TypeID::Bool);
-	      return false;
-	    }
-            return true;
-          }
         }
 
-        else if constexpr (InstructionData<i>::isComparison) {
-	  auto& content = tinst.getOps ();
-	  
-	  
-          auto resType = content.res->getType();
-          auto lType = CheckType(*content.op1);
-          auto rType = CheckType(*content.op2);
-          if (lType != rType) {
-            messager << MustBeSameType {inst,content.op1,content.op2};
-            return false;
-          }
-	  
-	  else if (resType->getTypeID() != MiniMC::Model::TypeID::Bool) {
-            messager << MustBeGivenTypeID (inst,content.res,MiniMC::Model::TypeID::Bool);
-            return false;
-          }
-
-          return true;
-        }
-
-        else if constexpr (i == InstructionCode::Trunc) {
+        else if constexpr (i == VMInstructionCode::Trunc) {
 	  auto& content = tinst.getOps ();
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -245,7 +230,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::IntToBool) {
+        else if constexpr (i == VMInstructionCode::IntToBool) {
 	  auto& content = tinst.getOps ();
 	  auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -263,8 +248,8 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::SExt ||
-                           i == InstructionCode::ZExt) {
+        else if constexpr (i == VMInstructionCode::SExt ||
+                           i == VMInstructionCode::ZExt) {
 	  auto& content = tinst.getOps ();
 	  auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -284,8 +269,8 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::BoolSExt ||
-                           i == InstructionCode::BoolZExt) {
+        else if constexpr (i == VMInstructionCode::BoolSExt ||
+                           i == VMInstructionCode::BoolZExt) {
 	  auto& content = tinst.getOps ();
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied from boolean types to  integer types. ");
           MiniMC::Support::Localiser must_be_smaller("From type must be smaller that to type for '%1%'");
@@ -306,11 +291,8 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::IntToPtr) {
+        else if constexpr (i == VMInstructionCode::IntToPtr) {
 	  auto& content = tinst.getOps ();
-	  MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied to integer types. ");
-          MiniMC::Support::Localiser must_be_pointer("Return type has to be pointer for '%1%'");
-
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
 
@@ -328,13 +310,7 @@ namespace MiniMC {
 
         }
 	
-        else if constexpr (i == InstructionCode::PtrAdd ||i == InstructionCode::PtrSub ) {
-          MiniMC::Support::Localiser must_be_integer("'%2%' has to be an integer for '%1%'. ");
-          MiniMC::Support::Localiser must_be_same_type("'value and skipeSize must be same type '%1%'. ");
-
-          MiniMC::Support::Localiser must_be_pointer("Return type has to be pointer for '%1%'");
-          MiniMC::Support::Localiser base_must_be_pointer("Base  has to be pointer for '%1%'");
-	  
+        else if constexpr (i == VMInstructionCode::PtrAdd ||i == VMInstructionCode::PtrSub ) {
 	  auto& content = tinst.getOps ();
           auto ptr = CheckType(*content.ptr);
           auto skip = CheckType(*content.skipsize);
@@ -379,7 +355,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::PtrToInt) {
+        else if constexpr (i == VMInstructionCode::PtrToInt) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only be applied to pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Return type has to be integer for '%1%'");
 
@@ -401,7 +377,7 @@ namespace MiniMC {
           return true;
         }
         
-        else if constexpr (i == InstructionCode::Store) {
+        else if constexpr (i == VMInstructionCode::Store) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
 
 	  auto& content = tinst.getOps ();
@@ -417,7 +393,7 @@ namespace MiniMC {
         }
 	
 	
-        else if constexpr (i == InstructionCode::Load) {
+        else if constexpr (i == VMInstructionCode::Load) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only load from pointer types. ");
           MiniMC::Support::Localiser must_be_integer_or_pointer("'%1%' can only load integers or pointers ");
 
@@ -444,16 +420,16 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::Skip) {
+        else if constexpr (i == VMInstructionCode::Skip) {
           return true;
         }
 
 	
-        else if constexpr (i == InstructionCode::Skip) {
+        else if constexpr (i == VMInstructionCode::Skip) {
           return true;
         }
 	
-        else if constexpr (i == InstructionCode::Call) {
+        else if constexpr (i == VMInstructionCode::Call) {
 	  MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
 	  MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
 	  auto& content = tinst.getOps ();
@@ -529,7 +505,7 @@ namespace MiniMC {
 	return true;
 	}
 
-        else if constexpr (i == InstructionCode::Assign) {
+        else if constexpr (i == VMInstructionCode::Assign) {
 	  auto& content = tinst.getOps ();
 	  auto valT = CheckType(*content.op1);
           auto resT = CheckType(*content.res);
@@ -540,7 +516,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::Ret) {
+        else if constexpr (i == VMInstructionCode::Ret) {
 	  auto& content = tinst.getOps ();
 	  if (tt != content.value->getType()) {
             messager << MustBeGivenType {inst,content.value,tt};
@@ -550,16 +526,16 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::RetVoid) {
+        else if constexpr (i == VMInstructionCode::RetVoid) {
           if (tt->getTypeID() != MiniMC::Model::TypeID::Void) {
             MiniMC::Support::Localiser must_be_same_type("Return type of function with '%1%' must be void  ");
-            messager << MiniMC::Support::TError {must_be_same_type.format(MiniMC::Model::InstructionCode::RetVoid)};
+            messager << MiniMC::Support::TError {must_be_same_type.format(MiniMC::Model::VMInstructionCode::RetVoid)};
             return false;
           }
           return true;
         }
 
-        else if constexpr (i == InstructionCode::NonDet) {
+        else if constexpr (i == VMInstructionCode::NonDet) {
 	  auto& content = tinst.getOps ();
 	  auto type = CheckType(*content.res);
           if (!type->isInteger ()) {
@@ -570,9 +546,8 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == InstructionCode::Assert ||
-                           i == InstructionCode::Assume ||
-                           i == InstructionCode::NegAssume) {
+        else if constexpr (i == VMInstructionCode::Assert ||
+                           i == VMInstructionCode::Assume ) {
           auto& content = tinst.getOps ();
           auto type = CheckType(*content.expr);
           if (type->getTypeID() != MiniMC::Model::TypeID::Bool ) {
@@ -582,8 +557,8 @@ namespace MiniMC {
           return true;
         }
 
-	else if constexpr (i == InstructionCode::ExtractValue ||
-                           i == InstructionCode::InsertValue
+	else if constexpr (i == VMInstructionCode::ExtractValue ||
+                           i == VMInstructionCode::InsertValue
 			   ) {
           auto& content = tinst.getOps ();
 	  if (!content.offset->getType ()->isInteger ()) {
@@ -596,7 +571,7 @@ namespace MiniMC {
             return false;
           }
 
-	  if constexpr (i == InstructionCode::InsertValue) {
+	  if constexpr (i == VMInstructionCode::InsertValue) {
 	    auto& content = tinst.getOps ();
 	    if (!CheckType(*content.res)->isAggregate ()) {
 	      messager << MustBeGivenTypeID {inst,content.res, MiniMC::Model::TypeID::Aggregate};
@@ -607,13 +582,13 @@ namespace MiniMC {
 	  return true;
         }
         
-        else if constexpr (i == InstructionCode::BitCast) {
+        else if constexpr (i == VMInstructionCode::BitCast) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
 	  messager << MiniMC::Support::TWarning {warning.format(i)};
           return true;
         }
 
-        else if constexpr (i == InstructionCode::Uniform) {
+        else if constexpr (i == VMInstructionCode::Uniform) {
           auto& content = tinst.getOps ();
           if (!MiniMC::Model::hasSameTypeID({CheckType(*content.res),
 		CheckType(*content.max),

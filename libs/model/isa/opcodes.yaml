@@ -153,6 +153,7 @@ Unary:
         type: t1
     types:
       t1: Integer
+    vm: True
   lnot:
     opcode: LogNot
     params:
@@ -307,7 +308,7 @@ Comparison:
     assign_convertible: True
 
 Pointer:
-  ptradd:
+  ptradd: 
     opcode: PtrAdd
     params:
       - name: res
@@ -321,6 +322,8 @@ Pointer:
     types:
       t1: Pointer
       t2: Integer
+    vm: True
+
   ptrsub:
     opcode: PtrSub
     params:
@@ -335,6 +338,8 @@ Pointer:
     types:
       t1: Pointer
       t2: Integer
+    vm: True
+    
 Aggregate:
   extractvalue:
     opcode: ExtractValue
@@ -349,7 +354,8 @@ Aggregate:
       t1: Any
       t2: Aggregate
       t3: Integer
-  
+    vm: True
+    
   insertvalue:
     opcode: InsertValue
     params:
@@ -365,6 +371,8 @@ Aggregate:
       t1: Aggregate
       t2: Integer
       t3: Any
+    vm: True
+    
 Cast:
   trunc:
     opcode: Trunc
@@ -376,6 +384,8 @@ Cast:
     types:
       t1: Integer
       t2: Integer
+    vm: True
+    
   bitcast:
     opcode: BitCast
     params:
@@ -386,7 +396,8 @@ Cast:
     types:
       t1: Integer
       t2: Integer
-  
+    vm: True
+    
   zext:
     opcode: ZExt
     params:
@@ -397,6 +408,17 @@ Cast:
     types:
       t1: Integer
       t2: Integer
+    vm: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      if (std::get<1>(tup)->getType()->getTypeID () == MiniMC::Model::TypeID::Bool)
+       { return make<MiniMC::Model::InstructionCode::BoolZExt> (std::get<0>(tup),std::get<1> (tup));
+       }
+       else {
+       return MiniMC::Model::Instruction (TInstruction<MiniMC::Model::VMInstructionCode::ZExt>{VMInstructionData<MiniMC::Model::VMInstructionCode::ZExt>::Content {std::get<0>(tup),std::get<1> (tup)}});
+       }
+
+    
   sext:
     opcode: SExt
     params:
@@ -407,6 +429,17 @@ Cast:
     types:
       t1: Integer
       t2: Integer
+    vm: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      if (std::get<1>(tup)->getType()->getTypeID () == MiniMC::Model::TypeID::Bool)
+       { return make<MiniMC::Model::InstructionCode::BoolSExt> (std::get<0>(tup),std::get<1> (tup));
+       }
+       else {
+       return MiniMC::Model::Instruction (TInstruction<MiniMC::Model::VMInstructionCode::SExt>{VMInstructionData<MiniMC::Model::VMInstructionCode::SExt>::Content {std::get<0>(tup),std::get<1> (tup)}});
+       }
+      
+    
   ptrtoint:
     opcode: PtrToInt
     params:
@@ -417,6 +450,8 @@ Cast:
     types:
       t1: Integer
       t2: Pointer
+    vm: True
+    
   inttoptr:
     opcode: IntToPtr
     params:
@@ -427,6 +462,8 @@ Cast:
     types:
       t2: Integer
       t1: Pointer
+    vm: True
+    
   BoolZExt:
     opcode: BoolZExt
     params:
@@ -437,6 +474,8 @@ Cast:
     types:
       t1: Integer
       t2: Bool
+    vm: True
+    
   BoolSExt:
     opcode: BoolSExt
     params:
@@ -447,6 +486,8 @@ Cast:
     types:
       t1: Integer
       t2: Bool
+    vm: True
+    
   IntToBool:
     opcode: IntToBool
     params:
@@ -457,6 +498,8 @@ Cast:
     types:
       t2: Integer
       t1: Bool
+    vm: True
+    
 Memory:
   store:
     opcode: Store
@@ -468,6 +511,8 @@ Memory:
     types:
       t1: Pointer
       t2: Any
+    vm: True
+    
   load:
     opcode: Load
     params:
@@ -478,10 +523,14 @@ Memory:
     types:
       t1: Any
       t2: Pointer
+    vm: True
+    
 Internal:
   skip:
     opcode: Skip
     params:  []
+    vm: True
+    
   call:
     opcode: Call
     params:
@@ -495,6 +544,8 @@ Internal:
       t1: Any
       t2: Pointer
       t3: Vector
+    vm: True
+    
   assign:
     opcode: Assign
     params:
@@ -504,6 +555,8 @@ Internal:
         type: t1
     types:
       t1: Any
+    vm: True
+    
   nondet:
     opcode: NonDet
     params:
@@ -515,6 +568,8 @@ Internal:
         type: t2
     types:
       t1: Integer
+    vm: True
+    
   uniform:
     opcode: Uniform
     params:
@@ -526,6 +581,8 @@ Internal:
         type: t1
     types:
       t1: Integer
+    vm: True
+    
   ret:
     opcode: Ret
     params:
@@ -533,10 +590,13 @@ Internal:
         type: t1
     types:
       t1: Any
-  
+    vm: True
+    
   retvoid:
     opcode: RetVoid
     params: []
+    vm: True
+    
 AssertAssume:
   assert:
     opcode: Assert
@@ -545,6 +605,8 @@ AssertAssume:
         type: t1
     types:
       t1: Bool
+    vm: True
+    
   assume:
     opcode: Assume
     params:
@@ -552,6 +614,8 @@ AssertAssume:
         type: t1
     types:
       t1: Bool
+    vm: True
+    
   negassume:
     opcode: NegAssume
     params:
@@ -559,3 +623,8 @@ AssertAssume:
         type: t1
     types:
       t1: Bool
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::LogNotExpr> (std::get<0> (tup));
+      return make<VMInstructionCode::Assume> (expr);
+      

@@ -42,7 +42,7 @@ namespace MiniMC {
 	  
 	  for (auto& i : instr) {
 	    i.visit ( MiniMC::Support::Overload {
-		  [&edge, &cfa,&prev,&nstr,&cfac](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::NonDet>& instr) {
+		  [&edge, &cfa,&prev,&nstr,&cfac](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::NonDet>& instr) {
 		    auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
 		    auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
 	      
@@ -74,7 +74,7 @@ namespace MiniMC {
 		    
 		    NonDetGenerator gen {min,max};
 		    for (;!gen.finished (); 	gen.increment ()) {
-		      nstr.add<InstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
+		      nstr.add<VMInstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
 		      cfa.makeEdge (nloc,nnondet,std::move(nstr));
 		    nstr.clear ();
 		    }

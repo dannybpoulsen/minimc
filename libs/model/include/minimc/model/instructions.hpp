@@ -52,7 +52,7 @@ namespace MiniMC {
 
       operator bool () const {return instr.size ();}
 
-      template<InstructionCode c,class... Args>
+      template<VMInstructionCode c,class... Args>
       InstructionStream& add (Args... args) {
 	instr.emplace_back (Instruction::make<c> (std::forward<Args> (args)...));
 	return *this;

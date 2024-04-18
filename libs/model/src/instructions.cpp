@@ -12,80 +12,79 @@ namespace MiniMC {
       else {
 	
 	auto& content = inst.getOps  ();
-	if constexpr (InstructionData<i>::isTAC || InstructionData<i>::isComparison ) {
+	if constexpr (isTAC_v<I> || isComparison_v<I> ) {
 	  return os << *content.res << " = " << i << " " << *content.op1 << " " << *content.op2;   
 	}
 	
 	
-	else if constexpr (InstructionData<i>::isUnary) {
+	else if constexpr (isUnary_v<I>) {
 	  return os << *content.res << " = " << i << " " << *content.op1;
 	}
 	
-	else if constexpr (InstructionData<i>::isCast) {
+	else if constexpr (isCast_v<I>) {
 	  return os << *content.res << " = " << i << " "<< *content.res->getType () << " " <<  *content.op1;
 	}
 	
-	else if constexpr (i == InstructionCode::NonDet) {
-	  return os << *content.res << " = " << InstructionCode::NonDet << " "  << *content.res->getType () << " " << *content.min << " " << *content.max;
+	else if constexpr (i == VMInstructionCode::NonDet) {
+	  return os << *content.res << " = " << VMInstructionCode::NonDet << " "  << *content.res->getType () << " " << *content.min << " " << *content.max;
 	}
 	
       
-	else if constexpr (i == InstructionCode::Assert ||
-			   i == InstructionCode::Assume ||
-			   i == InstructionCode::NegAssume) {
+	else if constexpr (i == VMInstructionCode::Assert ||
+			   i == VMInstructionCode::Assume ) {
 	  return os << i << " " << *content.expr;
 	}
 
-	else if constexpr (i == InstructionCode::Call) {
+	else if constexpr (i == VMInstructionCode::Call) {
 	  if (content.res) {
 	    os << *content.res << " = ";
 	  }
-	  os << InstructionCode::Call << " " << *content.function << " ";
+	  os << VMInstructionCode::Call << " " << *content.function << " ";
 	  for (auto& v : content.params)
 	  os << *v << " ";
 	  return os;
 	}
 
-	else if constexpr (i == InstructionCode::PtrAdd) {
-	  return os << *content.res << " = " <<InstructionCode::PtrAdd  << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
+	else if constexpr (i == VMInstructionCode::PtrAdd) {
+	  return os << *content.res << " = " <<VMInstructionCode::PtrAdd  << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
 	  
 	  ;	  
 	}
 
-	else if constexpr (i == InstructionCode::PtrSub) {
-	  return os << *content.res << " = " <<InstructionCode::PtrSub << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
+	else if constexpr (i == VMInstructionCode::PtrSub) {
+	  return os << *content.res << " = " <<VMInstructionCode::PtrSub << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
 	;	  
 	}
       
-	else if constexpr ( i == InstructionCode::ExtractValue) {
-	  return os << *content.res << " = " << InstructionCode::ExtractValue << " " << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
+	else if constexpr ( i == VMInstructionCode::ExtractValue) {
+	  return os << *content.res << " = " << VMInstructionCode::ExtractValue << " " << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
 	}
 
-	else if constexpr ( i == InstructionCode::Assign) {
+	else if constexpr ( i == VMInstructionCode::Assign) {
 	  return os << *content.res << " = " << *content.op1;
 	}
 	
 	
 	
-	else if constexpr ( i == InstructionCode::Ret) {
+	else if constexpr ( i == VMInstructionCode::Ret) {
 	  return os << "Ret " << *content.value;
 	  
 	}
 	
-	else if constexpr ( i == InstructionCode::InsertValue) {
-	  return os << *content.res << " = " << InstructionCode::InsertValue << " " << *content.insertee->getType () << " " << *content.aggregate << " "  << *content.offset << " " << *content.insertee;
+	else if constexpr ( i == VMInstructionCode::InsertValue) {
+	  return os << *content.res << " = " << VMInstructionCode::InsertValue << " " << *content.insertee->getType () << " " << *content.aggregate << " "  << *content.offset << " " << *content.insertee;
 	}
 	
-	else if constexpr ( i == InstructionCode::Uniform) {
-	  return os << InstructionCode::Uniform;
+	else if constexpr ( i == VMInstructionCode::Uniform) {
+	  return os << VMInstructionCode::Uniform;
 	}
 	
-	else if constexpr ( i == InstructionCode::Store ) {
-	  return os << InstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
+	else if constexpr ( i == VMInstructionCode::Store ) {
+	  return os << VMInstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
 	}
 	
-	else if constexpr ( i == InstructionCode::Load ) {
-	  return os << *content.res << " = " << InstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
+	else if constexpr ( i == VMInstructionCode::Load ) {
+	  return os << *content.res << " = " << VMInstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
 	}
 	
 	else {
@@ -119,7 +118,7 @@ namespace MiniMC {
     Instruction::Instruction (const Instruction& oth, ReplaceFunction replace)  : internal(oth.internal) {
       internal = oth.visit([replace](auto& tc) -> Instruction_internal {
 	if constexpr (hasOperands<tc.getOpcode ()>) {
-	  return TInstruction<tc.getOpcode ()>(typename InstructionData<tc.getOpcode ()>::Content (tc.getOps (), replace));
+	  return TInstruction<tc.getOpcode ()>(typename VMInstructionData<tc.getOpcode ()>::Content (tc.getOps (), replace));
 	}
 	else {
 	  return TInstruction<tc.getOpcode ()>(); 

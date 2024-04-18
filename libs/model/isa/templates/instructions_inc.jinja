@@ -5,8 +5,22 @@ enum class InstructionCode {
 {% endfor %}
 };
 
+enum class VMInstructionCode {	
+     {%for i in ISA.getVMInstructions () %}{{i.getName ()}}{%if not loop.last %},{%endif%}    
+{% endfor %}
+};
+
+
+enum class PseudoInstructionCode {	
+     {%for i in ISA.getPseudoInstructions () %}{{i.getName ()}}{%if not loop.last %},{%endif%}    
+{% endfor %}
+};
+
+
+
+
+
 using ReplaceFunction = std::function<MiniMC::Model::Value_ptr(const MiniMC::Model::Value_ptr&)>;
-    
 
 template<InstructionCode>
 struct InstructionData {};
@@ -15,6 +29,23 @@ struct InstructionData {};
        {%for i in group.getInstructions () %}
        	     template<>
        	      struct InstructionData<MiniMC::Model::InstructionCode::{{i.getName ()}}> {
+	     	    {%for group2 in ISA.getGroups () %}
+		    	  static constexpr bool is{{group2.getName ()}} = {%if group.getName () == group2.getName () %} true {%else %} false {%endif%}; 
+		    {%endfor %}
+		    	     };
+
+
+       {%endfor %}
+ {%endfor %}
+
+
+template<VMInstructionCode>
+struct VMInstructionData {};
+
+ {%for group in ISA.getGroups () %}
+       {%for i in group.getVMInstructions () %}
+       	     template<>
+       	      struct VMInstructionData<MiniMC::Model::VMInstructionCode::{{i.getName ()}}> {
 	     	    {%for group2 in ISA.getGroups () %}
 		    	  static constexpr bool is{{group2.getName ()}} = {%if group.getName () == group2.getName () %} true {%else %} false {%endif%}; 
 		    {%endfor %}
@@ -49,27 +80,33 @@ struct InstructionData {};
 	            };
 		    {%endif%}
 	     };
+
+
        {%endfor %}
  {%endfor %}
  
 
- template<InstructionCode opc>
+ template<VMInstructionCode opc>
     concept hasOperands =  requires  {
-      typename InstructionData<opc>::Content;
+      typename VMInstructionData<opc>::Content;
     };
 
- template<InstructionCode opc>
-     concept hasRes =  requires (const typename InstructionData<opc>::Content& c) {
+ template<VMInstructionCode opc>
+     concept hasRes =  requires (const typename VMInstructionData<opc>::Content& c) {
       c.res;
     };
+ 
+
+  
+  
     
 
-template<InstructionCode>
+template<VMInstructionCode>
     struct TInstruction;
     
-    template<InstructionCode opc> requires hasOperands<opc>
+    template<VMInstructionCode opc> requires hasOperands<opc>
     struct TInstruction<opc> {
-      TInstruction (typename InstructionData<opc>::Content content ) :  content(content) {}
+      TInstruction (typename VMInstructionData<opc>::Content content ) :  content(content) {}
       auto& getOps () const {return content;}
       static consteval auto getOpcode () {return opc;}
       Value_ptr getDefines () const requires hasRes<opc> {return content.res;} 
@@ -84,10 +121,10 @@ template<InstructionCode>
       }
     
     private:
-      typename InstructionData<opc>::Content content;
+      typename VMInstructionData<opc>::Content content;
     };
     
-    template<InstructionCode opc> requires (!hasOperands<opc>)
+    template<VMInstructionCode opc> requires (!hasOperands<opc>)
     struct TInstruction<opc> {
       TInstruction ()  {}
       static constexpr auto getOpcode () {return opc;}
@@ -96,13 +133,13 @@ template<InstructionCode>
     };
 
     using Instruction_internal = std::variant<
-    {%for i in ISA.getInstructions() %} TInstruction<InstructionCode::{{i.getName()}}> {%if not loop.last %},{%endif%}
+    {%for i in ISA.getVMInstructions() %} TInstruction<VMInstructionCode::{{i.getName()}}> {%if not loop.last %},{%endif%}
     {%endfor%}
     >;
 
-    inline std::ostream& operator<< (std::ostream& os, InstructionCode oc) {
+    inline std::ostream& operator<< (std::ostream& os, VMInstructionCode oc) {
     	   switch (oc) {
-	  	  {%for i in ISA.getInstructions() %} case InstructionCode::{{i.getName()}}:return os << "{{i.getName()}}";
+	  	  {%for i in ISA.getVMInstructions() %} case VMInstructionCode::{{i.getName()}}:return os << "{{i.getName()}}";
 		  {%endfor%}	   
 	   	  default:
 		  std::unreachable();
@@ -113,11 +150,11 @@ template<InstructionCode>
     	  {%for i in ISA.getInstructions() %} { "{{i.getName()}}",  MiniMC::Model::InstructionCode::{{i.getName()}} } {%if not loop.last %},{%endif%}
 	  {% endfor %}
 	  };
-
+	  
 
     inline bool isCast (InstructionCode oc) {
     	   switch (oc) {
-	   {%for i in ISA.getInstructions() %} case InstructionCode::{{i.getName()}}: return InstructionData<InstructionCode::{{i.getName ()}}>::isCast;
+	   {%for g,i in ISA.getInstructionsWithGroupName() %} case InstructionCode::{{i.getName()}}: return {{"true" if  g == "Cast" else "false"}};
 	   {%endfor%}
 	   default:
 	   std::unreachable ();
@@ -127,35 +164,35 @@ template<InstructionCode>
 
 
     template<class T>
-    constexpr bool isInternal_v = InstructionData<T::getOpcode ()>::isInternal;
+    constexpr bool isInternal_v = VMInstructionData<T::getOpcode ()>::isInternal;
 
     template<class T>
-    constexpr bool  isTAC_v = InstructionData<T::getOpcode ()>::isTAC;
+    constexpr bool  isTAC_v = VMInstructionData<T::getOpcode ()>::isTAC;
 
     template<class T>
-    constexpr bool isComparison_v = InstructionData<T::getOpcode ()>::isComparison;
+    constexpr bool isComparison_v = VMInstructionData<T::getOpcode ()>::isComparison;
 
     
     template<class T>
-    constexpr bool isUnary_v = InstructionData<T::getOpcode ()>::isUnary;
+    constexpr bool isUnary_v = VMInstructionData<T::getOpcode ()>::isUnary;
 
     template<class T>
-    constexpr bool isMemory_v = InstructionData<T::getOpcode ()>::isMemory;
+    constexpr bool isMemory_v = VMInstructionData<T::getOpcode ()>::isMemory;
 
     template<class T>
-    constexpr  bool isCast_v = InstructionData<T::getOpcode ()>::isCast;
+    constexpr  bool isCast_v = VMInstructionData<T::getOpcode ()>::isCast;
     
     template<class T>
-    constexpr  bool isPointer_v = InstructionData<T::getOpcode ()>::isPointer;
+    constexpr  bool isPointer_v = VMInstructionData<T::getOpcode ()>::isPointer;
 
     template<class T>
-    constexpr bool isAggregate_v = InstructionData<T::getOpcode ()>::isAggregate;
+    constexpr bool isAggregate_v = VMInstructionData<T::getOpcode ()>::isAggregate;
 
     template<class T>
-    constexpr bool isPredicate_v = InstructionData<T::getOpcode ()>::isPredicate;
+    constexpr bool isPredicate_v = VMInstructionData<T::getOpcode ()>::isPredicate;
 
     template<class T>
-    constexpr bool isAssertAssume_v = InstructionData<T::getOpcode ()>::isAssertAssume;;
+    constexpr bool isAssertAssume_v = VMInstructionData<T::getOpcode ()>::isAssertAssume;;
     
     
     
@@ -168,14 +205,18 @@ template<InstructionCode>
 
 
 {% macro reg_instruction(i) %}
-    return make<op> (typename InstructionData<op>::Content{std::forward<Args>(args)...});	     
+   {%if i.temp_creation () == None %}
+    return make<VMInstructionCode::{{i.getName()}}> (typename VMInstructionData<VMInstructionCode::{{i.getName()}}>::Content{std::forward<Args>(args)...});	     
+    {%else %}
+    {{i.temp_creation()}}
+    {%endif %}
 {% endmacro %}
 
 {% macro bin_instruction(i) %}
    {%if i.isAssignConvertible () %} 
    	auto tup = std::make_tuple (args...);
     	auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (std::get<1>(tup),std::get<2> (tup));
-    	return make<InstructionCode::Assign> (std::get<0>(tup),expr);	     
+    	return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);	     
     {%else %}
     	{{reg_instruction (i) }}
     {%endif%}
@@ -185,18 +226,18 @@ template<InstructionCode>
     {%if i.isAssignConvertible () %}
     auto tup = std::make_tuple (args...);
     auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (std::get<1>(tup));
-    return make<InstructionCode::Assign> (std::get<0>(tup),expr);	     
+    return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);	     
     {%else %}
     {{reg_instruction(i)}}
     {%endif %}
 {% endmacro %}
 
       
-      template<InstructionCode op,class... Args>
+      template<VMInstructionCode op,class... Args>
       static Instruction make (Args... args) {
       	  {% for g in ISA.getGroups () %}
-      	  {% for i in g.getInstructions () %}
-          if constexpr (op == InstructionCode::{{i.getName ()}}) {
+      	  {% for i in g.getVMInstructions () %}
+          if constexpr (op == VMInstructionCode::{{i.getName ()}}) {
 	     {%if g.getName () == "TAC"  or g.getName () == "Comparison"  %}
 	     {{bin_instruction(i) }}
 	     {%elif g.getName () == "Unary"  %}
@@ -204,15 +245,52 @@ template<InstructionCode>
 	     {%elif i.getOperands ()| length > 0  %}
 	     {{reg_instruction(i) }}
 	     {%else%}
-	     return Instruction_internal{TInstruction<op>()};
+	     return Instruction_internal{TInstruction<VMInstructionCode::{{i.getName()}}>()};
 	     {%endif%}
 	  }
     	  {% endfor %}
 	  {%endfor %}
-    
+	  throw MiniMC::Support::Exception ("ERRROR");
       }     
-        
-      template<InstructionCode c>
+
+      template<PseudoInstructionCode op,class... Args>
+      static Instruction make (Args... args) {
+      	  {% for g in ISA.getGroups () %}
+      	  {% for i in g.getPseudoInstructions () %}
+          if constexpr (op == PseudoInstructionCode::{{i.getName ()}}) {
+	     {%if g.getName () == "TAC"  or g.getName () == "Comparison"  %}
+	     {{bin_instruction(i) }}
+	     {%elif g.getName () == "Unary"  %}
+	     {{unary_instruction (i)}}
+	     {%elif i.getOperands ()| length > 0  %}
+	     {{reg_instruction(i) }}
+	     {%else%}
+	     return Instruction_internal{TInstruction<VMInstructionCode::{{i.getName()}}>()};
+	     {%endif%}
+	  }
+    	  {% endfor %}
+	  {%endfor %}
+
+      }
+
+      template<InstructionCode op,class... Args>
+      static Instruction make (Args... args) {
+      	  {% for g in ISA.getGroups () %}
+      	  {% for i in g.getInstructions () %}
+          if constexpr (op == InstructionCode::{{i.getName ()}}) {
+	     {%if i.isVM () %}
+	     	  return make<VMInstructionCode::{{i.getName()}}> (std::forward<Args> (args)...);
+		  {%else %}
+		  return make<PseudoInstructionCode::{{i.getName()}}> (std::forward<Args> (args)...);
+		  {%endif%}
+	     }	     
+	  
+    	  {% endfor %}
+	  {%endfor %}
+      }    
+
+
+      template<VMInstructionCode c>
       auto& getAs () const {return std::get<TInstruction<c>> (internal);}
       
       auto  visit (auto v) const {return std::visit(v,internal);}
@@ -228,8 +306,8 @@ template<InstructionCode>
 
     private:
       
-      template<InstructionCode op> 
-      static Instruction make (InstructionData<op>::Content d) {
+      template<VMInstructionCode op> 
+      static Instruction make (VMInstructionData<op>::Content d) {
 	return Instruction_internal{TInstruction<op>(d)};
       }
       

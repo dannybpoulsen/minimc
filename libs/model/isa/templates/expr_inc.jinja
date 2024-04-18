@@ -67,7 +67,7 @@ enum class BinOps {
       }
 
 	
-     const auto& getLeft () const{
+     const auto& getInner () const{
 	return *left;
       }
 
@@ -79,7 +79,7 @@ enum class BinOps {
     private:
       Value_ptr left;
     };
-
+    
     using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
     using I16Integer = TConstant<MiniMC::BV16>;
@@ -281,9 +281,13 @@ enum class BinOps {
        	     return f (static_cast<CType<{{N}}Expr,c>&> (v));
 	     break;
        {%endfor%}    
-        default:
+       {%for N in all_unary_ops %}case ValueInfo<{{N}}Expr>::type_t ():
+       	     return f (static_cast<CType<{{N}}Expr,c>&> (v));
+	     break;
+       {%endfor%}	
+default:		
 #ifdef NDEBUG
-	__builtin_unreachable();
+	std::unreachable();
 #else
 	throw MiniMC::Support::Exception ("Missing category");
 #endif

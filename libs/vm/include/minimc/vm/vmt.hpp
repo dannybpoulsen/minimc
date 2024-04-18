@@ -20,7 +20,7 @@ namespace MiniMC {
   }
   namespace VMT {
     
-    template<MiniMC::Model::InstructionCode c>
+    template<MiniMC::Model::VMInstructionCode c>
     class NotImplemented : public MiniMC::Support::Exception {
     public:
       NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not supported."}.format (c)) {}
@@ -405,14 +405,15 @@ namespace MiniMC {
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
 	auto l = Eval (cc.getInner ());					\
 	return Value::visit (MiniMC::Support::Overload {		\
-	  [this] (typename Value::Bool& l) -> Value    {		\
-	    return ops.op (ll,rr);					\
+	  [this] (typename Value::Bool& ll) -> Value    {		\
+	    return ops.op (ll);					\
 	  },								\
 	  [](auto&) -> Value {throw MiniMC::Support::Exception ("Error");} \
 	    },l								\
 	  );								\
       }									\
-									
+      
+OPSI
       
 #undef X
 #undef OPSI   

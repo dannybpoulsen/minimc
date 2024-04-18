@@ -16,10 +16,12 @@ class Operand:
         return f"{self._name}{str}"
     
 class Instruction:
-    def __init__(self,name, operands = [],assign = False):
+    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False ):
         self._name = name
         self._operands = operands
         self._assign = assign
+        self._tempcreate = tempcreate
+        self._vm = vm
         
     def getName (self):
         return self._name
@@ -29,6 +31,12 @@ class Instruction:
 
     def isAssignConvertible (self):
         return self._assign
+
+    def temp_creation (self):
+        return self._tempcreate
+
+    def isVM (self):
+        return self._vm
     
     def __str__ (self):
         l = ",".join ([str(o) for o in self._operands])
@@ -45,6 +53,11 @@ class InstructionGroup:
     def getInstructions (self):
         return self._instructions
 
+    def getVMInstructions (self):
+        yield from [j for j in self.getInstructions () if  j.isVM ()]
+    
+    def getPseudoInstructions (self):
+        yield from [j for j in self.getInstructions () if not  j.isVM ()]
     
     
     
@@ -62,6 +75,18 @@ class ISA:
     def getInstructionsWithGroupName (self):
         for i in self._groups:
             yield from [(i.getName(),j) for j in i.getInstructions ()]
+
+    def getNonAssignableInstructions (self):
+        for i in self._groups:
+            yield from [j for j in i.getInstructions () if not j.isAssignConvertible ()]
+    
+    def getVMInstructions (self):
+        for i in self._groups:
+            yield from  i.getVMInstructions () 
+    
+    def getPseudoInstructions (self):
+        for i in self._groups:
+            yield from [j for j in i.getInstructions () if not  j.isVM ()]
     
             
 def readISA (path):
@@ -79,7 +104,9 @@ def readISA (path):
                     mname = name.replace("*","")
                     ops.append (Operand(mname,"*" in name))
                 assign_convertible = data.get("assign_convertible",False)
-                instr.append (Instruction (opcode,ops,assign_convertible))
+                temp_create = data.get("template_construction",None)
+                vm = data.get("vm",False)
+                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm))
             groups.append (InstructionGroup (gname,instr))
         return ISA(groups)
     

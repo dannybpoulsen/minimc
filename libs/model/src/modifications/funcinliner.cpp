@@ -18,7 +18,7 @@ namespace MiniMC {
         auto from_loc = edge->getFrom();
         auto to_loc = edge->getTo();
         auto& instrs = edge->getInstructions();
-        auto call_content = instrs.last ().getAs<MiniMC::Model::InstructionCode::Call>().getOps ();
+        auto call_content = instrs.last ().getAs<MiniMC::Model::VMInstructionCode::Call>().getOps ();
 	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
         MiniMC::Model::pointer_t loadPtr =  constant->getValue (); 
 	auto cfunc = prgm.getFunction(MiniMC::Model::getFunctionId(loadPtr));
@@ -43,17 +43,17 @@ namespace MiniMC {
 	  if (!ninstr)
 	    continue;
 	  ninstr.last ().visit (MiniMC::Support::Overload {
-	      [&ne,newCall](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Call>&) {
+	      [&ne,newCall](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Call>&) {
 		newCall (ne);
 	      },
-	      [&ne,newCall,&edge,&cfunc,&ne_from,&ninstr](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::RetVoid>&) {
-		ninstr.last() = Instruction::make<InstructionCode::Skip> ();
+	      [&ne,newCall,&edge,&cfunc,&ne_from,&ninstr](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::RetVoid>&) {
+		ninstr.last() = Instruction::make<VMInstructionCode::Skip> ();
 		cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 		cfunc->getCFA().deleteEdge (ne.get());		
 	      },
-		[&cfunc,&ninstr,&edge,&call_content,&ne_from,&ne](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Ret>& instr) {
+		[&cfunc,&ninstr,&edge,&call_content,&ne_from,&ne](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Ret>& instr) {
 		  auto& content = instr.getOps ();
-		ninstr.last() = Instruction::make<InstructionCode::Assign> ( 
+		ninstr.last() = Instruction::make<VMInstructionCode::Assign> ( 
 									    call_content.res,
 									    content.value 
 									       );
@@ -75,7 +75,7 @@ namespace MiniMC {
 	auto it = parameters.begin();
 	for (size_t i = 0; i < call_content.params.size (); i++, it++) {
           
-          str.add<InstructionCode::Assign> (
+          str.add<VMInstructionCode::Assign> (
 					    valmap.at(std::static_pointer_cast<MiniMC::Model::Register> (*it)->getSymbol ()),
 					    call_content.params.at(i));  
         }
@@ -97,7 +97,7 @@ namespace MiniMC {
 			if (e->getInstructions ()){
 			  e->getInstructions().last().visit (MiniMC::Support::Overload {
 
-			      [&inserter,depth,&e](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Call>& ) {
+			      [&inserter,depth,&e](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Call>& ) {
 				inserter = std::make_pair (depth,e);
 			      },
 			      [](auto&) {}

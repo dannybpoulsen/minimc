@@ -45,98 +45,8 @@ namespace MiniMC {
       
 
       
-      template <class I,VMState<T> State,class Evaluator>
-	Status runInstruction(const I& instr, State& state, Evaluator eval) requires MiniMC::Model::isTAC_v<I> 
-
-      {
-	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps ();
-        auto& res = content.res->asRegister ();
-	
-        auto lval = eval.Eval(*content.op1);
-        auto rval = eval.Eval(*content.op2);
-	T::visit (MiniMC::Support::Overload {
-	    [&state,this,&res]<typename R>(R& lval, R& rval) requires Integer<T,R> {
-	      
-	      if constexpr (op == MiniMC::Model::InstructionCode::Add)
-	         state.getValueLookup().saveValue(res, operations.Add(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::Sub)
-	         state.getValueLookup().saveValue(res, operations.Sub(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::Mul)
-	        state.getValueLookup().saveValue(res, operations.Mul(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::UDiv)
-	        state.getValueLookup().saveValue(res, operations.UDiv(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::SDiv)
-	        state.getValueLookup().saveValue(res, operations.SDiv(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::Shl)
-	        state.getValueLookup().saveValue(res, operations.LShl(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::LShr)
-	        state.getValueLookup().saveValue(res, operations.LShr(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::AShr)
-	        state.getValueLookup().saveValue(res, operations.AShr(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::And)
-	        state.getValueLookup().saveValue(res, operations.And(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::Or)
-	        state.getValueLookup().saveValue(res, operations.Or(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::Xor)
-	        state.getValueLookup().saveValue(res, operations.Xor(lval, rval));
-	      else
-		throw NotImplemented<op>();
-	    },
-	      MiniMC::Support::Error<void>{}
-	  },
-	  lval,
-	  rval
-	  );
-	return Status::Ok;
-	  
-      }
-	  
-      template <class I, VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator eval) requires MiniMC::Model::isComparison_v<I>
-      {
-	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps ();
-        auto& res = content.res->asRegister ();
-
-        auto lval = eval.Eval(*content.op1);
-        auto rval = eval.Eval(*content.op2);
-	T::visit (MiniMC::Support::Overload {
-	    [&state,this,&res]<typename R>(R& l, R& r) requires Integer<T,R> || Pointer<T,R> {
-	      auto lval = Impl::castPtrToAppropriateInteger (l);
-	      auto rval = Impl::castPtrToAppropriateInteger (r);
-	      
-	      if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGT)
-		state.getValueLookup().saveValue(res, operations.SGt(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SGE) 
-		state.getValueLookup().saveValue(res, operations.SGe(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLE)
-	         state.getValueLookup().saveValue(res, operations.SLe(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_SLT)
-	         state.getValueLookup().saveValue(res, operations.SLt(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGT)
-	         state.getValueLookup().saveValue(res, operations.UGt(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_UGE)
-	         state.getValueLookup().saveValue(res, operations.UGe(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULE)
-	         state.getValueLookup().saveValue(res, operations.ULe(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_ULT)
-	         state.getValueLookup().saveValue(res, operations.ULt(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_EQ)
-	         state.getValueLookup().saveValue(res, operations.Eq(lval, rval));
-	      else if constexpr (op == MiniMC::Model::InstructionCode::ICMP_NEQ)
-	         state.getValueLookup().saveValue(res, operations.NEq(lval, rval));
-	      
-	      else
-		throw NotImplemented<op>();
-		},
-	      MiniMC::Support::Error<void>{}
-	      },
-	  lval
-	  ,rval);
-	return Status::Ok;
-      }
-
+      
+      
       template <class I,VMState<T> State,class Evaluator>
       Status runInstruction(const I& instr, State& state, Evaluator eval) requires MiniMC::Model::isPointer_v<I> 
       {
@@ -155,7 +65,7 @@ namespace MiniMC {
 	  
 	};
 	
-        if constexpr (op == MiniMC::Model::InstructionCode::PtrAdd) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::PtrAdd) {
           auto ptr = T::visit (addrConverter,eval.Eval(*content.ptr));;
 	  auto visitor = MiniMC::Support::Overload {
 	    [this,&state,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
@@ -171,7 +81,7 @@ namespace MiniMC {
 										    );
 	  
         }
-        if constexpr (op == MiniMC::Model::InstructionCode::PtrSub) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::PtrSub) {
           auto ptr = T::visit (addrConverter,eval.Eval(*content.ptr));
 	  auto visitor = MiniMC::Support::Overload {
 	    [this,&state,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
@@ -205,7 +115,7 @@ namespace MiniMC {
 	  MiniMC::Support::Error<typename T::Pointer> {}
 	};
 	
-        if constexpr (op == MiniMC::Model::InstructionCode::Load ) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::Load ) {
 	  auto& res = content.res->asRegister ();
 	  auto addr = T::visit (addrConverter,eval.Eval(*content.addr));
 	  state.getValueLookup().saveValue(res, state.getMemory().load(addr, res.getType()));
@@ -214,7 +124,7 @@ namespace MiniMC {
 	  
 	}
 	
-        else if constexpr (op == MiniMC::Model::InstructionCode::Store) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    
@@ -247,16 +157,11 @@ namespace MiniMC {
 	  );
 	
 	auto& pathcontrol = state.getPathControl();
-	if constexpr (op == MiniMC::Model::InstructionCode::Assume) {
+	if constexpr (op == MiniMC::Model::VMInstructionCode::Assume) {
 	  auto res = pathcontrol.addAssumption(obj);
 	  return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
-	} else if constexpr (op == MiniMC::Model::InstructionCode::NegAssume) {
-	  auto neg{operations.BoolNegate(obj)};
-	  auto res = pathcontrol.addAssumption(neg);
-	  return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
-	}
-	
-	else if constexpr (op == MiniMC::Model::InstructionCode::Assert) {
+	} 
+	else if constexpr (op == MiniMC::Model::VMInstructionCode::Assert) {
 	  auto res = pathcontrol.addAssert(obj);
 	  return (res == TriBool::False ? Status::AssertViolated : Status::Ok);
 	  
@@ -266,24 +171,24 @@ namespace MiniMC {
     }
 
       
-      template <MiniMC::Model::InstructionCode opc, class LeftOp, MiniMC::Model::TypeID to>
+      template <MiniMC::Model::VMInstructionCode opc, class LeftOp, MiniMC::Model::TypeID to>
       static T doCastOp(const LeftOp& op, Operations& ops) {
 	constexpr auto bw = MiniMC::Model::BitWidth<to>; 
-	if constexpr (opc == MiniMC::Model::InstructionCode::Trunc) {
+	if constexpr (opc == MiniMC::Model::VMInstructionCode::Trunc) {
           if constexpr (bw  > LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Truntion");
           }
 	  else
             return ops.template Trunc<to, LeftOp>(op);
         }
-	else if constexpr (opc == MiniMC::Model::InstructionCode::ZExt) {
+	else if constexpr (opc == MiniMC::Model::VMInstructionCode::ZExt) {
           if constexpr (bw  < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           }
 	  else
             return ops.template ZExt<to, LeftOp>(op);
         }
-	else if constexpr (opc == MiniMC::Model::InstructionCode::SExt) {
+	else if constexpr (opc == MiniMC::Model::VMInstructionCode::SExt) {
           if constexpr (bw < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           } else
@@ -303,9 +208,9 @@ namespace MiniMC {
         auto& content = instr.getOps ();
         auto& res = content.res->asRegister ();
 
-        if constexpr (op == MiniMC::Model::InstructionCode::Trunc ||
-                      op == MiniMC::Model::InstructionCode::ZExt ||
-                      op == MiniMC::Model::InstructionCode::SExt) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::Trunc ||
+                      op == MiniMC::Model::VMInstructionCode::ZExt ||
+                      op == MiniMC::Model::VMInstructionCode::SExt) {
           auto op1 = eval.Eval(*content.op1);
 	  
 	  auto result = T::visit (MiniMC::Support::Overload {
@@ -332,7 +237,7 @@ namespace MiniMC {
 	  return MiniMC::VMT::Status::Ok;
 	}
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::BoolSExt) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::BoolSExt) {
           auto op1 = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Bool& b) {return b;},
 	      MiniMC::Support::Error<typename T::Bool> {}
@@ -357,7 +262,7 @@ namespace MiniMC {
           }
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::BoolZExt) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::BoolZExt) {
 	  typename T::Bool op1 = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Bool& b) {return b;},
 	      MiniMC::Support::Error<typename T::Bool> {}
@@ -383,7 +288,7 @@ namespace MiniMC {
           }
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::IntToPtr) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::IntToPtr) {
           auto op1 = eval.Eval(*content.op1);
           T result = T::visit (MiniMC::Support::Overload {
 	      [this,&res]<typename K>(K& val) requires Integer<T,K> {
@@ -402,7 +307,7 @@ namespace MiniMC {
 	  
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::IntToBool) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::IntToBool) {
 	  auto resVal = T::visit (  MiniMC::Support::Overload {
 	      [this](const typename T::I8 v)->T::Bool {return operations.IntToBool (v);},
 		[this](const typename T::I16 v)->T::Bool {return operations.IntToBool (v);},
@@ -429,7 +334,7 @@ namespace MiniMC {
 	constexpr auto op = I::getOpcode ();
         
 
-        if constexpr (op == MiniMC::Model::InstructionCode::Assign ) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::Assign ) {
 	  auto& content = instr.getOps();
 	  auto& res = content.res->asRegister ();
           auto op1 = eval.Eval(*content.op1);
@@ -437,7 +342,7 @@ namespace MiniMC {
           return Status::Ok;
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::Call) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::Call) {
 	  auto& content = instr.getOps();
 	  auto& scontrol = state.getStackControl();
           assert(content.function->isConstant());
@@ -487,7 +392,7 @@ namespace MiniMC {
 	  return Status::Ok;
 	}
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::Ret) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::Ret) {
 	  auto& content = instr.getOps();
 	  auto ret = eval.Eval(*content.value);
 	  auto ret_reg = state.getStackControl().pop();
@@ -499,17 +404,17 @@ namespace MiniMC {
 	  
 	}
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::RetVoid) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::RetVoid) {
 	  state.getStackControl().pop();
 	  return Status::Ok;
 	  
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::Skip) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::Skip) {
           return Status::Ok;
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::NonDet) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::NonDet) {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
 	  MiniMC::Model::Undef val;
@@ -542,7 +447,7 @@ namespace MiniMC {
 	  },
 	  *content.offset);
 	
-        if constexpr (op == MiniMC::Model::InstructionCode::InsertValue) {
+        if constexpr (op == MiniMC::Model::VMInstructionCode::InsertValue) {
           auto val_v = content.insertee;
 
           auto aggr = eval.Eval(*content.aggregate);
@@ -563,7 +468,7 @@ namespace MiniMC {
 	    
         }
 
-        else if constexpr (op == MiniMC::Model::InstructionCode::ExtractValue) {
+        else if constexpr (op == MiniMC::Model::VMInstructionCode::ExtractValue) {
 	  typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
 	      [](const typename T::Aggregate& aggr) {return aggr;},
 	      MiniMC::Support::Error<typename T::Aggregate> {}	

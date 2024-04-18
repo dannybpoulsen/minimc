@@ -11,29 +11,6 @@ def writeInstructionConstructors (ISA,output):
     template = env.get_template ("instructions_constructors_inc.jinja")
     text = template.render (ISA = ISA )
     output.write (text)
-    #output.write ("Instruction makeInstruction (InstructionCode code, std::vector<Value_ptr> values) {\n  switch(code) {")
-    
-    #for i in ISA.getInstructions  ():
-    #    output.write (f"case InstructionCode::{i.getName ()}: {{")
-    #    if i.isAssignConvertible ():
-    #        output.write ("auto res = *values.begin ();")
-    #        params = []
-    #        for j,o in enumerate(i.getOperands ()):
-    #            if o.getName () != "res":
-    #                params.append (f"values.at ({j})")
-    #        
-    #        output.write (f"auto assigned = std::make_shared<MiniMC::Model::{i.getName()}Expr> ({','.join (params)});")
-    #        output.write ("return Instruction::make<InstructionCode::Assign> (res,assigned);}")
-    #    else:
-    #        params = []
-    #        for j,o in enumerate(i.getOperands ()):
-    #            if not o.isMultiParam ():
-    #                params.append (f"values.at({j})")
-    #            else:
-    #                params.append (f"std::vector<Value_ptr> {{values.begin()+{j},values.end ()}}")
-    #        output.write (f"return Instruction::make<InstructionCode::{i.getName ()}> ({','.join (params)});\n}}")
-    #output.write ("default: std::unreachable ();");
-    #output.write ("}\n}")
     
 
 

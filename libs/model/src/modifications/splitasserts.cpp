@@ -1,4 +1,5 @@
 #include "minimc/model/modifications/splitasserts.hpp"
+#include "minimc/model/variables.hpp"
 #include "minimc/support/workinglist.hpp"
 #include "minimc/support/overload.hpp"
 
@@ -22,7 +23,7 @@ namespace MiniMC {
 	  if (E->getInstructions ()) {
 	    auto instrs = E->getInstructions ();
 	    instrs.last().visit (MiniMC::Support::Overload {
-		[&instrs,&cfg,&frame,&E,&eloc,&F](const MiniMC::Model::TInstruction<MiniMC::Model::InstructionCode::Assert>& instr) {
+		[&instrs,&cfg,&frame,&E,&eloc,&F](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Assert>& instr) {
 		  auto val = instr.getOps ().expr;
 		  instrs.erase((instrs.rbegin() + 1).base());
 		  MiniMC::Model::LocationInfo info{ {},F->getRegisterDescr()};
@@ -31,10 +32,10 @@ namespace MiniMC {
 		  
 		  cfg.makeEdge (E->getFrom (),nloc,std::move(instrs)); 
 		  cfg.deleteEdge (E.get());
-		  auto ff_edge = cfg.makeEdge(nloc, eloc, MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::NegAssume> (val)}));
+		  auto ff_edge = cfg.makeEdge(nloc, eloc, MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::VMInstructionCode::Assume> (std::make_shared<MiniMC::Model::LogNotExpr>(val))}));;
 		  
 		    
-		  auto tt_edge = cfg.makeEdge(nloc, ttloc,MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::Assume> (val)}));
+		  auto tt_edge = cfg.makeEdge(nloc, ttloc,MiniMC::Model::InstructionStream({MiniMC::Model::Instruction::make<MiniMC::Model::VMInstructionCode::Assume> (val)}));
 		  
 		},
 		[] (auto& ) {}
