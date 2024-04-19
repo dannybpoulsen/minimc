@@ -384,7 +384,8 @@ Cast:
     types:
       t1: Integer
       t2: Integer
-    vm: True
+    vm: False
+    assign_convertible: True
     
   bitcast:
     opcode: BitCast
@@ -398,6 +399,7 @@ Cast:
       t2: Integer
     vm: True
     
+    
   zext:
     opcode: ZExt
     params:
@@ -408,16 +410,9 @@ Cast:
     types:
       t1: Integer
       t2: Integer
-    vm: True
-    template_construction:
-      auto tup = std::make_tuple (args...);
-      if (std::get<1>(tup)->getType()->getTypeID () == MiniMC::Model::TypeID::Bool)
-       { return make<MiniMC::Model::InstructionCode::BoolZExt> (std::get<0>(tup),std::get<1> (tup));
-       }
-       else {
-       return MiniMC::Model::Instruction (TInstruction<MiniMC::Model::VMInstructionCode::ZExt>{VMInstructionData<MiniMC::Model::VMInstructionCode::ZExt>::Content {std::get<0>(tup),std::get<1> (tup)}});
-       }
-
+    vm: False
+    assign_convertible: True
+    
     
   sext:
     opcode: SExt
@@ -429,16 +424,8 @@ Cast:
     types:
       t1: Integer
       t2: Integer
-    vm: True
-    template_construction:
-      auto tup = std::make_tuple (args...);
-      if (std::get<1>(tup)->getType()->getTypeID () == MiniMC::Model::TypeID::Bool)
-       { return make<MiniMC::Model::InstructionCode::BoolSExt> (std::get<0>(tup),std::get<1> (tup));
-       }
-       else {
-       return MiniMC::Model::Instruction (TInstruction<MiniMC::Model::VMInstructionCode::SExt>{VMInstructionData<MiniMC::Model::VMInstructionCode::SExt>::Content {std::get<0>(tup),std::get<1> (tup)}});
-       }
-      
+    vm: False
+    assign_convertible: True  
     
   ptrtoint:
     opcode: PtrToInt
@@ -474,8 +461,11 @@ Cast:
     types:
       t1: Integer
       t2: Bool
-    vm: True
-    
+    vm: False
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      return make<MiniMC::Model::InstructionCode::ZExt> (std::get<0>(tup),std::get<1> (tup));
+       
   BoolSExt:
     opcode: BoolSExt
     params:
@@ -486,7 +476,12 @@ Cast:
     types:
       t1: Integer
       t2: Bool
-    vm: True
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      return make<MiniMC::Model::InstructionCode::SExt> (std::get<0>(tup),std::get<1> (tup));
+    
     
   IntToBool:
     opcode: IntToBool
@@ -498,7 +493,9 @@ Cast:
     types:
       t2: Integer
       t1: Bool
-    vm: True
+    vm: False
+    assign_convertible: True
+    
     
 Memory:
   store:

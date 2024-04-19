@@ -174,27 +174,27 @@ namespace MiniMC {
       template <MiniMC::Model::VMInstructionCode opc, class LeftOp, MiniMC::Model::TypeID to>
       static T doCastOp(const LeftOp& op, Operations& ops) {
 	constexpr auto bw = MiniMC::Model::BitWidth<to>; 
-	if constexpr (opc == MiniMC::Model::VMInstructionCode::Trunc) {
+	/*if constexpr (opc == MiniMC::Model::VMInstructionCode::Trunc) {
           if constexpr (bw  > LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Truntion");
           }
 	  else
             return ops.template Trunc<to, LeftOp>(op);
         }
-	else if constexpr (opc == MiniMC::Model::VMInstructionCode::ZExt) {
+	els if constexpr (opc == MiniMC::Model::VMInstructionCode::ZExt) {
           if constexpr (bw  < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           }
 	  else
             return ops.template ZExt<to, LeftOp>(op);
         }
-	else if constexpr (opc == MiniMC::Model::VMInstructionCode::SExt) {
+	else  if constexpr (opc == MiniMC::Model::VMInstructionCode::SExt) {
           if constexpr (bw < LeftOp::intbitsize()) {
             throw MiniMC::Support::Exception("Invalid Extension");
           } else
             return ops.template SExt<to, LeftOp>(op);
-        }
-	else {
+	    }
+	    else*/ {
           []<bool b = false>() { static_assert(b); }
           ();
         }
@@ -208,8 +208,8 @@ namespace MiniMC {
         auto& content = instr.getOps ();
         auto& res = content.res->asRegister ();
 
-        if constexpr (op == MiniMC::Model::VMInstructionCode::Trunc ||
-                      op == MiniMC::Model::VMInstructionCode::ZExt ||
+        /*if constexpr (//op == MiniMC::Model::VMInstructionCode::Trunc ||
+                      //op == MiniMC::Model::VMInstructionCode::ZExt ||
                       op == MiniMC::Model::VMInstructionCode::SExt) {
           auto op1 = eval.Eval(*content.op1);
 	  
@@ -260,7 +260,7 @@ namespace MiniMC {
             default:
               throw MiniMC::Support::Exception("Invalid Extenstion");
           }
-        }
+	  }
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::BoolZExt) {
 	  typename T::Bool op1 = T::visit (MiniMC::Support::Overload {
@@ -286,9 +286,9 @@ namespace MiniMC {
             default:
               throw MiniMC::Support::Exception("Invalid Extenstion");
           }
-        }
+	  }
 
-        else if constexpr (op == MiniMC::Model::VMInstructionCode::IntToPtr) {
+	  else*/ if constexpr (op == MiniMC::Model::VMInstructionCode::IntToPtr) {
           auto op1 = eval.Eval(*content.op1);
           T result = T::visit (MiniMC::Support::Overload {
 	      [this,&res]<typename K>(K& val) requires Integer<T,K> {
@@ -307,7 +307,7 @@ namespace MiniMC {
 	  
         }
 
-        else if constexpr (op == MiniMC::Model::VMInstructionCode::IntToBool) {
+        /*else if constexpr (op == MiniMC::Model::VMInstructionCode::IntToBool) {
 	  auto resVal = T::visit (  MiniMC::Support::Overload {
 	      [this](const typename T::I8 v)->T::Bool {return operations.IntToBool (v);},
 		[this](const typename T::I16 v)->T::Bool {return operations.IntToBool (v);},
@@ -320,12 +320,12 @@ namespace MiniMC {
 										   );
 	  state.getValueLookup().saveValue(res, resVal);
 	  
-	}
+	  }*/
 	
         else
           throw NotImplemented<op>();
         return Status::Ok;
-      }
+	}
 
       template <class I,VMState<T> State,class Evaluator>
       Status runInstruction(const I& instr, State& state,Evaluator eval)

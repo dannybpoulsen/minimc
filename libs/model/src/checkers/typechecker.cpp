@@ -190,8 +190,12 @@ namespace MiniMC {
 	return res;
 	  
       }
-	
-      
+
+      template<class T>
+      MiniMC::Model::Type_ptr  TypeChecker::operator() (T& expr) const  requires is_cast<T> {
+	expr.setType(expr.getToType ());
+	return expr.getType ();
+      }
       
       template <class Inst>
       bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
@@ -209,7 +213,7 @@ namespace MiniMC {
           }
         }
 
-        else if constexpr (i == VMInstructionCode::Trunc) {
+        /*else if constexpr (i == VMInstructionCode::Trunc) {
 	  auto& content = tinst.getOps ();
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -228,7 +232,7 @@ namespace MiniMC {
           }
 
           return true;
-        }
+	  }
 
         else if constexpr (i == VMInstructionCode::IntToBool) {
 	  auto& content = tinst.getOps ();
@@ -248,8 +252,9 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == VMInstructionCode::SExt ||
-                           i == VMInstructionCode::ZExt) {
+        else if constexpr (i == VMInstructionCode::SExt //||
+                           //i == VMInstructionCode::ZExt
+			   ) {
 	  auto& content = tinst.getOps ();
 	  auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -267,14 +272,14 @@ namespace MiniMC {
 	    return false;
           }
           return true;
-        }
-
+	}
+	
         else if constexpr (i == VMInstructionCode::BoolSExt ||
                            i == VMInstructionCode::BoolZExt) {
 	  auto& content = tinst.getOps ();
           MiniMC::Support::Localiser must_be_integer("'%1%' can only be applied from boolean types to  integer types. ");
           MiniMC::Support::Localiser must_be_smaller("From type must be smaller that to type for '%1%'");
-
+	  
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
 
@@ -289,7 +294,7 @@ namespace MiniMC {
           } 
 
           return true;
-        }
+	  }*/
 
         else if constexpr (i == VMInstructionCode::IntToPtr) {
 	  auto& content = tinst.getOps ();

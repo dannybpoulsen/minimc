@@ -39,8 +39,11 @@ namespace MiniMC {
 
 	template<class T>
 	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_bin_cmp<T>;
-
+	
 	MiniMC::Model::Type_ptr  operator() (LogNotExpr& ) const;
+
+	template<class T>
+	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_cast<T>;
 	
 	
       private:

@@ -2,6 +2,7 @@
 #define _VM_VMT__
 
 #include "minimc/hash/hashing.hpp"
+#include "minimc/model/types.hpp"
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/model/cfg.hpp"
@@ -332,12 +333,198 @@ namespace MiniMC {
         }
       }
 
+      template<class T>
+      Value operator() (const T&) const  {
+	throw MiniMC::Support::Exception ("Not implemented");
+      }
+      
       
       template<class T>
       Value operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
 	return ops.create(t);
       }
 
+      
+      Value operator() (const MiniMC::Model::BoolSExtExpr& sext) const  {
+	typename Value::Bool op1 = Value::visit (MiniMC::Support::Overload {
+	    [](const typename Value::Bool& b) {return b;},
+	    MiniMC::Support::Error<typename Value::Bool> {}
+	  },
+	  Eval(sext.getFrom ())
+	  );
+	
+	switch (sext.getToType()->getTypeID()) {
+	case MiniMC::Model::TypeID::I8:
+	  return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(op1);
+	case MiniMC::Model::TypeID::I16:
+	  return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(op1);
+	  break;
+	case MiniMC::Model::TypeID::I32:
+	  return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(op1);
+	  break;
+	case MiniMC::Model::TypeID::I64:
+	  return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(op1);
+	  break;
+	default:
+	  std::unreachable();
+	}
+
+      }
+
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecTrunc (T from) const {
+	if constexpr (T::intbitsize () >= MiniMC::Model::BitWidth<To>) {
+	  return ops.template Trunc<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+
+      Value operator() (const MiniMC::Model::TruncExpr& trunc) const  {
+	Value res = Value::visit (MiniMC::Support::Overload {
+	    [&trunc,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+	      switch (trunc.getToType()->getTypeID ()) {
+	      case MiniMC::Model::TypeID::I8:
+	      return ExecTrunc<T,MiniMC::Model::TypeID::I8> (b);
+	      case MiniMC::Model::TypeID::I16:
+	      return ExecTrunc<T,MiniMC::Model::TypeID::I16> (b);
+	      case MiniMC::Model::TypeID::I32:
+	      return ExecTrunc<T,MiniMC::Model::TypeID::I32> (b);
+	      case MiniMC::Model::TypeID::I64:
+	      return ExecTrunc<T,MiniMC::Model::TypeID::I64> (b);
+	      default:
+	      std::unreachable();
+	      }
+	      
+	    },
+	      MiniMC::Support::Error<Value> {}
+	  },
+	  Eval(trunc.getFrom ())
+	  );
+
+	return res;
+	
+      }
+
+
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecZExt (T from) const {
+	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	  return ops.template ZExt<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+
+      Value operator() (const MiniMC::Model::ZExtExpr& zext) const  {
+	Value res = Value::visit (MiniMC::Support::Overload {
+	    [&zext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+	      switch (zext.getToType()->getTypeID ()) {
+	      case MiniMC::Model::TypeID::I8:
+	      return ExecZExt<T,MiniMC::Model::TypeID::I8> (b);
+	      case MiniMC::Model::TypeID::I16:
+	      return ExecZExt<T,MiniMC::Model::TypeID::I16> (b);
+	      case MiniMC::Model::TypeID::I32:
+	      return ExecZExt<T,MiniMC::Model::TypeID::I32> (b);
+	      case MiniMC::Model::TypeID::I64:
+	      return ExecZExt<T,MiniMC::Model::TypeID::I64> (b);
+	      default:
+	      std::unreachable();
+	      }
+	      
+	    },
+	      
+	    [&zext,this](const typename Value::Bool& b) ->Value  {
+	      switch (zext.getToType()->getTypeID()) {
+	      case MiniMC::Model::TypeID::I8:
+		return ops.template BoolZExt<MiniMC::Model::TypeID::I8>(b);
+	      case MiniMC::Model::TypeID::I16:
+		return ops.template BoolZExt<MiniMC::Model::TypeID::I16>(b);
+		break;
+	      case MiniMC::Model::TypeID::I32:
+		return ops.template BoolZExt<MiniMC::Model::TypeID::I32>(b);
+		break;
+	      case MiniMC::Model::TypeID::I64:
+		return ops.template BoolZExt<MiniMC::Model::TypeID::I64>(b);
+		break;
+	      default:
+		std::unreachable();
+	      }
+	    },
+	    MiniMC::Support::Error<Value> {}
+	  },
+	  Eval(zext.getFrom ())
+	  );
+
+	return res;
+	
+      }
+
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecSExt (T from) const {
+	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	  return ops.template SExt<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+      
+      Value operator() (const MiniMC::Model::SExtExpr& sext) const  {
+	Value res = Value::visit (MiniMC::Support::Overload {
+	    [&sext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+	      switch (sext.getToType()->getTypeID ()) {
+	      case MiniMC::Model::TypeID::I8:
+	      return ExecSExt<T,MiniMC::Model::TypeID::I8> (b);
+	      case MiniMC::Model::TypeID::I16:
+	      return ExecSExt<T,MiniMC::Model::TypeID::I16> (b);
+	      case MiniMC::Model::TypeID::I32:
+	      return ExecSExt<T,MiniMC::Model::TypeID::I32> (b);
+	      case MiniMC::Model::TypeID::I64:
+	      return ExecSExt<T,MiniMC::Model::TypeID::I64> (b);
+	      default:
+	      std::unreachable();
+	      }
+	      
+	    },
+	      
+	    [&sext,this](const typename Value::Bool& b) ->Value  {
+	      switch (sext.getToType()->getTypeID()) {
+	      case MiniMC::Model::TypeID::I8:
+		return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(b);
+	      case MiniMC::Model::TypeID::I16:
+		return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(b);
+		break;
+	      case MiniMC::Model::TypeID::I32:
+		return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(b);
+		break;
+	      case MiniMC::Model::TypeID::I64:
+		return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(b);
+		break;
+	      default:
+		std::unreachable();
+	      }
+	    },
+	    MiniMC::Support::Error<Value> {}
+	  },
+	  Eval(sext.getFrom ())
+	  );
+
+	return res;
+	
+      }
+
+      Value operator() (const MiniMC::Model::IntToBoolExpr& sext) const  {
+	return Value::visit (  MiniMC::Support::Overload {
+	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {return ops.IntToBool (v);},
+	    MiniMC::Support::Error<Value>{}
+	  },
+	  Eval (sext.getFrom ())
+	  );
+      }
+      
       Value operator() (const MiniMC::Model::Register& reg) const  {
 	return regstore.lookupRegister (reg);
       }
