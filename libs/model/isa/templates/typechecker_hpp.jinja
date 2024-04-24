@@ -1,4 +1,4 @@
-/**
+ /**
  * @file   typechecker.hpp
  * @date   Mon Apr 20 17:02:30 2020
  * 
@@ -34,18 +34,24 @@ namespace MiniMC {
 	  return t.getType ();
 	}
 
-	template<class T>
+	/*template<class T>
 	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_bin_arith<T>;
 
 	template<class T>
 	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_bin_cmp<T>;
 	
-	MiniMC::Model::Type_ptr  operator() (LogNotExpr& ) const;
 
 	template<class T>
 	MiniMC::Model::Type_ptr  operator() (T& ) const requires is_cast<T>;
+	*/
 	
+	{% for i in ISA.getPseudoInstructions () %}
+	{%if i.isAssignConvertible () %}
+	MiniMC::Model::Type_ptr  operator() ({{i.getName ()}}Expr& ) const;
 	
+	{%endif %}
+	{%endfor %}
+		
       private:
 	template<class Inst>
 	bool doCheck(const Inst&, const MiniMC::Model::Instruction&, const MiniMC::Model::Type_ptr&, MiniMC::Model::Program&);

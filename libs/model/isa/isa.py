@@ -1,7 +1,22 @@
+
+
+class TypeDescriptor:
+    def __init__(self,name,type_d):
+        self._name = name
+        self._type = type_d
+
+    def getName (self):
+        return self._name
+
+    def getTypeD (self):
+        return self._type
+
+
 class Operand:
-    def __init__ (self,name, multi = False):
+    def __init__ (self,name, ty,multi = False):
         self._name = name
         self._multi = multi
+        self._type = ty 
 
     def getName (self):
         return self._name
@@ -9,6 +24,9 @@ class Operand:
     def isMultiParam (self):
         return self._multi
 
+    def getType(self):
+        return self._type
+    
     def __str__ (self):
         str = ""
         if self._multi:
@@ -59,7 +77,7 @@ class InstructionGroup:
     def getPseudoInstructions (self):
         yield from [j for j in self.getInstructions () if not  j.isVM ()]
     
-    
+        
     
 class ISA:
     def __init__ (self,instrgroups = []):
@@ -87,6 +105,10 @@ class ISA:
     def getPseudoInstructions (self):
         for i in self._groups:
             yield from [j for j in i.getInstructions () if not  j.isVM ()]
+
+    def getPseudoGroupedInstructions (self):
+        for i in self._groups:
+            yield from [(i,j) for j in i.getInstructions () if not  j.isVM ()]
     
             
 def readISA (path):
@@ -99,10 +121,16 @@ def readISA (path):
             for i,data in instructions.items():
                 opcode = data["opcode"]
                 ops = []
+                types = {}
+                if "types" in data:
+                    for k,t in data["types"].items():
+                        types[k] = TypeDescriptor (k,t)
                 for p in data["params"]:
                     name = p["name"]
+                    
+                    t = p["type"]
                     mname = name.replace("*","")
-                    ops.append (Operand(mname,"*" in name))
+                    ops.append (Operand(mname,types[t],"*" in name))
                 assign_convertible = data.get("assign_convertible",False)
                 temp_create = data.get("template_construction",None)
                 vm = data.get("vm",False)

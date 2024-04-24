@@ -345,32 +345,7 @@ namespace MiniMC {
       }
 
       
-      Value operator() (const MiniMC::Model::BoolSExtExpr& sext) const  {
-	typename Value::Bool op1 = Value::visit (MiniMC::Support::Overload {
-	    [](const typename Value::Bool& b) {return b;},
-	    MiniMC::Support::Error<typename Value::Bool> {}
-	  },
-	  Eval(sext.getFrom ())
-	  );
-	
-	switch (sext.getToType()->getTypeID()) {
-	case MiniMC::Model::TypeID::I8:
-	  return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(op1);
-	case MiniMC::Model::TypeID::I16:
-	  return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(op1);
-	  break;
-	case MiniMC::Model::TypeID::I32:
-	  return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(op1);
-	  break;
-	case MiniMC::Model::TypeID::I64:
-	  return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(op1);
-	  break;
-	default:
-	  std::unreachable();
-	}
-
-      }
-
+      
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecTrunc (T from) const {
 	if constexpr (T::intbitsize () >= MiniMC::Model::BitWidth<To>) {
@@ -520,6 +495,54 @@ namespace MiniMC {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {return ops.IntToBool (v);},
 	    MiniMC::Support::Error<Value>{}
+	  },
+	  Eval (sext.getFrom ())
+	  );
+      }
+
+      Value operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
+	return Value::visit (  MiniMC::Support::Overload {
+	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {
+	      return ops.IntToPtr (v);
+	    },
+	    MiniMC::Support::Error<Value>{}
+	  },
+	  Eval (sext.getFrom ())
+	  );
+      }
+
+      Value operator() (const MiniMC::Model::PtrToIntExpr& sext) const  {
+	return Value::visit (  MiniMC::Support::Overload {
+	    [this,&sext](const typename Value::Pointer& val)->Value  {
+	      switch (sext.getToType ()->getTypeID ()) {
+	      case MiniMC::Model::TypeID::I8:
+		return ops.template PtrToInt<typename Value::I8> (val);
+	      case MiniMC::Model::TypeID::I16:
+		return ops.template PtrToInt<typename Value::I16> (val);
+	      case MiniMC::Model::TypeID::I32:
+		return ops.template PtrToInt<typename Value::I32> (val);
+	      case MiniMC::Model::TypeID::I64:
+		return ops.template PtrToInt<typename Value::I64> (val);
+	      default:
+		std::unreachable();
+	      }
+	    },
+	      [this,&sext](const typename Value::Pointer32& val)->Value  {
+	      switch (sext.getToType ()->getTypeID ()) {
+	      case MiniMC::Model::TypeID::I8:
+		return ops.template Ptr32ToInt<typename Value::I8> (val);
+	      case MiniMC::Model::TypeID::I16:
+		return ops.template Ptr32ToInt<typename Value::I16> (val);
+	      case MiniMC::Model::TypeID::I32:
+		return ops.template Ptr32ToInt<typename Value::I32> (val);
+	      case MiniMC::Model::TypeID::I64:
+		return ops.template Ptr32ToInt<typename Value::I64> (val);
+	      default:
+		std::unreachable();
+	      }
+	      },
+	  
+	  MiniMC::Support::Error<Value>{}
 	  },
 	  Eval (sext.getFrom ())
 	  );

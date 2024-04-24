@@ -141,26 +141,30 @@ namespace MiniMC {
 	
 	Value_ptr val;
       };
-      
-      template<class T>
-      MiniMC::Model::Type_ptr  TypeChecker::operator() (T& expr) const requires is_bin_arith<T> {
-	auto lty = CheckType(expr.getLeft());
-	auto rty = CheckType(expr.getRight());
-	MiniMC::Model::Type_ptr res = nullptr;;
-	if (lty == rty) {
-	  res = lty;
-	}
-	else {
-	  messager << MustBeSameTypeExpr{expr.getLeft(),expr.getRight()}
-	  ;
-	}
-	expr.setType (res);
-	return res;
-	  
-      }
 
-      template<class T>
-      MiniMC::Model::Type_ptr  TypeChecker::operator() (T& expr) const requires is_bin_cmp<T> {
+      {%macro tac_instruction(i) %}
+ MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr)  const {
+ 	  auto lty = CheckType(expr.getLeft());
+	  auto rty =	 CheckType(expr.getRight());
+	  MiniMC::Model::Type_ptr res = nullptr;;
+	  if (lty == rty) {
+	       res = lty;
+	   }
+	   else {
+	      messager << MustBeSameTypeExpr{expr.getLeft(),expr.getRight()};
+	   }
+	   expr.setType (res);
+	   return res;
+	  
+}
+      {%endmacro %}
+
+      {% for g,i in ISA.getPseudoGroupedInstructions () %}
+	{%if i.isAssignConvertible () %}
+	     {%if g.getName() == "TAC" %}
+{{tac_instruction(i) }}	     	 
+	     	{%elif g.getName() =="Comparison" %}
+		MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr) const  {
 	auto lty = CheckType(expr.getLeft());
 	auto rty = CheckType(expr.getRight());
 	MiniMC::Model::Type_ptr res = nullptr;;
@@ -175,6 +179,20 @@ namespace MiniMC {
 	return res;
 	  
       }
+      	{%elif g.getName() =="Cast" %}
+	MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr) const  {
+	MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
+	messager << MiniMC::Support::TWarning {warning.format(expr)};
+	expr.setType(expr.getToType ());
+	return expr.getType ();
+      }
+            {%else %}
+      	     //Missing {{i.getName ()}}Expr       
+      {%endif %}
+
+	{%endif %}
+      {% endfor %}
+      
 
       MiniMC::Model::Type_ptr  TypeChecker::operator() (MiniMC::Model::LogNotExpr& expr) const  {
 	auto lty = CheckType(expr.getInner());
@@ -191,12 +209,6 @@ namespace MiniMC {
 	  
       }
 
-      template<class T>
-      MiniMC::Model::Type_ptr  TypeChecker::operator() (T& expr) const  requires is_cast<T> {
-	expr.setType(expr.getToType ());
-	return expr.getType ();
-      }
-      
       template <class Inst>
       bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
 	constexpr auto i = tinst.getOpcode (); 
@@ -296,7 +308,7 @@ namespace MiniMC {
           return true;
 	  }*/
 
-        else if constexpr (i == VMInstructionCode::IntToPtr) {
+        /*else if constexpr (i == VMInstructionCode::IntToPtr) {
 	  auto& content = tinst.getOps ();
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -313,7 +325,7 @@ namespace MiniMC {
 
           return true;
 
-        }
+	  }*/
 	
         else if constexpr (i == VMInstructionCode::PtrAdd ||i == VMInstructionCode::PtrSub ) {
 	  auto& content = tinst.getOps ();
@@ -360,7 +372,7 @@ namespace MiniMC {
           return true;
         }
 
-        else if constexpr (i == VMInstructionCode::PtrToInt) {
+        /*else if constexpr (i == VMInstructionCode::PtrToInt) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only be applied to pointer types. ");
           MiniMC::Support::Localiser must_be_integer("Return type has to be integer for '%1%'");
 
@@ -380,7 +392,7 @@ namespace MiniMC {
           }
 
           return true;
-        }
+	  }*/
         
         else if constexpr (i == VMInstructionCode::Store) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
