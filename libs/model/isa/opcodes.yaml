@@ -9,7 +9,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
     
   sub:
@@ -22,7 +23,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
   mul:
     opcode: Mul
@@ -34,7 +36,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
   udiv:
@@ -47,7 +50,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
   sdiv:
@@ -60,7 +64,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
 
@@ -74,7 +79,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
   lshr:
@@ -87,7 +93,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
   ashr:
@@ -100,7 +107,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
       
@@ -114,7 +122,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
   or:
@@ -127,7 +136,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
 
@@ -141,7 +151,8 @@ TAC:
       - name: op2
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     assign_convertible: True
 
 Unary:
@@ -153,7 +164,8 @@ Unary:
       - name: op1
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     vm: True
   lnot:
     opcode: LogNot
@@ -163,7 +175,8 @@ Unary:
       - name: op1
         type: t1
     types:
-      t1: Bool    
+      t1:
+        - Bool    
     assign_convertible: True
 Comparison:
   isgt:
@@ -176,8 +189,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
   
   iugt:
@@ -190,8 +205,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
   
 
@@ -205,8 +222,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
 
   iuge:
@@ -219,8 +238,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
     
   islt:
@@ -233,8 +254,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
 
   iult:
@@ -247,8 +270,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
     
   isle:
@@ -261,8 +286,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
 
   iule:
@@ -275,8 +302,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
     
   ieq:
@@ -289,8 +318,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
 
 
@@ -304,8 +335,10 @@ Comparison:
       - name: op2
         type: t2
     types:
-      t1: Bool
-      t2: Integer
+      t1:
+        - Bool
+      t2:
+        - Integer
     assign_convertible: True
 
 Pointer:
@@ -321,8 +354,10 @@ Pointer:
       - name: nbSkips
         type: t2
     types:
-      t1: Pointer
-      t2: Integer
+      t1:
+        - Pointer
+      t2:
+        - Integer
     vm: True
 
   ptrsub:
@@ -337,8 +372,10 @@ Pointer:
       - name: nbSkips
         type: t2
     types:
-      t1: Pointer
-      t2: Integer
+      t1:
+        - Pointer
+      t2:
+        - Integer
     vm: True
     
 Aggregate:
@@ -352,9 +389,12 @@ Aggregate:
       - name : offset
         type: t3
     types:
-      t1: Any
-      t2: Aggregate
-      t3: Integer
+      t1:
+        - Any
+      t2:
+        - Aggregate
+      t3:
+        - Integer
     vm: True
     
   insertvalue:
@@ -369,9 +409,12 @@ Aggregate:
       - name: insertee
         type: t3
     types:
-      t1: Aggregate
-      t2: Integer
-      t3: Any
+      t1:
+        - Aggregate
+      t2:
+        - Integer
+      t3:
+        - Any
     vm: True
     
 Cast:
@@ -383,8 +426,11 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Integer
+      t1:
+        - Integer
+      t2:
+        - Integer
+    size_constraints: BW(t2) >= BW(t1)
     vm: False
     assign_convertible: True
     
@@ -396,9 +442,12 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Integer
+      t1:
+        - Integer
+      t2:
+        - Integer
     vm: True
+    size_constraints: BW(t2) == BW(t1)
     
     
   zext:
@@ -409,8 +458,12 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Integer
+      t1:
+        - Integer
+      t2:
+        - Integer
+        - Bool
+    size_constraints: BW(t2) <= BW(t1)
     vm: False
     assign_convertible: True
     
@@ -423,8 +476,12 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Integer
+      t1:
+        - Integer
+      t2:
+        - Integer
+        - Bool
+    size_constraints: BW(t2) <= BW(t1)
     vm: False
     assign_convertible: True  
     
@@ -436,8 +493,10 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Pointer
+      t1:
+        - Integer
+      t2:
+        - Pointer
     vm: False
     assign_convertible: True
     
@@ -449,8 +508,10 @@ Cast:
       - name: op1
         type: t2
     types:
-      t2: Integer
-      t1: Pointer
+      t2:
+        - Integer
+      t1:
+        - Pointer
     vm: False
     assign_convertible: True
     
@@ -462,8 +523,10 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Bool
+      t1:
+        - Integer
+      t2:
+        - Bool
     vm: False
     template_construction:
       auto tup = std::make_tuple (args...);
@@ -477,8 +540,10 @@ Cast:
       - name: op1
         type: t2
     types:
-      t1: Integer
-      t2: Bool
+      t1:
+        - Integer
+      t2:
+        - Bool
     vm: False
     template_construction:
       auto tup = std::make_tuple (args...);
@@ -493,11 +558,27 @@ Cast:
       - name: op1
         type: t2
     types:
-      t2: Integer
-      t1: Bool
+      t2:
+        - Integer
+      t1:
+        - Bool
     vm: False
     assign_convertible: True
-    
+  load:
+    opcode: Load
+    params:
+      - name: res
+        type: t1
+      - name: addr
+        type: t2
+    types:
+      t1:
+        - Any
+      t2:
+        - Pointer
+    vm: False
+    assign_convertible: True
+
     
 Memory:
   store:
@@ -508,20 +589,10 @@ Memory:
       - name: storee
         type: t2
     types:
-      t1: Pointer
-      t2: Any
-    vm: True
-    
-  load:
-    opcode: Load
-    params:
-      - name: res
-        type: t1
-      - name: addr
-        type: t2
-    types:
-      t1: Any
-      t2: Pointer
+      t1:
+        - Pointer
+      t2:
+        - Any
     vm: True
     
 Internal:
@@ -540,9 +611,12 @@ Internal:
       - name: "params*"
         type: t3
     types:
-      t1: Any
-      t2: Pointer
-      t3: Vector
+      t1:
+        - Any
+      t2:
+        - Pointer
+      t3:
+        - Vector
     vm: True
     
   assign:
@@ -553,7 +627,8 @@ Internal:
       - name: op1
         type: t1
     types:
-      t1: Any
+      t1:
+        - Any
     vm: True
     
   nondet:
@@ -566,7 +641,8 @@ Internal:
       - name: max
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     vm: True
     
   uniform:
@@ -579,7 +655,8 @@ Internal:
       - name: max
         type: t1
     types:
-      t1: Integer
+      t1:
+        - Integer
     vm: True
     
   ret:
@@ -588,7 +665,8 @@ Internal:
       - name: value
         type: t1
     types:
-      t1: Any
+      t1:
+        - Any
     vm: True
     
   retvoid:
@@ -603,7 +681,8 @@ AssertAssume:
       - name: expr
         type: t1
     types:
-      t1: Bool
+      t1:
+        - Bool
     vm: True
     
   assume:
@@ -612,7 +691,8 @@ AssertAssume:
       - name: expr
         type: t1
     types:
-      t1: Bool
+      t1:
+        - Bool
     vm: True
     
   negassume:
@@ -621,7 +701,8 @@ AssertAssume:
       - name: expr
         type: t1
     types:
-      t1: Bool
+      t1:
+        - Bool
     template_construction:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::LogNotExpr> (std::get<0> (tup));

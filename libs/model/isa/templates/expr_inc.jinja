@@ -1,105 +1,52 @@
-enum class BinOps {
-     {% for N in all_bin_ops %}{{N}} {% if not loop.alast %}, {%endif %}
-     {% endfor %}
-    };
 
-    template<BinOps>
-    struct BinOpsDetails {};
+     {% for N in all_bin_ops+all_unary_ops %}
+     class {{N.getName()}}Expr : public Value {
+     	   public:
+     	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %});
+	   {%for o in N.getNonResOperands () %}
+	   auto& {{o.getName()}} () { return *_{{o.getName()}};}
+	   const auto& {{o.getName()}}  ()const  { return *_{{o.getName()}};}
+	   
+	   {%endfor %}
 
-     {% for N in all_bin_ops %}
-     template<> struct BinOpsDetails<BinOps::{{N}}> {
-      		static consteval auto text () {return "{{N}}";}
-     }; 
-     {% endfor %}
-    
+	   std::ostream& output(std::ostream& os) const override {
+	   	return os << "(" << "{{N.getName()}}" <<  {%for o in N.getNonResOperands () %} *_{{o.getName ()}} << {%endfor%} ")";
+      	   }		
+      
+
+	   private:
+
+	   {%for o in N.getNonResOperands () %}
+	   Value_ptr _{{o.getName()}};
+	   {%endfor%}
+	   
+     };
+
+     {%endfor %}
         
-    template<BinOps op>
-    class BinaryExpression : public Value{
-    public:
-      BinaryExpression (Value_ptr l, Value_ptr r);
-
-      auto& getLeft () {
-        return *left;
-      }
-
-      auto& getRight () {
-	return *right;
-      }
-      
-      const auto& getLeft () const{
-	return *left;
-      }
-
-      const auto& getRight () const {
-	return *right;
-      }
-      
-      std::ostream& output(std::ostream& os) const override {
-	return os << "(" <<BinOpsDetails<op>::text()   << *left << " " << *right <<  ")";
-      }
-      
-    private:
-      Value_ptr left;
-      Value_ptr right;
-    };
-
-    enum class UnaryOps {
-     {% for N in all_unary_ops %}{{N}} {% if not loop.alast %}, {%endif %}
-     {% endfor %}
-    };
-
-    template<UnaryOps>
-    struct UnaryOpsDetails {};
-
-     {% for N in all_unary_ops %}
-     template<> struct UnaryOpsDetails<UnaryOps::{{N}}> {
-      		static consteval auto text () {return "{{N}}";}
-     }; 
-     {% endfor %}
-    
-    template<UnaryOps op>
-    class UnaryExpression : public Value{
-    public:
-      UnaryExpression (Value_ptr l);
-
-      auto& getInner () {
-        return *left;
-      }
-
-	
-     const auto& getInner () const{
-	return *left;
-      }
-
-      
-      std::ostream& output(std::ostream& os) const override {
-	return os << "(" <<UnaryOpsDetails<op>::text()   << *left << ")";
-      }
-      
-    private:
-      Value_ptr left;
-    };		
 
     enum class CastOps {
-     {% for N in cast_ops %}{{N}} {% if not loop.last %}, {%endif %}
+     {% for N in cast_ops %}{{N.getName()}} {% if not loop.last %}, {%endif %}
      {% endfor %}    	 	 
     };
-
+    
     template<CastOps>
     struct CastOpsDetails {};
 
      {% for N in cast_ops %}
-     template<> struct CastOpsDetails<CastOps::{{N}}> {
-      		static consteval auto text () {return "{{N}}";}
+     template<> struct CastOpsDetails<CastOps::{{N.getName()}}> {
+      		static consteval auto text () {return "{{N.getName()}}";}
      }; 
      {% endfor %}
-
+     
     template<CastOps op>
     class CastExpression : public Value {
     public:
     CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
     const auto& getFrom () const { return *from_expr;}
     const auto& getToType() const {return to_type;}
+    auto& getFrom ()  { return *from_expr;}
+    
     std::ostream& output(std::ostream& os) const override {
     		return os << "(" <<CastOpsDetails<op>::text()   << *from_expr << " to " << *to_type << ")";
       }	
@@ -107,6 +54,8 @@ enum class BinOps {
 	MiniMC::Model::Value_ptr from_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
+
+    
 
     using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
@@ -117,14 +66,9 @@ enum class BinOps {
     using Pointer32 = TConstant<MiniMC::Model::pointer32_t>;
     using SymbolicConstant = TConstant<MiniMC::Model::Symbol>;
     
-    	  
-   {% for N in all_bin_ops %}using {{N}}Expr = BinaryExpression<BinOps::{{N}}>;
-   {% endfor %}
+    
 
-   {% for N in all_unary_ops %}using {{N}}Expr = UnaryExpression<UnaryOps::{{N}}>;
-   {% endfor %}
-
-   {% for N in cast_ops %}using {{N}}Expr = CastExpression<CastOps::{{N}}>;
+   {% for N in cast_ops %}using {{N.getName()}}Expr = CastExpression<CastOps::{{N.getName()}}>;
    {% endfor %}
    
 
@@ -166,7 +110,7 @@ enum class BinOps {
 			  Register,
 			  Undef,
 			  SymbolicConstant,
-			  {% for N in all_bin_ops+all_unary_ops+cast_ops %}{{N}}Expr{% if not loop.last %},{%endif%}
+			  {% for N in all_bin_ops+all_unary_ops+cast_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
 			  	  
 			  > ();
@@ -179,15 +123,12 @@ enum class BinOps {
                                                      value(val) {
     }
 
-    template <BinOps b>
-    inline BinaryExpression<b>::BinaryExpression(Value_ptr left, Value_ptr right) : Value(ValueInfo<BinaryExpression<b>>::type_t()),
-										    left(left),right(right) {
-    }
 
-    template <UnaryOps b>
-    inline UnaryExpression<b>::UnaryExpression(Value_ptr left) : Value(ValueInfo<UnaryExpression<b>>::type_t()),
-										    left(left) {
-										        }
+    {% for N in all_bin_ops+all_unary_ops %}
+       
+    inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo<{{N.getName()}}Expr>::type_t()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
+
+    {%endfor %}
 
     template<CastOps c>
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<CastExpression<c>>::type_t ()),from_expr(v),to_type(to) {}
@@ -210,21 +151,21 @@ enum class BinOps {
     {%if arit_ops|length > 0 %}  
     template<class A>
     constexpr bool is_bin_arith =
-      {% for N in arit_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in arit_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     ;
     {%endif%}
     {%if cmp_ops|length > 0 %}  
     template<class A>
     constexpr bool is_bin_cmp = 
-      {% for N in cmp_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in cmp_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     
     ;
     
     template<class A>
     constexpr bool is_unary = 
-      {% for N in all_unary_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in all_unary_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     
     ;
@@ -232,7 +173,7 @@ enum class BinOps {
     {%if cast_ops|length > 0 %}  
     template<class A>
     constexpr bool is_cast =
-      {% for N in cast_ops %} std::is_same_v<std::remove_const_t<A>,{{N}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in cast_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     ;
     {%endif %}
@@ -261,7 +202,7 @@ enum class BinOps {
 				    CType<MiniMC::Model::Undef,cconsts> und,
 				    CType<MiniMC::Model::SymbolicConstant,cconsts> sc,
 				    {%for N in all_bin_ops+all_unary_ops+cast_ops %}
-        			    CType<MiniMC::Model::{{N}}Expr,cconsts> o{{loop.index}} {%if not loop.last %}, {%endif%}
+        			    CType<MiniMC::Model::{{N.getName()}}Expr,cconsts> o{{loop.index}} {%if not loop.last %}, {%endif%}
 				    {%endfor%}
     ) {
       {e(i8)}->std::convertible_to<Res>;
@@ -276,7 +217,7 @@ enum class BinOps {
       {e(und)}->std::convertible_to<Res>;
       {e(sc)}->std::convertible_to<Res>;
       {%for N in all_bin_ops+all_unary_ops+cast_ops %}{e(o{{loop.index}}) }->std::convertible_to<Res>;
-     {%endfor%}
+           {%endfor%}
     
     };
 
@@ -323,10 +264,10 @@ enum class BinOps {
       case ValueInfo<SymbolicConstant>::type_t ():
 	return f (static_cast<CType<SymbolicConstant,c>&> (v));
 	break;
-       {%for N in all_bin_ops+all_unary_ops+cast_ops %}case ValueInfo<{{N}}Expr>::type_t ():
-       	     return f (static_cast<CType<{{N}}Expr,c>&> (v));
+	   {%for N in all_bin_ops+all_unary_ops+cast_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
+       	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
 	     break;
-       {%endfor%}    
+	   {%endfor%}    
 default:		
 #ifdef NDEBUG
 	std::unreachable();

@@ -51,7 +51,9 @@ namespace MiniMC {
         const Solver_ptr getConcretizer() const override;
         auto& getStack() { return mixin.getProc(0); }
         auto& getMemory() { return mixin.getMemory(); }
-        auto& getStack() const { return mixin.getProc(0); }
+	const auto& getMemory() const { return mixin.getMemory(); }
+        
+	auto& getStack() const { return mixin.getProc(0); }
 
 	const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
 	
@@ -67,8 +69,11 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};  
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value>,MiniMC::VMT::Pathformula::Operations> eval {MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
-									{const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),metas}};
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value>,MiniMC::VMT::Pathformula::Operations,MiniMC::VMT::Pathformula::Memory> eval {
+	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
+	    {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),metas},
+	    getMemory ()
+	  };
           return std::make_unique<QExpr>(eval.Eval(*val));
         }
 

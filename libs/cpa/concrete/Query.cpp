@@ -101,7 +101,11 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
 	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations> eval (MiniMC::VMT::Concrete::Operations{},{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas });
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Memory> eval (
+																					MiniMC::VMT::Concrete::Operations{},
+																					{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas },
+
+																					getHeap ()														       );
 	  return std::make_unique<QExpr> (eval.Eval(*val));
 	    
 	}

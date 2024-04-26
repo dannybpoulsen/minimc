@@ -1,16 +1,44 @@
+import pyparsing as pp
 
+class SizeRestriction:
+    def __init__(self,left,right, _cmp="<="):
+        self._left = left
+        self._right = right
+        self._cmp = _cmp
+        
+    def getLesser (self):
+        return self._left
+
+    def getGreater (self):
+        return self._right
+
+    def getCMP (self):
+        return self._cmp
 
 class TypeDescriptor:
     def __init__(self,name,type_d):
         self._name = name
         self._type = type_d
-
+        self._operands = []
+        
     def getName (self):
         return self._name
 
     def getTypeD (self):
         return self._type
 
+    def addOperand(self,op):
+        self._operands.append(op)
+    
+    def operands (self):
+        return self._operands
+
+    def NonResoperands (self):
+        return list([i for i in self._operands if i.getName()!="res"])
+
+    def Resoperands (self):
+        return list([i for i in self._operands if i.getName()=="res"])
+    
 
 class Operand:
     def __init__ (self,name, ty,multi = False):
@@ -34,12 +62,14 @@ class Operand:
         return f"{self._name}{str}"
     
 class Instruction:
-    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False ):
+    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False,typedescriptors = {},sizes = None ):
         self._name = name
         self._operands = operands
         self._assign = assign
         self._tempcreate = tempcreate
         self._vm = vm
+        self._types = typedescriptors 
+        self._sizes = sizes
         
     def getName (self):
         return self._name
@@ -47,6 +77,22 @@ class Instruction:
     def getOperands (self):
         return self._operands
 
+    def getNonResOperands (self):
+        return list([i for i in self._operands if i.getName() != "res"])
+
+    def getResOperand (self):
+        for i in self._operands:
+            if i.getName() == "res":
+                return i
+        return None
+        
+    
+    def getTypes (self):
+        return self._types
+
+    def getTypeSizeRestrictions(self):
+        return self._sizes 
+    
     def isAssignConvertible (self):
         return self._assign
 
@@ -110,8 +156,23 @@ class ISA:
         for i in self._groups:
             yield from [(i,j) for j in i.getInstructions () if not  j.isVM ()]
     
+
+def parseSizeConstraints (inp,types):
+    BW = (pp.Word ("BW") + pp.Literal ("(") + pp.Word(pp.alphanums) + pp.Literal (")")).set_parse_action (lambda toks: types[toks[2]])
+    greater_eq  = (BW + pp.Literal (">=") + BW).set_parse_action (lambda toks:  SizeRestriction (toks[0],toks[2],toks[1]))
+    lesser_eq  = (BW + pp.Literal ("<=") + BW).set_parse_action (lambda toks:  SizeRestriction (toks[0],toks[2],toks[1]))
+    greater  = (BW + pp.Literal (">") + BW).set_parse_action (lambda toks:  SizeRestriction (toks[0],toks[2],toks[1]))
+    lesser  = (BW + pp.Literal ("<") + BW).set_parse_action (lambda toks:  SizeRestriction (toks[0],toks[2],toks[1]))
+    eq  = (BW + pp.Literal ("==") + BW).set_parse_action (lambda toks:  SizeRestriction (toks[0],toks[2],toks[1]))
+
+    parser = greater_eq | lesser_eq | greater | lesser | eq
+    
+    return parser.parse_string (inp)[0]
+                
+            
             
 def readISA (path):
+    
     import yaml
     with open(path) as ff:
         groups = []
@@ -130,11 +191,16 @@ def readISA (path):
                     
                     t = p["type"]
                     mname = name.replace("*","")
-                    ops.append (Operand(mname,types[t],"*" in name))
+                    op = Operand(mname,types[t],"*" in name)
+                    types[t].addOperand(op)
+                    ops.append (op)
+                size = None
+                if "size_constraints" in data:
+                    size = parseSizeConstraints (data["size_constraints"],types)
                 assign_convertible = data.get("assign_convertible",False)
                 temp_create = data.get("template_construction",None)
                 vm = data.get("vm",False)
-                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm))
+                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm,types,size))
             groups.append (InstructionGroup (gname,instr))
         return ISA(groups)
     

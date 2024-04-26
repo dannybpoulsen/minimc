@@ -17,11 +17,11 @@ def writeInstructionConstructors (ISA,output):
 
 def writeExpressions(ISA,output):
     
-    bin_arit_ops_names = list ([i.getName () for g,i in ISA.getInstructionsWithGroupName () if g =="TAC" and i.isAssignConvertible()])
-    bin_cmp_ops_names = list ([i.getName () for g,i in ISA.getInstructionsWithGroupName () if g =="Comparison" and i.isAssignConvertible()])
+    bin_arit_ops_names = list ([i for g,i in ISA.getInstructionsWithGroupName () if g =="TAC" and i.isAssignConvertible()])
+    bin_cmp_ops_names = list ([i for g,i in ISA.getInstructionsWithGroupName () if g =="Comparison" and i.isAssignConvertible()])
     all_bin_ops_names = bin_arit_ops_names+bin_cmp_ops_names
-    unary_ops_names = list ([i.getName () for g,i in ISA.getInstructionsWithGroupName () if g =="Unary" and i.isAssignConvertible()])
-    cast_ops_names = list ([i.getName () for g,i in ISA.getInstructionsWithGroupName () if g =="Cast" and i.isAssignConvertible()])
+    unary_ops_names = list ([i for g,i in ISA.getInstructionsWithGroupName () if g =="Unary" and i.isAssignConvertible()])
+    cast_ops_names = list ([i for g,i in ISA.getInstructionsWithGroupName () if g =="Cast" and i.isAssignConvertible()])
     
     
     template = env.get_template ("expr_inc.jinja")

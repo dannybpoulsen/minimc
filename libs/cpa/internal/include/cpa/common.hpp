@@ -152,7 +152,7 @@ namespace MiniMC {
 
 	  auto pit = f.getParams ().begin ();
 	  auto rit = f.getFunction()->getParameters().begin ();
-	  MiniMC::VMT::Evaluator<Value,RegisterStore<Value>,Operations> eval {ops,regstore};
+	  MiniMC::VMT::Evaluator<Value,RegisterStore<Value>,Operations,Mem> eval {ops,regstore,heap};
 	  for (; pit != f.getParams ().end ();++pit,++rit) {
 	    //TODO: Updatee this 
 	    regstore.saveValue  (**rit,eval.Eval (**pit));
@@ -162,7 +162,7 @@ namespace MiniMC {
 	  
         }
 
-	MiniMC::VMT::Evaluator<Value,DummyRegisterStore<Value>,Operations> eval {ops,DummyRegisterStore<Value>{}};
+	MiniMC::VMT::Evaluator<Value,DummyRegisterStore<Value>,Operations,Mem> eval {ops,DummyRegisterStore<Value>{},heap};
 	heap.createHeapLayout (descr.getHeap ());
 	
 	for (auto& b : descr.getHeap ()) {

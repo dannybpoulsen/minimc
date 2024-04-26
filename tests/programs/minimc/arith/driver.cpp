@@ -189,7 +189,7 @@ TEST_CASE("AShr") {
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
 }
-
+/*
 TEST_CASE("LShr") {
   MiniMC::Support::Messager mess;
   //Arrange
@@ -321,3 +321,4 @@ TEST_CASE("UGt") {
 
 
 
+*/

@@ -244,6 +244,17 @@ template<VMInstructionCode>
     {%endif %}
 {% endmacro %}
 
+{% macro memory_instruction(i) %}
+     {%if i.temp_creation () %}
+    {{i.temp_creation()}}
+    {%elif i.isAssignConvertible () %}
+    auto tup = std::make_tuple (args...);
+    auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> (std::get<1>(tup),std::get<0>(tup)->getType());
+    return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+    {%else %}
+    {{reg_instruction(i)}}
+    {%endif %}
+{% endmacro %}
       
       template<VMInstructionCode op,class... Args>
       static Instruction make (Args... args) {

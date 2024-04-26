@@ -26,9 +26,9 @@ namespace MiniMC {
 	throw NotImplemented<I::getOpcode()> ();
       }
 
-      template<RegisterStore<T> Regstore>
-      auto makeEvaluator (Regstore& store) {
-	return MiniMC::VMT::Evaluator<T,Regstore,Operations> {operations,store};
+      template<RegisterStore<T> Regstore,Memory<T> Mem>
+      auto makeEvaluator (Regstore& store, const Mem& mem) {
+	return MiniMC::VMT::Evaluator<T,Regstore,Operations,Mem> {operations,store,mem};
       }
       
       
@@ -115,16 +115,16 @@ namespace MiniMC {
 	  MiniMC::Support::Error<typename T::Pointer> {}
 	};
 	
-        if constexpr (op == MiniMC::Model::VMInstructionCode::Load ) {
+        /*if constexpr (op == MiniMC::Model::VMInstructionCode::Load ) {
 	  auto& res = content.res->asRegister ();
 	  auto addr = T::visit (addrConverter,eval.Eval(*content.addr));
 	  state.getValueLookup().saveValue(res, state.getMemory().load(addr, res.getType()));
 	  return Status::Ok;
 	  
 	  
-	}
+	  }
 	
-        else if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
+	  else*/ if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    
@@ -386,7 +386,7 @@ namespace MiniMC {
 				       State& wstate) {
 
       
-      return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup ()));});
+      return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup (),wstate.getMemory()));});
       
     }
 

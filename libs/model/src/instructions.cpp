@@ -83,9 +83,9 @@ namespace MiniMC {
 	  return os << VMInstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
 	}
 	
-	else if constexpr ( i == VMInstructionCode::Load ) {
+	/*else if constexpr ( i == VMInstructionCode::Load ) {
 	  return os << *content.res << " = " << VMInstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
-	}
+	  }*/
 	
 	else {
 	  []<bool b = false> () {static_assert(b && "No format known for this tyoe");} ();

@@ -142,50 +142,137 @@ namespace MiniMC {
 	Value_ptr val;
       };
 
-      {%macro tac_instruction(i) %}
+{%macro type_constraint(t) %}
+  (
+  {%for k in t.getTypeD () %}
+  {%if k =="Integer" %}
+    ({{t.getName()}}->isInteger())
+  {%elif k =="Bool" %}
+    ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Bool)
+  {%elif k =="Pointer" %}
+    ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Pointer )
+  {%elif ok == "Pointe32" %}
+    ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Pointer32)
+  {%else %}
+    true
+  {%endif%}
+  {%if not loop.last %}
+    ||
+  {%endif %}
+{%endfor %}
+)
+{%endmacro%}
+
+{%macro size_constraint(l,r,c) %}
+	if (!({{l.getName()}}->getSize () {{c}}  {{r.getName()}}->getSize ())) {
+	   messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' be '%3%' '%2%'"}.format (*{{l.getName()}},*{{r.getName()}},"{{c}}")};
+	   return nullptr;
+	   }
+{%endmacro %}
+
+{%macro size_constraints(i) %}
+	{%if i.getTypeSizeRestrictions () %}
+	{{ size_constraint(i.getTypeSizeRestrictions ().getLesser(),i.getTypeSizeRestrictions ().getGreater(),i.getTypeSizeRestrictions().getCMP ()) }}
+	{%endif%}
+{%endmacro%}
+
+{%macro tac_instruction(i) %}
  MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr)  const {
- 	  auto lty = CheckType(expr.getLeft());
-	  auto rty =	 CheckType(expr.getRight());
-	  MiniMC::Model::Type_ptr res = nullptr;;
-	  if (lty == rty) {
-	       res = lty;
-	   }
-	   else {
-	      messager << MustBeSameTypeExpr{expr.getLeft(),expr.getRight()};
-	   }
-	   expr.setType (res);
-	   return res;
-	  
+	{%for o in i.getNonResOperands () %}MiniMC::Model::Type_ptr {{o.getName()}}_ty = CheckType(expr.{{o.getName()}}());	
+        {%endfor %}
+	{%for t,tp in i.getTypes ().items() %}
+	  {%for o in tp.NonResoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = {{o.getName ()}}_ty;
+	  {%else %}
+	    if ({{t}} != {{o.getName()}}_ty) {
+	    messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' must have type '%2%'"}.format (expr.{{o.getName()}}(),*{{t}})};
+	    return nullptr;
+	    }
+	  {%endif %}
+	{%endfor %}
+
+	if (!{{type_constraint(tp) }}) {
+	messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' does not meet it's type constraints"}.format (*{{tp.getName()}})};
+	return nullptr;
+	}
+	
+	{%endfor %}
+	{{size_constraints(i)}}
+	{%if i.getResOperand () %}
+	  expr.setType ({{i.getResOperand ().getType().getName ()}});
+        {%endif%}
+	return expr.getType();
 }
       {%endmacro %}
 
-      {% for g,i in ISA.getPseudoGroupedInstructions () %}
+      {%macro comparison_instruction(i) %}
+ MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr)  const {
+	{%for o in i.getNonResOperands () %}MiniMC::Model::Type_ptr {{o.getName()}}_ty = CheckType(expr.{{o.getName()}}());	
+        {%endfor %}
+	{%for t,tp in i.getTypes ().items() %}
+	  {%for o in tp.NonResoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = {{o.getName ()}}_ty;
+	  {%else %}
+	    if ({{t}} != {{o.getName()}}_ty) {
+	    messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' must have type '%2%'"}.format (expr.{{o.getName()}}(),*{{t}})};
+	    return nullptr;
+	    }
+	  {%endif %}
+	{%endfor %}
+	{%if tp.NonResoperands () |length > 0 %} 
+	  if (!{{type_constraint(tp) }}) {
+	  messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' does not meet it's type constraints"}.format (*{{tp.getName()}})};
+	  return nullptr;
+	  }
+	  {%endif %}
+	
+	{%endfor %}
+	{{size_constraints(i)}}	
+	{%if i.getResOperand () %}
+	  expr.setType (prgm.getTypeFactory().makeBoolType());
+        {%endif%}
+	return expr.getType();
+	}
+      {%endmacro %}
+
+      {%macro cast_instruction(i) %}
+	MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr)  const {
+	{%for o in i.getNonResOperands () %}MiniMC::Model::Type_ptr {{o}}_ty = CheckType(expr.getFrom ());	
+        {%endfor %}
+	
+
+	{%for t,tp in i.getTypes ().items() %}
+	  {%for o in tp.NonResoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = {{o.getName ()}}_ty; 
+	  {%endif %}
+	  {%endfor%}
+	  {%for o in tp.Resoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = expr.getToType (); 
+	  {%endif %}
+	  {%endfor %}
+	{%if tp.NonResoperands() | length > 0 %} 
+	  if (!{{type_constraint(tp) }}) {
+	  messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' does not meet it's type constraints"}.format (*{{tp.getName()}})};
+	  return nullptr;
+	}
+	  {%endif %}
+	{%endfor %}
+	{{size_constraints(i)}}	
+	
+	
+	
+	
+	
+	
+	expr.setType (expr.getToType ());
+	return expr.getType();
+	}
+      {%endmacro %}
+      
+      {%for g,i in ISA.getPseudoGroupedInstructions () %}
 	{%if i.isAssignConvertible () %}
-	     {%if g.getName() == "TAC" %}
-{{tac_instruction(i) }}	     	 
-	     	{%elif g.getName() =="Comparison" %}
-		MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr) const  {
-	auto lty = CheckType(expr.getLeft());
-	auto rty = CheckType(expr.getRight());
-	MiniMC::Model::Type_ptr res = nullptr;;
-	if (lty == rty) {
-	  res = prgm.getTypeFactory().makeBoolType ();
-	}
-	else {
-	  messager << MustBeSameTypeExpr{expr.getLeft(),expr.getRight()}
-	  ;
-	}
-	expr.setType (res);
-	return res;
-	  
-      }
+	  {%if g.getName() == "TAC" %}
+	    {{tac_instruction(i) }}	     	 
+	  {%elif g.getName() =="Comparison" %}
+	    {{comparison_instruction (i) }}
       	{%elif g.getName() =="Cast" %}
-	MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr) const  {
-	MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
-	messager << MiniMC::Support::TWarning {warning.format(expr)};
-	expr.setType(expr.getToType ());
-	return expr.getType ();
-      }
+	  {{cast_instruction (i)}}
             {%else %}
       	     //Missing {{i.getName ()}}Expr       
       {%endif %}
@@ -195,14 +282,14 @@ namespace MiniMC {
       
 
       MiniMC::Model::Type_ptr  TypeChecker::operator() (MiniMC::Model::LogNotExpr& expr) const  {
-	auto lty = CheckType(expr.getInner());
+	auto lty = CheckType(expr.op1());
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Bool ) {
 	  res = prgm.getTypeFactory().makeBoolType ();
 	}
 	else {
-	  messager << MustBeBoolExpr{expr.getInner()};
+	  messager << MustBeBoolExpr{expr.op1()};
 	}
 	expr.setType (res);
 	return res;
@@ -225,7 +312,7 @@ namespace MiniMC {
           }
         }
 
-        /*else if constexpr (i == VMInstructionCode::Trunc) {
+	        /*else if constexpr (i == VMInstructionCode::Trunc) {
 	  auto& content = tinst.getOps ();
           auto ftype = CheckType(*content.op1);
           auto ttype = CheckType(*content.res);
@@ -410,37 +497,7 @@ namespace MiniMC {
         }
 	
 	
-        else if constexpr (i == VMInstructionCode::Load) {
-          MiniMC::Support::Localiser must_be_pointer("'%1%' can only load from pointer types. ");
-          MiniMC::Support::Localiser must_be_integer_or_pointer("'%1%' can only load integers or pointers ");
-
-	  auto& content = tinst.getOps ();
-          auto addr = CheckType(*content.addr);
-          if (addr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
-	      addr->getTypeID() != MiniMC::Model::TypeID::Pointer32) {
-	    messager << MustBeGivenTypeID (inst,content.addr,MiniMC::Model::TypeID::Pointer);
-            
-	    
-            return false;
-          }
-
-          if (!(content.res->getType()->isInteger () ||
-		content.res->getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer ||
-		content.res->getType ()->getTypeID () == MiniMC::Model::TypeID::Pointer32
-		)
-	      ){
-	    messager << MustBeInteger (inst,content.res);
-            
-            return false;
-          }
-
-          return true;
-        }
-
-        else if constexpr (i == VMInstructionCode::Skip) {
-          return true;
-        }
-
+        
 	
         else if constexpr (i == VMInstructionCode::Skip) {
           return true;

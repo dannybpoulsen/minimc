@@ -313,10 +313,10 @@ namespace MiniMC {
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
 
     
-    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations, Memory<Value> Mem>
     class Evaluator {
     public:
-      Evaluator (Operations ops, const RegStore& regstore) : ops(ops),regstore(regstore) {}
+      Evaluator (Operations ops, const RegStore& regstore,const Mem& mem) : ops(ops),regstore(regstore),memory(mem) {}
       
       Value Eval (const MiniMC::Model::Value& v)  const {
 	return MiniMC::Model::visitValue<Value>(*this,v);
@@ -499,7 +499,7 @@ namespace MiniMC {
 	  Eval (sext.getFrom ())
 	  );
       }
-
+      
       Value operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {
@@ -567,8 +567,8 @@ namespace MiniMC {
       
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
-      auto l = Eval (cc.getLeft ());					\
-      auto r = Eval (cc.getRight ());					\
+	auto l = Eval (cc.op1());					\
+	auto r = Eval (cc.op2());					\
       return Value::visit (MiniMC::Support::Overload {			\
       [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
 	return ops.op (ll,rr);},					\
@@ -593,8 +593,8 @@ namespace MiniMC {
 
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
-	auto l = Eval (cc.getLeft ());					\
-	auto r = Eval (cc.getRight ());					\
+	auto l = Eval (cc.op1 ());					\
+	auto r = Eval (cc.op2 ());					\
 	return Value::visit (MiniMC::Support::Overload {		\
 	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
 	      return ops.op (ll,rr);},					\
@@ -613,7 +613,7 @@ namespace MiniMC {
 
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
-	auto l = Eval (cc.getInner ());					\
+	auto l = Eval (cc.op1());					\
 	return Value::visit (MiniMC::Support::Overload {		\
 	  [this] (typename Value::Bool& ll) -> Value    {		\
 	    return ops.op (ll);					\
@@ -627,7 +627,21 @@ OPSI
       
 #undef X
 #undef OPSI   
-            
+
+      Value operator() (const MiniMC::Model::LoadExpr& load) const  {
+	return Value::visit (  MiniMC::Support::Overload {
+	    [this,&load] (const  typename Value::Pointer& p) {
+	      return memory.load (p,load.getToType());
+	    },
+	    [this,&load] (const  typename Value::Pointer32& p) {
+	      return memory.load (ops.Ptr32ToPtr (p),load.getToType());
+	    },
+	      MiniMC::Support::Error<Value>{}
+	  },
+	  Eval (load.getFrom ())
+	  );
+      }
+      
       
       template<class T>
       Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {
@@ -640,6 +654,7 @@ OPSI
     private:
       Operations ops;
       const RegStore& regstore;
+      const Mem& memory;
     };
     
     template<class Value, Ops<Value> Operations>
