@@ -358,7 +358,8 @@ Pointer:
         - Pointer
       t2:
         - Integer
-    vm: True
+    vm: False
+    assign_convertible: True
 
   ptrsub:
     opcode: PtrSub
@@ -376,8 +377,9 @@ Pointer:
         - Pointer
       t2:
         - Integer
-    vm: True
-    
+    vm: False
+    assign_convertible: True
+
 Aggregate:
   extractvalue:
     opcode: ExtractValue

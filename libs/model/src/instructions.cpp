@@ -45,17 +45,6 @@ namespace MiniMC {
 	  return os;
 	}
 
-	else if constexpr (i == VMInstructionCode::PtrAdd) {
-	  return os << *content.res << " = " <<VMInstructionCode::PtrAdd  << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
-	  
-	  ;	  
-	}
-
-	else if constexpr (i == VMInstructionCode::PtrSub) {
-	  return os << *content.res << " = " <<VMInstructionCode::PtrSub << " " << *content.ptr << " " << *content.skipsize << " " << *content.nbSkips;
-	;	  
-	}
-      
 	else if constexpr ( i == VMInstructionCode::ExtractValue) {
 	  return os << *content.res << " = " << VMInstructionCode::ExtractValue << " " << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
 	}
@@ -83,9 +72,6 @@ namespace MiniMC {
 	  return os << VMInstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
 	}
 	
-	/*else if constexpr ( i == VMInstructionCode::Load ) {
-	  return os << *content.res << " = " << VMInstructionCode::Load << " " << *content.res->getType () <<" " << *content.addr;
-	  }*/
 	
 	else {
 	  []<bool b = false> () {static_assert(b && "No format known for this tyoe");} ();

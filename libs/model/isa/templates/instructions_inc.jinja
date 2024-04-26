@@ -255,7 +255,22 @@ template<VMInstructionCode>
     {{reg_instruction(i)}}
     {%endif %}
 {% endmacro %}
-      
+
+{% macro pointer_instruction(i) %}
+     {%if i.temp_creation () %}
+    {{i.temp_creation()}}
+    {%elif i.isAssignConvertible () %}
+    auto tup = std::make_tuple (args...);
+    auto expr = std::make_shared<MiniMC::Model::{{i.getName ()}}Expr> ({%for o in i.getNonResOperands () %}
+    std::get<{{loop.index}}>(tup) {%if not loop.last %},{%endif%}{%endfor %}
+
+    );
+    return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+    {%else %}
+    {{reg_instruction(i)}}
+    {%endif %}
+{% endmacro %}
+
       template<VMInstructionCode op,class... Args>
       static Instruction make (Args... args) {
       	  {% for g in ISA.getGroups () %}
@@ -287,6 +302,8 @@ template<VMInstructionCode>
 	     {{unary_instruction (i)}}
 	     {%elif g.getName () == "Cast"  %}
 	     {{cast_instruction (i)}}
+	     {%elif g.getName () == "Pointer"  %}
+	     {{pointer_instruction (i)}}
 	     {%elif i.getOperands ()| length > 0  %}
 	     {{reg_instruction(i) }}
 	     {%else%}

@@ -641,7 +641,34 @@ OPSI
 	  Eval (load.getFrom ())
 	  );
       }
+
       
+
+      Value operator() (const MiniMC::Model::PtrAddExpr& load) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
+	    auto totalskip = ops.Mul(skipsize, nbskips);
+	    return ops.PtrAdd(ptr, totalskip);
+	    
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
+	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()),Eval(load.nbSkips()));
+      }
+
+      Value operator() (const MiniMC::Model::PtrSubExpr& load) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
+	    auto totalskip = ops.Mul(skipsize, nbskips);
+	    return ops.PtrSub(ptr, totalskip);
+	    
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
+	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()),Eval(load.nbSkips()));
+      }
       
       template<class T>
       Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {

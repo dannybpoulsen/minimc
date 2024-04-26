@@ -45,60 +45,6 @@ namespace MiniMC {
       
 
       
-      
-      
-      template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state, Evaluator eval) requires MiniMC::Model::isPointer_v<I> 
-      {
-	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps ();
-        auto& res = content.res->asRegister ();
-
-        auto addrConverter = MiniMC::Support::Overload {
-	  [](typename T::Pointer& addrVal) {
-	    return addrVal;
-	  },
-	  [this] (typename T::Pointer32& addrVal) {
-	    return operations.Ptr32ToPtr (addrVal);
-	  },
-	  MiniMC::Support::Error<typename T::Pointer>{}
-	  
-	};
-	
-        if constexpr (op == MiniMC::Model::VMInstructionCode::PtrAdd) {
-          auto ptr = T::visit (addrConverter,eval.Eval(*content.ptr));;
-	  auto visitor = MiniMC::Support::Overload {
-	    [this,&state,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
-	      auto totalskip = operations.Mul(skipsize, nbskips);
-	      state.getValueLookup().saveValue(res, operations.PtrAdd(ptr, totalskip));
-	      return Status::Ok;
-	    },
-	    MiniMC::Support::Error<Status>{}
-	  };
-	  return T::visit (visitor,
-			   eval.Eval(*content.skipsize),
-			   eval.Eval(*content.nbSkips)
-										    );
-	  
-        }
-        if constexpr (op == MiniMC::Model::VMInstructionCode::PtrSub) {
-          auto ptr = T::visit (addrConverter,eval.Eval(*content.ptr));
-	  auto visitor = MiniMC::Support::Overload {
-	    [this,&state,&ptr,&res]<typename ValT>(ValT& skipsize,ValT& nbskips) requires Integer<T,ValT> {
-	      auto totalskip = operations.Mul(skipsize, nbskips);
-	      state.getValueLookup().saveValue(res, operations.PtrSub(ptr, totalskip));
-	      return Status::Ok;
-	    },
-	    MiniMC::Support::Error<Status>{}
-	  };
-	  return T::visit (visitor,
-			   eval.Eval(*content.skipsize),
-			   eval.Eval(*content.nbSkips)
-										    ); 
-        } 
-        throw NotImplemented<op>();
-      }
-      
       template <class  I, VMState<T> State,class Evaluator>
       Status runInstruction(const I& instr, State& state, Evaluator eval)
         requires MiniMC::Model::isMemory_v<I> {

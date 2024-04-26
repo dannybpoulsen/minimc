@@ -273,8 +273,8 @@ namespace MiniMC {
 	    {{comparison_instruction (i) }}
       	{%elif g.getName() =="Cast" %}
 	  {{cast_instruction (i)}}
-            {%else %}
-      	     //Missing {{i.getName ()}}Expr       
+        {%elif g.getName() =="Pointer" %}
+	    {{tac_instruction(i) }}	     	 
       {%endif %}
 
 	{%endif %}
@@ -414,50 +414,6 @@ namespace MiniMC {
 
 	  }*/
 	
-        else if constexpr (i == VMInstructionCode::PtrAdd ||i == VMInstructionCode::PtrSub ) {
-	  auto& content = tinst.getOps ();
-          auto ptr = CheckType(*content.ptr);
-          auto skip = CheckType(*content.skipsize);
-          auto value = CheckType(*content.nbSkips);
-          auto result = CheckType(*content.res);
-	  
-          if (result->getTypeID() != MiniMC::Model::TypeID::Pointer &&
-	      result->getTypeID() != MiniMC::Model::TypeID::Pointer32
-	      ) {
-            messager << MustBeGivenTypeID (inst,content.res,MiniMC::Model::TypeID::Pointer);
-	    return false;
-          }
-	  if (!skip->isInteger () ) {
-	    messager << MustBeInteger (inst,content.skipsize);
-	    return false;
-          }
-	  if (!value->isInteger ()) {
-	    messager << MustBeInteger (inst,content.nbSkips);
-	    return false;
-          }
-	  if (value != skip) {
-	    messager << MustBeSameType {inst,content.skipsize,content.nbSkips};
-	    
-            return false;
-          }
-	  
-          if (ptr->getTypeID() != MiniMC::Model::TypeID::Pointer &&
-	      ptr->getTypeID() != MiniMC::Model::TypeID::Pointer32
-	      ) {
-	    messager << MustBeGivenTypeID (inst,content.ptr,MiniMC::Model::TypeID::Pointer);
-	    
-	    
-            return false;
-          }
-
-	  if (ptr->getTypeID () != result->getTypeID ()) {
-	    messager << MustBeSameType {inst,content.ptr,content.res};
-	    return false;
-          
-	  }
-	  
-          return true;
-        }
 
         /*else if constexpr (i == VMInstructionCode::PtrToInt) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only be applied to pointer types. ");

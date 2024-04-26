@@ -1,5 +1,5 @@
 
-     {% for N in all_bin_ops+all_unary_ops %}
+     {% for N in all_bin_ops+all_unary_ops+pointer_ops %}
      class {{N.getName()}}Expr : public Value {
      	   public:
      	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %});
@@ -23,7 +23,8 @@
      };
 
      {%endfor %}
-        
+
+     
 
     enum class CastOps {
      {% for N in cast_ops %}{{N.getName()}} {% if not loop.last %}, {%endif %}
@@ -110,7 +111,7 @@
 			  Register,
 			  Undef,
 			  SymbolicConstant,
-			  {% for N in all_bin_ops+all_unary_ops+cast_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
+			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
 			  	  
 			  > ();
@@ -124,7 +125,7 @@
     }
 
 
-    {% for N in all_bin_ops+all_unary_ops %}
+    {% for N in all_bin_ops+all_unary_ops+pointer_ops%}
        
     inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo<{{N.getName()}}Expr>::type_t()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
 
@@ -177,7 +178,7 @@
       {% endfor %}
     ;
     {%endif %}
-
+    
     {%endif %}
     
     template<class... Ts> struct Overload : Ts... {
@@ -264,7 +265,7 @@
       case ValueInfo<SymbolicConstant>::type_t ():
 	return f (static_cast<CType<SymbolicConstant,c>&> (v));
 	break;
-	   {%for N in all_bin_ops+all_unary_ops+cast_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
+	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
        	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
 	     break;
 	   {%endfor%}    
