@@ -5,6 +5,7 @@
 #include "minimc/support/exceptions.hpp"
 #include <algorithm>
 #include <unordered_map>
+#include <iostream>
 
 namespace MiniMC {
   namespace Model {
@@ -47,13 +48,8 @@ namespace MiniMC {
 	auto& orig = edge->getInstructions ();
 	MiniMC::Model::InstructionStream nstr;
 	std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-	  auto replaceF = [&](const MiniMC::Model::Value_ptr& op)-> MiniMC::Model::Value_ptr {
-	    if (!op)
-	      return nullptr;
-	    if (op->isConstant ())
-	      return op;
-	    auto reg = std::static_pointer_cast<MiniMC::Model::Register> (op);
-	    return val.count(reg->getSymbol ()) ? val.at (reg->getSymbol ()) : op;
+	  auto replaceF = [&](MiniMC::Model::Register& reg)-> MiniMC::Model::Value_ptr {
+	    return val.count(reg.getSymbol ()) ? val.at (reg.getSymbol ()) : reg.shared_from_this();
 	  };
 	  
 	  nstr.add(Instruction (inst,replaceF));
@@ -73,7 +69,7 @@ namespace MiniMC {
 		   ) {
         for (auto& loc : from.getLocations()) {
 	  MiniMC::Model::LocationInfo info {loc->getInfo()};
-          auto nloc = to.makeLocation(frame.makeSymbol (loc->getSymbol ().getName ()),info);
+          auto nloc = to.makeLocation(frame.makeFresh (loc->getSymbol ().getName ()),info);
           locmap.insert(std::pair(loc->getSymbol (), nloc));
         }
 

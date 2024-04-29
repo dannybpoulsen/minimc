@@ -180,7 +180,7 @@ namespace MiniMC {
      * Values can also be local or global to a given function.
      */
     class Register;
-    class Value {
+    class Value : public std::enable_shared_from_this<Value>{
     public:
       virtual ~Value() {}
       const Type_ptr& getType() const { return type; }
@@ -430,7 +430,6 @@ namespace MiniMC {
       
       const Value_ptr makeUndef(TypeID,std::size_t = 0) override;
     };
-
 
     using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
 

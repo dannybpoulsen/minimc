@@ -19,23 +19,39 @@ namespace MiniMC {
         auto to_loc = edge->getTo();
         auto& instrs = edge->getInstructions();
         auto call_content = instrs.last ().getAs<MiniMC::Model::VMInstructionCode::Call>().getOps ();
-	auto constant = std::static_pointer_cast<MiniMC::Model::Pointer>(call_content.function);
-        MiniMC::Model::pointer_t loadPtr =  constant->getValue (); 
-	auto cfunc = prgm.getFunction(MiniMC::Model::getFunctionId(loadPtr));
-	auto frame = cframe.create (cfunc->getSymbol ().getName ());
-	MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr> valmap;
-        auto copyVar = [&](MiniMC::Model::RegisterDescr& stack) {
-          for (auto& v : stack.getRegisters()) {
-            valmap.insert(std::make_pair(v->getSymbol (), func->getRegisterDescr().addRegister(frame.makeSymbol (v->getSymbol ().getName ()), v->getType())));
-          }
-        };
 
-        copyVar(cfunc->getRegisterDescr());
+	auto cfunc = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+									   MiniMC::Support::Overload{
+									     [&prgm](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
+									       auto loadPtr = t.getValue();
+									       return prgm.getFunction(loadPtr.base);
+									     },
+									       [&prgm](const MiniMC::Model::Pointer32& t) -> MiniMC::Model::Function_ptr {
+										 auto loadPtr = t.getValue();
+										 return prgm.getFunction(loadPtr.base);
+									       },
+									       [&prgm](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
+										 auto symb = t.getValue();
+										 return prgm.getFunction(symb);
+									       },
+									       MiniMC::Support::Error<MiniMC::Model::Function_ptr> {}
+									   },
+									   *call_content.function
+									    );
+	
+	
+	
+	MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr> valmap;
+        
+	for (auto& v : cfunc->getRegisterDescr().getRegisters()) {
+	  valmap.insert(std::make_pair(v->getSymbol (), func->getRegisterDescr().addRegister(cframe.makeFresh (v->getSymbol ().getName ()), v->getType())));
+	}
+
 
 	MiniMC::Model::SymbolTable<MiniMC::Model::Location_ptr> locmap;
         MiniMC::Support::WorkingList<Edge_ptr> wlist;
 	
-        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, wlist.inserter(), frame);
+        copyCFG(cfunc->getCFA(), valmap, func->getCFA(),  locmap, wlist.inserter(), cframe);
 
         for (auto& ne : wlist) {
 	  auto& ninstr = ne->getInstructions ();
@@ -51,22 +67,21 @@ namespace MiniMC {
 		cfunc->getCFA ().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 		cfunc->getCFA().deleteEdge (ne.get());		
 	      },
-		[&cfunc,&ninstr,&edge,&call_content,&ne_from,&ne](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Ret>& instr) {
-		  auto& content = instr.getOps ();
+	      [&cfunc,&ninstr,&edge,&call_content,&ne_from,&ne](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Ret>& instr) {
+		auto& content = instr.getOps ();
 		ninstr.last() = Instruction::make<VMInstructionCode::Assign> ( 
 									    call_content.res,
 									    content.value 
-									       );
-		
+									       );	
 		cfunc->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 		cfunc->getCFA ().deleteEdge (ne.get());
 		
 	      },
-		MiniMC::Support::Error<void>{}
-	      }
+		[](auto& ) {}
+		}
 	    );
-	  
-        auto& parameters = cfunc->getParameters();
+	}
+	auto& parameters = cfunc->getParameters();
         
         MiniMC::Model::InstructionStream str;
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
@@ -83,7 +98,6 @@ namespace MiniMC {
 	cfunc->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation()->getSymbol ()),std::move(str));
 	cfunc->getCFA ().deleteEdge (edge.get ());
 	
-	}
       }
 
       bool InlineFunctions::runFunction(const MiniMC::Model::Function_ptr& F,std::size_t depth) {
@@ -106,21 +120,13 @@ namespace MiniMC {
 		      }
 		      );
 	
-	/*if (depth - 1) 
-	  inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1,frame);
-	else {
-	  auto _f =    ne->getFrom ();
-	  auto _dloc = func->getCFA ().makeLocation (frame.makeFresh (),locinfoc.make ({}));
-	  func->getCFA().makeEdge (_f,_dloc,{},false);
-	  func->getCFA().deleteEdge (ne.get());
-	  }*/
 	
         while (wlist) {
 	  auto e = wlist.pop ();
 	  auto cdepth = e.first;
 	  auto newCallEdge = [&F,cdepth,&inserter,&unrollFailed](auto e) {
 	    if (cdepth - 1) 
-	      inserter = std::make_pair(cdepth-1,e);//inlineCallEdgeToFunction(prgm,func, ne, locinfoc, depth - 1,frame);
+	      inserter = std::make_pair(cdepth-1,e);
 	    else {
 	      auto _f =    e->getFrom ();
 	      F->getCFA().makeEdge (_f,unrollFailed,{},false);

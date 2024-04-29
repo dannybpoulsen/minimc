@@ -20,7 +20,7 @@ enum class PseudoInstructionCode {
 
 
 
-using ReplaceFunction = std::function<MiniMC::Model::Value_ptr(const MiniMC::Model::Value_ptr&)>;
+using ReplaceFunction = std::function<MiniMC::Model::Value_ptr(MiniMC::Model::Register&)>;
 
 template<InstructionCode>
 struct InstructionData {};
@@ -37,6 +37,74 @@ struct InstructionData {};
 
        {%endfor %}
  {%endfor %}
+
+
+struct Replacer {
+public:
+   Replacer (ReplaceFunction re) : replacer(re) {}
+
+   Value_ptr Replace (Value_ptr& ptr ) const {
+   	     if (ptr) {
+	     	return MiniMC::Model::visitValue<Value_ptr>(*this,*ptr);
+	     }
+	     else
+		return nullptr;
+   }
+
+   Value_ptr Replace (const Value_ptr& ptr ) const {
+   	     if (ptr) {
+	     	return MiniMC::Model::visitValue<Value_ptr>(*this,const_cast<Value&>(*ptr));
+	     }
+	     else
+		return nullptr;
+   }
+
+  Value_ptr Replace (Value& val ) const {
+  	return MiniMC::Model::visitValue<Value_ptr>(*this,const_cast<Value&>(val));
+	     
+  }
+
+   template<class T>
+   Value_ptr operator() (T& ) const  {
+   	 throw MiniMC::Support::Exception ("Cannot copy");
+   }
+   
+
+   template<class T>
+   Value_ptr operator() (T& t) const requires (MiniMC::Model::is_root<T>) {
+	return t.shared_from_this();
+   }
+   	
+   Value_ptr operator() (Register& r) {
+   	return replacer(r);
+   }
+
+   {%for g in ISA.getGroups () %} 
+   {% for i in g.getPseudoInstructions () %}
+   {%if g.getName () != "Cast" %} 
+   {%if i.isAssignConvertible () %}
+   Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
+   	     return std::make_shared<{{i.getName()}}Expr> ({%for o in i.getNonResOperands () %}Replace(expr.{{o.getName()}}()) {%if not loop.last %},{%endif%} {%endfor %} );
+   	     //	 throw MiniMC::Support::Exception ("Cannot copy {{i.getName ()}}Expr");
+   }
+   {%endif %}
+   
+   {%elif not i.temp_creation() %}
+   Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
+   	     return std::make_shared<{{i.getName()}}Expr> (Replace (expr.getFrom ()),expr.getToType () );
+   	     //	 throw MiniMC::Support::Exception ("Cannot copy {{i.getName ()}}Expr");
+   }
+   {%endif %}
+   
+   {%endfor %}
+   
+   {% endfor %}
+   
+
+private:
+  ReplaceFunction replacer;
+};
+
 
 
 template<VMInstructionCode>
@@ -56,9 +124,9 @@ struct VMInstructionData {};
 			   {%for o in i.getOperands () %} {%if not o.isMultiParam () %} MiniMC::Model::Value_ptr {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}};
 			   {%endfor%}
 
-			   Content (const Content& oth,ReplaceFunction replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}}(replacer(oth.{{o.getName()}})) {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
+			   Content (const Content& oth,Replacer replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}}(replacer.Replace((oth.{{o.getName()}}))) {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
 			   {%for o in i.getOperands () %} {%if o.isMultiParam () %}
-			   	 std::for_each (oth.{{o.getName ()}}.begin(),oth.{{o.getName ()}}.end(),[&replacer,this](auto& v) { {{o.getName()}}.push_back (replacer(v));}); 
+			   	 std::for_each (oth.{{o.getName ()}}.begin(),oth.{{o.getName ()}}.end(),[&replacer,this](auto& v) { {{o.getName()}}.push_back (replacer.Replace(v));}); 
 			   {%endif%}
 			   {%endfor%}
 			   }

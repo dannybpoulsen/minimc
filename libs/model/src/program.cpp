@@ -9,29 +9,23 @@
 namespace MiniMC {
   namespace Model {
     struct Copier {
-      using RegReplaceMap = std::unordered_map<Register_ptr,Register_ptr>;
+      using RegReplaceMap = std::unordered_map<Register*,Register_ptr>;
       
       void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
 	
 	for (auto& v : vars.getRegisters ()) {
-	  map.emplace (v,stack.addRegister (frame.makeSymbol (v->getSymbol().getName ()),v->getType ()));
+	  map.emplace (v.get(),stack.addRegister (frame.makeSymbol (v->getSymbol().getName ()),v->getType ()));
 	}
       }
       
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
 							      const RegReplaceMap& repl
 							   ) {
-	auto replacer = [&repl](auto& v) -> MiniMC::Model::Value_ptr {
-	  if (v == nullptr)
-	    return v;
-	  if (v->isConstant ()) {
-	    return v;
-	  }
-	  else  {
-	    return repl.at (std::static_pointer_cast<MiniMC::Model::Register> (v));
-	  }
-	  
+	auto replaceF = [&repl](auto& v) -> MiniMC::Model::Value_ptr {
+	    return repl.at (&v);
 	};
+        MiniMC::Model::Replacer replacer{replaceF};
+        
 	std::vector<Instruction> instrs;
 	for (auto& t : instr) {
 	  std::back_inserter (instrs) = MiniMC::Model::Instruction (t, replacer);
@@ -74,7 +68,7 @@ namespace MiniMC {
 	std::vector<Register_ptr> parameters;
 	std::for_each (function->getParameters().begin (),
 		       function->getParameters ().end(),
-		       [&map,&parameters](auto& vv) {parameters.push_back (map.at (vv));}
+		       [&map,&parameters](auto& vv) {parameters.push_back (map.at (vv.get()));}
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();

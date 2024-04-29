@@ -322,6 +322,7 @@ Comparison:
         - Bool
       t2:
         - Integer
+        - Pointer
     assign_convertible: True
 
 
@@ -339,6 +340,7 @@ Comparison:
         - Bool
       t2:
         - Integer
+        - Pointer
     assign_convertible: True
 
 Pointer:
