@@ -2,6 +2,7 @@
 #define _REPLACEPHI__
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/instructions.hpp"
@@ -20,14 +21,23 @@ namespace MiniMC {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
                 std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
-                if (E->isPhi ()) {
-                  for (auto& inst : instrstream) {
+		std::unordered_set<MiniMC::Model::Value*> used;
+               
+		if (E->isPhi ()) {
+		  for (auto& inst : instrstream) {
+		    auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();
+                    used.insert (content.op1.get());
+		  }
+		  for (auto& inst : instrstream) {
 		    
 		    auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();
-                    auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
-                    replacemap.insert(std::make_pair(content.res.get(), nvar));
-		    stream.add<MiniMC::Model::VMInstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
-                  }
+		    if (used.count(content.res.get())) {
+			auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
+			replacemap.insert(std::make_pair(content.res.get(), nvar));
+			stream.add<MiniMC::Model::VMInstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
+		    }
+		    
+		  }
 		  
                   for (auto& inst : instrstream) {
                     auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();

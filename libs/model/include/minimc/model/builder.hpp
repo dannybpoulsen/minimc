@@ -13,85 +13,101 @@
 namespace MiniMC {
   namespace Model {
     
-    template<bool isPhi = false>
     class EdgeBuilder {
     public:
       EdgeBuilder (MiniMC::Model::CFA& cfa,
 		   const MiniMC::Model::Location_ptr& from,
 		   const MiniMC::Model::Location_ptr& to,
-		   MiniMC::Model::Frame& frame
+		   MiniMC::Model::Frame& frame,
+		   bool isPhi = false
 		   ) :
 	cfa(cfa),
 	from(from),
 	to(to),
-	frame(frame){
+	frame(frame),
+	isPhi(isPhi)
+      {
       }
 
       ~EdgeBuilder () {
-	cfa.makeEdge (from,to,std::move(stream),isPhi);
-      }
-
-      template<MiniMC::Model::InstructionCode code,class... Args>
-      EdgeBuilder& addInstr (Args... args) requires (!isPhi) {
-	
-	if constexpr (code == MiniMC::Model::InstructionCode::Call ||
-		      code == MiniMC::Model::InstructionCode::NonDet ||
-		      code == MiniMC::Model::InstructionCode::Uniform ||	  
-		      code ==MiniMC::Model::InstructionCode::Assume ||
-		      code ==MiniMC::Model::InstructionCode::NegAssume ||
-		      code ==MiniMC::Model::InstructionCode::Assert
-		      ){
-	  auto instr = MiniMC::Model::Instruction::make<code> (args...);
-	  auto nto = cfa.makeLocation (frame.makeFresh (), from->getInfo ());
-	  cfa.makeEdge (from,nto,std::move(stream));
-	  from = cfa.makeLocation (frame.makeFresh (),from->getInfo ());
-	  
-	  cfa.makeEdge (nto,from,MiniMC::Model::InstructionStream({instr}));
-	  
-	  
+	if (stream || lastEdge == nullptr) {
+	  cfa.makeEdge (from,to,std::move(stream),isPhi);
 	}
-	
 	else {
-	  /*if constexpr (code == MiniMC::Model::InstructionCode::ZExt) {
-	    if (instr. template getAs<MiniMC::Model::VMInstructionCode::ZExt> ().getOps ().op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
-	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolZExt> (args...);
-	    }
+	  auto stream = lastEdge->getInstructions();
+	  cfa.makeEdge (lastEdge->getFrom (),to,std::move(stream),lastEdge->isPhi ());
+	  cfa.deleteEdge (lastEdge.get ());
+
+	}
+      }
+      
+      template<MiniMC::Model::InstructionCode code,class... Args>
+      EdgeBuilder& addInstr (Args... args)  {
+	if (!isPhi) {
+	  if constexpr (code == MiniMC::Model::InstructionCode::Call ||
+			code == MiniMC::Model::InstructionCode::NonDet ||
+			code == MiniMC::Model::InstructionCode::Uniform ||	  
+			code ==MiniMC::Model::InstructionCode::Assume ||
+			code ==MiniMC::Model::InstructionCode::NegAssume ||
+			code ==MiniMC::Model::InstructionCode::Assert
+			){
+	    auto instr = MiniMC::Model::Instruction::make<code> (args...);
+	    break_edge ();
+	    stream.add (instr);
+	    break_edge ();
 	  }
-	  
-	  if constexpr (code == MiniMC::Model::InstructionCode::SExt) {
-	    if (instr.template  getAs<MiniMC::Model::InstructionCode::SExt> ().getOps ().op1->getType()->getTypeID () == MiniMC::Model::TypeID::Bool) {
-	      instr = MiniMC::Model::Instruction::make<MiniMC::Model::InstructionCode::BoolSExt> (args...);
-	    }
-	    }*/
+	
+	  else {
+	    auto instr = MiniMC::Model::Instruction::make<code> (args...);
+	    stream.add (instr);
+	  }
+	}
+	else {
+	  if constexpr (code!=MiniMC::Model::InstructionCode::Assign) {
+	    throw MiniMC::Support::Exception ("Phi-edges can only have assigns");
+	  }
 	  auto instr = MiniMC::Model::Instruction::make<code> (args...);
 	  stream.add (instr);
-	 
+	  return *this;
+      
 	}
 	
 	
-	
 	return *this;
       }
 
       
-
-      template<MiniMC::Model::InstructionCode code,class... Args>
-      EdgeBuilder& addInstr (Args... args) requires (isPhi) {
-	static_assert(code==MiniMC::Model::InstructionCode::Assign && "Phi edges can only have assign");
-	auto instr = MiniMC::Model::Instruction::make<code> (args...);
-	stream.add (instr);
-	
-	
-	return *this;
+      void setPhi () {
+	if (!isPhi) {
+	  break_edge ();
+	  isPhi = true;
+	}
       }
       
+      void clearPhi () {
+	if (isPhi) {
+	  break_edge ();
+	  isPhi = false;
+	}
+      }
       
     private:
+      void break_edge () {
+	if (stream) {
+	  auto nto = cfa.makeLocation (frame.makeFresh (), from->getInfo ());
+	  lastEdge = cfa.makeEdge (from,nto,std::move(stream),isPhi);
+	  from = nto;;
+	  stream.clear ();
+	}
+      }
+      
       MiniMC::Model::CFA& cfa;
       MiniMC::Model::Location_ptr from;
       MiniMC::Model::Location_ptr to;
       MiniMC::Model::InstructionStream stream;
       MiniMC::Model::Frame frame;
+      MiniMC::Model::Edge_ptr lastEdge{nullptr};
+      bool isPhi;
     };
     
     

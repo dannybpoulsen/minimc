@@ -259,7 +259,7 @@ namespace MiniMC {
               return locmap.at(BB);
             } else {
               auto info = locinfoc.make(MiniMC::Model::LocFlags{}, *source_loc);
-              auto location = cfg.makeLocation(frame.makeSymbol(BB->getName().str()), info);
+              auto location = cfg.makeLocation(frame.makeSymbol(BB->getName().str()+std::string("_enter")), info);
               locmap.insert(std::make_pair(BB, location));
               waiting.push_back(BB);
               return location;
@@ -291,7 +291,7 @@ namespace MiniMC {
             auto cur_bb = waiting.back();
             waiting.pop_back();
             auto from = locmap.at(cur_bb);
-            auto to = cfg.makeLocation(frame.makeFresh(), from->getInfo());
+            auto to = cfg.makeLocation(frame.makeFresh(cur_bb->getName().str()+std::string("_end")), from->getInfo());
             MiniMC::Model::EdgeBuilder edgebuilder{cfg, from, to, frame};
             auto term = cur_bb->getTerminator();
 
@@ -302,57 +302,57 @@ namespace MiniMC {
               }
 
               translate(&inst, edgebuilder);
-            }
+	    }
+	    
+	    if (term->getOpcode() == llvm::Instruction::Br) {
 
-            if (term) {
-              if (term->getOpcode() == llvm::Instruction::Br) {
-
-                auto brterm = llvm::dyn_cast<llvm::BranchInst>(term);
-                if (brterm->isUnconditional()) {
-                  auto succ = enqueue(term->getSuccessor(0));
-                  MiniMC::Model::EdgeBuilder<true> builder{cfg, to, succ, frame};
-                  buildphi(cur_bb, term->getSuccessor(0), builder);
-                } else {
-                  auto cond = load.findValue(brterm->getCondition());
-                  {
-                    auto ttloc = enqueue(term->getSuccessor(0));
-                    auto ttloc_tmp = cfg.makeLocation(frame.makeFresh(), to->getInfo());
-                    MiniMC::Model::EdgeBuilder{cfg, to, ttloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
-                    buildphi(cur_bb, term->getSuccessor(0), MiniMC::Model::EdgeBuilder<true>{cfg, ttloc_tmp, ttloc, frame});
-                  }
-
-                  {
-                    auto ffloc = enqueue(term->getSuccessor(1));
-                    auto ffloc_tmp = cfg.makeLocation(frame.makeFresh(), to->getInfo());
-                    MiniMC::Model::EdgeBuilder{cfg, to, ffloc_tmp, frame}.addInstr<MiniMC::Model::InstructionCode::NegAssume>(cond);
-                    buildphi(cur_bb, term->getSuccessor(1), MiniMC::Model::EdgeBuilder<true>{cfg, ffloc_tmp, ffloc, frame});
-                  }
-                }
-              }
-	      
-              else if (term->getOpcode() == llvm::Instruction::IndirectBr) {
-                auto brterm = llvm::dyn_cast<llvm::IndirectBrInst>(term);
-                std::size_t dests = brterm->getNumDestinations();
-                auto value = load.findValue(brterm->getAddress());
-                for (std::size_t i = 0; i < dests; ++i) {
-                  auto splitloc = cfg.makeLocation(frame.makeFresh(), to->getInfo());
-                  auto dest = enqueue(brterm->getDestination(i));
-                  auto valComp = load.findValue(brterm->getDestination(i));
-                  auto btype = load.getTypeFactory().makeBoolType();
-                  auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
-
-                  MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::ICMP_EQ>(cond,
-		      value,
-		      valComp)
-		    .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
-                  buildphi(cur_bb, brterm->getDestination(i), MiniMC::Model::EdgeBuilder<true>{cfg, splitloc, dest, frame});
-                }
-              }
-	      else if (term->getOpcode() == llvm::Instruction::Ret) {
-                translate(term, edgebuilder);
-              }
-            }
-          }
+	      auto brterm = llvm::dyn_cast<llvm::BranchInst>(term);
+	      if (brterm->isUnconditional()) {
+		auto succ = enqueue(term->getSuccessor(0));
+		MiniMC::Model::EdgeBuilder builder{cfg, to, succ, frame};
+		builder.setPhi ();
+		buildphi(cur_bb, term->getSuccessor(0), builder);
+	      } else {
+		auto cond = load.findValue(brterm->getCondition());
+		{
+		  auto ttloc = enqueue(term->getSuccessor(0));
+		  MiniMC::Model::EdgeBuilder builder {cfg, to, ttloc, frame};
+		  builder.addInstr<MiniMC::Model::InstructionCode::Assume>(cond).setPhi ();;
+		  buildphi(cur_bb, term->getSuccessor(0), builder);
+		}
+		
+		{
+		  auto ffloc = enqueue(term->getSuccessor(1));
+		  MiniMC::Model::EdgeBuilder builder{cfg, to, ffloc, frame};
+		  builder.addInstr<MiniMC::Model::InstructionCode::NegAssume>(cond).setPhi ();
+		  buildphi(cur_bb, term->getSuccessor(1), builder);
+		}
+	      }
+	    }
+	    
+	    else if (term->getOpcode() == llvm::Instruction::IndirectBr) {
+	      auto brterm = llvm::dyn_cast<llvm::IndirectBrInst>(term);
+	      std::size_t dests = brterm->getNumDestinations();
+	      auto value = load.findValue(brterm->getAddress());
+	      for (std::size_t i = 0; i < dests; ++i) {
+		auto splitloc = cfg.makeLocation(frame.makeFresh(), to->getInfo());
+		auto dest = enqueue(brterm->getDestination(i));
+		auto valComp = load.findValue(brterm->getDestination(i));
+		auto btype = load.getTypeFactory().makeBoolType();
+		auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
+		
+		MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::ICMP_EQ>(cond,
+														       value,
+														       valComp)
+		  .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
+		buildphi(cur_bb, brterm->getDestination(i), MiniMC::Model::EdgeBuilder{cfg, splitloc, dest, frame,true});
+	      }
+	    }
+	    else if (term->getOpcode() == llvm::Instruction::Ret) {
+	      translate(term, edgebuilder);
+	    }
+	  }
+	
 	  
           prgm.addFunction(function2symb.at(&F), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
         }
