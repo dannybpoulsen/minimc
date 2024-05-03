@@ -57,7 +57,9 @@ namespace MiniMC {
        * @return 
        */
       Edge_ptr makeEdge(Location_ptr from, Location_ptr to, InstructionStream&& istream,bool isPhi = false  ) {
-        edges.push_back(std::make_shared<Edge>(from, to,std::move(istream),isPhi));
+	assert(std::find(locations.begin(),locations.end(),to) != locations.end());
+	assert(std::find(locations.begin(),locations.end(),from) != locations.end());
+	edges.push_back(std::make_shared<Edge>(from, to,std::move(istream),isPhi));
         to->addIncomingEdge(edges.back().get());
         from->addEdge(edges.back().get());
         return edges.back();
@@ -158,10 +160,8 @@ namespace MiniMC {
     
     class Program  {
     public:
-      Program(const MiniMC::Model::TypeFactory_ptr &tfact,
-              const MiniMC::Model::ConstantFactory_ptr& cfact
+      Program(const MiniMC::Model::ConstantFactory_ptr& cfact
 	      ) : cfact(cfact),
-		  tfact(tfact),
 		  cpu_regs(RegType::CPU),
 		  meta_regs(RegType::Meta)
       {
@@ -222,8 +222,7 @@ namespace MiniMC {
       
       auto& getEntryPoints() const { return entrypoints; }
 
-      auto& getConstantFactory() { return *cfact; }
-      auto& getTypeFactory() { return *tfact; }
+      //auto& getConstantFactory() const  { return *cfact; }
       
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}
@@ -239,7 +238,6 @@ namespace MiniMC {
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
       MiniMC::Model::ConstantFactory_ptr cfact;
-      MiniMC::Model::TypeFactory_ptr tfact;
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;

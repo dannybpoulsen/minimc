@@ -28,7 +28,7 @@ namespace MiniMC {
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
 	
-	Value load(const typename Value::Pointer&, const MiniMC::Model::Type_ptr&) const ;
+	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
         // First parameter is address to store at, second is the value to state
         void store(const Value::Pointer&, const Value::I8&) ;
 	void store(const Value::Pointer&, const Value::I16&) ;

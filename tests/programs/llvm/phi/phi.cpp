@@ -42,7 +42,7 @@ TEST_CASE("Phi") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   auto loader = loadRegistrar->makeLoader ();
-  loader->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  loader->setOption<std::vector<std::string>> (1,{"main"});
   auto prgm = loadProgram (*loader,"phi_atomic.ll");
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;

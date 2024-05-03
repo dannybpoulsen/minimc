@@ -5,6 +5,7 @@
 #include "minimc/support/exceptions.hpp"
 #include "minimc/support/localisation.hpp"
 #include "minimc/support/feedback.hpp"
+#include "minimc/support/overload.hpp"
 
 
 #include <memory>
@@ -50,13 +51,21 @@ namespace MiniMC {
       virtual ~Loader() {}
       virtual MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
       virtual MiniMC::Model::Program loadFromString(const std::string& str, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
-
-      template<class T>
-      auto& getOption (std::size_t i) {return std::get<T> (options.at (i));}
+      
       
       template<class T>
-      void setOption (std::size_t i, typename T::ValueType t) {std::get<T> (options.at(i)).set (t);}
-
+      void setOption (std::size_t i, T t) {
+	std::visit (MiniMC::Support::Overload {
+	    [&t]<typename Opt>(Opt& opt) requires std::is_same_v<T,typename Opt::ValueType> {
+	      opt.set(t);},
+	      MiniMC::Support::Error<void> {}
+	  },
+	      options.at(i)
+	  );
+	  
+      }
+	  
+      
       auto& getOptions () {return options;}
     protected:
       template<class T,class... Args>

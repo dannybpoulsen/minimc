@@ -80,7 +80,7 @@ namespace MiniMC {
 			       const typename T::Pointer& ptr,
 			       const typename T::Pointer32& ptr32,
 			       const MiniMC::Model::HeapLayout& heapl,
-			       MiniMC::Model::Type_ptr ty
+			       const MiniMC::Model::Type&ty
 				) {
       {mem.store (p,i8)};
       {mem.store (p,i16)};
@@ -631,10 +631,10 @@ OPSI
       Value operator() (const MiniMC::Model::LoadExpr& load) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this,&load] (const  typename Value::Pointer& p) {
-	      return memory.load (p,load.getToType());
+	      return memory.load (p,*load.getToType());
 	    },
 	    [this,&load] (const  typename Value::Pointer32& p) {
-	      return memory.load (ops.Ptr32ToPtr (p),load.getToType());
+	      return memory.load (ops.Ptr32ToPtr (p),*load.getToType());
 	    },
 	      MiniMC::Support::Error<Value>{}
 	  },

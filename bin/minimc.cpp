@@ -17,7 +17,7 @@
 
 namespace po = boost::program_options;
 
-MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Support::Messager& mess) {
+MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Model::ConstantFactory_ptr cfac, MiniMC::Support::Messager& mess) {
   MiniMC::Model::Modifications::ProgramManager manager;
   using namespace  MiniMC::Model::Modifications;
   
@@ -26,7 +26,7 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
     manager.add<UnrollLoops> (options.unrollLoops);
   }
   if (options.expand_nondet) {
-    manager.add<NonDetExpander> (mess);
+    manager.add<NonDetExpander> (cfac,mess);
   }
   if (options.inlineFunctions) {
     manager.add<InlineFunctions> (options.inlineFunctions);
@@ -54,19 +54,12 @@ int main(int argc, char* argv[]) {
       auto loader = options.load.loader;
       MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
       
-      if (!MiniMC::Model::Checkers::TypeChecker{prgm,messager}.Check () ||
-	  !MiniMC::Model::Checkers::StructuralChecker{}.Check (prgm,messager)
+      if (!MiniMC::Model::Checkers::TypeChecker{tfac,messager}.Check (prgm) ||
+	  !MiniMC::Model::Checkers::StructuralChecker{messager}.Check (prgm)
 	  ) {
 	return -1;
       }
-      MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);
-      
-      if (options.outputname != "") {
-	std::ofstream stream;
-	stream.open (options.outputname, std::ofstream::out);
-	MiniMC::Model::writeProgram (stream,prgm2);
-	stream.close ();
-      }
+      MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, cfac,messager);
       if (options.command) {
 	auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
 	return res;

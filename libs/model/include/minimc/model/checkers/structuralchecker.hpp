@@ -14,8 +14,10 @@ namespace MiniMC {
 	   
 	   */
       struct StructuralChecker  {
-        bool Check(MiniMC::Model::Program&, MiniMC::Support::Messager = MiniMC::Support::Messager{});
-	
+	StructuralChecker (MiniMC::Support::Messager messager= MiniMC::Support::Messager{}) : messager(messager) {}
+        bool Check(MiniMC::Model::Program&);
+      private:
+	MiniMC::Support::Messager messager;
       };
       
     } // namespace Checkers

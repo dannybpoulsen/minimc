@@ -79,6 +79,8 @@ namespace MiniMC {
 	Scanner scanner;
 	MiniMC::Loaders::MMC::Token token;
 	MiniMC::Model::Program* prgm;
+	MiniMC::Model::TypeFactory_ptr tfactory;
+	MiniMC::Model::ConstantFactory_ptr cfactory;
 	MiniMC::Model::Frame curFrame;
 	MiniMC::Model::SymbolTable<MiniMC::Model::Register_ptr> variableMap;
 	std::unordered_set<MiniMC::Model::Symbol> symbolsUsedBeforeDef;

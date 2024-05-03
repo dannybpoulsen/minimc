@@ -27,8 +27,6 @@ namespace MiniMC {
       I16,
       I32,
       I64,
-      Float,
-      Double,
       Pointer,
       Pointer32,
       Aggregate
@@ -60,8 +58,31 @@ namespace MiniMC {
       constexpr static std::size_t bitwidth () {return 64;}
     };
 
+    template<>
+    struct Type_trait<TypeID::Bool> {
+      constexpr static std::size_t bitwidth () {return 8;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::Pointer> {
+      constexpr static std::size_t bitwidth () {return 64;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::Pointer32> {
+      constexpr static std::size_t bitwidth () {return 32;}
+    };
+
+    template<>
+    struct Type_trait<TypeID::Void> {
+      constexpr static std::size_t bitwidth () {return 0;}
+    };
+    
     template<TypeID id>
     constexpr std::size_t BitWidth = Type_trait<id>::bitwidth();
+
+    template<TypeID id>
+    constexpr std::size_t ByteWidth = Type_trait<id>::bitwidth() / 8;
     
     
     /** 
@@ -70,7 +91,7 @@ namespace MiniMC {
 	 */
     class Type : public std::enable_shared_from_this<Type> {
     public:
-      Type(const TypeID& ty) : id(ty) {}
+      Type() {}
       virtual ~Type() {}
       virtual std::ostream& output(std::ostream& os) const = 0;
       
@@ -82,21 +103,26 @@ namespace MiniMC {
        */
       virtual std::size_t getSize() const = 0;
       
-      TypeID getTypeID() const { return id; }
+      virtual TypeID getTypeID() const = 0;
       
-      virtual bool isEqual(const Type& t) {
+      virtual bool isEqual(const Type& t) const {
         return (&t == this) ||
                (getTypeID() == t.getTypeID() && innerEq(t));
+      }
+
+      bool operator== (const Type& t) const {
+	return this->isEqual (t);
+      }
+
+      bool operator!= (const Type& t) const {
+	return !(*this == t); 
       }
       
       virtual bool isInteger () const {return false;}
       virtual bool isAggregate () const {return false;}
       
     protected:
-      virtual bool innerEq(const Type& t) = 0;
-
-    private:
-      TypeID id;
+      virtual bool innerEq(const Type& t) const = 0;
     };
 
     using Type_ptr = std::shared_ptr<Type>;
@@ -113,7 +139,7 @@ namespace MiniMC {
     /** 
 	 * Factory creating types. 
 	 */
-    class TypeFactory {
+    class TypeFactory : public std::enable_shared_from_this<TypeFactory> {
     public:
       TypeFactory() {}
       virtual ~TypeFactory() {}
@@ -127,9 +153,7 @@ namespace MiniMC {
 	   */
 
       virtual const Type_ptr makeIntegerType(size_t t) = 0;
-      virtual const Type_ptr makeFloatType() = 0;
       virtual const Type_ptr makeBoolType() = 0;
-      virtual const Type_ptr makeDoubleType() = 0;
       virtual const Type_ptr makePointerType() = 0;
       virtual const Type_ptr makeVoidType() = 0;
 
@@ -146,9 +170,7 @@ namespace MiniMC {
       TypeFactory64();
       ~TypeFactory64();
       virtual const Type_ptr makeIntegerType(size_t t);
-      virtual const Type_ptr makeFloatType();
       virtual const Type_ptr makeBoolType();
-      virtual const Type_ptr makeDoubleType();
       virtual const Type_ptr makePointerType();
       virtual const Type_ptr makeVoidType();
       virtual const Type_ptr makeAggregateType(size_t);
@@ -158,19 +180,19 @@ namespace MiniMC {
       std::unique_ptr<Inner> impl;
     };
     
-    inline bool hasSameTypeID(std::initializer_list<Type_ptr> inp) {
+    inline bool isSameType(std::initializer_list<Type_ptr> inp) {
       auto it = inp.begin();
       auto end = inp.end();
-      TypeID type = (*it)->getTypeID();
+      Type& type = *(*it);
       ++it;
       for (; it != end; ++it) {
-        if ((*it)->getTypeID() != type)
+        if (*(*it) != type)
           return false;
       }
 
       return true;
       }
-
+    
   } // namespace Model
 } // namespace MiniMC
 

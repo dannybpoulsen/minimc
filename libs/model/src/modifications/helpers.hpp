@@ -43,20 +43,19 @@ namespace MiniMC {
                               Inserter insertTo) {
         auto to = (locs.count(edge->getTo()->getSymbol())) ? locs.at(edge->getTo()->getSymbol ()) : edge->getTo();
         auto from = (locs.count(edge->getFrom()->getSymbol())) ? locs.at(edge->getFrom()->getSymbol()) : edge->getFrom();
-
-
+	
 	auto& orig = edge->getInstructions ();
 	MiniMC::Model::InstructionStream nstr;
 	std::for_each(orig.begin(), orig.end(), [&](const MiniMC::Model::Instruction& inst) {
-	  auto replaceF = [&](MiniMC::Model::Register& reg)-> MiniMC::Model::Value_ptr {
+	  auto replaceF = [&val](MiniMC::Model::Register& reg)-> MiniMC::Model::Value_ptr {
 	    return val.count(reg.getSymbol ()) ? val.at (reg.getSymbol ()) : reg.shared_from_this();
 	  };
 	  
 	  nstr.add(Instruction (inst,replaceF));
 	});
-
+	auto res = cfg.makeEdge(from, to,std::move(nstr),edge->isPhi ());
 	
-        insertTo = cfg.makeEdge(from, to,std::move(nstr),edge->isPhi ());
+        insertTo = res;
       }
 
       template <class EdgeInsert>
@@ -67,13 +66,15 @@ namespace MiniMC {
                    EdgeInsert eInsert,
 		   MiniMC::Model::Frame frame
 		   ) {
-        for (auto& loc : from.getLocations()) {
+	
+	for (auto& loc : from.getLocations()) {
 	  MiniMC::Model::LocationInfo info {loc->getInfo()};
           auto nloc = to.makeLocation(frame.makeFresh (loc->getSymbol ().getName ()),info);
-          locmap.insert(std::pair(loc->getSymbol (), nloc));
+	  locmap.insert(std::pair(loc->getSymbol (), nloc));
         }
 
         for (auto& e : from.getEdges()) {
+	  
           copyEdgeAndReplace<EdgeInsert>(e, val, locmap, to, eInsert);
         }
       }

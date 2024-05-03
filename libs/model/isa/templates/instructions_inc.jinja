@@ -60,7 +60,7 @@ public:
    }
 
   Value_ptr Replace (Value& val ) const {
-  	return MiniMC::Model::visitValue<Value_ptr>(*this,const_cast<Value&>(val));
+  	return MiniMC::Model::visitValue<Value_ptr>(*this,val);
 	     
   }
 
@@ -75,7 +75,7 @@ public:
 	return t.shared_from_this();
    }
    	
-   Value_ptr operator() (Register& r) {
+   Value_ptr operator() (Register& r) const {
    	return replacer(r);
    }
 

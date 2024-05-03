@@ -93,15 +93,15 @@ namespace MiniMC {
             v);
       }
       */
-      Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type_ptr& t) const {
+      Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
 	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
-        for (size_t i = 0; i < t->getSize (); ++i) {
+        for (size_t i = 0; i < t.getSize (); ++i) {
           auto ones = builder.makeBVIntConst(i, Value::Pointer::intbitsize());
           auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
           concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
         }
-	switch (t->getTypeID ()) {
+	switch (t.getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
 	  return Value::Bool{concat.getTerm()};
 	case MiniMC::Model::TypeID::I8:
@@ -117,9 +117,7 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Pointer32:
 	  return Value::Pointer32{concat.getTerm()};
 	case MiniMC::Model::TypeID::Aggregate:
-	  return Value::Aggregate{concat.getTerm(),t->getSize ()};
-	case MiniMC::Model::TypeID::Float:
-	case MiniMC::Model::TypeID::Double:
+	  return Value::Aggregate{concat.getTerm(),t.getSize ()};
 	case MiniMC::Model::TypeID::Void:
 	default:
 	  throw MiniMC::Support::Exception ("Float and DOuble unsupported");

@@ -107,7 +107,7 @@ namespace MiniMC {
       MiniMC::Model::Program NonDetExpander::operator()  (MiniMC::Model::Program&& prgm) {
 	messager << MiniMC::Support::TInfo {"Unfolding non-determinstic values"};
 	for (auto& function : prgm.getFunctions ()) {
-	  expandNonDetCFAEdges (function->getCFA (),prgm.getConstantFactory ());
+	  expandNonDetCFAEdges (function->getCFA (),*cfactory);
 	}
 	return prgm;
       }

@@ -32,13 +32,13 @@ namespace MiniMC {
 	MiniMC::Model::Edge_ptr edge;
       };
       
-      bool StructuralChecker::Check (MiniMC::Model::Program& prgm, MiniMC::Support::Messager mess) {
+      bool StructuralChecker::Check (MiniMC::Model::Program& prgm) {
 	for (auto& F : prgm.getFunctions ()) {
 	  for (auto& e : F->getCFA ().getEdges ()) {
 	    std::unordered_set<MiniMC::Model::Value_ptr> defined;
 	    for (auto& instr : e->getInstructions ()) {
 	      if (!instr.visit (MiniMC::Model::Overload {
-		    [&defined,&instr,e,&mess]<typename T>(const T& a) requires (T::hasOperands())  {
+		    [&defined,&instr,e,this]<typename T>(const T& a) requires (T::hasOperands())  {
 		      
 		      std::vector<MiniMC::Model::Value_ptr> vals;
 		      a.getUsages (std::back_inserter(vals));
@@ -49,7 +49,7 @@ namespace MiniMC {
 			  if (v->isRegister ()) {
 			    auto casted_v = std::static_pointer_cast<MiniMC::Model::Register> (v);
 			    if (casted_v->getRegType ()== MiniMC::Model::RegType::Meta) {
-			      mess << UsedWithoutDefinition (instr,v,e);
+			      messager << UsedWithoutDefinition (instr,v,e);
 			      return false;
 			    }
 			  }

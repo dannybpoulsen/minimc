@@ -120,7 +120,7 @@ namespace MiniMC {
       }
       Memory::~Memory() {}
 
-      Value Memory::load(const typename Value::Pointer& p, const MiniMC::Model::Type_ptr& readType) const {
+      Value Memory::load(const typename Value::Pointer& p, const MiniMC::Model::Type& readType) const {
 
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
@@ -139,7 +139,7 @@ namespace MiniMC {
             return T{readVal};
           };
 
-          switch (readType->getTypeID()) {
+          switch (readType.getTypeID()) {
 	  case MiniMC::Model::TypeID::Bool:
 	    return performRead.template operator()<Value::Bool>();
 	  case MiniMC::Model::TypeID::I8: 

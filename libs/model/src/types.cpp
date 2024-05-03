@@ -9,7 +9,37 @@
 
 namespace MiniMC {
   namespace Model {
-    class IntegerType : public Type {
+
+    template<TypeID id> requires (id!=TypeID::Aggregate)
+    class TType : public Type{
+    public:
+      TType() {}
+      std::size_t getSize() const override { return ByteWidth<id>; }
+      std::ostream& output(std::ostream& os) const override  {
+	return os << getTypeID();
+      }
+
+      TypeID getTypeID () const override {return id;}
+      
+      bool isInteger () const override {return true;}
+    protected:
+      bool innerEq(const Type&) const override {
+        return true;
+      }
+    
+    };
+
+    using I8Type = TType<TypeID::I8>;
+    using I16Type = TType<TypeID::I16>;
+    using I32Type = TType<TypeID::I32>;
+    using I64Type = TType<TypeID::I64>;
+    using VoidType = TType<TypeID::Void>;
+    using PointerType = TType<TypeID::Pointer>;
+    using Pointer32Type = TType<TypeID::Pointer32>;
+    using BoolType = TType<TypeID::Bool>;
+    
+    
+    /*class IntegerType : public Type {
     public:
       IntegerType(size_t b,TypeID id) : Type(id),
                               bytes(b) {}
@@ -21,37 +51,22 @@ namespace MiniMC {
       }
       bool isInteger () const override {return true;}
     protected:
-      virtual bool innerEq(const Type& t) override {
+      bool innerEq(const Type& t) const override {
         return bytes == static_cast<const IntegerType&>(t).bytes;
       }
-
+      
     private:
       size_t bytes;
     };
 
-    class FloatType : public Type {
-    public:
-      FloatType() : Type(TypeID::Float) {}
-      std::size_t getSize() const { return 4; }
-       std::ostream& output(std::ostream& os) const { return os << "Float"; }
-      bool innerEq(const Type& ) { return true; }
-    };
-
-    class DoubleType : public Type {
-    public:
-      DoubleType() : Type(TypeID::Double) {}
-      std::size_t getSize() const { return 8; }
-      std::ostream& output(std::ostream& os) const { return os << "Double"; }
-      bool innerEq(const Type& ) { return false; }
-    };
-
+    
 #ifdef MINIMC32
     class PointerType : public Type {
     public:
       PointerType() : Type(TypeID::Pointer32) {}
       std::size_t getSize() const { return sizeof(MiniMC::Model::pointer32_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer32"; }
-      bool innerEq(const Type& ) { return true; }
+      bool innerEq(const Type& ) const override  { return true; }
     };
 #else
     class PointerType : public Type {
@@ -59,7 +74,7 @@ namespace MiniMC {
       PointerType() : Type(TypeID::Pointer) {}
       std::size_t getSize() const { return sizeof(MiniMC::Model::pointer_t); }
       std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
-      bool innerEq(const Type& ) { return true; }
+      bool innerEq(const Type& ) const override  { return true; }
     };
 #endif
     
@@ -68,7 +83,7 @@ class BoolType : public Type {
       BoolType() : Type(TypeID::Bool) {}
       std::size_t getSize() const { return 1; }
       std::ostream& output(std::ostream& os) const { return os << "Bool"; }
-      bool innerEq(const Type&) { return true; }
+      bool innerEq(const Type&) const override { return true; }
     };
 
     class VoidType : public Type {
@@ -76,19 +91,21 @@ class BoolType : public Type {
       VoidType() : Type(TypeID::Void) {}
       std::size_t getSize() const { return 0; }
       std::ostream& output(std::ostream& os) const { return os << "Void"; }
-      bool innerEq(const Type&) { return true; }
+      bool innerEq(const Type&) const override { return true; }
     };
-
+    */
     class AggregateType : public Type {
     public:
-      AggregateType(size_t size) : Type(TypeID::Aggregate), size(size) {}
+      AggregateType(size_t size) :  size(size) {}
       std::size_t getSize() const { return size; }
       std::ostream& output(std::ostream& os) const { 
 	std::ostream copy (os.rdbuf());  
 	copy << "Aggr" << std::dec << std::noshowbase << size;
 	return os;
       }
-      bool innerEq(const Type& t) { return size == static_cast<const AggregateType&>(t).size; }
+      TypeID getTypeID () const override{ return TypeID::Aggregate;}
+      
+      bool innerEq(const Type& t) const override { return size == static_cast<const AggregateType&>(t).size; }
       bool isAggregate () const override {return true;}
       
     private:
@@ -97,17 +114,13 @@ class BoolType : public Type {
 
     struct TypeFactory64::Inner {
       Inner() : vt(new VoidType()),
-                dt(new DoubleType()),
-                ft(new FloatType()),
                 bt(new BoolType()),
                 pt(new PointerType()),
-                i8(new IntegerType(1,TypeID::I8)),
-                i16(new IntegerType(2,TypeID::I16)),
-                i32(new IntegerType(4,TypeID::I32)),
-                i64(new IntegerType(8,TypeID::I64)) {}
+                i8(new I8Type()),
+                i16(new I16Type()),
+                i32(new I32Type()),
+                i64(new I64Type()) {}
       Type_ptr vt;
-      Type_ptr dt;
-      Type_ptr ft;
       Type_ptr bt;
       Type_ptr pt;
       Type_ptr i8;
@@ -137,9 +150,7 @@ class BoolType : public Type {
         return nullptr;
     }
 
-    const Type_ptr TypeFactory64::makeFloatType() { return impl->ft; }
     const Type_ptr TypeFactory64::makeBoolType() { return impl->bt; }
-    const Type_ptr TypeFactory64::makeDoubleType() { return impl->dt; }
     const Type_ptr TypeFactory64::makePointerType() { return impl->pt; }
     const Type_ptr TypeFactory64::makeVoidType() { return impl->vt; }
     const Type_ptr TypeFactory64::makeAggregateType(size_t t) {
@@ -158,13 +169,11 @@ class BoolType : public Type {
       case TypeID::I16: return os << "I16";
       case TypeID::I32: return os << "I32";
       case TypeID::I64: return os << "I64";
-      case TypeID::Float: return os << "Float";
-      case TypeID::Double: return os << "Double";
       case TypeID::Pointer: return os << "Pointer";
       case TypeID::Pointer32: return os << "Pointer32";
       case TypeID::Aggregate: return os << "Aggregate";
       default:
-	throw MiniMC::Support::Exception ("Not a Typeid");
+	std::unreachable();
       }
     }
     

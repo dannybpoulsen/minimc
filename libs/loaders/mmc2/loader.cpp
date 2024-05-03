@@ -24,11 +24,9 @@ public:
     return parser.parse (tfac,cfac);
   }
   MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) override {
-   MiniMC::Model::Program program (tfac, cfac);
+   MiniMC::Model::Program program (cfac);
    std::stringstream str;
    str.str(inp);
-   /*Parser parser = Parser(str, *tfactory, *cfactory, program);
-     parser.run();*/
    return program;
   }
 };

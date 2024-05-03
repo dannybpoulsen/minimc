@@ -227,7 +227,7 @@ namespace MiniMC {
 	{%endfor %}
 	{{size_constraints(i)}}	
 	{%if i.getResOperand () %}
-	  expr.setType (prgm.getTypeFactory().makeBoolType());
+	  expr.setType (tfactory->makeBoolType());
         {%endif%}
 	return expr.getType();
 	}
@@ -286,7 +286,7 @@ namespace MiniMC {
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Bool ) {
-	  res = prgm.getTypeFactory().makeBoolType ();
+	  res = tfactory->makeBoolType ();
 	}
 	else {
 	  messager << MustBeBoolExpr{expr.op1()};
@@ -297,7 +297,7 @@ namespace MiniMC {
       }
 
       template <class Inst>
-      bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt, MiniMC::Model::Program& prgm) {
+      bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt) {
 	constexpr auto i = tinst.getOpcode (); 
         if constexpr (isUnary_v<Inst>) {
 	  auto& content = tinst.getOps ();
@@ -460,6 +460,10 @@ namespace MiniMC {
         }
 	
         else if constexpr (i == VMInstructionCode::Call) {
+	  if (!prgm) {
+	     messager	<< MiniMC::Support::TWarning<std::string> {"It's only possible to properly type check function Calls with a program context"};
+	     return true   ;
+	  }  
 	  MiniMC::Support::Localiser function_not_exists("Call references unexisting function: '%1%'");
 	  MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
 	  auto& content = tinst.getOps ();
@@ -467,26 +471,26 @@ namespace MiniMC {
 	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
 						
 						MiniMC::Model::Overload{
-						  [&prgm,&function_not_exists,this](const MiniMC::Model::Pointer& val) -> Function_ptr {
+						  [&function_not_exists,this](const MiniMC::Model::Pointer& val) -> Function_ptr {
 						    auto ptr = val.getValue ();
-						    if (prgm.functionExists (ptr.base))
-						      return prgm.getFunction (ptr.base);
+						    if (prgm->functionExists (ptr.base))
+						      return prgm->getFunction (ptr.base);
 						    else {
 						      messager << MiniMC::Support::TError<std::string> {function_not_exists.format(MiniMC::Model::getFunctionId(ptr))};
 						      return nullptr;
 						    }
 						  },
-						    [&prgm,this,&function_not_exists](const MiniMC::Model::Pointer32& val) -> Function_ptr {
+						    [this,&function_not_exists](const MiniMC::Model::Pointer32& val) -> Function_ptr {
 						      auto ptr = val.getValue ();
-						      if (prgm.functionExists (ptr.base))
-							return prgm.getFunction (ptr.base);
+						      if (prgm->functionExists (ptr.base))
+							return prgm->getFunction (ptr.base);
 						      else {
 							messager << MiniMC::Support::TError<std::string> {function_not_exists.format(ptr.base)};
 							return nullptr;
 						      }
 						    },
-						    [&prgm](const MiniMC::Model::SymbolicConstant& sc) -> Function_ptr {
-						      return prgm.getFunction (sc.getValue ());
+						    [this](const MiniMC::Model::SymbolicConstant& sc) -> Function_ptr {
+						      return prgm->getFunction (sc.getValue ());
 						    },
 						    [&fun,&inst,this](const auto&) -> Function_ptr {
 						      messager << MustBeConstant {inst,fun};
@@ -619,8 +623,8 @@ namespace MiniMC {
         }
 
         else if constexpr (i == VMInstructionCode::Uniform) {
-          auto& content = tinst.getOps ();
-          if (!MiniMC::Model::hasSameTypeID({CheckType(*content.res),
+	  auto& content = tinst.getOps ();
+          if (!MiniMC::Model::isSameType({CheckType(*content.res),
 		CheckType(*content.max),
 		CheckType(*content.min)})) {
 	    messager << MustBeGivenType {inst,content.min,content.res->getType ()};
@@ -644,13 +648,13 @@ namespace MiniMC {
       }
 
       bool TypeChecker::Check(MiniMC::Model::Function& F) {
-	bool res{true};
+      	bool res{true};
 	for (auto& E : F.getCFA().getEdges()) {
 	  const auto& instrkeeper = E->getInstructions ();
 	  if (instrkeeper) {
 	    for (auto& I : instrkeeper) {
 	      if (!I.visit ([this,&F,&I](auto& instr) {
-		return doCheck (instr,I,F.getReturnType (),prgm);
+		return doCheck (instr,I,F.getReturnType ());
 	      })) {
 		res = false;
 	      }
@@ -660,11 +664,13 @@ namespace MiniMC {
 	return res;
       }
       
-      bool TypeChecker::Check() {
+      bool TypeChecker::Check(const MiniMC::Model::Program& p) {
+        prgm = &p;
         bool res = true;
-        for (auto& F : prgm.getFunctions()) {
+        for (auto& F : prgm->getFunctions()) {
 	  res = res && Check (*F);
         }
+	prgm = nullptr;
         return res;
       }
     } // namespace Checkers

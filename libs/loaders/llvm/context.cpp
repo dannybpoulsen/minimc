@@ -68,10 +68,6 @@ namespace MiniMC {
 	return tfact.makeAggregateType (computeSizeInBytes (type));
       case MiniMC::Model::TypeID::Void:
 	  return tfact.makeVoidType ();
-      case MiniMC::Model::TypeID::Float:
-	  return tfact.makeFloatType ();
-      case MiniMC::Model::TypeID::Double:
-	  return tfact.makeDoubleType ();
       default:
 	throw MiniMC::Support::Exception ("Unsupported type");
       }

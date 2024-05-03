@@ -49,26 +49,25 @@ namespace MiniMC {
       }
       
       MiniMC::Model::Type_ptr Parser::parseType () {
-	auto& tfact = prgm->getTypeFactory ();
 	Token tok;
 	if (match (INT8))
-	  return tfact.makeIntegerType (8);
+	  return tfactory->makeIntegerType (8);
 	else if (match (INT16))
-	  return tfact.makeIntegerType (16);
+	  return tfactory->makeIntegerType (16);
 	else if (match (INT32))
-	  return tfact.makeIntegerType (32);
+	  return tfactory->makeIntegerType (32);
 	else if (match (INT64))
-	  return tfact.makeIntegerType (64);
+	  return tfactory->makeIntegerType (64);
 	else if (match (BOOL))
-	  return tfact.makeBoolType ();
+	  return tfactory->makeBoolType ();
 	else if (match (POINTER))
-	  return tfact.makePointerType ();
+	  return tfactory->makePointerType ();
 	else if (match (AGGR,&tok)) {
-	  return tfact.makeAggregateType (tok.get<AggrType> ().size);
+	  return tfactory->makeAggregateType (tok.get<AggrType> ().size);
 	}
 	else {
 	  expect (VOID);
-	  return tfact.makeVoidType ();
+	  return tfactory->makeVoidType ();
 	}
 	
       }
@@ -211,17 +210,17 @@ namespace MiniMC {
 	  if (match (NUMBER,&tok) || match (NUMBER,&tok)) {
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    return prgm->getConstantFactory ().makeIntegerConstant (tok.get<int64_t>(),type->getTypeID ());
+	    return cfactory->makeIntegerConstant (tok.get<int64_t>(),type->getTypeID ());
 	  }
 	  else if (match (POINTERLITERAL,&tok)) {
 	    auto type = parseType ();
 	    expect (RANGLE);
 	    auto literal = tok.get<PointerLiteral> ();
 	    if (literal.segment == PointerSegment::Function) {
-	      return prgm->getConstantFactory ().makeFunctionPointer (literal.base);
+	      return cfactory->makeFunctionPointer (literal.base);
 	    }
 	    else 
-	      return prgm->getConstantFactory ().makeHeapPointer (literal.base,literal.offset);
+	      return cfactory->makeHeapPointer (literal.base,literal.offset);
 	  }
 	  else if (get().type == IDENTIFIER ||
 		   get().type == QUALIFIEDNAME) {
@@ -235,7 +234,7 @@ namespace MiniMC {
 	    }
 
 	    else {
-	      auto res = prgm->getConstantFactory ().makeSymbolicConstant (symbol);
+	      auto res = cfactory->makeSymbolicConstant (symbol);
 	      res->setType (type);
 	      return res;
 	    }
@@ -248,11 +247,11 @@ namespace MiniMC {
 	    auto decoded= encode.decode (aggr_str_encoded);
 	    inputs.reserve (decoded.size ());
 	    for (char c : decoded) {
-	      inputs.push_back (std::static_pointer_cast<MiniMC::Model::Constant> (prgm->getConstantFactory ().makeIntegerConstant (c,MiniMC::Model::TypeID::I8)));
+	      inputs.push_back (std::static_pointer_cast<MiniMC::Model::Constant> (cfactory->makeIntegerConstant (c,MiniMC::Model::TypeID::I8)));
 	    }
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    auto res = prgm->getConstantFactory ().makeAggregateConstant (inputs);
+	    auto res = cfactory->makeAggregateConstant (inputs);
 	    res->setType (type);
 	    return res;
 	  }
@@ -409,8 +408,10 @@ namespace MiniMC {
 
       
       MiniMC::Model::Program Parser::parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac) {
-	MiniMC::Model::Program program(tfac, cfac);
+	MiniMC::Model::Program program(cfac);
 	prgm = &program;
+	tfactory = tfac;
+	cfactory = cfac;
 	MiniMC::Loaders::MMC::Token tt;
 	parseGlobalDeclaration ();
 	parseFunctionDeclarations ();

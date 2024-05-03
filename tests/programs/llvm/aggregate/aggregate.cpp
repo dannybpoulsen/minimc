@@ -12,9 +12,10 @@
 #include "minimc/loaders/loader.hpp"
 #include <filesystem>
 
+MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
+MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+
 auto loadProgram (auto& loader, const std::string& s) {
-  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
 
@@ -50,9 +51,9 @@ TEST_CASE("Frame") {
   //Arrange
   MiniMC::Support::Messager mess;
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string> > (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  CHECK(MiniMC::Model::Checkers::TypeChecker{prgm,mess}.Check ());
+  CHECK(MiniMC::Model::Checkers::TypeChecker{tfac,mess}.Check (prgm));
   
 }
 
@@ -60,7 +61,7 @@ TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string>> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   
 
@@ -82,7 +83,7 @@ TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader (); //MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<MiniMC::Loaders::VecStringOption> (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string> > (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
