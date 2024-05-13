@@ -459,7 +459,7 @@ namespace MiniMC {
       }
 
       virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::TypeFactory_ptr& tfac, MiniMC::Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) {
-        MiniMC::Model::Program prgm {cfac};
+        MiniMC::Model::Program prgm;
 	tfactory = tfac;
 	cfactory = cfac;
         sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), tfac->makePointerType());

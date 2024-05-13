@@ -160,12 +160,8 @@ namespace MiniMC {
     
     class Program  {
     public:
-      Program(const MiniMC::Model::ConstantFactory_ptr& cfact
-	      ) : cfact(cfact),
-		  cpu_regs(RegType::CPU),
-		  meta_regs(RegType::Meta)
-      {
-      }
+      Program()  : cpu_regs(RegType::CPU),
+		  meta_regs(RegType::Meta) {}
 
       Program (const Program&) = delete ;
       Program (Program&&) = default;
@@ -221,8 +217,6 @@ namespace MiniMC {
       }
       
       auto& getEntryPoints() const { return entrypoints; }
-
-      //auto& getConstantFactory() const  { return *cfact; }
       
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}
@@ -237,7 +231,6 @@ namespace MiniMC {
     private:
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
-      MiniMC::Model::ConstantFactory_ptr cfact;
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;

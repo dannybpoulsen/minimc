@@ -408,7 +408,7 @@ namespace MiniMC {
 
       
       MiniMC::Model::Program Parser::parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac) {
-	MiniMC::Model::Program program(cfac);
+	MiniMC::Model::Program program;
 	prgm = &program;
 	tfactory = tfac;
 	cfactory = cfac;

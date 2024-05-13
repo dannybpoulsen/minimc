@@ -77,7 +77,7 @@ namespace MiniMC {
 	case MiniMC::Model::RegType::CPU: return values.cpus()[reg];
 	case MiniMC::Model::RegType::Meta: return metas[reg];
 	default:
-	  throw MiniMC::Support::Exception ("Temporaries not fulle implemented yet");
+	  std::unreachable();
 	  
 	}
       }
@@ -86,10 +86,10 @@ namespace MiniMC {
 	switch (v.getRegType ()) {
 	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   values.cpus ().set (v,std::move(value));break;
-	case MiniMC::Model::RegType::Meta: return metas.set(v,std::move(value));
+	case MiniMC::Model::RegType::Meta: metas.set(v,std::move(value));break;
 	
 	default:
-	  throw MiniMC::Support::Exception ("Temporaries not fulle implemented yet");
+	  std::unreachable();
 	}
 	
       }

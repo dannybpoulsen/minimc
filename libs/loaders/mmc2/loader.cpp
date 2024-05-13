@@ -23,8 +23,8 @@ public:
 
     return parser.parse (tfac,cfac);
   }
-  MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) override {
-   MiniMC::Model::Program program (cfac);
+  MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr&, Model::ConstantFactory_ptr&,MiniMC::Support::Messager&) override {
+   MiniMC::Model::Program program;
    std::stringstream str;
    str.str(inp);
    return program;

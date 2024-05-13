@@ -55,8 +55,8 @@ TEST_CASE("Add") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -76,8 +76,8 @@ TEST_CASE("Sub") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -98,8 +98,8 @@ TEST_CASE("Mul") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -119,8 +119,8 @@ TEST_CASE("UDiv") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -140,8 +140,8 @@ TEST_CASE("SDiv") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -162,8 +162,8 @@ TEST_CASE("Shl") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -183,8 +183,8 @@ TEST_CASE("AShr") {
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);

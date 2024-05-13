@@ -52,8 +52,8 @@ TEST_CASE("Phi") {
       prgm});
   
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm)};
-  auto res = reachabilityChecker.search (mess,initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (initialState,goal);
 
   //Assert 
   CHECK (res.verdict () == MiniMC::Algorithms::Reachability::Verdict::NotFound);

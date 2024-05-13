@@ -75,8 +75,9 @@ namespace MiniMC {
       }
 
       struct Reachability::Internal {
-	Internal (MiniMC::CPA::AnalysisTransfer transfer, std::unique_ptr<WaitingList<MiniMC::CPA::AnalysisState>>&& waiting = std::make_unique<DFSList<MiniMC::CPA::AnalysisState>> () ) : transfer(transfer),waiting(std::move(waiting)) {}
+	Internal (MiniMC::CPA::AnalysisTransfer transfer, MiniMC::Support::Messager mess, std::unique_ptr<WaitingList<MiniMC::CPA::AnalysisState>>&& waiting = std::make_unique<DFSList<MiniMC::CPA::AnalysisState>> () ) : transfer(transfer),mess(mess),waiting(std::move(waiting)) {}
 	MiniMC::CPA::AnalysisTransfer transfer;
+	MiniMC::Support::Messager mess;
 	std::unique_ptr<WaitingList<MiniMC::CPA::AnalysisState>> waiting;
 	
 	
@@ -84,9 +85,9 @@ namespace MiniMC {
 
       
       Reachability::~Reachability (){}
-      Reachability::Reachability (MiniMC::CPA::AnalysisTransfer transfer) : _internal(std::make_unique<Internal> (transfer))  {}
+      Reachability::Reachability (MiniMC::CPA::AnalysisTransfer transfer, MiniMC::Support::Messager mess) : _internal(std::make_unique<Internal> (transfer,mess))  {}
       
-      Result Reachability::search (MiniMC::Support::Messager& mess,const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
+      Result Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	MiniMC::Storage::HashStorage storage;
 	
         auto insert = [this,&storage,filter](auto& state) {  

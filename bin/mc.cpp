@@ -94,10 +94,10 @@ namespace {
       };
       
     
-      MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm)};
+      MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm),messager};
       reach.setSearchStrategy (locoptions.search_strat);
       
-      auto result = reach.search (messager,initstate,goal);
+      auto result = reach.search (initstate,goal);
       
       
       if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {

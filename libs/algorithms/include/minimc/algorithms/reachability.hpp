@@ -63,10 +63,9 @@ namespace MiniMC {
       
       class Reachability {
       public:
-	Reachability (MiniMC::CPA::AnalysisTransfer transfer);
+	Reachability (MiniMC::CPA::AnalysisTransfer transfer, MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
 	~Reachability ();
-	[[nodiscard]] Result search (MiniMC::Support::Messager& mess,
-			const MiniMC::CPA::AnalysisState&,
+	[[nodiscard]] Result search (const MiniMC::CPA::AnalysisState&,
 				     GoalFunction,
 				     FilterFunction = DefaultFilter
 				     );
@@ -77,6 +76,7 @@ namespace MiniMC {
       private:
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
+	MiniMC::Support::Messager mess;
       };
       
       

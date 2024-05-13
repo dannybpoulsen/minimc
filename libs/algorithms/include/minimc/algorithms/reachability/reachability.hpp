@@ -42,10 +42,10 @@ namespace MiniMC {
 	Reachability (MiniMC::CPA::AnalysisTransfer transfer);
 	~Reachability ();
 	[[nodiscard]] Result search (MiniMC::Support::Messager& mess,
-			const MiniMC::CPA::AnalysisState&,
-			GoalFunction,
-			FilterFunction = DefaultFilter
-			);
+				     const MiniMC::CPA::AnalysisState&,
+				     GoalFunction,
+				     FilterFunction = DefaultFilter
+				     );
 	
 	
 	MiniMC::CPA::AnalysisState foundState () const;

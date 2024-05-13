@@ -17,8 +17,8 @@
 TEST_CASE("Add") {
   MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
   MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
-  MiniMC::Model::Program prgm {cfac};
-
+  MiniMC::Model::Program prgm;
+  
   MiniMC::Model::RegisterDescr descr;
   
   
