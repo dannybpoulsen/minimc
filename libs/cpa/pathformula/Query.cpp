@@ -9,7 +9,7 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
+      State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& termbuilder =  context->getBuilder ();
 	auto term = termbuilder.makeBoolConst (true);
 	MiniMC::VMT::Pathformula::Memory mem{termbuilder};
@@ -32,7 +32,7 @@ namespace MiniMC {
       Transferer::~Transferer () {}
 	
 	
-      MiniMC::CPA::DataState_ptr Transferer::doTransfer(const DataState& s, const MiniMC::CPA::Transition& trans) {
+      MiniMC::CPA::State_ptr Transferer::doTransfer(const DataState& s, const MiniMC::CPA::Transition& trans) {
 	const MiniMC::Model::Edge& e = *trans.edge;
 	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();

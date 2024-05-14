@@ -120,12 +120,12 @@ namespace MiniMC {
       };
 
       
-      MiniMC::CPA::DataState_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
+      MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	MiniMC::VMT::Concrete::Memory mem;
 	return std::make_shared<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
       }
 
-      MiniMC::CPA::State_ptr<DataState> Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
+      MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
 	const MiniMC::Model::Edge& e = *t.edge;
 	proc_id id = t.proc;
 	

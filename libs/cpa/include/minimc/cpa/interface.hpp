@@ -65,39 +65,37 @@ namespace MiniMC {
       MiniMC::Model::proc_t proc;
     };
     
-    template<class State>
-    class TTransfer {
+    class Transfer {
     public:
-      virtual ~TTransfer () {}
-      virtual State_ptr<State> doTransfer(const State&, const Transition&) {return nullptr;}
+      virtual ~Transfer () {}
+      virtual State_ptr doTransfer(const DataState&, const Transition&) {return nullptr;}
     };
     
     
     
     
     
-    template<class State>
-    using TTransferer_ptr = std::shared_ptr<TTransfer<State>>;
+    using Transferer_ptr = std::shared_ptr<Transfer>;
     
     
     
     template<class T>
     struct ICPA {
       virtual ~ICPA() {}
-      virtual State_ptr<T> makeInitialState(const InitialiseDescr&) = 0;
-      virtual TTransferer_ptr<T> makeTransfer(const MiniMC::Model::Program& ) const = 0;
+      virtual State_ptr makeInitialState(const InitialiseDescr&) = 0;
+      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
       
     };
 
     template<class State>
     using TCPA_ptr = std::shared_ptr<ICPA<State>>;    
-
+    
     class AnalysisTransfer {
     public:
-      AnalysisTransfer (std::vector<TTransferer_ptr<DataState>>&& dtransfers) : dataTransfers(std::move(dtransfers)) {}
+      AnalysisTransfer (std::vector<Transferer_ptr>&& dtransfers) : dataTransfers(std::move(dtransfers)) {}
       bool Transfer (const AnalysisState&, const Transition&, AnalysisState&);
     private:
-      std::vector<TTransferer_ptr<DataState>> dataTransfers;    
+      std::vector<Transferer_ptr> dataTransfers;    
     };
     
     
@@ -111,14 +109,14 @@ namespace MiniMC {
       
       //void addDataCPA (TCPA_ptr<DataState>&& cpa) {data_cpa.push_back (std::move(cpa));}
       AnalysisTransfer makeTransfer (const MiniMC::Model::Program& prgm) const  {
-	std::vector<TTransferer_ptr<DataState>> datas;
+	std::vector<Transferer_ptr> datas;
 	for (auto& d : data_cpa)
 	  datas.push_back (d->makeTransfer (prgm));
 	return AnalysisTransfer (std::move(datas));
       }
       
       AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
-	std::vector<DataState_ptr> datas;
+	std::vector<State_ptr> datas;
 	for (auto& d : data_cpa) 
 	  datas.push_back (std::static_pointer_cast<const DataState> (d->makeInitialState (descr)));
 	return AnalysisState (std::move(datas));

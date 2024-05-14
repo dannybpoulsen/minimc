@@ -60,27 +60,22 @@ namespace MiniMC {
       virtual const LocationInfo& getLocationState () const  = 0;
       virtual std::shared_ptr<DataState> copy() const = 0;
       virtual MiniMC::Hash::hash_t hash() const = 0;
-    private:
-      
-      
     };
     
-    template<class T>
-    using State_ptr = std::shared_ptr<const T>;
-    using DataState_ptr = State_ptr<DataState>;
+    using State_ptr = std::shared_ptr<const DataState>;
     
     
     class AnalysisState  {
     public:
       AnalysisState () {}
-      AnalysisState (std::vector<DataState_ptr>&& datastates) : datastates(std::move(datastates)) {}
+      AnalysisState (std::vector<State_ptr>&& datastates) : datastates(std::move(datastates)) {}
       auto dataStates () const {
 	return datastates | std::views::transform([](auto& r)->const DataState& {return *r;});;
       }
       auto& getLocationState () const {return datastates.at(0)->getLocationState ();}
       MiniMC::Hash::hash_t hash() const;
     private:
-      std::vector<DataState_ptr> datastates;   
+      std::vector<State_ptr> datastates;   
     };
 
     class StateOutputter {

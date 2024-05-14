@@ -18,10 +18,10 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       
-      struct Transferer : public MiniMC::CPA::TTransfer<DataState> {
+      struct Transferer : public MiniMC::CPA::Transfer {
 	Transferer (const MiniMC::Model::Program& prgm);
 	~Transferer ();
-        MiniMC::CPA::DataState_ptr doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition&) override;
+        MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition&) override;
       private:
 	struct Internal;
 	
@@ -32,8 +32,8 @@ namespace MiniMC {
       
       struct CPA : public ICPA<DataState> {
 	//virtual StateQuery_ptr makeQuery() const {return std::make_shared<StateQuery> ();}
-	State_ptr<DataState> makeInitialState(const InitialiseDescr&) override;
-	virtual TTransferer_ptr<DataState> makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer> (prgm);}
+	State_ptr makeInitialState(const InitialiseDescr&) override;
+	virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer> (prgm);}
 	
       };
     } // namespace Concrete

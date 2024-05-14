@@ -86,7 +86,7 @@ namespace MiniMC {
     bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
       
       
-      std::vector<DataState_ptr> datas;
+      std::vector<State_ptr> datas;
       auto datastate_view = state.dataStates ();
       auto dit = datastate_view.begin();
       auto tit = dataTransfers.begin ();
