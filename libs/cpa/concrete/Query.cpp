@@ -65,7 +65,7 @@ namespace MiniMC {
       Transferer::Transferer (const MiniMC::Model::Program& p) : _internal(new Internal (p)) {}
       Transferer::~Transferer () {}
       
-      class State : public MiniMC::CPA::DataState,
+      class State : public MiniMC::CPA::State,
 		    private MiniMC::CPA::QueryBuilder
       {
       public:
@@ -80,8 +80,8 @@ namespace MiniMC {
 	  return mixin.hash ();
 	}
 	
-        virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override {
-	  return std::make_shared<State>(*this); 
+        virtual State_ptr copy() const override {
+	  return makeState<State>(*this); 
 	}
 
 	
@@ -122,10 +122,10 @@ namespace MiniMC {
       
       MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	MiniMC::VMT::Concrete::Memory mem;
-	return std::make_shared<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
+	return makeState<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
       }
 
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::DataState& s, const MiniMC::CPA::Transition& t )  {
+      MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	const MiniMC::Model::Edge& e = *t.edge;
 	proc_id id = t.proc;
 	

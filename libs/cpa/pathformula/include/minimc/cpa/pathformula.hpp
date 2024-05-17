@@ -14,14 +14,14 @@ namespace MiniMC {
       struct Transferer : public MiniMC::CPA::Transfer {
 	Transferer (const SMTLib::Context_ptr& context, const MiniMC::Model::Program& prgm);
 	~Transferer ();
-	MiniMC::CPA::State_ptr doTransfer(const DataState& s, const MiniMC::CPA::Transition&) override;
+	MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition&) override;
       private:
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
       };
       
 
-      struct CPA : public ICPA<DataState> {
+      struct CPA : public ICPA {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	MiniMC::CPA::State_ptr makeInitialState(const InitialiseDescr&) override;
 	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }

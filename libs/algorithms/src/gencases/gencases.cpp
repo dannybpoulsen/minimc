@@ -43,7 +43,7 @@ namespace MiniMC {
 	std::vector<MiniMC::CPA::AnalysisState> waiting;
 	waiting.push_back (initstate);
 	while (waiting.size ()) {
-	  auto s = waiting.back();
+	  auto s = std::move(waiting.back());
 	  waiting.pop_back();
 	  MiniMC::CPA::SuccessorEnumerator enumerator {s,transfer};
 	  

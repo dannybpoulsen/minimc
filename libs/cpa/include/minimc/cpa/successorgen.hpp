@@ -101,7 +101,7 @@ namespace MiniMC {
       TransitionEnumerator ee;
       MiniMC::CPA::AnalysisState _next;
       MiniMC::CPA::AnalysisTransfer& transfer;
-      MiniMC::CPA::AnalysisState _enumFrom;
+      const MiniMC::CPA::AnalysisState& _enumFrom;
       
       bool done{false};
     };

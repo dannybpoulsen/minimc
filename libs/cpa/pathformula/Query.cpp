@@ -14,7 +14,7 @@ namespace MiniMC {
 	auto term = termbuilder.makeBoolConst (true);
 	MiniMC::VMT::Pathformula::Memory mem{termbuilder};
 	
-	return std::make_shared<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},std::move(mem)), std::move(term), *context);
+	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},std::move(mem)), std::move(term), *context);
       }
 
       struct Transferer::Internal {
@@ -32,7 +32,7 @@ namespace MiniMC {
       Transferer::~Transferer () {}
 	
 	
-      MiniMC::CPA::State_ptr Transferer::doTransfer(const DataState& s, const MiniMC::CPA::Transition& trans) {
+      MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& trans) {
 	const MiniMC::Model::Edge& e = *trans.edge;
 	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();

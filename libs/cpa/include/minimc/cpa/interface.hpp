@@ -68,7 +68,7 @@ namespace MiniMC {
     class Transfer {
     public:
       virtual ~Transfer () {}
-      virtual State_ptr doTransfer(const DataState&, const Transition&) {return nullptr;}
+      virtual State_ptr doTransfer(const State&, const Transition&) {return nullptr;}
     };
     
     
@@ -79,7 +79,6 @@ namespace MiniMC {
     
     
     
-    template<class T>
     struct ICPA {
       virtual ~ICPA() {}
       virtual State_ptr makeInitialState(const InitialiseDescr&) = 0;
@@ -87,8 +86,7 @@ namespace MiniMC {
       
     };
 
-    template<class State>
-    using TCPA_ptr = std::shared_ptr<ICPA<State>>;    
+    using TCPA_ptr = std::shared_ptr<ICPA>;    
     
     class AnalysisTransfer {
     public:
@@ -118,12 +116,12 @@ namespace MiniMC {
       AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
 	std::vector<State_ptr> datas;
 	for (auto& d : data_cpa) 
-	  datas.push_back (std::static_pointer_cast<const DataState> (d->makeInitialState (descr)));
+	  datas.push_back (d->makeInitialState (descr));
 	return AnalysisState (std::move(datas));
       }
       
     private:
-      std::vector<TCPA_ptr<DataState>> data_cpa;
+      std::vector<TCPA_ptr> data_cpa;
     };
     
   } // namespace CPA

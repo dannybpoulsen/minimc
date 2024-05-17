@@ -32,7 +32,7 @@ namespace MiniMC {
       };
       
       
-      class State : public MiniMC::CPA::DataState,
+      class State : public MiniMC::CPA::State,
                     private MiniMC::CPA::QueryBuilder
       {
       public:
@@ -46,7 +46,7 @@ namespace MiniMC {
 	  return ++i;
 	}
 	
-        virtual std::shared_ptr<MiniMC::CPA::DataState> copy() const override { return std::make_shared<State>(*this); }
+        virtual State_ptr copy() const override { return makeState<State>(*this); }
 
         const Solver_ptr getConcretizer() const override;
         auto& getStack() { return mixin.getProc(0); }

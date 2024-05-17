@@ -76,8 +76,8 @@ namespace MiniMC {
     
     MiniMC::Hash::hash_t AnalysisState::hash() const {
       MiniMC::Hash::Hasher hashing;
-      for (auto& state : datastates) {
-	hashing << *state;
+      for (auto& state : dataStates ()) {
+	hashing << state;
       }
       return hashing;
     }

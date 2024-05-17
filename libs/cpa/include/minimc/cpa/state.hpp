@@ -50,34 +50,43 @@ namespace MiniMC {
       virtual bool isActive(size_t i) const = 0;
     
     };
+
+    class State;
+    using State_ptr = std::shared_ptr<State>;
+
+    template<class S,typename... Args>
+    State_ptr makeState (Args&&... args) {return std::make_shared<S> (std::forward<Args> (args)...);};
     
-    class DataState 
+    class State 
     {
     public:
-      virtual ~DataState () {}
+      virtual ~State () {}
       virtual const Solver_ptr getConcretizer() const = 0;
       virtual const QueryBuilder& getBuilder () const = 0;
       virtual const LocationInfo& getLocationState () const  = 0;
-      virtual std::shared_ptr<DataState> copy() const = 0;
+      virtual State_ptr copy() const = 0;
       virtual MiniMC::Hash::hash_t hash() const = 0;
     };
     
-    using State_ptr = std::shared_ptr<const DataState>;
     
     
     class AnalysisState  {
-    public:
-      AnalysisState () {}
-      AnalysisState (std::vector<State_ptr>&& datastates) : datastates(std::move(datastates)) {}
+    public: 
+      AnalysisState ()   {}
+      AnalysisState (std::vector<State_ptr>&& dstates) : datastates(std::move(dstates))  {
+     }
+      
       auto dataStates () const {
-	return datastates | std::views::transform([](auto& r)->const DataState& {return *r;});;
+	return datastates | std::views::transform([](auto& r)->const State& {return *r;});
       }
+      
       auto& getLocationState () const {return datastates.at(0)->getLocationState ();}
+      
       MiniMC::Hash::hash_t hash() const;
     private:
       std::vector<State_ptr> datastates;   
     };
-
+    
     class StateOutputter {
     public:
       StateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
