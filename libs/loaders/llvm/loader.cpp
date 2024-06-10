@@ -131,15 +131,15 @@ namespace MiniMC {
           fid++;
         }
 
-        for (auto& g : module.getGlobalList()) {
-          auto pointTySize = lcontext.computeSizeInBytes(g.getValueType());
+        for (auto g = module.global_begin(); g != module.global_begin(); ++g) {
+          auto pointTySize = lcontext.computeSizeInBytes(g->getValueType());
 	  MiniMC::Model::Value_ptr val = nullptr;
-	  if (g.hasInitializer()) {
-	    val = lcontext.findValue(g.getInitializer());
+	  if (g->hasInitializer()) {
+	    val = lcontext.findValue(g->getInitializer());
           }
 	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,val);
 	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::Model::getBase(the_pointer),MiniMC::Model::getOffset (the_pointer));
-          lcontext.addValue(&g, gvar);
+          lcontext.addValue(&(*g), gvar);
           
         }
  
