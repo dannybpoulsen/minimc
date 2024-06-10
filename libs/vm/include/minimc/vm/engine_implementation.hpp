@@ -73,7 +73,6 @@ namespace MiniMC {
 	  else*/ if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
-	    
 	    T::visit(MiniMC::Support::Overload {
 		[&state,&addr]<typename V>(const V& t) requires (!Boolean<T,V>) {
 		  state.getMemory().store(addr, t);

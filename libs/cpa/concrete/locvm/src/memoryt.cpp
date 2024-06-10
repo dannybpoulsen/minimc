@@ -190,7 +190,7 @@ namespace MiniMC {
       void Memory::store(const Value::Pointer& p, const Value::I32& v) {
 	auto pointer = p.getValue();
         auto value = v.getValue();
-        auto base = MiniMC::Model::getBase(pointer);
+	auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
