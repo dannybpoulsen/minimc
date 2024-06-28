@@ -14,7 +14,7 @@ namespace MiniMC {
       void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
 	
 	for (auto& v : vars.getRegisters ()) {
-	  map.emplace (v.get(),stack.addRegister (frame.makeSymbol (v->getSymbol().getName ()),v->getType ()));
+	  map.emplace (&v,stack.addRegister (frame.makeSymbol (v.getSymbol().getName ()),v.getType ()));
 	}
       }
       

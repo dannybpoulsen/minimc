@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <ranges>
 
 
 
@@ -377,17 +378,17 @@ namespace MiniMC {
       RegisterDescr(RegisterDescr&&) = default;
       RegisterDescr& operator= (RegisterDescr&&) = default;
       Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
-      auto& getRegisters() const { return _internal->variables; }
+      auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
       
       /**
        *
        * @return Total size in bytes of an activation record
        */
-      auto getTotalRegisters() const { return _internal->variables.size(); }
+      auto getTotalRegisters() const { return _internal->variable_map.size(); }
     private:
       struct Data {
 	Data (RegType tt) : types(tt) {}
-	std::vector<Register_ptr> variables;
+	std::unordered_map<Symbol,Register_ptr> variable_map;
 	RegType types;
       };
       std::shared_ptr<Data> _internal;

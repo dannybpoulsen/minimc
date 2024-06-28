@@ -64,7 +64,7 @@ namespace MiniMC {
         auto& getPathformula() const { return pathformula; }
 
         virtual const QueryBuilder& getBuilder() const { return *this; }
-        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
@@ -74,7 +74,7 @@ namespace MiniMC {
 	    {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),metas},
 	    getMemory ()
 	  };
-          return std::make_unique<QExpr>(eval.Eval(*val));
+          return std::make_unique<QExpr>(eval.Eval(val));
         }
 
       private:

@@ -49,7 +49,7 @@ TEST_CASE("Add") {
 
   auto res_state = transfer->doTransfer (*init_state,{*func->getCFA().getInitialLocation()->ebegin (),0});
 
-  auto val = res_state->getBuilder ().buildValue (0,res);
+  auto val = res_state->getBuilder ().buildValue (0,*res);
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
   auto res_val = MiniMC::Model::visitValue<MiniMC::BV8> (MiniMC::Support::Overload {

@@ -9,9 +9,11 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(Symbol&& name, const Type_ptr& type) {
-      _internal->variables.push_back(std::make_shared<Register>(std::move(name),RegisterInfo{_internal->variables.size(), _internal->types}));
-      _internal->variables.back()->setType(type);
-      return _internal->variables.back();
+      auto reg = std::make_shared<Register>(std::move(name),RegisterInfo{_internal->variable_map.size(), _internal->types});
+      reg->setType(type);
+      _internal->variable_map[reg->getSymbol()] = reg;
+      
+      return reg;
     }
 
     const Value_ptr ConstantFactory64::makeIntegerConstant(MiniMC::BV64 val, TypeID ty) {

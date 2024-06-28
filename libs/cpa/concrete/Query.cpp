@@ -96,7 +96,7 @@ namespace MiniMC {
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
 	//QueryBuilder
-	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
@@ -106,7 +106,7 @@ namespace MiniMC {
 																					{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas },
 
 																					getHeap ()														       );
-	  return std::make_unique<QExpr> (eval.Eval(*val));
+	  return std::make_unique<QExpr> (eval.Eval(val));
 	    
 	}
 	

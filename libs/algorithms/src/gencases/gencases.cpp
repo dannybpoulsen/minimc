@@ -34,8 +34,8 @@ namespace MiniMC {
 	
 	std::vector<MiniMC::CPA::QueryExpr_ptr> params_sym; 
       
-	for (auto p : res.vars ()) {
-	  params_sym.push_back (initstate.dataStates()[0].getBuilder().buildValue (0,p));
+	for (auto& p : res.vars ()) {
+	  params_sym.push_back (initstate.dataStates()[0].getBuilder().buildValue (0,*p));
 	}
 	
 	

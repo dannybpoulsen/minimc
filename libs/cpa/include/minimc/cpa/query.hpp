@@ -22,7 +22,7 @@ namespace MiniMC {
     class QueryBuilder {
     public:
       virtual ~QueryBuilder () {}
-      virtual QueryExpr_ptr buildValue (MiniMC::Model::proc_t, const MiniMC::Model::Value_ptr&) const = 0; 
+      virtual QueryExpr_ptr buildValue (MiniMC::Model::proc_t, const MiniMC::Model::Value&) const = 0; 
     };
 
     class QueryEvaluator {

@@ -30,9 +30,8 @@ namespace MiniMC {
     
     template <class Value>
     struct ActivationStack {
-      using ActRecord = ActivationRecord<Value>;
       ActivationStack(MiniMC::Model::VariableMap<Value>&& cpuregs) : cpuregs(std::move(cpuregs)) {
-      }
+      } 
       
       ActivationStack(const ActivationStack&) = default;
       
@@ -41,9 +40,9 @@ namespace MiniMC {
         frames.pop_back();
         return val.ret;
       }
-
+      
       void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Value_ptr& ret) {
-        frames.push_back (ActRecord{{loc->getInfo().getRegisters().getTotalRegisters()},ret,loc});
+        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getRegisters().getTotalRegisters()},ret,loc});
       }
 
       auto& back () {return frames.back ();}
@@ -62,7 +61,7 @@ namespace MiniMC {
       auto getDepth () const {return frames.size();} 
       
       MiniMC::Model::VariableMap<Value> cpuregs;
-      std::vector<ActRecord> frames;
+      std::vector<ActivationRecord<Value>> frames;
     };
 
     template<class Value>
@@ -87,13 +86,22 @@ namespace MiniMC {
 	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   values.cpus ().set (v,std::move(value));break;
 	case MiniMC::Model::RegType::Meta: metas.set(v,std::move(value));break;
-	
+	  
 	default:
 	  std::unreachable();
 	}
 	
       }
-      
+
+      Value lookupSymbol (const MiniMC::Model::Symbol& symbol) {
+	auto it = values.rbegin ();
+	auto end = values.rend ();
+	for (; it != end; ++it) {
+	  
+	}
+
+	throw MiniMC::Support::Exception ("HH");
+      }
       
     private:
       ActivationStack<Value>& values; 
@@ -141,12 +149,12 @@ namespace MiniMC {
 	  MiniMC::Model::VariableMap<Value> metas{1};
 	  RegisterStore<Value> regstore {cs,metas};
 	  for (auto& v : vstack.getRegisters()) {
-            regstore.saveValue  (*v,ops.defaultValue (*v->getType ()));
+            regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
 
 	  for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
-	    auto val = ops.defaultValue (*reg->getType ());
-	    regstore.saveValue (*reg,std::move(val));
+	    auto val = ops.defaultValue (*reg.getType ());
+	    regstore.saveValue (reg,std::move(val));
 	  }
 	  
 
