@@ -93,11 +93,15 @@ namespace MiniMC {
 	
       }
 
-      Value lookupSymbol (const MiniMC::Model::Symbol& symbol) {
+      Value lookupRegisterViaSymbol (const MiniMC::Model::Symbol& symbol) {
 	auto it = values.rbegin ();
 	auto end = values.rend ();
 	for (; it != end; ++it) {
-	  
+	  ActivationRecord<Value>& cur = *it;
+	  auto& regs = cur.loc->getLocationInfo().getRegisters();
+	  if (regs.hasSymbol (symbol)) {
+	    return cur.values[cur.getRegister (symbol)];
+	  }
 	}
 
 	throw MiniMC::Support::Exception ("HH");

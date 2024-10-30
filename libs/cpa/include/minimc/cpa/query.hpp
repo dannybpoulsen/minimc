@@ -12,7 +12,6 @@ namespace MiniMC {
   namespace CPA {
     class QueryExpr {
     public:
-      
       virtual ~QueryExpr () {}
       virtual std::ostream& output (std::ostream&) const = 0;
     };
