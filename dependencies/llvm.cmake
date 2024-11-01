@@ -35,10 +35,13 @@ else()
  run_llvm_config ("--libs" "libnames")
  run_llvm_config ("--includedir" "includedir")
  run_llvm_config ("--libdir" "libdir")
+
  target_include_directories(llvm13 INTERFACE ${includedir})
  target_link_directories(llvm13 INTERFACE ${libdir})
  target_link_libraries(llvm13 INTERFACE ${libnames})
+ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+ message(STATUS "LLVM INCLUDES ${includedir}")
+ message(STATUS "LLVM libs ${libdir}")
+ 
 endif()
    
-
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
