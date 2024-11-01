@@ -22,8 +22,6 @@ if (NOT LLVM_FOUND)
   target_include_directories(llvm13 INTERFACE ${LLVM_INCLUDE_DIRS})
   target_link_libraries(llvm13 INTERFACE ${llvm_libs})
 else()
-  
-
   find_program(LLVM_CONFIG_BINARY NAMES llvm-config)
   function (run_llvm_config params output_var) 
   execute_process(COMMAND "${LLVM_CONFIG_BINARY}" "${params}" 
