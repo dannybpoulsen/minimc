@@ -3,7 +3,6 @@
 #include <sstream>
 #include <unordered_map>
 
-#include <llvm/IR/GetElementPtrTypeIterator.h>
 #include <llvm/IRPrinter/IRPrintingPasses.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/LLVMContext.h>
