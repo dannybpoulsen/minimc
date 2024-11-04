@@ -145,7 +145,7 @@ namespace MiniMC {
 	  
         } else if (llvm::isa<llvm::Function>(val) ||
                    llvm::isa<llvm::GlobalVariable>(val)) {
-          return values.at(val);
+	  return values.at(val);
         } else if (const llvm::BlockAddress* block = llvm::dyn_cast<const llvm::BlockAddress>(val)) {
           return values.at(block->getBasicBlock());
         }
