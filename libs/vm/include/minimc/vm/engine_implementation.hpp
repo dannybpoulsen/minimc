@@ -177,7 +177,7 @@ namespace MiniMC {
 										   auto func = prgm.getFunction(loadPtr.base);
 										   return func;
 										 },
-										 [this](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
+										 [this,&eval](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
 										   auto symb = t.getValue();
 										   auto func = prgm.getFunction(symb);
 										   return func;

@@ -106,7 +106,7 @@ namespace MiniMC {
 	  ActivationRecord<Value>& cur = *it;
 	  auto& regs = cur.loc->getLocationInfo().getRegisters();
 	  if (regs.hasSymbol (symbol)) {
-	    return cur.values[cur.getRegister (symbol)];
+	    return cur.values[regs.getRegister (symbol)];
 	  }
 	}
 

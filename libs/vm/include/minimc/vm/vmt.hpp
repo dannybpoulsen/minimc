@@ -47,7 +47,6 @@ namespace MiniMC {
 				const MiniMC::Model::Pointer32& ptr32,
 				const MiniMC::Model::AggregateConstant& aggrc,
 				const MiniMC::Model::Undef& und,
-				const MiniMC::Model::SymbolicConstant& sc,
 				const MiniMC::Model::Type& ty) {
       {e.create(i8)}->std::convertible_to<Res>;
       {e.create(i16)}->std::convertible_to<Res>;
@@ -58,7 +57,6 @@ namespace MiniMC {
       {e.create(ptr32)}->std::convertible_to<Res>;
       {e.create(aggrc)}->std::convertible_to<Res>;
       {e.create(und)}->std::convertible_to<Res>;
-      {e.create(sc)}->std::convertible_to<Res>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;
     };
       
@@ -551,6 +549,12 @@ namespace MiniMC {
       Value operator() (const MiniMC::Model::Register& reg) const  {
 	return regstore.lookupRegister (reg);
       }
+      
+      Value operator() (const MiniMC::Model::SymbolicConstant&) const  {
+	throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants right now");
+      }
+      
+      
       
 #define OPSI					\
       X(AddExpr,Add)				\
