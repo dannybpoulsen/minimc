@@ -106,10 +106,10 @@ namespace MiniMC {
       std::shared_ptr<MiniMC::Model::VariableMap<Value>> metas;
     };
 
-    template<class Value>
-    class RegisterStore {
+    template<class Value,class Memory>
+    class EvaluationContext {
     public:
-      RegisterStore (ActivationStack<Value>& values) : values(values) {}
+      EvaluationContext (ActivationStack<Value>& values, Memory& memory) : values(values),memory(memory) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	return values.lookupRegister(reg);
@@ -119,8 +119,13 @@ namespace MiniMC {
 	values.saveValue(reg,std::move(value));
       }
 
+      Value load (const Value::Pointer p, const MiniMC::Model::Type& t) const {
+	return memory.load (p,t);
+      }
+      
     private:
       ActivationStack<Value>& values; 
+      Memory& memory;
     };
 
     template<class Value>
@@ -134,6 +139,10 @@ namespace MiniMC {
       
       void saveValue(const MiniMC::Model::Register&, Value&&)  {
 	throw MiniMC::Support::Exception ("Cannot save register");
+      }
+
+      Value load (const Value::Pointer, const MiniMC::Model::Type&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
       }
       
       
@@ -160,7 +169,7 @@ namespace MiniMC {
 	  
 	  ActivationStack<Value> cs {descr.getProgram().getCPURegs(),descr.getProgram().getMetaRegs()};
 	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
-	  RegisterStore<Value> regstore {cs};
+	  EvaluationContext<Value,Mem> regstore {cs,heap};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -177,7 +186,7 @@ namespace MiniMC {
 
 	  auto pit = f.getParams ().begin ();
 	  auto rit = f.getFunction()->getParameters().begin ();
-	  MiniMC::VMT::Evaluator<Value,RegisterStore<Value>,Operations,Mem> eval {ops,regstore,heap};
+	  MiniMC::VMT::Evaluator<Value,EvaluationContext<Value,Mem>,Operations> eval {ops,regstore};
 	  for (; pit != f.getParams ().end ();++pit,++rit) {
 	    //TODO: Updatee this 
 	    regstore.saveValue  (**rit,eval.Eval (**pit));
@@ -187,7 +196,7 @@ namespace MiniMC {
 	  
         }
 
-	MiniMC::VMT::Evaluator<Value,DummyRegisterStore<Value>,Operations,Mem> eval {ops,DummyRegisterStore<Value>{},heap};
+	MiniMC::VMT::Evaluator<Value,DummyRegisterStore<Value>,Operations> eval {ops,DummyRegisterStore<Value>{}};
 	heap.createHeapLayout (descr.getHeap ());
 	
 	for (auto& b : descr.getHeap ()) {

@@ -68,10 +68,9 @@ namespace MiniMC {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value>,MiniMC::VMT::Pathformula::Operations,MiniMC::VMT::Pathformula::Memory> eval {
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
-	    {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ())},
-	    getMemory ()
+	    {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),const_cast<MiniMC::VMT::Pathformula::Memory&> (getMemory())}
 	  };
           return std::make_unique<QExpr>(eval.Eval(val));
         }

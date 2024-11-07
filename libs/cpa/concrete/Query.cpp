@@ -100,11 +100,9 @@ namespace MiniMC {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Memory> eval (
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,MiniMC::VMT::Concrete::Operations> eval (
 																								       MiniMC::VMT::Concrete::Operations{},
-																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p))},
-
-																					getHeap ()														       );
+																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),const_cast<MiniMC::VMT::Concrete::Memory&> (getHeap())} 														       );
 	  return std::make_unique<QExpr> (eval.Eval(val));
 	    
 	}
@@ -116,13 +114,13 @@ namespace MiniMC {
 	
       private:
 	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory> mixin;
-      };
+	};
 
       
-      MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
+	MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	MiniMC::VMT::Concrete::Memory mem;
 	return makeState<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
-      }
+	}
 
       MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	const MiniMC::Model::Edge& e = *t.edge;
@@ -138,10 +136,10 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::CPA::Common::RegisterStore regstore {nstate.getProc (id)};
+	MiniMC::CPA::Common::EvaluationContext regstore {nstate.getProc (id),nstate.getHeap ()};
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),{nstate.getProc(id)}};
+	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),{nstate.getProc(id),nstate.getHeap ()}};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

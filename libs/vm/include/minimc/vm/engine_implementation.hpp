@@ -26,9 +26,9 @@ namespace MiniMC {
 	throw NotImplemented<I::getOpcode()> ();
       }
 
-      template<RegisterStore<T> Regstore,Memory<T> Mem>
-      auto makeEvaluator (Regstore& store, const Mem& mem) {
-	return MiniMC::VMT::Evaluator<T,Regstore,Operations,Mem> {operations,store,mem};
+      template<RegisterStore<T> Regstore>
+      auto makeEvaluator (Regstore& store) {
+	return MiniMC::VMT::Evaluator<T,Regstore,Operations> {operations,store};
       }
       
       
@@ -302,7 +302,7 @@ namespace MiniMC {
 				       State& wstate) {
 
       
-      return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup (),wstate.getMemory()));});
+      return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup ()));});
       
     }
 
