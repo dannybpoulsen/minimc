@@ -115,35 +115,6 @@ namespace MiniMC {
       
     }
 
-      
-      template <MiniMC::Model::VMInstructionCode opc, class LeftOp, MiniMC::Model::TypeID to>
-      static T doCastOp(const LeftOp& op, Operations& ops) {
-	constexpr auto bw = MiniMC::Model::BitWidth<to>; 
-	/*if constexpr (opc == MiniMC::Model::VMInstructionCode::Trunc) {
-          if constexpr (bw  > LeftOp::intbitsize()) {
-            throw MiniMC::Support::Exception("Invalid Truntion");
-          }
-	  else
-            return ops.template Trunc<to, LeftOp>(op);
-        }
-	els if constexpr (opc == MiniMC::Model::VMInstructionCode::ZExt) {
-          if constexpr (bw  < LeftOp::intbitsize()) {
-            throw MiniMC::Support::Exception("Invalid Extension");
-          }
-	  else
-            return ops.template ZExt<to, LeftOp>(op);
-        }
-	else  if constexpr (opc == MiniMC::Model::VMInstructionCode::SExt) {
-          if constexpr (bw < LeftOp::intbitsize()) {
-            throw MiniMC::Support::Exception("Invalid Extension");
-          } else
-            return ops.template SExt<to, LeftOp>(op);
-	    }
-	    else*/ {
-          []<bool b = false>() { static_assert(b); }
-          ();
-        }
-      }
 
       template <class I,VMState<T> State,class Evaluator>
       Status runInstruction(const I& instr, State& state,Evaluator eval)

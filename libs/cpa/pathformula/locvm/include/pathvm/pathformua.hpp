@@ -70,7 +70,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,MiniMC::CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
       
       
       

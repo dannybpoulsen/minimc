@@ -37,16 +37,16 @@ namespace MiniMC {
 	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
-	if (nstate.getStack().back ().getLocation () != e.getFrom ())
+	if (nstate.getStack().activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
-	nstate.getStack().back().setLocation (e.getTo ());
+	nstate.getStack().activeRecord().setLocation (e.getTo ());
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = _internal->context->getBuilder ();
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value> regstore{nstate.getStack(),_internal->metas};
+	MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value> regstore{nstate.getStack()};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),regstore};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),{nstate.getStack()}};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

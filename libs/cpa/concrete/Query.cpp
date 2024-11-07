@@ -100,10 +100,9 @@ namespace MiniMC {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
 	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Memory> eval (
-																					MiniMC::VMT::Concrete::Operations{},
-																					{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas },
+																								       MiniMC::VMT::Concrete::Operations{},
+																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p))},
 
 																					getHeap ()														       );
 	  return std::make_unique<QExpr> (eval.Eval(val));
@@ -132,17 +131,17 @@ namespace MiniMC {
 	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 
-	if (nstate.getProc(id).back ().getLocation () != e.getFrom ())
+	if (nstate.getProc(id).activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
-	nstate.getProc(id).back().setLocation (e.getTo ());
+	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::CPA::Common::RegisterStore regstore {nstate.getProc (id),_internal->metas};
+	MiniMC::CPA::Common::RegisterStore regstore {nstate.getProc (id)};
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),regstore};
+	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),{nstate.getProc(id)}};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

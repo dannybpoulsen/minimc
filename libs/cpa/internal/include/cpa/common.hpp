@@ -22,8 +22,18 @@ namespace MiniMC {
       auto& getLocation () const {return loc;}
       void setLocation (MiniMC::Model::Location_ptr l)  {loc = l;}
       bool isCPU() const {return loc == nullptr;}
+
+      auto returnRegister () const {return ret;}
+      auto getValueOfRegister (const MiniMC::Model::Register& r) const {
+	return values[r];
+      }
+
+      void setValueOfRegister (const MiniMC::Model::Register& r,Value&& v) {
+	values.set(r,std::move(v));
+      }
       
       
+    private:
       MiniMC::Model::VariableMap<Value> values;
       MiniMC::Model::Value_ptr ret{nullptr};
       MiniMC::Model::Location_ptr loc;
@@ -31,7 +41,9 @@ namespace MiniMC {
     
     template <class Value>
     struct ActivationStack {
-      ActivationStack(const MiniMC::Model::RegisterDescr& cpuregs)  {
+      ActivationStack(const MiniMC::Model::RegisterDescr& cpuregs,const MiniMC::Model::RegisterDescr& metaregs)  {
+	
+	metas = std::make_shared<MiniMC::Model::VariableMap<Value>> (metaregs.getTotalRegisters()); 
 	frames.push_back(ActivationRecord<Value>{cpuregs.getTotalRegisters(),nullptr,nullptr});
       } 
       
@@ -39,7 +51,7 @@ namespace MiniMC {
       
       auto pop()  {
 	if(frames.size () > 1) {
-	  auto retval = frames.back().ret;
+	  auto retval = frames.back().returnRegister();
 	  frames.pop_back();
 	  return retval;
 	}
@@ -52,9 +64,6 @@ namespace MiniMC {
         frames.push_back (ActivationRecord<Value>{{loc->getInfo().getRegisters().getTotalRegisters()},ret,loc});
       }
 
-      auto& back () {return frames.back ();}
-      auto& back () const {return frames.back ();}
-      auto& cpus () {return frames.front();}
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
@@ -65,22 +74,15 @@ namespace MiniMC {
       }
 
       auto getDepth () const {return frames.size();}
-      
-      
-      std::vector<ActivationRecord<Value>> frames;
-    };
 
-    template<class Value>
-    class RegisterStore {
-    public:
-      RegisterStore (ActivationStack<Value>& values,MiniMC::Model::VariableMap<Value>& metas) : values(values),
-												metas(metas) {}
-    public:
+      auto& activeRecord () const {return frames.back();}
+      auto& activeRecord () {return frames.back();}
+      
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	switch (reg.getRegType ()) {
-	case MiniMC::Model::RegType::Local: return values.back().values[reg];
-	case MiniMC::Model::RegType::CPU: return values.cpus().values[reg];
-	case MiniMC::Model::RegType::Meta: return metas[reg];
+	case MiniMC::Model::RegType::Local: return frames.back().getValueOfRegister(reg);
+	case MiniMC::Model::RegType::CPU: return frames.front().getValueOfRegister(reg);
+	case MiniMC::Model::RegType::Meta: return (*metas)[reg];
 	default:
 	  std::unreachable();
 	  
@@ -89,9 +91,9 @@ namespace MiniMC {
       
       void saveValue(const MiniMC::Model::Register& v, Value&& value)  {
 	switch (v.getRegType ()) {
-	case MiniMC::Model::RegType::Local: values.back().values.set (v,std::move(value));break;
-	case MiniMC::Model::RegType::CPU:   values.cpus ().values.set (v,std::move(value));break;
-	case MiniMC::Model::RegType::Meta: metas.set(v,std::move(value));break;
+	case MiniMC::Model::RegType::Local: frames.back().setValueOfRegister (v,std::move(value));break;
+	case MiniMC::Model::RegType::CPU:   frames.front().setValueOfRegister (v,std::move(value));break;
+	case MiniMC::Model::RegType::Meta: metas->set(v,std::move(value));break;
 	  
 	default:
 	  std::unreachable();
@@ -99,23 +101,26 @@ namespace MiniMC {
 	
       }
 
-      Value lookupRegisterViaSymbol (const MiniMC::Model::Symbol& symbol) {
-	auto it = values.rbegin ();
-	auto end = values.rend ();
-	for (; it != end; ++it) {
-	  ActivationRecord<Value>& cur = *it;
-	  auto& regs = cur.loc->getLocationInfo().getRegisters();
-	  if (regs.hasSymbol (symbol)) {
-	    return cur.values[regs.getRegister (symbol)];
-	  }
-	}
+      
+      std::vector<ActivationRecord<Value>> frames;
+      std::shared_ptr<MiniMC::Model::VariableMap<Value>> metas;
+    };
 
-	throw MiniMC::Support::Exception ("HH");
+    template<class Value>
+    class RegisterStore {
+    public:
+      RegisterStore (ActivationStack<Value>& values) : values(values) {}
+    public:
+      Value lookupRegister (const MiniMC::Model::Register& reg) const  {
+	return values.lookupRegister(reg);
       }
       
+      void saveValue(const MiniMC::Model::Register& reg, Value&& value)  {
+	values.saveValue(reg,std::move(value));
+      }
+
     private:
       ActivationStack<Value>& values; 
-      MiniMC::Model::VariableMap<Value>& metas;
     };
 
     template<class Value>
@@ -153,10 +158,9 @@ namespace MiniMC {
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
 	  
-	  ActivationStack<Value> cs {descr.getProgram().getCPURegs()};
+	  ActivationStack<Value> cs {descr.getProgram().getCPURegs(),descr.getProgram().getMetaRegs()};
 	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
-	  MiniMC::Model::VariableMap<Value> metas{1};
-	  RegisterStore<Value> regstore {cs,metas};
+	  RegisterStore<Value> regstore {cs};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -165,7 +169,11 @@ namespace MiniMC {
 	    auto val = ops.defaultValue (*reg.getType ());
 	    regstore.saveValue (reg,std::move(val));
 	  }
-	  
+
+	  for (auto& reg : descr.getProgram().getMetaRegs().getRegisters()) {
+	    auto val = ops.defaultValue (*reg.getType ());
+	    regstore.saveValue (reg,std::move(val));
+	  }
 
 	  auto pit = f.getParams ().begin ();
 	  auto rit = f.getFunction()->getParameters().begin ();
@@ -222,8 +230,8 @@ namespace MiniMC {
       
       //LocationInfo
       size_t nbOfProcesses() const override {return stacks.size();}
-      bool isActive(size_t id) const override {return !getProc(id).back().isCPU();}
-      MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).back().getLocation();}
+      bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU();}
+      MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
       
       
     private:
@@ -234,7 +242,7 @@ namespace MiniMC {
     
     template<class T,MiniMC::VMT::RegisterStore<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
     struct VMState {
-      VMState (Mem& m, PathC& path, stackC& stack,Eval& vlook) : memory(m),control(path),scontrol(stack),lookup(vlook) {}
+      VMState (Mem& m, PathC& path, stackC& stack,Eval&& vlook) : memory(m),control(path),scontrol(stack),lookup(std::move(vlook)) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
       auto& getPathControl ()  {return control;}
@@ -243,7 +251,7 @@ namespace MiniMC {
       Mem& memory;
       PathC& control;
       stackC& scontrol;
-      Eval& lookup;
+      Eval lookup;
     };
     
         
