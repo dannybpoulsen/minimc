@@ -22,13 +22,13 @@ namespace MiniMC {
     public:
       Impl (Operations&& operations, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations) {}
       template <class I,class State,class Evaluator>
-      static Status runInstruction(const I&, State&,Evaluator)  {
+      static Status runInstruction(const I&, State&,Evaluator&)  {
 	throw NotImplemented<I::getOpcode()> ();
       }
 
       template<RegisterStore<T> Regstore>
       auto makeEvaluator (Regstore& store) {
-	return MiniMC::VMT::Evaluator<T,Regstore,Operations> {operations,store};
+	return MiniMC::VMT::makeEvaluator<T> (store,operations);
       }
       
       
@@ -46,7 +46,7 @@ namespace MiniMC {
 
       
       template <class  I, VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state, Evaluator eval)
+      Status runInstruction(const I& instr, State& state, Evaluator& eval)
         requires MiniMC::Model::isMemory_v<I> {
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps();
@@ -61,16 +61,7 @@ namespace MiniMC {
 	  MiniMC::Support::Error<typename T::Pointer> {}
 	};
 	
-        /*if constexpr (op == MiniMC::Model::VMInstructionCode::Load ) {
-	  auto& res = content.res->asRegister ();
-	  auto addr = T::visit (addrConverter,eval.Eval(*content.addr));
-	  state.getValueLookup().saveValue(res, state.getMemory().load(addr, res.getType()));
-	  return Status::Ok;
-	  
-	  
-	  }
-	
-	  else*/ if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
+	if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
@@ -90,7 +81,7 @@ namespace MiniMC {
 
       
       template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator eval) requires MiniMC::Model::isAssertAssume_v<I>       {
+      Status runInstruction(const I& instr, State& state,Evaluator& eval) requires MiniMC::Model::isAssertAssume_v<I>       {
 	constexpr auto op = instr.getOpcode ();
 	auto& content = instr.getOps();
 	  
@@ -117,7 +108,7 @@ namespace MiniMC {
 
 
       template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator eval)
+      Status runInstruction(const I& instr, State& state,Evaluator& eval)
         requires MiniMC::Model::isInternal_v<I>
       {
 	constexpr auto op = I::getOpcode ();
@@ -219,7 +210,7 @@ namespace MiniMC {
       }
 
       template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator eval)
+      Status runInstruction(const I& instr, State& state,Evaluator& eval)
         requires MiniMC::Model::isAggregate_v<I> 
       {
 	constexpr auto op = I::getOpcode ();
@@ -313,8 +304,9 @@ namespace MiniMC {
       auto end = instr.end();
       Status status = Status::Ok;
       auto it = instr.begin();
+      auto eval = _impl->makeEvaluator(wstate.getValueLookup ());
       for (it = instr.begin(); it != end && status == Status::Ok; ++it) {
-	status = execute (*it,wstate);
+	status = it->visit ([&eval,this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,eval);});
       }
       return status;
     }

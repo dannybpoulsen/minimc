@@ -315,7 +315,7 @@ namespace MiniMC {
     template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class Evaluator {
     public:
-      Evaluator (Operations ops, const RegStore& regstore) : ops(ops),regstore(regstore) {}
+      Evaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
       
       Value Eval (const MiniMC::Model::Value& v)  const {
 	return MiniMC::Model::visitValue<Value>(*this,v);
@@ -685,8 +685,12 @@ OPSI
       
     private:
       Operations ops;
-      const RegStore& regstore;
+      const RegStore regstore;
     };
+
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    Evaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return Evaluator<Value,RegStore,Operations> (ops,std::move(reg));}
+    
     
     template<class Value, Ops<Value> Operations>
     class Engine {
