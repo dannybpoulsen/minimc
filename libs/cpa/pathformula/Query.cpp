@@ -45,11 +45,11 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),{nstate.getStack(),nstate.getMemory ()}};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),nstate.makeEvaluationContext(trans.proc)};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	
-	if (status ==MiniMC::VMT::Status::Ok)  {
+	if (status == MiniMC::VMT::Status::Ok)  {
 	  if (control.getAssump ()) 
 	    nstate.addConstraints (control.getAssump ());
 	  return resstate;

@@ -106,10 +106,19 @@ namespace MiniMC {
       std::shared_ptr<MiniMC::Model::VariableMap<Value>> metas;
     };
 
+    template<class Value>
+    class StaticContext {
+    public:
+      StaticContext (MiniMC::Model::SymbolTable<Value>&& map = MiniMC::Model::SymbolTable<Value> {}) : symbmap(std::move(map)){}
+      
+    private:
+      MiniMC::Model::SymbolTable<Value> symbmap;
+    };
+    
     template<class Value,class Memory>
     class EvaluationContext {
     public:
-      EvaluationContext (ActivationStack<Value>& values, Memory& memory) : values(values),memory(memory) {}
+      EvaluationContext (ActivationStack<Value>& values, Memory& memory,StaticContext<Value>& scontext) : values(values),memory(memory),scontext(scontext) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	return values.lookupRegister(reg);
@@ -126,6 +135,7 @@ namespace MiniMC {
     private:
       ActivationStack<Value>& values; 
       Memory& memory;
+      StaticContext<Value>& scontext;
     };
 
     template<class Value>
@@ -154,8 +164,12 @@ namespace MiniMC {
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
-		  Mem&& mem) : stacks(std::move(stacks)),
-			       memory(std::move(mem)) {}
+		  Mem&& mem
+		  ,std::shared_ptr<StaticContext<Value> > scontext = nullptr
+		  ) : stacks(std::move(stacks)),
+		      memory(std::move(mem)),
+		      scontext(std::move(scontext))
+      {}
 
       StateMixin (StateMixin&&) = default;
       StateMixin (const StateMixin&) = default;
@@ -169,7 +183,9 @@ namespace MiniMC {
 	  
 	  ActivationStack<Value> cs {descr.getProgram().getCPURegs(),descr.getProgram().getMetaRegs()};
 	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
-	  EvaluationContext<Value,Mem> regstore {cs,heap};
+	  MiniMC::CPA::Common::StaticContext<Value> scontext;
+	  
+	  EvaluationContext<Value,Mem> regstore {cs,heap,scontext};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -242,10 +258,14 @@ namespace MiniMC {
       bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU();}
       MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
       
+      auto makeEvaluationContext (proc_id id) const {
+	return EvaluationContext (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<Mem&>(memory),*scontext);
+      }
       
     private:
       std::vector<ActivationStack<Value> > stacks;
       Mem memory;
+      std::shared_ptr<StaticContext<Value> > scontext;
     };
     
     

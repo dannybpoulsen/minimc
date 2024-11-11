@@ -95,14 +95,17 @@ namespace MiniMC {
 	
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id);}
+	
 	//QueryBuilder
 	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
+	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Concrete::Value> scontext;
 	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,MiniMC::VMT::Concrete::Operations> eval (
 																								       MiniMC::VMT::Concrete::Operations{},
-																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),const_cast<MiniMC::VMT::Concrete::Memory&> (getHeap())} 														       );
+																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),const_cast<MiniMC::VMT::Concrete::Memory&> (getHeap()),scontext} 														       );
 	  return std::make_unique<QExpr> (eval.Eval(val));
 	    
 	}
@@ -136,10 +139,10 @@ namespace MiniMC {
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::CPA::Common::EvaluationContext regstore {nstate.getProc (id),nstate.getHeap ()};
+	auto regstore =  nstate.makeEvaluationContext (id);
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),{nstate.getProc(id),nstate.getHeap ()}};
+	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),std::move(regstore)};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

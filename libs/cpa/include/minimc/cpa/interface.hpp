@@ -83,7 +83,6 @@ namespace MiniMC {
       virtual ~ICPA() {}
       virtual State_ptr makeInitialState(const InitialiseDescr&) = 0;
       virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
-      
     };
 
     using TCPA_ptr = std::shared_ptr<ICPA>;    
@@ -105,7 +104,6 @@ namespace MiniMC {
 	return *this;
       }
       
-      //void addDataCPA (TCPA_ptr<DataState>&& cpa) {data_cpa.push_back (std::move(cpa));}
       AnalysisTransfer makeTransfer (const MiniMC::Model::Program& prgm) const  {
 	std::vector<Transferer_ptr> datas;
 	for (auto& d : data_cpa)
