@@ -42,7 +42,7 @@ namespace MiniMC {
 	Value::Pointer alloca(const Value::I64&) ;
 	
         void free(const Value::Pointer&)  {}
-        void createHeapLayout(const MiniMC::Model::HeapLayout& ) ;
+        void createHeapLayout(const MiniMC::Model::HeapLayout&, MiniMC::CPA::Common::StaticContext<Value>&) ;
       private:
 	SMTLib::TermBuilder& builder;
 	MiniMC::Model::base_t next_block = 0;

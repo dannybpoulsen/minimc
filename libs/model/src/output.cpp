@@ -88,7 +88,7 @@ namespace MiniMC {
 
       os << "# Heap" <<"\n";
       for (auto b : p.getHeapLayout ()) {
-	os << b.baseobj << " : " << b.size;
+	os << b.baseobj << " [" << b.symbol << " ]"<< " : " << b.size;
 	if (b.value )
 	  os << " " << *b.value; 
 	     os << "\n"; 

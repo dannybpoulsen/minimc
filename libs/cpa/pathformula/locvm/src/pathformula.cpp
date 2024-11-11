@@ -138,12 +138,16 @@ namespace MiniMC {
 	mem_var = builder.makeVar(arr_sort, "Mem");
       }
 
-      void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl) {
-	//For now we don't need to do anything special...except run thorough all blocks and ensure out start block number is less than the one used by the heap
+      void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl,MiniMC::CPA::Common::StaticContext<Value>&  symb) {
 	for (auto& block : hl) {
 	  auto baseobj = MiniMC::Model::getBase(block.baseobj);
 	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
+	  MiniMC::Util::PointerHelper helper {&builder};
+	 
+	  symb.addSymbol (block.symbol,Value::Pointer{helper.makeHeapPointer(baseobj,0)});
+	  
 	}
+	
 
       }
 

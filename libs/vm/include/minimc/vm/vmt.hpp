@@ -29,8 +29,10 @@ namespace MiniMC {
     
     
     template<class Eval,class T >
-    concept RegisterStore = requires (const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const MiniMC::Model::Type& ty) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const MiniMC::Model::Type& ty) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
+      {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
+      
       {eval.saveValue (reg,std::move(t))};
       {ceval.load(p,ty)}->std::convertible_to<T>;
     } ;
@@ -78,7 +80,6 @@ namespace MiniMC {
 			       const typename T::Aggregate& aggr,
 			       const typename T::Pointer& ptr,
 			       const typename T::Pointer32& ptr32,
-			       const MiniMC::Model::HeapLayout& heapl,
 			       const MiniMC::Model::Type&ty
 				) {
       {mem.store (p,i8)};
@@ -89,7 +90,6 @@ namespace MiniMC {
       {mem.store (p,ptr)};
       {mem.store (p,ptr32)};
       {mem.alloca(i64)}->std::convertible_to<typename T::Pointer>;
-      {mem.createHeapLayout (heapl)};
       {mem.free (p)};
       {mem.load (p,ty)}->std::convertible_to<T>;
     };
@@ -551,8 +551,8 @@ namespace MiniMC {
 	return regstore.lookupRegister (reg);
       }
       
-      Value operator() (const MiniMC::Model::SymbolicConstant&) const  {
-	throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants right now");
+      Value operator() (const MiniMC::Model::SymbolicConstant& s) const  {
+	return regstore.lookupSymbol(s.getValue());
       }
       
       

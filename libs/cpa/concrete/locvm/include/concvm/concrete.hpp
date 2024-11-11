@@ -36,7 +36,7 @@ namespace MiniMC {
 	Value::Pointer alloca(const Value::I64&) ;
 	
         void free(const Value::Pointer&);
-        void createHeapLayout(const MiniMC::Model::HeapLayout& layout);
+        void createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>&);
 	
       private:
         struct internal;

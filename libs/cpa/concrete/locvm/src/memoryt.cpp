@@ -249,9 +249,10 @@ namespace MiniMC {
 
       void Memory::free(const Value::Pointer&) {
       }
-      void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout) {
+      void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>& val) {
 	for (auto block : layout) {
-	  _internal->allocate (block.size, block.baseobj);
+	  auto ptr = _internal->allocate (block.size, block.baseobj);
+	  val.addSymbol (block.symbol,Value::Pointer(ptr));
 	}
       }
       MiniMC::Hash::hash_t Memory::hash() const {

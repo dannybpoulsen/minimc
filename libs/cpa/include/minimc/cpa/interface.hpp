@@ -84,7 +84,7 @@ namespace MiniMC {
       virtual State_ptr makeInitialState(const InitialiseDescr&) = 0;
       virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& ) const = 0;
     };
-
+    
     using TCPA_ptr = std::shared_ptr<ICPA>;    
     
     class AnalysisTransfer {

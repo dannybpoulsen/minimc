@@ -110,6 +110,14 @@ namespace MiniMC {
     class StaticContext {
     public:
       StaticContext (MiniMC::Model::SymbolTable<Value>&& map = MiniMC::Model::SymbolTable<Value> {}) : symbmap(std::move(map)){}
+
+      void addSymbol (MiniMC::Model::Symbol symb, Value val) {
+	symbmap.emplace (symb,val);
+      }
+
+      auto at (const MiniMC::Model::Symbol& s) const {
+	return symbmap.at(s);
+      }
       
     private:
       MiniMC::Model::SymbolTable<Value> symbmap;
@@ -122,6 +130,10 @@ namespace MiniMC {
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	return values.lookupRegister(reg);
+      }
+
+      Value lookupSymbol (MiniMC::Model::Symbol s) const {
+	return scontext.at(s);
       }
       
       void saveValue(const MiniMC::Model::Register& reg, Value&& value)  {
@@ -141,11 +153,13 @@ namespace MiniMC {
     template<class Value>
     class DummyRegisterStore {
     public:  
-      DummyRegisterStore () {}
+      DummyRegisterStore (StaticContext<Value>& scontext) : scontext(scontext) {}
+
       Value lookupRegister (const MiniMC::Model::Register& ) const  {
 	throw MiniMC::Support::Exception ("No registers to load fraom");
         
       }
+
       
       void saveValue(const MiniMC::Model::Register&, Value&&)  {
 	throw MiniMC::Support::Exception ("Cannot save register");
@@ -154,6 +168,13 @@ namespace MiniMC {
       Value load (const Value::Pointer, const MiniMC::Model::Type&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }
+
+      Value lookupSymbol (MiniMC::Model::Symbol s) const {
+	return scontext.at(s);
+      }
+
+    private:
+      StaticContext<Value>& scontext;
       
       
     };
@@ -165,7 +186,7 @@ namespace MiniMC {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
 		  Mem&& mem
-		  ,std::shared_ptr<StaticContext<Value> > scontext = nullptr
+		  ,std::shared_ptr<StaticContext<Value> >&& scontext = nullptr
 		  ) : stacks(std::move(stacks)),
 		      memory(std::move(mem)),
 		      scontext(std::move(scontext))
@@ -178,14 +199,17 @@ namespace MiniMC {
       template<class Operations>
       static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops,Mem&& heap) {
 	std::vector<ActivationStack<Value>> stack;
+	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
 	  
 	  ActivationStack<Value> cs {descr.getProgram().getCPURegs(),descr.getProgram().getMetaRegs()};
 	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
-	  MiniMC::CPA::Common::StaticContext<Value> scontext;
+
+
 	  
-	  EvaluationContext<Value,Mem> regstore {cs,heap,scontext};
+	  
+	  EvaluationContext<Value,Mem> regstore {cs,heap,*_scontext};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -212,15 +236,16 @@ namespace MiniMC {
 	  
         }
 
-	auto eval = MiniMC::VMT::makeEvaluator<Value> (DummyRegisterStore<Value>{},ops);
-	heap.createHeapLayout (descr.getHeap ());
+	auto eval = MiniMC::VMT::makeEvaluator<Value> (DummyRegisterStore<Value>{*_scontext},ops);
+	heap.createHeapLayout (descr.getHeap (),*_scontext);
 	
 	for (auto& b : descr.getHeap ()) {
 	  if (b.value) {
 	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
             Value valueToStor = eval.Eval(*b.value);
 	    Value::visit (MiniMC::Support::Overload {
-		[&heap]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
+		[&heap,&_scontext]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
+		  
 		  heap.store (ptr,value);
 		},
 		[](const auto&, const auto&) {
@@ -235,7 +260,7 @@ namespace MiniMC {
 	    }
 	}
 	
-	return StateMixin {std::move(stack),std::move(heap)}; 
+	return StateMixin {std::move(stack),std::move(heap),std::move(_scontext)}; 
       }
       
       MiniMC::Hash::hash_t hash() const {
