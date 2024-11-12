@@ -42,7 +42,7 @@ namespace MiniMC {
 	Value::Pointer alloca(const Value::I64&) ;
 	
         void free(const Value::Pointer&)  {}
-        void createHeapLayout(const MiniMC::Model::HeapLayout& ) ;
+        void createHeapLayout(const MiniMC::Model::HeapLayout&, MiniMC::CPA::Common::StaticContext<Value>&) ;
       private:
 	SMTLib::TermBuilder& builder;
 	MiniMC::Model::base_t next_block = 0;
@@ -70,7 +70,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,MiniMC::CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::EvaluationContext<Value,Memory>,Memory,PathControl,ActivationStack>;
       
       
       

@@ -28,10 +28,13 @@
 
 #include <llvm/PassRegistry.h>
 
+
 #include <functional>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include <type_traits>
 #include <unordered_set>
 #include <variant>
@@ -45,7 +48,6 @@
 
 #include "context.hpp"
 #include "minimc/model/builder.hpp"
-
 namespace MiniMC {
   namespace Loaders {
 
@@ -107,7 +109,7 @@ namespace MiniMC {
       }
 
       void loadGlobals(GLoadContext& lcontext, MiniMC::Model::Program& prgm, llvm::Module& module, MiniMC::Support::Messager&) {
-        std::vector<MiniMC::Model::Instruction> instr;
+	std::vector<MiniMC::Model::Instruction> instr;
 
         MiniMC::Model::func_t fid = 0;
         for (auto& F : createFunctionWorkList(module)) {
@@ -128,16 +130,18 @@ namespace MiniMC {
           fid++;
         }
 
-        for (auto g = module.global_begin(); g != module.global_begin(); ++g) {
-          auto pointTySize = lcontext.computeSizeInBytes(g->getValueType());
+        for (auto g = module.global_begin(); g != module.global_end(); ++g) {
+	  auto pointTySize = lcontext.computeSizeInBytes(g->getValueType());
 	  MiniMC::Model::Value_ptr val = nullptr;
 	  if (g->hasInitializer()) {
 	    val = lcontext.findValue(g->getInitializer());
           }
-	  auto the_pointer = prgm.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,val);
-	  auto gvar = lcontext.getConstantFactory().makeHeapPointer(MiniMC::Model::getBase(the_pointer),MiniMC::Model::getOffset (the_pointer));
+	  auto symbol =  prgm.getRootFrame().makeFresh (g->getName ().str());
+	  prgm.getHeapLayout().addBlock(symbol, MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,val);
+	  auto gvar = lcontext.getConstantFactory().makeSymbolicConstant (symbol);
+	  gvar->setType(lcontext.getTypeFactory().makePointerType ());
           lcontext.addValue(&(*g), gvar);
-          
+	  
         }
  
       }
@@ -419,8 +423,9 @@ namespace MiniMC {
 
       std::vector<MiniMC::Model::Value_ptr> params;
       MiniMC::Model::Value_ptr result = nullptr;
-      auto the_pointer = program.getHeapLayout().addBlock(MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),stacksize);
-      MiniMC::Model::Value_ptr sp = cfactory->makeHeapPointer(MiniMC::Model::getBase (the_pointer),MiniMC::Model::getOffset (the_pointer));
+      auto stack_symb = program.getRootFrame().makeFresh (name+std::string("_stack"));
+      program.getHeapLayout().addBlock(stack_symb,MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),stacksize);
+      MiniMC::Model::Value_ptr sp = cfactory->makeSymbolicConstant(stack_symb);
       sp->setType(tfactory->makePointerType());
 
       MiniMC::Model::Value_ptr stacksize_p = cfactory->makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);

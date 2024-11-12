@@ -36,7 +36,7 @@ namespace MiniMC {
 	Value::Pointer alloca(const Value::I64&) ;
 	
         void free(const Value::Pointer&);
-        void createHeapLayout(const MiniMC::Model::HeapLayout& layout);
+        void createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>&);
 	
       private:
         struct internal;
@@ -59,7 +59,7 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
-      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<Value>,Memory,PathControl,ActivationStack>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,Memory>,Memory,PathControl,ActivationStack>;
       
       //ConcreteVMState 
       using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations >;

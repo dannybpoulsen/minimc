@@ -44,7 +44,7 @@ namespace MiniMC {
 	MiniMC::Model::SymbolTable<MiniMC::Model::Value_ptr> valmap;
         
 	for (auto& v : cfunc->getRegisterDescr().getRegisters()) {
-	  valmap.insert(std::make_pair(v->getSymbol (), func->getRegisterDescr().addRegister(cframe.makeFresh (v->getSymbol ().getName ()), v->getType())));
+	  valmap.insert(std::make_pair(v.getSymbol (), func->getRegisterDescr().addRegister(cframe.makeFresh (v.getSymbol ().getName ()), v.getType())));
 	}
 
 	

@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <ranges>
 
 
 
@@ -171,7 +172,7 @@ namespace MiniMC {
     
     using type_id_t = MiniMC::BV8;
     const type_id_t untyped = std::numeric_limits<type_id_t>::max();
-
+    
     
     /**
      *
@@ -226,7 +227,6 @@ namespace MiniMC {
     
     class Constant : public Value {
     public:
-      Constant(type_id_t val) : Value(val) {}
       virtual ~Constant() {}
       bool isConstant() const override { return true; }
       // virtual const MiniMC::uint8_t* getData() const  = 0;
@@ -236,6 +236,9 @@ namespace MiniMC {
       virtual bool isAggregate() const { return false; }
       virtual bool isBool() const { return false; }
       virtual bool isUndef() const { return false; }
+    protected:
+      Constant(type_id_t val) : Value(val) {}
+      
     };
 
     using Constant_ptr = std::shared_ptr<Constant>;
@@ -296,13 +299,7 @@ namespace MiniMC {
      */
     class AggregateConstant : public Constant {
     public:
-      //AggregateConstant(MiniMC::BV8* data, std::size_t s);
       AggregateConstant(MiniMC::Util::Array&& arr);
-      /*template <class T>
-      auto& getValue() const {
-        assert(sizeof(T) == data.getSize ());
-        return *reinterpret_cast<T*>(data.get_direct_access ());
-	}*/
       
       auto& getData () const  {return data;}
       
@@ -339,14 +336,10 @@ namespace MiniMC {
 
     class RegisterDescr;
 
-    /**
-     * Representation of Variable in MiniMC.
-     * A variable is associated to an owning VariableStackDescr that sets its id and byte-placement in an activation record during execution
-     */
+    
     class Register : public Value {
     public:
       Register(const Symbol& name,RegisterInfo&& p);
-      //const std::string getName() const { return name.to_string(); }
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
       }
@@ -365,11 +358,7 @@ namespace MiniMC {
 
     using Register_ptr = std::shared_ptr<Register>;
     
-    /**
-     * VariableStackDescr describes the structure of an activation record (in respect to variables in MiniMC - not
-     * stack allocations).
-     *
-     */
+    
     class RegisterDescr {
     public:
       RegisterDescr(RegType tt = RegType::Local) : _internal(std::make_shared<Data>(tt)) {}
@@ -377,17 +366,16 @@ namespace MiniMC {
       RegisterDescr(RegisterDescr&&) = default;
       RegisterDescr& operator= (RegisterDescr&&) = default;
       Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
-      auto& getRegisters() const { return _internal->variables; }
+      auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
+      bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s);}
+      auto& getRegister (const Symbol& s) const {return _internal->variable_map.at(s);}
       
-      /**
-       *
-       * @return Total size in bytes of an activation record
-       */
-      auto getTotalRegisters() const { return _internal->variables.size(); }
+     
+      auto getTotalRegisters() const { return _internal->variable_map.size(); }
     private:
       struct Data {
 	Data (RegType tt) : types(tt) {}
-	std::vector<Register_ptr> variables;
+	std::unordered_map<Symbol,Register_ptr> variable_map;
 	RegType types;
       };
       std::shared_ptr<Data> _internal;

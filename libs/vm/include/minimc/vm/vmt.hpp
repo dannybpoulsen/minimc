@@ -27,11 +27,14 @@ namespace MiniMC {
       NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not supported."}.format (c)) {}
     };
     
-
+    
     template<class Eval,class T >
-    concept RegisterStore = requires (const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const MiniMC::Model::Type& ty) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
+      {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
+      
       {eval.saveValue (reg,std::move(t))};
+      {ceval.load(p,ty)}->std::convertible_to<T>;
     } ;
 
     
@@ -47,8 +50,7 @@ namespace MiniMC {
 				const MiniMC::Model::Pointer32& ptr32,
 				const MiniMC::Model::AggregateConstant& aggrc,
 				const MiniMC::Model::Undef& und,
-				const MiniMC::Model::SymbolicConstant& sc,
-				const MiniMC::Model::Type& ty) {
+ 				const MiniMC::Model::Type& ty) {
       {e.create(i8)}->std::convertible_to<Res>;
       {e.create(i16)}->std::convertible_to<Res>;
       {e.create(i32)}->std::convertible_to<Res>;
@@ -58,7 +60,6 @@ namespace MiniMC {
       {e.create(ptr32)}->std::convertible_to<Res>;
       {e.create(aggrc)}->std::convertible_to<Res>;
       {e.create(und)}->std::convertible_to<Res>;
-      {e.create(sc)}->std::convertible_to<Res>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;
     };
       
@@ -79,7 +80,6 @@ namespace MiniMC {
 			       const typename T::Aggregate& aggr,
 			       const typename T::Pointer& ptr,
 			       const typename T::Pointer32& ptr32,
-			       const MiniMC::Model::HeapLayout& heapl,
 			       const MiniMC::Model::Type&ty
 				) {
       {mem.store (p,i8)};
@@ -90,7 +90,6 @@ namespace MiniMC {
       {mem.store (p,ptr)};
       {mem.store (p,ptr32)};
       {mem.alloca(i64)}->std::convertible_to<typename T::Pointer>;
-      {mem.createHeapLayout (heapl)};
       {mem.free (p)};
       {mem.load (p,ty)}->std::convertible_to<T>;
     };
@@ -313,10 +312,10 @@ namespace MiniMC {
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
 
     
-    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations, Memory<Value> Mem>
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class Evaluator {
     public:
-      Evaluator (Operations ops, const RegStore& regstore,const Mem& mem) : ops(ops),regstore(regstore),memory(mem) {}
+      Evaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
       
       Value Eval (const MiniMC::Model::Value& v)  const {
 	return MiniMC::Model::visitValue<Value>(*this,v);
@@ -552,6 +551,12 @@ namespace MiniMC {
 	return regstore.lookupRegister (reg);
       }
       
+      Value operator() (const MiniMC::Model::SymbolicConstant& s) const  {
+	return regstore.lookupSymbol(s.getValue());
+      }
+      
+      
+      
 #define OPSI					\
       X(AddExpr,Add)				\
       X(SubExpr,Sub)				\
@@ -631,10 +636,10 @@ OPSI
       Value operator() (const MiniMC::Model::LoadExpr& load) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this,&load] (const  typename Value::Pointer& p) {
-	      return memory.load (p,*load.getToType());
+	      return regstore.load (p,*load.getToType());
 	    },
 	    [this,&load] (const  typename Value::Pointer32& p) {
-	      return memory.load (ops.Ptr32ToPtr (p),*load.getToType());
+	      return regstore.load (ops.Ptr32ToPtr (p),*load.getToType());
 	    },
 	      MiniMC::Support::Error<Value>{}
 	  },
@@ -680,9 +685,12 @@ OPSI
       
     private:
       Operations ops;
-      const RegStore& regstore;
-      const Mem& memory;
+      const RegStore regstore;
     };
+
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    Evaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return Evaluator<Value,RegStore,Operations> (ops,std::move(reg));}
+    
     
     template<class Value, Ops<Value> Operations>
     class Engine {

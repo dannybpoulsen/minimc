@@ -95,18 +95,18 @@ namespace MiniMC {
 	
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id);}
+	
 	//QueryBuilder
-	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas{1};
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Concrete::Value>,MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Memory> eval (
-																					MiniMC::VMT::Concrete::Operations{},
-																					{const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),metas },
-
-																					getHeap ()														       );
-	  return std::make_unique<QExpr> (eval.Eval(*val));
+	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Concrete::Value> scontext;
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,MiniMC::VMT::Concrete::Operations> eval (
+																								       MiniMC::VMT::Concrete::Operations{},
+																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),const_cast<MiniMC::VMT::Concrete::Memory&> (getHeap()),scontext} 														       );
+	  return std::make_unique<QExpr> (eval.Eval(val));
 	    
 	}
 	
@@ -117,13 +117,13 @@ namespace MiniMC {
 	
       private:
 	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory> mixin;
-      };
+	};
 
       
-      MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
+	MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	MiniMC::VMT::Concrete::Memory mem;
 	return makeState<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
-      }
+	}
 
       MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	const MiniMC::Model::Edge& e = *t.edge;
@@ -132,17 +132,17 @@ namespace MiniMC {
 	auto resstate = s.copy();
         auto& nstate = static_cast<MiniMC::CPA::Concrete::State&>(*resstate);
 
-	if (nstate.getProc(id).back ().getLocation () != e.getFrom ())
+	if (nstate.getProc(id).activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
-	nstate.getProc(id).back().setLocation (e.getTo ());
+	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	  
 	MiniMC::VMT::Concrete::PathControl control;
-	MiniMC::CPA::Common::RegisterStore regstore {nstate.getProc (id),_internal->metas};
+	auto regstore =  nstate.makeEvaluationContext (id);
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),regstore};
+	MiniMC::VMT::Concrete::ConcreteVMState newvm {nstate.getHeap (),control,nstate.getProc(id),std::move(regstore)};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

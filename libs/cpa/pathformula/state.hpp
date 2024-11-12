@@ -62,19 +62,21 @@ namespace MiniMC {
         }
 
         auto& getPathformula() const { return pathformula; }
-
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id);}
         virtual const QueryBuilder& getBuilder() const { return *this; }
-        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value_ptr& val) const override {
+        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
-	  MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas{1};  
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value>,MiniMC::VMT::Pathformula::Operations,MiniMC::VMT::Pathformula::Memory> eval {
+	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
-	    {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),metas},
-	    getMemory ()
+	      {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),
+	       const_cast<MiniMC::VMT::Pathformula::Memory&> (getMemory()),
+	       scontext
+		  }
 	  };
-          return std::make_unique<QExpr>(eval.Eval(*val));
+          return std::make_unique<QExpr>(eval.Eval(val));
         }
 
       private:

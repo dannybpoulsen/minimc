@@ -21,7 +21,7 @@ namespace MiniMC {
 
       auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg->getSymbol().getFullName () << ":\t";
+	  os << reg.getSymbol().getFullName () << ":\t";
 	  
 	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
@@ -54,7 +54,7 @@ namespace MiniMC {
 
       auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg->getSymbol().getFullName () << ":\t";
+	  os << reg.getSymbol().getFullName () << ":\t";
 	  
 	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);

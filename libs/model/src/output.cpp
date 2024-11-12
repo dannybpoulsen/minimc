@@ -53,7 +53,7 @@ namespace MiniMC {
       os << "## " << F.getSymbol () <<"\n";
       os << "  .registers" << "\n";
       for (auto& reg : F.getRegisterDescr ().getRegisters()) {
-	os << "    " << *reg << "\n";
+	os << "    " << reg << "\n";
       }
       os << "  .parameters" << "\n";
       for (auto& reg : F.getParameters ()) {
@@ -68,12 +68,12 @@ namespace MiniMC {
       os << "# Globals" << "\n";
       os << "  .registers" << "\n";
       for (auto& reg : p.getCPURegs().getRegisters()) {
-	os << "    " << *reg << "\n";
+	os << "    " << reg << "\n";
       }
 
       os << "  .metaregisters" << "\n";
       for (auto& reg : p.getMetaRegs().getRegisters()) {
-	os << "    " << *reg << "\n";
+	os << "    " << reg << "\n";
       }
 
       os << "# Functions" << "\n";
@@ -88,7 +88,7 @@ namespace MiniMC {
 
       os << "# Heap" <<"\n";
       for (auto b : p.getHeapLayout ()) {
-	os << b.baseobj << " : " << b.size;
+	os << b.baseobj << " [" << b.symbol << " ]"<< " : " << b.size;
 	if (b.value )
 	  os << " " << *b.value; 
 	     os << "\n"; 

@@ -23,8 +23,12 @@ TEST_CASE("Add") {
   
   
   auto type = tfac->makeIntegerType (8);
-  auto res = descr.addRegister (prgm.getRootFrame ().makeFresh (),type);
+  auto symb = prgm.getRootFrame ().makeFresh ();
+  auto symbol_value = cfac->makeSymbolicConstant (symb);
+  
+  auto res = descr.addRegister (std::move(symb),type);
 
+  
   MiniMC::Model::CFA cfa{};
   auto frame = prgm.getRootFrame ().create ("KK");
   auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr});
@@ -49,7 +53,7 @@ TEST_CASE("Add") {
 
   auto res_state = transfer->doTransfer (*init_state,{*func->getCFA().getInitialLocation()->ebegin (),0});
 
-  auto val = res_state->getBuilder ().buildValue (0,*res);
+  auto val = res_state->getBuilder ().buildValue (0,*symbol_value);
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
   auto res_val = MiniMC::Model::visitValue<MiniMC::BV8> (MiniMC::Support::Overload {

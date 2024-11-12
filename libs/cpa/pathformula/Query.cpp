@@ -14,7 +14,11 @@ namespace MiniMC {
 	auto term = termbuilder.makeBoolConst (true);
 	MiniMC::VMT::Pathformula::Memory mem{termbuilder};
 	
-	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},std::move(mem)), std::move(term), *context);
+	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,
+							  MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},
+																		      std::move(mem)),
+							  std::move(term),
+							  *context);
       }
 
       struct Transferer::Internal {
@@ -37,20 +41,19 @@ namespace MiniMC {
 	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
-	if (nstate.getStack().back ().getLocation () != e.getFrom ())
+	if (nstate.getStack().activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
-	nstate.getStack().back().setLocation (e.getTo ());
+	nstate.getStack().activeRecord().setLocation (e.getTo ());
 	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
 	auto& termbuilder = _internal->context->getBuilder ();
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
-	MiniMC::CPA::Common::RegisterStore<MiniMC::VMT::Pathformula::Value> regstore{nstate.getStack(),_internal->metas};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),regstore};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),nstate.makeEvaluationContext(trans.proc)};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	
-	if (status ==MiniMC::VMT::Status::Ok)  {
+	if (status == MiniMC::VMT::Status::Ok)  {
 	  if (control.getAssump ()) 
 	    nstate.addConstraints (control.getAssump ());
 	  return resstate;

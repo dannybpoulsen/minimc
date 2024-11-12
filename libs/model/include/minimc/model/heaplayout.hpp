@@ -9,15 +9,17 @@
 namespace MiniMC {
   namespace Model {
     struct HeapBlock {
+
       MiniMC::Model::pointer_t baseobj;
       MiniMC::Model::offset_t size;
       MiniMC::Model::Value_ptr value = nullptr;
+      MiniMC::Model::Symbol symbol; 
     };
 
     class HeapLayout {
     public:
-      auto addBlock (MiniMC::Model::pointer_t ptr, MiniMC::Model::offset_t size, MiniMC::Model::Value_ptr value = nullptr) {
-	blocks.push_back ({ptr,size,value});
+      auto addBlock (MiniMC::Model::Symbol symb,MiniMC::Model::pointer_t ptr, MiniMC::Model::offset_t size, MiniMC::Model::Value_ptr value = nullptr) {
+	blocks.push_back ({ptr,size,value,symb});
 	return blocks.back().baseobj;
       }
 
