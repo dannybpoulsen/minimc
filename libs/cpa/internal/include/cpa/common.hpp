@@ -4,6 +4,7 @@
 #include "minimc/vm/vmt.hpp"
 #include "minimc/cpa/state.hpp"
 #include "minimc/cpa/interface.hpp"
+#include <ranges>
 
 namespace MiniMC {
   namespace CPA {
@@ -28,6 +29,18 @@ namespace MiniMC {
 	return values[r];
       }
 
+      auto isActiveRegister (const MiniMC::Model::Symbol& r) const {
+	if (!loc)
+	  return false;
+	
+	else return loc->getInfo().getRegisters().hasSymbol (r);
+	
+      }
+
+      auto getValue (const MiniMC::Model::Symbol& r) const {
+	return getValueOfRegister(*loc->getInfo().getRegisters().getRegister (r));
+      }
+      
       void setValueOfRegister (const MiniMC::Model::Register& r,Value&& v) {
 	values.set(r,std::move(v));
       }
@@ -101,6 +114,15 @@ namespace MiniMC {
 	
       }
 
+      auto searchForRecordWithSymbol (const MiniMC::Model::Symbol& s) const -> const ActivationRecord<Value>*  {
+	for (auto& a : std::ranges::reverse_view (frames)) {
+	  if (a.isActiveRegister(s)) {
+	    return &a;
+	  }
+	}
+	return nullptr;
+      }
+
       
       std::vector<ActivationRecord<Value>> frames;
       std::shared_ptr<MiniMC::Model::VariableMap<Value>> metas;
@@ -115,6 +137,11 @@ namespace MiniMC {
 	symbmap.emplace (symb,val);
       }
 
+      bool hasSymbol (MiniMC::Model::Symbol symb) {
+	return symbmap.count (symb);
+      }
+      
+      
       auto at (const MiniMC::Model::Symbol& s) const {
 	return symbmap.at(s);
       }
@@ -133,7 +160,16 @@ namespace MiniMC {
       }
 
       Value lookupSymbol (MiniMC::Model::Symbol s) const {
-	return scontext.at(s);
+	if (scontext.hasSymbol(s))
+	  return scontext.at(s);
+	else {
+	  auto record = values.searchForRecordWithSymbol (s);
+	  if (record) {
+	    return record->getValue (s);
+	  }
+	}
+	MiniMC::Support::Localiser loc {"Cannot localise symbol %1%"};
+	throw MiniMC::Support::Exception (loc.format(s));
       }
       
       void saveValue(const MiniMC::Model::Register& reg, Value&& value)  {
