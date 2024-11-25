@@ -23,6 +23,7 @@ endif()
 
 include (dependencies/doctest.cmake)
 include (dependencies/smtlib.cmake)
+include (dependencies/whiley.cmake)
 include (dependencies/llvm.cmake)
 include (dependencies/xxhash.cmake)
 

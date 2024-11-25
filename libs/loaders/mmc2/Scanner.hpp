@@ -18,7 +18,6 @@ namespace MiniMC {
       public:
 	
 	Scanner(std::istream& in) : yyFlexLexer(&in) {
-	  //loc = new FMTeach::Whiley::Parser::location_type();
 	};
 	
 	//get rid of override virtual function warning

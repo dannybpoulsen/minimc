@@ -94,12 +94,12 @@ namespace MiniMC {
       }
       */
       Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
-	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
         for (size_t i = 0; i < t.getSize (); ++i) {
           auto ones = builder.makeBVIntConst(i, Value::Pointer::intbitsize());
           auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
-          concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
+	  
+	  concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
         }
 	switch (t.getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:

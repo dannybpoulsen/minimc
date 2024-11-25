@@ -12,6 +12,7 @@
 #include "pathvm/pathformua.hpp"
 #include <cstring>
 #include <memory>
+#include <iostream>
 
 namespace MiniMC {
   namespace CPA {
@@ -58,7 +59,8 @@ namespace MiniMC {
 	const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
 	
         void addConstraints(const SMTLib::Term_ptr& term) {
-          pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
+	  std::cerr << *term << std::endl;
+	  pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
         }
 
         auto& getPathformula() const { return pathformula; }

@@ -653,7 +653,8 @@ OPSI
 	auto visitor = MiniMC::Support::Overload {
 	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
 	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    return ops.PtrAdd(ptr, totalskip);
+	    auto res = ops.PtrAdd(ptr, totalskip);
+	    return res;
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}

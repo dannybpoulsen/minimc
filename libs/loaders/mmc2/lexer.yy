@@ -11,6 +11,7 @@ int mylineno = 0;
 %option nodefault
 %option noyywrap
 %option c++
+%option prefix="zz"
 %option yyclass="MiniMC::Loaders::MMC::Scanner"
 
 

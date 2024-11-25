@@ -306,6 +306,8 @@ namespace MiniMC {
       auto it = instr.begin();
       auto eval = _impl->makeEvaluator(wstate.getValueLookup ());
       for (it = instr.begin(); it != end && status == Status::Ok; ++it) {
+	std::cerr << *it << std::endl;
+	
 	status = it->visit ([&eval,this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,eval);});
       }
       return status;
