@@ -340,7 +340,7 @@ namespace MiniMC {
       
       template<class T>
       Value operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
-	return ops.create(t);
+	return  ops.create(t);
       }
 
       
@@ -651,10 +651,9 @@ OPSI
 
       Value operator() (const MiniMC::Model::PtrAddExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
-	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
+	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
 	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    auto res = ops.PtrAdd(ptr, totalskip);
-	    return res;
+	    return  ops.PtrAdd(ptr, totalskip);
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}

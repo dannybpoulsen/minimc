@@ -5,6 +5,8 @@
 #include "smt/builder.hpp"
 #include "minimc/support/exceptions.hpp"
 
+#include <iostream>
+
 namespace MiniMC {
   namespace Util {
     template <SMTLib::Ops op>
@@ -12,12 +14,12 @@ namespace MiniMC {
       Chainer(SMTLib::TermBuilder* builder) : builder(builder) {}
       // construct term op nterm
       Chainer& operator<<(SMTLib::Term_ptr nterm) {
-        if (!term)
+	if (!term)
           term = nterm;
         else {
           term = builder->buildTerm(op, {term, nterm});
         }
-        return *this;
+	return *this;
       }
 
       // construct nterm op term
@@ -31,7 +33,7 @@ namespace MiniMC {
       }
 
       auto getTerm() const { return term; }
-
+      
       SMTLib::Term_ptr term = nullptr;
       SMTLib::TermBuilder* builder;
     };

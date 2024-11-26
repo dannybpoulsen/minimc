@@ -28,12 +28,12 @@ namespace MiniMC {
     Location = 'L',
     Function = 'F'
   };
-  using seg_t = BV8;//decltype(pointer_t::segment);
+  using seg_t = BV16;//decltype(pointer_t::segment);
   using base_t = BV16;//decltype(pointer_t::base);
   using func_t = base_t;
   using proc_t = base_t;
   using offset_t = BV32; // decltype(pointer_t::offset);
-
+    
   
 
   

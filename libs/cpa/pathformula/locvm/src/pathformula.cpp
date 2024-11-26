@@ -51,9 +51,9 @@ namespace MiniMC {
       Value Operations::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
       Value Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
       Value Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
-      Value Operations::create(const MiniMC::Model::I64Integer& val) const { return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
+      Value Operations::create(const MiniMC::Model::I64Integer& val) const {  return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
       Value Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
-      Value Operations::create(const MiniMC::Model::Pointer& val) const { 
+      Value Operations::create(const MiniMC::Model::Pointer& val) const {
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -95,10 +95,9 @@ namespace MiniMC {
       */
       Value Memory::load(const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(&builder);
-        for (size_t i = 0; i < t.getSize (); ++i) {
-          auto ones = builder.makeBVIntConst(i, Value::Pointer::intbitsize());
-          auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
-	  
+	for (size_t i = 0; i < t.getSize (); ++i) {
+	  auto ones = builder.makeBVIntConst(i, Value::Pointer::intbitsize());
+	  auto curind = builder.buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
 	  concat << builder.buildTerm(SMTLib::Ops::Select, {mem_var, curind});
         }
 	switch (t.getTypeID ()) {
