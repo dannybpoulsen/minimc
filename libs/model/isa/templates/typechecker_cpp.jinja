@@ -47,7 +47,7 @@ namespace MiniMC {
 	
       };
 
-      class MustBeBoolExpr : public ExprTypeError{
+            class MustBeBoolExpr : public ExprTypeError{
       public:
 	MustBeBoolExpr (const MiniMC::Model::Value& l1 )  {
 	  message = MiniMC::Support::Localiser {"'%1%' must be bool."}.format(l1);
@@ -62,7 +62,23 @@ namespace MiniMC {
 	std::string message;
 	
       };
-      
+
+      class MustBeIntegerExpr : public ExprTypeError{
+      public:
+	MustBeIntegerExpr (const MiniMC::Model::Value& l1 )  {
+	  message = MiniMC::Support::Localiser {"'%1%' must be integer."}.format(l1);
+	
+	}
+	
+	virtual std::ostream& to_string (std::ostream& os) const {
+	  return os << message;
+	}
+	
+      private:
+	std::string message;
+	
+      };
+
       
       
       class MustBeSameType : public InstrTypeError{
@@ -296,10 +312,25 @@ namespace MiniMC {
 	  
       }
 
+      MiniMC::Model::Type_ptr  TypeChecker::operator() (MiniMC::Model::NotExpr& expr) const  {
+	auto lty = CheckType(expr.op1());
+	
+	MiniMC::Model::Type_ptr res = nullptr;;
+	if (lty->isInteger() ) {
+	  res = lty;
+	}
+	else {
+	  messager << MustBeIntegerExpr{expr.op1()};
+	}
+	expr.setType (res);
+	return res;
+	  
+      }
+
       template <class Inst>
       bool TypeChecker::doCheck(const Inst& tinst, const MiniMC::Model::Instruction& inst, const MiniMC::Model::Type_ptr& tt) {
 	constexpr auto i = tinst.getOpcode (); 
-        if constexpr (isUnary_v<Inst>) {
+        /*if constexpr (isUnary_v<Inst>) {
 	  auto& content = tinst.getOps ();
 	  if constexpr (i == MiniMC::Model::VMInstructionCode::Not) {
             auto resType = CheckType(*content.res);
@@ -310,7 +341,7 @@ namespace MiniMC {
             }
             return true;
           }
-        }
+        }*/
 
 	        /*else if constexpr (i == VMInstructionCode::Trunc) {
 	  auto& content = tinst.getOps ();
@@ -437,7 +468,7 @@ namespace MiniMC {
           return true;
 	  }*/
         
-        else if constexpr (i == VMInstructionCode::Store) {
+        /*else*/ if constexpr (i == VMInstructionCode::Store) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
 
 	  auto& content = tinst.getOps ();

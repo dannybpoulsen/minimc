@@ -2,6 +2,7 @@
 #include "minimc/model/cfg.hpp"
 #include "whiley/ast.hpp"
 #include "whiley/parser.hpp"
+#include "whiley/typechecker.hpp"
 
 #include "compiler.hpp"
 
@@ -20,8 +21,13 @@ public:
 
   MiniMC::Model::Program loadFromFile(const std::string &file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) override {
     ::Whiley::WParser parser;
-    ::Whiley::Program prgm = parser.parse (file);
-    return MiniMC::Loaders::whiley::Compiler {tfac,cfac}.compile(prgm);
+    if (auto parseres = parser.parse (file)) {
+      auto prgm = parseres.get();
+      if (Whiley::TypeChecker{}.CheckProgram(prgm))
+	return MiniMC::Loaders::whiley::Compiler {tfac,cfac}.compile(prgm);
+    }
+    return MiniMC::Model::Program{};
+      
   }
   MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr&, Model::ConstantFactory_ptr&,MiniMC::Support::Messager&) override {
    MiniMC::Model::Program program;

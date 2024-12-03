@@ -52,6 +52,17 @@ namespace MiniMC {
       Value::Bool Operations::BoolNegate(const Value::Bool& bv) const {
         return BoolValue(builder.buildTerm(SMTLib::Ops::Not, {bv.getTerm()}));
       }
+
+      template<class T>
+      T Operations::Not(const T& bv) const {
+        return (builder.buildTerm(SMTLib::Ops::BVNot, {bv.getTerm()}));
+      }
+
+      template Value::I8 Operations::Not(const Value::I8& l) const; \
+      template I16Value Operations::Not(const I16Value& l) const; \
+      template I32Value Operations::Not(const I32Value& l) const; \
+      template I64Value Operations::Not(const I64Value& l) const;
+
       
 #define X(OP)								\
 	template Value::I8 Operations::OP(const Value::I8& l, const I8Value& r) const; \

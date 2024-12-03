@@ -47,11 +47,16 @@ namespace MiniMC {
 
       struct Operations {
 	using Domain = Value;
-        template <typename T>
+	template <typename T>
+        T Not(const T& l) const requires Integer<Value,T> {
+          return ~l.getValue();
+        }
+
+	template <typename T>
         T Add(const T& l, const T& r) const requires Integer<Value,T> {
           return performOp<MiniMC::Host::TAC::Add>(l.getValue(), r.getValue());
         }
-
+	
         template <typename T>
         T Sub(const T& l, const T& r) const requires Integer<Value,T>{
           return performOp<MiniMC::Host::TAC::Sub>(l.getValue(), r.getValue());

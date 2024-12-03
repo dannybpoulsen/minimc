@@ -45,9 +45,10 @@ namespace MiniMC {
 	
 	auto& register_descr =  _internal->prgm.getCPURegs(); 
 	for (auto& var : prgm.getVars ()) {
-	  auto symbol = rootFrame.makeSymbol (var);
+	  std::string name = var.getName();
+	  auto symbol = rootFrame.makeSymbol (name);
 	  auto reg = register_descr.addRegister (std::move(symbol),type);
-	  _internal->vars.emplace(var,reg);
+	  _internal->vars.emplace(name,reg);
 	}
 
 	
@@ -83,13 +84,36 @@ namespace MiniMC {
 	
 	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (ptr,tfac->makeIntegerType (8));
       }
+
       
+      void Compiler::visitCastExpression (const Whiley::CastExpression& a)  {
+	a.getExpression().accept(*this);
+	auto expr = _internal->expr;
+	if (a.getType () != a.getExpression ().getType()) {
+	  auto one = cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I8);
+	  if (a.getType () == Whiley::Type::SI8) {
+	    //Signed to unsigned
+	    auto sub = std::make_shared<MiniMC::Model::SubExpr> (expr,one);
+	    _internal->expr = std::make_shared<MiniMC::Model::NotExpr> (sub);
+	  }
+
+	  else  {
+	    //unsigned to nsigned
+	    auto negexpr = std::make_shared<MiniMC::Model::NotExpr> (expr);
+	    _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (negexpr,one);
+	  }
+	  
+	  
+	}
+      }
 
       void Compiler::visitBinaryExpression (const Whiley::BinaryExpression& be)  {
 	be.getLeft ().accept (*this);
 	auto le = _internal->expr;
 	be.getRight ().accept (*this);
 	auto right = _internal->expr;
+	bool _signed = be.getLeft().getType () == Whiley::Type::SI8 ||
+	  be.getRight().getType () == Whiley::Type::SI8;   
 	switch (be.getOp ()) {
 	case Whiley::BinOps::Add:
 	  _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (std::move(le),std::move(right));
@@ -101,19 +125,38 @@ namespace MiniMC {
 	  _internal->expr = std::make_shared<MiniMC::Model::MulExpr> (std::move(le),std::move(right));
 	  break;
 	case Whiley::BinOps::Div:
-	  _internal->expr = std::make_shared<MiniMC::Model::SDivExpr> (std::move(le),std::move(right));
+	  if (_signed)
+	    _internal->expr = std::make_shared<MiniMC::Model::SDivExpr> (std::move(le),std::move(right));
+	  else
+	    _internal->expr = std::make_shared<MiniMC::Model::UDivExpr> (std::move(le),std::move(right));
+	  
 	  break;
 	case Whiley::BinOps::LEq:
-	  _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLEExpr> (std::move(le),std::move(right));
+	  if (_signed)
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLEExpr> (std::move(le),std::move(right));
+	  else
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_ULEExpr> (std::move(le),std::move(right));
+	  
 	  break;
 	case Whiley::BinOps::GEq:
-	  _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGEExpr> (std::move(le),std::move(right));
+	  if (_signed)
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGEExpr> (std::move(le),std::move(right));
+	  else
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_UGEExpr> (std::move(le),std::move(right));
 	  break;
 	case Whiley::BinOps::Lt:
-	  _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLTExpr> (std::move(le),std::move(right));
+	  if (_signed)
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLTExpr> (std::move(le),std::move(right));
+	  else
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_ULTExpr> (std::move(le),std::move(right));
+	  
 	  break;
 	case Whiley::BinOps::Gt:
-	  _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGTExpr> (std::move(le),std::move(right));
+	  if(_signed)
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGTExpr> (std::move(le),std::move(right));
+	  else
+	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_UGTExpr> (std::move(le),std::move(right));
+	  
 	  break;
       case Whiley::BinOps::Eq:
 	_internal->expr = std::make_shared<MiniMC::Model::ICMP_EQExpr> (std::move(le),std::move(right));

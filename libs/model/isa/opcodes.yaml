@@ -166,7 +166,7 @@ Unary:
     types:
       t1:
         - Integer
-    vm: True
+    assign_convertible: True
   lnot:
     opcode: LogNot
     params:

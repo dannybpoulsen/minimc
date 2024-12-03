@@ -44,10 +44,14 @@ namespace MiniMC {
       struct Operations {
 	using Domain = Value;
 	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
+
+	template<class T>
+	T Not (const T&) const;
+	
 	
 	template<class T>
 	T Add (const T&, const T&) const;
-
+	
 	template<class T>
 	T Sub (const T&, const T&) const;
 

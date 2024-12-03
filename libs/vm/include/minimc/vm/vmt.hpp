@@ -124,6 +124,7 @@ namespace MiniMC {
 
     template<class Int, class Bool,class Operation>
     concept IntOperationCompatible_ = requires (Operation op, const Int&left) {
+      {op.template Not<Int> (left)} -> std::convertible_to<Int>;
       {op.template Add<Int> (left,left)} -> std::convertible_to<Int>;
       {op.template Sub<Int> (left,left) } -> std::convertible_to<Int>;
       {op.template Mul<Int> (left,left) } -> std::convertible_to<Int>;
@@ -615,7 +616,7 @@ namespace MiniMC {
       
 #define OPSI								\
       X(LogNotExpr, BoolNegate)						
-
+      
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\
 	auto l = Eval (cc.op1());					\
@@ -629,10 +630,21 @@ namespace MiniMC {
       }									\
       
 OPSI
-      
 #undef X
 #undef OPSI   
+      
+      Value operator() (const MiniMC::Model::NotExpr& notex) const  {
+	return Value::visit (  MiniMC::Support::Overload {
+	    [this]<typename T> (const  T& t) ->Value requires Integer<Value,T>{
+	      return ops.Not (t);
+	    },
+	    MiniMC::Support::Error<Value>{}
+	  },
+	  Eval (notex.op1 ())
+	  );
+      }
 
+      
       Value operator() (const MiniMC::Model::LoadExpr& load) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this,&load] (const  typename Value::Pointer& p) {
