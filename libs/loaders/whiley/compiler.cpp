@@ -88,23 +88,6 @@ namespace MiniMC {
       
       void Compiler::visitCastExpression (const Whiley::CastExpression& a)  {
 	a.getExpression().accept(*this);
-	auto expr = _internal->expr;
-	if (a.getType () != a.getExpression ().getType()) {
-	  auto one = cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I8);
-	  if (a.getType () == Whiley::Type::SI8) {
-	    //Signed to unsigned
-	    auto sub = std::make_shared<MiniMC::Model::SubExpr> (expr,one);
-	    _internal->expr = std::make_shared<MiniMC::Model::NotExpr> (sub);
-	  }
-
-	  else  {
-	    //unsigned to nsigned
-	    auto negexpr = std::make_shared<MiniMC::Model::NotExpr> (expr);
-	    _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (negexpr,one);
-	  }
-	  
-	  
-	}
       }
 
       void Compiler::visitBinaryExpression (const Whiley::BinaryExpression& be)  {
@@ -208,10 +191,33 @@ namespace MiniMC {
 	builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,undef);
       } 
       
-      void Compiler::visitIfStatement (const Whiley::IfStatement& )  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+      void Compiler::visitIfStatement (const Whiley::IfStatement& iff )  {
+	iff.getCondition ().accept(*this);
+	auto cond = _internal->expr; 
+	auto if_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto else_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto start = _internal->start;
+	{
+	  MiniMC::Model::EdgeBuilder builder {_internal->cfa,start,if_branch,_internal->frame,false};
+	  builder.addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
+	  _internal->start = if_branch;
+	  iff.getIfBody().accept(*this);
+	  MiniMC::Model::EdgeBuilder builder2 {_internal->cfa,_internal->end,done_loc,_internal->frame,false};
+	}
+
+	{
+	  MiniMC::Model::EdgeBuilder builder {_internal->cfa,start,else_branch,_internal->frame,false};
+	  builder.addInstr<MiniMC::Model::InstructionCode::Assume>(std::make_shared<MiniMC::Model::LogNotExpr> (cond));
+	  _internal->start = else_branch;
+	  iff.getElseBody().accept(*this);
+	  MiniMC::Model::EdgeBuilder builder2 {_internal->cfa,_internal->end,done_loc,_internal->frame,false};
+	}
 	
+	
+	
+	_internal->end  = done_loc;
+	  
       } 
       void Compiler::visitSkipStatement (const Whiley::SkipStatement& )  {
 	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
