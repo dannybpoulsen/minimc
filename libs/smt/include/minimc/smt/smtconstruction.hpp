@@ -78,25 +78,25 @@ namespace MiniMC {
 
     template <MiniMC::Model::InstructionCode Inst>
     constexpr SMTLib::Ops convertToSMTOp() {
-      if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_SGT) {
+      if constexpr (Inst == MiniMC::Model::InstructionCode::SGt) {
         return SMTLib::Ops::BVSGt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_UGT) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::UGt) {
         return SMTLib::Ops::BVUGt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_SGE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SGE) {
         return SMTLib::Ops::BVSGEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_UGE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::UGE) {
         return SMTLib::Ops::BVUGEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_SLT) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SLt) {
         return SMTLib::Ops::BVSLt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_ULT) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ULt) {
         return SMTLib::Ops::BVULt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_SLE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SLE) {
         return SMTLib::Ops::BVSLEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_ULE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ULE) {
         return SMTLib::Ops::BVULEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_EQ) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::Eq) {
         return SMTLib::Ops::Equal;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ICMP_NEQ) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::NEq) {
         return SMTLib::Ops::NotEqual;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::Add) {
         return SMTLib::Ops::BVAdd;

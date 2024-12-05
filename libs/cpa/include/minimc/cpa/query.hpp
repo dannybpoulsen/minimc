@@ -16,6 +16,18 @@ namespace MiniMC {
       virtual std::ostream& output (std::ostream&) const = 0;
     };
 
+    template<class T>
+    class TQuery : public QueryExpr {
+    public:
+      TQuery (T t):value(t) {}
+      std::ostream& output (std::ostream& os) const override {return os << value;} 
+
+      auto getValue () const {return value;}
+	
+    private:
+      T value;
+    };
+    
     using QueryExpr_ptr = std::unique_ptr<QueryExpr>;
     
     class QueryBuilder {

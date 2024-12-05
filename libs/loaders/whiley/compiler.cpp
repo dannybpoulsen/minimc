@@ -116,36 +116,36 @@ namespace MiniMC {
 	  break;
 	case Whiley::BinOps::LEq:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SLEExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_ULEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::ULEExpr> (std::move(le),std::move(right));
 	  
 	  break;
 	case Whiley::BinOps::GEq:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SGEExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_UGEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::UGEExpr> (std::move(le),std::move(right));
 	  break;
 	case Whiley::BinOps::Lt:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SLTExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SLtExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_ULTExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::ULtExpr> (std::move(le),std::move(right));
 	  
 	  break;
 	case Whiley::BinOps::Gt:
 	  if(_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_SGTExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SGtExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ICMP_UGTExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::UGtExpr> (std::move(le),std::move(right));
 	  
 	  break;
       case Whiley::BinOps::Eq:
-	_internal->expr = std::make_shared<MiniMC::Model::ICMP_EQExpr> (std::move(le),std::move(right));
+	_internal->expr = std::make_shared<MiniMC::Model::EqExpr> (std::move(le),std::move(right));
 	break;
 	case Whiley::BinOps::NEq:
-	  _internal->expr = std::make_shared<MiniMC::Model::ICMP_NEQExpr> (std::move(le),std::move(right));
+	  _internal->expr = std::make_shared<MiniMC::Model::NEqExpr> (std::move(le),std::move(right));
 	  break;
 	  
 	

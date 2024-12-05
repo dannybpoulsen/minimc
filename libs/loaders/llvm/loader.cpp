@@ -342,7 +342,7 @@ namespace MiniMC {
 		auto btype = load.getTypeFactory().makeBoolType();
 		auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
 		
-		MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::ICMP_EQ>(cond,
+		MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::Eq>(cond,
 														       value,
 														       valComp)
 		  .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);

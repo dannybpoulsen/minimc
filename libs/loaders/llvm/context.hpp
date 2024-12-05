@@ -289,34 +289,34 @@ namespace MiniMC {
 	        auto ins = llvm::dyn_cast<llvm::ICmpInst>(inst);
 		switch (ins->getPredicate()) {
 		case llvm::CmpInst::ICMP_SGT:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_SGT> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SGt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_UGT:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_UGT> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::UGt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SGE:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_SGE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SGE> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_UGE:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_UGE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::UGE> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SLT:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_SLT> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SLt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_ULT:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_ULT> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::ULt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SLE:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_SLE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SLE> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_ULE:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_ULE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::ULE> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_EQ:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_EQ> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::Eq> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_NE:
-		  createInstruction<MiniMC::Model::InstructionCode::ICMP_NEQ> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::NEq> (inst,gather);
 		  break;
 		default:
 		  throw MiniMC::Support::Exception ("Not handled");
