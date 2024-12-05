@@ -55,7 +55,7 @@
       <main:_gep__2 Pointer> = PtrAdd <main:tmp Pointer> <0x28 Int64> <0 Int64>
       <main:_gep__3 Pointer> = PtrAdd <main:_gep__2 Pointer> <0x4 Int64> <0x5 Int64>
       <main:tmp5 Int32> = Load Int32 <main:_gep__3 Pointer>
-      <main:tmp6 Bool> = ICMP_EQ <main:tmp5 Int32> <0x5 Int32>
+      <main:tmp6 Bool> = Eq <main:tmp5 Int32> <0x5 Int32>
       <main:tmp7 Int32> = BoolZExt Int32 <main:tmp6 Bool>
       <main:BVar Bool> = IntToBool Bool <main:tmp7 Int32>
       ->BB4

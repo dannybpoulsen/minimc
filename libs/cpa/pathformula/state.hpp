@@ -18,19 +18,9 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
-      
-      class QExpr : public MiniMC::CPA::QueryExpr {
-      public:
-        QExpr(MiniMC::VMT::Pathformula::Value&& val) : value(std::move(val)) {}
-        std::ostream& output(std::ostream& os) const override {
-          return os << value;
-        }
 
-        auto getValue() const { return value; }
 
-      private:
-        MiniMC::VMT::Pathformula::Value value;
-      };
+      using QExpr = TQuery<MiniMC::VMT::Pathformula::Value>;
       
       
       class State : public MiniMC::CPA::State,
@@ -75,7 +65,7 @@ namespace MiniMC {
 	      {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),
 	       const_cast<MiniMC::VMT::Pathformula::Memory&> (getMemory()),
 	       scontext
-		  }
+	      }
 	  };
           return std::make_unique<QExpr>(eval.Eval(val));
         }

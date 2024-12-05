@@ -49,7 +49,7 @@
     BB2  {main:bb5}
     [
       <main:tmp6 Int32> = Load Int32 <main:tmp1 Pointer>
-      <main:tmp7 Bool> = ICMP_SLE <main:tmp6 Int32> <0xa Int32>
+      <main:tmp7 Bool> = SLE <main:tmp6 Int32> <0xa Int32>
       ->BB3
     ]
     BB3  {main:bb5}

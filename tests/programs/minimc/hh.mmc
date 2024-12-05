@@ -17,7 +17,7 @@
     BB0  {check:bb}
     [
       <check:tmp3 Int32> = SExt Int32 <check:arg Int8>
-      <check:tmp4 Bool> = ICMP_SGT <check:tmp3 Int32> <0x64 Int32>
+      <check:tmp4 Bool> = SGt <check:tmp3 Int32> <0x64 Int32>
       ->BB1
     ]
     BB1  {check:bb}

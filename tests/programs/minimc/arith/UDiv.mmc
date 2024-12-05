@@ -12,7 +12,7 @@
     BB0  {main:bb}
     [
       <main:tmp Int32> = UDiv <0x2 Int32> <0x2 Int32>
-      <main:cmp Bool> = ICMP_EQ <main:tmp Int32> <0x1 Int32>
+      <main:cmp Bool> = Eq <main:tmp Int32> <0x1 Int32>
       -> BB1
     ]
     BB1  {main:bb}

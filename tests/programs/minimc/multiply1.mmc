@@ -42,7 +42,7 @@
     ]
     BB3  {main:bb}
     [
-      <main:tmp6 Bool> = ICMP_SLT <main:tmp3 Int32> <0 Int32>
+      <main:tmp6 Bool> = SLt <main:tmp3 Int32> <0 Int32>
       ->BB1
     ]
     BB1  {main:bb}

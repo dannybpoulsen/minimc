@@ -180,7 +180,7 @@ Unary:
     assign_convertible: True
 Comparison:
   isgt:
-    opcode: ICMP_SGT
+    opcode: SGt
     params:
       - name: res
         type: t1
@@ -196,7 +196,7 @@ Comparison:
     assign_convertible: True
   
   iugt:
-    opcode: ICMP_UGT
+    opcode: UGt
     params:
       - name: res
         type: t1
@@ -213,7 +213,7 @@ Comparison:
   
 
   isge:
-    opcode: ICMP_SGE
+    opcode: SGE
     params:
       - name: res
         type: t1
@@ -229,7 +229,7 @@ Comparison:
     assign_convertible: True
 
   iuge:
-    opcode: ICMP_UGE
+    opcode: UGE
     params:
       - name: res
         type: t1
@@ -245,7 +245,7 @@ Comparison:
     assign_convertible: True
     
   islt:
-    opcode: ICMP_SLT
+    opcode: SLt
     params:
       - name: res
         type: t1
@@ -261,7 +261,7 @@ Comparison:
     assign_convertible: True
 
   iult:
-    opcode: ICMP_ULT
+    opcode: ULt
     params:
       - name: res
         type: t1
@@ -277,7 +277,7 @@ Comparison:
     assign_convertible: True
     
   isle:
-    opcode: ICMP_SLE
+    opcode: SLE
     params:
       - name: res
         type: t1
@@ -293,7 +293,7 @@ Comparison:
     assign_convertible: True
 
   iule:
-    opcode: ICMP_ULE
+    opcode: ULE
     params:
       - name: res
         type: t1
@@ -309,7 +309,7 @@ Comparison:
     assign_convertible: True
     
   ieq:
-    opcode: ICMP_EQ
+    opcode: Eq
     params:
       - name: res
         type: t1
@@ -327,7 +327,7 @@ Comparison:
 
 
   ineq:
-    opcode: ICMP_NEQ
+    opcode: NEq
     params:
       - name: res
         type: t1

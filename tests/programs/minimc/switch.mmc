@@ -39,7 +39,7 @@
     ]
     BB4  {main:NodeBlock3}
     [
-      <main:Pivot4 Bool> = ICMP_SLT <main:tmp5.0 Int32> <0x1 Int32>
+      <main:Pivot4 Bool> = SLt <main:tmp5.0 Int32> <0x1 Int32>
       ->BB5
     ]
     BB5  {main:NodeBlock3}
@@ -62,7 +62,7 @@
     ]
     BB10  {main:NodeBlock}
     [
-      <main:Pivot Bool> = ICMP_SLT <main:tmp5.0 Int32> <0x2 Int32>
+      <main:Pivot Bool> = SLt <main:tmp5.0 Int32> <0x2 Int32>
       ->BB14
     ]
     BB14  {main:NodeBlock}
@@ -85,7 +85,7 @@
     ]
     BB19  {main:LeafBlock1}
     [
-      <main:SwitchLeaf2 Bool> = ICMP_EQ <main:tmp5.0 Int32> <0x2 Int32>
+      <main:SwitchLeaf2 Bool> = Eq <main:tmp5.0 Int32> <0x2 Int32>
       ->BB23
     ]
     BB23  {main:LeafBlock1}
@@ -126,7 +126,7 @@
     BB35  {main:bb33}
     [
       <main:tmp37 Int32> = Add <main:tmp5.1 Int32> <0x1 Int32>
-      <main:tmp40 Bool> = ICMP_EQ <main:tmp37 Int32> <0x4 Int32>
+      <main:tmp40 Bool> = Eq <main:tmp37 Int32> <0x4 Int32>
       <main:tmp41 Int32> = BoolZExt Int32 <main:tmp40 Bool>
       <main:BVar Bool> = IntToBool Bool <main:tmp41 Int32>
       ->BB37
@@ -222,7 +222,7 @@
     ]
     BB6  {main:LeafBlock}
     [
-      <main:SwitchLeaf Bool> = ICMP_EQ <main:tmp5.0 Int32> <0 Int32>
+      <main:SwitchLeaf Bool> = Eq <main:tmp5.0 Int32> <0 Int32>
       ->BB43
     ]
     BB43  {main:LeafBlock}

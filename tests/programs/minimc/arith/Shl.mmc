@@ -12,7 +12,7 @@
     BB0  {main:bb}
     [
       <main:tmp Int32> = Shl <0x01 Int32> <0x03 Int32>
-      <main:cmp Bool> = ICMP_EQ <main:tmp Int32> <0x8 Int32>
+      <main:cmp Bool> = Eq <main:tmp Int32> <0x8 Int32>
       -> BB1
     ]
     BB1  {main:bb}

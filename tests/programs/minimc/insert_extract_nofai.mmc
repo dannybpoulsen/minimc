@@ -18,7 +18,7 @@
     [
       <main:tmp Aggr8> = InsertValue Int32 < $01 00 00 00 01 00 00 00 $ Aggr8 > <0 Int32> <0x1 Int32>
       <main:tmp1 Int32> = ExtractValue Int32 <main:tmp Aggr8> <0 Int32>
-      <main:tmp2 Bool> = ICMP_EQ <0x1 Int32> <main:tmp1 Int32>
+      <main:tmp2 Bool> = Eq <0x1 Int32> <main:tmp1 Int32>
       <main:tmp3 Int8> = BoolSExt Int8 <main:tmp2 Bool>
       <main:BVar Bool> = IntToBool Bool <main:tmp3 Int8>
       ->BB2

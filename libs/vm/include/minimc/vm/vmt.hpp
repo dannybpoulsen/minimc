@@ -586,16 +586,16 @@ namespace MiniMC {
 #undef OPSI
 
 #define OPSI					\
-      X(ICMP_SGTExpr, SGt)			\
-      X(ICMP_UGTExpr, UGt)			\
-      X(ICMP_SGEExpr, SGe)			\
-      X(ICMP_UGEExpr, UGe)			\
-      X(ICMP_SLTExpr, SLt)			\
-      X(ICMP_ULTExpr, ULt)			\
-      X(ICMP_SLEExpr, SLe)			\
-      X(ICMP_ULEExpr, ULe)			\
-      X(ICMP_EQExpr, Eq)			\
-      X(ICMP_NEQExpr, NEq)			\
+      X(SGtExpr, SGt)			\
+      X(UGtExpr, UGt)			\
+      X(SGEExpr, SGe)			\
+      X(UGEExpr, UGe)			\
+      X(SLtExpr, SLt)			\
+      X(ULtExpr, ULt)			\
+      X(SLEExpr, SLe)			\
+      X(ULEExpr, ULe)			\
+      X(EqExpr, Eq)			\
+      X(NEqExpr, NEq)			\
 
 #define X(CC,op)							\
       Value operator() (const MiniMC::Model::CC& cc) const  {		\

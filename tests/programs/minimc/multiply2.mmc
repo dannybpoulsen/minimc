@@ -42,7 +42,7 @@
     ]
     BB3  {main:bb}
     [
-      <main:tmp6 Bool> = ICMP_SGE <main:tmp3 Int32> <0xf Int32>
+      <main:tmp6 Bool> = SGE <main:tmp3 Int32> <0xf Int32>
       ->BB1
     ]
     BB1  {main:bb}
