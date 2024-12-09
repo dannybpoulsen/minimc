@@ -18,7 +18,7 @@ auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Model::Modifications::ProgramManager manager;
   
   
-  return manager(loader.loadFromFile (path,tfac,cfac,mess));
+  return manager(std::move(loader.loadFromFile (path,tfac,cfac,mess).value()));
   
 }
 

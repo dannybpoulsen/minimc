@@ -28,12 +28,69 @@ namespace MiniMC {
 	  return MiniMC::Model::visitValue<MiniMC::Model::Type_ptr> (*this, v);
 	}
 
-	
+/*	
 	template<class T>
-	MiniMC::Model::Type_ptr operator() (T& t) const requires (MiniMC::Model::is_root<T>) {
+	MiniMC::Model::Type_ptr operator() (T& t) const requires (MiniMC::Model::is_root<T>)	 {
 	  return t.getType ();
 	}
+*/
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Register& i) const  {
+	  return i.getType();
+	}
 	
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Bool& i) const  {
+	  i.setType(tfactory->makeBoolType());
+	  return i.getType();
+	}
+
+	
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I8Integer& i) const  {
+	  i.setType(tfactory->makeIntegerType(8));
+	  return i.getType();
+	}
+	
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I16Integer& i) const  {
+	  i.setType(tfactory->makeIntegerType(16));
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I32Integer& i) const  {
+	  i.setType(tfactory->makeIntegerType(32));
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I64Integer& i) const  {
+	  i.setType(tfactory->makeIntegerType(64));
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer& i) const {
+	  i.setType(tfactory->makePointerType());
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer32& i) const  {
+	  i.setType(tfactory->makePointerType());
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::SymbolicConstant& i) const  {
+	  i.setType(tfactory->makePointerType());
+	  return i.getType();
+	}
+	
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Undef& i) const  {
+	  return i.getType();
+	}
+
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::AggregateConstant& i) const  {
+	  i.setType(tfactory->makeAggregateType(i.getSize()));
+	  return i.getType();
+	}
+
+	
+
 	{% for i in ISA.getPseudoInstructions () %}
 	{%if i.isAssignConvertible () %}
 	MiniMC::Model::Type_ptr  operator() ({{i.getName ()}}Expr& ) const;

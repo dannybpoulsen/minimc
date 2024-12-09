@@ -76,7 +76,7 @@ namespace MiniMC {
 	addOption<BoolOption>("print", "Print LLVM module to stderr", &printLLVMPass);
 	
       }
-      MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) override {
+      LoadResult loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) override {
 	std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
@@ -84,7 +84,7 @@ namespace MiniMC {
         return readFromBuffer(buffer, tfac, cfac,mess);
       }
 
-      MiniMC::Model::Program loadFromString(const std::string& inp, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager& mess) override {
+      LoadResult loadFromString(const std::string& inp, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager& mess) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));

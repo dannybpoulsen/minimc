@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <expected>
 #include <initializer_list>
 
 namespace MiniMC {
@@ -21,7 +22,7 @@ namespace MiniMC {
     public:
       LoadError(const std::string& mess = "Failed to load program" ) : ConfigurationException(mess) {}
     };
-
+    
     template <class T>
     struct TOption {
       using ValueType = T;
@@ -45,12 +46,20 @@ namespace MiniMC {
 				      VecStringOption,
 				      BoolOption>;
 
+    
+    enum class Error {
+      ParseError,
+      ProgramError
+    };
+
+    using LoadResult = std::expected<MiniMC::Model::Program,Error>;
+    
     struct Loader {
       Loader()  {}
       
       virtual ~Loader() {}
-      virtual MiniMC::Model::Program loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
-      virtual MiniMC::Model::Program loadFromString(const std::string& str, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
+      virtual LoadResult loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
+      virtual LoadResult loadFromString(const std::string& str, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
       
       
       template<class T>

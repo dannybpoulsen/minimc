@@ -52,22 +52,30 @@ int main(int argc, char* argv[]) {
       MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
       MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
       auto loader = options.load.loader;
-      MiniMC::Model::Program prgm = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
+      auto loadres = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
+      if(loadres) {
+	MiniMC::Model::Program prgm = std::move(loadres.value());
+	
+	if (!MiniMC::Model::Checkers::TypeChecker{tfac,messager}.Check (prgm) ||
+	    !MiniMC::Model::Checkers::StructuralChecker{messager}.Check (prgm)
+	    ) {
+	  return -1;
+	}
+	MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, cfac,messager);
+	if (options.command) {
+	  auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
+	  return res;
+	}
       
-      if (!MiniMC::Model::Checkers::TypeChecker{tfac,messager}.Check (prgm) ||
-	  !MiniMC::Model::Checkers::StructuralChecker{messager}.Check (prgm)
-	  ) {
-	return -1;
+	else {
+	  messager << MiniMC::Support::TError<std::string> {"No subcommand selected"};
+	  return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
+	}
       }
-      MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, cfac,messager);
-      if (options.command) {
-	auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
-	return res;
-      }
-      
       else {
-	messager << MiniMC::Support::TError<std::string> {"No subcommand selected"};
-	return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);
+	messager << MiniMC::Support::TError { "Program load failed"};
+	return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError); 
+  
       }
     }
   }

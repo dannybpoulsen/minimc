@@ -19,7 +19,7 @@ class WhileyLoader2 : public Loader {
 public:
   WhileyLoader2(){}
 
-  MiniMC::Model::Program loadFromFile(const std::string &file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) override {
+  LoadResult loadFromFile(const std::string &file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) override {
     ::Whiley::WParser parser;
     if (auto parseres = parser.parse (file)) {
       auto prgm = parseres.get();
@@ -29,7 +29,7 @@ public:
     return MiniMC::Model::Program{};
       
   }
-  MiniMC::Model::Program loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr&, Model::ConstantFactory_ptr&,MiniMC::Support::Messager&) override {
+  LoadResult loadFromString(const std::string &inp, MiniMC::Model::TypeFactory_ptr&, Model::ConstantFactory_ptr&,MiniMC::Support::Messager&) override {
    MiniMC::Model::Program program;
    return program;
   }
