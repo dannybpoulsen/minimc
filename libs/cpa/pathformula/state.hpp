@@ -62,10 +62,7 @@ namespace MiniMC {
 	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
 	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
-	      {const_cast<MiniMC::VMT::Pathformula::ActivationStack&> (getStack ()),
-	       const_cast<MiniMC::VMT::Pathformula::Memory&> (getMemory()),
-	       scontext
-	      }
+	    makeEvaluationContext (p)
 	  };
           return std::make_unique<QExpr>(eval.Eval(val));
         }

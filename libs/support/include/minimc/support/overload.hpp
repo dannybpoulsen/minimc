@@ -26,6 +26,13 @@ namespace MiniMC {
       template<class... Args>
       Res operator() (Args... ) const {throw MiniMC::Support::Exception (descriptive_string<Args...> ());}
     };
+
+
+    struct Ignore {
+      template<class... Args>
+      void operator() (Args... ) const {}
+    };
+    
     
     template<class... Ts>
     struct Overload : Ts... {

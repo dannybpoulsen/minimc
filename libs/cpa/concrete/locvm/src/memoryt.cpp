@@ -250,7 +250,7 @@ namespace MiniMC {
       void Memory::free(const Value::Pointer&) {
       }
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>& val) {
-	for (auto block : layout) {
+	for (auto block : layout.blocks()) {
 	  auto ptr = _internal->allocate (block.size, block.baseobj);
 	  val.addSymbol (block.symbol,Value::Pointer(ptr));
 	}

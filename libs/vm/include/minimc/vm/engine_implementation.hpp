@@ -141,8 +141,7 @@ namespace MiniMC {
 										 },
 										 [this,&eval](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
 										   auto symb = t.getValue();
-										   auto func = prgm.getFunction(symb);
-										   return func;
+										   return std::get<MiniMC::Model::Function_wptr>(symb.getUserData()).lock();
 										 },
 										 MiniMC::Support::Error<MiniMC::Model::Function_ptr> {}
 									     },

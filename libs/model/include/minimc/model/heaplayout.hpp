@@ -5,34 +5,37 @@
 #include "minimc/model/variables.hpp"
 
 #include <vector>
+#include <memory>
+#include <ranges>
 
 namespace MiniMC {
   namespace Model {
     struct HeapBlock {
-
+      
       MiniMC::Model::pointer_t baseobj;
       MiniMC::Model::offset_t size;
       MiniMC::Model::Value_ptr value = nullptr;
       MiniMC::Model::Symbol symbol; 
     };
 
+    using HeapBlock_ptr = std::shared_ptr<HeapBlock>;
+    
     class HeapLayout {
     public:
       auto addBlock (MiniMC::Model::Symbol symb,MiniMC::Model::pointer_t ptr, MiniMC::Model::offset_t size, MiniMC::Model::Value_ptr value = nullptr) {
-	blocks.push_back ({ptr,size,value,symb});
-	return blocks.back().baseobj;
+	_blocks.push_back (std::make_shared<HeapBlock> (ptr,size,value,symb));
+	symb.setUserData (_blocks.back ());
+	return _blocks.back()->baseobj;
       }
 
-      auto begin () const {
-	return blocks.begin ();
-      }
-
-      auto end () const {
-	return blocks.end ();
+      auto blocks () const  {
+	return _blocks | std::ranges::views::transform ([](auto& t) ->HeapBlock& {return *t;});
       }
       
+      
+      
     private:
-      std::vector<HeapBlock> blocks;
+      std::vector<HeapBlock_ptr> _blocks;
     };
     
   }

@@ -553,7 +553,15 @@ namespace MiniMC {
       }
       
       Value operator() (const MiniMC::Model::SymbolicConstant& s) const  {
-	return regstore.lookupSymbol(s.getValue());
+	return std::visit (
+		    MiniMC::Support::Overload {
+		      [this](const MiniMC::Model::Register_wptr& r)->Value {return regstore.lookupRegister (*r.lock());},
+		      [this,&s](const MiniMC::Model::HeapBlock_wptr&)->Value {return regstore.lookupSymbol (s.getValue());},
+		      MiniMC::Support::Error<Value>{}	 
+		    },
+		    
+		    s.getValue().getUserData()
+			   );
       }
       
       

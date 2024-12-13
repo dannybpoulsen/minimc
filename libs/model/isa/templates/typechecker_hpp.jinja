@@ -12,6 +12,7 @@
 #include "minimc/model/valuevisitor.hpp"
 #include "minimc/model/cfg.hpp"
 #include "minimc/support/feedback.hpp"
+#include "minimc/support/overload.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -76,7 +77,14 @@ namespace MiniMC {
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::SymbolicConstant& i) const  {
-	  i.setType(tfactory->makePointerType());
+	  auto type = std::visit (MiniMC::Support::Overload {
+      	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
+      	  [this](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return tfactory->makePointerType();},
+     	  [this](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();},
+      	  [this](const std::monostate& ) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();}
+	}
+	    ,i.getValue().getUserData());
+	  i.setType(type);
 	  return i.getType();
 	}
 	

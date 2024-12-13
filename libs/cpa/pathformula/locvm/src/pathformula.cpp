@@ -138,7 +138,7 @@ namespace MiniMC {
       }
 
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl,MiniMC::CPA::Common::StaticContext<Value>&  symb) {
-	for (auto& block : hl) {
+	for (auto& block : hl.blocks()) {
 	  auto baseobj = MiniMC::Model::getBase(block.baseobj);
 	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
 	  MiniMC::Util::PointerHelper helper {&builder};

@@ -1,6 +1,7 @@
 #include "minimc/cpa/interface.hpp"
 #include "minimc/hash/hashing.hpp"
 #include "minimc/model/cfg.hpp"
+#include "minimc/support/overload.hpp"
 #include <ostream>
 
 namespace MiniMC {
@@ -52,8 +53,8 @@ namespace MiniMC {
       }
       os << "]\n";
 
-      auto printVStack = [&os,&state](auto& vstack,auto p ) {
-	for (auto& reg : vstack.getRegisters ()) {
+      /* auto printVStack = [&os,&state](auto& vstack,auto p ) {
+	 for (auto& reg : vstack.getRegisters ()) {
 	  os << reg.getSymbol().getFullName () << ":\t";
 	  
 	  for (const auto& datastate : state.dataStates ()) {
@@ -62,13 +63,46 @@ namespace MiniMC {
 	  }
 	  os << std::endl;
 	}
-      };
+	};*/
 
+      auto print = [&os,&state](auto& evals, auto index ) {
+	
+	for (const auto& datastate : state.dataStates ()) {
+	  os << "{\n";
+	  auto& builder = datastate.getBuilder ();
+	  auto concretizer = datastate.getConcretizer ();
+	  for (auto& eval: evals) {
+	    auto symbval = builder.buildValue (index,*eval.value);
+	    os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << std::endl;
+	   
+	  }
+	  os <<"}\n";
+	}
+	
+      };
+      
+      struct EvalStruct {
+	EvalStruct (MiniMC::Model::Symbol symb, MiniMC::Model::Value_ptr p) : symb(symb),value(p) {}
+	MiniMC::Model::Symbol symb;
+	MiniMC::Model::Value_ptr value;
+      };
       
       for (std::size_t p = 0; p < nbProcs; p++) {
-	printVStack (prgm.getCPURegs (), p);
-	printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+	std::vector<EvalStruct> values;
+	for (const auto& p: prgm.getRootFrame().local_symbols ()) {
+	  std::visit (MiniMC::Support::Overload {
+	      [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
+		[&values,&p](const MiniMC::Model::HeapBlock_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
+		MiniMC::Support::Ignore{}
+	    },
+	    p.getUserData()
+	    );
+	}
+	print (values,p);
       }
+	//printVStack (prgm.getCPURegs (), p);
+	//printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
+
       
       
       return os << std::endl;;

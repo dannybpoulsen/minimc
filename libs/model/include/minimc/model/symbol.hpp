@@ -6,11 +6,32 @@
 #include <ostream>
 #include <sstream>
 #include <list>
+#include <variant>
+#include <generator>
 
 #include "minimc/hash/hashing.hpp"
 
 namespace MiniMC {
   namespace Model {
+
+    class Register;
+    class Function;
+    class Location;
+    class HeapBlock;
+    
+    
+    using Register_wptr = std::weak_ptr<Register>;
+    using Function_wptr = std::weak_ptr<Function>;
+    using Location_wptr = std::weak_ptr<Location>;
+    using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
+    
+    
+    using UserData = std::variant<Register_wptr,
+				  Function_wptr,
+				  Location_wptr,
+				  HeapBlock_wptr,
+				  std::monostate>;
+    
     class Symbol {
     public:
       friend class Frame;
@@ -31,7 +52,8 @@ namespace MiniMC {
       std::string to_string () const; 
       std::string getName () const;
       std::string getFullName () const {return to_string ();}
-      
+      void setUserData (UserData data);
+      const UserData& getUserData () const ;
       MiniMC::Hash::hash_t hash () const;
       bool operator== (const Symbol& d) const ;
       
@@ -60,11 +82,14 @@ namespace MiniMC {
       Frame close ();
       bool resolve (const std::string&, Symbol& s) const ;
       bool resolveQualified (const std::string&, Symbol& s) const ;
-      
       Symbol makeSymbol (const std::string& s);
       
       Symbol makeFresh (const std::string& = "fresh");
       Frame& operator= (const Frame& f) = default;
+      std::generator<Symbol> symbols () const ;
+
+      //Stupid naming
+      std::generator<Symbol> local_symbols () const ;
     private:
       struct Internal;
       Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}

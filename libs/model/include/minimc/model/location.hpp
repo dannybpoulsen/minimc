@@ -104,6 +104,7 @@ namespace MiniMC {
         return it != incomingEdges.end();
       }
       
+      void setSymbol (MiniMC::Model::Symbol s) {symb = s;}
       
     protected:
       /** 
@@ -137,6 +138,7 @@ namespace MiniMC {
         incomingEdges.erase(it);
       }
 
+      
     private:
       MiniMC::Model::Symbol symb;
       std::vector<Edge*> edges;

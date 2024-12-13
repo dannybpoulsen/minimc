@@ -360,6 +360,8 @@ namespace MiniMC {
 	  else {
 	    locations.at (s)->getInfo().getFlags () = flags;
 	    locations.at (s)->rename (symbol);
+	    locations.at (s)->setSymbol (symbol);
+	    symbol.setUserData (locations.at (s));
 	  }
 	  return locations.at (s);
 	};

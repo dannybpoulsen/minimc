@@ -52,9 +52,12 @@ namespace MiniMC {
       std::shared_ptr<data> parent;
       std::string name;
       mutable MiniMC::Hash::hash_t _hash{0};
+      UserData userdata{std::monostate{}};
     };
 
     
+    const UserData& Symbol::getUserData  () const {return _internal->userdata;}
+    void Symbol::setUserData (UserData userdata)  {_internal->userdata = userdata;}
     
     std::string Symbol::getName () const {
 	return _internal->name;
@@ -199,6 +202,18 @@ namespace MiniMC {
 	throw std::runtime_error ("Can't find root frame");
       }
 
+      std::generator<Symbol> gen_symbols () {
+	for (auto& s : symbols) {
+	  co_yield s.second;
+	}
+
+	for (auto& f : frames) {
+	  co_yield std::ranges::elements_of (f.second->gen_symbols());
+	}
+	
+      }
+
+
       Symbol symb;
       std::weak_ptr<Internal> parent;
       std::unordered_map<std::string, Symbol> symbols;
@@ -271,6 +286,16 @@ namespace MiniMC {
 	  return makeSymbol (freshname);
       }
 
+    }
+    
+    std::generator<Symbol> Frame::symbols () const {
+      co_yield std::ranges::elements_of(_internal->gen_symbols());
+    }
+
+    std::generator<Symbol> Frame::local_symbols () const {
+      for (auto& s : _internal->symbols) {
+	co_yield s.second;
+      }
     }
     
     

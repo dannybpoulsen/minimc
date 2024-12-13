@@ -44,7 +44,8 @@ namespace MiniMC {
       CFA (CFA&& cfa) = default;
       Location_ptr makeLocation(MiniMC::Model::Symbol symbol, const LocationInfo& info) {
         locations.push_back(std::make_shared<Location>(symbol,info, locations.size()));
-        return locations.back();
+	symbol.setUserData (locations.back());
+	return locations.back();
       }
 
       /**
@@ -134,6 +135,7 @@ namespace MiniMC {
       }
       Function (const Function&) = delete;
       Function (Function&&) = default;
+      auto& getSymbol() { return name; }
       auto& getSymbol() const { return name; }
       auto& getParameters() const { return parameters; }
       auto& getRegisterDescr() const { return registerdescr; }
@@ -174,7 +176,8 @@ namespace MiniMC {
 			       Frame frame
 		) {
         functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
-        function_map.emplace(symbol, functions.back());
+	functions.back()->getSymbol().setUserData (functions.back ());
+	function_map.emplace(symbol, functions.back());
         return functions.back();
       }
 
@@ -228,6 +231,8 @@ namespace MiniMC {
       
       
       auto& getRootFrame () {return frame;}
+        auto& getRootFrame () const {return frame;}
+    
     private:
       std::vector<Function_ptr> functions;
       std::vector<Function_ptr> entrypoints;
@@ -235,7 +240,7 @@ namespace MiniMC {
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;
       MiniMC::Model::RegisterDescr meta_regs;
-      MiniMC::Model::Frame frame;
+      MiniMC::Model::Frame frame{"prgm"};
       
     };
     

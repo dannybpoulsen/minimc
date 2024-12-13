@@ -275,7 +275,7 @@ namespace MiniMC {
 	auto eval = MiniMC::VMT::makeEvaluator<Value> (DummyRegisterStore<Value>{*_scontext},ops);
 	heap.createHeapLayout (descr.getHeap (),*_scontext);
 	
-	for (auto& b : descr.getHeap ()) {
+	for (auto& b : descr.getHeap ().blocks()) {
 	  if (b.value) {
 	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
             Value valueToStor = eval.Eval(*b.value);
