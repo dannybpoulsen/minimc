@@ -184,13 +184,13 @@ namespace MiniMC {
         Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee)  const {
           MiniMC::Util::Array arr{aggrvalue.getValue()};
           auto value = insertee.getValue();
-          arr.set_block(offset, sizeof(value), reinterpret_cast<MiniMC::BV8*>(&value));
+          arr.set_block(offset, {reinterpret_cast<MiniMC::BV8*>(&value),reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value)});//sizeof(value), reinterpret_cast<MiniMC::BV8*>(&value));
           return arr;
         }
 	
 	Value::Aggregate InsertAggregateValue(const Value::Aggregate& value, const MiniMC::BV64 offset, const AggregateValue& insertee) const {
           MiniMC::Util::Array arr{value.getValue()};
-          arr.set_block(offset, insertee.getValue().getSize(), insertee.getValue().get_direct_access());
+          arr.set_block(offset, insertee.getValue().get_direct_access());
           return arr;
         }
 

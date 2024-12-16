@@ -22,33 +22,34 @@ namespace MiniMC {
         HeapEntry(std::size_t size) : state(EntryState::InUse),
 				      content(size) {
         }
-	
-        void write(const MiniMC::Util::Array& arr, std::size_t offset) {
-          assert(state == EntryState::InUse);
-          if (arr.getSize() + offset <= content.getSize()) {
-            // Copy the existing memory
-            content.set(arr, offset);
-          } else {
-            throw MiniMC::Support::BufferOverflow();
-          }
-        }
 
-        void write(WriteBuffer&& buffer, std::size_t offset) {
+        /*void write(WriteBuffer&& buffer, std::size_t offset) {
           assert(state == EntryState::InUse);
-	 
+	  
 	  if (buffer.size + offset <= content.getSize()) {
             content.set_block(offset, buffer.size, buffer.buffer);
           } else {
             throw MiniMC::Support::BufferOverflow();
           }
-        }
-
+	  }*/
+	
+	void write(const std::span<const MiniMC::BV8> buffer, std::size_t offset) {
+          assert(state == EntryState::InUse);
+	  
+	  if (buffer.size () + offset <= content.getSize()) {
+            content.set_block(offset, buffer);
+          } else {
+            throw MiniMC::Support::BufferOverflow();
+          }
+	}
+	
         void read(ReadBuffer&& buffer, std::size_t offset) const {
           if (buffer.size + offset <= content.getSize()) {
             content.get_block(offset, buffer.size, buffer.buffer);
           } else
             throw MiniMC::Support::BufferOverread();
-        }
+	}
+	
 
         auto hash() const {
 	  MiniMC::Hash::Hasher hash;
@@ -172,7 +173,7 @@ namespace MiniMC {
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
         auto offset = MiniMC::Model::getOffset(pointer);
         if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = &value, .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({&value, &value + (value)}, offset);
         }
       }
 
@@ -183,7 +184,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+ sizeof(value)}, offset);
         }
       }
 
@@ -194,7 +195,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value) }, offset);
         }
       }
 
@@ -205,7 +206,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value)}, offset);
         }
       }
 
@@ -216,7 +217,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = value.get_direct_access(), .size = value.getSize ()}, offset);
+          _internal->entries.at(base_pointer).write(value.get_direct_access(), offset);
         }
       }
 
@@ -227,7 +228,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), sizeof(value)}, offset);
         }
       }
 
@@ -238,7 +239,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({.buffer = reinterpret_cast<MiniMC::BV8*>(&value), .size = sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), sizeof(value)}, offset);
         }
       }
       

@@ -309,7 +309,7 @@ namespace MiniMC {
 
       virtual std::ostream& output(std::ostream& os) const override {
         MiniMC::Support::STDEncode encoder;
-        os << "< $" << encoder.encode(reinterpret_cast<const char*>(data.get_direct_access ()), data.getSize ()) << "$ ";
+        os << "< $" << encoder.encode(data.get_direct_access ()) << "$ ";
 	return outputType (os) << ">";
       
       }

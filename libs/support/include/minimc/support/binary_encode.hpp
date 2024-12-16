@@ -17,7 +17,7 @@ namespace MiniMC {
 
     class BinaryEncoder {
     public:
-      virtual std::string encode(const char* buf, std::size_t) = 0;
+      virtual std::string encode(std::span<const MiniMC::BV8> span) = 0;
       virtual std::string decode(const std::string& str) = 0;
     };
 
@@ -25,11 +25,11 @@ namespace MiniMC {
 
     class STDEncode : public BinaryEncoder {
     public:
-      std::string encode(const char* buf, std::size_t size) override {
+      std::string encode(std::span<const MiniMC::BV8> span ) override {
 	std::stringstream str;
-	for (size_t i = 0; i < size; ++i) {
+	for (auto& d : span) {
 	  str << std::hex << std::setw(2) << std::setfill('0');
-	  str << static_cast<int> (buf[i] & 0xFF )<< " ";
+	  str << static_cast<int> (d & 0xFF )<< " ";
 	}
 	return str.str ();
       }

@@ -59,9 +59,9 @@ namespace MiniMC {
 	std::copy (oth.buffer.get(),oth.buffer.get()+oth.getSize(),buffer.get()+byte);
       }
       
-      void set_block(std::size_t byte, std::size_t block_size, const MiniMC::BV8* block) {
-        assert(byte + block_size <= size);
-        std::copy(block, block + block_size, buffer.get() + byte);
+      void set_block(std::size_t byte, std::span<const MiniMC::BV8> block_data) {
+	assert(byte + block_data.size() <= size);
+	std::copy(block_data.begin(), block_data.end(), buffer.get() + byte);
       }
 
       void get_block(std::size_t byte, std::size_t block_size, MiniMC::BV8* block)  const {
@@ -78,19 +78,18 @@ namespace MiniMC {
 
       
       
-      const MiniMC::BV8* get_direct_access() const {
+      /*const MiniMC::BV8* get_direct_access() const {
         return buffer.get();
+	}*/
+      const std::span<const MiniMC::BV8> get_direct_access () const {
+	return {buffer.get(), buffer.get()+getSize()};
       }
-      /*
-      MiniMC::BV8* get_direct_access()  {
-        return buffer.get();
-        }*/
       
       std::size_t getSize() const { return size; }
 
       std::ostream& output(std::ostream& os) const {
         MiniMC::Support::STDEncode encoder;
-        return os << encoder.encode(reinterpret_cast<const char*>(buffer.get()), size);
+        return os << encoder.encode(get_direct_access());
       }
       
       MiniMC::Hash::hash_t hash() const {

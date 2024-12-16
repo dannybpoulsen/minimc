@@ -104,10 +104,9 @@ namespace MiniMC {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Concrete::Value> scontext;
 	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,MiniMC::VMT::Concrete::Operations> eval (
 																								       MiniMC::VMT::Concrete::Operations{},
-																								       {const_cast<MiniMC::VMT::Concrete::ActivationStack&> (mixin.getProc(p)),const_cast<MiniMC::VMT::Concrete::Memory&> (getHeap()),scontext} 														       );
+																								       makeEvaluationContext(p) 														       );
 	  return std::make_unique<QExpr> (eval.Eval(val));
 	    
 	}
