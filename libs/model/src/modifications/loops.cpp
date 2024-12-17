@@ -58,7 +58,7 @@ namespace MiniMC {
       bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func) {
         MiniMC::Support::Messager{} << MiniMC::Support::TWarning {(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getSymbol()))};
         auto& cfg = func->getCFA();
-	MiniMC::Model::LocationInfoCreator locc {func->getRegisterDescr ()};
+	MiniMC::Model::LocationInfoCreator locc {func->getRegisterDescr (),func->getFrame()};
         auto loopinfo = MiniMC::Model::Analysis::createLoopInfo(cfg);
         std::vector<MiniMC::Model::Analysis::Loop*> loops;
         loopinfo.enumerate_loops(std::back_inserter(loops));

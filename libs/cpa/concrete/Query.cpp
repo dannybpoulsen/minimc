@@ -13,18 +13,6 @@
 namespace MiniMC {
   namespace CPA {
     namespace Concrete {
-      /*class QExpr : public MiniMC::CPA::QueryExpr {
-      public:
-	QExpr (MiniMC::VMT::Concrete::Value&& val) : value(std::move(val)) {}
-	std::ostream& output (std::ostream& os) const override {
-	  return os << value; 
-	}
-
-	auto getValue () const {return value;}
-	
-      private:
-	MiniMC::VMT::Concrete::Value value;
-	};*/
 
       using QExpr = TQuery<MiniMC::VMT::Concrete::Value>;
       

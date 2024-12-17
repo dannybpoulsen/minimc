@@ -351,7 +351,7 @@ namespace MiniMC {
 	std::unordered_map<std::string,MiniMC::Model::Location_ptr> locations;
 	auto newLocation = [this,&rdescr,&cfa,&locations](const std::string& s, MiniMC::Model::LocFlags flags, MiniMC::Model::Symbol symbol) {
 	  if (!locations.count(s)){
-	    MiniMC::Model::LocationInfo info {flags,rdescr};
+	    MiniMC::Model::LocationInfo info {flags,rdescr,curFrame};
 	    auto loc = cfa.makeLocation (symbol,info);
 	    if (!locations.size ())
 	      cfa.setInitial (loc);
@@ -369,7 +369,7 @@ namespace MiniMC {
 	auto lookupLocation = [this,&rdescr,&cfa,&locations](const std::string& s) {
 	  if (!locations.count(s)){
 	    MiniMC::Model::LocFlags flags {};
-	    MiniMC::Model::LocationInfo info {flags,rdescr};
+	    MiniMC::Model::LocationInfo info {flags,rdescr,curFrame};
 	    auto loc = cfa.makeLocation (MiniMC::Model::Symbol::from_string (s),info);
 	    locations.emplace(s,loc);
 	  }

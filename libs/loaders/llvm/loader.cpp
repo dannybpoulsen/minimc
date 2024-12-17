@@ -154,7 +154,7 @@ namespace MiniMC {
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
         MiniMC::Model::RegisterDescr variablestack;
-        MiniMC::Model::LocationInfoCreator locinfoc(variablestack);
+        MiniMC::Model::LocationInfoCreator locinfoc(variablestack,frame);
    
         auto sp_mem = variablestack.addRegister(frame.makeFresh("sp_mem"), lcontext.getTypeFactory().makePointerType());
 	
@@ -409,7 +409,7 @@ namespace MiniMC {
       auto frame = program.getRootFrame().create(name);
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack;
-      MiniMC::Model::LocationInfoCreator locinf(vstack);
+      MiniMC::Model::LocationInfoCreator locinf(vstack,frame);
 
       auto funcpointer = cfactory->makeSymbolicConstant(function->getSymbol());
       funcpointer->setType(tfactory->makePointerType());

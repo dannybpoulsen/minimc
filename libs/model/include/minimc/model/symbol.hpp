@@ -90,6 +90,8 @@ namespace MiniMC {
 
       //Stupid naming
       std::generator<Symbol> local_symbols () const ;
+      std::generator<Symbol> local_and_parent_symbols () const ;
+      
     private:
       struct Internal;
       Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}

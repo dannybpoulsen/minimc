@@ -31,8 +31,8 @@ namespace MiniMC {
         }
       }
 
-      template<class Iterator>
-      void extractBytes (Iterator it, Iterator end, MiniMC::BV8* dest) {
+      template<class Iterator,class EIterator>
+      void extractBytes (Iterator it, Iterator end, EIterator dest) {
 	std::size_t bitscounted = 0;
 	for (; it != end; ++it,++bitscounted ) {
 	  if (*it) {

@@ -4,6 +4,7 @@
 #include "minimc/hash/hashing.hpp"
 #include "minimc/support/binary_encode.hpp"
 #include <memory>
+#include <span>
 #include <ostream>
 
 namespace MiniMC {
@@ -17,6 +18,11 @@ namespace MiniMC {
         std::fill(buffer.get(), buffer.get() + size, 0);
       }
 
+      Array(std::span<const MiniMC::BV8> span ) : buffer(new MiniMC::BV8[span.size()]), size(span.size()) {
+	std::copy(span.begin(),span.end(),buffer.get());
+      }
+      
+      
       Array(std::size_t s, std::unique_ptr<MiniMC::BV8[]>&& buf) : buffer(std::move(buf)), size(s) {
       }
       
@@ -68,14 +74,14 @@ namespace MiniMC {
 	assert(byte + block_size <= size);
         std::copy(buffer.get() + byte, buffer.get() + byte + block_size, block);
       }
-
+      
       Array get_block(std::size_t byte, std::size_t block_size)  const {
 	Array arr{block_size};
         assert(byte + block_size <= size);
         std::copy(buffer.get() + byte, buffer.get() + byte + block_size, arr.buffer.get());
 	return arr;
       }
-
+      
       
       
       /*const MiniMC::BV8* get_direct_access() const {
@@ -84,6 +90,11 @@ namespace MiniMC {
       const std::span<const MiniMC::BV8> get_direct_access () const {
 	return {buffer.get(), buffer.get()+getSize()};
       }
+
+      std::span<MiniMC::BV8> get_direct_access () {
+	return {buffer.get(), buffer.get()+getSize()};
+      }
+      
       
       std::size_t getSize() const { return size; }
 
@@ -97,8 +108,6 @@ namespace MiniMC {
 	return MiniMC::Hash::Hash(buffer.get(), size, s);
       }
 
-      auto begin () const {return buffer.get ();}
-      auto end () const {return buffer.get ()+size;}
       
       
     private:

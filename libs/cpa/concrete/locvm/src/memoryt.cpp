@@ -43,13 +43,14 @@ namespace MiniMC {
           }
 	}
 	
-        void read(ReadBuffer&& buffer, std::size_t offset) const {
-          if (buffer.size + offset <= content.getSize()) {
-            content.get_block(offset, buffer.size, buffer.buffer);
-          } else
-            throw MiniMC::Support::BufferOverread();
+        
+	std::span<const MiniMC::BV8> read (std::size_t offset, std::size_t size) const {
+	  if (offset+size <= content.getSize()) {
+	    return content.get_direct_access().subspan (offset,offset+size);
+	  }
+	  throw MiniMC::Support::BufferOverread();
+          
 	}
-	
 
         auto hash() const {
 	  MiniMC::Hash::Hasher hash;
@@ -129,33 +130,30 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
 	if (_internal->entries.count(base_pointer)) {
-          auto performRead = [this,base,offset,&base_pointer]<typename T>() {
-            typename T::underlying_type readVal{0};
-	    if constexpr (sizeof(readVal) == 1) {
-	      readVal = _internal->entries.at(base_pointer).content.get_direct_access()[offset]; 
-	    }
-	    else {
-	      _internal->entries.at(base_pointer).read({.buffer = reinterpret_cast<MiniMC::BV8*>(&readVal), .size = sizeof(readVal)}, offset);
-	    }
-            return T{readVal};
-          };
-
+          auto read = _internal->entries.at(base_pointer).read (offset,readType.getSize ());
+	  
+	  
           switch (readType.getTypeID()) {
 	  case MiniMC::Model::TypeID::Bool:
-	    return performRead.template operator()<Value::Bool>();
+	    return Value::Bool{*reinterpret_cast<const Value::Bool::underlying_type*> (read.data())};
 	  case MiniMC::Model::TypeID::I8: 
-	    return performRead.template operator()<Value::I8>();
+	    return Value::I8{*reinterpret_cast<const Value::I8::underlying_type*> (read.data())};
 	  case MiniMC::Model::TypeID::I16:
-	    return performRead.template operator()<Value::I16>();
+	    return Value::I16{*reinterpret_cast<const Value::I16::underlying_type*> (read.data())};
+	    
 	  case MiniMC::Model::TypeID::I32:
-	    return performRead.template operator()<Value::I32>();
+	    return Value::I32{*reinterpret_cast<const Value::I32::underlying_type*> (read.data())};
+	    
 	  case MiniMC::Model::TypeID::I64:
-	    return performRead.template operator()<Value::I64>();
+	    return Value::I64{*reinterpret_cast<const Value::I64::underlying_type*> (read.data())};
+	    
 	  case MiniMC::Model::TypeID::Pointer32:
-	    return performRead.template operator()<Value::Pointer32>();
+	    return Value::Pointer32{*reinterpret_cast<const Value::Pointer32::underlying_type*> (read.data())};
+	    
 	  case MiniMC::Model::TypeID::Pointer:
-	    return performRead.template operator()<Value::Pointer>();
+	    return Value::Pointer{*reinterpret_cast<const Value::Pointer::underlying_type*> (read.data())};
 	  case MiniMC::Model::TypeID::Aggregate:
+	    return Value::Aggregate {read};
 	  default:
 	    throw MiniMC::Support::Exception("Error");
 	    
@@ -165,6 +163,12 @@ namespace MiniMC {
 	
         throw MiniMC::Support::BufferOverread();
       }
+
+      template<class T>
+      std::span<const MiniMC::BV8> make_span (const T& v) {
+	return {reinterpret_cast<const MiniMC::BV8*>(&v),reinterpret_cast<const MiniMC::BV8*>(&v)+sizeof(T)};
+      }
+      
       // First parameter is address to store at, second is the value to state
       void Memory::store(const Value::Pointer& p, const Value::I8& v) {
 	auto pointer = p.getValue();
@@ -173,7 +177,7 @@ namespace MiniMC {
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
         auto offset = MiniMC::Model::getOffset(pointer);
         if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({&value, &value + (value)}, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
 
@@ -184,7 +188,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+ sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
 
@@ -195,7 +199,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value) }, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
 
@@ -206,7 +210,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
 
@@ -228,7 +232,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
 
@@ -239,7 +243,7 @@ namespace MiniMC {
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
 	if (_internal->entries.count(base_pointer)) {
-          _internal->entries.at(base_pointer).write({reinterpret_cast<MiniMC::BV8*>(&value), sizeof(value)}, offset);
+          _internal->entries.at(base_pointer).write(make_span(value), offset);
         }
       }
       

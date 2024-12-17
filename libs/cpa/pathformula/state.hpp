@@ -76,13 +76,17 @@ namespace MiniMC {
       
       class Concretizer : public MiniMC::CPA::Solver {
       public:
-        Concretizer(const State& s, SMTLib::Solver_ptr&& solver) : state(s), solver(std::move(solver)) {
-	  this->solver->assert_formula(state.getPathformula());
+        Concretizer(SMTLib::Solver& solver) : solver(solver) {
+	  solver.push ();
+	}
 
+	~Concretizer()  {
+	  solver.pop ();
 	}
 	
+	
         Feasibility isFeasible() const override {
-          switch (solver->check_sat()) {
+	  switch (solver.check_sat()) {
             case SMTLib::Result::Satis:
               return Feasibility::Feasible;
             case SMTLib::Result::NSatis:
@@ -92,21 +96,22 @@ namespace MiniMC {
           }
         }
 
+	
 	MiniMC::Model::Constant_ptr evaluate(const QueryExpr& expr) const override {
           auto& myexpr = static_cast<const QExpr&>(expr);
           if (isFeasible() == Feasibility::Feasible) {
 	    return MiniMC::VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
 		[this](MiniMC::VMT::Pathformula::Value::I8& val) ->MiniMC::Model::Constant_ptr {
-		  return std::make_shared<MiniMC::Model::I8Integer> (val.interpretValue (*solver));
+		  return std::make_shared<MiniMC::Model::I8Integer> (val.interpretValue (solver));
 		},
-		  [this](MiniMC::VMT::Pathformula::Value::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::Value::I32& val) ->MiniMC::Model::Constant_ptr { return std::make_shared<MiniMC::Model::I32Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::Value::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::Value::Pointer& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer32> (val.interpretValue (*solver));},
-		  [this](MiniMC::VMT::Pathformula::Value::Bool& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Bool> (val.interpretValue (*solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.interpretValue (solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I32& val) ->MiniMC::Model::Constant_ptr { return std::make_shared<MiniMC::Model::I32Integer> (val.interpretValue (solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.interpretValue (solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer> (val.interpretValue (solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Pointer32> (val.interpretValue (solver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Bool& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::Bool> (val.interpretValue (solver));},
 		  [this](MiniMC::VMT::Pathformula::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {
-		    auto res = val.interpretValue (*solver);
+		    auto res = val.interpretValue (solver);
 		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
 		  }
 		  },
@@ -119,14 +124,17 @@ namespace MiniMC {
         }
 
       private:
-        const State& state;
-        SMTLib::Solver_ptr solver;
-      };
 
+        SMTLib::Solver& solver;
+      };
+      
       const Solver_ptr State::getConcretizer() const {
-        auto solver = context.makeSolver();
-	solver->assert_formula(getPathformula());
-        return std::make_shared<Concretizer>(*this, std::move(solver));
+		
+	auto& solver = context.getSolver();
+	auto conc = std::make_shared<Concretizer>(solver);
+	
+	solver.assert_formula(getPathformula());
+	return conc;
       }
 
     } // namespace PathFormula

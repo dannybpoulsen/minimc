@@ -72,7 +72,7 @@ namespace MiniMC {
 	}
       Value Operations::create(const MiniMC::Model::AggregateConstant& val) const {
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
-	for (auto byte : val.getData()) {
+	for (auto byte : val.getData().get_direct_access()) {
 	  chainer >> (builder.makeBVIntConst(byte, 8));
 	}
 	return AggregateValue(chainer.getTerm(), val.getSize());
@@ -254,7 +254,7 @@ namespace MiniMC {
 	  MiniMC::Util::Array res{size()};
 	  
 	  auto aggrres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
-	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.begin());
+	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.get_direct_access().begin());
 	  return res;
 	  
 	}

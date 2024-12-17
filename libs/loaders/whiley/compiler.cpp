@@ -55,7 +55,7 @@ namespace MiniMC {
 	_internal->frame = rootFrame.create ("_main");
 	auto func_name = rootFrame.makeSymbol ("_main");
 	MiniMC::Model::RegisterDescr descr;
-	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr);
+	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,_internal->frame);
 	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->make({}));
 	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
 	_internal->cfa.setInitial (_internal->start);

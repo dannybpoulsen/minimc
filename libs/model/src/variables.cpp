@@ -180,7 +180,8 @@ namespace MiniMC {
 				    [addType](const MiniMC::Model::Pointer& c) {addType(c);},
 				    [addType](const MiniMC::Model::Pointer32& c) {addType(c);},
 				    [&out](const MiniMC::Model::AggregateConstant& aggr) {
-				      out = std::copy(aggr.getData().begin(), aggr.getData().end(), out);
+				      auto span = aggr.getData().get_direct_access ();
+				      out = std::copy(span.begin(), span.end(), out);
 				    },
 				    []([[maybe_unused]]const auto& l) {
 				      std::cerr << l << std::endl;

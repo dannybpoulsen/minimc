@@ -107,7 +107,7 @@ namespace MiniMC {
         MiniMC::Support::WorkingList<std::pair<std::size_t,Edge_ptr>> wlist;
         auto inserter = wlist.inserter();
         auto& cfg = F->getCFA();
-	auto unrollFailed = F->getCFA().makeLocation (F->getFrame ().makeFresh ("UnrollFailed"),MiniMC::Model::LocationInfo{{},F->getRegisterDescr()});
+	auto unrollFailed = F->getCFA().makeLocation (F->getFrame ().makeFresh ("UnrollFailed"),MiniMC::Model::LocationInfo{{},F->getRegisterDescr(),F->getFrame()});
         std::for_each(cfg.getEdges().begin(),
                       cfg.getEdges().end(),
                       [&inserter,depth](const MiniMC::Model::Edge_ptr& e) {

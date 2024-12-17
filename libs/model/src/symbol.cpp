@@ -212,6 +212,19 @@ namespace MiniMC {
 	}
 	
       }
+      
+      std::generator<Symbol> gen_parent_symbols () {
+	for (auto& s : symbols) {
+	  co_yield s.second;
+	}
+
+	auto p = parent.lock();
+	if (p) {
+	  co_yield std::ranges::elements_of (p->gen_parent_symbols());
+	  
+	}
+	
+      }
 
 
       Symbol symb;
@@ -291,13 +304,18 @@ namespace MiniMC {
     std::generator<Symbol> Frame::symbols () const {
       co_yield std::ranges::elements_of(_internal->gen_symbols());
     }
-
+    
     std::generator<Symbol> Frame::local_symbols () const {
       for (auto& s : _internal->symbols) {
 	co_yield s.second;
       }
     }
+
+    std::generator<Symbol> Frame::local_and_parent_symbols () const {
+      co_yield std::ranges::elements_of(_internal->gen_parent_symbols());
+    }
     
+      
     
   }
 }

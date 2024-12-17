@@ -15,7 +15,7 @@ namespace MiniMC {
 	std::for_each(cfg.getEdges().begin(),
                         cfg.getEdges().end(),
 		      [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
-	auto info = MiniMC::Model::LocationInfo{{MiniMC::Model::Attributes::AssertViolated},F->getRegisterDescr()};
+	auto info = MiniMC::Model::LocationInfo{{MiniMC::Model::Attributes::AssertViolated},F->getRegisterDescr(),F->getFrame()};
 	auto eloc = cfg.makeLocation(frame.makeFresh (),info);
 	eloc->getInfo().getFlags () |= MiniMC::Model::Attributes::AssertViolated;
 	
@@ -26,7 +26,7 @@ namespace MiniMC {
 		[&instrs,&cfg,&frame,&E,&eloc,&F](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::Assert>& instr) {
 		  auto val = instr.getOps ().expr;
 		  instrs.erase((instrs.rbegin() + 1).base());
-		  MiniMC::Model::LocationInfo info{ {},F->getRegisterDescr()};
+		  MiniMC::Model::LocationInfo info{ {},F->getRegisterDescr(),F->getFrame()};
 		  auto nloc = cfg.makeLocation(frame.makeFresh (), info);
 		  auto ttloc = E->getTo();
 		  

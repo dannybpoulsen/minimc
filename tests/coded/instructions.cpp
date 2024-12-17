@@ -27,8 +27,8 @@ TEST_CASE("Add") {
 
   MiniMC::Model::CFA cfa{};
   auto frame = prgm.getRootFrame ().create ("KK");
-  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr});
-  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr});
+  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
+  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
   cfa.setInitial (init);
   {  
     MiniMC::Model::EdgeBuilder builder{cfa,init,end,frame};

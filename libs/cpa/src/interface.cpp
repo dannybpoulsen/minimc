@@ -89,10 +89,15 @@ namespace MiniMC {
       
       for (std::size_t p = 0; p < nbProcs; p++) {
 	std::vector<EvalStruct> values;
-	for (const auto& p: prgm.getRootFrame().local_symbols ()) {
+	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
 	  std::visit (MiniMC::Support::Overload {
 	      [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
-		[&values,&p](const MiniMC::Model::HeapBlock_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
+		[this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
+		  auto aggr = MiniMC::Model::TypeFactory64{}.makeAggregateType (w.lock()->size);
+		  auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
+		  values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (constant,aggr));
+		  
+		},
 		MiniMC::Support::Ignore{}
 	    },
 	    p.getUserData()
