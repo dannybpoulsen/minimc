@@ -29,7 +29,8 @@ namespace MiniMC {
       I64,
       Pointer,
       Pointer32,
-      Aggregate
+      Aggregate,
+      Memory
     };
 
     std::ostream& operator<< (std::ostream& os, TypeID id);
@@ -77,6 +78,12 @@ namespace MiniMC {
     struct Type_trait<TypeID::Void> {
       constexpr static std::size_t bitwidth () {return 0;}
     };
+
+    template<>
+    struct Type_trait<TypeID::Memory> {
+      constexpr static std::size_t bitwidth () {return std::numeric_limits<std::size_t>::max ();}
+    };
+    
     
     template<TypeID id>
     constexpr std::size_t BitWidth = Type_trait<id>::bitwidth();
@@ -156,8 +163,10 @@ namespace MiniMC {
       virtual const Type_ptr makeBoolType() = 0;
       virtual const Type_ptr makePointerType() = 0;
       virtual const Type_ptr makeVoidType() = 0;
-
+      
       virtual const Type_ptr makeAggregateType(size_t t) = 0;
+      virtual const Type_ptr makeMemoryType() = 0;
+    
     };
     
     using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
@@ -169,11 +178,13 @@ namespace MiniMC {
     public:
       TypeFactory64();
       ~TypeFactory64();
-      virtual const Type_ptr makeIntegerType(size_t t);
-      virtual const Type_ptr makeBoolType();
-      virtual const Type_ptr makePointerType();
-      virtual const Type_ptr makeVoidType();
-      virtual const Type_ptr makeAggregateType(size_t);
+      virtual const Type_ptr makeIntegerType(size_t t) override;
+      virtual const Type_ptr makeBoolType() override;
+      virtual const Type_ptr makePointerType() override;
+      virtual const Type_ptr makeVoidType() override;
+      virtual const Type_ptr makeAggregateType(size_t) override;
+      virtual const Type_ptr makeMemoryType() override;
+    
       
     private:
       struct Inner;

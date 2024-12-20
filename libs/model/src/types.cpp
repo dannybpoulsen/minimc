@@ -1,3 +1,4 @@
+#include <limits>
 #include <unordered_map>
 
 #include "minimc/model/types.hpp"
@@ -37,63 +38,10 @@ namespace MiniMC {
     using PointerType = TType<TypeID::Pointer>;
     using Pointer32Type = TType<TypeID::Pointer32>;
     using BoolType = TType<TypeID::Bool>;
+    using MemoryType = TType<TypeID::Memory>;
     
     
-    /*class IntegerType : public Type {
-    public:
-      IntegerType(size_t b,TypeID id) : Type(id),
-                              bytes(b) {}
-      std::size_t getSize() const override { return bytes; }
-      std::ostream& output(std::ostream& os) const override  {
-	std::ostream copy (os.rdbuf());
-	copy << std::dec << std::noshowbase <<  "Int" << bytes * 8;
-	return os;
-      }
-      bool isInteger () const override {return true;}
-    protected:
-      bool innerEq(const Type& t) const override {
-        return bytes == static_cast<const IntegerType&>(t).bytes;
-      }
-      
-    private:
-      size_t bytes;
-    };
 
-    
-#ifdef MINIMC32
-    class PointerType : public Type {
-    public:
-      PointerType() : Type(TypeID::Pointer32) {}
-      std::size_t getSize() const { return sizeof(MiniMC::Model::pointer32_t); }
-      std::ostream& output(std::ostream& os) const { return os << "Pointer32"; }
-      bool innerEq(const Type& ) const override  { return true; }
-    };
-#else
-    class PointerType : public Type {
-    public:
-      PointerType() : Type(TypeID::Pointer) {}
-      std::size_t getSize() const { return sizeof(MiniMC::Model::pointer_t); }
-      std::ostream& output(std::ostream& os) const { return os << "Pointer"; }
-      bool innerEq(const Type& ) const override  { return true; }
-    };
-#endif
-    
-class BoolType : public Type {
-    public:
-      BoolType() : Type(TypeID::Bool) {}
-      std::size_t getSize() const { return 1; }
-      std::ostream& output(std::ostream& os) const { return os << "Bool"; }
-      bool innerEq(const Type&) const override { return true; }
-    };
-
-    class VoidType : public Type {
-    public:
-      VoidType() : Type(TypeID::Void) {}
-      std::size_t getSize() const { return 0; }
-      std::ostream& output(std::ostream& os) const { return os << "Void"; }
-      bool innerEq(const Type&) const override { return true; }
-    };
-    */
     class AggregateType : public Type {
     public:
       AggregateType(size_t size) :  size(size) {}
@@ -112,6 +60,9 @@ class BoolType : public Type {
       std::size_t size;
     };
 
+
+
+    
     struct TypeFactory64::Inner {
       Inner() : vt(new VoidType()),
                 bt(new BoolType()),
@@ -119,7 +70,9 @@ class BoolType : public Type {
                 i8(new I8Type()),
                 i16(new I16Type()),
                 i32(new I32Type()),
-                i64(new I64Type()) {}
+                i64(new I64Type()),
+		mem(new MemoryType())
+      {}
       Type_ptr vt;
       Type_ptr bt;
       Type_ptr pt;
@@ -127,6 +80,8 @@ class BoolType : public Type {
       Type_ptr i16;
       Type_ptr i32;
       Type_ptr i64;
+      Type_ptr mem;
+      
       std::unordered_map<size_t, Type_ptr> arrays;
     };
 
@@ -152,6 +107,8 @@ class BoolType : public Type {
 
     const Type_ptr TypeFactory64::makeBoolType() { return impl->bt; }
     const Type_ptr TypeFactory64::makePointerType() { return impl->pt; }
+    const Type_ptr TypeFactory64::makeMemoryType() { return impl->mem; }
+    
     const Type_ptr TypeFactory64::makeVoidType() { return impl->vt; }
     const Type_ptr TypeFactory64::makeAggregateType(size_t t) {
       if (!impl->arrays.count(t)) {
