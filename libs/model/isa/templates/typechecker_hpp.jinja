@@ -81,8 +81,9 @@ namespace MiniMC {
       	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
       	  [this](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return tfactory->makePointerType();},
      	  [this](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();},
-      	  [this](const std::monostate& ) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();}
-	}
+	  [this](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();},
+	  [this](const std::monostate& ) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();}
+	  	}
 	    ,i.getValue().getUserData());
 	  i.setType(type);
 	  return i.getType();
