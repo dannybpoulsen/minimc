@@ -21,26 +21,31 @@ namespace MiniMC {
 	Memory ();
 	Memory (const Memory&);
 	~Memory ();
-        Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const;
+	Memory& operator=(Memory&& m);
+	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const;
         // First parameter is address to store at, second is the value to state
-        void store(const Value::Pointer&, const Value::I8&) ;
-	void store(const Value::Pointer&, const Value::I16&) ;
-        void store(const Value::Pointer&, const Value::I32&) ;
-        void store(const Value::Pointer&, const Value::I64&) ;
-	void store(const Value::Pointer&, const Value::Aggregate&) ;
-	void store(const Value::Pointer&, const Value::Pointer&) ;
-	void store(const Value::Pointer&, const Value::Pointer32&) ;
+        Memory store(const Value::Pointer&, const Value::I8&) ;
+	Memory store(const Value::Pointer&, const Value::I16&) ;
+        Memory store(const Value::Pointer&, const Value::I32&) ;
+        Memory store(const Value::Pointer&, const Value::I64&) ;
+	Memory store(const Value::Pointer&, const Value::Aggregate&) ;
+	Memory store(const Value::Pointer&, const Value::Pointer&) ;
+	Memory store(const Value::Pointer&, const Value::Pointer32&) ;
 	MiniMC::Hash::hash_t hash () const;
 	
 	// PArameter is size to allocate
-	Value::Pointer alloca(const Value::I64&) ;
+	Memory allocate(const Value::Pointer&,const Value::I64&) ;	
+	Value::Pointer find_space(const Value::I64&) ;
 	
         void free(const Value::Pointer&);
         void createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>&);
-	
+
+      protected:
+	Memory deep_copy () const;
       private:
         struct internal;
-        std::unique_ptr<internal> _internal;
+	std::shared_ptr<internal> _internal;
+	
       };
             
       class PathControl  {

@@ -66,7 +66,8 @@ namespace MiniMC {
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
 		[&state,&addr]<typename V>(const V& t) requires (!Boolean<T,V>) {
-		  state.getMemory().store(addr, t);
+		  auto mem = state.getMemory().store(addr, t);
+		  state.setMemory(std::move (mem));
 		},
 		MiniMC::Support::Error<void> {}
 	      },

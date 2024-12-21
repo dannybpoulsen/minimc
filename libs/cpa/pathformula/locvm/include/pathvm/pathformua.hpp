@@ -23,28 +23,34 @@ namespace MiniMC {
       //PathFormulaState, 
       using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations> ;
       
+      struct Inner {
+	Inner (SMTLib::TermBuilder& b) : b(b) {}SMTLib::TermBuilder& b;
+      };
+      
       class Memory  {
       public:
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
-	
+	Memory& operator= (Memory&& m) = default;
 	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
         // First parameter is address to store at, second is the value to state
-        void store(const Value::Pointer&, const Value::I8&) ;
-	void store(const Value::Pointer&, const Value::I16&) ;
-        void store(const Value::Pointer&, const Value::I32&) ;
-        void store(const Value::Pointer&, const Value::I64&) ;
-	void store(const Value::Pointer&, const Value::Aggregate&) ;
-	void store(const Value::Pointer&, const Value::Pointer&) ;
-	void store(const Value::Pointer&, const Value::Pointer32&) ;
+        Memory store(const Value::Pointer&, const Value::I8&) ;
+	Memory store(const Value::Pointer&, const Value::I16&) ;
+        Memory store(const Value::Pointer&, const Value::I32&) ;
+        Memory store(const Value::Pointer&, const Value::I64&) ;
+	Memory store(const Value::Pointer&, const Value::Aggregate&) ;
+	Memory store(const Value::Pointer&, const Value::Pointer&) ;
+	Memory store(const Value::Pointer&, const Value::Pointer32&) ;
 	
 	// PArameter is size to allocate
-	Value::Pointer alloca(const Value::I64&) ;
+	Memory allocate(const Value::Pointer&, const Value::I64&) ;
+	Value::Pointer  find_space(const Value::I64&) ;
+	
 	
         void free(const Value::Pointer&)  {}
         void createHeapLayout(const MiniMC::Model::HeapLayout&, MiniMC::CPA::Common::StaticContext<Value>&) ;
       private:
-	SMTLib::TermBuilder& builder;
+	SMTLib::TermBuilder* builder;
 	MiniMC::Model::base_t next_block = 0;
 	SMTLib::Term_ptr mem_var{nullptr};
       };

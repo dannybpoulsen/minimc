@@ -89,7 +89,8 @@ namespace MiniMC {
       {mem.store (p,aggr)};
       {mem.store (p,ptr)};
       {mem.store (p,ptr32)};
-      {mem.alloca(i64)}->std::convertible_to<typename T::Pointer>;
+      {mem.find_space(i64)}->std::convertible_to<typename T::Pointer>;
+      {mem.allocate(ptr,i64)};
       {mem.free (p)};
       {mem.load (p,ty)}->std::convertible_to<T>;
     };
@@ -285,6 +286,7 @@ namespace MiniMC {
     template<class State,typename T>
     concept HasMemory = requires (State& state) {
       {state.getMemory ()} ->Memory<T>;
+      
     };
 
     template<class State,typename T>

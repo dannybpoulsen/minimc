@@ -3,7 +3,6 @@
 #include "minimc/smt/smt.hpp"
 #include "plugin.hpp"
 #ifdef MINIMC_SYMBOLIC
-#include "minimc/cpa/pathformula.hpp"
 #endif
 #include "minimc/cpa/concrete.hpp"
 #include "minimc/loaders/loader.hpp"

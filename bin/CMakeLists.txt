@@ -7,7 +7,9 @@ endif(ENABLE_SYMBOLIC)
 
 #add_subdirectory (interpreter)
 
-add_executable (minimc minimc.cpp mc.cpp plugin.cpp options.cpp convert.cpp symex.cpp symbolc.cpp)
+add_executable (minimc minimc.cpp mc.cpp plugin.cpp options.cpp convert.cpp
+symex.cpp
+symbolc.cpp)
 
 target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})
 target_link_options (minimc PUBLIC "-Wl,--no-as-needed")

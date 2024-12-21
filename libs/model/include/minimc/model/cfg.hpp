@@ -163,7 +163,9 @@ namespace MiniMC {
     class Program  {
     public:
       Program()  : cpu_regs(RegType::CPU),
-		  meta_regs(RegType::Meta) {}
+		   meta_regs(RegType::Meta),
+		   pers_regs(RegType::Persistent)
+      {}
 
       Program (const Program&) = delete ;
       Program (Program&&) = default;
@@ -226,6 +228,8 @@ namespace MiniMC {
       
       auto& getCPURegs () {return cpu_regs;}
       const auto& getCPURegs () const  {return cpu_regs;}
+      auto& getPersistentRegs () {return pers_regs;}
+      const auto& getPersistentRegs () const  {return pers_regs;}
       auto& getMetaRegs () {return meta_regs;}
       const auto& getMetaRegs () const  {return meta_regs;}
       
@@ -240,6 +244,7 @@ namespace MiniMC {
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;
       MiniMC::Model::RegisterDescr meta_regs;
+      MiniMC::Model::RegisterDescr pers_regs;
       MiniMC::Model::Frame frame{"prgm"};
       
     };

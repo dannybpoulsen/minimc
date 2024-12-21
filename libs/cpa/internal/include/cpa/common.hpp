@@ -96,6 +96,8 @@ namespace MiniMC {
 	case MiniMC::Model::RegType::Local: return frames.back().getValueOfRegister(reg);
 	case MiniMC::Model::RegType::CPU: return frames.front().getValueOfRegister(reg);
 	case MiniMC::Model::RegType::Meta: return (*metas)[reg];
+	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");
+		  
 	default:
 	  std::unreachable();
 	  
@@ -107,7 +109,7 @@ namespace MiniMC {
 	case MiniMC::Model::RegType::Local: frames.back().setValueOfRegister (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   frames.front().setValueOfRegister (v,std::move(value));break;
 	case MiniMC::Model::RegType::Meta: metas->set(v,std::move(value));break;
-	  
+	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");  
 	default:
 	  std::unreachable();
 	}
@@ -153,9 +155,12 @@ namespace MiniMC {
     template<class Value,class Memory>
     class EvaluationContext {
     public:
-      EvaluationContext (ActivationStack<Value>& values, Memory& memory,StaticContext<Value>& scontext) : values(values),memory(memory),scontext(scontext) {}
+      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, Memory& memory,StaticContext<Value>& scontext) : values(values),persistent(pers),memory(memory),scontext(scontext) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
+	if (reg.getRegType () == MiniMC::Model::RegType::Persistent) {
+	  return persistent.getValueOfRegister (reg);
+	}
 	return values.lookupRegister(reg);
       }
 
@@ -173,7 +178,11 @@ namespace MiniMC {
       }
       
       void saveValue(const MiniMC::Model::Register& reg, Value&& value)  {
-	values.saveValue(reg,std::move(value));
+	if (reg.getRegType () == MiniMC::Model::RegType::Persistent) {
+	  return persistent.setValueOfRegister  (reg,std::move(value));
+	}
+	else 
+	  values.saveValue(reg,std::move(value));
       }
 
       Value load (const Value::Pointer p, const MiniMC::Model::Type& t) const {
@@ -181,7 +190,8 @@ namespace MiniMC {
       }
       
     private:
-      ActivationStack<Value>& values; 
+      ActivationStack<Value>& values;
+      ActivationRecord<Value>& persistent; 
       Memory& memory;
       StaticContext<Value>& scontext;
     };
@@ -221,9 +231,11 @@ namespace MiniMC {
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
-		  Mem&& mem
-		  ,std::shared_ptr<StaticContext<Value> >&& scontext = nullptr
+		  Mem&& mem,
+		  ActivationRecord<Value>&& persistent,
+		  std::shared_ptr<StaticContext<Value> >&& scontext = nullptr
 		  ) : stacks(std::move(stacks)),
+		      persistent(std::move(persistent)),
 		      memory(std::move(mem)),
 		      scontext(std::move(scontext))
       {}
@@ -236,6 +248,10 @@ namespace MiniMC {
       static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops,Mem&& heap) {
 	std::vector<ActivationStack<Value>> stack;
 	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
+	ActivationRecord<Value> persistent {descr.getProgram().getPersistentRegs ().getTotalRegisters(),nullptr,nullptr};
+	for (auto& v : descr.getProgram().getPersistentRegs().getRegisters()) {
+	  persistent.setValueOfRegister(v,ops.defaultValue (*v.getType()));
+	 }
 	for (auto& f : descr.getEntries()) {
           auto& vstack = f.getFunction()->getRegisterDescr();
 	  
@@ -245,7 +261,7 @@ namespace MiniMC {
 
 	  
 	  
-	  EvaluationContext<Value,Mem> regstore {cs,heap,*_scontext};
+	  EvaluationContext<Value,Mem> regstore {cs,persistent,heap,*_scontext};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -296,7 +312,7 @@ namespace MiniMC {
 	    }
 	}
 	
-	return StateMixin {std::move(stack),std::move(heap),std::move(_scontext)}; 
+	return StateMixin {std::move(stack),std::move(heap),std::move(persistent),std::move(_scontext)}; 
       }
       
       MiniMC::Hash::hash_t hash() const {
@@ -320,11 +336,12 @@ namespace MiniMC {
       MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
       
       auto makeEvaluationContext (proc_id id) const {
-	return EvaluationContext (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<Mem&>(memory),*scontext);
+	return EvaluationContext (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),const_cast<Mem&>(memory),*scontext);
       }
       
     private:
       std::vector<ActivationStack<Value> > stacks;
+      ActivationRecord<Value> persistent;
       Mem memory;
       std::shared_ptr<StaticContext<Value> > scontext;
     };
@@ -335,6 +352,8 @@ namespace MiniMC {
       VMState (Mem& m, PathC& path, stackC& stack,Eval&& vlook) : memory(m),control(path),scontrol(stack),lookup(std::move(vlook)) {}
       auto& getValueLookup () {return lookup;}
       auto& getMemory () {return memory;}
+      void  setMemory (Mem&& m) {memory = std::move(m);}
+      
       auto& getPathControl ()  {return control;}
       auto& getStackControl ()  {return scontrol;}
     private:

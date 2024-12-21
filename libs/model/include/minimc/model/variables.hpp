@@ -321,7 +321,8 @@ namespace MiniMC {
     enum class RegType {
       CPU,
       Local,
-      Meta
+      Meta,
+      Persistent
     };
     
     class RegisterInfo {
