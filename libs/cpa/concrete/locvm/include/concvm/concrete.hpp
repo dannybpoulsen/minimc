@@ -39,8 +39,7 @@ namespace MiniMC {
 	Value::Pointer find_space(const Value::I64&) ;
 	
         void free(const Value::Pointer&);
-        void createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>&);
-
+        
       private:
         MemoryValue mvalue;
       };

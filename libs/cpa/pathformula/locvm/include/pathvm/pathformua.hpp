@@ -69,7 +69,6 @@ namespace MiniMC {
 	
 	
         void free(const Value::Pointer&)  {}
-        void createHeapLayout(const MiniMC::Model::HeapLayout&, MiniMC::CPA::Common::StaticContext<Value>&) ;
       private:
 	SMTLib::TermBuilder* builder;
 	MemoryValue mem;

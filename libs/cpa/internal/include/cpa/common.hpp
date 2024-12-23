@@ -1,6 +1,7 @@
 #ifndef _CPA_COMMON__
 #define _CPA_COMMON__
 
+#include "minimc/model/variables.hpp"
 #include "minimc/vm/vmt.hpp"
 #include "minimc/cpa/state.hpp"
 #include "minimc/cpa/interface.hpp"
@@ -289,12 +290,27 @@ namespace MiniMC {
         }
 
 	auto eval = MiniMC::VMT::makeEvaluator<Value> (DummyRegisterStore<Value>{*_scontext},ops);
-	heap.createHeapLayout (descr.getHeap (),*_scontext);
 	
 	for (auto& b : descr.getHeap ().blocks()) {
+	  //Allocate block here
+	  auto ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
+	  auto size = eval.Eval (MiniMC::Model::I64Integer (b.size));
+	  Value::visit (MiniMC::Support::Overload {
+	      [&heap,&_scontext,&b](const Value::Pointer& ptr, const Value::I64& size)  {
+		heap = heap.allocate (ptr,size);
+		_scontext->addSymbol (b.symbol,ptr);
+		
+	      },
+		[](const auto&, const auto&) {
+		  throw MiniMC::Support::Exception ("Error");
+		}
+		},
+	    ptr,size);
+	  
 	  if (b.value) {
 	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
             Value valueToStor = eval.Eval(*b.value);
+	    
 	    Value::visit (MiniMC::Support::Overload {
 		[&heap,&_scontext]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
 		  

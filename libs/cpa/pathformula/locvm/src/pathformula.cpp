@@ -145,22 +145,6 @@ namespace MiniMC {
 	mem = MemoryValue (0,mem_var);
       }
 
-      void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl,MiniMC::CPA::Common::StaticContext<Value>&  symb) {
-	auto next_block = mem.getNextBlock ();
-	
-	for (auto& block : hl.blocks()) {
-	  auto baseobj = MiniMC::Model::getBase(block.baseobj);
-	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
-	  MiniMC::Util::PointerHelper helper {builder};
-	 
-	  symb.addSymbol (block.symbol,Value::Pointer{helper.makeHeapPointer(baseobj,0)});
-	  
-	}
-
-	mem = MemoryValue (next_block,mem.getMemVar ());
-
-      }
-
       template<std::size_t PtrWidth>
       SMTLib::Term_ptr write(size_t bytes, SMTLib::TermBuilder& t, const SMTLib::Term_ptr& arr, const SMTLib::Term_ptr& startInd, const SMTLib::Term_ptr& content) {
 	auto carr = arr;
