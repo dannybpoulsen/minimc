@@ -70,6 +70,70 @@ namespace MiniMC {
 	}
       }
 
+
+      enum class EntryState {
+        InUse = 2,
+        Freed = 4
+      };
+      struct HeapEntry {
+        HeapEntry(std::size_t size) : state(EntryState::InUse),
+				      content(size) {
+        }
+
+        
+	void write(const std::span<const MiniMC::BV8> buffer, std::size_t offset) {
+          assert(state == EntryState::InUse);
+	  
+	  if (buffer.size () + offset <= content.getSize()) {
+            content.set_block(offset, buffer);
+          } else {
+            throw MiniMC::Support::BufferOverflow();
+          }
+	}
+	
+        
+	std::span<const MiniMC::BV8> read (std::size_t offset, std::size_t size) const {
+	  if (offset+size <= content.getSize()) {
+	    return content.get_direct_access().subspan (offset,offset+size);
+	  }
+	  throw MiniMC::Support::BufferOverread();
+          
+	}
+
+        auto hash() const {
+	  MiniMC::Hash::Hasher hash;
+	  hash << static_cast<MiniMC::Hash::seed_t>(state) << content;
+	  return hash;
+        }
+
+        auto size() const { return content.getSize(); }
+
+        void setState(EntryState state) {
+          this->state = state;
+        }
+
+        EntryState state;
+        MiniMC::Util::Array content;
+      };
+      
+      class MemoryValue {
+      private:
+	
+	struct internal;
+	std::shared_ptr<internal> _internal;
+	
+      public:
+	MemoryValue ();
+	MemoryValue (std::shared_ptr<internal>&& );
+	MemoryValue (const MemoryValue&);
+	MemoryValue (MemoryValue&&);
+	
+	MemoryValue& operator= (MemoryValue&&);
+	auto& getInternal () const {return *_internal;}
+	MemoryValue deep_copy () const;
+	
+      };
+      
       using Value = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
                                                     TValue<MiniMC::BV16>,
                                                     TValue<MiniMC::BV32>,

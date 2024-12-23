@@ -18,7 +18,14 @@ namespace MiniMC {
     concept is_same = 
     (... && std::is_same<T, Ts>::value);
     
-    template<typename Int8,typename Int16,typename Int32,typename Int64, typename PointerT, typename Pointer32T, typename BoolT,typename Ag>
+    template<typename Int8,
+	     typename Int16,
+	     typename Int32,
+	     typename Int64,
+	     typename PointerT,
+	     typename Pointer32T,
+	     typename BoolT,
+	     typename Ag>
     struct GenericVal {
       using I8 = Int8;
       using I16 = Int16;

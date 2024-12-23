@@ -23,14 +23,35 @@ namespace MiniMC {
       //PathFormulaState, 
       using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations> ;
       
-      struct Inner {
-	Inner (SMTLib::TermBuilder& b) : b(b) {}SMTLib::TermBuilder& b;
+      
+      
+
+      class MemoryValue {
+      public:
+	MemoryValue () {}
+        MemoryValue (MiniMC::Model::base_t next_block,SMTLib::Term_ptr mem_var) : next_block(next_block),mem_var(mem_var) {}
+
+	MemoryValue (const MemoryValue&) = default;
+	MemoryValue (MemoryValue&&) = default;
+
+	MemoryValue& operator= (const MemoryValue& ) = default;
+	MemoryValue& operator= (MemoryValue&& ) = default;
+	
+	
+	auto& getMemVar () const {return mem_var;}
+	auto getNextBlock () const {return next_block;}
+	
+      private:
+	MiniMC::Model::base_t next_block = 0;
+	SMTLib::Term_ptr mem_var{nullptr};
+	
       };
       
       class Memory  {
       public:
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
+	Memory (MemoryValue&& v, SMTLib::TermBuilder& b) : builder(&b),mem(std::move(v)) {}
 	Memory& operator= (Memory&& m) = default;
 	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
         // First parameter is address to store at, second is the value to state
@@ -51,8 +72,7 @@ namespace MiniMC {
         void createHeapLayout(const MiniMC::Model::HeapLayout&, MiniMC::CPA::Common::StaticContext<Value>&) ;
       private:
 	SMTLib::TermBuilder* builder;
-	MiniMC::Model::base_t next_block = 0;
-	SMTLib::Term_ptr mem_var{nullptr};
+	MemoryValue mem;
       };
 
 

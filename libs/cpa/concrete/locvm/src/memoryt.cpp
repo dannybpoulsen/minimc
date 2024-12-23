@@ -4,60 +4,8 @@
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-      struct ReadBuffer {
-        MiniMC::BV8* buffer;
-        std::size_t size;
-      };
+      
 
-      struct WriteBuffer {
-        const MiniMC::BV8* buffer;
-        std::size_t size;
-      };
-
-      enum class EntryState {
-        InUse = 2,
-        Freed = 4
-      };
-      struct HeapEntry {
-        HeapEntry(std::size_t size) : state(EntryState::InUse),
-				      content(size) {
-        }
-
-        	
-	void write(const std::span<const MiniMC::BV8> buffer, std::size_t offset) {
-          assert(state == EntryState::InUse);
-	  
-	  if (buffer.size () + offset <= content.getSize()) {
-            content.set_block(offset, buffer);
-          } else {
-            throw MiniMC::Support::BufferOverflow();
-          }
-	}
-	
-        
-	std::span<const MiniMC::BV8> read (std::size_t offset, std::size_t size) const {
-	  if (offset+size <= content.getSize()) {
-	    return content.get_direct_access().subspan (offset,offset+size);
-	  }
-	  throw MiniMC::Support::BufferOverread();
-          
-	}
-
-        auto hash() const {
-	  MiniMC::Hash::Hasher hash;
-	  hash << static_cast<MiniMC::Hash::seed_t>(state) << content;
-	  return hash;
-        }
-
-        auto size() const { return content.getSize(); }
-
-        void setState(EntryState state) {
-          this->state = state;
-        }
-
-        EntryState state;
-        MiniMC::Util::Array content;
-      };
     } // namespace Concrete
   }   // namespace VMT
 } // namespace MiniMC
@@ -84,7 +32,20 @@ namespace std {
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-      struct Memory::internal {
+      MemoryValue::MemoryValue () : _internal(std::make_shared<internal> ()) {}
+      MemoryValue::MemoryValue (const MemoryValue& v) : _internal(v._internal) {}
+      MemoryValue::MemoryValue (MemoryValue&& v) : _internal(std::move(v._internal)) {}
+      MemoryValue::MemoryValue (std::shared_ptr<internal>&& v) : _internal(v) {}
+      
+      MemoryValue& MemoryValue::operator= (MemoryValue&& m) {
+	_internal = std::move(m._internal);
+	return *this;
+      }
+      MemoryValue MemoryValue::deep_copy () const {
+	return {std::make_shared<internal> (*_internal)};
+}
+      
+      struct MemoryValue::internal {
 	MiniMC::Model::pointer_t allocate (const Value::I64& size) {
 	  auto pointer = MiniMC::Model::pointer_t::makeHeapPointer(next, 0);
 	  return allocate (size,pointer);
@@ -111,21 +72,20 @@ namespace MiniMC {
 	std::vector<MiniMC::Model::pointer_t> allocated_ptrs;
 	MiniMC::Model::base_t next{0};
       };
-      Memory::Memory() : _internal(std::make_shared<internal>()) {}
-      Memory::Memory(const Memory& m) : _internal(m._internal) {
+      
+      Memory::Memory()  {}
+      Memory::Memory(const Memory& m) : mvalue(m.mvalue) {
       }
       Memory::~Memory() {}
 
+      
+      
       Memory& Memory::operator=(Memory&& m) {
-	_internal=std::move(m._internal);
+	mvalue=std::move(m.mvalue);
 	return *this;
       }
       
-      Memory Memory::deep_copy () const {
-	Memory m;
-	m._internal = std::make_shared<internal> (*_internal);
-	return m;
-      }
+    
 
       
       Value Memory::load(const typename Value::Pointer& p, const MiniMC::Model::Type& readType) const {
@@ -135,8 +95,8 @@ namespace MiniMC {
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
-	if (_internal->entries.count(base_pointer)) {
-          auto read = _internal->entries.at(base_pointer).read (offset,readType.getSize ());
+	if (mvalue.getInternal().entries.count(base_pointer)) {
+          auto read = mvalue.getInternal().entries.at(base_pointer).read (offset,readType.getSize ());
 	  
 	  
           switch (readType.getTypeID()) {
@@ -177,105 +137,105 @@ namespace MiniMC {
       
       // First parameter is address to store at, second is the value to state
       Memory Memory::store(const Value::Pointer& p, const Value::I8& v) {
-	Memory m = deep_copy();
+	MemoryValue m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
         auto offset = MiniMC::Model::getOffset(pointer);
-        if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(make_span(value), offset);
+        if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::I16& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(make_span(value), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::I32& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
 	auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(make_span(value), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::I64& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(make_span(value), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::Aggregate& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(value.get_direct_access(), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(value.get_direct_access(), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::Pointer& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-          m._internal->entries.at(base_pointer).write(make_span(value), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
 
       Memory Memory::store(const Value::Pointer& p, const Value::Pointer32& v) {
-	Memory m = deep_copy();
+	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
 	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m._internal->entries.count(base_pointer)) {
-	  m._internal->entries.at(base_pointer).write(make_span(value), offset);
+	if (m.getInternal().entries.count(base_pointer)) {
+	  m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
         }
-	return m;
+	return {std::move(m)};
       }
       
       // PArameter is size to allocate
       Memory Memory::allocate(const Value::Pointer& pointer, const Value::I64& size) {
-	Memory m = deep_copy();
-	m._internal->allocate (size,pointer.getValue());
-	return m;
+	MemoryValue m = mvalue.deep_copy();
+	m.getInternal().allocate (size,pointer.getValue());
+	return {std::move(m)};
       }
       
       Value::Pointer Memory::find_space(const Value::I64& size) {
-        return Value::Pointer(_internal->find_space(size));
+        return Value::Pointer(mvalue.getInternal().find_space(size));
       }
       
       void Memory::free(const Value::Pointer&) {
@@ -283,15 +243,15 @@ namespace MiniMC {
 
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>& val) {
 	for (auto block : layout.blocks()) {
-	  auto ptr = _internal->allocate (block.size, block.baseobj);
+	  auto ptr = mvalue.getInternal().allocate (block.size, block.baseobj);
 	  val.addSymbol (block.symbol,Value::Pointer(ptr));
 	}
       }
       
       MiniMC::Hash::hash_t Memory::hash() const {
 	MiniMC::Hash::Hasher hash;
-	for (auto& ptr : _internal->allocated_ptrs) {
-	  hash << _internal->entries.at (ptr);
+	for (auto& ptr : mvalue.getInternal().allocated_ptrs) {
+	  hash << mvalue.getInternal().entries.at (ptr);
 	}
 	return hash;
       }

@@ -98,7 +98,7 @@ namespace MiniMC {
 	for (size_t i = 0; i < t.getSize (); ++i) {
 	  auto ones = builder->makeBVIntConst(i, Value::Pointer::intbitsize());
 	  auto curind = builder->buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
-	  concat << builder->buildTerm(SMTLib::Ops::Select, {mem_var, curind});
+	  concat << builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
         }
 	switch (t.getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
@@ -125,14 +125,15 @@ namespace MiniMC {
       }
 
       Memory  Memory::allocate(const Value::Pointer& , const Value::I64&) {
-	Memory m{*this};
-	m.next_block++;
-	return m;
+	//Memory m{*this};
+	//m.next_block++;
+	//return m;
+	return Memory (MemoryValue (mem.getNextBlock()+1,mem.getMemVar()),*builder);
       }
       
       Value::Pointer  Memory::find_space(const Value::I64&) {
 	MiniMC::Util::PointerHelper helper {builder};
-	return helper.makeHeapPointer (++next_block,0);
+	return helper.makeHeapPointer (mem.getNextBlock(),0);
       }
 	
 
@@ -140,10 +141,13 @@ namespace MiniMC {
 	auto arr_sort = builder->makeSort(
 					 SMTLib::SortKind::Array, {builder->makeBVSort(Value::Pointer::intbitsize()),
 								   builder->makeBVSort(8)});
-	mem_var = builder->makeVar(arr_sort, "Mem");
+	auto mem_var = builder->makeVar(arr_sort, "Mem");
+	mem = MemoryValue (0,mem_var);
       }
 
       void Memory::createHeapLayout(const MiniMC::Model::HeapLayout& hl,MiniMC::CPA::Common::StaticContext<Value>&  symb) {
+	auto next_block = mem.getNextBlock ();
+	
 	for (auto& block : hl.blocks()) {
 	  auto baseobj = MiniMC::Model::getBase(block.baseobj);
 	  next_block = (baseobj > next_block) ? baseobj + 1 : next_block;
@@ -152,7 +156,8 @@ namespace MiniMC {
 	  symb.addSymbol (block.symbol,Value::Pointer{helper.makeHeapPointer(baseobj,0)});
 	  
 	}
-	
+
+	mem = MemoryValue (next_block,mem.getMemVar ());
 
       }
 
@@ -184,45 +189,46 @@ namespace MiniMC {
 
       
       Memory Memory::store(const Value::Pointer& ptr, const Value::I8& val)  {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return 	Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
+      
       }
 
       Memory  Memory::store(const Value::Pointer& ptr, const Value::I16& val) {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
       
       Memory Memory::store(const Value::Pointer& ptr, const Value::I32& val)  {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
 
       Memory Memory::store(const Value::Pointer& ptr, const Value::I64& val)  {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
 
       Memory Memory::store(const Value::Pointer& ptr, const Value::Pointer& val) {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
 
       Memory Memory::store(const Value::Pointer& ptr, const Value::Pointer32& val) {
-	Memory m{*this};
-	m.mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-	return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = write<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
 
       Memory Memory::store(const Value::Pointer& ptr, const Value::Aggregate& val) {
-	Memory m{*this};
-	m.mem_var = writeAggr<Value::Pointer::intbitsize()> (val.size(),*builder,mem_var,ptr.getTerm (),val.getTerm ());
-      return m;
+	auto old_mem_var = mem.getMemVar ();
+	auto mem_var = writeAggr<Value::Pointer::intbitsize()> (val.size(),*builder,old_mem_var,ptr.getTerm (),val.getTerm ());
+	return Memory (MemoryValue(mem.getNextBlock(),mem_var),*builder);
       }
       
       

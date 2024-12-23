@@ -19,6 +19,7 @@ namespace MiniMC {
       class Memory  {
       public:
 	Memory ();
+	Memory (MemoryValue&& val) : mvalue(val) {}
 	Memory (const Memory&);
 	~Memory ();
 	Memory& operator=(Memory&& m);
@@ -40,12 +41,8 @@ namespace MiniMC {
         void free(const Value::Pointer&);
         void createHeapLayout(const MiniMC::Model::HeapLayout& layout, MiniMC::CPA::Common::StaticContext<Value>&);
 
-      protected:
-	Memory deep_copy () const;
       private:
-        struct internal;
-	std::shared_ptr<internal> _internal;
-	
+        MemoryValue mvalue;
       };
             
       class PathControl  {
