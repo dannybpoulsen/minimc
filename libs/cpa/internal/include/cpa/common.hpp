@@ -153,10 +153,10 @@ namespace MiniMC {
       MiniMC::Model::SymbolTable<Value> symbmap;
     };
     
-    template<class Value,class Memory>
+    template<class Value,class Memory, MiniMC::VMT::MemoryController<Memory,Value> MemControl>
     class EvaluationContext {
     public:
-      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, Memory& memory,StaticContext<Value>& scontext) : values(values),persistent(pers),memory(memory),scontext(scontext) {}
+      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, MemControl memorycontrol,Memory& mem,StaticContext<Value>& scontext) : values(values),persistent(pers),memcontrol(memorycontrol),memory(mem),scontext(scontext) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	if (reg.getRegType () == MiniMC::Model::RegType::Persistent) {
@@ -187,12 +187,13 @@ namespace MiniMC {
       }
 
       Value load (const Value::Pointer p, const MiniMC::Model::Type& t) const {
-	return memory.load (p,t);
+	return memcontrol.load (memory,p,t);
       }
       
     private:
       ActivationStack<Value>& values;
-      ActivationRecord<Value>& persistent; 
+      ActivationRecord<Value>& persistent;
+      MemControl memcontrol;
       Memory& memory;
       StaticContext<Value>& scontext;
     };
@@ -228,7 +229,7 @@ namespace MiniMC {
     
    
     
-    template<class Value,MiniMC::VMT::Memory<Value> Mem>
+    template<class Value,class Mem>
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
@@ -245,8 +246,8 @@ namespace MiniMC {
       StateMixin (const StateMixin&) = default;
       
       
-      template<class Operations>
-      static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops,Mem&& heap) {
+      template<class Operations,MiniMC::VMT::MemoryController<Mem,Value> MemControl>
+      static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops,Mem&& heap, MemControl&& memcontrol) {
 	std::vector<ActivationStack<Value>> stack;
 	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
 	ActivationRecord<Value> persistent {descr.getProgram().getPersistentRegs ().getTotalRegisters(),nullptr,nullptr};
@@ -262,7 +263,7 @@ namespace MiniMC {
 
 	  
 	  
-	  EvaluationContext<Value,Mem> regstore {cs,persistent,heap,*_scontext};
+	  EvaluationContext<Value,Mem,MemControl> regstore {cs,persistent,memcontrol,heap,*_scontext};
 	  for (auto& v : vstack.getRegisters()) {
             regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
 	  }
@@ -296,8 +297,8 @@ namespace MiniMC {
 	  auto ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
 	  auto size = eval.Eval (MiniMC::Model::I64Integer (b.size));
 	  Value::visit (MiniMC::Support::Overload {
-	      [&heap,&_scontext,&b](const Value::Pointer& ptr, const Value::I64& size)  {
-		heap = heap.allocate (ptr,size);
+	      [&heap,&_scontext,&b,&memcontrol](const Value::Pointer& ptr, const Value::I64& size)  {
+		heap = memcontrol.allocate (heap,ptr,size);
 		_scontext->addSymbol (b.symbol,ptr);
 		
 	      },
@@ -312,9 +313,9 @@ namespace MiniMC {
             Value valueToStor = eval.Eval(*b.value);
 	    
 	    Value::visit (MiniMC::Support::Overload {
-		[&heap,&_scontext]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
+		[&heap,&_scontext,&memcontrol]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
 		  
-		  heap.store (ptr,value);
+		  memcontrol.store (heap,ptr,value);
 		},
 		[](const auto&, const auto&) {
 		    throw MiniMC::Support::Exception ("Error");
@@ -350,9 +351,10 @@ namespace MiniMC {
       size_t nbOfProcesses() const override {return stacks.size();}
       bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU();}
       MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
-      
-      auto makeEvaluationContext (proc_id id) const {
-	return EvaluationContext (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),const_cast<Mem&>(memory),*scontext);
+
+      template<MiniMC::VMT::MemoryController<Mem,Value> MemControl>
+      auto makeEvaluationContext (proc_id id,MemControl&& memcontrol) const {
+	return EvaluationContext<Value,Mem,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),std::move(memcontrol),const_cast<Mem&>(memory),*scontext);
       }
       
     private:
@@ -363,7 +365,7 @@ namespace MiniMC {
     };
     
     
-    template<class T,MiniMC::VMT::RegisterStore<T> Eval, MiniMC::VMT::Memory<T> Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
+    template<class T,MiniMC::VMT::RegisterStore<T> Eval, class Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
     struct VMState {
       VMState (Mem& m, PathC& path, stackC& stack,Eval&& vlook) : memory(m),control(path),scontrol(stack),lookup(std::move(vlook)) {}
       auto& getValueLookup () {return lookup;}

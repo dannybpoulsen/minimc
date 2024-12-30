@@ -12,18 +12,24 @@ namespace MiniMC {
       State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& termbuilder =  context->getBuilder ();
 	auto term = termbuilder.makeBoolConst (true);
-	MiniMC::VMT::Pathformula::Memory mem{termbuilder};
+	
+        MiniMC::VMT::Pathformula::MemoryValue mem  = MiniMC::VMT::Pathformula::MemoryValue::construct_empty_memory (termbuilder);;
 	
 	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,
-							  MiniMC::VMT::Pathformula::Memory>::createInitialState<MiniMC::VMT::Pathformula::Operations>(descr,MiniMC::VMT::Pathformula::Operations{termbuilder},
-																		      std::move(mem)),
+							  MiniMC::VMT::Pathformula::MemoryValue>::createInitialState(descr,
+														     MiniMC::VMT::Pathformula::Operations{termbuilder},
+														     
+														     std::move(mem),
+														      MiniMC::VMT::Pathformula::Memory{termbuilder}),
 							  std::move(term),
 							  *context);
       }
 
       struct Transferer::Internal {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
-										    engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},prgm),
+										    engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},
+											   MiniMC::VMT::Pathformula::Memory{context->getBuilder()},
+											   prgm),
 										    metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	SMTLib::Context_ptr context;
@@ -49,7 +55,10 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),control,nstate.getStack(),nstate.makeEvaluationContext(trans.proc)};
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),
+							  control,
+							  nstate.getStack(),
+							  nstate.makeEvaluationContext(trans.proc)};
 	auto& instr = e.getInstructions();
 	status = _internal->engine.execute(instr,newvm);
 	

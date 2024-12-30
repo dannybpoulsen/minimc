@@ -1,7 +1,7 @@
 
 add_library (cpa SHARED interface.cpp )
 target_link_libraries (cpa PUBLIC
-		      pathformula_headers
+		    		      pathformula_headers
 		      concrete_headers model hash PRIVATE -Wl,-whole-archive
 		      concrete
 		      pathformula

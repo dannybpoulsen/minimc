@@ -44,6 +44,7 @@ namespace MiniMC {
       
       struct Transferer::Internal {
 	Internal (const MiniMC::Model::Program& prgm) : engine(MiniMC::VMT::Concrete::Operations{},
+							       MiniMC::VMT::Concrete::Memory{},
 							       prgm),
 							metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
@@ -59,7 +60,7 @@ namespace MiniMC {
 		    private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>&& internal) : mixin(std::move(internal)) {
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::MemoryValue>&& internal) : mixin(std::move(internal)) {
         }
 
 	
@@ -85,14 +86,19 @@ namespace MiniMC {
 	
         virtual const Solver_ptr getConcretizer() const override { return std::make_shared<MConcretizer> ();}
 
-	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id);}
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id,MiniMC::VMT::Concrete::Memory{});}
 	
 	//QueryBuilder
 	QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
 	  if (p >= mixin.nbOfProcesses ()) {
 	    throw MiniMC::Support::Exception ("Not enough processes");
 	  }
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,MiniMC::VMT::Concrete::Operations> eval (
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Concrete::Value
+				 ,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,
+									 MiniMC::VMT::Concrete::MemoryValue,
+									 MiniMC::VMT::Concrete::Memory>,
+				 
+				 MiniMC::VMT::Concrete::Operations> eval (
 																								       MiniMC::VMT::Concrete::Operations{},
 																								       makeEvaluationContext(p) 														       );
 	  return std::make_unique<QExpr> (eval.Eval(val));
@@ -105,15 +111,15 @@ namespace MiniMC {
 	
 	
       private:
-	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory> mixin;
+	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::MemoryValue> mixin;
 	};
 
       
 	MiniMC::CPA::State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
-	MiniMC::VMT::Concrete::Memory mem;
-	return makeState<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem)));
+	  MiniMC::VMT::Concrete::MemoryValue mem;
+	  return makeState<State> (MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::MemoryValue>::createInitialState(descr,MiniMC::VMT::Concrete::Operations{},std::move(mem),MiniMC::VMT::Concrete::Memory{}));
 	}
-
+      
       MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	const MiniMC::Model::Edge& e = *t.edge;
 	proc_id id = t.proc;

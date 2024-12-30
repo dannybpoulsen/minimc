@@ -21,16 +21,16 @@ namespace MiniMC {
     namespace Pathformula {      
       
       //PathFormulaState, 
-      using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations> ;
       
       
       
 
       class MemoryValue {
       public:
+	static MemoryValue construct_empty_memory (SMTLib::TermBuilder& builder); 
 	MemoryValue () {}
         MemoryValue (MiniMC::Model::base_t next_block,SMTLib::Term_ptr mem_var) : next_block(next_block),mem_var(mem_var) {}
-
+	
 	MemoryValue (const MemoryValue&) = default;
 	MemoryValue (MemoryValue&&) = default;
 
@@ -51,30 +51,29 @@ namespace MiniMC {
       public:
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
-	Memory (MemoryValue&& v, SMTLib::TermBuilder& b) : builder(&b),mem(std::move(v)) {}
 	Memory& operator= (Memory&& m) = default;
-	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
+	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
         // First parameter is address to store at, second is the value to state
-        Memory store(const Value::Pointer&, const Value::I8&) ;
-	Memory store(const Value::Pointer&, const Value::I16&) ;
-        Memory store(const Value::Pointer&, const Value::I32&) ;
-        Memory store(const Value::Pointer&, const Value::I64&) ;
-	Memory store(const Value::Pointer&, const Value::Aggregate&) ;
-	Memory store(const Value::Pointer&, const Value::Pointer&) ;
-	Memory store(const Value::Pointer&, const Value::Pointer32&) ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I16&) ;
+        MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I32&) ;
+        MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I64&) ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Aggregate&) ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Pointer&) ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Pointer32&) ;
 	
 	// PArameter is size to allocate
-	Memory allocate(const Value::Pointer&, const Value::I64&) ;
-	Value::Pointer  find_space(const Value::I64&) ;
+	MemoryValue allocate(const MemoryValue&,const Value::Pointer&, const Value::I64&) ;
+	Value::Pointer  find_space(const MemoryValue&,const Value::I64&) ;
 	
 	
-        void free(const Value::Pointer&)  {}
+        MemoryValue free(const MemoryValue& m, const Value::Pointer&)  {return m;}
       private:
 	SMTLib::TermBuilder* builder;
-	MemoryValue mem;
       };
 
 
+      using PathFormulaEngine = MiniMC::VMT::Engine<Value,MemoryValue,Operations,Memory> ;
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
@@ -95,7 +94,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::EvaluationContext<Value,Memory>,Memory,PathControl,ActivationStack>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::EvaluationContext<Value,MemoryValue,Memory>,MemoryValue,PathControl,ActivationStack>;
       
       
       

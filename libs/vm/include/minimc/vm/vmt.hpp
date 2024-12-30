@@ -28,7 +28,7 @@ namespace MiniMC {
     };
     
     
-    template<class Eval,class T >
+    template<class Eval,class T>
     concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const MiniMC::Model::Type& ty) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
@@ -70,6 +70,32 @@ namespace MiniMC {
     };
     
     
+    template<class Mem,class Memory,class T>
+    concept MemoryController = requires (Mem& memc,
+					 const Memory& mem, 
+					 const typename T::Pointer& p,
+					 const typename T::I8& i8,
+					 const typename T::I16& i16,
+					 const typename T::I32& i32,
+					 const typename T::I64& i64,
+					 const typename T::Aggregate& aggr,
+					 const typename T::Pointer& ptr,
+					 const typename T::Pointer32& ptr32,
+					 const MiniMC::Model::Type&ty
+					 ) {
+      {memc.store (mem,p,i8)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,i16)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,i32)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,i64)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,aggr)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,ptr)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,ptr32)}->std::convertible_to<Memory>;
+      {memc.find_space(mem,i64)}->std::convertible_to<typename T::Pointer>;
+      {memc.allocate(mem,ptr,i64)}->std::convertible_to<Memory>;
+      {memc.free (mem,p)}->std::convertible_to<Memory>;
+      {memc.load (mem,p,ty)}->std::convertible_to<T>;
+    };
+
     template<class Mem,class T>
     concept Memory = requires (Mem& mem,
 			       const typename T::Pointer& p,
@@ -94,7 +120,8 @@ namespace MiniMC {
       {mem.free (p)};
       {mem.load (p,ty)}->std::convertible_to<T>;
     };
-			       
+
+    
     template<class PathC,class T>
     concept PathControl = requires (const typename T::Bool& b,
                                     PathC& p)
@@ -289,6 +316,13 @@ namespace MiniMC {
       
     };
 
+    template<class State,typename Memory>
+    concept HasMemoryNew = requires (State& state,Memory&& m) {
+      {state.getMemory ()} ->std::convertible_to<Memory&>;
+      {state.setMemory (m)};
+      
+    };
+
     template<class State,typename T>
     concept HasPathcontrol = requires (State& state) {
       {state.getPathControl ()} ->PathControl<T>;
@@ -302,9 +336,8 @@ namespace MiniMC {
     
     template<class State,class V>
     concept VMState =  StackControllable<State> &&
-      ValueLookupable<State,V> &&
-      HasMemory<State,V>; 
-
+                       ValueLookupable<State,V>;
+    
     template<class T,class R>
     concept Integer = std::is_same_v<R,typename T::I8> || std::is_same_v<R,typename T::I16> || std::is_same_v<R,typename T::I32> || std::is_same_v<R,typename T::I64>;
 
@@ -714,10 +747,10 @@ OPSI
     Evaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return Evaluator<Value,RegStore,Operations> (ops,std::move(reg));}
     
     
-    template<class Value, Ops<Value> Operations>
+    template<class Value, class Memory, Ops<Value> Operations, MemoryController<Memory,Value> MemControl>
     class Engine {
     public:
-      Engine (Operations&& ops,const MiniMC::Model::Program& prgm);
+      Engine (Operations&& ops,MemControl&& memcontrol, const MiniMC::Model::Program& prgm);
       ~Engine ();
       
       template<VMState<Value> VState>

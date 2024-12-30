@@ -19,29 +19,22 @@ namespace MiniMC {
       class Memory  {
       public:
 	Memory ();
-	Memory (MemoryValue&& val) : mvalue(val) {}
-	Memory (const Memory&);
-	~Memory ();
-	Memory& operator=(Memory&& m);
-	Value load(const typename Value::Pointer&, const MiniMC::Model::Type&) const;
+	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const;
         // First parameter is address to store at, second is the value to state
-        Memory store(const Value::Pointer&, const Value::I8&) ;
-	Memory store(const Value::Pointer&, const Value::I16&) ;
-        Memory store(const Value::Pointer&, const Value::I32&) ;
-        Memory store(const Value::Pointer&, const Value::I64&) ;
-	Memory store(const Value::Pointer&, const Value::Aggregate&) ;
-	Memory store(const Value::Pointer&, const Value::Pointer&) ;
-	Memory store(const Value::Pointer&, const Value::Pointer32&) ;
-	MiniMC::Hash::hash_t hash () const;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I16&) ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I32&) ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I64&) ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Aggregate&) ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer&) ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer32&) ;
 	
 	// PArameter is size to allocate
-	Memory allocate(const Value::Pointer&,const Value::I64&) ;	
-	Value::Pointer find_space(const Value::I64&) ;
+	MemoryValue allocate(const MemoryValue&, const Value::Pointer&,const Value::I64&) ;	
+	Value::Pointer find_space(const MemoryValue&, const Value::I64&) ;
 	
-        void free(const Value::Pointer&);
-        
-      private:
-        MemoryValue mvalue;
+        MemoryValue free(const MemoryValue&, const Value::Pointer&);  
+	
       };
             
       class PathControl  {
@@ -60,10 +53,10 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
-      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,Memory>,Memory,PathControl,ActivationStack>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MemoryValue,Memory>,MemoryValue,PathControl,ActivationStack>;
       
       //ConcreteVMState 
-      using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations >;
+      using ConcreteEngine = MiniMC::VMT::Engine<Value, MemoryValue, MiniMC::VMT::Concrete::Operations, Memory>;
       
       
     } // namespace Concrete
@@ -96,11 +89,14 @@ namespace std {
   struct hash<MiniMC::VMT::Concrete::Value> {
     auto operator()(const MiniMC::VMT::Concrete::Value& t) { return t.hash(); }
   };
-  
+
+
   template <>
-  struct hash<MiniMC::VMT::Concrete::Memory> {
-    auto operator()(const MiniMC::VMT::Concrete::Memory& t) { return t.hash(); }
+  struct hash<MiniMC::VMT::Concrete::MemoryValue> {
+    auto operator()(const MiniMC::VMT::Concrete::MemoryValue& t) { return t.hash(); }
   };
+  
+  
   
 } // namespace std
 

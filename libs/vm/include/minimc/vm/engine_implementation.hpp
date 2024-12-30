@@ -12,15 +12,15 @@ namespace MiniMC {
 
 
 
-    template<typename T, Ops<T> Operations>
-    struct Engine<T,Operations>::Impl {
+    template<typename T, class Memory,Ops<T> Operations, MemoryController<Memory,T> MemControl>
+    struct Engine<T,Memory,Operations,MemControl>::Impl {
     private:
       const MiniMC::Model::Program& prgm;
       Operations operations;
-
+      MemControl memcontrol;
       
     public:
-      Impl (Operations&& operations, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations) {}
+      Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
       template <class I,class State,class Evaluator>
       static Status runInstruction(const I&, State&,Evaluator&)  {
 	throw NotImplemented<I::getOpcode()> ();
@@ -65,8 +65,8 @@ namespace MiniMC {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
-		[&state,&addr]<typename V>(const V& t) requires (!Boolean<T,V>) {
-		  auto mem = state.getMemory().store(addr, t);
+		[&state,&addr,this]<typename V>(const V& t) requires (!Boolean<T,V>) {
+		  auto mem = memcontrol.store(state.getMemory (),addr, t);
 		  state.setMemory(std::move (mem));
 		},
 		MiniMC::Support::Error<void> {}
@@ -287,9 +287,9 @@ namespace MiniMC {
       
       };
 
-    template <class Value,Ops<Value> Operations>
+    template <class Value,class Memory,Ops<Value> Operations,MemoryController<Memory,Value> MemControl>
     template<VMState<Value> State>
-    Status Engine<Value,Operations>::execute(const MiniMC::Model::Instruction& instr,
+    Status Engine<Value,Memory,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
 				       State& wstate) {
 
       
@@ -297,9 +297,9 @@ namespace MiniMC {
       
     }
 
-    template <class Value,Ops<Value> Operations>
+    template <class Value,class Memory,Ops<Value> Operations,MemoryController<Memory,Value> MemControl>	
     template<VMState<Value> State>
-    Status Engine<Value,Operations>::execute(const MiniMC::Model::InstructionStream& instr,
+    Status Engine<Value,Memory,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
 					     State& wstate) {
       auto end = instr.end();
       Status status = Status::Ok;
@@ -312,13 +312,14 @@ namespace MiniMC {
       return status;
     }
     
-    template<class Value,Ops<Value> Operations>
-    Engine<Value,Operations>::Engine (Operations&& ops,const MiniMC::Model::Program& prgm)   {
-      _impl = std::make_unique<Impl> (std::move(ops),prgm);
+
+    template <class Value,class Memory,Ops<Value> Operations,MemoryController<Memory,Value> MemControl>
+    Engine<Value,Memory,Operations,MemControl>::Engine (Operations&& ops,MemControl&& memcontrol,const MiniMC::Model::Program& prgm)   {
+      _impl = std::make_unique<Impl> (std::move(ops),std::move(memcontrol),prgm);
     }
-     
-    template<class Value,Ops<Value> Operations>
-    Engine<Value,Operations>::~Engine () {}
+
+    template <class Value,class Memory,Ops<Value> Operations,MemoryController<Memory,Value> MemControl>
+    Engine<Value,Memory,Operations,MemControl>::~Engine () {}
     
   } // namespace VMT
 } // namespace MiniMC

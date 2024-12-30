@@ -27,7 +27,7 @@ namespace MiniMC {
                     private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
 																					      pathformula(std::move(formula)),
 																					      context(ctxt) {}
         State(const State& oth) =default;
@@ -53,14 +53,15 @@ namespace MiniMC {
         }
 
         auto& getPathformula() const { return pathformula; }
-	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id);}
+	
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext (id,MiniMC::VMT::Pathformula::Memory{context.getBuilder()});}
         virtual const QueryBuilder& getBuilder() const { return *this; }
         virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
 	    makeEvaluationContext (p)
 	  };
@@ -68,7 +69,7 @@ namespace MiniMC {
         }
 
       private:
-	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory> mixin;
+	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue> mixin;
 	  
 	SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;

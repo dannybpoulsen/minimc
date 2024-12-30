@@ -131,6 +131,7 @@ namespace MiniMC {
 	MemoryValue& operator= (MemoryValue&&);
 	auto& getInternal () const {return *_internal;}
 	MemoryValue deep_copy () const;
+	MiniMC::Hash::hash_t hash() const;
 	
       };
       
