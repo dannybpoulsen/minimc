@@ -698,7 +698,7 @@ OPSI
 	    },
 	      MiniMC::Support::Error<Value>{}
 	  },
-	  Eval (load.getFrom ())
+	  Eval (load.addr ())
 	  );
       }
 

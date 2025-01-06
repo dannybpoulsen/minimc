@@ -49,13 +49,27 @@
     auto& getFrom ()  { return *from_expr;}
     
     std::ostream& output(std::ostream& os) const override {
-    		return os << "(" <<CastOpsDetails<op>::text()   << *from_expr << " to " << *to_type << ")";
+    		  return os << "(" <<CastOpsDetails<op>::text()   << *from_expr << " to " << *to_type << ")";
       }	
     private:
 	MiniMC::Model::Value_ptr from_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
 
+    class LoadExpr : public Value {
+    public:
+    LoadExpr (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
+    const auto& addr () const { return *addr_expr;}
+    const auto& getToType() const {return to_type;}
+    auto& addr ()  { return *addr_expr;}
+    
+    std::ostream& output(std::ostream& os) const override {
+    		return os << "(Load"  << *addr_expr << " to " << *to_type << ")";
+      }	
+    private:
+	MiniMC::Model::Value_ptr addr_expr;
+	MiniMC::Model::Type_ptr to_type;
+    };
     
 
     using Bool = TConstant<MiniMC::BV8, true>;
@@ -111,6 +125,7 @@
 			  Register,
 			  Undef,
 			  SymbolicConstant,
+			  LoadExpr,
 			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
 			  	  
@@ -134,6 +149,8 @@
     template<CastOps c>
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<CastExpression<c>>::type_t ()),from_expr(v),to_type(to) {}
 
+    inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),to_type(to) {}
+    
     
     template<class A>
     constexpr bool is_root = std::is_same_v<std::remove_const_t<A>,Bool>
@@ -264,6 +281,9 @@
 	break;
       case ValueInfo<SymbolicConstant>::type_t ():
 	return f (static_cast<CType<SymbolicConstant,c>&> (v));
+	break;
+     case ValueInfo<LoadExpr>::type_t ():
+	return f (static_cast<CType<LoadExpr,c>&> (v));
 	break;
 	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
        	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));

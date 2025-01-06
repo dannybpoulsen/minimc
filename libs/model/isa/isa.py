@@ -62,7 +62,7 @@ class Operand:
         return f"{self._name}{str}"
     
 class Instruction:
-    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False,typedescriptors = {},sizes = None ):
+    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False,typedescriptors = {},sizes = None, tempreplace = None):
         self._name = name
         self._operands = operands
         self._assign = assign
@@ -70,6 +70,7 @@ class Instruction:
         self._vm = vm
         self._types = typedescriptors 
         self._sizes = sizes
+        self._tempreplace = tempreplace
         
     def getName (self):
         return self._name
@@ -92,6 +93,9 @@ class Instruction:
 
     def getTypeSizeRestrictions(self):
         return self._sizes 
+
+    def temp_replace(self):
+        return self._tempreplace
     
     def isAssignConvertible (self):
         return self._assign
@@ -199,8 +203,9 @@ def readISA (path):
                     size = parseSizeConstraints (data["size_constraints"],types)
                 assign_convertible = data.get("assign_convertible",False)
                 temp_create = data.get("template_construction",None)
+                temp_replace = data.get("replace_construction",None)
                 vm = data.get("vm",False)
-                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm,types,size))
+                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm,types,size,temp_replace))
             groups.append (InstructionGroup (gname,instr))
         return ISA(groups)
     

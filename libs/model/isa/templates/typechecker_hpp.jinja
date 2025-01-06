@@ -98,6 +98,7 @@ namespace MiniMC {
 	  return i.getType();
 	}
 
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::LoadExpr& i);
 	
 
 	{% for i in ISA.getPseudoInstructions () %}

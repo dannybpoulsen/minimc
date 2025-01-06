@@ -81,7 +81,9 @@ public:
 
    {%for g in ISA.getGroups () %} 
    {% for i in g.getPseudoInstructions () %}
-   {%if g.getName () != "Cast" %} 
+   {%if i.temp_replace () %}
+   {{i.temp_replace()}}
+   {%elif g.getName () != "Cast" %} 
    {%if i.isAssignConvertible () %}
    Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
    	     return std::make_shared<{{i.getName()}}Expr> ({%for o in i.getNonResOperands () %}Replace(expr.{{o.getName()}}()) {%if not loop.last %},{%endif%} {%endfor %} );
@@ -94,6 +96,7 @@ public:
    	     return std::make_shared<{{i.getName()}}Expr> (Replace (expr.getFrom ()),expr.getToType () );
    	     //	 throw MiniMC::Support::Exception ("Cannot copy {{i.getName ()}}Expr");
    }
+   
    {%endif %}
    
    {%endfor %}

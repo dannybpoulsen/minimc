@@ -63,6 +63,22 @@ namespace MiniMC {
 	
       };
 
+      class MustBePointerExpr : public ExprTypeError{
+      public:
+	MustBePointerExpr (const MiniMC::Model::Value& l1 )  {
+	  message = MiniMC::Support::Localiser {"'%1%' must be pointer."}.format(l1);
+	
+	}
+	
+	virtual std::ostream& to_string (std::ostream& os) const {
+	  return os << message;
+	}
+	
+      private:
+	std::string message;
+	
+      };
+
       class MustBeIntegerExpr : public ExprTypeError{
       public:
 	MustBeIntegerExpr (const MiniMC::Model::Value& l1 )  {
@@ -280,7 +296,9 @@ namespace MiniMC {
 	return expr.getType();
 	}
       {%endmacro %}
-      
+
+
+
       {%for g,i in ISA.getPseudoGroupedInstructions () %}
 	{%if i.isAssignConvertible () %}
 	  {%if g.getName() == "TAC" %}
@@ -295,10 +313,24 @@ namespace MiniMC {
 
 	{%endif %}
       {% endfor %}
-      
 
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::LoadExpr& i) const  {
+       	auto lty = CheckType(expr.addr());
+	
+	MiniMC::Model::Type_ptr res = nullptr;;
+	if (lty->getTypeID () == MiniMC::Model::TypeID::Pointer ) {
+	  res = lty;
+	}
+	else {
+	  messager << MustBePointerExpr{i.addr()};
+	}
+	expr.setType (res);
+	return res;
+
+      }     
+	
       MiniMC::Model::Type_ptr  TypeChecker::operator() (MiniMC::Model::LogNotExpr& expr) const  {
-	auto lty = CheckType(expr.op1());
+      	auto lty = CheckType(expr.op1());
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Bool ) {

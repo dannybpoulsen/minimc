@@ -568,20 +568,6 @@ Cast:
         - Bool
     vm: False
     assign_convertible: True
-  load:
-    opcode: Load
-    params:
-      - name: res
-        type: t1
-      - name: addr
-        type: t2
-    types:
-      t1:
-        - Any
-      t2:
-        - Pointer
-    vm: False
-    assign_convertible: True
 
     
 Memory:
@@ -598,7 +584,29 @@ Memory:
       t2:
         - Any
     vm: True
-    
+  load:
+    opcode: Load
+    params:
+      - name: res
+        type: t1
+      - name: addr
+        type: t2
+    types:
+      t1:
+        - Any
+      t2:
+        - Pointer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::LoadExpr> (std::get<1>(tup),std::get<0>(tup)->getType());
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+    replace_construction:
+      Value_ptr operator() (LoadExpr&  expr) const  {
+      return std::make_shared<LoadExpr> (Replace(expr.addr()),expr.getToType());
+      }
+      
 Internal:
   skip:
     opcode: Skip
