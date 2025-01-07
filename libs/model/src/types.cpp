@@ -129,6 +129,7 @@ namespace MiniMC {
       case TypeID::Pointer: return os << "Pointer";
       case TypeID::Pointer32: return os << "Pointer32";
       case TypeID::Aggregate: return os << "Aggregate";
+      case TypeID::Memory: return os << "Memory";
       default:
 	std::unreachable();
       }

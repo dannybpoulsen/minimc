@@ -69,7 +69,7 @@ namespace MiniMC {
 	}
 	
 	else if constexpr ( i == VMInstructionCode::Store ) {
-	  return os << VMInstructionCode::Store << "  " << *content.addr << " " << *content.storee;	
+	  return os << *content.res << " = " << VMInstructionCode::Store << "  " << *content.storeto << " " << *content.addr << " " << *content.storee;	
 	}
 	
 	

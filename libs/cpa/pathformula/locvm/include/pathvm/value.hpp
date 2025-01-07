@@ -8,6 +8,7 @@ namespace SMTLib {
   class Term;
   using Term_ptr = std::shared_ptr<Term>;
   class Solver;
+  class TermBuilder;
   } // namespace SMTLib
 
 namespace MiniMC {
@@ -52,6 +53,33 @@ namespace MiniMC {
 	std::size_t bytesize;
       };
 
+      class MemoryValue {
+      public:
+	static MemoryValue construct_empty_memory (SMTLib::TermBuilder& builder); 
+	MemoryValue () {}
+        MemoryValue (MiniMC::Model::base_t next_block,SMTLib::Term_ptr mem_var) : next_block(next_block),mem_var(mem_var) {}
+	
+	MemoryValue (const MemoryValue&) = default;
+	MemoryValue (MemoryValue&&) = default;
+
+	MemoryValue& operator= (const MemoryValue& ) = default;
+	MemoryValue& operator= (MemoryValue&& ) = default;
+	
+	
+	auto& getMemVar () const {return mem_var;}
+	auto getNextBlock () const {return next_block;}
+	
+      private:
+	MiniMC::Model::base_t next_block = 0;
+	SMTLib::Term_ptr mem_var{nullptr};
+	
+      };
+      
+
+      inline std::ostream& operator<< (std::ostream& os, const MemoryValue&) {
+	return os << "Mem";
+      }
+      
       template <typename v>
       auto& operator<<(std::ostream& o, const TValue<v>& val) {
         return val.output(o);
@@ -67,13 +95,14 @@ namespace MiniMC {
       using Pointer32Value = TValue<MiniMC::Model::pointer32_t>;
       
       using Value = MiniMC::VMT::GenericVal<I8Value,
-                                                       I16Value,
-                                                       I32Value,
-                                                       I64Value,
-						       PointerValue,
-						       Pointer32Value,
-						       BoolValue,
-                                                       AggregateValue>;
+					    I16Value,
+					    I32Value,
+					    I64Value,
+					    PointerValue,
+					    Pointer32Value,
+					    BoolValue,
+					    AggregateValue,
+					    MemoryValue>;
 
     } // namespace Pathformula
   }   // namespace VMT
@@ -85,6 +114,11 @@ namespace std {
     auto operator()(const MiniMC::VMT::Pathformula::TValue<T>& t) { return bit_cast<MiniMC::Hash::hash_t>(&t); }
   };
 
+  template <>
+  struct hash<MiniMC::VMT::Pathformula::MemoryValue> {
+    auto operator()(const MiniMC::VMT::Pathformula::MemoryValue& t) { return bit_cast<MiniMC::Hash::hash_t>(&t); }
+  };
+  
   template <>
   struct hash<MiniMC::VMT::Pathformula::Value> {
     auto operator()(const MiniMC::VMT::Pathformula::Value& t) { return t.hash(); }

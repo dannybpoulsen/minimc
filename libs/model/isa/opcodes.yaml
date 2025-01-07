@@ -574,6 +574,10 @@ Memory:
   store:
     opcode: Store
     params:
+      - name: res
+        type: t3
+      - name: storeto
+        type: t3
       - name: addr
         type: t1
       - name: storee
@@ -583,12 +587,16 @@ Memory:
         - Pointer
       t2:
         - Any
+      t3:
+        - Memory
     vm: True
   load:
     opcode: Load
     params:
       - name: res
         type: t1
+      - name: memory
+        type: t3 
       - name: addr
         type: t2
     types:
@@ -596,15 +604,17 @@ Memory:
         - Any
       t2:
         - Pointer
+      t3:
+        - Memory
     vm: False
     assign_convertible: True
     template_construction:
       auto tup = std::make_tuple (args...);
-      auto expr = std::make_shared<MiniMC::Model::LoadExpr> (std::get<1>(tup),std::get<0>(tup)->getType());
+      auto expr = std::make_shared<MiniMC::Model::LoadExpr> (std::get<1>(tup),std::get<2>(tup),std::get<0>(tup)->getType());
       return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
     replace_construction:
       Value_ptr operator() (LoadExpr&  expr) const  {
-      return std::make_shared<LoadExpr> (Replace(expr.addr()),expr.getToType());
+      return std::make_shared<LoadExpr> (Replace(expr.mem()),Replace(expr.addr()),expr.getToType());
       }
       
 Internal:

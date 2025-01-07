@@ -125,27 +125,43 @@ namespace MiniMC {
       public:
 	MemoryValue ();
 	MemoryValue (std::shared_ptr<internal>&& );
-	MemoryValue (const MemoryValue&);
-	MemoryValue (MemoryValue&&);
+	MemoryValue (const MemoryValue&) = default;
+	MemoryValue (MemoryValue&&) = default;
 	
-	MemoryValue& operator= (MemoryValue&&);
+	MemoryValue& operator= (const MemoryValue&) = default;
+	MemoryValue& operator= (MemoryValue&&) = default;
 	auto& getInternal () const {return *_internal;}
 	MemoryValue deep_copy () const;
 	MiniMC::Hash::hash_t hash() const;
 	
       };
+
+      
+      inline std::ostream& operator<< (std::ostream& os, const MemoryValue&) {
+	return os << "Mem";
+      }
       
       using Value = MiniMC::VMT::GenericVal<TValue<MiniMC::BV8>,
-                                                    TValue<MiniMC::BV16>,
-                                                    TValue<MiniMC::BV32>,
-                                                    TValue<MiniMC::BV64>,
-						    PointerValue,
-						    TValue<MiniMC::Model::pointer32_t>,
-                                                    BoolValue,
-                                                    AggregateValue>;
+					    TValue<MiniMC::BV16>,
+					    TValue<MiniMC::BV32>,
+					    TValue<MiniMC::BV64>,
+					    PointerValue,
+					    TValue<MiniMC::Model::pointer32_t>,
+					    BoolValue,
+					    AggregateValue,
+					    MemoryValue>;
       
     } // namespace Concrete
   }   // namespace VMT
 } // namespace MiniMC
+
+namespace std {
+  template <>
+  struct hash<MiniMC::VMT::Concrete::MemoryValue> {
+    auto operator()(const MiniMC::VMT::Concrete::MemoryValue& t) { return t.hash(); }
+  };
+} // namespace std
+
+  
 
 #endif

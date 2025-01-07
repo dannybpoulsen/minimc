@@ -114,7 +114,9 @@ namespace MiniMC {
 		  [this](MiniMC::VMT::Pathformula::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {
 		    auto res = val.interpretValue (solver);
 		    return std::make_shared<MiniMC::Model::AggregateConstant> (std::move(res));;
-		  }
+		  },
+		  [](MiniMC::VMT::Pathformula::Value::Memory&) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (0);}
+		  
 		  },
 	      myexpr.getValue ()
 	      );

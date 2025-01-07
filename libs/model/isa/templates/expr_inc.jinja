@@ -58,16 +58,22 @@
 
     class LoadExpr : public Value {
     public:
-    LoadExpr (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
-    const auto& addr () const { return *addr_expr;}
+    LoadExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
     const auto& getToType() const {return to_type;}
     auto& addr ()  { return *addr_expr;}
+    const auto& addr () const { return *addr_expr;}
+
+    auto& mem ()  { return *mem_expr;}
+    const auto& mem () const { return *mem_expr;}
     
+
     std::ostream& output(std::ostream& os) const override {
-    		return os << "(Load"  << *addr_expr << " to " << *to_type << ")";
+    		return os << "(Load "  << *mem_expr << " " <<*addr_expr << " to " << *to_type << ")";
       }	
     private:
+
 	MiniMC::Model::Value_ptr addr_expr;
+	MiniMC::Model::Value_ptr mem_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
     
@@ -149,7 +155,7 @@
     template<CastOps c>
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<CastExpression<c>>::type_t ()),from_expr(v),to_type(to) {}
 
-    inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),to_type(to) {}
+    inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),mem_expr(mem),to_type(to) {}
     
     
     template<class A>

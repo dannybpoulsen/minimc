@@ -31,6 +31,7 @@ namespace MiniMC {
 		[](MiniMC::VMT::Concrete::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer32> (val.getValue ());},
 		[](MiniMC::VMT::Concrete::Value::Bool& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Bool> (val.getValue ());},
 		[](MiniMC::VMT::Concrete::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::AggregateConstant> (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Memory&) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (0);}
 		  },
 	    ref.getValue ()
 	    

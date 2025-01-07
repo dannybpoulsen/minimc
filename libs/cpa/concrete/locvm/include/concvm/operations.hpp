@@ -181,7 +181,7 @@ namespace MiniMC {
         }
 
         template <class T>
-        Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee)  const {
+        Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee)  const requires (!MiniMC::VMT::MemoryC<Value,T>) {
           MiniMC::Util::Array arr{aggrvalue.getValue()};
           auto value = insertee.getValue();
           arr.set_block(offset, {reinterpret_cast<MiniMC::BV8*>(&value),reinterpret_cast<MiniMC::BV8*>(&value)+sizeof(value)});

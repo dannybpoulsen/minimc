@@ -65,12 +65,15 @@ namespace MiniMC {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
-		[&state,&addr,this]<typename V>(const V& t) requires (!Boolean<T,V>) {
+		[&content,&state,&addr,this]<typename V>(const typename T::Memory& ,const V& t) requires (!Boolean<T,V> && !MemoryC<T,V>) {
 		  auto mem = memcontrol.store(state.getMemory (),addr, t);
+		  //state.getValueLookup().saveValue(content.res->asRegister(),mem);
 		  state.setMemory(std::move (mem));
+		  
 		},
 		MiniMC::Support::Error<void> {}
 	      },
+	      eval.Eval(*content.storeto),
 	      value
 	      );
 	    return Status::Ok;
@@ -237,7 +240,7 @@ namespace MiniMC {
 	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
 		state.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
 	      },
-	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const auto& value) {
+		[this,&state,&res,&offset]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
 		state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
 	      },
 	      MiniMC::Support::Error<void> {}

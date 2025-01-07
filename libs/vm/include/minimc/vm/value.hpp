@@ -25,7 +25,8 @@ namespace MiniMC {
 	     typename PointerT,
 	     typename Pointer32T,
 	     typename BoolT,
-	     typename Ag>
+	     typename Ag,
+	     typename Mem>
     struct GenericVal {
       using I8 = Int8;
       using I16 = Int16;
@@ -35,7 +36,7 @@ namespace MiniMC {
       using Pointer32 = Pointer32T;
       using Bool = BoolT;
       using Aggregate = Ag;
-      
+      using Memory = Mem;
       
       GenericVal () : content(BoolT{}) {} 
       GenericVal (I8 val) : content(val) {}
@@ -46,6 +47,7 @@ namespace MiniMC {
       GenericVal (Pointer32 val) : content(val) {}
       GenericVal (Bool val) : content(val) {}
       GenericVal (Aggregate ag) : content(ag) {}
+      GenericVal (Memory mem) : content(mem) {}
       
 
       template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
@@ -57,11 +59,11 @@ namespace MiniMC {
 
       auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, content);}
 
-      bool operator== (const GenericVal& oth) const {return oth.content == content;} 
+      //bool operator== (const GenericVal& oth) const {return oth.content == content;} 
       
     private:
       
-      std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag> content;
+      std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag,Memory> content;
     };
 
     

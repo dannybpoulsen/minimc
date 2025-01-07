@@ -296,6 +296,7 @@ namespace MiniMC {
 	  //Allocate block here
 	  auto ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
 	  auto size = eval.Eval (MiniMC::Model::I64Integer (b.size));
+	  
 	  Value::visit (MiniMC::Support::Overload {
 	      [&heap,&_scontext,&b,&memcontrol](const Value::Pointer& ptr, const Value::I64& size)  {
 		heap = memcontrol.allocate (heap,ptr,size);
@@ -313,7 +314,7 @@ namespace MiniMC {
             Value valueToStor = eval.Eval(*b.value);
 	    
 	    Value::visit (MiniMC::Support::Overload {
-		[&heap,&_scontext,&memcontrol]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool>) {
+		[&heap,&_scontext,&memcontrol]<typename K>(const Value::Pointer& ptr, const K& value) requires (!std::is_same_v<K,typename Value::Bool> && !std::is_same_v<K,typename Value::Memory>) {
 		  
 		  memcontrol.store (heap,ptr,value);
 		},

@@ -39,8 +39,10 @@ namespace MiniMC {
             return I64Value(builder.makeVar(builder.makeBVSort(64), str.str()));
           case MiniMC::Model::TypeID::Aggregate:
             return AggregateValue(builder.makeVar(builder.makeBVSort(8 * t.getSize()), str.str()), t.getSize());
+	  case MiniMC::Model::TypeID::Memory:
+            return MemoryValue::construct_empty_memory(builder);
 	    
-          default:
+	  default:
             break;
         }
         throw MiniMC::Support::Exception("Erro");

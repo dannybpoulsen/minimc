@@ -91,10 +91,6 @@ namespace std {
   };
 
 
-  template <>
-  struct hash<MiniMC::VMT::Concrete::MemoryValue> {
-    auto operator()(const MiniMC::VMT::Concrete::MemoryValue& t) { return t.hash(); }
-  };
   
   
   

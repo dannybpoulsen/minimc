@@ -42,6 +42,8 @@ namespace MiniMC {
 
 	case MiniMC::Model::TypeID::Aggregate:
 	  return Value::Aggregate{MiniMC::Util::Array{t.getSize()}};
+	case MiniMC::Model::TypeID::Memory:
+	  return Value::Memory{};
 	default:
 	  break;
         }

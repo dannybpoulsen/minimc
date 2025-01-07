@@ -84,7 +84,7 @@ namespace MiniMC {
 	MiniMC::Model::Frame curFrame;
 	MiniMC::Model::SymbolTable<MiniMC::Model::Register_ptr> variableMap;
 	std::unordered_set<MiniMC::Model::Symbol> symbolsUsedBeforeDef;
-	
+	MiniMC::Model::Value_ptr heap_var;
       };
     }
   }

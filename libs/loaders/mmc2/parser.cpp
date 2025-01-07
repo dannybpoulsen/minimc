@@ -300,6 +300,12 @@ namespace MiniMC {
 	    params.push_back (val);
 	  
 	}while (val!=nullptr);
+	if (opcode == MiniMC::Model::InstructionCode::Load) {
+	  params = std::vector<MiniMC::Model::Value_ptr> {params.at(0),heap_var,params.at(1)};
+	}
+	if (opcode == MiniMC::Model::InstructionCode::Store) {
+	  params = std::vector<MiniMC::Model::Value_ptr> {heap_var,heap_var,params.at(0),params.at(1)};
+	}
 	expect (NEWLINE);
 	return MiniMC::Model::makeInstruction (opcode,params);
       }
@@ -337,7 +343,7 @@ namespace MiniMC {
 	  expect (NUMBER,&size_tok);
 	  auto value = parseValue();
 	  expect (NEWLINE);
-	  prgm->getHeapLayout ().addBlock (prgm->getRootFrame().makeFresh ("heap"),pointer,size_tok.get<int64_t> (),value);
+	  prgm->getHeapLayout ().addBlock (prgm->getRootFrame().makeFresh ("heap"),pointer,size_tok.get<int64_t> (),heap_var,value);
 	    
 	  
 	}
@@ -415,6 +421,9 @@ namespace MiniMC {
 	tfactory = tfac;
 	cfactory = cfac;
 	MiniMC::Loaders::MMC::Token tt;
+
+	heap_var = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),tfac->makeMemoryType());
+	
 	parseGlobalDeclaration ();
 	parseFunctionDeclarations ();
 	parseEntryPoints ();

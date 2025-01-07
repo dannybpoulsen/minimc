@@ -21,6 +21,8 @@ namespace MiniMC {
 	MiniMC::Model::Location_ptr end;
 	MiniMC::Model::Value_ptr expr;
 	MiniMC::Model::Value_ptr heap_pointer;
+	MiniMC::Model::Value_ptr heap_mem;
+	
 	std::unordered_map<std::string,MiniMC::Model::Register_ptr> vars;
 	std::unique_ptr<MiniMC::Model::LocationInfoCreator> locinfo;
       };
@@ -37,9 +39,12 @@ namespace MiniMC {
 	//Make variables
 	auto type = tfac->makeIntegerType (8);
 	auto rootFrame = _internal->prgm.getRootFrame();
+
+	_internal->heap_mem = _internal->prgm.getPersistentRegs().addRegister (rootFrame.makeSymbol ("mem"),tfac->makeMemoryType());
+	
 	
 	auto heap = rootFrame.makeSymbol ("heap");
-	_internal->prgm.getHeapLayout ().addBlock (heap,MiniMC::Model::pointer_t::makeHeapPointer(0,0),256);
+	_internal->prgm.getHeapLayout ().addBlock (heap,MiniMC::Model::pointer_t::makeHeapPointer(0,0),256,_internal->heap_mem);
 	_internal->heap_pointer = cfac->makeSymbolicConstant (heap);
 	_internal->heap_pointer->setType(tfac->makePointerType ());
 	
@@ -82,7 +87,7 @@ namespace MiniMC {
 	auto ones = cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
 	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
 	
-	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (ptr,tfac->makeIntegerType (8));
+	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,tfac->makeIntegerType (8));
       }
 
       
@@ -269,7 +274,7 @@ namespace MiniMC {
 	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
 	a.getExpression ().accept (*this);
 
-	builder.addInstr<MiniMC::Model::InstructionCode::Store> (ptr,_internal->expr);
+	builder.addInstr<MiniMC::Model::InstructionCode::Store> (_internal->heap_mem,_internal->heap_mem,ptr,_internal->expr);
 	
       }
 

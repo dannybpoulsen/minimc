@@ -343,6 +343,10 @@ namespace MiniMC {
 
     template<class T,class R>
     concept Boolean = std::is_same_v<R,typename T::Bool>;    
+
+    template<class T,class R>
+    concept MemoryC = std::is_same_v<R,typename T::Memory>;    
+    
     
     template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
@@ -690,7 +694,7 @@ OPSI
       
       Value operator() (const MiniMC::Model::LoadExpr& load) const  {
 	return Value::visit (  MiniMC::Support::Overload {
-	    [this,&load] (const  typename Value::Pointer& p) {
+	    [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer& p) {
 	      return regstore.load (p,*load.getToType());
 	    },
 	    [this,&load] (const  typename Value::Pointer32& p) {
@@ -698,6 +702,7 @@ OPSI
 	    },
 	      MiniMC::Support::Error<Value>{}
 	  },
+	  Eval (load.mem()),
 	  Eval (load.addr ())
 	  );
       }

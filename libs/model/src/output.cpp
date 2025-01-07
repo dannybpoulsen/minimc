@@ -75,6 +75,10 @@ namespace MiniMC {
       for (auto& reg : p.getMetaRegs().getRegisters()) {
 	os << "    " << reg << "\n";
       }
+      os << "  .persistentregisters" << "\n";
+      for (auto& reg : p.getPersistentRegs().getRegisters()) {
+	os << "    " << reg << "\n";
+      }
 
       os << "# Functions" << "\n";
       for (auto& F : p.getFunctions ()) {

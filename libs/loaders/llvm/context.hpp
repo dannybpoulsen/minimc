@@ -12,11 +12,10 @@ namespace MiniMC {
   namespace Loaders {
     struct GLoadContext {
       GLoadContext (MiniMC::Model::ConstantFactory& cfact,
-		    MiniMC::Model::TypeFactory& tfact) : cfact(cfact),tfact(tfact) {}
-      GLoadContext (MiniMC::Model::ConstantFactory& cfact,
 		    MiniMC::Model::TypeFactory& tfact,
-		    std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values) : values(std::move(values)),cfact(cfact),tfact(tfact) {}
-      GLoadContext(const GLoadContext& g) : values(g.values),cfact(g.cfact),tfact(g.tfact) {
+		    MiniMC::Model::Value_ptr mem
+		    ) : cfact(cfact),tfact(tfact),heap_mem(mem) {}
+      GLoadContext(const GLoadContext& g) : values(g.values),cfact(g.cfact),tfact(g.tfact),heap_mem(g.heap_mem) {
 	
       }
       
@@ -29,22 +28,17 @@ namespace MiniMC {
       auto& getConstantFactory () const {return cfact;}
       auto& getTypeFactory () const {return tfact;}
       MiniMC::Model::Type_ptr getType (llvm::Type*);
+      auto getHeapMem () const {return heap_mem;};
     private:
       std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values;
       MiniMC::Model::ConstantFactory& cfact;
       MiniMC::Model::TypeFactory& tfact;
+      MiniMC::Model::Value_ptr heap_mem;
     };
     
     struct LoadContext : public GLoadContext {
     public:
-      LoadContext (  MiniMC::Model::ConstantFactory& cfact,
-		     MiniMC::Model::TypeFactory& tfact,
-		     std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values,
-		     MiniMC::Model::RegisterDescr& descr,
-		     const MiniMC::Model::Value_ptr& sp,
-		     const MiniMC::Model::Value_ptr& sp_mem,
-		     MiniMC::Model::Frame frame
-		     ) : GLoadContext(cfact,tfact,std::move(values)),stack(descr),sp(sp),sp_mem(sp_mem),frame(frame) {}
+
       LoadContext (const LoadContext& ) = delete;
       LoadContext ( const GLoadContext& c,
 		    MiniMC::Model::RegisterDescr& descr,
@@ -121,15 +115,18 @@ namespace MiniMC {
       else if constexpr (MiniMC::Model::InstructionCode::Load == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Load>(
 	    context.findValue (inst),
+	    context.getHeapMem(),
 	    context.findValue (inst->getOperand (0))
 	  );
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Store == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Store>(
-	    context.findValue (inst->getOperand(1)),
-	    context.findValue (inst->getOperand (0))
-	  );
+									context.getHeapMem(),
+									context.getHeapMem(),
+									context.findValue (inst->getOperand(1)),
+									context.findValue (inst->getOperand (0))
+									);
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::InsertValue == code) {
