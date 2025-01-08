@@ -65,10 +65,10 @@ namespace MiniMC {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
-		[&content,&state,&addr,this]<typename V>(const typename T::Memory& ,const V& t) requires (!Boolean<T,V> && !MemoryC<T,V>) {
-		  auto mem = memcontrol.store(state.getMemory (),addr, t);
-		  //state.getValueLookup().saveValue(content.res->asRegister(),mem);
-		  state.setMemory(std::move (mem));
+		[&content,&state,&addr,this]<typename V>(const typename T::Memory& m,const V& t) requires (!Boolean<T,V> && !MemoryC<T,V>) {
+		  auto mem = memcontrol.store(m,addr, t);
+		  state.getValueLookup().saveValue(content.res->asRegister(),mem);
+		  //state.setMemory(std::move (mem));
 		  
 		},
 		MiniMC::Support::Error<void> {}

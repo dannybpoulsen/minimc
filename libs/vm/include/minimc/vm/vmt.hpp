@@ -29,12 +29,12 @@ namespace MiniMC {
     
     
     template<class Eval,class T>
-    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const MiniMC::Model::Type& ty) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory mem,const MiniMC::Model::Type& ty) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
       
       {eval.saveValue (reg,std::move(t))};
-      {ceval.load(p,ty)}->std::convertible_to<T>;
+      {ceval.load(p,mem,ty)}->std::convertible_to<T>;
     } ;
 
     
@@ -695,10 +695,10 @@ OPSI
       Value operator() (const MiniMC::Model::LoadExpr& load) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer& p) {
-	      return regstore.load (p,*load.getToType());
+	      return regstore.load (p,m,*load.getToType());
 	    },
-	    [this,&load] (const  typename Value::Pointer32& p) {
-	      return regstore.load (ops.Ptr32ToPtr (p),*load.getToType());
+	    [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer32& p) {
+	      return regstore.load (ops.Ptr32ToPtr (p),m,*load.getToType());
 	    },
 	      MiniMC::Support::Error<Value>{}
 	  },

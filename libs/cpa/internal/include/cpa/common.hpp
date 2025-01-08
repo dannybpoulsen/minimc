@@ -186,8 +186,8 @@ namespace MiniMC {
 	  values.saveValue(reg,std::move(value));
       }
 
-      Value load (const Value::Pointer p, const MiniMC::Model::Type& t) const {
-	return memcontrol.load (memory,p,t);
+      Value load (const Value::Pointer p, const Value::Memory& m, const MiniMC::Model::Type& t) const {
+	return memcontrol.load (m,p,t);
       }
       
     private:
@@ -201,19 +201,30 @@ namespace MiniMC {
     template<class Value>
     class DummyRegisterStore {
     public:  
-      DummyRegisterStore (StaticContext<Value>& scontext) : scontext(scontext) {}
+      DummyRegisterStore (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), persistent(persistent) {}
 
-      Value lookupRegister (const MiniMC::Model::Register& ) const  {
-	throw MiniMC::Support::Exception ("No registers to load fraom");
-        
+      Value lookupRegister (const MiniMC::Model::Register& r) const  {
+	switch(r.getRegType ()) {
+	case MiniMC::Model::RegType::Persistent:
+	  return persistent.getValueOfRegister(r);
+	default:
+	  throw MiniMC::Support::Exception ("No registers to load fraom");
+	  
+	}
       }
 
       
-      void saveValue(const MiniMC::Model::Register&, Value&&)  {
-	throw MiniMC::Support::Exception ("Cannot save register");
+      void saveValue(const MiniMC::Model::Register& r, Value&& v)  {
+	switch(r.getRegType ()) {
+	case MiniMC::Model::RegType::Persistent:
+	  return persistent.setValueOfRegister(r,std::move(v));
+	default:
+	  throw MiniMC::Support::Exception ("No registers to save to");
+	  
+	}
       }
 
-      Value load (const Value::Pointer, const MiniMC::Model::Type&) const {
+      Value load (const Value::Pointer, const Value::Memory&, const MiniMC::Model::Type&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }
 
@@ -223,7 +234,7 @@ namespace MiniMC {
 
     private:
       StaticContext<Value>& scontext;
-      
+      ActivationRecord<Value>& persistent;
       
     };
     
@@ -290,24 +301,27 @@ namespace MiniMC {
 	  
         }
 
-	auto eval = MiniMC::VMT::makeEvaluator<Value> (DummyRegisterStore<Value>{*_scontext},ops);
+	DummyRegisterStore<Value> regstore{*_scontext,persistent};
+	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,ops);
 	
 	for (auto& b : descr.getHeap ().blocks()) {
 	  //Allocate block here
 	  auto ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
 	  auto size = eval.Eval (MiniMC::Model::I64Integer (b.size));
 	  
-	  Value::visit (MiniMC::Support::Overload {
-	      [&heap,&_scontext,&b,&memcontrol](const Value::Pointer& ptr, const Value::I64& size)  {
-		heap = memcontrol.allocate (heap,ptr,size);
-		_scontext->addSymbol (b.symbol,ptr);
-		
-	      },
-		[](const auto&, const auto&) {
-		  throw MiniMC::Support::Exception ("Error");
-		}
-		},
-	    ptr,size);
+	  Value::visit (
+			MiniMC::Support::Overload {
+			  [&heap,&_scontext,&b,&memcontrol,&regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem)  {
+			    auto mem2 = memcontrol.allocate (mem,ptr,size);
+			    _scontext->addSymbol (b.symbol,ptr);
+			    regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
+			  },
+			    [](const auto&, const auto&, const auto&) {
+			      throw MiniMC::Support::Exception ("Error");
+			    }
+			    },
+			ptr,size,eval.Eval(*b.heap_register)
+			);
 	  
 	  if (b.value) {
 	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
