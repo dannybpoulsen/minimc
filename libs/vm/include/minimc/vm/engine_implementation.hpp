@@ -61,7 +61,7 @@ namespace MiniMC {
 	  MiniMC::Support::Error<typename T::Pointer> {}
 	};
 	
-	if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
+	/*if constexpr (op == MiniMC::Model::VMInstructionCode::Store) {
 	    auto value = eval.Eval(*content.storee);
 	    auto addr = T::visit(addrConverter,eval.Eval(*content.addr));
 	    T::visit(MiniMC::Support::Overload {
@@ -80,7 +80,7 @@ namespace MiniMC {
 	  
 	
        
-	}
+	    }*/
       }
 
       

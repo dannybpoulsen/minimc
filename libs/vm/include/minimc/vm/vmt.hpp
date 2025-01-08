@@ -29,12 +29,13 @@ namespace MiniMC {
     
     
     template<class Eval,class T>
-    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory mem,const MiniMC::Model::Type& ty) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
       
       {eval.saveValue (reg,std::move(t))};
       {ceval.load(p,mem,ty)}->std::convertible_to<T>;
+      {ceval.store(mem,p,value)}->std::convertible_to<T>;
     } ;
 
     
@@ -704,6 +705,22 @@ OPSI
 	  },
 	  Eval (load.mem()),
 	  Eval (load.addr ())
+	  );
+      }
+
+      Value operator() (const MiniMC::Model::StoreExpr& store) const  {
+	return Value::visit(MiniMC::Support::Overload {
+	    [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+	      return  regstore.store(m,addr, t);
+	    },
+	    [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+	      return  regstore.store(m,ops.Ptr32ToPtr(addr), t);
+	    },
+	    MiniMC::Support::Error<Value> {}
+	  },
+	  Eval(store.storeto()),
+	  Eval(store.addr ()),
+	  Eval(store.storee())
 	  );
       }
 

@@ -56,7 +56,8 @@ namespace MiniMC {
 	
 	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext (id,MiniMC::VMT::Pathformula::Memory{context.getBuilder()});}
         virtual const QueryBuilder& getBuilder() const { return *this; }
-        virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
+
+	virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
           if (p > 0) {
             throw MiniMC::Support::Exception("Not enough processes");
           }

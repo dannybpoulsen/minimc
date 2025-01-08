@@ -21,13 +21,13 @@ namespace MiniMC {
 	Memory ();
 	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const;
         // First parameter is address to store at, second is the value to state
-        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) ;
-	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I16&) ;
-        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I32&) ;
-        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I64&) ;
-	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Aggregate&) ;
-	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer&) ;
-	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer32&) ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) const  ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I16&)const  ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I32&) const ;
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I64&) const ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Aggregate&) const ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer&) const ;
+	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer32&) const ;
 	
 	// PArameter is size to allocate
 	MemoryValue allocate(const MemoryValue&, const Value::Pointer&,const Value::I64&) ;	

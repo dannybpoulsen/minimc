@@ -314,7 +314,7 @@ namespace MiniMC {
 	{%endif %}
       {% endfor %}
 
-            MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::LoadExpr& expr) const  {
+       MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::LoadExpr& expr) const  {
        	auto lty = CheckType(expr.addr());
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
@@ -324,6 +324,24 @@ namespace MiniMC {
 	else {
 	  messager << MustBePointerExpr{expr.addr()};
 	}
+	expr.setType (res);
+	return res;
+
+      }
+
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::StoreExpr& expr) const  {
+       	auto addrty = CheckType(expr.addr());
+	auto storeto = CheckType(expr.storeto());
+	
+	MiniMC::Model::Type_ptr res = nullptr;;
+	if (addrty->getTypeID () == MiniMC::Model::TypeID::Pointer &&
+	    storeto->getTypeID () == MiniMC::Model::TypeID::Memory
+	    ) {	    
+	  res = storeto;
+	}
+	else {	
+	     messager << MustBePointerExpr{expr.addr()};
+	} 
 	expr.setType (res);
 	return res;
 
@@ -498,9 +516,9 @@ namespace MiniMC {
           }
 
           return true;
-	  }*/
+	  }
         
-        /*else*/ if constexpr (i == VMInstructionCode::Store) {
+	       else if constexpr (i == VMInstructionCode::Store) {
           MiniMC::Support::Localiser must_be_pointer("'%1%' can only store to pointer types. ");
 
 	  auto& content = tinst.getOps ();
@@ -518,7 +536,7 @@ namespace MiniMC {
 	
         
 	
-        else if constexpr (i == VMInstructionCode::Skip) {
+        else */if constexpr (i == VMInstructionCode::Skip) {
           return true;
         }
 	

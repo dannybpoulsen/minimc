@@ -189,6 +189,17 @@ namespace MiniMC {
       Value load (const Value::Pointer p, const Value::Memory& m, const MiniMC::Model::Type& t) const {
 	return memcontrol.load (m,p,t);
       }
+
+      Value store (const Value::Memory& m,const Value::Pointer p,  const Value& t) const {
+	return Value::visit (
+			     MiniMC::Support::Overload {
+			       [&m,&p,this]<typename T> (const T& v)  requires (!MiniMC::VMT::Boolean<Value,T> && !MiniMC::VMT::MemoryC<Value,T>) {
+				 return Value{memcontrol.store (m,p,v)}; 
+			       },
+				 MiniMC::Support::Error<Value>{}
+			       },
+			     t);
+      }
       
     private:
       ActivationStack<Value>& values;
@@ -232,6 +243,11 @@ namespace MiniMC {
 	return scontext.at(s);
       }
 
+      Value store (const Value::Memory& ,const Value::Pointer ,  const Value&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      
+      }
+      
     private:
       StaticContext<Value>& scontext;
       ActivationRecord<Value>& persistent;

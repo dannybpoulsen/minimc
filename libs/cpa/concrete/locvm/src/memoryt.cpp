@@ -129,7 +129,7 @@ namespace MiniMC {
       }
       
       // First parameter is address to store at, second is the value to state
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I8& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I8& v) const {
 	MemoryValue m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -142,7 +142,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I16& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I16& v) const {
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -155,7 +155,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I32& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I32& v) const{
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -168,7 +168,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I64& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I64& v) const{
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -181,7 +181,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Aggregate& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Aggregate& v) const {
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -194,7 +194,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Pointer& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Pointer& v) const {
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();
@@ -207,7 +207,7 @@ namespace MiniMC {
 	return m;
       }
 
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Pointer32& v) {
+      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Pointer32& v) const{
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
         auto value = v.getValue();

@@ -589,7 +589,12 @@ Memory:
         - Any
       t3:
         - Memory
-    vm: True
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::StoreExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
   load:
     opcode: Load
     params:

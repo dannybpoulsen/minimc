@@ -76,6 +76,29 @@
 	MiniMC::Model::Value_ptr mem_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
+
+    class StoreExpr : public Value {
+    public:
+    StoreExpr (MiniMC::Model::Value_ptr storeto, MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee);
+    auto& addr ()  { return *addr_expr;}
+    const auto& addr () const { return *addr_expr;}
+    
+    auto& storeto ()  { return *store_to_expr;}
+    const auto& storeto () const { return *store_to_expr;}
+
+    auto& storee ()  { return *_storee;}
+    const auto& storee () const { return *_storee;}
+    
+    
+    std::ostream& output(std::ostream& os) const override {
+    		return os << "(Store "  << *store_to_expr << " " <<*addr_expr << "  " << *_storee << ")";
+      }	
+    private:
+
+	MiniMC::Model::Value_ptr store_to_expr;
+	MiniMC::Model::Value_ptr addr_expr;
+	MiniMC::Model::Value_ptr _storee;
+    };
     
 
     using Bool = TConstant<MiniMC::BV8, true>;
@@ -132,6 +155,7 @@
 			  Undef,
 			  SymbolicConstant,
 			  LoadExpr,
+			  StoreExpr,
 			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
 			  	  
@@ -156,6 +180,8 @@
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<CastExpression<c>>::type_t ()),from_expr(v),to_type(to) {}
 
     inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),mem_expr(mem),to_type(to) {}
+
+    inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo<StoreExpr>::type_t ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
     
     
     template<class A>
@@ -290,6 +316,9 @@
 	break;
      case ValueInfo<LoadExpr>::type_t ():
 	return f (static_cast<CType<LoadExpr,c>&> (v));
+	break;
+     case ValueInfo<StoreExpr>::type_t ():
+	return f (static_cast<CType<StoreExpr,c>&> (v));
 	break;
 	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
        	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
