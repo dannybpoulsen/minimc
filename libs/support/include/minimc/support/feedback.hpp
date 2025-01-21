@@ -13,7 +13,8 @@ namespace MiniMC {
       Error,
       Warning,
       Info,
-      Progress
+      Progress,
+      Submessage
     };
     
     template<Severity type>
@@ -29,6 +30,7 @@ namespace MiniMC {
     using WarningMessage = Message<Severity::Warning>;
     using InfoMessage = Message<Severity::Info>;
     using ProgressMessage = Message<Severity::Progress>;
+    using SubMessage = Message<Severity::Submessage>;
     
     
     
@@ -54,6 +56,9 @@ namespace MiniMC {
 
     template<class T>
     using TProgress = TMessage<T,Severity::Progress>;
+
+    template<class T>
+    using TSubmessage = TMessage<T,Severity::Submessage>;
     
     
     enum class MessageSinkType {
@@ -68,6 +73,7 @@ namespace MiniMC {
       virtual void mess(const WarningMessage&) {}
       virtual void mess(const InfoMessage&) {}
       virtual void mess(const ProgressMessage&) {}
+      virtual void mess(const SubMessage&) {}
       
       static std::shared_ptr<MessageSink> make (MessageSinkType);
       static std::shared_ptr<MessageSink> defaultSink ();

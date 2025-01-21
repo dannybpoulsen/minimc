@@ -29,18 +29,26 @@ namespace MiniMC {
 	std::cout << "\x1b[2K\r";
 	m.to_string(std::cerr) << std::endl;
       }
-
+      
       void mess(const ProgressMessage& m) override {
-	static const char* arr = "\\|/-";
+	static const char arr[] = "\\|/-";
 	static int i = 0;
-	std::cout << "\x1b[2K\r" << "[" <<arr[i] << "]" << defaultC;
-	m.to_string(std::cout) << '\r' << std::flush;
+	std::cout << "\r\x1b[2K\r " << "[" <<arr[i] << "]" << defaultC;
+	m.to_string(std::cout)  << "\e7" << std::flush;
 	i = (i+1) % 4; ;
 	
       }
       
       
-     
+      void mess(const SubMessage& m) override {	
+	static const char arr[] =  "\\|/-";
+	static int i = 0;
+	std::cout << " \x1b[0J " << "( " << arr[i] << " ";
+	m.to_string(std::cout) <<  " )" << defaultC << "\e8" << std::flush;
+	i = (i+1) % (sizeof(arr)-1); ;
+	
+      }
+
 
             
       
@@ -48,7 +56,6 @@ namespace MiniMC {
       MiniMC::Linux::ColorModifier errorC;
       MiniMC::Linux::ColorModifier warningC;
       MiniMC::Linux::ColorModifier defaultC;
-      
     };
 
     std::shared_ptr<MessageSink> makeMessager(MessageSinkType g) {

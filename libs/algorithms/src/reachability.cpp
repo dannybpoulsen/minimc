@@ -5,6 +5,11 @@
 #include "minimc/storage/storage.hpp"
 #include <algorithm>
 #include <iostream>
+#include <future>
+
+using namespace std::chrono_literals;
+
+using namespace std::chrono_literals;
 
 namespace MiniMC {
   namespace Algorithms {
@@ -59,10 +64,19 @@ namespace MiniMC {
 	std::list<T> waiting;
       };
       
-      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
+      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state, MiniMC::Support::Messager& m) {
 	for (auto& dstate : state.dataStates ()) {
 	  auto solver = dstate.getConcretizer ();
-	  switch (solver->isFeasible ()) {
+	  m << MiniMC::Support::TSubmessage {"Checking feasibility"};
+	  auto res = std::async ([solver](){return solver->isFeasible ();});
+
+	  std::future_status status;
+	  do {
+	    status = res.wait_for(500ms);
+	    m << MiniMC::Support::TSubmessage {"Checking feasibility"};
+	  }while (status!=std::future_status::ready);
+	  
+	  switch (res.get()) {
 	  case MiniMC::CPA::Solver::Feasibility::Feasible:
 	  case MiniMC::CPA::Solver::Feasibility::Unknown:
 	    break;
@@ -91,7 +105,7 @@ namespace MiniMC {
 	MiniMC::Storage::HashStorage storage;
 	
         auto insert = [this,&storage,filter](auto& state) {  
-	  if (filter(state) == StateStatus::Keep) {
+	  if (filter(state,mess) == StateStatus::Keep) {
 	    auto ins = storage.insert (state);
 	    if (ins) {
 	      _internal->waiting->insert (state);
@@ -119,6 +133,7 @@ namespace MiniMC {
 
 
 	  mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};
+	  
 	}
 	
 	return Result{storage.size ()};

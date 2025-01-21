@@ -14,9 +14,9 @@ namespace MiniMC {
 	Discard
       };
       using GoalFunction = std::function<bool(const MiniMC::CPA::AnalysisState&)>;
-      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::AnalysisState&)>;
+      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::AnalysisState&,MiniMC::Support::Messager&)>;
       
-      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState&);; 
+      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState&,MiniMC::Support::Messager&);; 
       
       enum class Verdict {
 	Found,
