@@ -71,9 +71,9 @@ namespace MiniMC {
     };
     
     
-    template<class Mem,class Memory,class T>
+    template<class Mem,class T>
     concept MemoryController = requires (Mem& memc,
-					 const Memory& mem, 
+					 const typename T::Memory& mem, 
 					 const typename T::Pointer& p,
 					 const typename T::I8& i8,
 					 const typename T::I16& i16,
@@ -84,44 +84,19 @@ namespace MiniMC {
 					 const typename T::Pointer32& ptr32,
 					 const MiniMC::Model::Type&ty
 					 ) {
-      {memc.store (mem,p,i8)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,i16)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,i32)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,i64)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,aggr)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,ptr)}->std::convertible_to<Memory>;
-      {memc.store (mem,p,ptr32)}->std::convertible_to<Memory>;
+      {memc.store (mem,p,i8)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,i16)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,i32)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,i64)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,aggr)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,ptr)}->std::convertible_to<typename T::Memory>;
+      {memc.store (mem,p,ptr32)}->std::convertible_to<typename T::Memory>;
       {memc.find_space(mem,i64)}->std::convertible_to<typename T::Pointer>;
-      {memc.allocate(mem,ptr,i64)}->std::convertible_to<Memory>;
-      {memc.free (mem,p)}->std::convertible_to<Memory>;
+      {memc.allocate(mem,ptr,i64)}->std::convertible_to<typename T::Memory>;
+      {memc.free (mem,p)}->std::convertible_to<typename T::Memory>;
       {memc.load (mem,p,ty)}->std::convertible_to<T>;
     };
-
-    template<class Mem,class T>
-    concept Memory = requires (Mem& mem,
-			       const typename T::Pointer& p,
-			       const typename T::I8& i8,
-			       const typename T::I16& i16,
-			       const typename T::I32& i32,
-			       const typename T::I64& i64,
-			       const typename T::Aggregate& aggr,
-			       const typename T::Pointer& ptr,
-			       const typename T::Pointer32& ptr32,
-			       const MiniMC::Model::Type&ty
-				) {
-      {mem.store (p,i8)};
-      {mem.store (p,i16)};
-      {mem.store (p,i32)};
-      {mem.store (p,i64)};
-      {mem.store (p,aggr)};
-      {mem.store (p,ptr)};
-      {mem.store (p,ptr32)};
-      {mem.find_space(i64)}->std::convertible_to<typename T::Pointer>;
-      {mem.allocate(ptr,i64)};
-      {mem.free (p)};
-      {mem.load (p,ty)}->std::convertible_to<T>;
-    };
-
+    
     
     template<class PathC,class T>
     concept PathControl = requires (const typename T::Bool& b,
@@ -313,7 +288,7 @@ namespace MiniMC {
 
     template<class State,typename T>
     concept HasMemory = requires (State& state) {
-      {state.getMemory ()} ->Memory<T>;
+      {state.getMemory ()} ->MemoryController<T>;
       
     };
 
@@ -769,7 +744,7 @@ OPSI
     Evaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return Evaluator<Value,RegStore,Operations> (ops,std::move(reg));}
     
     
-    template<class Value, class Memory, Ops<Value> Operations, MemoryController<Memory,Value> MemControl>
+    template<class Value, Ops<Value> Operations, MemoryController<Value> MemControl>
     class Engine {
     public:
       Engine (Operations&& ops,MemControl&& memcontrol, const MiniMC::Model::Program& prgm);

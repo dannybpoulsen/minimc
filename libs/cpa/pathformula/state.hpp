@@ -27,7 +27,7 @@ namespace MiniMC {
                     private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
 																					      pathformula(std::move(formula)),
 																					      context(ctxt) {}
         State(const State& oth) =default;
@@ -41,8 +41,6 @@ namespace MiniMC {
 
         const Solver_ptr getConcretizer() const override;
         auto& getStack() { return mixin.getProc(0); }
-        auto& getMemory() { return mixin.getMemory(); }
-	const auto& getMemory() const { return mixin.getMemory(); }
         
 	auto& getStack() const { return mixin.getProc(0); }
 
@@ -62,7 +60,7 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
+	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
 	    makeEvaluationContext (p)
 	  };
@@ -70,7 +68,7 @@ namespace MiniMC {
         }
 
       private:
-	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::MemoryValue> mixin;
+	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value> mixin;
 	  
 	SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;

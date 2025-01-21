@@ -53,10 +53,10 @@ namespace MiniMC {
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
-      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MemoryValue,Memory>,MemoryValue,PathControl,ActivationStack>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,Memory>,MemoryValue,PathControl,ActivationStack>;
       
       //ConcreteVMState 
-      using ConcreteEngine = MiniMC::VMT::Engine<Value, MemoryValue, MiniMC::VMT::Concrete::Operations, Memory>;
+      using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations, Memory>;
       
       
     } // namespace Concrete

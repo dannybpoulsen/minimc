@@ -13,14 +13,10 @@ namespace MiniMC {
 	auto& termbuilder =  context->getBuilder ();
 	auto term = termbuilder.makeBoolConst (true);
 	
-        MiniMC::VMT::Pathformula::MemoryValue mem  = MiniMC::VMT::Pathformula::MemoryValue::construct_empty_memory (termbuilder);;
-	
-	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value,
-							  MiniMC::VMT::Pathformula::MemoryValue>::createInitialState(descr,
+        
+	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>::createInitialState(descr,
 														     MiniMC::VMT::Pathformula::Operations{termbuilder},
-														     
-														     std::move(mem),
-														      MiniMC::VMT::Pathformula::Memory{termbuilder}),
+														     MiniMC::VMT::Pathformula::Memory{termbuilder}),
 							  std::move(term),
 							  *context);
       }
@@ -55,8 +51,7 @@ namespace MiniMC {
 	
 	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {nstate.getMemory (),
-							  control,
+	MiniMC::VMT::Pathformula::PathFormulaState newvm {control,
 							  nstate.getStack(),
 							  nstate.makeEvaluationContext(trans.proc)};
 	auto& instr = e.getInstructions();

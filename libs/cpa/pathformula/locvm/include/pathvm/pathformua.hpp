@@ -52,7 +52,7 @@ namespace MiniMC {
       };
 
 
-      using PathFormulaEngine = MiniMC::VMT::Engine<Value,MemoryValue,Operations,Memory> ;
+      using PathFormulaEngine = MiniMC::VMT::Engine<Value,Operations,Memory> ;
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
       using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
@@ -73,7 +73,7 @@ namespace MiniMC {
 	SMTLib::TermBuilder& builder;
       };
 
-      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::EvaluationContext<Value,MemoryValue,Memory>,MemoryValue,PathControl,ActivationStack>;
+      using PathFormulaState = MiniMC::CPA::Common::VMState<Value,CPA::Common::EvaluationContext<Value,Memory>,MemoryValue,PathControl,ActivationStack>;
       
       
       
