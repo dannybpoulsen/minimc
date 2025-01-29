@@ -6,106 +6,35 @@
 #include "minimc/support/exceptions.hpp"
 #include "minimc/model/types.hpp"
 
+#include <generator>
+#include <iostream>
+
 namespace MiniMC {
-  namespace CPA {    class TransitionEnumerator {
-    public:
-      TransitionEnumerator (const MiniMC::CPA::AnalysisState& state) : orig(state)	
-      {
-	done = !next ();
-      }
-      
+  namespace CPA {
 
-      auto operator* () {
-	return MiniMC::CPA::Transition {*iter,proc};
-      }
-      
-      auto operator++ () {
-	done = !next();
-      }
-      
-      explicit operator bool () const {return !done;}
-      
-    private:
-
-      bool next () {
-	if (init ) {
-	  while(!orig.getLocationState().isActive (proc)){
-	    proc++;
-	    if (proc >=orig.getLocationState().nbOfProcesses ())
-	      return false;
-	  }
-	  iter = orig.getLocationState().getLocation(proc).ebegin ();
-	  end = orig.getLocationState().getLocation(proc).eend ();
-	  init = false;
-	  return iter!=end;
+    inline std::generator<MiniMC::CPA::Transition> transitions (const MiniMC::CPA::AnalysisState& state) {
+      MiniMC::Model::proc_t procs = state.getLocationState().nbOfProcesses ();
+      for (MiniMC::Model::proc_t proc = 0; proc < procs; ++proc) {
+	if (state.getLocationState().isActive (proc)) {
+	  MiniMC::Model::Location::edge_iterator iter = state.getLocationState().getLocation(proc).ebegin() ;
+	  MiniMC::Model::Location::edge_iterator end = state.getLocationState().getLocation(proc).eend();
+	  for (;iter != end; ++iter) 
+	    co_yield MiniMC::CPA::Transition {*iter,proc};
 	}
-	
-	else {
-	  ++iter;
-	  if (iter == end) {
-	    do {
-	      proc++;
-	      
-	      if (proc >=orig.getLocationState().nbOfProcesses ())
-		return false;
-	    }while(!orig.getLocationState().isActive (proc));
-	    iter = orig.getLocationState().getLocation(proc).ebegin ();
-	    end = orig.getLocationState().getLocation(proc).eend ();
-	    return iter != end;
-	  }
-	  return true;
-	  
-	}
-	  
+      
       }
 
-      const MiniMC::CPA::AnalysisState& orig;
-      MiniMC::Model::proc_t proc{0};
-      bool init{true};
-      MiniMC::Model::Location::edge_iterator iter;
-      MiniMC::Model::Location::edge_iterator end;
-      bool done{false};
-    };
+    }
 
-    class SuccessorEnumerator {
-    public:
-      SuccessorEnumerator (const MiniMC::CPA::AnalysisState& s,MiniMC::CPA::AnalysisTransfer& transfer) : ee(s),transfer(transfer),_enumFrom(s) {
-	done = next ();
+    inline std::generator<MiniMC::CPA::AnalysisState> successors (const MiniMC::CPA::AnalysisState& state, MiniMC::CPA::AnalysisTransfer& transfer) {
+      MiniMC::CPA::AnalysisState newstate;
+      for (auto transition : transitions (state)) {
+	if (transfer.Transfer (state,transition,newstate))
+	  co_yield newstate;
       }
-      
-      auto operator* () {
-	return _next;
-      }
-      
-      auto operator++ () {
-	done = next();
-      }
-
-      explicit operator bool () const {return !done;}
-      
-      
-      
-    private:
-      bool next () {
-	while (ee) {
-	  if (transfer.Transfer (_enumFrom,*ee,_next)) {
-	    ++ee;
-	    return false;
-	  }
-	  ++ee;
-	}
-	return true;
-      }
-      
-
-      TransitionEnumerator ee;
-      MiniMC::CPA::AnalysisState _next;
-      MiniMC::CPA::AnalysisTransfer& transfer;
-      const MiniMC::CPA::AnalysisState& _enumFrom;
-      
-      bool done{false};
-    };
+    }
     
+        
   } // namespace Algorithms
 } // namespace MiniMC
 

@@ -6,6 +6,11 @@
 #include <sstream>
 #include <type_traits>
 
+#include <future>
+using namespace std::chrono_literals;
+using namespace std::chrono_literals;
+
+
 namespace MiniMC {
   namespace Support {
 
@@ -96,8 +101,28 @@ namespace MiniMC {
       std::shared_ptr<MessageSink> sink; 
       
     };
+
+    class AsyncExecutor {
+    public: 
+      AsyncExecutor (Messager messager) : messager(std::move(messager)) {}
     
-    
+      template<class ProgressMessage,class Func,class... Args>
+      auto execute (ProgressMessage mess, Func f, Args... args) {
+	messager << mess;
+	auto promise = std::async (f,args...);
+	std::future_status status;
+	status = promise.wait_for(500ms);
+	
+	while (status!=std::future_status::ready) {
+	  messager << mess;
+	  status = promise.wait_for(500ms);
+	  
+	};
+	return promise.get();
+      }
+    private:
+      Messager messager;
+    };
     
   } // namespace Support
 } // namespace MiniMC

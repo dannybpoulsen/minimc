@@ -45,10 +45,8 @@ namespace MiniMC {
 	while (waiting.size ()) {
 	  auto s = std::move(waiting.back());
 	  waiting.pop_back();
-	  MiniMC::CPA::SuccessorEnumerator enumerator {s,transfer};
 	  
-	  for (; enumerator; ++enumerator) {
-	    auto state =   *enumerator;
+	  for (auto state : MiniMC::CPA::successors (s,transfer)) {
 	    auto concretizer = state.dataStates()[0].getConcretizer ();
 	    if (concretizer->isFeasible () == MiniMC::CPA::Solver::Feasibility::Feasible) {
 	      if (!state.getLocationState().isActive (0))  {

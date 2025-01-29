@@ -1,6 +1,7 @@
 #include "minimc/algorithms/reachability.hpp"
 #include "minimc/cpa/interface.hpp"
 #include "minimc/cpa/successorgen.hpp"
+#include "minimc/support/feedback.hpp"
 #include "minimc/support/localisation.hpp"
 #include "minimc/storage/storage.hpp"
 #include <algorithm>
@@ -64,19 +65,13 @@ namespace MiniMC {
 	std::list<T> waiting;
       };
       
-      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state, MiniMC::Support::Messager& m) {
+      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState& state) {
 	for (auto& dstate : state.dataStates ()) {
 	  auto solver = dstate.getConcretizer ();
-	  m << MiniMC::Support::TSubmessage {"Checking feasibility"};
-	  auto res = std::async ([solver](){return solver->isFeasible ();});
-
-	  std::future_status status;
-	  do {
-	    status = res.wait_for(500ms);
-	    m << MiniMC::Support::TSubmessage {"Checking feasibility"};
-	  }while (status!=std::future_status::ready);
+	  auto res = solver->isFeasible ();
 	  
-	  switch (res.get()) {
+	  
+	  switch (res) {
 	  case MiniMC::CPA::Solver::Feasibility::Feasible:
 	  case MiniMC::CPA::Solver::Feasibility::Unknown:
 	    break;
@@ -103,9 +98,11 @@ namespace MiniMC {
       
       Result Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	MiniMC::Storage::HashStorage storage;
-	
-        auto insert = [this,&storage,filter](auto& state) {  
-	  if (filter(state,mess) == StateStatus::Keep) {
+	MiniMC::Support::AsyncExecutor executor {mess};
+	MiniMC::Support::TSubmessage prog_message {"Filtering State"}; 
+        auto insert = [this,prog_message,&storage,filter,&executor](auto& state) {  
+	  auto filterres = executor.execute (prog_message,filter,state);
+	  if (filterres == StateStatus::Keep) {
 	    auto ins = storage.insert (state);
 	    if (ins) {
 	      _internal->waiting->insert (state);
@@ -121,13 +118,10 @@ namespace MiniMC {
 	  }
 	  
 	  
-	  MiniMC::CPA::AnalysisState newstate;
-	  MiniMC::CPA::TransitionEnumerator enumerator{searchee};
-	  for (; enumerator; ++enumerator) {
-	    if (_internal->transfer.Transfer (searchee,*enumerator,newstate)) {
-	      insert(newstate);
-	    }
-	  }
+	  //MiniMC::CPA::TransitionEnumerator enumerator{searchee};
+	  for (auto newstate : successors (searchee,_internal->transfer))
+	    insert(newstate);
+	  
 	  
 	
 
