@@ -131,7 +131,7 @@ namespace MiniMC {
     protected:
       virtual bool innerEq(const Type& t) const = 0;
     };
-
+    
     using Type_ptr = std::shared_ptr<Type>;
 
     template <TypeID id>
@@ -142,23 +142,75 @@ namespace MiniMC {
     inline std::ostream& operator<<(std::ostream& os, const Type& t) {
       return t.output(os);
     }
+    
+    template<TypeID id> requires (id!=TypeID::Aggregate)
+    class TType : public Type{
+    public:
+      static Type_ptr get  ()  {
+	static Type_ptr singleton {new TType()};
+	return singleton;
+      }
+      
+      std::size_t getSize() const override { return ByteWidth<id>; }
+      std::ostream& output(std::ostream& os) const override  {
+	return os << getTypeID();
+      }
+      
+      TypeID getTypeID () const override {return id;}
+      
+      bool isInteger () const override {return id != TypeID::Memory;}
+    protected:
+      bool innerEq(const Type&) const override {
+        return true;
+      }
+    private:
+      TType() {}
+      
+    };
 
+    using I8Type = TType<TypeID::I8>;
+    using I16Type = TType<TypeID::I16>;
+    using I32Type = TType<TypeID::I32>;
+    using I64Type = TType<TypeID::I64>;
+    using VoidType = TType<TypeID::Void>;
+    using PointerType = TType<TypeID::Pointer>;
+    using Pointer32Type = TType<TypeID::Pointer32>;
+    using BoolType = TType<TypeID::Bool>;
+    using MemoryType = TType<TypeID::Memory>;
+    
+    
+
+    class AggregateType : public Type {
+    public:
+      static Type_ptr get(std::size_t i) {return Type_ptr( new AggregateType (i));}
+      std::size_t getSize() const { return size; }
+      std::ostream& output(std::ostream& os) const { 
+	std::ostream copy (os.rdbuf());  
+	copy << "Aggr" << std::dec << std::noshowbase << size;
+	return os;
+      }
+      TypeID getTypeID () const override{ return TypeID::Aggregate;}
+      
+      bool innerEq(const Type& t) const override { return size == static_cast<const AggregateType&>(t).size; }
+      bool isAggregate () const override {return true;}
+      
+    private:
+      std::size_t size;
+      AggregateType(size_t size) :  size(size) {}
+      
+    };
+
+
+    
     /** 
-	 * Factory creating types. 
-	 */
+     * Factory creating types. 
+     */
     class TypeFactory : public std::enable_shared_from_this<TypeFactory> {
     public:
       TypeFactory() {}
       virtual ~TypeFactory() {}
 
-      /** 
-	   * Create an integer type of width at least \p t bits long. It will choose the smallest supported integer size larger than \p t  
-	   *
-	   * @param t  The minimum size in bits
-	   * 
-	   * @return  The created integer type
-	   */
-
+      
       virtual const Type_ptr makeIntegerType(size_t t) = 0;
       virtual const Type_ptr makeBoolType() = 0;
       virtual const Type_ptr makePointerType() = 0;
@@ -170,10 +222,7 @@ namespace MiniMC {
     };
     
     using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
-
-    /** 
-	 * Factory creating types. 
-	 */
+    
     class TypeFactory64 : public TypeFactory {
     public:
       TypeFactory64();
@@ -184,11 +233,6 @@ namespace MiniMC {
       virtual const Type_ptr makeVoidType() override;
       virtual const Type_ptr makeAggregateType(size_t) override;
       virtual const Type_ptr makeMemoryType() override;
-    
-      
-    private:
-      struct Inner;
-      std::unique_ptr<Inner> impl;
     };
     
     inline bool isSameType(std::initializer_list<Type_ptr> inp) {
@@ -202,7 +246,7 @@ namespace MiniMC {
       }
 
       return true;
-      }
+    }
     
   } // namespace Model
 } // namespace MiniMC

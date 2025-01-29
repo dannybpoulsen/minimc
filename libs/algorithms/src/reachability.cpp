@@ -109,7 +109,8 @@ namespace MiniMC {
 	    }
 	  }
 	};
-
+	mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};
+	
 	insert(state);
 	while (*_internal->waiting) {
 	  auto searchee = _internal->waiting->pop ();
@@ -124,9 +125,9 @@ namespace MiniMC {
 	  
 	  
 	
-
-
 	  mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};
+	  
+
 	  
 	}
 	
