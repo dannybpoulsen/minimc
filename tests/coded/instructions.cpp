@@ -15,14 +15,13 @@
 #include "minimc/support/overload.hpp"
 
 TEST_CASE("Add") {
-  MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
   MiniMC::Model::Program prgm;
   
   MiniMC::Model::RegisterDescr descr;
   
   
-  auto type = tfac->makeIntegerType (8);
+  auto type = MiniMC::Model::I8Type::get();;
   auto res = descr.addRegister (prgm.getRootFrame ().makeFresh (),type);
 
   MiniMC::Model::CFA cfa{};
@@ -36,12 +35,12 @@ TEST_CASE("Add") {
   }
 
   auto func = prgm.addFunction (prgm.getRootFrame().makeFresh (),
-		    {},
-		    tfac->makeVoidType (),
-		    std::move(descr),
-		    std::move(cfa),
-		    false,
-		    frame);
+				{},
+				MiniMC::Model::VoidType::get(),
+				std::move(descr),
+				std::move(cfa),
+				false,
+				frame);
 
   MiniMC::CPA::Concrete::CPA cpa;
   auto init_state = cpa.makeInitialState ({{func},{},prgm});

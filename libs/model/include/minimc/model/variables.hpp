@@ -387,7 +387,7 @@ namespace MiniMC {
     
     class ConstantFactory {
     public:
-      ConstantFactory(TypeFactory_ptr tfac) : typefact(tfac) {}
+      ConstantFactory() {}
       virtual ~ConstantFactory() {}
       
       using aggr_input = std::vector<Constant_ptr>;
@@ -400,13 +400,12 @@ namespace MiniMC {
       
       virtual const Value_ptr makeLocationPointer(MiniMC::Model::func_t, MiniMC::Model::base_t) = 0;
       virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
-    protected:
-      TypeFactory_ptr typefact;
+    
     };
 
     class ConstantFactory64 : public ConstantFactory {
     public:
-      ConstantFactory64(TypeFactory_ptr tfac) : ConstantFactory(tfac) {}
+      ConstantFactory64()  {}
       virtual ~ConstantFactory64() {}
       virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) override;
       const Value_ptr makeAggregateConstant(const aggr_input& inp) override ;

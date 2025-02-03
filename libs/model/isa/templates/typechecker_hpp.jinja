@@ -22,67 +22,62 @@ namespace MiniMC {
 	   
 	   */
       struct TypeChecker  {
-        TypeChecker(MiniMC::Model::TypeFactory_ptr tfac, MiniMC::Support::Messager messager) : tfactory(tfac),messager(messager)  {}
+        TypeChecker(MiniMC::Support::Messager messager) : messager(messager)  {}
 	bool Check(const MiniMC::Model::Program& prgm );
 	bool Check(MiniMC::Model::Function&);
 	MiniMC::Model::Type_ptr  CheckType ( MiniMC::Model::Value& v) const  {
 	  return MiniMC::Model::visitValue<MiniMC::Model::Type_ptr> (*this, v);
 	}
 
-/*	
-	template<class T>
-	MiniMC::Model::Type_ptr operator() (T& t) const requires (MiniMC::Model::is_root<T>)	 {
-	  return t.getType ();
-	}
-*/
+
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Register& i) const  {
 	  return i.getType();
 	}
 	
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Bool& i) const  {
-	  i.setType(tfactory->makeBoolType());
+	  i.setType(MiniMC::Model::BoolType::get());
 	  return i.getType();
 	}
 
 	
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I8Integer& i) const  {
-	  i.setType(tfactory->makeIntegerType(8));
+	  i.setType(MiniMC::Model::I8Type::get());
 	  return i.getType();
 	}
 	
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I16Integer& i) const  {
-	  i.setType(tfactory->makeIntegerType(16));
+	  i.setType(MiniMC::Model::I16Type::get());
 	  return i.getType();
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I32Integer& i) const  {
-	  i.setType(tfactory->makeIntegerType(32));
+	  i.setType(MiniMC::Model::I32Type::get());
 	  return i.getType();
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::I64Integer& i) const  {
-	  i.setType(tfactory->makeIntegerType(64));
+	  i.setType(MiniMC::Model::I64Type::get());
 	  return i.getType();
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer& i) const {
-	  i.setType(tfactory->makePointerType());
+	  i.setType(MiniMC::Model::PointerType::get());
 	  return i.getType();
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer32& i) const  {
-	  i.setType(tfactory->makePointerType());
+	  i.setType(MiniMC::Model::Pointer32Type::get());
 	  return i.getType();
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::SymbolicConstant& i) const  {
 	  auto type = std::visit (MiniMC::Support::Overload {
       	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
-      	  [this](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return tfactory->makePointerType();},
-     	  [this](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();},
-	  [this](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();},
-	  [this](const std::monostate& ) ->MiniMC::Model::Type_ptr {return tfactory->makePointerType();}
+      	  [](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
+     	  [](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
+	  [](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
+	  [](const std::monostate& ) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();}
 	  	}
 	    ,i.getValue().getUserData());
 	  i.setType(type);
@@ -94,7 +89,7 @@ namespace MiniMC {
 	}
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::AggregateConstant& i) const  {
-	  i.setType(tfactory->makeAggregateType(i.getSize()));
+	  i.setType(MiniMC::Model::AggregateType::get(i.getSize()));
 	  return i.getType();
 	}
 
@@ -115,7 +110,6 @@ namespace MiniMC {
 	
 
 	const MiniMC::Model::Program* prgm{nullptr};
-	MiniMC::Model::TypeFactory_ptr tfactory;
 	mutable MiniMC::Support::Messager messager;
       };
       

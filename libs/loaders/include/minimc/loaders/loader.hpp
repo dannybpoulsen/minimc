@@ -58,8 +58,8 @@ namespace MiniMC {
       Loader()  {}
       
       virtual ~Loader() {}
-      virtual LoadResult loadFromFile(const std::string& file, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
-      virtual LoadResult loadFromString(const std::string& str, MiniMC::Model::TypeFactory_ptr& tfac, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
+      virtual LoadResult loadFromFile(const std::string& file, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager&) = 0;
+      virtual LoadResult loadFromString(const std::string& str, Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager&) = 0;
       
       
       template<class T>

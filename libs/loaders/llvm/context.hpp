@@ -1,6 +1,7 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/model/instructions.hpp"
 #include "minimc/model/builder.hpp"
+#include "minimc/support/overload.hpp"
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -12,10 +13,9 @@ namespace MiniMC {
   namespace Loaders {
     struct GLoadContext {
       GLoadContext (MiniMC::Model::ConstantFactory& cfact,
-		    MiniMC::Model::TypeFactory& tfact,
 		    MiniMC::Model::Value_ptr mem
-		    ) : cfact(cfact),tfact(tfact),heap_mem(mem) {}
-      GLoadContext(const GLoadContext& g) : values(g.values),cfact(g.cfact),tfact(g.tfact),heap_mem(g.heap_mem) {
+		    ) : cfact(cfact),heap_mem(mem) {}
+      GLoadContext(const GLoadContext& g) : values(g.values),cfact(g.cfact),heap_mem(g.heap_mem) {
 	
       }
       
@@ -26,13 +26,11 @@ namespace MiniMC {
       bool hasValue (const llvm::Value* v) {return values.count (v);}
       MiniMC::BV32 computeSizeInBytes (llvm::Type* );
       auto& getConstantFactory () const {return cfact;}
-      auto& getTypeFactory () const {return tfact;}
       MiniMC::Model::Type_ptr getType (llvm::Type*);
       auto getHeapMem () const {return heap_mem;};
     private:
       std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values;
       MiniMC::Model::ConstantFactory& cfact;
-      MiniMC::Model::TypeFactory& tfact;
       MiniMC::Model::Value_ptr heap_mem;
     };
     
@@ -192,7 +190,6 @@ namespace MiniMC {
 	auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
 	auto func = cinst->getCalledFunction();
 	if (func && func->getName() == "assert") {
-	  assert(cinst->arg_size() == 1);
 	  auto val = context.findValue(*cinst->arg_begin());
 	  if (val->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
 	    
@@ -200,12 +197,14 @@ namespace MiniMC {
 	  }
 	  
 	  else if (val->getType()->isInteger ()) {
-	    auto ntype = context.getTypeFactory ().makeBoolType();
+	    auto ntype = MiniMC::Model::BoolType::get();
 	    auto nvar = context.getStack().addRegister(context.getFrame ().makeFresh ("bool"), ntype);
 	    gather.
 	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>(nvar, val).
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>(nvar);
 	  }
+	  
+	    
 	}
 	else {
 	  std::vector<MiniMC::Model::Value_ptr> params;
@@ -214,7 +213,7 @@ namespace MiniMC {
 	  if (!inst->getType()->isVoidTy()) {
 	    res = context.findValue(inst);
 	  }
-	  auto type = context.getTypeFactory().makeIntegerType(64);
+	  auto type = MiniMC::Model::I64Type::get();
 	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
 	    params.push_back(context.findValue(*it));
 	  }

@@ -14,35 +14,6 @@ namespace MiniMC {
 
     
     
-    TypeFactory64::TypeFactory64() {
-    }
-    TypeFactory64::~TypeFactory64() {}
-
-    const Type_ptr TypeFactory64::makeIntegerType(size_t t) {
-      if (t <= 8) {
-        return I8Type::get();
-      } else if (t <= 16) {
-        return I16Type::get();
-      } else if (t <= 32) {
-        return I32Type::get();
-      } else if (t <= 64) {
-        return I64Type::get();
-      }
-
-      else
-        return nullptr;
-    }
-
-    const Type_ptr TypeFactory64::makeBoolType() { return BoolType::get(); }
-    const Type_ptr TypeFactory64::makePointerType() { return PointerType::get(); }
-    const Type_ptr TypeFactory64::makeMemoryType() { return MemoryType::get(); }
-    
-    const Type_ptr TypeFactory64::makeVoidType() { return VoidType::get(); }
-    const Type_ptr TypeFactory64::makeAggregateType(size_t t) {
-     
-      return AggregateType::get (t);
-    }
-
 
     std::ostream& operator<< (std::ostream& os, TypeID id){
       switch (id) {

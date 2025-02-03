@@ -259,7 +259,7 @@ namespace MiniMC {
 	{%endfor %}
 	{{size_constraints(i)}}	
 	{%if i.getResOperand () %}
-	  expr.setType (tfactory->makeBoolType());
+	  expr.setType (MiniMC::Model::BoolType::get());
         {%endif%}
 	return expr.getType();
 	}
@@ -352,7 +352,7 @@ namespace MiniMC {
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Bool ) {
-	  res = tfactory->makeBoolType ();
+	  res = MiniMC::Model::BoolType::get();//tfactory->makeBoolType ();
 	}
 	else {
 	  messager << MustBeBoolExpr{expr.op1()};
@@ -633,7 +633,7 @@ namespace MiniMC {
 
         else if constexpr (i == VMInstructionCode::Ret) {
 	  auto& content = tinst.getOps ();
-	  if (tt != content.value->getType()) {
+	  if (tt != CheckType(*content.value)) {
             messager << MustBeGivenType {inst,content.value,tt};
 	    
             return false;
@@ -665,7 +665,8 @@ namespace MiniMC {
                            i == VMInstructionCode::Assume ) {
           auto& content = tinst.getOps ();
           auto type = CheckType(*content.expr);
-          if (type->getTypeID() != MiniMC::Model::TypeID::Bool ) {
+	  if (type->getTypeID() != MiniMC::Model::TypeID::Bool 
+	   ) {	      
 	    messager << MustBeGivenTypeID {inst,content.expr,MiniMC::Model::TypeID::Bool};
             return false;
           }

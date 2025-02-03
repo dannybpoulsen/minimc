@@ -202,38 +202,6 @@ namespace MiniMC {
 
 
     
-    /** 
-     * Factory creating types. 
-     */
-    class TypeFactory : public std::enable_shared_from_this<TypeFactory> {
-    public:
-      TypeFactory() {}
-      virtual ~TypeFactory() {}
-
-      
-      virtual const Type_ptr makeIntegerType(size_t t) = 0;
-      virtual const Type_ptr makeBoolType() = 0;
-      virtual const Type_ptr makePointerType() = 0;
-      virtual const Type_ptr makeVoidType() = 0;
-      
-      virtual const Type_ptr makeAggregateType(size_t t) = 0;
-      virtual const Type_ptr makeMemoryType() = 0;
-    
-    };
-    
-    using TypeFactory_ptr = std::shared_ptr<TypeFactory>;
-    
-    class TypeFactory64 : public TypeFactory {
-    public:
-      TypeFactory64();
-      ~TypeFactory64();
-      virtual const Type_ptr makeIntegerType(size_t t) override;
-      virtual const Type_ptr makeBoolType() override;
-      virtual const Type_ptr makePointerType() override;
-      virtual const Type_ptr makeVoidType() override;
-      virtual const Type_ptr makeAggregateType(size_t) override;
-      virtual const Type_ptr makeMemoryType() override;
-    };
     
     inline bool isSameType(std::initializer_list<Type_ptr> inp) {
       auto it = inp.begin();

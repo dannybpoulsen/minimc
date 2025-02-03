@@ -1,4 +1,5 @@
 #include "context.hpp"
+#include "minimc/model/types.hpp"
 #include "minimc/model/variables.hpp"
 
 #include <llvm/IR/Type.h>
@@ -53,21 +54,26 @@ namespace MiniMC {
       auto type_id = getTypeID (type); 
       switch  (type_id) {
       case MiniMC::Model::TypeID::Bool:
-	return tfact.makeBoolType ();
+	return MiniMC::Model::BoolType::get();//tfact.makeBoolType ();
       case MiniMC::Model::TypeID::I8:
-	return tfact.makeIntegerType (8);
+	return MiniMC::Model::I8Type::get();//tfact.makeIntegerType (8);
       case MiniMC::Model::TypeID::I16:
-	return tfact.makeIntegerType (16);
+	return MiniMC::Model::I16Type::get();
       case MiniMC::Model::TypeID::I32:
-	return tfact.makeIntegerType (32);
+	return MiniMC::Model::I32Type::get();
+	//return tfact.makeIntegerType (32);
       case MiniMC::Model::TypeID::I64:
-	return tfact.makeIntegerType (64);
+	return MiniMC::Model::I64Type::get();
+	
+	//return tfact.makeIntegerType (64);
       case MiniMC::Model::TypeID::Pointer:
-	return tfact.makePointerType ();
+	return MiniMC::Model::PointerType::get();
+	//return tfact.makePointerType ();
       case MiniMC::Model::TypeID::Aggregate:
-	return tfact.makeAggregateType (computeSizeInBytes (type));
+	return MiniMC::Model::AggregateType::get(computeSizeInBytes (type));
+	//return tfact.makeAggregateType (computeSizeInBytes (type));
       case MiniMC::Model::TypeID::Void:
-	  return tfact.makeVoidType ();
+	return MiniMC::Model::VoidType::get();
       default:
 	throw MiniMC::Support::Exception ("Unsupported type");
       }
@@ -88,10 +94,10 @@ namespace MiniMC {
       }
 
       else if (ty->isIntegerTy ()) {
-	return tfact.makeIntegerType (ty->getIntegerBitWidth())->getSize ();
+	return (ty->getIntegerBitWidth() / 8)+((ty->getIntegerBitWidth() / 8 == 0) ? 0 : 1);
       }
       else if (ty->isPointerTy ()) {
-	return tfact.makePointerType ()->getSize ();
+	return MiniMC::Model::PointerType::get()->getSize ();
       }
       throw MiniMC::Support::Exception("Can't calculate size of type");
     }

@@ -198,6 +198,13 @@
       || std::is_same_v<std::remove_const_t<A>,Undef>      
       ;
 
+    template<class A>
+    constexpr bool is_integer = std::is_same_v<std::remove_const_t<A>,I8Integer>
+      || std::is_same_v<std::remove_const_t<A>,I16Integer>
+      || std::is_same_v<std::remove_const_t<A>,I32Integer>
+      || std::is_same_v<std::remove_const_t<A>,I64Integer>;
+
+
     {%if arit_ops|length > 0 %}  
     template<class A>
     constexpr bool is_bin_arith =

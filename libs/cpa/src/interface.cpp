@@ -94,7 +94,7 @@ namespace MiniMC {
 	   [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
 	    [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
 	      auto heap_block = w.lock();
-	      auto aggr = MiniMC::Model::TypeFactory64{}.makeAggregateType (heap_block->size);
+	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 	      
 	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (heap_block->heap_register,constant,aggr));
@@ -107,9 +107,6 @@ namespace MiniMC {
 	}
 	print (values,p);
       }
-	//printVStack (prgm.getCPURegs (), p);
-	//printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
-
       
       
       return os << std::endl;;

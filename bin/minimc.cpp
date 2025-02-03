@@ -49,14 +49,13 @@ int main(int argc, char* argv[]) {
     
     if (ok) {
       // Load Program
-      MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-      MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+      MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
       auto loader = options.load.loader;
-      auto loadres = loader->loadFromFile (options.load.inputname,tfac,cfac,messager);
+      auto loadres = loader->loadFromFile (options.load.inputname,cfac,messager);
       if(loadres) {
 	MiniMC::Model::Program prgm = std::move(loadres.value());
 	
-	if (!MiniMC::Model::Checkers::TypeChecker{tfac,messager}.Check (prgm) ||
+	if (!MiniMC::Model::Checkers::TypeChecker{messager}.Check (prgm) ||
 	    !MiniMC::Model::Checkers::StructuralChecker{messager}.Check (prgm)
 	    ) {
 	  return -1;

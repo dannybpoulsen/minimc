@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "minimc/model/types.hpp"
 
 namespace MiniMC {
   namespace  Loaders {
@@ -51,23 +52,23 @@ namespace MiniMC {
       MiniMC::Model::Type_ptr Parser::parseType () {
 	Token tok;
 	if (match (INT8))
-	  return tfactory->makeIntegerType (8);
+	  return MiniMC::Model::I8Type::get();
 	else if (match (INT16))
-	  return tfactory->makeIntegerType (16);
+	  return MiniMC::Model::I16Type::get();
 	else if (match (INT32))
-	  return tfactory->makeIntegerType (32);
+	  return MiniMC::Model::I32Type::get();
 	else if (match (INT64))
-	  return tfactory->makeIntegerType (64);
+	  return MiniMC::Model::I64Type::get();//return tfactory->makeIntegerType (64);
 	else if (match (BOOL))
-	  return tfactory->makeBoolType ();
+	  return MiniMC::Model::BoolType::get();//return tfactory->makeBoolType ();
 	else if (match (POINTER))
-	  return tfactory->makePointerType ();
+	  return MiniMC::Model::PointerType::get();//return tfactory->makePointerType ();
 	else if (match (AGGR,&tok)) {
-	  return tfactory->makeAggregateType (tok.get<AggrType> ().size);
+	  return MiniMC::Model::AggregateType::get(tok.get<AggrType> ().size);//return tfactory->makeAggregateType (tok.get<AggrType> ().size);
 	}
 	else {
 	  expect (VOID);
-	  return tfactory->makeVoidType ();
+	  return MiniMC::Model::VoidType::get();//return tfactory->makeVoidType ();
 	}
 	
       }
@@ -415,14 +416,13 @@ namespace MiniMC {
 
 
       
-      MiniMC::Model::Program Parser::parse (MiniMC::Model::TypeFactory_ptr &tfac, MiniMC::Model::ConstantFactory_ptr &cfac) {
+      MiniMC::Model::Program Parser::parse (MiniMC::Model::ConstantFactory_ptr &cfac) {
 	MiniMC::Model::Program program;
 	prgm = &program;
-	tfactory = tfac;
 	cfactory = cfac;
 	MiniMC::Loaders::MMC::Token tt;
 
-	heap_var = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),tfac->makeMemoryType());
+	heap_var = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());
 	
 	parseGlobalDeclaration ();
 	parseFunctionDeclarations ();

@@ -12,8 +12,7 @@
 #include "minimc/loaders/loader.hpp"
 #include <filesystem>
 
-MiniMC::Model::TypeFactory_ptr tfac = std::make_shared<MiniMC::Model::TypeFactory64>();
-MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>(tfac);
+MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
 
 auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Support::Messager mess;
@@ -24,7 +23,7 @@ auto loadProgram (auto& loader, const std::string& s) {
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
-  return manager(std::move(loader.loadFromFile (path,tfac,cfac,mess)).value());
+  return manager(std::move(loader.loadFromFile (path,cfac,mess)).value());
   
 }
 
@@ -53,7 +52,7 @@ TEST_CASE("Frame") {
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<std::vector<std::string> > (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
-  CHECK(MiniMC::Model::Checkers::TypeChecker{tfac,mess}.Check (prgm));
+  CHECK(MiniMC::Model::Checkers::TypeChecker{mess}.Check (prgm));
   
 }
 
