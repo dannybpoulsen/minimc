@@ -108,9 +108,28 @@
     using I64Integer = TConstant<MiniMC::BV64>;
     using Pointer = TConstant<MiniMC::Model::pointer64_t>;
     using Pointer32 = TConstant<MiniMC::Model::pointer32_t>;
-    using SymbolicConstant = TConstant<MiniMC::Model::Symbol>;
     
-    
+    template<>
+    inline Type_ptr TConstant<MiniMC::BV8,true>::_inner_type () {return MiniMC::Model::BoolType::get();}
+
+    template<>
+    inline Type_ptr TConstant<MiniMC::BV8,false>::_inner_type () {return MiniMC::Model::I8Type::get();}
+
+    template<>
+    inline Type_ptr TConstant<MiniMC::BV16,false>::_inner_type () {return MiniMC::Model::I16Type::get();}
+
+    template<>
+    inline Type_ptr TConstant<MiniMC::BV32,false>::_inner_type () {return MiniMC::Model::I32Type::get();}
+
+    template<>
+    inline Type_ptr TConstant<MiniMC::BV64,false>::_inner_type () {return MiniMC::Model::I64Type::get();}
+
+    template<>   
+    inline Type_ptr TConstant<MiniMC::Model::pointer64_t,false>::_inner_type () {return MiniMC::Model::PointerType::get();}
+
+    template<>   
+    inline Type_ptr TConstant<MiniMC::Model::pointer32_t,false>::_inner_type () {return MiniMC::Model::Pointer32Type::get();}
+    	   
 
    {% for N in cast_ops %}using {{N.getName()}}Expr = CastExpression<CastOps::{{N.getName()}}>;
    {% endfor %}
@@ -167,8 +186,20 @@
     template <class T, bool is_bool>
     inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo<TConstant<T, is_bool>>::type_t()),
                                                      value(val) {
+						     setType(_inner_type());
     }
-
+    
+    inline SymbolicConstant::SymbolicConstant (MiniMC::Model::Symbol val)  : Constant(ValueInfo<SymbolicConstant>::type_t()), symbol(val) {
+    	    auto type = std::visit (MiniMC::Support::Overload {
+	        	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
+      	  		  [](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
+     	  		  [](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
+	  		  [](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
+	  		  [](const std::monostate& ) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();}
+	  	}
+	    ,val.getUserData());
+	    setType(type);
+    }
 
     {% for N in all_bin_ops+all_unary_ops+pointer_ops%}
        

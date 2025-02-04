@@ -207,7 +207,9 @@ namespace MiniMC {
 								  name(name) {}
 
     
-    AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo<AggregateConstant>::type_t()),data(std::move(arr)) {}
+    AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo<AggregateConstant>::type_t()),data(std::move(arr)) {
+      setType (MiniMC::Model::AggregateType::get(data.getSize()));
+    }
     
 
   } // namespace Model

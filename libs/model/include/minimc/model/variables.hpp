@@ -4,6 +4,7 @@
 #include "minimc/model/types.hpp"
 #include "minimc/model/symbol.hpp"
 #include "minimc/support/exceptions.hpp"
+#include "minimc/support/overload.hpp"
 #include "minimc/host/types.hpp"
 #include "minimc/util/valuemap.hpp"
 #include "minimc/model/array.hpp"
@@ -289,10 +290,36 @@ namespace MiniMC {
       }
 
     private:
+      Type_ptr _inner_type ();
       T value;
     };
     
-        
+
+    class SymbolicConstant : public Constant {
+    public:
+      SymbolicConstant(MiniMC::Model::Symbol val);
+      virtual ~SymbolicConstant () {}
+      auto getValue() const {
+        return symbol;
+      }
+      
+      std::size_t getSize() const override { return sizeof(symbol); }
+      
+      bool isBool() const override { return false; }
+      bool isInteger() const override { return false; }
+      bool isPointer() const override {return false;  }
+      
+      std::ostream& output(std::ostream& os) const override {
+	std::ostream copy (os.rdbuf());
+	copy << "<" <<  symbol << " ";
+	return outputType (os) << ">";
+      }
+
+    private:
+      MiniMC::Model::Symbol symbol;
+    };
+
+    
     /**
      * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
      *
