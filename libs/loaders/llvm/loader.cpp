@@ -202,37 +202,44 @@ namespace MiniMC {
           {
             MiniMC::Model::EdgeBuilder edgebuilder{cfg, init, end, frame};
             if (returnTy->getTypeID() != MiniMC::Model::TypeID::Void) {
-              std::size_t bitwidth = returnTy->getSize(); // inst->getType()->getIntegerBitWidth();
-              MiniMC::Model::Value_ptr min, max;
+	      if (returnTy->isInteger() ) {
+		MiniMC::Model::Value_ptr min, max;
+		
+		switch(returnTy->getTypeID()) {
+		  
+		  case MiniMC::Model::TypeID::I8:
+		    min = MiniMC::Model::I8Integer::make(std::numeric_limits<MiniMC::BV8>::min());
+		    max = MiniMC::Model::I8Integer::make(std::numeric_limits<MiniMC::BV8>::max());
+		    break;
+		  case MiniMC::Model::TypeID::I16:
+		    min = MiniMC::Model::I16Integer::make(std::numeric_limits<MiniMC::BV16>::min());
+		    max = MiniMC::Model::I16Integer::make(std::numeric_limits<MiniMC::BV16>::max());
+		    
+		    break;
+		  case MiniMC::Model::TypeID::I32:
+		    min = MiniMC::Model::I32Integer::make(std::numeric_limits<MiniMC::BV32>::min());
+		    max = MiniMC::Model::I32Integer::make(std::numeric_limits<MiniMC::BV32>::max());
+		    break;
+		  case MiniMC::Model::TypeID::I64:
+		    min =  MiniMC::Model::I64Integer::make(std::numeric_limits<MiniMC::BV64>::min());
+		    max =  MiniMC::Model::I64Integer::make(std::numeric_limits<MiniMC::BV64>::max());
+		    break;
+		  default:
+		    std::unreachable();
+		  
+		    
+		}
+		auto retVar = variablestack.addRegister(frame.makeFresh(), returnTy);
 
-              switch (bitwidth) {
-	      case 1:
-		min = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::min(), MiniMC::Model::TypeID::I8);
-		max = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV8>::max(), MiniMC::Model::TypeID::I8);
-		break;
-	      case 2:
-		min = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::min(), MiniMC::Model::TypeID::I16);
-		max = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV16>::max(), MiniMC::Model::TypeID::I16);
-		break;
-	      case 4:
-		min = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::min(), MiniMC::Model::TypeID::I32);
-		max = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV32>::max(), MiniMC::Model::TypeID::I32);
-		break;
-	      case 8:
-		min = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::min(), MiniMC::Model::TypeID::I64);
-		max = cfactory->makeIntegerConstant(std::numeric_limits<MiniMC::BV64>::max(), MiniMC::Model::TypeID::I64);
-		break;
-	      default:
-		throw MiniMC::Support::Exception("Error");
-              }
-
-              auto retVar = variablestack.addRegister(frame.makeFresh(), returnTy);
-
-              edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet>(retVar, min, max);
-              edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret>(retVar);
-
+		edgebuilder.addInstr<MiniMC::Model::InstructionCode::NonDet>(retVar, min, max);
+		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret>(retVar);
+	      }
+	      
+	      else {
+		edgebuilder.addInstr<MiniMC::Model::InstructionCode::Ret>(MiniMC::Model::Undef::make(returnTy));
+	      }
             }
-
+	    
             else {
               edgebuilder.addInstr<MiniMC::Model::InstructionCode::RetVoid>();
             }

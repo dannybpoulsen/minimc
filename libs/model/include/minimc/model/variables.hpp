@@ -247,7 +247,8 @@ namespace MiniMC {
     
     class Undef : public Constant {
     public:
-      Undef();
+      static Constant_ptr make (Type_ptr ty) {return Constant_ptr(new Undef(ty));}
+      Undef(Type_ptr type);
       virtual bool isUndef() const override { return true; }
       virtual std::ostream& output(std::ostream& os) const override {
         os << "<Undef ";
@@ -262,7 +263,7 @@ namespace MiniMC {
     template <typename T, bool is_bool = false>
     class TConstant : public Constant {
     public:
-      TConstant(T val);
+      static Constant_ptr make (T t) { return Constant_ptr{new TConstant<T,is_bool> (t)};}
       virtual ~TConstant () {}
       T getValue() const {
         return value;
@@ -290,6 +291,7 @@ namespace MiniMC {
       }
 
     private:
+      TConstant(T val);
       Type_ptr _inner_type ();
       T value;
     };
@@ -326,6 +328,7 @@ namespace MiniMC {
      */
     class AggregateConstant : public Constant {
     public:
+      static Constant_ptr make (MiniMC::Util::Array&& arr) {return  Constant_ptr(new AggregateConstant (std::move(arr)));}
       AggregateConstant(MiniMC::Util::Array&& arr);
       
       auto& getData () const  {return data;}

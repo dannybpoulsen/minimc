@@ -22,29 +22,28 @@ namespace MiniMC {
       Type_ptr type;
       switch (ty) {
         case MiniMC::Model::TypeID::Bool:
-          retval = std::make_shared<Bool>(static_cast<MiniMC::BV8>(val));
+          retval = Bool::make(val);//std::make_shared<Bool>(static_cast<MiniMC::BV8>(val));
 	  type = MiniMC::Model::BoolType::get();//typefact->makeBoolType ();
 	  break;
         case MiniMC::Model::TypeID::I8:
-          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV8>>(static_cast<MiniMC::BV8>(val));
+          retval = I8Integer::make(val);//std::make_shared<MiniMC::Model::TConstant<MiniMC::BV8>>(static_cast<MiniMC::BV8>(val));
 	  type = MiniMC::Model::I8Type::get();//typefact->makeIntegerType (8);
 	  break;
         case MiniMC::Model::TypeID::I16:
-          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV16>>(static_cast<MiniMC::BV16>(val));
+          retval = I16Integer::make(val);//std::make_shared<MiniMC::Model::TConstant<MiniMC::BV16>>(static_cast<MiniMC::BV16>(val));
 	  type = MiniMC::Model::I16Type::get();//typefact->makeIntegerType (16);
 	  break;
         case MiniMC::Model::TypeID::I32:
-          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV32>>(static_cast<MiniMC::BV32>(val));
+          retval = I32Integer::make(val);//std::make_shared<MiniMC::Model::TConstant<MiniMC::BV32>>(static_cast<MiniMC::BV32>(val));
 	  type = MiniMC::Model::I32Type::get();//typefact->makeIntegerType (32);
 	  break;
         case MiniMC::Model::TypeID::I64:
-          retval = std::make_shared<MiniMC::Model::TConstant<MiniMC::BV64>>(static_cast<MiniMC::BV64>(val));
+          retval = I64Integer::make(val);//std::make_shared<MiniMC::Model::TConstant<MiniMC::BV64>>(static_cast<MiniMC::BV64>(val));
 	  type = MiniMC::Model::I64Type::get();//typefact->makeIntegerType (64);
 	  break;
       default:
 	throw MiniMC::Support::Exception("Error");
       }
-      retval->setType(type);
       return retval;
     }
 
@@ -54,11 +53,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeFunctionPointer (id));  
+	v = Pointer32::make (MiniMC::Model::pointer32_t::makeFunctionPointer (id));//std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeFunctionPointer (id));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeFunctionPointer (id));  
+	v = Pointer::make (MiniMC::Model::pointer64_t::makeFunctionPointer (id));//std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeFunctionPointer (id));  
       }
       
       
@@ -76,11 +75,11 @@ namespace MiniMC {
       Value_ptr v;
 
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeLocationPointer (id,lid));  
+	v = Pointer32::make(MiniMC::Model::pointer32_t::makeLocationPointer (id,lid));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeLocationPointer (id,lid));  
+	v = Pointer::make(MiniMC::Model::pointer64_t::makeLocationPointer (id,lid));  
       }
       
 
@@ -95,11 +94,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v = std::make_shared<MiniMC::Model::Pointer32> (MiniMC::Model::pointer32_t::makeHeapPointer (base,offset));  
+	v = Pointer32::make(MiniMC::Model::pointer32_t::makeHeapPointer (base,offset));  
       }
 
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeHeapPointer (base,offset));  
+	v = Pointer::make (MiniMC::Model::pointer64_t::makeHeapPointer (base,offset));  
       }
       v->setType (ptrtype);
       return v;
@@ -110,11 +109,11 @@ namespace MiniMC {
       Value_ptr v;
       
       if (ptrtype->getSize () == 4) {
-	v =  std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeNullPointer ());	
+	v =  MiniMC::Model::Pointer::make (MiniMC::Model::pointer64_t::makeNullPointer ());	
       }
       
       else {
-	v = std::make_shared<MiniMC::Model::Pointer> (MiniMC::Model::pointer64_t::makeNullPointer ());	
+	v = MiniMC::Model::Pointer::make (MiniMC::Model::pointer64_t::makeNullPointer ());	
       
       }
       v->setType(ptrtype);
@@ -122,9 +121,8 @@ namespace MiniMC {
     }
     
     const Value_ptr ConstantFactory64::makeUndef(TypeID ty,std::size_t size) {
-      Value_ptr val = std::make_shared<MiniMC::Model::Undef>();
       Type_ptr type;
-
+      
       switch (ty) {
       case TypeID::I8:
 	type = MiniMC::Model::I8Type::get();//typefact->makeIntegerType (8);
@@ -153,8 +151,9 @@ namespace MiniMC {
 	throw MiniMC::Support::Exception ("Errror");
       }
       
-      val->setType(type);
-      return val;
+
+      return  std::make_shared<MiniMC::Model::Undef>(type);
+      
     }
 
     const Value_ptr ConstantFactory64::makeAggregateConstant(const ConstantFactory::aggr_input& inp) {
@@ -200,7 +199,7 @@ namespace MiniMC {
       return v;
   }
 
-    Undef::Undef() : Constant(ValueInfo<Undef>::type_t()) {}
+    Undef::Undef(MiniMC::Model::Type_ptr t) : Constant(ValueInfo<Undef>::type_t()) {setType(t);}
     Register::Register(const Symbol& name,RegisterInfo&& place) : Value(ValueInfo<Register>::type_t()),
 								  place (std::move(place)),
 							    

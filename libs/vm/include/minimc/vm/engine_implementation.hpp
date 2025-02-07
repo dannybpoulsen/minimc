@@ -180,9 +180,7 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::VMInstructionCode::NonDet) {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
-	  MiniMC::Model::Undef val;
-	  val.setType (res.getType());
-          auto ret = eval.Eval(val);
+	  auto ret = eval.Eval(*MiniMC::Model::Undef::make(res.getType()));
           state.getValueLookup().saveValue(res, std::move(ret));
           return Status::Ok;
         }

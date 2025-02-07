@@ -23,15 +23,15 @@ namespace MiniMC {
 	MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
 	  auto& ref = static_cast<const QExpr&> (expr);
 	  return MiniMC::VMT::Concrete::Value::visit (MiniMC::Support::Overload {
-	        [](MiniMC::VMT::Concrete::Value::I8& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::I16& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I16Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::I32& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I32Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::I64& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::I64Integer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::Pointer& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Pointer32> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::Bool& val) ->MiniMC::Model::Constant_ptr{return std::make_shared<MiniMC::Model::Bool> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::AggregateConstant> (val.getValue ());},
-		[](MiniMC::VMT::Concrete::Value::Memory&) ->MiniMC::Model::Constant_ptr {return std::make_shared<MiniMC::Model::I8Integer> (0);}
+	      [](MiniMC::VMT::Concrete::Value::I8& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I16& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I16Integer::make  (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I32& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I32Integer::make (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::I64& val) ->MiniMC::Model::Constant_ptr{return MiniMC::Model::I64Integer::make  (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Pointer& val) ->MiniMC::Model::Constant_ptr{return MiniMC::Model::Pointer::make (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr{return MiniMC::Model::Pointer32::make (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Bool& val) ->MiniMC::Model::Constant_ptr{return MiniMC::Model::Bool::make (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::AggregateConstant::make  (val.getValue ());},
+		[](MiniMC::VMT::Concrete::Value::Memory&) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make (0);}
 		  },
 	    ref.getValue ()
 	    

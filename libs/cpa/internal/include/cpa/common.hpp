@@ -319,8 +319,8 @@ namespace MiniMC {
 	
 	for (auto& b : descr.getHeap ().blocks()) {
 	  //Allocate block here
-	  auto ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
-	  auto size = eval.Eval (MiniMC::Model::I64Integer (b.size));
+	  auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (b.baseobj));
+	  auto size = eval.Eval (*MiniMC::Model::I64Integer::make (b.size));
 	  
 	  Value::visit (
 			MiniMC::Support::Overload {
@@ -337,7 +337,7 @@ namespace MiniMC {
 			);
 	  
 	  if (b.value) {
-	    Value ptr = eval.Eval (MiniMC::Model::Pointer (b.baseobj));
+	    Value ptr = eval.Eval (*MiniMC::Model::Pointer::make (b.baseobj));
             Value valueToStor = eval.Eval(*b.value);
 	    
 	    Value::visit (MiniMC::Support::Overload {
