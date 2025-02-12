@@ -4,6 +4,7 @@
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/localisation.hpp"
 #include "minimc/support/overload.hpp"
+#include "minimc/model/nondet_generator.hpp"
 
 
 #include <limits>
@@ -12,27 +13,10 @@
 namespace MiniMC {
   namespace Model {
     namespace Modifications {
+      
 
-      struct NonDetGenerator {
-	NonDetGenerator (MiniMC::BV64 min, MiniMC::BV64 max) : cur(min), max(max) {}
-	auto get () const {return cur;}
-	bool finished () const {return finished_;}
-	void increment () {
-	  if (cur == max) {
-	    finished_ = true;
-	  }
-
-	  else
-	    ++cur ;
-	}	
-      private:
-	MiniMC::BV64  cur;	
-	MiniMC::BV64  max;
-	
-	bool finished_{false};
-      };
-
-      void expandEdge (MiniMC::Model::CFA& cfa, MiniMC::Model::ConstantFactory& cfac, const MiniMC::Model::Edge* edge) {
+      
+      void expandEdge (MiniMC::Model::CFA& cfa, const MiniMC::Model::Edge* edge) {
 	if (edge->getInstructions ()) {
 	  // Only bother if we have instructions to deal with
 	  auto& instr = edge->getInstructions();
@@ -42,52 +26,30 @@ namespace MiniMC {
 	  
 	  for (auto& i : instr) {
 	    i.visit ( MiniMC::Support::Overload {
-		  [&edge, &cfa,&prev,&nstr,&cfac](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::NonDet>& instr) {
-		    auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
-		    auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
-	      
-		    cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
+		[&edge, &cfa,&prev,&nstr](const MiniMC::Model::TInstruction<MiniMC::Model::VMInstructionCode::NonDet>& instr) {
+		  auto nloc = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
+		  auto nnondet = cfa.makeLocation (prev->getSymbol (),prev->getInfo ());
+		  
+		  cfa.makeEdge (prev,nloc,std::move(nstr),edge->isPhi ());
+		  nstr.clear ();
+		  auto assign = instr.getOps ().res;
+		  
+		  MiniMC::Model::NonDetGenerator gen;
+		  for (auto t : gen.generate(*assign->getType())) {
+		    nstr.add<VMInstructionCode::Assign> (assign,t);
+		    cfa.makeEdge (nloc,nnondet,std::move(nstr));
 		    nstr.clear ();
-		    MiniMC::BV64 min{0};
-		    MiniMC::BV64 max{0};
-		    auto assign = instr.getOps ().res;
-		    switch (assign->getType()->getTypeID ()) {
-		    case TypeID::I8:
-		      min = std::numeric_limits<MiniMC::BV8>::min ();
-		      max = std::numeric_limits<MiniMC::BV8>::max ();
-		      break;
-		    case TypeID::I16:
-		      min = std::numeric_limits<MiniMC::BV16>::min ();
-		      max = std::numeric_limits<MiniMC::BV16>::max ();
-		      break;
-		    case TypeID::I32:
-		      min = std::numeric_limits<MiniMC::BV32>::min ();
-		      max = std::numeric_limits<MiniMC::BV32>::max ();
-		      break;
-		    case TypeID::I64:
-		      min = std::numeric_limits<MiniMC::BV64>::min ();
-		      max = std::numeric_limits<MiniMC::BV64>::max ();
-		      break;
-		    default:
-		      throw MiniMC::Support::Exception ("Cann't unfold this type");
-		    }
-		    
-		    NonDetGenerator gen {min,max};
-		    for (;!gen.finished (); 	gen.increment ()) {
-		      nstr.add<VMInstructionCode::Assign> (assign,cfac.makeIntegerConstant (gen.get(),assign->getType()->getTypeID ()));
-		      cfa.makeEdge (nloc,nnondet,std::move(nstr));
-		    nstr.clear ();
-		    }
-		    
-		    prev = nnondet;
-		    
-		    
-		  },
+		  }
+		  
+		  prev = nnondet;
+		  
+		  
+		},
 		  [&i,&nstr](auto& ) {
 		    nstr.add (i);
 		  }
-		    
-		    }
+		  
+		  }
 	      );
 	  }
 	  cfa.makeEdge (prev,goal,std::move(nstr));
@@ -95,11 +57,11 @@ namespace MiniMC {
 	}
       }
 	
-      void expandNonDetCFAEdges (MiniMC::Model::CFA& cfa, MiniMC::Model::ConstantFactory& cfac) {
+      void expandNonDetCFAEdges (MiniMC::Model::CFA& cfa) {
 	MiniMC::Support::WorkingList<const MiniMC::Model::Edge*> wlist;
 	std::for_each (cfa.getEdges().begin (),cfa.getEdges().end (),[&wlist](auto& e) {wlist.inserter () = e.get ();});
-	std::for_each (wlist.begin(), wlist.end (),[&cfa,&cfac](auto& e) {
-	  expandEdge (cfa,cfac,e);
+	std::for_each (wlist.begin(), wlist.end (),[&cfa](auto& e) {
+	  expandEdge (cfa,e);
 	}
 	  );
       }
@@ -107,7 +69,7 @@ namespace MiniMC {
       MiniMC::Model::Program NonDetExpander::operator()  (MiniMC::Model::Program&& prgm) {
 	messager << MiniMC::Support::TInfo {"Unfolding non-determinstic values"};
 	for (auto& function : prgm.getFunctions ()) {
-	  expandNonDetCFAEdges (function->getCFA (),*cfactory);
+	  expandNonDetCFAEdges (function->getCFA ());
 	}
 	return prgm;
       }

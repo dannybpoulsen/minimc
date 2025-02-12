@@ -10,12 +10,11 @@ namespace MiniMC {
     namespace Modifications {
       class NonDetExpander : public ProgramModifier {
       public:
-	NonDetExpander (MiniMC::Model::ConstantFactory_ptr cfac, MiniMC::Support::Messager messager) : messager(std::move(messager)),cfactory(cfac) {} 
+	NonDetExpander (MiniMC::Support::Messager messager) : messager(std::move(messager)) {} 
 	MiniMC::Model::Program operator()  (MiniMC::Model::Program&& prgm) override;      
 	
       private:
 	MiniMC::Support::Messager messager;
-	MiniMC::Model::ConstantFactory_ptr cfactory;
       };
 
     }

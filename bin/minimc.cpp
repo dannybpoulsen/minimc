@@ -26,7 +26,7 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
     manager.add<UnrollLoops> (options.unrollLoops);
   }
   if (options.expand_nondet) {
-    manager.add<NonDetExpander> (cfac,mess);
+    manager.add<NonDetExpander> (mess);
   }
   if (options.inlineFunctions) {
     manager.add<InlineFunctions> (options.inlineFunctions);
