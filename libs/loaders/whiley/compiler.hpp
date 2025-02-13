@@ -6,7 +6,7 @@ namespace MiniMC {
     namespace whiley {
       class Compiler : private Whiley::NodeVisitor {
       public:
-	Compiler (MiniMC::Model::ConstantFactory_ptr cfac);
+	Compiler ();
 	~Compiler();
 	MiniMC::Model::Program compile (const ::Whiley::Program& prgm );	
 	void visitIdentifier (const Whiley::Identifier&) override ;
@@ -28,7 +28,6 @@ namespace MiniMC {
 
       private:
 	
-	MiniMC::Model::ConstantFactory_ptr cfac;
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
         };

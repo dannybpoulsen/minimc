@@ -299,6 +299,7 @@ namespace MiniMC {
 
     class SymbolicConstant : public Constant {
     public:
+      static Constant_ptr make (MiniMC::Model::Symbol val) {return Constant_ptr{new SymbolicConstant (val)};}
       SymbolicConstant(MiniMC::Model::Symbol val);
       virtual ~SymbolicConstant () {}
       auto getValue() const {
@@ -321,6 +322,9 @@ namespace MiniMC {
       MiniMC::Model::Symbol symbol;
     };
 
+
+    using aggr_input = std::vector<Constant_ptr>;
+    
     
     /**
      * Class for representing binary blobs which are useful when having to represent constant arrays/structs.
@@ -348,6 +352,14 @@ namespace MiniMC {
       MiniMC::Util::Array data;
     };
 
+    struct AggregateConstantBuilder {
+
+      Constant_ptr build ();
+      auto& operator<< (Constant_ptr constant) {constants.push_back (constant); return *this;}
+    private:
+      std::vector<Constant_ptr> constants;
+    };
+    
     enum class RegType {
       CPU,
       Local,
@@ -415,42 +427,7 @@ namespace MiniMC {
     using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
     
     
-    class ConstantFactory {
-    public:
-      ConstantFactory() {}
-      virtual ~ConstantFactory() {}
-      
-      using aggr_input = std::vector<Constant_ptr>;
-      virtual const Value_ptr makeAggregateConstant(const aggr_input& inp) = 0;
-      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) = 0;
-      virtual const Value_ptr makeFunctionPointer(MiniMC::Model::func_t) = 0;
-      virtual const Value_ptr makeHeapPointer(MiniMC::Model::base_t, MiniMC::Model::offset_t = 0) = 0;
-      virtual const Value_ptr makeNullPointer() = 0;
-      virtual const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) = 0;
-      
-      virtual const Value_ptr makeLocationPointer(MiniMC::Model::func_t, MiniMC::Model::base_t) = 0;
-      virtual const Value_ptr makeUndef(TypeID,std::size_t = 0) = 0;
     
-    };
-
-    class ConstantFactory64 : public ConstantFactory {
-    public:
-      ConstantFactory64()  {}
-      virtual ~ConstantFactory64() {}
-      virtual const Value_ptr makeIntegerConstant(MiniMC::BV64, TypeID) override;
-      const Value_ptr makeAggregateConstant(const aggr_input& inp) override ;
-      const Value_ptr makeFunctionPointer(MiniMC::Model::func_t) override ;
-      const Value_ptr makeLocationPointer(MiniMC::Model::func_t, MiniMC::Model::base_t) override;
-      
-      const Value_ptr makeHeapPointer(MiniMC::Model::base_t, MiniMC::Model::offset_t = 0) override;
-      const Value_ptr makeNullPointer() override ;
-      const Value_ptr makeSymbolicConstant(const MiniMC::Model::Symbol&) override ;
-      
-      const Value_ptr makeUndef(TypeID,std::size_t = 0) override;
-    };
-
-    using ConstantFactory_ptr = std::shared_ptr<ConstantFactory>;
-
     struct VariablePtrIndexer {
 
       std::size_t operator()(const Register& t) { return t.getId(); }

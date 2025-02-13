@@ -76,20 +76,20 @@ namespace MiniMC {
 	addOption<BoolOption>("print", "Print LLVM module to stderr", &printLLVMPass);
 	
       }
-      LoadResult loadFromFile(const std::string& file, Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) override {
+      LoadResult loadFromFile(const std::string& file, MiniMC::Support::Messager& mess) override {
 	std::fstream str;
         str.open(file);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer,  cfac,mess);
+        return readFromBuffer(buffer,  mess);
       }
 
-      LoadResult loadFromString(const std::string& inp,  Model::ConstantFactory_ptr& cfac,MiniMC::Support::Messager& mess) override {
+      LoadResult loadFromString(const std::string& inp,MiniMC::Support::Messager& mess) override {
         std::stringstream str;
         str.str(inp);
         std::string ir((std::istreambuf_iterator<char>(str)), (std::istreambuf_iterator<char>()));
         std::unique_ptr<llvm::MemoryBuffer> buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(ir));
-        return readFromBuffer(buffer, cfac,mess);
+        return readFromBuffer(buffer, mess);
       }
 
       auto createFunctionWorkList(llvm::Module& module) {
@@ -117,12 +117,12 @@ namespace MiniMC {
 	  auto fsymbol = prgm.getRootFrame ().makeSymbol (fname);
 	  function2symb.emplace (F,fsymbol);
 	  auto& Func = *F;
-          auto ptr = lcontext.getConstantFactory().makeSymbolicConstant(fsymbol);
+          auto ptr = MiniMC::Model::SymbolicConstant::make(fsymbol);
           ptr->setType(MiniMC::Model::PointerType::get());
           lcontext.addValue(&Func, ptr);
           MiniMC::Model::offset_t lid = 0;
           for (auto& BB : Func) {
-            auto ptr = lcontext.getConstantFactory().makeLocationPointer(fid, lid);
+            auto ptr = MiniMC::Model::Pointer::make(MiniMC::Model::pointer_t::makeLocationPointer(fid, lid));
             ptr->setType(MiniMC::Model::PointerType::get());
             lcontext.addValue(&BB, ptr);
             lid++;
@@ -138,7 +138,7 @@ namespace MiniMC {
           }
 	  auto symbol =  prgm.getRootFrame().makeFresh (g->getName ().str());
 	  prgm.getHeapLayout().addBlock(symbol, MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,lcontext.getHeapMem(),val);
-	  auto gvar = lcontext.getConstantFactory().makeSymbolicConstant (symbol);
+	  auto gvar = MiniMC::Model::SymbolicConstant::make(symbol);
 	  gvar->setType(MiniMC::Model::PointerType::get());
           lcontext.addValue(&(*g), gvar);
 	  
@@ -418,7 +418,7 @@ namespace MiniMC {
       MiniMC::Model::RegisterDescr vstack;
       MiniMC::Model::LocationInfoCreator locinf(vstack,frame);
 
-      auto funcpointer = cfactory->makeSymbolicConstant(function->getSymbol());
+      auto funcpointer = MiniMC::Model::SymbolicConstant::make(function->getSymbol());
       funcpointer->setType(MiniMC::Model::PointerType::get());
       auto iinfo = locinf.make({});
       auto init = cfg.makeLocation(frame.makeFresh("init"), iinfo);
@@ -432,11 +432,11 @@ namespace MiniMC {
       MiniMC::Model::Value_ptr result = nullptr;
       auto stack_symb = program.getRootFrame().makeFresh (name+std::string("_stack"));
       program.getHeapLayout().addBlock(stack_symb,MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),stacksize,heap_mem);
-      MiniMC::Model::Value_ptr sp = cfactory->makeSymbolicConstant(stack_symb);
+      MiniMC::Model::Value_ptr sp = MiniMC::Model::SymbolicConstant::make(stack_symb);
       sp->setType(MiniMC::Model::PointerType::get());
 
-      MiniMC::Model::Value_ptr stacksize_p = cfactory->makeIntegerConstant (stacksize,MiniMC::Model::TypeID::I64);
-      MiniMC::Model::Value_ptr nb_skips = cfactory->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
+      MiniMC::Model::Value_ptr stacksize_p = MiniMC::Model::I64Integer::make(stacksize);
+      MiniMC::Model::Value_ptr nb_skips = MiniMC::Model::I64Integer::make (1);
       
       
       
@@ -467,12 +467,11 @@ namespace MiniMC {
         }
       }
 
-      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Model::ConstantFactory_ptr& cfac, MiniMC::Support::Messager& mess) {
+      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Support::Messager& mess) {
         MiniMC::Model::Program prgm;
-	cfactory = cfac;
-        sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), MiniMC::Model::PointerType::get());
-	auto heap_mem = prgm.getPersistentRegs().addRegister(prgm.getRootFrame().makeFresh("heaå_mem"), MiniMC::Model::MemoryType::get());
-        GLoadContext lcontext{*cfac,heap_mem};
+	sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), MiniMC::Model::PointerType::get());
+	auto heap_mem = prgm.getPersistentRegs().addRegister(prgm.getRootFrame().makeFresh("heap_mem"), MiniMC::Model::MemoryType::get());
+        GLoadContext lcontext{heap_mem};
 
         llvm::SMDiagnostic diag;
         std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
@@ -498,7 +497,6 @@ namespace MiniMC {
       MiniMC::Model::Register_ptr sp;
       std::unordered_map<llvm::Function*,MiniMC::Model::Symbol> function2symb;
       std::size_t nextHeap{0};
-      MiniMC::Model::ConstantFactory_ptr cfactory;
       
     };
 

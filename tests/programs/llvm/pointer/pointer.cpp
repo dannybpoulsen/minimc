@@ -10,7 +10,6 @@
 #include <filesystem>
 
 auto loadProgram (auto& loader, const std::string& s) {
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
 
@@ -19,7 +18,7 @@ auto loadProgram (auto& loader, const std::string& s) {
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
-  return manager(std::move(loader.loadFromFile (path,cfac,mess).value()));
+  return manager(std::move(loader.loadFromFile (path,mess).value()));
   
 }
 

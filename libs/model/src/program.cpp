@@ -88,25 +88,6 @@ namespace MiniMC {
     };
     
     
-    /*Program::Program (const Program& p) : Program(p.tfact,p.cfact) {
-      Copier copier;
-      
-      Copier::RegReplaceMap replace_map;
-      copier.copyVariables (p.getCPURegs (),replace_map,cpu_regs,getRootFrame());
-      
-      for (auto f : p.getFunctions ()) {
-	copier.copyFunction (f,replace_map,*this);
-      }
-      
-      for (auto f: p.getEntryPoints ()) {
-	addEntryPoint (f->getSymbol ().getName());
-      }
-      
-      setInitialiser (copier.copyInstructionStream(p.getInitialiser (),replace_map));
-      
-      getHeapLayout () = p.getHeapLayout ();
-      
-      
-      }*/
+    
   }
 }

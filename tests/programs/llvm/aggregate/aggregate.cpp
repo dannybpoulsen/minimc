@@ -12,18 +12,17 @@
 #include "minimc/loaders/loader.hpp"
 #include <filesystem>
 
-MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
 
 auto loadProgram (auto& loader, const std::string& s) {
   MiniMC::Support::Messager mess;
   auto path = std::filesystem::path {__FILE__}.parent_path () / s;
-
+  
   MiniMC::Model::Modifications::ProgramManager manager;
   manager.add<MiniMC::Model::Modifications::LowerPhi> ();
   manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
-  return manager(std::move(loader.loadFromFile (path,cfac,mess)).value());
+  return manager(std::move(loader.loadFromFile (path,mess)).value());
   
 }
 

@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "minimc/model/types.hpp"
+#include "minimc/model/variables.hpp"
 
 namespace MiniMC {
   namespace  Loaders {
@@ -211,17 +212,28 @@ namespace MiniMC {
 	  if (match (NUMBER,&tok) || match (NUMBER,&tok)) {
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    return cfactory->makeIntegerConstant (tok.get<int64_t>(),type->getTypeID ());
+	    switch (type->getTypeID ()) {
+	    case MiniMC::Model::TypeID::I8:
+	      return MiniMC::Model::I8Integer::make(tok.get<int64_t>());
+	    case MiniMC::Model::TypeID::I16:
+	      return MiniMC::Model::I16Integer::make(tok.get<int64_t>());
+	    case MiniMC::Model::TypeID::I32:
+	      return MiniMC::Model::I32Integer::make(tok.get<int64_t>());
+	    case MiniMC::Model::TypeID::I64:
+	      return MiniMC::Model::I64Integer::make(tok.get<int64_t>());
+	    default:
+	      throw MiniMC::Support::Exception ("Not an integer type");
+	    }
 	  }
 	  else if (match (POINTERLITERAL,&tok)) {
 	    auto type = parseType ();
 	    expect (RANGLE);
 	    auto literal = tok.get<PointerLiteral> ();
 	    if (literal.segment == PointerSegment::Function) {
-	      return cfactory->makeFunctionPointer (literal.base);
+	      return MiniMC::Model::Pointer::make(MiniMC::Model::pointer64_t::makeFunctionPointer(literal.base));
 	    }
 	    else 
-	      return cfactory->makeHeapPointer (literal.base,literal.offset);
+	      return MiniMC::Model::Pointer::make(MiniMC::Model::pointer64_t::makeHeapPointer(literal.base,literal.offset));
 	  }
 	  else if (get().type == IDENTIFIER ||
 		   get().type == QUALIFIEDNAME) {
@@ -235,24 +247,24 @@ namespace MiniMC {
 	    }
 
 	    else {
-	      auto res = cfactory->makeSymbolicConstant (symbol);
+	      auto res = MiniMC::Model::SymbolicConstant::make (symbol);
 	      res->setType (type);
 	      return res;
 	    }
 	    
 	  }
 	  else if (match (AGGRCONSTANT,&tok)) {
-	    std::vector<MiniMC::Model::Constant_ptr> inputs;
+	    //std::vector<MiniMC::Model::Constant_ptr> inputs;
+	    MiniMC::Model::AggregateConstantBuilder builder;
 	    auto aggr_str_encoded = tok.get<std::string> ();
 	    MiniMC::Support::STDEncode encode;
 	    auto decoded= encode.decode (aggr_str_encoded);
-	    inputs.reserve (decoded.size ());
 	    for (char c : decoded) {
-	      inputs.push_back (std::static_pointer_cast<MiniMC::Model::Constant> (cfactory->makeIntegerConstant (c,MiniMC::Model::TypeID::I8)));
+	      builder << std::static_pointer_cast<MiniMC::Model::Constant> (MiniMC::Model::I8Integer::make (c));
 	    }
 	    auto type = parseType ();
 	    expect (RANGLE);
-	    auto res = cfactory->makeAggregateConstant (inputs);
+	    auto res = builder.build();
 	    res->setType (type);
 	    return res;
 	  }
@@ -416,10 +428,9 @@ namespace MiniMC {
 
 
       
-      MiniMC::Model::Program Parser::parse (MiniMC::Model::ConstantFactory_ptr &cfac) {
+      MiniMC::Model::Program Parser::parse () {
 	MiniMC::Model::Program program;
 	prgm = &program;
-	cfactory = cfac;
 	MiniMC::Loaders::MMC::Token tt;
 
 	heap_var = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());

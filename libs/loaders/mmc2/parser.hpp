@@ -13,7 +13,7 @@ namespace MiniMC {
 	  advance ();
 	}
 	
-	MiniMC::Model::Program parse (MiniMC::Model::ConstantFactory_ptr &cfac);
+	MiniMC::Model::Program parse ();
 	
 	
       private:
@@ -79,7 +79,6 @@ namespace MiniMC {
 	Scanner scanner;
 	MiniMC::Loaders::MMC::Token token;
 	MiniMC::Model::Program* prgm;
-	MiniMC::Model::ConstantFactory_ptr cfactory;
 	MiniMC::Model::Frame curFrame;
 	MiniMC::Model::SymbolTable<MiniMC::Model::Register_ptr> variableMap;
 	std::unordered_set<MiniMC::Model::Symbol> symbolsUsedBeforeDef;

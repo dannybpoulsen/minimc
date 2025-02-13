@@ -12,10 +12,10 @@
 namespace MiniMC {
   namespace Loaders {
     struct GLoadContext {
-      GLoadContext (MiniMC::Model::ConstantFactory& cfact,
+      GLoadContext (
 		    MiniMC::Model::Value_ptr mem
-		    ) : cfact(cfact),heap_mem(mem) {}
-      GLoadContext(const GLoadContext& g) : values(g.values),cfact(g.cfact),heap_mem(g.heap_mem) {
+		    ) : heap_mem(mem) {}
+      GLoadContext(const GLoadContext& g) : values(g.values),heap_mem(g.heap_mem) {
 	
       }
       
@@ -25,14 +25,31 @@ namespace MiniMC {
       void addValue (const llvm::Value* val, MiniMC::Model::Value_ptr vals) {values.emplace (val,vals);}
       bool hasValue (const llvm::Value* v) {return values.count (v);}
       MiniMC::BV32 computeSizeInBytes (llvm::Type* );
-      auto& getConstantFactory () const {return cfact;}
       MiniMC::Model::Type_ptr getType (llvm::Type*);
       auto getHeapMem () const {return heap_mem;};
     private:
       std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values;
-      MiniMC::Model::ConstantFactory& cfact;
       MiniMC::Model::Value_ptr heap_mem;
     };
+
+    template<class T>
+    MiniMC::Model::Value_ptr makeInteger(T val, MiniMC::Model::TypeID types) {
+      switch(types) {
+      case MiniMC::Model::TypeID::I8:
+	return MiniMC::Model::I8Integer::make(val);
+      case MiniMC::Model::TypeID::I16:
+	return MiniMC::Model::I16Integer::make(val);
+      case MiniMC::Model::TypeID::I32:
+	return MiniMC::Model::I32Integer::make(val);
+      case MiniMC::Model::TypeID::I64:
+	return MiniMC::Model::I64Integer::make(val);
+      default:
+	throw MiniMC::Support::Exception ("Not aninteger");
+	
+      }
+	
+    }
+    
     
     struct LoadContext : public GLoadContext {
     public:
@@ -140,7 +157,7 @@ namespace MiniMC {
 	   skip += calcSkip(cur, i);
 	 }
 	 
-	 auto skipee = context.getConstantFactory ().makeIntegerConstant(skip, MiniMC::Model::TypeID::I32);
+	 auto skipee = makeInteger(skip, MiniMC::Model::TypeID::I32);
 	 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::InsertValue>(
 	     context.findValue(inst),
@@ -173,7 +190,7 @@ namespace MiniMC {
 	    skip += calcSkip(cur, i);
 	  }
 	  
-	  auto skipee = context.getConstantFactory().makeIntegerConstant(skip, MiniMC::Model::TypeID::I32);
+	  auto skipee = makeInteger(skip, MiniMC::Model::TypeID::I32);
 	  auto res = context.findValue(inst);
 	  
 	  gather.template addInstr<MiniMC::Model::InstructionCode::ExtractValue>(
@@ -346,8 +363,8 @@ namespace MiniMC {
 	 auto llalltype = alinst->getAllocatedType();
 	 auto outallsize = context.computeSizeInBytes(llalltype);
 	 auto res = context.findValue(inst);
-	 auto size = context.getConstantFactory ().makeIntegerConstant(outallsize, MiniMC::Model::TypeID::I32);
-	 auto skipsize = context.getConstantFactory ().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
+	 auto size = makeInteger(outallsize, MiniMC::Model::TypeID::I32);
+	 auto skipsize = makeInteger(1, MiniMC::Model::TypeID::I32);
 	 
 	 
 
@@ -378,15 +395,15 @@ namespace MiniMC {
 	if (gep->getNumIndices() == 1) {
 	  nbSkips = context.findValue(gep->getOperand(1));
 	  auto size = context.computeSizeInBytes(source);
-	  skipsize = context.getConstantFactory().makeIntegerConstant(size, nbSkips->getType()->getTypeID());
+	  skipsize = makeInteger(size, nbSkips->getType()->getTypeID());
 	  
 	} else {
-	  auto one = context.getConstantFactory().makeIntegerConstant(1, MiniMC::Model::TypeID::I32);
+	  auto one = makeInteger(1, MiniMC::Model::TypeID::I32);
 	  
 	  if (source->isArrayTy()) {
 	    auto elemSize = context.computeSizeInBytes(static_cast<llvm::ArrayType*>(source)->getElementType());
 	    nbSkips = context.findValue(gep->getOperand(2));
-	    skipsize = context.getConstantFactory().makeIntegerConstant(elemSize, nbSkips->getType()->getTypeID());
+	    skipsize = makeInteger(elemSize, nbSkips->getType()->getTypeID());
 	  } else if (source->isStructTy()) {
 	    auto strucTy = static_cast<llvm::StructType*>(source);
 	    size_t size = 0;
@@ -396,7 +413,7 @@ namespace MiniMC {
 	    for (size_t i = 0; i < t; ++i) {
 	      size += context.computeSizeInBytes(strucTy->getElementType(i));
 	    }
-	    skipsize = context.getConstantFactory ().makeIntegerConstant(size, MiniMC::Model::TypeID::I32);
+	    skipsize = makeInteger(size, MiniMC::Model::TypeID::I32);
 	    nbSkips = one;
 	  }
 	}

@@ -15,7 +15,6 @@
 #include "minimc/support/overload.hpp"
 
 TEST_CASE("Add") {
-  MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
   MiniMC::Model::Program prgm;
   
   MiniMC::Model::RegisterDescr descr;
@@ -23,7 +22,7 @@ TEST_CASE("Add") {
   
   auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
   auto symb = prgm.getRootFrame ().makeFresh ();
-  auto symbol_value = cfac->makeSymbolicConstant (symb);
+  auto symbol_value = MiniMC::Model::SymbolicConstant::make(symb);
   
   auto res = descr.addRegister (std::move(symb),type);
 
@@ -35,12 +34,12 @@ TEST_CASE("Add") {
   cfa.setInitial (init);
   {  
     MiniMC::Model::EdgeBuilder builder{cfa,init,end,frame};
-    builder.addInstr<MiniMC::Model::InstructionCode::Add> (res,cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I8),cfac->makeIntegerConstant (2,MiniMC::Model::TypeID::I8));
+    builder.addInstr<MiniMC::Model::InstructionCode::Add> (res,MiniMC::Model::I8Integer::make(1),MiniMC::Model::I8Integer::make(2));
   }
 
   auto func = prgm.addFunction (prgm.getRootFrame().makeFresh (),
 				{},
-				MiniMC::Model::VoidType::get(),//tfac->makeVoidType (),
+				MiniMC::Model::VoidType::get(),
 				std::move(descr),
 				std::move(cfa),
 				false,

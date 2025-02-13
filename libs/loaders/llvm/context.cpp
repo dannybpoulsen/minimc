@@ -101,6 +101,7 @@ namespace MiniMC {
       }
       throw MiniMC::Support::Exception("Can't calculate size of type");
     }
+
     
     MiniMC::Model::Value_ptr GLoadContext::findValue(const llvm::Value* val) {
       auto constant = llvm::dyn_cast<llvm::Constant>(val);
@@ -110,42 +111,42 @@ namespace MiniMC {
 
         auto cst_undef = llvm::dyn_cast<llvm::UndefValue>(val);
         if (cst_undef) {
-          auto type = getTypeID(constant->getType());
-          return cfact.makeUndef(type);
+          auto type = getType(constant->getType());
+          return MiniMC::Model::Undef::make(type);
         } else if (ltype->isIntegerTy()) {
           const llvm::ConstantInt* csti = llvm::dyn_cast<const llvm::ConstantInt>(constant);
           if (csti) {
             auto type = getTypeID(csti->getType());
-            auto cst = cfact.makeIntegerConstant(csti->getZExtValue(), type);
+            auto cst = makeInteger(csti->getZExtValue(), type);
             return cst;
           }
         } else if (ltype->isStructTy() || ltype->isArrayTy()) {
 
           if (auto cstAggr = llvm::dyn_cast<llvm::ConstantDataSequential>(val)) {
-            MiniMC::Model::ConstantFactory::aggr_input vals;
-            const size_t oper = cstAggr->getNumElements();
+	    MiniMC::Model::aggr_input vals;
+	    MiniMC::Model::AggregateConstantBuilder builder;
+	    const size_t oper = cstAggr->getNumElements();
             for (size_t i = 0; i < oper; ++i) {
               auto elem = cstAggr->getElementAsConstant(i);
               auto nconstant = findValue(elem);
               assert(nconstant->isConstant());
-              vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
+              builder << std::static_pointer_cast<MiniMC::Model::Constant>(nconstant);
             }
-            auto cst = cfact.makeAggregateConstant(vals);
-
-            return cst;
+            
+            return builder.build ();
           }
 
           if (auto cstAggr2 = llvm::dyn_cast<llvm::ConstantAggregate>(val)) {
-            MiniMC::Model::ConstantFactory::aggr_input const_vals;
-	    
+            MiniMC::Model::aggr_input const_vals;
+	    MiniMC::Model::AggregateConstantBuilder builder;
             const size_t oper = cstAggr2->getNumOperands();
             for (size_t i = 0; i < oper; ++i) {
               auto elem = cstAggr2->getOperand(i);
               auto nconstant =findValue (elem);
-              const_vals.push_back(std::static_pointer_cast<MiniMC::Model::Constant>(nconstant));
-            }
-            auto cst = cfact.makeAggregateConstant(const_vals);
-            return cst;
+              builder <<std::static_pointer_cast<MiniMC::Model::Constant>(nconstant);
+	    }
+	    auto cst = builder.build ();
+	    return cst;
           }
           // assert(false && "FAil");
 	  
@@ -158,7 +159,7 @@ namespace MiniMC {
 	
         else if (ltype->isPointerTy()) {
 	  if (llvm::isa<llvm::ConstantPointerNull> (val)) {
-	    return cfact.makeNullPointer ();
+	    return MiniMC::Model::Pointer::make (MiniMC::Model::pointer_t::makeNullPointer());
 	  }
           constant->print(llvm::errs(), true);
           throw MiniMC::Support::Exception("Pointer Not Quite there");

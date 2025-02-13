@@ -17,7 +17,7 @@
 
 namespace po = boost::program_options;
 
-MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Model::ConstantFactory_ptr cfac, MiniMC::Support::Messager& mess) {
+MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const transform_options& options, MiniMC::Support::Messager& mess) {
   MiniMC::Model::Modifications::ProgramManager manager;
   using namespace  MiniMC::Model::Modifications;
   
@@ -49,9 +49,8 @@ int main(int argc, char* argv[]) {
     
     if (ok) {
       // Load Program
-      MiniMC::Model::ConstantFactory_ptr cfac = std::make_shared<MiniMC::Model::ConstantFactory64>();
       auto loader = options.load.loader;
-      auto loadres = loader->loadFromFile (options.load.inputname,cfac,messager);
+      auto loadres = loader->loadFromFile (options.load.inputname,messager);
       if(loadres) {
 	MiniMC::Model::Program prgm = std::move(loadres.value());
 	
@@ -60,7 +59,7 @@ int main(int argc, char* argv[]) {
 	    ) {
 	  return -1;
 	}
-	MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, cfac,messager);
+	MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);
 	if (options.command) {
 	  auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
 	  return res;

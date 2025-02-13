@@ -27,7 +27,7 @@ namespace MiniMC {
 	std::unique_ptr<MiniMC::Model::LocationInfoCreator> locinfo;
       };
 	
-      Compiler::Compiler (MiniMC::Model::ConstantFactory_ptr cfac) : cfac(std::move(cfac)) {}
+      Compiler::Compiler ()  {}
 
       Compiler::~Compiler() {}
 
@@ -44,7 +44,7 @@ namespace MiniMC {
 	
 	auto heap = rootFrame.makeSymbol ("heap");
 	_internal->prgm.getHeapLayout ().addBlock (heap,MiniMC::Model::pointer_t::makeHeapPointer(0,0),256,_internal->heap_mem);
-	_internal->heap_pointer = cfac->makeSymbolicConstant (heap);
+	_internal->heap_pointer = MiniMC::Model::SymbolicConstant::make (heap);
 	_internal->heap_pointer->setType(MiniMC::Model::PointerType::get());
 	
 	auto& register_descr =  _internal->prgm.getCPURegs(); 
@@ -77,13 +77,13 @@ namespace MiniMC {
       }
 
       void Compiler::visitNumberExpression (const Whiley::NumberExpression& n )  {
-	_internal->expr = cfac->makeIntegerConstant (n.getValue(),MiniMC::Model::TypeID::I8);
+	_internal->expr = MiniMC::Model::I8Integer::make(n.getValue());
       } 
 
       void Compiler::visitDerefExpression (const Whiley::DerefExpression& a)  {
 	a.getMem().accept (*this);
 	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ones = cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
+	auto ones = MiniMC::Model::I64Integer::make(1);//,MiniMC::Model::TypeID::I64);
 	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
 	
 	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,MiniMC::Model::I8Type::get());
@@ -190,7 +190,7 @@ namespace MiniMC {
       void Compiler::visitNonDetAssignStatement (const Whiley::NonDetAssignStatement& nd)  {
       	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
 	auto reg = _internal->vars.at(nd.getAssignName());
-	auto undef = cfac->makeUndef (MiniMC::Model::TypeID::I8);
+	auto undef = MiniMC::Model::Undef::make(MiniMC::Model::I8Type::get());//cfac->makeUndef (MiniMC::Model::TypeID::I8);
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,undef);
       } 
@@ -269,7 +269,7 @@ namespace MiniMC {
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	a.getMemLoc().accept (*this);
 	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ones = cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
+	auto ones = MiniMC::Model::I64Integer::make(1);//cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
 	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
 	a.getExpression ().accept (*this);
 
