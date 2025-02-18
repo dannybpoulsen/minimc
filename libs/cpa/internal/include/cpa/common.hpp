@@ -153,7 +153,7 @@ namespace MiniMC {
       MiniMC::Model::SymbolTable<Value> symbmap;
     };
     
-    template<class Value,MiniMC::VMT::MemoryController<Value> MemControl>
+    template<class Value,MiniMC::VMT::MemoryOperations<Value> MemControl>
     class EvaluationContext {
     public:
       EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, MemControl memorycontrol,StaticContext<Value>& scontext) : values(values),persistent(pers),memcontrol(memorycontrol),scontext(scontext) {}
@@ -270,7 +270,7 @@ namespace MiniMC {
       StateMixin (const StateMixin&) = default;
       
       
-      template<class Operations,MiniMC::VMT::MemoryController<Value> MemControl>
+      template<class Operations,MiniMC::VMT::MemoryOperations<Value> MemControl>
       static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops, MemControl&& memcontrol) {
 	std::vector<ActivationStack<Value>> stack;
 	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
@@ -381,7 +381,7 @@ namespace MiniMC {
       bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU();}
       MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
 
-      template<MiniMC::VMT::MemoryController<Value> MemControl>
+      template<MiniMC::VMT::MemoryOperations<Value> MemControl>
       auto makeEvaluationContext (proc_id id,MemControl&& memcontrol) const {
 	return EvaluationContext<Value,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),std::move(memcontrol),*scontext);
       }
@@ -393,15 +393,13 @@ namespace MiniMC {
     };
     
     
-    template<class T,MiniMC::VMT::RegisterStore<T> Eval, class Mem,MiniMC::VMT::PathControl<T> PathC,MiniMC::VMT::StackControl stackC>  
+    template<class T,MiniMC::VMT::RegisterStore<T> Eval, MiniMC::VMT::StackControl stackC>  
     struct VMState {
-      VMState (PathC& path, stackC& stack,Eval&& vlook) : control(path),scontrol(stack),lookup(std::move(vlook)) {}
+      VMState (stackC& stack,Eval&& vlook) : scontrol(stack),lookup(std::move(vlook)) {}
       auto& getValueLookup () {return lookup;}
       
-      auto& getPathControl ()  {return control;}
       auto& getStackControl ()  {return scontrol;}
     private:
-      PathC& control;
       stackC& scontrol;
       Eval lookup;
     };

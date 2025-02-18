@@ -34,12 +34,12 @@ namespace MiniMC {
         using backtype = MiniMC::BV64;
         using type = TValue<MiniMC::BV64>;
       };
-
+      
       template <MiniMC::Host::TAC op, typename T>
       T performOp(T l, T r) {
         return (MiniMC::Host::Op<op>(l, r));
       }
-
+      
       template <MiniMC::Host::CMP op, typename T>
       bool performOp(T l, T r) {
         return MiniMC::Host::Op<op>(l, r);
@@ -302,6 +302,10 @@ namespace MiniMC {
           }
         }
 
+	Value::Bool BoolAnd(const Value::Bool& l, const Value::Bool& r ) const {
+	  return Value::Bool (l.getValue() && r.getValue());
+	}
+	
         template <MiniMC::Model::TypeID to, typename T>
         typename RetTyp<to>::type ZExt(const T& t) const {
           using U = T::underlying_type;
@@ -349,7 +353,7 @@ namespace MiniMC {
 	Value create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }
 	Value create (const MiniMC::Model::I32Integer& val) const  { return Value::I32{val.getValue()}; }
 	Value create (const MiniMC::Model::I64Integer& val) const  { return Value::I64{val.getValue()}; }
-	Value create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
+	Value::Bool create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
 	Value create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
 	Value create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
 	Value create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}

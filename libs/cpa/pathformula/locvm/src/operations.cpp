@@ -34,6 +34,11 @@ namespace MiniMC {
   X(Eq, Equal)   \
   X(NEq, NotEqual)
 
+
+      Value::Bool Operations::BoolAnd (const Value::Bool& l, const Value::Bool& r) {
+	return builder.buildTerm(SMTLib::Ops::And, {l.getTerm(),r.getTerm ()});
+      }
+      
 #define X(OP)								\
       template <class T>						\
       T Operations::OP(const T& l, const T& r) const {			\
@@ -62,7 +67,7 @@ namespace MiniMC {
       template I16Value Operations::Not(const I16Value& l) const; \
       template I32Value Operations::Not(const I32Value& l) const; \
       template I64Value Operations::Not(const I64Value& l) const;
-
+      
       
 #define X(OP)								\
 	template Value::I8 Operations::OP(const Value::I8& l, const I8Value& r) const; \

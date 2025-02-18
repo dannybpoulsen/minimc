@@ -1,7 +1,6 @@
 #include "minimc/model/valuevisitor.hpp"
 #include "smt/builder.hpp"
 #include "minimc/smt/smtconstruction.hpp"
-#include "pathvm/pathformua.hpp"
 #include "pathvm/value.hpp"
 #include "pathvm/operations.hpp"
 
@@ -54,7 +53,7 @@ namespace MiniMC {
       Value Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
       Value Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
       Value Operations::create(const MiniMC::Model::I64Integer& val) const {  return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
-      Value Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
+      Value::Bool Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
       Value Operations::create(const MiniMC::Model::Pointer& val) const {
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
@@ -82,19 +81,6 @@ namespace MiniMC {
       Value Operations::create(const MiniMC::Model::Undef& val) const { return unboundValue(*val.getType()); }
       
       
-      /*Value ValueLookupBase::lookupValue(const MiniMC::Model::Value& v) const {
-	return MiniMC::Model::visitValue(
-            MiniMC::Model::Overload{
-	      [this](const MiniMC::Model::Register& val) -> Value {
-		return lookupRegisterValue (val);
-	      },
-	      [this](const auto& v) -> Value {
-		return creator.create(v);
-	      }
-	    },
-            v);
-      }
-      */
       Value Memory::load(const MemoryValue& mem, const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(builder);
 	for (size_t i = 0; i < t.getSize (); ++i) {
@@ -127,9 +113,6 @@ namespace MiniMC {
       }
 
       MemoryValue  Memory::allocate(const MemoryValue& mem, const Value::Pointer& , const Value::I64&) {
-	//Memory m{*this};
-	//m.next_block++;
-	//return m;
 	return MemoryValue (mem.getNextBlock()+1,mem.getMemVar());
       }
       
@@ -149,10 +132,10 @@ namespace MiniMC {
       
       Memory::Memory (SMTLib::TermBuilder& b) : builder(&b) {
 	/*auto arr_sort = builder->makeSort(
-					 SMTLib::SortKind::Array, {builder->makeBVSort(Value::Pointer::intbitsize()),
-								   builder->makeBVSort(8)});
-	auto mem_var = builder->makeVar(arr_sort, "Mem");
-	mem = MemoryValue (0,mem_var);*/
+	  SMTLib::SortKind::Array, {builder->makeBVSort(Value::Pointer::intbitsize()),
+	  builder->makeBVSort(8)});
+	  auto mem_var = builder->makeVar(arr_sort, "Mem");
+	  mem = MemoryValue (0,mem_var);*/
       }
 
       template<std::size_t PtrWidth>
@@ -226,25 +209,7 @@ namespace MiniMC {
       }
       
       
-      PathControl::PathControl(SMTLib::TermBuilder& builder) : builder(builder) {
-        assump = nullptr;
-      }
-
-      TriBool PathControl::addAssumption(const Value::Bool& b) {
-        if (assump)
-          assump = builder.buildTerm(SMTLib::Ops::And, {assump, b.getTerm()});
-        else
-          assump = b.getTerm();
-        return TriBool::Unk;
-      }
-
-      TriBool PathControl::addAssert(const Value::Bool& b) {
-	if (asserts)
-          asserts = builder.buildTerm(SMTLib::Ops::And, {asserts, b.getTerm()});
-        else
-          asserts = b.getTerm();
-	return TriBool::Unk;
-      }
+      
 
       template <typename v>
       std::ostream& TValue<v>::output(std::ostream& os) const {

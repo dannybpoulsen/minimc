@@ -155,6 +155,8 @@ namespace MiniMC {
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32&) const;
 
+	Value::Bool BoolAnd (const Value::Bool&, const Value::Bool&); 
+	
 	template<class T>
 	T PtrToInt (const Value::Pointer&) const;
 
@@ -177,7 +179,7 @@ namespace MiniMC {
 	Value create (const MiniMC::Model::I16Integer& val) const ;
 	Value create (const MiniMC::Model::I32Integer& val) const ;
 	Value create (const MiniMC::Model::I64Integer& val) const ;
-	Value create (const MiniMC::Model::Bool& val) const   ;
+	Value::Bool create (const MiniMC::Model::Bool& val) const   ;
 	Value create (const MiniMC::Model::Pointer& val) const ;
 	Value create (const MiniMC::Model::Pointer32& val) const;
 	Value create (const MiniMC::Model::AggregateConstant& val) const;
@@ -189,6 +191,32 @@ namespace MiniMC {
 	
       private:
 	SMTLib::TermBuilder& builder;
+      };
+      
+      
+      class Memory  {
+      public:
+	Memory (SMTLib::TermBuilder& b);
+	Memory (const Memory&) = default;
+	Memory& operator= (Memory&& m) = default;
+	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
+        // First parameter is address to store at, second is the value to state
+        MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) const ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I16&) const ;
+        MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I32&) const ;
+        MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I64&) const ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Aggregate&) const ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Pointer&) const ;
+	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::Pointer32&) const ;
+	
+	// PArameter is size to allocate
+	MemoryValue allocate(const MemoryValue&,const Value::Pointer&, const Value::I64&) ;
+	Value::Pointer  find_space(const MemoryValue&,const Value::I64&) ;
+	
+	
+        MemoryValue free(const MemoryValue& m, const Value::Pointer&)  {return m;}
+      private:
+	SMTLib::TermBuilder* builder;
       };
       
       

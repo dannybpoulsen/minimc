@@ -35,16 +35,9 @@ namespace MiniMC {
       MemoryValue::MemoryValue () : _internal(std::make_shared<internal> ()) {}
       MemoryValue::MemoryValue (std::shared_ptr<internal>&& v) : _internal(v) {}
       
-      /*MemoryValue::MemoryValue (MemoryValue&& v) : _internal(std::move(v._internal)) {}
-      
-      MemoryValue& MemoryValue::operator= (MemoryValue&& m) {
-	_internal = std::move(m._internal);
-	return *this;
-      }
-      */
       MemoryValue MemoryValue::deep_copy () const {
 	return {std::make_shared<internal> (*_internal)};
-}
+      }
       
       struct MemoryValue::internal {
 	MiniMC::Model::pointer_t allocate (const Value::I64& size) {

@@ -43,9 +43,9 @@ namespace MiniMC {
         bool operator==(const TValue& vv) const { return term.get() == vv.term.get(); }
 
 	std::size_t size () const {return bytesize;}
-
+	
 	v interpretValue (const SMTLib::Solver&) const;
-
+	MiniMC::VMT::TriBool boolState () const {return MiniMC::VMT::TriBool::Unk;}
 	using underlying_type = v;
 	
       private:

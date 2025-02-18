@@ -6,7 +6,7 @@
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-
+      
       class BoolValue {
       public:
         BoolValue(MiniMC::BV8 val = 0) : val(val) {}
@@ -14,6 +14,11 @@ namespace MiniMC {
         MiniMC::Hash::hash_t hash() const {
           return val;
         }
+
+	MiniMC::VMT::TriBool boolState () const {
+	  return val ? MiniMC::VMT::TriBool::True : MiniMC::VMT::TriBool::False; 
+	    
+	}
 	
         auto getValue() const { return val; }
 	using underlying_type = MiniMC::BV8;

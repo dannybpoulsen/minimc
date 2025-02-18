@@ -3,6 +3,7 @@
 
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/valuevisitor.hpp"
+#include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/vm/vmt.hpp"
 #include "minimc/support/overload.hpp"
@@ -12,12 +13,15 @@ namespace MiniMC {
 
 
 
-    template<typename T, Ops<T> Operations, MemoryController<T> MemControl>
+    template<typename T, Ops<T> Operations, MemoryOperations<T> MemControl>
     struct Engine<T,Operations,MemControl>::Impl {
     private:
       const MiniMC::Model::Program& prgm;
       Operations operations;
       MemControl memcontrol;
+      typename T::Bool asserts;
+      typename T::Bool assumes;
+      
       
     public:
       Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
@@ -25,13 +29,21 @@ namespace MiniMC {
       static Status runInstruction(const I&, State&,Evaluator&)  {
 	throw NotImplemented<I::getOpcode()> ();
       }
-
+      
       template<RegisterStore<T> Regstore>
       auto makeEvaluator (Regstore& store) {
 	return MiniMC::VMT::makeEvaluator<T> (store,operations);
       }
-      
-      
+
+      void reset () {
+	asserts = operations.create (MiniMC::Model::Bool(true));
+	assumes = operations.create (MiniMC::Model::Bool(true));
+      }
+
+      auto getAssertions () const {return asserts;}
+      auto getAssumes () const {return assumes;}
+      void addAssertion (T::Bool b) {asserts = operations.BoolAnd (asserts,b);}
+      void addAssumption (T::Bool b) {assumes = operations.BoolAnd (assumes,b);}
       template <class Value>
       auto castPtrToAppropriateInteger(const Value& v) {
         if constexpr (std::is_same_v<Value, typename T::Pointer>) {
@@ -65,7 +77,7 @@ namespace MiniMC {
 
       
       template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator& eval) requires MiniMC::Model::isAssertAssume_v<I>       {
+      Status runInstruction(const I& instr, State&,Evaluator& eval) requires MiniMC::Model::isAssertAssume_v<I>       {
 	constexpr auto op = instr.getOpcode ();
 	auto& content = instr.getOps();
 	  
@@ -76,14 +88,13 @@ namespace MiniMC {
 	  eval.Eval(*content.expr)
 	  );
 	
-	auto& pathcontrol = state.getPathControl();
 	if constexpr (op == MiniMC::Model::VMInstructionCode::Assume) {
-	  auto res = pathcontrol.addAssumption(obj);
-	  return (res == TriBool::False ? Status::AssumeViolated : Status::Ok);
+	  addAssumption (obj);
+	  return (obj.boolState() == TriBool::False ? Status::AssumeViolated : Status::Ok);
 	} 
 	else if constexpr (op == MiniMC::Model::VMInstructionCode::Assert) {
-	  auto res = pathcontrol.addAssert(obj);
-	  return (res == TriBool::False ? Status::AssertViolated : Status::Ok);
+	  addAssertion (obj);
+	  return (obj.boolState() == TriBool::False ? Status::AssertViolated : Status::Ok);
 	  
 	} else
 	  throw NotImplemented<op>();
@@ -268,38 +279,44 @@ namespace MiniMC {
       
       };
 
-    template <class Value,Ops<Value> Operations,MemoryController<Value> MemControl>
-    template<VMState<Value> State>
-    Status Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
+    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
+    template<VMState<Value> State,bool resetAssumptions>
+    Engine<Value,Operations,MemControl>::Result Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
 				       State& wstate) {
 
+      if constexpr (resetAssumptions)
+	_impl->reset ();
       
-      return instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup ()));});
-      
-    }
+      auto status = instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup ()));});
+      return {_impl->getAssertions (),_impl->getAssumes (),status};
 
-    template <class Value,Ops<Value> Operations,MemoryController<Value> MemControl>	
-    template<VMState<Value> State>
-    Status Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
-					     State& wstate) {
-      auto end = instr.end();
+    }
+    
+    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>	
+    template<VMState<Value> State,bool resetAssumptions>
+    Engine<Value,Operations,MemControl>::Result Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
+							State& wstate) {
+      if constexpr (resetAssumptions)
+	_impl->reset ();
       Status status = Status::Ok;
+      auto end = instr.end();
       auto it = instr.begin();
       auto eval = _impl->makeEvaluator(wstate.getValueLookup ());
-      for (it = instr.begin(); it != end && status == Status::Ok; ++it) {
+      
+      for (it = instr.begin(); it != end && status == Status::Ok;  ++it) {
 	
 	status = it->visit ([&eval,this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,eval);});
       }
-      return status;
+      return {_impl->getAssertions (),_impl->getAssumes (),status};
     }
     
 
-    template <class Value,Ops<Value> Operations,MemoryController<Value> MemControl>
+    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
     Engine<Value,Operations,MemControl>::Engine (Operations&& ops,MemControl&& memcontrol,const MiniMC::Model::Program& prgm)   {
       _impl = std::make_unique<Impl> (std::move(ops),std::move(memcontrol),prgm);
     }
 
-    template <class Value,Ops<Value> Operations,MemoryController<Value> MemControl>
+    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
     Engine<Value,Operations,MemControl>::~Engine () {}
     
   } // namespace VMT

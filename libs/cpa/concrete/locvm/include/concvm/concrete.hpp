@@ -36,27 +36,7 @@ namespace MiniMC {
         MemoryValue free(const MemoryValue&, const Value::Pointer&);  
 	
       };
-            
-      class PathControl  {
-      public:
-        TriBool addAssumption(const Value::Bool& b) {
-	  return b.getValue () ? TriBool::True : TriBool::False;
-	}
-	
-        TriBool addAssert(const Value::Bool& b) {
-	  return b.getValue () ? TriBool::True : TriBool::False;
-	}
-
-      };
-
       
-      
-      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
-      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
-      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,Memory>,MemoryValue,PathControl,ActivationStack>;
-      
-      //ConcreteVMState 
-      using ConcreteEngine = MiniMC::VMT::Engine<Value, MiniMC::VMT::Concrete::Operations, Memory>;
       
       
     } // namespace Concrete

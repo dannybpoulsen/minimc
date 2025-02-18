@@ -289,9 +289,9 @@ namespace MiniMC {
 	}
 	return outputType (os) << ">";
       }
-
-    private:
       TConstant(T val);
+      
+    private:
       Type_ptr _inner_type ();
       T value;
     };

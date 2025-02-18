@@ -8,8 +8,8 @@
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/support/overload.hpp"
-
-#include "pathvm/pathformua.hpp"
+#include "pathvm/value.hpp"
+#include "pathvm/operations.hpp"
 #include <cstring>
 #include <memory>
 #include <iostream>
@@ -40,10 +40,10 @@ namespace MiniMC {
         virtual State_ptr copy() const override { return makeState<State>(*this); }
 
         const Solver_ptr getConcretizer() const override;
-        auto& getStack() { return mixin.getProc(0); }
+        auto& getProc(std::size_t i) { return mixin.getProc(i); }
         
-	auto& getStack() const { return mixin.getProc(0); }
-
+        auto& getProc(std::size_t i) const { return mixin.getProc (i); }
+        
 	const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
 	
         void addConstraints(const SMTLib::Term_ptr& term) {

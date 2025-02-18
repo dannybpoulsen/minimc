@@ -9,6 +9,15 @@ namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
 
+      using PathFormulaEngine = MiniMC::VMT::Engine<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Operations,MiniMC::VMT::Pathformula::Memory> ;
+      
+      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Pathformula::Value>;
+
+
+      using PathFormulaState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,ActivationStack>;
+      
+      
       State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& termbuilder =  context->getBuilder ();
 	auto term = termbuilder.makeBoolConst (true);
@@ -29,7 +38,7 @@ namespace MiniMC {
 										    metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
 	SMTLib::Context_ptr context;
-	MiniMC::VMT::Pathformula::PathFormulaEngine engine;
+	PathFormulaEngine engine;
 	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas;
 	  
       };
@@ -40,31 +49,24 @@ namespace MiniMC {
 	
       MiniMC::CPA::State_ptr Transferer::doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& trans) {
 	const MiniMC::Model::Edge& e = *trans.edge;
-	assert(trans.proc == 0 && "PathFormula only useful for one process systems");
 	auto resstate = s.copy();
 	auto& nstate = static_cast<MiniMC::CPA::PathFormula::State&>(*resstate);
-	if (nstate.getStack().activeRecord ().getLocation () != e.getFrom ())
+	if (nstate.getProc(trans.proc).activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
-	nstate.getStack().activeRecord().setLocation (e.getTo ());
-	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
-	auto& termbuilder = _internal->context->getBuilder ();
+	nstate.getProc(trans.proc ).activeRecord().setLocation (e.getTo ());
 	
-	MiniMC::VMT::Pathformula::PathControl control{termbuilder};
 	
-	MiniMC::VMT::Pathformula::PathFormulaState newvm {control,
-							  nstate.getStack(),
-							  nstate.makeEvaluationContext(trans.proc)};
+	PathFormulaState newvm {nstate.getProc(trans.proc),nstate.makeEvaluationContext(trans.proc)};
 	auto& instr = e.getInstructions();
-	status = _internal->engine.execute(instr,newvm);
+	auto res = _internal->engine.execute(instr,newvm);
 	
-	if (status == MiniMC::VMT::Status::Ok)  {
-	  if (control.getAssump ()) 
-	    nstate.addConstraints (control.getAssump ());
+	if (res.status == MiniMC::VMT::Status::Ok)  {
+	  nstate.addConstraints (res.assumes.getTerm());
 	  return resstate;
 	}
 	else {	  
 	  return nullptr;
-
+	  
 	}
       }
 	

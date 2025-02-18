@@ -14,6 +14,16 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
 
+      
+      
+      using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Concrete::Value>;
+      using ActivationStack = MiniMC::CPA::Common::ActivationStack<MiniMC::VMT::Concrete::Value>;
+      using ConcreteVMState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Concrete::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Concrete::Value,MiniMC::VMT::Concrete::Memory>,ActivationStack>;
+      
+      //ConcreteVMState 
+      using ConcreteEngine = MiniMC::VMT::Engine<MiniMC::VMT::Concrete::Value, MiniMC::VMT::Concrete::Operations, MiniMC::VMT::Concrete::Memory>;
+      
+      
       using QExpr = TQuery<MiniMC::VMT::Concrete::Value>;
       
       class MConcretizer : public MiniMC::CPA::Solver {
@@ -49,7 +59,7 @@ namespace MiniMC {
 							       prgm),
 							metas(prgm.getMetaRegs().getTotalRegisters())
 	{}
-	MiniMC::VMT::Concrete::ConcreteEngine engine;
+	ConcreteEngine engine;
 	MiniMC::Model::VariableMap<MiniMC::VMT::Concrete::Value> metas;
 	
       };
@@ -128,17 +138,13 @@ namespace MiniMC {
 	  return nullptr;
 	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	
-	MiniMC::VMT::Status status  = MiniMC::VMT::Status::Ok;
-	  
-	MiniMC::VMT::Concrete::PathControl control;
-	auto regstore =  nstate.makeEvaluationContext (id);
 	
 	
-	MiniMC::VMT::Concrete::ConcreteVMState newvm {control,nstate.getProc(id),std::move(regstore)};
+	ConcreteVMState newvm {nstate.getProc(id),nstate.makeEvaluationContext (id)};
 	auto& instr = e.getInstructions();
-	status = _internal->engine.execute(instr,newvm);
+	auto res = _internal->engine.execute(instr,newvm);
 	
-	if (status == MiniMC::VMT::Status::Ok)
+	if (res.status == MiniMC::VMT::Status::Ok)
 	  return resstate;
 	else {
 	  
