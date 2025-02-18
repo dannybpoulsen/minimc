@@ -397,7 +397,6 @@ namespace MiniMC {
     struct VMState {
       VMState (stackC& stack,Eval&& vlook) : scontrol(stack),lookup(std::move(vlook)) {}
       auto& getValueLookup () {return lookup;}
-      
       auto& getStackControl ()  {return scontrol;}
     private:
       stackC& scontrol;
