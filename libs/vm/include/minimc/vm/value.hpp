@@ -290,6 +290,27 @@ namespace MiniMC {
                   Creator<Operation,Value>
       ;
 
+     enum class Feasibility {
+       Feasible,
+       Infeasible,
+       Unknown
+     };
+    
+    template<class Sol,class Value>
+    concept ConstraintSolver = requires (Sol sol, const Sol csol, typename Value::Bool r, const Value& v){
+      {sol.addConstraint (r)};
+      {csol.check ()}->std::convertible_to<Feasibility>;
+      {csol.eval (v)}->std::convertible_to<MiniMC::Model::Constant_ptr>;
+    };
+
+    template<class Def,class Value>
+    concept ValueDefinition = requires (Def def) {
+      {def.ops ()}->Ops<Value>;
+      {def.memops ()}->MemoryOperations<Value>;
+      {def.solver ()}->ConstraintSolver<Value>;
+      
+    };
+    
   }
   
 } // namespace MiniMC

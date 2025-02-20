@@ -37,6 +37,19 @@ namespace MiniMC {
 	
       };
       
+
+      class ConstraintSolver {
+      public:
+	void addConstraint (Value::Bool constraint) {constraints = constraints.getValue() && constraint.getValue();}
+	MiniMC::VMT::Feasibility check () {
+	  return constraints.getValue() ? MiniMC::VMT::Feasibility::Feasible : MiniMC::VMT::Feasibility::Infeasible 
+	}
+
+	MiniMC::Model::Constant_ptr check (const Value& );
+	
+      private:
+	Value::Bool constraints{true};
+      };
       
       
     } // namespace Concrete

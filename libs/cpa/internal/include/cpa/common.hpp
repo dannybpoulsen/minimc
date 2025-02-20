@@ -270,7 +270,7 @@ namespace MiniMC {
       StateMixin (const StateMixin&) = default;
       
       
-      template<class Operations,MiniMC::VMT::MemoryOperations<Value> MemControl>
+      template<MiniMC::VMT::Ops<Value> Operations,MiniMC::VMT::MemoryOperations<Value> MemControl>
       static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops, MemControl&& memcontrol) {
 	std::vector<ActivationStack<Value>> stack;
 	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
