@@ -3,9 +3,7 @@
 
 #include "minimc/loaders/loader.hpp"
 #include "minimc/algorithms/reachability.hpp"
-#include "minimc/cpa/concrete.hpp"
-#include "minimc/cpa/pathformula.hpp"
-
+#include "minimc/cpa/interface.hpp"
 
 #include "options.hpp"
 #include "plugin.hpp"
@@ -135,10 +133,10 @@ namespace {
       MiniMC::CPA::AnalysisBuilder cpa;
       
       if (locoptions.symbolic)
-	cpa.add<MiniMC::CPA::PathFormula::CPA>(sopt.smt.selsmt);
+	cpa.add<MiniMC::CPA::CPAType::Pathformula>(sopt.smt.selsmt);
       
 	else
-	cpa.add<MiniMC::CPA::Concrete::CPA>();
+	  cpa.add<MiniMC::CPA::CPAType::Concrete>();
       return cpa;
     }
     LocalOptions locoptions;

@@ -49,7 +49,7 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
@@ -70,7 +70,7 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
@@ -92,7 +92,7 @@ TEST_CASE("Pointer") {
 
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});

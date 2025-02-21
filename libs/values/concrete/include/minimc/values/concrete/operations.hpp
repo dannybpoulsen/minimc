@@ -2,7 +2,7 @@
 #define _VM_CONCRETE_OPS__
 
 #include "minimc/host/operataions.hpp"
-#include "concvm/value.hpp"
+#include "minimc/values/concrete/value.hpp"
 
 namespace MiniMC {
   namespace VMT {

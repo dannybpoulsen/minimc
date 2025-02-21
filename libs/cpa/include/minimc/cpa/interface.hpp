@@ -95,12 +95,19 @@ namespace MiniMC {
       std::vector<Transferer_ptr> dataTransfers;    
     };
     
+    enum class CPAType {
+      Concrete,
+      Pathformula
+    };
+
+    template<CPAType type,class... Args>
+    TCPA_ptr makeCPA (Args... args);
     
     class AnalysisBuilder {
     public:
-      template<class T,class... Args>
+      template<CPAType t,class... Args>
       auto& add (Args&&... args) {
-	data_cpa.push_back (std::make_shared<T> (std::forward<Args> (args)...));
+	data_cpa.push_back (makeCPA<t> (std::forward<Args> (args)...));//std::make_shared<T> (std::forward<Args> (args)...));
 	return *this;
       }
       

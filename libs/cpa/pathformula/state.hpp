@@ -1,7 +1,7 @@
 #ifndef _pathSTATE__
 #define _pathSTATE__
 
-#include "cpa/common.hpp"
+#include "minimc/cpa/common.hpp"
 #include "minimc/cpa/interface.hpp"
 #include "smt/context.hpp"
 #include "smt/solver.hpp"

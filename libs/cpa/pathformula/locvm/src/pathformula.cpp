@@ -1,10 +1,13 @@
 #include "minimc/model/valuevisitor.hpp"
+#include "minimc/vm/value.hpp"
 #include "smt/builder.hpp"
 #include "minimc/smt/smtconstruction.hpp"
-#include "pathvm/value.hpp"
-#include "pathvm/operations.hpp"
+#include "pathvm/pathformula.hpp"
+
 
 #include "smt/solver.hpp"
+#include "smt/context.hpp"
+
 #include "minimc/smt/smt.hpp"
 #include <sstream>
 
@@ -278,6 +281,51 @@ namespace MiniMC {
       template class TValue<MiniMC::BV64>;
       template class TValue<MiniMC::Util::Array>;
 
+      void ConstraintSolver::addConstraint (Value::Bool b) {
+	smtsolver.assert_formula (b.getTerm ());
+      }
+
+      MiniMC::VMT::Feasibility ConstraintSolver::check () {
+	switch (smtsolver.check_sat()) {
+	case SMTLib::Result::Satis:
+	  return MiniMC::VMT::Feasibility::Feasible;
+	case SMTLib::Result::NSatis:
+	  return MiniMC::VMT::Feasibility::Infeasible;
+	default:
+	  return MiniMC::VMT::Feasibility::Unknown;
+	}
+      }
+
+      MiniMC::Model::Constant_ptr ConstraintSolver::eval (const Value& v) {
+	return MiniMC::VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
+		[this](MiniMC::VMT::Pathformula::Value::I8& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I16& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I16Integer::make  (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I32& val) ->MiniMC::Model::Constant_ptr { return MiniMC::Model::I32Integer::make  (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::I64& val) ->MiniMC::Model::Constant_ptr{return MiniMC::Model::I64Integer::make (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::Pointer::make  (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Pointer32& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::Pointer32::make  (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Bool& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::Bool::make  (val.interpretValue (smtsolver));},
+		  [this](MiniMC::VMT::Pathformula::Value::Aggregate& val) ->MiniMC::Model::Constant_ptr {
+		    auto res = val.interpretValue (smtsolver);
+		    return MiniMC::Model::AggregateConstant::make  (std::move(res));;
+		  },
+		  [](MiniMC::VMT::Pathformula::Value::Memory&) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make  (0);}
+		  
+		  },v
+	  );
+
+	
+      }
+      
+
+      ValueDefinition::ValueDefinition (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext()) {}
+      Operations ValueDefinition::ops () {
+	return Operations{context->getBuilder()};
+      }
+      Memory ValueDefinition::memops () {return Memory{context->getBuilder()};}
+      ConstraintSolver ValueDefinition::solver() {return ConstraintSolver{context->getSolver()};}
+      
+      
     } // namespace Pathformula
   }   // namespace VMT
 } // namespace MiniMC

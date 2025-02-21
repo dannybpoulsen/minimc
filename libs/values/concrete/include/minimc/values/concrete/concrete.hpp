@@ -5,10 +5,9 @@
 #include "minimc/host/casts.hpp"
 #include "minimc/host/operataions.hpp"
 
-#include "cpa/common.hpp"
 #include "minimc/vm/vmt.hpp"
-#include "concvm/value.hpp"
-#include "concvm/operations.hpp"
+#include "minimc/values/concrete/value.hpp"
+#include "minimc/values/concrete/operations.hpp"
 
 #include <memory>
 
@@ -37,19 +36,28 @@ namespace MiniMC {
 	
       };
       
-
+      
       class ConstraintSolver {
       public:
 	void addConstraint (Value::Bool constraint) {constraints = constraints.getValue() && constraint.getValue();}
-	MiniMC::VMT::Feasibility check () {
-	  return constraints.getValue() ? MiniMC::VMT::Feasibility::Feasible : MiniMC::VMT::Feasibility::Infeasible 
+	MiniMC::VMT::Feasibility check () const {
+	  return constraints.getValue() ? MiniMC::VMT::Feasibility::Feasible : MiniMC::VMT::Feasibility::Infeasible; 
 	}
-
-	MiniMC::Model::Constant_ptr check (const Value& );
+	
+	MiniMC::Model::Constant_ptr eval (const Value& ) const;
 	
       private:
 	Value::Bool constraints{true};
       };
+
+      class ValueDefinition  {
+      public:
+	using Val = Value;
+	Operations ops () const {return Operations{};}
+	Memory memops () const {return Memory{};}
+	ConstraintSolver solver () const  {return ConstraintSolver{};}
+      };
+      
       
       
     } // namespace Concrete

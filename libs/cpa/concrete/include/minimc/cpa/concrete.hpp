@@ -5,6 +5,8 @@
 #include <memory>
 #include <ostream>
 
+#include "minimc/values/concrete/concrete.hpp"
+#include "minimc/cpa/common.hpp"
 #include "minimc/cpa/interface.hpp"
 #include "minimc/cpa/state.hpp"
 #include "minimc/hash/hashing.hpp"
@@ -18,23 +20,8 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       
-      struct Transferer : public MiniMC::CPA::Transfer {
-	Transferer (const MiniMC::Model::Program& prgm);
-	~Transferer ();
-        MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition&) override;
-      private:
-	struct Internal;
-	
-	std::unique_ptr<Internal> _internal;
-      };
+      using CPA = MiniMC::CPA::Common::CPA<MiniMC::VMT::Concrete::ValueDefinition>;
       
-      
-      
-      struct CPA : public ICPA {
-	State_ptr makeInitialState(const InitialiseDescr&) override;
-	virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer> (prgm);}
-	
-      };
     } // namespace Concrete
   }   // namespace CPA
 } // namespace MiniMC

@@ -1,5 +1,5 @@
 #include "minimc/cpa/pathformula.hpp"
-#include "cpa/common.hpp"
+#include "minimc/cpa/common.hpp"
 #include "smt/context.hpp"
 #include "state.hpp"
 #include "minimc/smt/smt.hpp"
@@ -16,7 +16,15 @@ namespace MiniMC {
 
 
       using PathFormulaState = MiniMC::CPA::Common::VMState<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,ActivationStack>;
-      
+
+
+      struct CPA : public ICPA {
+	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
+	MiniMC::CPA::State_ptr makeInitialState(const InitialiseDescr&) override;
+	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
+      private:
+	SMTLib::Context_ptr context;
+	};
       
       State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& termbuilder =  context->getBuilder ();
@@ -70,9 +78,13 @@ namespace MiniMC {
 	}
       }
 	
-
       
 
     } // namespace PathFormula
+    template<>
+    MiniMC::CPA::TCPA_ptr makeCPA<CPAType::Pathformula> (MiniMC::Support::SMT::SMTDescr fact) {
+      return std::make_shared<PathFormula::CPA> (fact);
+    }
+    
   }   // namespace CPA
 } // namespace MiniMC

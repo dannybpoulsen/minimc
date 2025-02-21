@@ -303,11 +303,11 @@ namespace MiniMC {
       {csol.eval (v)}->std::convertible_to<MiniMC::Model::Constant_ptr>;
     };
 
-    template<class Def,class Value>
-    concept ValueDefinition = requires (Def def) {
-      {def.ops ()}->Ops<Value>;
-      {def.memops ()}->MemoryOperations<Value>;
-      {def.solver ()}->ConstraintSolver<Value>;
+    template<class Def>
+    concept ValueDefinition = requires (const Def def) {
+      {def.ops ()}->Ops<typename Def::Val>;
+      {def.memops ()}->MemoryOperations<typename Def::Val>;
+      {def.solver ()}->ConstraintSolver<typename Def::Val>;
       
     };
     

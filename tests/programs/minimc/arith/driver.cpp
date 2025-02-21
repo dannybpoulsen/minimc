@@ -46,7 +46,7 @@ TEST_CASE("Add") {
   auto prgm = loadProgram (*loadRegistrar,"Add.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -67,7 +67,7 @@ TEST_CASE("Sub") {
   auto prgm = loadProgram (*loadRegistrar,"Sub.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -89,7 +89,7 @@ TEST_CASE("Mul") {
   auto prgm = loadProgram (*loadRegistrar,"Mul.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -110,7 +110,7 @@ TEST_CASE("UDiv") {
   auto prgm = loadProgram (*loadRegistrar,"UDiv.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -131,7 +131,7 @@ TEST_CASE("SDiv") {
   auto prgm = loadProgram (*loadRegistrar,"SDiv.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -153,7 +153,7 @@ TEST_CASE("Shl") {
   auto prgm = loadProgram (*loadRegistrar,"Shl.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -174,7 +174,7 @@ TEST_CASE("AShr") {
   auto prgm = loadProgram (*loadRegistrar,"Ashr.mmc"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({
       prgm.getEntryPoints (),
       prgm.getHeapLayout (),

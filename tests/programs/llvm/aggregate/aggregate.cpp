@@ -64,7 +64,7 @@ TEST_CASE("Frame") {
   
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
@@ -85,7 +85,7 @@ TEST_CASE("Frame") {
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});

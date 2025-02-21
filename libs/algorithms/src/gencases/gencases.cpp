@@ -22,7 +22,7 @@ namespace MiniMC {
 						      ) {
 	TestCaseGenResult res {func->getParameters()};
 	MiniMC::CPA::AnalysisBuilder cpa;
-	cpa.add<MiniMC::CPA::PathFormula::CPA>(smt);
+	cpa.add<MiniMC::CPA::CPAType::Pathformula>(smt);
       
 	
 	      

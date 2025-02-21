@@ -20,15 +20,15 @@ namespace MiniMC {
 	std::unique_ptr<Internal> _internal;
       };
       
-
-      struct CPA : public ICPA {
+      
+      /*struct CPA : public ICPA {
 	CPA (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext ()) {}
 	MiniMC::CPA::State_ptr makeInitialState(const InitialiseDescr&) override;
 	Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm) const { return std::make_shared<Transferer>(context,prgm); }
       private:
 	SMTLib::Context_ptr context;
-      };
-
+	};*/
+      
       } // namespace PathFormula
   }   // namespace CPA
 } // namespace MiniMC

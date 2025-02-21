@@ -9,7 +9,7 @@ namespace SMTLib {
   using Term_ptr = std::shared_ptr<Term>;
   class Solver;
   class TermBuilder;
-  } // namespace SMTLib
+} // namespace SMTLib
 
 namespace MiniMC {
   namespace VMT {

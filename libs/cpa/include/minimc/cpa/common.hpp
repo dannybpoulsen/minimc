@@ -1,10 +1,13 @@
 #ifndef _CPA_COMMON__
 #define _CPA_COMMON__
 
+#include "minimc/cpa/query.hpp"
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/vmt.hpp"
+#include "minimc/vm/value.hpp"
 #include "minimc/cpa/state.hpp"
 #include "minimc/cpa/interface.hpp"
+#include <memory>
 #include <ranges>
 
 namespace MiniMC {
@@ -403,7 +406,135 @@ namespace MiniMC {
       Eval lookup;
     };
     
-        
+    template<class Value,MiniMC::VMT::ConstraintSolver<Value> Constraintsolver>
+    class Solver : public MiniMC::CPA::Solver {
+    public:
+      Solver (Constraintsolver&& solver) : solver(std::move(solver)) {}
+      MiniMC::CPA::Solver::Feasibility isFeasible() const override {
+	switch (solver.check ()) {
+	case MiniMC::VMT::Feasibility::Feasible: return Feasibility::Feasible;
+	case MiniMC::VMT::Feasibility::Infeasible: return Feasibility::Infeasible;
+
+	case MiniMC::VMT::Feasibility::Unknown:
+	default:
+	  return Feasibility::Unknown;
+	  
+	}
+      }
+
+      MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
+	auto& ref = static_cast<const TQuery<Value>&> (expr);
+	return solver.eval (ref.getValue());
+      }
+	
+    private:
+      Constraintsolver solver;
+    };
+
+    template<MiniMC::VMT::ValueDefinition ValDef>
+    class CPAState : public State,
+                     private QueryBuilder
+    {
+    public:
+      CPAState (StateMixin<typename ValDef::Val>&& m,ValDef valdef) : mixin(std::move(m)),valuedefinition(std::move(valdef)) {}
+      CPAState (const CPAState&) = default;
+      
+      virtual MiniMC::Hash::hash_t hash() const override {
+	  return mixin.hash ();
+      }
+      
+      virtual State_ptr copy() const override {
+	return makeState<CPAState<ValDef>>(*this); 
+      }
+      
+      auto& getProc(std::size_t i) { return mixin.getProc(i); }
+      auto& getProc(std::size_t i) const { return mixin.getProc (i); }
+      
+      auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id,valuedefinition.memops());}
+      
+      //QueryBuilder
+      QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
+	if (p >= mixin.nbOfProcesses ()) {
+	  throw MiniMC::Support::Exception ("Not enough processes");
+	}
+	MiniMC::VMT::Evaluator<typename ValDef::Val,
+			       decltype(this->makeEvaluationContext(1)),
+			       decltype(valuedefinition.ops())
+			       > eval (valuedefinition.ops(),
+				       makeEvaluationContext(p));
+	return std::make_unique<TQuery<typename ValDef::Val>> (eval.Eval(val));
+	
+      }
+      
+      const QueryBuilder& getBuilder () const override  {return *this;}
+      
+      const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
+
+      virtual const Solver_ptr getConcretizer() const override {
+	return std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (valuedefinition.solver());
+      }
+      
+      
+    private:
+      StateMixin<typename ValDef::Val> mixin;
+      ValDef valuedefinition;
+    };
+
+    
+    template<MiniMC::VMT::ValueDefinition ValDef>
+    class Transferer : public MiniMC::CPA::Transfer {
+    public:
+      Transferer(ValDef def,const MiniMC::Model::Program& prgm) : def(std::move(def)),engine(def.ops(),def.memops(),prgm) {}
+      MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
+	
+	const MiniMC::Model::Edge& e = *t.edge;
+	proc_id id = t.proc;
+	
+	auto resstate = s.copy();
+        auto& nstate = static_cast<CPAState<ValDef>&>(*resstate);
+
+	if (nstate.getProc(id).activeRecord ().getLocation () != e.getFrom ())
+	  return nullptr;
+	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
+	
+
+	auto& stack = nstate.getProc(id);
+	auto evalc = nstate.makeEvaluationContext (id);
+	
+	VMState<typename ValDef::Val,decltype(evalc),decltype(stack)> newvm {stack,std::move(evalc)};
+	auto& instr = e.getInstructions();
+	auto res = engine.execute(instr,newvm);
+	
+	if (res.status == MiniMC::VMT::Status::Ok)
+	  return resstate;
+	else {
+	  
+	  return nullptr;
+
+	}
+      }
+    private:
+      ValDef def; 
+      MiniMC::VMT::Engine<typename ValDef::Val,
+			  decltype(def.ops()),
+			  decltype(def.memops())> engine;
+      
+    };
+
+    template<VMT::ValueDefinition ValDef>
+    struct CPA : public ICPA {
+    public:
+      template<class...Args>
+      CPA (Args... args) : valdef(args...) {}
+      State_ptr makeInitialState(const InitialiseDescr& descr) override {
+	auto initconf = StateMixin<typename ValDef::Val>::createInitialState (descr,valdef.ops(),valdef.memops ());
+	return makeState<CPAState<ValDef>> (std::move(initconf),valdef);
+      }
+      virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer<ValDef>> (valdef,prgm);}
+    private:
+      ValDef valdef;
+    };
+    
   }
   }
 }

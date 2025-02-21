@@ -44,7 +44,7 @@ TEST_CASE("Phi") {
   auto prgm = loadProgram (*loader,"phi_atomic.ll");
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::Concrete::CPA> ();
+  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});

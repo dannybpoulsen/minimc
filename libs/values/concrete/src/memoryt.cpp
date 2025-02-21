@@ -1,4 +1,4 @@
-#include "concvm/concrete.hpp"
+#include "minimc/values/concrete/concrete.hpp"
 #include <unordered_map>
 
 namespace MiniMC {
