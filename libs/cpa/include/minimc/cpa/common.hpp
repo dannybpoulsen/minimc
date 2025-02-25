@@ -263,10 +263,12 @@ namespace MiniMC {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
 		  ActivationRecord<Value>&& persistent,
+		  Value::Bool pathformula,
 		  std::shared_ptr<StaticContext<Value> >&& scontext = nullptr
 		  ) : stacks(std::move(stacks)),
 		      persistent(std::move(persistent)),
-		      scontext(std::move(scontext))
+		      scontext(std::move(scontext)),
+		      pathform(pathformula)
       {}
 
       StateMixin (StateMixin&&) = default;
@@ -275,6 +277,7 @@ namespace MiniMC {
       
       template<MiniMC::VMT::Ops<Value> Operations,MiniMC::VMT::MemoryOperations<Value> MemControl>
       static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops, MemControl&& memcontrol) {
+	
 	std::vector<ActivationStack<Value>> stack;
 	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
 	ActivationRecord<Value> persistent {descr.getProgram().getPersistentRegs ().getTotalRegisters(),nullptr,nullptr};
@@ -364,7 +367,7 @@ namespace MiniMC {
 	    }
 	}
 	
-	return StateMixin {std::move(stack),std::move(persistent),std::move(_scontext)}; 
+	return StateMixin {std::move(stack),std::move(persistent),ops.create (MiniMC::Model::Bool (true)),std::move(_scontext)}; 
       }
       
       MiniMC::Hash::hash_t hash() const {
@@ -388,11 +391,16 @@ namespace MiniMC {
       auto makeEvaluationContext (proc_id id,MemControl&& memcontrol) const {
 	return EvaluationContext<Value,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),std::move(memcontrol),*scontext);
       }
+
+      Value::Bool getPathform () const { return pathform;}
+      Value::Bool setPathform (Value::Bool&& p ) const { pathform = std::move(p);}
+      
       
     private:
       std::vector<ActivationStack<Value> > stacks;
       ActivationRecord<Value> persistent;
       std::shared_ptr<StaticContext<Value> > scontext;
+      Value::Bool pathform;
     };
     
     
