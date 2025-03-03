@@ -36,8 +36,8 @@ namespace MiniMC {
 	
 	std::size_t size () const override {return waiting.size ();}
 	T pop () override {
-	  auto state = std::move(waiting.back ());
-	  waiting.pop_back ();
+	  auto state = std::move(waiting.front ());
+	  waiting.pop_front ();
 	  return state;
 	}
 
@@ -98,10 +98,8 @@ namespace MiniMC {
       
       Result Reachability::search (const MiniMC::CPA::AnalysisState& state, GoalFunction goal,FilterFunction filter) {
 	MiniMC::Storage::HashStorage storage;
-	MiniMC::Support::AsyncExecutor executor {mess};
-	MiniMC::Support::TSubmessage prog_message {"Filtering State"}; 
-        auto insert = [this,prog_message,&storage,filter,&executor](auto& state) {  
-	  auto filterres = executor.execute (prog_message,filter,state);
+	auto insert = [this,&storage,filter](auto& state) {  
+	  auto filterres = filter(state);
 	  if (filterres == StateStatus::Keep) {
 	    auto ins = storage.insert (state);
 	    if (ins) {
@@ -119,7 +117,6 @@ namespace MiniMC {
 	  }
 	  
 	  
-	  //MiniMC::CPA::TransitionEnumerator enumerator{searchee};
 	  for (auto newstate : successors (searchee,_internal->transfer))
 	    insert(newstate);
 	  

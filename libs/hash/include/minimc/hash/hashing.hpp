@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <random>
+
+#include "minimc/support/random.hpp"
 
 uint64_t hash_impl(const void* addr, std::size_t len, uint64_t seed);
 
@@ -47,6 +50,12 @@ namespace MiniMC {
       std::vector<hash_t> hashes;
     };
     
+
+    struct RandomHash {
+      RandomHash () : _hash (MiniMC::Support::Random{}.uniform_int<hash_t>(std::numeric_limits<hash_t>::min(),std::numeric_limits<hash_t>::max())) {}
+      hash_t hash () const {return _hash;}
+      hash_t _hash; 
+    };
 
   } // namespace Hash
 } // namespace MiniMC

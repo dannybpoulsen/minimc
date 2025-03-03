@@ -1,6 +1,6 @@
-#include "pathvm/operations.hpp"
+#include "minimc/values/pathformula/operations.hpp"
 #include "minimc/smt/smtconstruction.hpp"
-#include "pathvm/value.hpp"
+#include "minimc/values/pathformula/value.hpp"
 #include "smt/builder.hpp"
 #include "aggrhelper.hpp"
 
@@ -36,6 +36,7 @@ namespace MiniMC {
 
 
       Value::Bool Operations::BoolAnd (const Value::Bool& l, const Value::Bool& r) {
+	
 	return builder.buildTerm(SMTLib::Ops::And, {l.getTerm(),r.getTerm ()});
       }
       

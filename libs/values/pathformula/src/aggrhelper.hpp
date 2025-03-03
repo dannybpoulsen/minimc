@@ -1,7 +1,7 @@
 #ifndef _SMT_PATH__AGGRHELPER
 #define _SMT_PATH__AGGRHELPER
 
-#include "pathvm/value.hpp"
+#include "minimc/values/pathformula/value.hpp"
 #include "minimc/smt/smtconstruction.hpp"
 #include "smt/builder.hpp"
 #include <bit>

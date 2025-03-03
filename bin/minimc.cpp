@@ -4,12 +4,14 @@
 #include "minimc/model/checkers/typechecker.hpp"
 #include "minimc/model/checkers/structuralchecker.hpp"
 #include "minimc/model/modifications/modifications.hpp"
+#include "minimc/support/feedback.hpp"
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <fstream>
+
 
 
 #include "minimc/loaders/loader.hpp"
@@ -61,8 +63,8 @@ int main(int argc, char* argv[]) {
 	}
 	MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);
 	if (options.command) {
-	  auto res =  static_cast<int>(options.command->runCommand(std::move(prgm2),messager,options));
-	  return res;
+	  auto res = options.command->runCommand(std::move(prgm2),messager,options);
+	  return static_cast<int>(res);
 	}
       
 	else {

@@ -299,7 +299,11 @@ namespace MiniMC {
     template<class Sol,class Value>
     concept ConstraintSolver = requires (Sol sol, const Sol csol, typename Value::Bool r, const Value& v){
       {sol.addConstraint (r)};
+      {sol.push ()};
+      {sol.pop ()};
+      
       {csol.check ()}->std::convertible_to<Feasibility>;
+      
       {csol.eval (v)}->std::convertible_to<MiniMC::Model::Constant_ptr>;
     };
 

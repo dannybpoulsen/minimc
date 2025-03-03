@@ -80,6 +80,8 @@ namespace MiniMC {
       virtual void mess(const ProgressMessage&) {}
       virtual void mess(const SubMessage&) {}
       
+      virtual void pumpProgress() {}
+      
       static std::shared_ptr<MessageSink> make (MessageSinkType);
       static std::shared_ptr<MessageSink> defaultSink ();
       
@@ -96,32 +98,24 @@ namespace MiniMC {
       template<class T>
       auto& operator<< (T&& mess) {sink->mess(mess); return *this;}
       
-      
+      void pumpProgress () {sink->pumpProgress();}
     private:
       std::shared_ptr<MessageSink> sink; 
       
     };
 
     class AsyncExecutor {
-    public: 
-      AsyncExecutor (Messager messager) : messager(std::move(messager)) {}
-    
-      template<class ProgressMessage,class Func,class... Args>
-      auto execute (ProgressMessage mess, Func f, Args... args) {
-	messager << mess;
-	auto promise = std::async (f,args...);
+    public:
+      template<class F, class... Args>
+      auto execute (Messager& mess, F f,Args... args) {
+	auto res = std::async(f,args...);
 	std::future_status status;
-	status = promise.wait_for(500ms);
-	
-	while (status!=std::future_status::ready) {
-	  messager << mess;
-	  status = promise.wait_for(500ms);
-	  
-	};
-	return promise.get();
+	do {
+	  status = res.wait_for(500ms);
+	  mess.pumpProgress();
+	}while(status != std::future_status::ready);
+	return res.get();
       }
-    private:
-      Messager messager;
     };
     
   } // namespace Support

@@ -14,7 +14,7 @@ namespace MiniMC {
   namespace CPA {
     namespace Concrete {
       using CPA = MiniMC::CPA::Common::CPA<MiniMC::VMT::Concrete::ValueDefinition>;
-
+      
       
       
     } // namespace Concrete

@@ -31,12 +31,17 @@ namespace MiniMC {
       }
       
       void mess(const ProgressMessage& m) override {
+	std::stringstream str;
+	m.to_string(str);
+	progress = str.str();
+      }
+
+      void pumpProgress () override {
 	static const char arr[] = "\\|/-";
 	static int i = 0;
-	std::cout << "\r\x1b[2K\r " << "[" <<arr[i] << "]" << defaultC;
-	m.to_string(std::cout)  << "\e7" << std::flush;
-	i = (i+1) % 4; ;
-	
+	std::cout << "\r\x1b[2K\r " << "[" <<arr[i] << "] " << defaultC;
+	std::cout << progress  << "\e7" << std::flush;
+	i = (i+1) % (sizeof(arr)-1);
       }
       
       
@@ -56,6 +61,7 @@ namespace MiniMC {
       MiniMC::Linux::ColorModifier errorC;
       MiniMC::Linux::ColorModifier warningC;
       MiniMC::Linux::ColorModifier defaultC;
+      std::string progress;
     };
 
     std::shared_ptr<MessageSink> makeMessager(MessageSinkType g) {

@@ -8,8 +8,8 @@
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/support/overload.hpp"
-#include "pathvm/value.hpp"
-#include "pathvm/operations.hpp"
+#include "minimc/values/pathformula/value.hpp"
+#include "minimc/values/pathformula/operations.hpp"
 #include <cstring>
 #include <memory>
 #include <iostream>
@@ -27,9 +27,8 @@ namespace MiniMC {
                     private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>&& mixin, SMTLib::Term_ptr&& formula, SMTLib::Context& ctxt) : mixin(std::move(mixin)),
-																					      pathformula(std::move(formula)),
-																					      context(ctxt) {}
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>&& mixin,  SMTLib::Context& ctxt) : mixin(std::move(mixin)),
+														  context(ctxt) {}
         State(const State& oth) =default;
 	
 	MiniMC::Hash::hash_t hash() const override {
@@ -46,11 +45,13 @@ namespace MiniMC {
         
 	const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
 	
-        void addConstraints(const SMTLib::Term_ptr& term) {
+        /*void addConstraints(const SMTLib::Term_ptr& term) {
 	  pathformula = context.getBuilder().buildTerm(SMTLib::Ops::And, {pathformula, term});
-        }
+	  }
 
-        auto& getPathformula() const { return pathformula; }
+	  auto& getPathformula() const { return pathformula; }
+	*/
+	auto& getMixin() {return mixin;} 
 	
 	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext (id,MiniMC::VMT::Pathformula::Memory{context.getBuilder()});}
         virtual const QueryBuilder& getBuilder() const { return *this; }
@@ -70,7 +71,7 @@ namespace MiniMC {
       private:
 	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value> mixin;
 	  
-	SMTLib::Term_ptr pathformula;
+	//SMTLib::Term_ptr pathformula;
         SMTLib::Context& context;
       };
       
@@ -87,7 +88,7 @@ namespace MiniMC {
 	
         Feasibility isFeasible() const override {
 	  switch (solver.check_sat()) {
-            case SMTLib::Result::Satis:
+	  case SMTLib::Result::Satis:
               return Feasibility::Feasible;
             case SMTLib::Result::NSatis:
               return Feasibility::Infeasible;
@@ -133,7 +134,7 @@ namespace MiniMC {
 	auto& solver = context.getSolver();
 	auto conc = std::make_shared<Concretizer>(solver);
 	
-	solver.assert_formula(getPathformula());
+	solver.assert_formula(mixin.getPathform().getTerm());
 	return conc;
       }
 

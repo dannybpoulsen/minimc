@@ -8,6 +8,8 @@
 #include "options.hpp"
 #include "plugin.hpp"
 
+#include <future>
+
 namespace po = boost::program_options;
 
 namespace {
@@ -95,8 +97,7 @@ namespace {
       MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm),messager};
       reach.setSearchStrategy (locoptions.search_strat);
       
-      auto result = reach.search (initstate,goal);
-      
+      auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal](){return reach.search(initstate,goal);});
       
       if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
 	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};

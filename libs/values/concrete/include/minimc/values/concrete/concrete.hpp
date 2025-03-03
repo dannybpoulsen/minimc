@@ -39,6 +39,9 @@ namespace MiniMC {
       
       class ConstraintSolver {
       public:
+	void push () {}
+	void pop () {}
+	
 	void addConstraint (Value::Bool constraint) {constraints = constraints.getValue() && constraint.getValue();}
 	MiniMC::VMT::Feasibility check () const {
 	  return constraints.getValue() ? MiniMC::VMT::Feasibility::Feasible : MiniMC::VMT::Feasibility::Infeasible; 

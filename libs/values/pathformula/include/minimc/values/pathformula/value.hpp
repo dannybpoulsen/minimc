@@ -2,6 +2,7 @@
 #define _VM_PATHFORMULA_VALUES__
 
 #include "minimc/vm/vmt.hpp"
+#include "minimc/hash/hashing.hpp"
 #include <memory>
 
 namespace SMTLib {
@@ -14,9 +15,10 @@ namespace SMTLib {
 namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
+
       
       template <typename v>
-      class TValue {
+      class TValue : public MiniMC::Hash::RandomHash{
       public:
         TValue() = default;
 	
@@ -53,7 +55,7 @@ namespace MiniMC {
 	std::size_t bytesize;
       };
 
-      class MemoryValue {
+      class MemoryValue : public MiniMC::Hash::RandomHash {
       public:
 	static MemoryValue construct_empty_memory (SMTLib::TermBuilder& builder); 
 	MemoryValue () {}
@@ -111,12 +113,12 @@ namespace MiniMC {
 namespace std {
   template <typename T>
   struct hash<MiniMC::VMT::Pathformula::TValue<T>> {
-    auto operator()(const MiniMC::VMT::Pathformula::TValue<T>& t) { return bit_cast<MiniMC::Hash::hash_t>(&t); }
+    auto operator()(const MiniMC::VMT::Pathformula::TValue<T>& t) { return t.hash ();}//return bit_cast<MiniMC::Hash::hash_t>(&t); }
   };
 
   template <>
   struct hash<MiniMC::VMT::Pathformula::MemoryValue> {
-    auto operator()(const MiniMC::VMT::Pathformula::MemoryValue& t) { return bit_cast<MiniMC::Hash::hash_t>(&t); }
+    auto operator()(const MiniMC::VMT::Pathformula::MemoryValue& t) {  return t.hash (); }//return bit_cast<MiniMC::Hash::hash_t>(&t); }
   };
   
   template <>

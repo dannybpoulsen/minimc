@@ -1,5 +1,6 @@
 #include "minimc/cpa/pathformula.hpp"
 #include "minimc/cpa/common.hpp"
+#include "minimc/values/pathformula/pathformula.hpp"
 #include "smt/context.hpp"
 #include "state.hpp"
 #include "minimc/smt/smt.hpp"
@@ -8,7 +9,7 @@
 namespace MiniMC {
   namespace CPA {
     namespace PathFormula {
-
+      /*
       using PathFormulaEngine = MiniMC::VMT::Engine<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Operations,MiniMC::VMT::Pathformula::Memory> ;
       
       using ActivationRecord = MiniMC::CPA::Common::ActivationRecord<MiniMC::VMT::Pathformula::Value>;
@@ -28,13 +29,11 @@ namespace MiniMC {
       
       State_ptr CPA::makeInitialState(const InitialiseDescr& descr) {
 	auto& termbuilder =  context->getBuilder ();
-	auto term = termbuilder.makeBoolConst (true);
 	
         
 	return makeState<MiniMC::CPA::PathFormula::State>(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>::createInitialState(descr,
-														     MiniMC::VMT::Pathformula::Operations{termbuilder},
-														     MiniMC::VMT::Pathformula::Memory{termbuilder}),
-							  std::move(term),
+																	       MiniMC::VMT::Pathformula::Operations{termbuilder},
+																	       MiniMC::VMT::Pathformula::Memory{termbuilder}),
 							  *context);
       }
 
@@ -69,7 +68,7 @@ namespace MiniMC {
 	auto res = _internal->engine.execute(instr,newvm);
 	
 	if (res.status == MiniMC::VMT::Status::Ok)  {
-	  nstate.addConstraints (res.assumes.getTerm());
+	  nstate.getMixin().setPathform (VMT::Pathformula::Operations{_internal->context->getBuilder()}.BoolAnd(nstate.getMixin().getPathform(), res.assumes));
 	  return resstate;
 	}
 	else {	  
@@ -77,9 +76,11 @@ namespace MiniMC {
 	  
 	}
       }
-	
+      */
       
-
+   using CPA = MiniMC::CPA::Common::CPA<MiniMC::VMT::Pathformula::ValueDefinition>;
+      
+    
     } // namespace PathFormula
     template<>
     MiniMC::CPA::TCPA_ptr makeCPA<CPAType::Pathformula> (MiniMC::Support::SMT::SMTDescr fact) {

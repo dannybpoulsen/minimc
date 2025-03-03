@@ -375,6 +375,7 @@ namespace MiniMC {
 	for (auto& vl : stacks) {
 	  hash << vl;
 	}
+	hash << getPathform ();
 	return hash;
       }
 
@@ -393,7 +394,7 @@ namespace MiniMC {
       }
 
       Value::Bool getPathform () const { return pathform;}
-      Value::Bool setPathform (Value::Bool&& p ) const { pathform = std::move(p);}
+      void setPathform (Value::Bool&& p ) { pathform = std::move(p);}
       
       
     private:
@@ -417,7 +418,14 @@ namespace MiniMC {
     template<class Value,MiniMC::VMT::ConstraintSolver<Value> Constraintsolver>
     class Solver : public MiniMC::CPA::Solver {
     public:
-      Solver (Constraintsolver&& solver) : solver(std::move(solver)) {}
+      Solver (Constraintsolver&& solver) : solver(std::move(solver)) {
+	solver.push ();
+      }
+
+      ~Solver ()  {
+	solver.pop ();
+      }
+      
       MiniMC::CPA::Solver::Feasibility isFeasible() const override {
 	switch (solver.check ()) {
 	case MiniMC::VMT::Feasibility::Feasible: return Feasibility::Feasible;
@@ -430,9 +438,17 @@ namespace MiniMC {
 	}
       }
 
+      void addConstraint (Value::Bool b) {
+	solver.addConstraint (b);
+      }
+      
       MiniMC::Model::Constant_ptr evaluate (const QueryExpr& expr) const override {
-	auto& ref = static_cast<const TQuery<Value>&> (expr);
-	return solver.eval (ref.getValue());
+	if (solver.check() == MiniMC::VMT::Feasibility::Feasible) {
+	  auto& ref = static_cast<const TQuery<Value>&> (expr);
+	  return solver.eval (ref.getValue());
+	}
+	else
+	  throw MiniMC::Support::Exception("Cannot evaluate on infeasible states");
       }
 	
     private:
@@ -477,10 +493,16 @@ namespace MiniMC {
       const QueryBuilder& getBuilder () const override  {return *this;}
       
       const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
-
+      
       virtual const Solver_ptr getConcretizer() const override {
-	return std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (valuedefinition.solver());
+	auto solver = valuedefinition.solver();
+	auto ssolver = std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (std::move(solver));
+	ssolver->addConstraint (getPathform());
+	return std::move(ssolver);
       }
+
+      ValDef::Val::Bool getPathform () const { return mixin.getPathform();}
+      void setPathform (ValDef::Val::Bool&& p ) { mixin.setPathform(std::move(p));}
       
       
     private:
@@ -512,9 +534,15 @@ namespace MiniMC {
 	VMState<typename ValDef::Val,decltype(evalc),decltype(stack)> newvm {stack,std::move(evalc)};
 	auto& instr = e.getInstructions();
 	auto res = engine.execute(instr,newvm);
+
 	
-	if (res.status == MiniMC::VMT::Status::Ok)
+	
+	if (res.status == MiniMC::VMT::Status::Ok) {
+	  
+	  nstate.setPathform (def.ops ().BoolAnd (nstate.getPathform(),res.assumes));
 	  return resstate;
+	  
+	}
 	else {
 	  
 	  return nullptr;

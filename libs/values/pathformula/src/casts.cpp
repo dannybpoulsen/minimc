@@ -1,5 +1,5 @@
-#include "pathvm/operations.hpp"
-#include "pathvm/value.hpp"
+#include "minimc/values/pathformula/operations.hpp"
+#include "minimc/values/pathformula/value.hpp"
 #include "smt/builder.hpp"
 #include "minimc/smt/smtconstruction.hpp"
 
