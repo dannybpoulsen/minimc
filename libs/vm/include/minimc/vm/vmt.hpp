@@ -10,10 +10,10 @@
 #include "minimc/model/heaplayout.hpp"
 #include "minimc/model/valuevisitor.hpp"
 #include "minimc/support/overload.hpp"
-
 #include <type_traits>
 #include <iostream>
 #include <utility>
+#include <generator>
 
 namespace MiniMC {
   namespace Model {
@@ -61,8 +61,8 @@ namespace MiniMC {
 
 
     template<class State>
-    concept StackControllable = requires (State& state) {
-      {state.getStackControl ()} ->StackControl;
+    concept StackControllable = requires (State& state, MiniMC::Model::proc_t id) {
+      {state.getStackControl (id)} ->StackControl;
     };
 
     
@@ -83,14 +83,18 @@ namespace MiniMC {
 
     
     template<class State,typename T>
-    concept ValueLookupable = requires (State& state) {
-      {state.getValueLookup ()} ->RegisterStore<T>;
+    concept ValueLookupable = requires (State& state, MiniMC::Model::proc_t id) {
+      {state.makeEvaluationContext (id)} ->RegisterStore<T>;
     };
 
     
     template<class State,class V>
     concept VMState =  StackControllable<State> &&
-                       ValueLookupable<State,V>;
+      ValueLookupable<State,V> && requires (State& s,typename V::Bool&& v) {
+      {s.getPathform()}->std::convertible_to<typename V::Bool>;
+      {s.setPathform(std::move(v))};
+      
+    };
     
     template<class T,class R>
     concept Integer = std::is_same_v<R,typename T::I8> || std::is_same_v<R,typename T::I16> || std::is_same_v<R,typename T::I32> || std::is_same_v<R,typename T::I64>;
@@ -114,7 +118,8 @@ namespace MiniMC {
       Value Eval (const MiniMC::Model::Value& v)  const {
 	return MiniMC::Model::visitValue<Value>(*this,v);
       }
-
+      
+      
       template <class Castee>
       auto castPtrToAppropriateInteger(Castee&& v) const   {
         if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
@@ -535,11 +540,13 @@ OPSI
       Engine (Operations&& ops,MemControl&& memcontrol, const MiniMC::Model::Program& prgm);
       ~Engine ();
       
-      template<VMState<Value> VState,bool resetAssumptions = true>
-      Result execute (const MiniMC::Model::InstructionStream&, VState& ) ;
+      template<VMState<Value> VState>
+      std::generator<std::shared_ptr<VState>> execute (const MiniMC::Model::InstructionStream&, const VState&, MiniMC::Model::proc_t) ;
+      
+      template<VMState<Value> VState>
+      std::generator<std::shared_ptr<VState>> execute (const MiniMC::Model::Instruction&, const VState&, MiniMC::Model::proc_t) ;
 
-      template<VMState<Value> VState,bool resetAssumptions = false>
-      Result execute (const MiniMC::Model::Instruction&, VState& ) ;
+      
       
     private:
       class Impl;

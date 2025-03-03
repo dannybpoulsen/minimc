@@ -392,7 +392,8 @@ namespace MiniMC {
       auto makeEvaluationContext (proc_id id,MemControl&& memcontrol) const {
 	return EvaluationContext<Value,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),std::move(memcontrol),*scontext);
       }
-
+      
+      
       Value::Bool getPathform () const { return pathform;}
       void setPathform (Value::Bool&& p ) { pathform = std::move(p);}
       
@@ -405,16 +406,7 @@ namespace MiniMC {
     };
     
     
-    template<class T,MiniMC::VMT::RegisterStore<T> Eval, MiniMC::VMT::StackControl stackC>  
-    struct VMState {
-      VMState (stackC& stack,Eval&& vlook) : scontrol(stack),lookup(std::move(vlook)) {}
-      auto& getValueLookup () {return lookup;}
-      auto& getStackControl ()  {return scontrol;}
-    private:
-      stackC& scontrol;
-      Eval lookup;
-    };
-    
+        
     template<class Value,MiniMC::VMT::ConstraintSolver<Value> Constraintsolver>
     class Solver : public MiniMC::CPA::Solver {
     public:
@@ -467,6 +459,10 @@ namespace MiniMC {
 	  return mixin.hash ();
       }
       
+      virtual std::shared_ptr<CPAState<ValDef>>  lcopy() const  {
+	return makeState<CPAState<ValDef>>(*this); 
+      }
+
       virtual State_ptr copy() const override {
 	return makeState<CPAState<ValDef>>(*this); 
       }
@@ -475,6 +471,9 @@ namespace MiniMC {
       auto& getProc(std::size_t i) const { return mixin.getProc (i); }
       
       auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id,valuedefinition.memops());}
+      auto& getStackControl (proc_id id)  {return mixin.getProc(id);}
+      auto getValueLookup (proc_id id)  {return mixin.getProc(id);}
+      
       
       //QueryBuilder
       QueryExpr_ptr buildValue (MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
@@ -522,32 +521,19 @@ namespace MiniMC {
 	
 	auto resstate = s.copy();
         auto& nstate = static_cast<CPAState<ValDef>&>(*resstate);
-
+	
 	if (nstate.getProc(id).activeRecord ().getLocation () != e.getFrom ())
 	  return nullptr;
 	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	
 
-	auto& stack = nstate.getProc(id);
-	auto evalc = nstate.makeEvaluationContext (id);
-	
-	VMState<typename ValDef::Val,decltype(evalc),decltype(stack)> newvm {stack,std::move(evalc)};
 	auto& instr = e.getInstructions();
-	auto res = engine.execute(instr,newvm);
-
-	
-	
-	if (res.status == MiniMC::VMT::Status::Ok) {
-	  
-	  nstate.setPathform (def.ops ().BoolAnd (nstate.getPathform(),res.assumes));
-	  return resstate;
-	  
+	for (auto t :  engine.execute(instr,nstate,id)) {
+	  return t;
 	}
-	else {
-	  
-	  return nullptr;
 
-	}
+	return nullptr;
+	
       }
     private:
       ValDef def; 

@@ -55,7 +55,7 @@ namespace MiniMC {
     using State_ptr = std::shared_ptr<State>;
 
     template<class S,typename... Args>
-    State_ptr makeState (Args&&... args) {return std::make_shared<S> (std::forward<Args> (args)...);};
+    std::shared_ptr<S> makeState (Args&&... args) {return std::make_shared<S> (std::forward<Args> (args)...);};
     
     class State 
     {

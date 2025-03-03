@@ -1,4 +1,5 @@
 #ifndef _ENGINE_IMPLE__
+
 #define _ENGINE_IMPLE__
 
 #include "minimc/model/cfg.hpp"
@@ -25,19 +26,15 @@ namespace MiniMC {
       
     public:
       Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
-      template <class I,class State,class Evaluator>
-      static Status runInstruction(const I&, State&,Evaluator&)  {
-	throw NotImplemented<I::getOpcode()> ();
-      }
       
       template<RegisterStore<T> Regstore>
-      auto makeEvaluator (Regstore& store) {
+      auto makeEvaluator (Regstore store) {
 	return MiniMC::VMT::makeEvaluator<T> (store,operations);
       }
 
-      void reset () {
+      void reset (T::Bool pathform) {
 	asserts = operations.create (MiniMC::Model::Bool(true));
-	assumes = operations.create (MiniMC::Model::Bool(true));
+	assumes = pathform;
       }
 
       auto getAssertions () const {return asserts;}
@@ -55,32 +52,18 @@ namespace MiniMC {
         }
       }
       
-
-      
-      template <class  I, VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state, Evaluator& eval)
-        requires MiniMC::Model::isMemory_v<I> {
-	constexpr auto op = I::getOpcode ();
-        auto& content = instr.getOps();
-
-	auto addrConverter = MiniMC::Support::Overload {
-	  [](typename T::Pointer& addrVal) {
-	    return addrVal;
-	  },
-	  [this] (typename T::Pointer32& addrVal) {
-	    return operations.Ptr32ToPtr (addrVal);
-	  },
-	  MiniMC::Support::Error<typename T::Pointer> {}
-	};
-	
+      template <class I,class State>
+      Status runInstruction(const I&, State&,MiniMC::Model::proc_t)  {
+	throw NotImplemented<I::getOpcode()> ();
       }
-
       
-      template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State&,Evaluator& eval) requires MiniMC::Model::isAssertAssume_v<I>       {
+            
+      template <class I,VMState<T> State>
+      Status runInstruction(const I& instr, State& state, MiniMC::Model::proc_t id) requires MiniMC::Model::isAssertAssume_v<I>       {
 	constexpr auto op = instr.getOpcode ();
 	auto& content = instr.getOps();
-	  
+	auto eval = makeEvaluator (state.makeEvaluationContext (id));
+	
 	auto obj = T::visit (MiniMC::Support::Overload {
 	    [](const T::Bool& b) {return b;},
 	    MiniMC::Support::Error<typename T::Bool>{}
@@ -102,24 +85,25 @@ namespace MiniMC {
     }
 
 
-      template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator& eval)
+      template <class I,VMState<T> State>
+      Status runInstruction(const I& instr, State& state, MiniMC::Model::proc_t id)
         requires MiniMC::Model::isInternal_v<I>
       {
 	constexpr auto op = I::getOpcode ();
-        
+        auto eval = makeEvaluator (state.makeEvaluationContext (id));
+	
 
         if constexpr (op == MiniMC::Model::VMInstructionCode::Assign ) {
 	  auto& content = instr.getOps();
 	  auto& res = content.res->asRegister ();
           auto op1 = eval.Eval(*content.op1);
-          state.getValueLookup().saveValue(res, std::move(op1));
+          state.makeEvaluationContext(id).saveValue(res, std::move(op1));
           return Status::Ok;
         }
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Call) {
 	  auto& content = instr.getOps();
-	  auto& scontrol = state.getStackControl();
+	  auto& scontrol = state.getStackControl(id);
           assert(content.function->isConstant());
 	  
           auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
@@ -158,7 +142,7 @@ namespace MiniMC {
 	  
 	  auto it = params.begin();
 	  for (auto& p : func->getParameters()) {
-	    state.getValueLookup().saveValue(*p, std::move(*it));
+	    state.makeEvaluationContext(id).saveValue(*p, std::move(*it));
 	    ++it;
 	  }
 
@@ -169,9 +153,9 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Ret) {
 	  auto& content = instr.getOps();
 	  auto ret = eval.Eval(*content.value);
-	  auto ret_reg = state.getStackControl().pop();
+	  auto ret_reg = state.getStackControl(id).pop();
 	  if (ret_reg)
-	    state.getValueLookup().saveValue (ret_reg->asRegister (),std::move(ret));
+	    state.makeEvaluationContext(id).saveValue (ret_reg->asRegister (),std::move(ret));
 	  	  
 	  
 	  return Status::Ok;
@@ -179,7 +163,7 @@ namespace MiniMC {
 	}
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::RetVoid) {
-	  state.getStackControl().pop();
+	  state.getStackControl(id).pop();
 	  return Status::Ok;
 	  
         }
@@ -192,7 +176,7 @@ namespace MiniMC {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
 	  auto ret = eval.Eval(*MiniMC::Model::Undef::make(res.getType()));
-          state.getValueLookup().saveValue(res, std::move(ret));
+          state.makeEvaluationContext(id).saveValue(res, std::move(ret));
           return Status::Ok;
         }
 
@@ -201,10 +185,11 @@ namespace MiniMC {
         }
       }
 
-      template <class I,VMState<T> State,class Evaluator>
-      Status runInstruction(const I& instr, State& state,Evaluator& eval)
+      template <class I,VMState<T> State>
+      Status runInstruction(const I& instr, State& state, MiniMC::Model::proc_t id)
         requires MiniMC::Model::isAggregate_v<I> 
       {
+	auto eval = makeEvaluator (state.makeEvaluationContext (id));
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
         auto& res = content.res->asRegister ();
@@ -226,11 +211,11 @@ namespace MiniMC {
           auto value = eval.Eval(*content.insertee);
 
 	  T::visit (MiniMC::Support::Overload {
-	      [this,&state,&res,&offset](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
-		state.getValueLookup().saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
+	      [this,&eval,&state,&res,&offset,id](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
+		state.makeEvaluationContext(id).saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
 	      },
-		[this,&state,&res,&offset]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
-		state.getValueLookup().saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
+		[this,&eval,&state,&res,&offset,id]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
+		state.makeEvaluationContext(id).saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
 	      },
 	      MiniMC::Support::Error<void> {}
 	    }
@@ -250,23 +235,23 @@ namespace MiniMC {
 	  
           switch (res.getType()->getTypeID()) {
             case MiniMC::Model::TypeID::I8:
-              state.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));
+              state.makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));
               break;
             case MiniMC::Model::TypeID::I16:
-              state.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::I16>(aggr, offset));
+              state.makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I16>(aggr, offset));
               break;
             case MiniMC::Model::TypeID::I32:
-              state.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::I32>(aggr, offset));
+              state.makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I32>(aggr, offset));
               break;
             case MiniMC::Model::TypeID::I64:
-              state.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::I64>(aggr, offset));
+              state.makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I64>(aggr, offset));
               break;
 
             case MiniMC::Model::TypeID::Pointer:
-              state.getValueLookup().saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
+              state.makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
               break;
             case MiniMC::Model::TypeID::Aggregate:
-              state.getValueLookup().saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
+              state.makeEvaluationContext(id).saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
               break;
             default:
               throw MiniMC::Support::Exception("Invalid Extract");
@@ -280,34 +265,33 @@ namespace MiniMC {
       };
 
     template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
-    template<VMState<Value> State,bool resetAssumptions>
-    Engine<Value,Operations,MemControl>::Result Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
-				       State& wstate) {
-
-      if constexpr (resetAssumptions)
-	_impl->reset ();
+    template<VMState<Value> State>
+    std::generator<std::shared_ptr<State>> Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
+											     const State& wstate, MiniMC::Model::proc_t id) {
+      auto nstate = wstate.lcopy ();
+      _impl->reset (wstate.getPathform());
       
-      auto status = instr.visit ([this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,_impl->makeEvaluator (wstate.getValueLookup ()));});
-      return {_impl->getAssertions (),_impl->getAssumes (),status};
-
+      auto status = instr.visit ([this,&nstate,id](auto& t) {return _impl->template runInstruction (t, *nstate,id);});
+      nstate->setPathform (_impl->getAssumes());
+      co_yield nstate;
     }
     
     template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>	
-    template<VMState<Value> State,bool resetAssumptions>
-    Engine<Value,Operations,MemControl>::Result Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
-							State& wstate) {
-      if constexpr (resetAssumptions)
-	_impl->reset ();
+    template<VMState<Value> State>
+    std::generator<std::shared_ptr<State>> Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
+								       const State& wstate, MiniMC::Model::proc_t id) {
+      auto nstate = wstate.lcopy();
+      _impl->reset (wstate.getPathform());
       Status status = Status::Ok;
       auto end = instr.end();
       auto it = instr.begin();
-      auto eval = _impl->makeEvaluator(wstate.getValueLookup ());
       
       for (it = instr.begin(); it != end && status == Status::Ok;  ++it) {
 	
-	status = it->visit ([&eval,this,&wstate](auto& t) {return _impl->template runInstruction (t, wstate,eval);});
+	status = it->visit ([this,&nstate,id](auto& t) {return _impl->template runInstruction (t, *nstate,id);});
       }
-      return {_impl->getAssertions (),_impl->getAssumes (),status};
+      nstate->setPathform (_impl->getAssumes());
+      co_yield nstate;
     }
     
 
