@@ -64,7 +64,7 @@ namespace MiniMC {
 	  os << std::endl;
 	}
 	};*/
-
+      
       auto print = [&os,&state](auto& evals, auto index ) {
 	
 	for (const auto& datastate : state.dataStates ()) {
@@ -74,7 +74,7 @@ namespace MiniMC {
 	  for (auto& eval: evals) {
 	    auto symbval = builder.buildValue (index,*eval.value);
 	    os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << std::endl;
-	   
+	    
 	  }
 	  os <<"}\n";
 	}
@@ -129,7 +129,12 @@ namespace MiniMC {
       auto dit = datastate_view.begin();
       auto tit = dataTransfers.begin ();
       for (; tit != dataTransfers.end (); ++tit,++dit) {
-	auto res = (*tit)->doTransfer (*dit,trans);
+	State_ptr res = nullptr;
+	
+	for (auto t :  (*tit)->doTransfer (*dit,trans)) {
+	  res = t;
+	  break;
+	}
 	if (!res)
 	  return false;
 	datas.push_back (std::move(res));

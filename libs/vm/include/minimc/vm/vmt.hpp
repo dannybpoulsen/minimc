@@ -116,9 +116,14 @@ namespace MiniMC {
       Evaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
       
       Value Eval (const MiniMC::Model::Value& v)  const {
-	return MiniMC::Model::visitValue<Value>(*this,v);
+	return  MiniMC::Model::visitValue<Value>(*this,v);
+      }
+
+      std::generator<Value> MEval (const MiniMC::Model::Value& v)  const {
+	co_yield MiniMC::Model::visitValue<Value>(*this,v);
       }
       
+            
       
       template <class Castee>
       auto castPtrToAppropriateInteger(Castee&& v) const   {
@@ -142,7 +147,12 @@ namespace MiniMC {
 	return  ops.create(t);
       }
 
-      
+      template<class T>
+      Value operator() (const MiniMC::Model::Undef& t) const  {
+	for (auto t : ops.create(t))
+	  return t;
+      }
+
       
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecTrunc (T from) const {
@@ -524,7 +534,466 @@ OPSI
     };
 
     template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
-    Evaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return Evaluator<Value,RegStore,Operations> (ops,std::move(reg));}
+    class MultiEvaluator {
+    public:
+      MultiEvaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
+      
+      
+      Value Eval (const MiniMC::Model::Value& v)  const {
+	for (Value t :  MEval (v)) {
+	  return t;
+	}
+	throw MiniMC::Support::Exception ("Generation Failed");
+      }
+      
+      std::generator<Value> MEval (const MiniMC::Model::Value& v)  const {
+	return MiniMC::Model::visitValue<std::generator<Value>>(*this,v);
+      }
+
+      
+      template <class Castee>
+      auto castPtrToAppropriateInteger(Castee&& v) const   {
+        if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
+          return ops.template PtrToInt<typename Value::I64>(v);
+        } else if constexpr (std::is_same_v<Castee, typename Value::Pointer32>) {
+          return ops.template Ptr32ToInt<typename Value::I32>(v);
+        } else {
+          return v;
+        }
+      }
+
+      template<class T>
+      std::generator<Value> operator() (const T&) const  {
+	throw MiniMC::Support::Exception ("Not implemented");
+      }
+      
+      
+      template<class T>
+      std::generator<Value> operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
+	co_yield ops.create(t);
+      }
+
+
+      std::generator<Value> operator() (const MiniMC::Model::Undef& t) const {
+	co_yield std::ranges::elements_of(ops.create(t));
+      }
+      
+      
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecTrunc (T from) const {
+	if constexpr (T::intbitsize () >= MiniMC::Model::BitWidth<To>) {
+	  return ops.template Trunc<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::TruncExpr& trunc) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [&trunc,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+	    switch (trunc.getToType()->getTypeID ()) {
+	    case MiniMC::Model::TypeID::I8:
+	    return ExecTrunc<T,MiniMC::Model::TypeID::I8> (b);
+	    case MiniMC::Model::TypeID::I16:
+	    return ExecTrunc<T,MiniMC::Model::TypeID::I16> (b);
+	    case MiniMC::Model::TypeID::I32:
+	    return ExecTrunc<T,MiniMC::Model::TypeID::I32> (b);
+	    case MiniMC::Model::TypeID::I64:
+	    return ExecTrunc<T,MiniMC::Model::TypeID::I64> (b);
+	    default:
+	    std::unreachable();
+	    }
+	    
+	  },
+	  MiniMC::Support::Error<Value> {}
+	};
+
+	auto transform = [&visitor](Value v) -> Value {return Value::visit (visitor,v);};
+	
+	for (Value v :  MEval(trunc.getFrom ()))
+	  co_yield transform (v);	
+      }
+
+
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecZExt (T from) const {
+	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	  return ops.template ZExt<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::ZExtExpr& zext) const  {
+	for (auto v: MEval (zext.getFrom ())) {
+	  co_yield  Value::visit (MiniMC::Support::Overload {
+	      [&zext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+		switch (zext.getToType()->getTypeID ()) {
+		case MiniMC::Model::TypeID::I8:
+		return ExecZExt<T,MiniMC::Model::TypeID::I8> (b);
+		case MiniMC::Model::TypeID::I16:
+		return ExecZExt<T,MiniMC::Model::TypeID::I16> (b);
+		case MiniMC::Model::TypeID::I32:
+		return ExecZExt<T,MiniMC::Model::TypeID::I32> (b);
+		case MiniMC::Model::TypeID::I64:
+		return ExecZExt<T,MiniMC::Model::TypeID::I64> (b);
+		default:
+		std::unreachable();
+		}
+		
+	      },
+	      
+		[&zext,this](const typename Value::Bool& b) ->Value  {
+		  switch (zext.getToType()->getTypeID()) {
+		  case MiniMC::Model::TypeID::I8:
+		    return ops.template BoolZExt<MiniMC::Model::TypeID::I8>(b);
+		  case MiniMC::Model::TypeID::I16:
+		    return ops.template BoolZExt<MiniMC::Model::TypeID::I16>(b);
+		    break;
+		  case MiniMC::Model::TypeID::I32:
+		    return ops.template BoolZExt<MiniMC::Model::TypeID::I32>(b);
+		    break;
+		  case MiniMC::Model::TypeID::I64:
+		    return ops.template BoolZExt<MiniMC::Model::TypeID::I64>(b);
+		    break;
+		  default:
+		    std::unreachable();
+		  }
+		},
+		MiniMC::Support::Error<Value> {}
+	    },
+	    v
+	    );	
+	}
+      }
+
+      template<typename T, MiniMC::Model::TypeID To>
+      Value ExecSExt (T from) const {
+	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	  return ops.template SExt<To> (from);
+	}
+	else {
+	  throw MiniMC::Support::Exception ("Invalid Truncation");
+	}
+      }
+      
+      std::generator<Value> operator() (const MiniMC::Model::SExtExpr& sext) const  {
+	for (auto v : MEval (sext.getFrom ())) {
+	  co_yield Value::visit (MiniMC::Support::Overload {
+	      [&sext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
+		switch (sext.getToType()->getTypeID ()) {
+		case MiniMC::Model::TypeID::I8:
+		return ExecSExt<T,MiniMC::Model::TypeID::I8> (b);
+		case MiniMC::Model::TypeID::I16:
+		return ExecSExt<T,MiniMC::Model::TypeID::I16> (b);
+		case MiniMC::Model::TypeID::I32:
+		return ExecSExt<T,MiniMC::Model::TypeID::I32> (b);
+		case MiniMC::Model::TypeID::I64:
+		return ExecSExt<T,MiniMC::Model::TypeID::I64> (b);
+		default:
+		std::unreachable();
+		}
+		
+	      },
+		
+		[&sext,this](const typename Value::Bool& b) ->Value  {
+		  switch (sext.getToType()->getTypeID()) {
+		  case MiniMC::Model::TypeID::I8:
+		    return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(b);
+		  case MiniMC::Model::TypeID::I16:
+		    return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(b);
+		    break;
+		  case MiniMC::Model::TypeID::I32:
+		    return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(b);
+		    break;
+		  case MiniMC::Model::TypeID::I64:
+		    return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(b);
+		    break;
+		  default:
+		    std::unreachable();
+		  }
+		},
+		MiniMC::Support::Error<Value> {}
+	    },
+	    v
+	    );
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::IntToBoolExpr& sext) const  {
+	for (auto v : MEval (sext.getFrom ())) {
+	  co_yield Value::visit (  MiniMC::Support::Overload {
+	      [this]<typename T> (const T v)->Value requires Integer<Value,T> {return ops.IntToBool (v);},
+		MiniMC::Support::Error<Value>{}
+	    },
+	    v
+	    );
+	}
+      }
+      
+      std::generator<Value> operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
+	for (auto v : MEval (sext.getFrom ())) {
+	  co_yield Value::visit (  MiniMC::Support::Overload {
+	      [this]<typename T> (const T v)->Value requires Integer<Value,T> {
+		return ops.IntToPtr (v);
+	      },
+	    MiniMC::Support::Error<Value>{}
+	    },
+	    v
+	    );
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::PtrToIntExpr& sext) const  {
+	for (auto v : MEval (sext.getFrom ())) {
+	  co_yield Value::visit (  MiniMC::Support::Overload {
+	      [this,&sext](const typename Value::Pointer& val)->Value  {
+		switch (sext.getToType ()->getTypeID ()) {
+		case MiniMC::Model::TypeID::I8:
+		  return ops.template PtrToInt<typename Value::I8> (val);
+		case MiniMC::Model::TypeID::I16:
+		  return ops.template PtrToInt<typename Value::I16> (val);
+		case MiniMC::Model::TypeID::I32:
+		  return ops.template PtrToInt<typename Value::I32> (val);
+		case MiniMC::Model::TypeID::I64:
+		  return ops.template PtrToInt<typename Value::I64> (val);
+		default:
+		  std::unreachable();
+		}
+	      },
+		[this,&sext](const typename Value::Pointer32& val)->Value  {
+		  switch (sext.getToType ()->getTypeID ()) {
+		  case MiniMC::Model::TypeID::I8:
+		    return ops.template Ptr32ToInt<typename Value::I8> (val);
+		  case MiniMC::Model::TypeID::I16:
+		    return ops.template Ptr32ToInt<typename Value::I16> (val);
+		  case MiniMC::Model::TypeID::I32:
+		    return ops.template Ptr32ToInt<typename Value::I32> (val);
+		  case MiniMC::Model::TypeID::I64:
+		    return ops.template Ptr32ToInt<typename Value::I64> (val);
+		  default:
+		    std::unreachable();
+		  }
+		},
+		
+		MiniMC::Support::Error<Value>{}
+	    },
+	    v
+	    );
+	}
+      }
+      
+      std::generator<Value> operator() (const MiniMC::Model::Register& reg) const  {
+	co_yield regstore.lookupRegister (reg);
+      }
+      
+      std::generator<Value> operator() (const MiniMC::Model::SymbolicConstant& s) const  {
+	co_yield std::visit (
+		    MiniMC::Support::Overload {
+		      [this](const MiniMC::Model::Register_wptr& r)->Value {return regstore.lookupRegister (*r.lock());},
+		      [this,&s](const MiniMC::Model::HeapBlock_wptr&)->Value {return regstore.lookupSymbol (s.getValue());},
+		      MiniMC::Support::Error<Value>{}	 
+		    },
+		    
+		    s.getValue().getUserData()
+			   );
+      }
+      
+      
+      
+#define OPSI					\
+      X(AddExpr,Add)				\
+      X(SubExpr,Sub)				\
+      X(MulExpr, Mul)				\
+      X(UDivExpr, UDiv)				\
+      X(SDivExpr, SDiv)				\
+      X(ShlExpr, LShl)				\
+      X(AShrExpr, AShr)				\
+      X(LShrExpr, LShr)				\
+      X(AndExpr, And)				\
+      X(OrExpr, Or)				\
+      X(XorExpr, Xor)				\
+      
+#define X(CC,op)							\
+      std::generator<Value> operator() (const MiniMC::Model::CC& cc) const  { \
+	for (auto l :  MEval (cc.op1())) {				\
+	  for (auto r :  MEval (cc.op2())) {				\
+	    co_yield Value::visit (MiniMC::Support::Overload {		\
+		[this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
+		  return ops.op (ll,rr);},				\
+		  [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
+		  },l,r);}}						\
+      }									
+      OPSI
+#undef X
+#undef OPSI
+
+#define OPSI					\
+      X(SGtExpr, SGt)			\
+      X(UGtExpr, UGt)			\
+      X(SGEExpr, SGe)			\
+      X(UGEExpr, UGe)			\
+      X(SLtExpr, SLt)			\
+      X(ULtExpr, ULt)			\
+      X(SLEExpr, SLe)			\
+      X(ULEExpr, ULe)			\
+      X(EqExpr, Eq)			\
+      X(NEqExpr, NEq)			\
+
+#define X(CC,op)							\
+      std::generator<Value> operator() (const MiniMC::Model::CC& cc) const  { \
+	for (auto l : MEval (cc.op1 ())) {				\
+	  for( auto r : MEval (cc.op2 ())) {				\
+	    co_yield Value::visit (MiniMC::Support::Overload {		\
+		[this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
+		  return ops.op (ll,rr);},				\
+		  [this]<typename T> (T& ll, T& rr) -> Value requires Pointer<Value,T>  { \
+		    return ops.op (castPtrToAppropriateInteger<T>(std::forward<T>(ll)),castPtrToAppropriateInteger<T>(std::forward<T>(rr)));}, \
+		  MiniMC::Support::Error<Value> {}			\
+		  },l,r); } }						\
+      }									
+      OPSI
+#undef X
+#undef OPSI     
+      
+      
+#define OPSI								\
+      X(LogNotExpr, BoolNegate)						
+      
+#define X(CC,op)							\
+      std::generator<Value> operator() (const MiniMC::Model::CC& cc) const  { \
+	for (auto l :   MEval (cc.op1())) {				\
+	co_yield Value::visit (MiniMC::Support::Overload {		\
+	  [this] (typename Value::Bool& ll) -> Value    {		\
+	    return ops.op (ll);						\
+	  },								\
+	    [](auto&) -> Value {throw MiniMC::Support::Exception ("Error");} \
+	    },l								\
+	  );	}							\
+      }									\
+      
+OPSI
+#undef X
+#undef OPSI   
+      
+      std::generator<Value> operator() (const MiniMC::Model::NotExpr& notex) const  {
+	for (auto v : MEval(notex.op1())) {
+	  co_yield Value::visit (  MiniMC::Support::Overload {
+	      [this]<typename T> (const  T& t) ->Value requires Integer<Value,T>{
+		return ops.Not (t);
+	      },
+		MiniMC::Support::Error<Value>{}
+	    },
+	    v
+	    );
+	}
+      }
+      
+      
+      std::generator<Value> operator() (const MiniMC::Model::LoadExpr& load) const  {
+	for (auto m : MEval (load.mem ())) {
+	  for (auto a : MEval (load.addr ())) {
+	    co_yield Value::visit (  MiniMC::Support::Overload {
+		[this,&load] (const typename Value::Memory& m,const  typename Value::Pointer& p) {
+		  return regstore.load (p,m,*load.getToType());
+		},
+		  [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer32& p) {
+		    return regstore.load (ops.Ptr32ToPtr (p),m,*load.getToType());
+		  },
+		  MiniMC::Support::Error<Value>{}
+	      },
+	      m,
+	      a
+	      );
+	  }
+	}
+      }
+      
+      
+      std::generator<Value> operator() (const MiniMC::Model::StoreExpr& store) const  {
+	for ( auto storeto : MEval(store.storeto ())) {
+	  for (auto addr : MEval (store.addr ())) {
+	    for (auto storee : MEval (store.storee ())) {
+	      co_yield Value::visit(MiniMC::Support::Overload {
+		[this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		  return  regstore.store(m,addr, t);
+		},
+		  [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		  return  regstore.store(m,ops.Ptr32ToPtr(addr), t);
+		},
+		  MiniMC::Support::Error<Value> {}
+	      },
+	      storeto,
+	      addr,
+	      storee
+	      );
+	  }
+	}
+      }
+    }
+      
+      
+      
+      std::generator<Value> operator() (const MiniMC::Model::PtrAddExpr& load) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
+	    auto totalskip = ops.Mul(skipsize, nbskips);
+	    return  ops.PtrAdd(ptr, totalskip);
+	    
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+
+	for (auto ptr : MEval (load.ptr())) {
+	  for (auto skipsize : MEval (load.skipsize())) {
+	    for (auto nbskips : MEval (load.nbSkips ())) {
+	      co_yield Value::visit (visitor,ptr,skipsize,nbskips);
+	      
+	    }
+	  }
+	}
+	
+	
+	
+      }
+      
+      std::generator<Value> operator() (const MiniMC::Model::PtrSubExpr& load) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
+	    auto totalskip = ops.Mul(skipsize, nbskips);
+	    return ops.PtrSub(ptr, totalskip);
+	    
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+
+	for (auto ptr : MEval(load.ptr())) {
+	  for (auto skipsize : MEval(load.skipsize ())) {
+	    for (auto nbskips : MEval (load.nbSkips())) {
+	      co_yield Value::visit (visitor,ptr,skipsize,nbskips);
+	    }
+	  }
+	}
+	  
+      }
+      
+      template<class T>
+      std::generator<Value> operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {
+	throw MiniMC::Support::Exception ("Not Implemented");
+      }
+      
+      
+      
+      
+    private:
+      Operations ops;
+      const RegStore regstore;
+    };
+    
+    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    MultiEvaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return MultiEvaluator<Value,RegStore,Operations> (ops,std::move(reg));}
     
     
     template<class Value, Ops<Value> Operations, MemoryOperations<Value> MemControl>

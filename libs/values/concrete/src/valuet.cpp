@@ -3,7 +3,7 @@
 #include "minimc/host/operataions.hpp"
 #include "minimc/support/feedback.hpp"
 #include "minimc/values/concrete/concrete.hpp"
-
+#include "minimc/model/nondet_generator.hpp"
 
 namespace MiniMC {
   namespace VMT {
@@ -51,11 +51,25 @@ namespace MiniMC {
         throw MiniMC::Support::Exception("Erro");
       }
       
-      
-      Value Operations::unboundValue(const MiniMC::Model::Type& t) const {
-	MiniMC::Support::Messager{} << MiniMC::Support::TWarning {"Getting nondeterministic values for concrete values - using default value"};
-	return defaultValue (t);
+
+      std::generator<Value> Operations::create (const MiniMC::Model::Undef& und) const {
+	MiniMC::Model::NonDetGenerator gen;
+	for (auto t  : gen.generate(*und.getType ())) {
+	  co_yield MiniMC::Model::visitValue<Value> (
+						     MiniMC::Support::Overload {
+						       [this]<typename T>(T& v)->Value requires (MiniMC::Model::is_root<T> && ! MiniMC::Model::is_register<T> && !MiniMC::Model::is_symbolic<T> ) {
+							 return this->create(v);
+						       },
+							 MiniMC::Support::Error<Value> {}
+					      },
+						     *t
+						     );
+	  
+				 
+	}
+	
       }
+      
 
       MiniMC::Model::Constant_ptr ConstraintSolver::eval (const Value& v) const {
 	return MiniMC::VMT::Concrete::Value::visit (MiniMC::Support::Overload {

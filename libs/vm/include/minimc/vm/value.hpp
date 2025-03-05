@@ -9,7 +9,7 @@
 #include "minimc/model/array.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/hash/hashing.hpp"
-
+#include <generator>
 
 namespace MiniMC {
   namespace VMT {
@@ -251,7 +251,7 @@ namespace MiniMC {
       {e.create(ptr)}->std::convertible_to<Res>;
       {e.create(ptr32)}->std::convertible_to<Res>;
       {e.create(aggrc)}->std::convertible_to<Res>;
-      {e.create(und)}->std::convertible_to<Res>;
+      {e.create(und)}->std::convertible_to<std::generator<Res>>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;
     };
 

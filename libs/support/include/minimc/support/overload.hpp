@@ -18,7 +18,11 @@ namespace MiniMC {
       realname = abi::__cxa_demangle(ti.name(), NULL, NULL, &status);
       res = realname;
       std::free(realname);
-      return res;
+      if constexpr (sizeof...(Args) > 0) {
+	return res + " " +descriptive_string<Args...> ();
+      }
+      else
+	return res;
     }
     
     template<class Res>

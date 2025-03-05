@@ -68,7 +68,7 @@ namespace MiniMC {
     class Transfer {
     public:
       virtual ~Transfer () {}
-      virtual State_ptr doTransfer(const State&, const Transition&) {return nullptr;}
+      virtual std::generator<State_ptr> doTransfer(const State&, const Transition&) = 0;
     };
     
     

@@ -226,8 +226,14 @@
       || std::is_same_v<std::remove_const_t<A>,SymbolicConstant>
       || std::is_same_v<std::remove_const_t<A>,Register>
       || std::is_same_v<std::remove_const_t<A>,AggregateConstant>      
-      || std::is_same_v<std::remove_const_t<A>,Undef>      
       ;
+
+    template<class A>
+   constexpr bool is_register = std::is_same_v<std::remove_const_t<A>,Register>;
+
+    template<class A>
+   constexpr bool is_symbolic = std::is_same_v<std::remove_const_t<A>,SymbolicConstant>;
+   
 
     template<class A>
     constexpr bool is_integer = std::is_same_v<std::remove_const_t<A>,I8Integer>

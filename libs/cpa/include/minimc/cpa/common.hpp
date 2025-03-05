@@ -514,7 +514,7 @@ namespace MiniMC {
     class Transferer : public MiniMC::CPA::Transfer {
     public:
       Transferer(ValDef def,const MiniMC::Model::Program& prgm) : def(std::move(def)),engine(def.ops(),def.memops(),prgm) {}
-      MiniMC::CPA::State_ptr doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
+      std::generator<State_ptr>  doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	
 	const MiniMC::Model::Edge& e = *t.edge;
 	proc_id id = t.proc;
@@ -522,18 +522,16 @@ namespace MiniMC {
 	auto resstate = s.copy();
         auto& nstate = static_cast<CPAState<ValDef>&>(*resstate);
 	
-	if (nstate.getProc(id).activeRecord ().getLocation () != e.getFrom ())
-	  return nullptr;
-	nstate.getProc(id).activeRecord().setLocation (e.getTo ());
+	if (nstate.getProc(id).activeRecord ().getLocation () == e.getFrom ()) {
+	  nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	
 
-	auto& instr = e.getInstructions();
-	for (auto t :  engine.execute(instr,nstate,id)) {
-	  return t;
+	  auto& instr = e.getInstructions();
+	  for (auto t :  engine.execute(instr,nstate,id)) {
+	    co_yield t;
+	  }
+	  
 	}
-
-	return nullptr;
-	
       }
     private:
       ValDef def; 

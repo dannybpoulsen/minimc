@@ -80,7 +80,9 @@ namespace MiniMC {
 	}
 	return AggregateValue(chainer.getTerm(), val.getSize());
       }
-      Value Operations::create(const MiniMC::Model::Undef& val) const { return unboundValue(*val.getType()); }
+      std::generator<Value> Operations::create(const MiniMC::Model::Undef& val) const {
+	co_yield unboundValue(*val.getType());
+      }
       
       
       Value Memory::load(const MemoryValue& mem, const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {

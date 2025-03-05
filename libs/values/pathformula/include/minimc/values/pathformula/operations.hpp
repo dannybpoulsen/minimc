@@ -183,7 +183,7 @@ namespace MiniMC {
 	Value create (const MiniMC::Model::Pointer& val) const ;
 	Value create (const MiniMC::Model::Pointer32& val) const;
 	Value create (const MiniMC::Model::AggregateConstant& val) const;
-	Value create (const MiniMC::Model::Undef& und) const ;
+	std::generator<Value>create (const MiniMC::Model::Undef& und) const ;
 	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}
 	Value unboundValue (const MiniMC::Model::Type&) const ;
 	Value defaultValue(const MiniMC::Model::Type&) const ;

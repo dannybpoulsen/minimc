@@ -45,8 +45,14 @@ TEST_CASE("Add") {
   auto init_state = cpa.makeInitialState ({{func},{},prgm});
   auto transfer = cpa.makeTransfer (prgm);
 
-  auto res_state = transfer->doTransfer (*init_state,{*func->getCFA().getInitialLocation()->ebegin (),0});
-
+  MiniMC::CPA::State_ptr res_state = nullptr;
+  for (auto s : transfer->doTransfer (*init_state,{*func->getCFA().getInitialLocation()->ebegin (),0})) {
+    res_state = s;
+    break;
+  }
+  
+  REQUIRE(res_state != nullptr);
+  
   auto val = res_state->getBuilder ().buildValue (0,*res);
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
