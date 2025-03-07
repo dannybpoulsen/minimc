@@ -148,6 +148,7 @@ namespace MiniMC {
       auto& getFrame () {return frame;}
       Program& getPrgm() const { return prgm; }
       auto isVarArgs () const {return varargs;}
+      auto function_ptr () const {return MiniMC::Model::Pointer(MiniMC::Model::pointer64_t::makeFunctionPointer(id));}
     private:
       Symbol name;
       std::vector<Register_ptr> parameters;

@@ -75,13 +75,13 @@ namespace {
 
     
     MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager& messager,const SetupOptions& sopt) {    
-      MiniMC::CPA::AnalysisBuilder cpa = makeCPABuilder (sopt);
+      auto cpa = makeCPA (sopt);
       
-      auto initstate = cpa.makeInitialState({prgm.getEntryPoints (),
+      auto initstate = cpa->makeInitialState({prgm.getEntryPoints (),
 	  prgm.getHeapLayout (),
 	  prgm});
       
-      auto goal = [](const MiniMC::CPA::AnalysisState& state) {
+      auto goal = [](const MiniMC::CPA::State& state) {
 	auto& locationstate = state.getLocationState ();
 	auto procs = locationstate.nbOfProcesses ();
       
@@ -94,15 +94,15 @@ namespace {
       };
       
     
-      MiniMC::Algorithms::Reachability::Reachability reach {cpa.makeTransfer(prgm),messager};
+      MiniMC::Algorithms::Reachability::Reachability reach {cpa->makeTransfer(prgm),messager};
       reach.setSearchStrategy (locoptions.search_strat);
       
-      auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal](){return reach.search(initstate,goal);});
+      auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal](){return reach.search(*initstate,goal);});
       
       if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
 	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
 	std::stringstream str;
-	MiniMC::CPA::StateOutputter{prgm}.output (result.foundState(),str) << std::endl;
+	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),str) << std::endl;
 	messager << MiniMC::Support::TInfo<std::string> {str.str()};
 	
 	if (locoptions.expect == ExpectReach::Reachable)
@@ -129,16 +129,14 @@ namespace {
     std::string getDescritpion () const override {return "Check whether it is possible to reach an assert violation. ";}
     
   private:
-    MiniMC::CPA::AnalysisBuilder
-    makeCPABuilder (const SetupOptions& sopt) {
-      MiniMC::CPA::AnalysisBuilder cpa;
+    MiniMC::CPA::TCPA_ptr makeCPA (const SetupOptions& sopt) {
       
       if (locoptions.symbolic)
-	cpa.add<MiniMC::CPA::CPAType::Pathformula>(sopt.smt.selsmt);
+	//cpa.add<MiniMC::CPA::CPAType::Pathformula>(sopt.smt.selsmt);
+	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Pathformula> (sopt.smt.selsmt);
+      else
+	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
       
-	else
-	  cpa.add<MiniMC::CPA::CPAType::Concrete>();
-      return cpa;
     }
     LocalOptions locoptions;
     

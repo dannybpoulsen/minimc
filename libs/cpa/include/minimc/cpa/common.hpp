@@ -335,10 +335,8 @@ namespace MiniMC {
 			    _scontext->addSymbol (b.symbol,ptr);
 			    regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
 			  },
-			    [](const auto&, const auto&, const auto&) {
-			      throw MiniMC::Support::Exception ("Error");
-			    }
-			    },
+			    MiniMC::Support::Error<void>{}
+			},
 			ptr,size,eval.Eval(*b.heap_register)
 			);
 	  
@@ -498,6 +496,10 @@ namespace MiniMC {
 	auto ssolver = std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (std::move(solver));
 	ssolver->addConstraint (getPathform());
 	return std::move(ssolver);
+      }
+
+      auto constraint_solver() const {
+	return valuedefinition.solver();
       }
 
       ValDef::Val::Bool getPathform () const { return mixin.getPathform();}

@@ -13,10 +13,10 @@ namespace MiniMC {
 	Keep,
 	Discard
       };
-      using GoalFunction = std::function<bool(const MiniMC::CPA::AnalysisState&)>;
-      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::AnalysisState&)>;
+      using GoalFunction = std::function<bool(const MiniMC::CPA::State&)>;
+      using FilterFunction = std::function<StateStatus(const MiniMC::CPA::State&)>;
       
-      StateStatus DefaultFilter (const MiniMC::CPA::AnalysisState&);; 
+      StateStatus DefaultFilter (const MiniMC::CPA::State&);; 
       
       enum class Verdict {
 	Found,
@@ -39,7 +39,7 @@ namespace MiniMC {
 
       class Result {
       public:
-	Result (MiniMC::CPA::AnalysisState&& state,
+	Result (MiniMC::CPA::State_ptr&& state,
 		std::size_t exploredStates) : _verdict(Verdict::Found),
 					      _state(std::move(state)),
 					      _exploredStates(exploredStates) {}
@@ -55,7 +55,7 @@ namespace MiniMC {
       private:
 	
 	Verdict _verdict;
-	MiniMC::CPA::AnalysisState _state;
+	MiniMC::CPA::State_ptr _state;
 	std::size_t _exploredStates;
       };
       
@@ -63,9 +63,9 @@ namespace MiniMC {
       
       class Reachability {
       public:
-	Reachability (MiniMC::CPA::AnalysisTransfer transfer, MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
+	Reachability (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Messager mess = MiniMC::Support::Messager{});
 	~Reachability ();
-	[[nodiscard]] Result search (const MiniMC::CPA::AnalysisState&,
+	[[nodiscard]] Result search (const MiniMC::CPA::State&,
 				     GoalFunction,
 				     FilterFunction = DefaultFilter
 				     );

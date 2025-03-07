@@ -549,6 +549,11 @@ namespace MiniMC {
 	  MiniMC::Support::Localiser function_is_var_args("Call to var_args_functions '%1%'. Skipping parameter compatibility.");
 	  auto& content = tinst.getOps ();
 	  auto fun = content.function;
+	  if (!fun->isConstant ()) {
+	       messager << MiniMC::Support::TWarning<std::string> {"Cannot determine target of function call....no way to type check call"};
+	       return true;
+	  					      
+	  }	  
 	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
 						
 						MiniMC::Model::Overload{
@@ -571,11 +576,11 @@ namespace MiniMC {
 						      }
 						    },
 						    [this](const MiniMC::Model::SymbolicConstant& sc) -> Function_ptr {
-						      return prgm->getFunction (sc.getValue ());
+						    					      return prgm->getFunction (sc.getValue ());
 						    },
 						    [&fun,&inst,this](const auto&) -> Function_ptr {
-						      messager << MustBeConstant {inst,fun};
-						      return nullptr;
+						    	messager << MiniMC::Support::TError<std::string> {"Cannot determine target of function call....no way to type check call"};		    
+							return nullptr;
 						    }
 						    },
 						*fun
@@ -583,7 +588,7 @@ namespace MiniMC {
 	    
 	  
 	  if (!func) {
-	    return false;
+	    return  false;				     				   
 	  }
 	  
 	  MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");

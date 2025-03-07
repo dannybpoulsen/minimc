@@ -64,6 +64,11 @@ namespace MiniMC {
         return (builder.buildTerm(SMTLib::Ops::BVNot, {bv.getTerm()}));
       }
 
+      Value::Bool Operations::PtrEq (const PointerValue& l, const PointerValue& r) const {
+	//throw MiniMC::Support::Exception ("Not Implemented");
+	return builder.buildTerm(SMTLib::Ops::Equal,{l.getTerm(),r.getTerm()});
+      }
+      
       template Value::I8 Operations::Not(const Value::I8& l) const; \
       template I16Value Operations::Not(const I16Value& l) const; \
       template I32Value Operations::Not(const I32Value& l) const; \

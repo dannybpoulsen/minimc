@@ -93,7 +93,7 @@ namespace MiniMC {
       ValueLookupable<State,V> && requires (State& s,typename V::Bool&& v) {
       {s.getPathform()}->std::convertible_to<typename V::Bool>;
       {s.setPathform(std::move(v))};
-      
+      {s.constraint_solver ()} -> ConstraintSolver<V>;
     };
     
     template<class T,class R>
@@ -547,7 +547,7 @@ OPSI
       }
       
       std::generator<Value> MEval (const MiniMC::Model::Value& v)  const {
-	return MiniMC::Model::visitValue<std::generator<Value>>(*this,v);
+	co_yield std::ranges::elements_of(MiniMC::Model::visitValue<std::generator<Value>>(*this,v));
       }
 
       
@@ -794,6 +794,8 @@ OPSI
 		    MiniMC::Support::Overload {
 		      [this](const MiniMC::Model::Register_wptr& r)->Value {return regstore.lookupRegister (*r.lock());},
 		      [this,&s](const MiniMC::Model::HeapBlock_wptr&)->Value {return regstore.lookupSymbol (s.getValue());},
+		      [this,&s](const MiniMC::Model::Function_wptr& f)->Value {return ops.create((f.lock()->function_ptr()));},
+			
 		      MiniMC::Support::Error<Value>{}	 
 		    },
 		    

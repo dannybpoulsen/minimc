@@ -112,9 +112,7 @@ namespace MiniMC {
 	template<class T>
 	Value::Bool NEq (const T&, const T&) const;
 
-	Value::Bool PtrEq(const PointerValue&, const PointerValue&) const {
-	    throw MiniMC::Support::Exception ("Not Implemented");
-	}
+	Value::Bool PtrEq(const PointerValue& l, const PointerValue& r) const;
 
 	Value::Bool  BoolNegate(const Value::Bool&) const;
 	

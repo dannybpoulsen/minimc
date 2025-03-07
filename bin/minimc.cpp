@@ -27,9 +27,6 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
   if (options.unrollLoops) {
     manager.add<UnrollLoops> (options.unrollLoops);
   }
-  if (options.expand_nondet) {
-    manager.add<NonDetExpander> (mess);
-  }
   if (options.inlineFunctions) {
     manager.add<InlineFunctions> (options.inlineFunctions);
   }
@@ -66,7 +63,7 @@ int main(int argc, char* argv[]) {
 	  auto res = options.command->runCommand(std::move(prgm2),messager,options);
 	  return static_cast<int>(res);
 	}
-      
+	
 	else {
 	  messager << MiniMC::Support::TError<std::string> {"No subcommand selected"};
 	  return static_cast<int>(MiniMC::Host::ExitCodes::ConfigurationError);

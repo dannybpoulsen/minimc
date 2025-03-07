@@ -22,7 +22,7 @@ auto loadProgram (auto& loader, const std::string& s) {
   
 }
 
-auto goal (const MiniMC::CPA::AnalysisState& state) {
+auto goal (const MiniMC::CPA::State& state) {
   auto& locationstate = state.getLocationState ();
   auto procs = locationstate.nbOfProcesses ();
   
@@ -49,14 +49,14 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
-  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+  auto  cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
+  auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
-  auto res = reachabilityChecker.search (initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {cpa->makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (*initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::NotFound);
@@ -70,14 +70,14 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
-  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+  auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
+  auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
-  auto res = reachabilityChecker.search (initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {cpa->makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (*initialState,goal);
 
   //Assert 
   CHECK (res.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found);
@@ -92,14 +92,14 @@ TEST_CASE("Pointer") {
 
 
   MiniMC::CPA::AnalysisBuilder analysis_builder;
-  analysis_builder.add<MiniMC::CPA::CPAType::Concrete> ();
-  auto initialState = analysis_builder.makeInitialState({prgm.getEntryPoints (),
+  auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
+  auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
       prgm});
 
   //ACT 
-  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {analysis_builder.makeTransfer (prgm),mess};
-  auto res = reachabilityChecker.search (initialState,goal);
+  MiniMC::Algorithms::Reachability::Reachability reachabilityChecker {cpa->makeTransfer (prgm),mess};
+  auto res = reachabilityChecker.search (*initialState,goal);
 
   //Assert 
   CHECK (res.verdict() == MiniMC::Algorithms::Reachability::Verdict::Found);

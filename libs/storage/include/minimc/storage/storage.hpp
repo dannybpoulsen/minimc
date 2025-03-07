@@ -10,18 +10,20 @@
 
 namespace MiniMC {
   namespace Storage {
+    template<class State>
     class Store  {
     public:
       virtual ~Store () {}
-      virtual bool insert (const MiniMC::CPA::AnalysisState& s) = 0;
+      virtual bool insert (const State& s) = 0;
       virtual std::size_t size () const =  0;
       
     };
-    
-    class HashStorage : public Store {
+
+    template<class State>
+    class HashStorage : public Store<State> {
     public:
-      bool insert (const MiniMC::CPA::AnalysisState& s)  override{
-	auto hash = std::hash<MiniMC::CPA::AnalysisState>{}(s);
+      bool insert (const State& s)  override{
+	auto hash = std::hash<State>{}(s);
 	if (stored.find (hash)==stored.end ()) {
 	  
 	  stored.insert (hash);
@@ -35,6 +37,8 @@ namespace MiniMC {
     private:
       std::unordered_set<MiniMC::Hash::hash_t> stored;
     };
+
+
     
   }
 }

@@ -96,6 +96,15 @@ namespace MiniMC {
       
     };
     
+    class CPAStateOutputter {
+    public:
+      CPAStateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
+      std::ostream& output (const State&, std::ostream& os);
+    private:
+      const MiniMC::Model::Program& prgm;
+      
+    };
+    
     std::ostream& operator<<(std::ostream& os, const AnalysisState& state);
     
     

@@ -107,17 +107,44 @@ namespace MiniMC {
         if constexpr (op == MiniMC::Model::VMInstructionCode::Assign ) {
 	  auto& content = instr.getOps();
 	  auto& res = content.res->asRegister ();
-          auto op1 = eval.Eval(*content.op1);
-          state->makeEvaluationContext(id).saveValue(res, std::move(op1));
-          co_yield state;;
+	  for (auto op1 : eval.MEval (*content.op1)) {
+	    auto nstate = state->lcopy();
+	    nstate->makeEvaluationContext(id).saveValue(res, std::move(op1));
+	    co_yield nstate;;
+	  }
+  
         }
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Call) {
 	  auto& content = instr.getOps();
 	  auto& scontrol = state->getStackControl(id);
-          assert(content.function->isConstant());
-	  
-          auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+	  MiniMC::Model::Value_ptr function;
+          if (content.function->isConstant()) {
+	    function = content.function;
+	  }
+	  else {
+	    auto solver = state->constraint_solver();
+	    solver.push ();
+	    solver.addConstraint (state->getPathform ());
+	    
+	    if (solver.check () == MiniMC::VMT::Feasibility::Feasible) {
+	      auto ff = eval.Eval(*content.function);
+	      function = solver.eval (ff);
+	      T::visit (MiniMC::Support::Overload {
+		  [this,&state](T::Pointer l,T::Pointer r) { 
+		    addAssumption (*state,operations.PtrEq (l,r));
+		  },
+		    [this,&state](T::Pointer32 l,T::Pointer32 r) { 
+		      addAssumption (*state,operations.PtrEq (operations.Ptr32ToPtr(l),operations.Ptr32ToPtr(r)));
+		    },
+		    MiniMC::Support::Error<void>{}
+		    
+		    },ff,eval.Eval(*function)
+		);
+	      solver.pop ();
+	    }
+	  }
+	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
 									     MiniMC::Support::Overload{
 									       [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
 										 auto loadPtr = t.getValue();
@@ -135,15 +162,15 @@ namespace MiniMC {
 										 },
 										 MiniMC::Support::Error<MiniMC::Model::Function_ptr> {}
 									     },
-									     *content.function
+									     *function
 									     );
-
+	  
 	  std::vector<T> params;
 	  if (func->isVarArgs()) {
 	    throw MiniMC::Support::Exception("Vararg functions are not supported");
 	  }
 	  
-	    
+	  
 	  auto inserter = std::back_inserter(params);
 	  std::for_each(content.params.begin(), content.params.end(), [&inserter, &state,&eval](auto& v) { inserter = eval.Eval(*v); });
 	  
@@ -156,21 +183,26 @@ namespace MiniMC {
 	    state->makeEvaluationContext(id).saveValue(*p, std::move(*it));
 	    ++it;
 	  }
-
-	
+	  
+	  
 	  co_yield state;
 	}
+	
+      
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Ret) {
 	  auto& content = instr.getOps();
-	  auto ret = eval.Eval(*content.value);
-	  auto ret_reg = state->getStackControl(id).pop();
-	  if (ret_reg) {
-	    state->makeEvaluationContext(id).saveValue (ret_reg->asRegister (),std::move(ret));
+	  for (auto ret : eval.MEval(*content.value)) {
+	    auto nstate = state->lcopy();
+	    auto ret_reg = nstate->getStackControl(id).pop();
+	    if (ret_reg) {
+	      nstate->makeEvaluationContext(id).saveValue (ret_reg->asRegister (),std::move(ret));
+	      
+	    }
+	    co_yield nstate;
 	  }
-	  co_yield state;
 	}
-
+	
         else if constexpr (op == MiniMC::Model::VMInstructionCode::RetVoid) {
 	  state->getStackControl(id).pop();
 	  co_yield state;
@@ -183,9 +215,11 @@ namespace MiniMC {
         else if constexpr (op == MiniMC::Model::VMInstructionCode::NonDet) {
 	  auto& content = instr.getOps();
           auto& res = content.res->asRegister ();
-	  auto ret = eval.Eval(*MiniMC::Model::Undef::make(res.getType()));
-          state->makeEvaluationContext(id).saveValue(res, std::move(ret));
-          co_yield state;
+	  for (auto ret : eval.MEval(*MiniMC::Model::Undef::make(res.getType()))) {
+	    auto nstate = state->lcopy ();
+	    nstate->makeEvaluationContext(id).saveValue(res, std::move(ret));
+	    co_yield nstate;
+	  }
         }
 
         else {
@@ -214,62 +248,65 @@ namespace MiniMC {
 	  *content.offset);
 	
         if constexpr (op == MiniMC::Model::VMInstructionCode::InsertValue) {
-          auto val_v = content.insertee;
-
-          auto aggr = eval.Eval(*content.aggregate);
-          auto value = eval.Eval(*content.insertee);
-
-	  T::visit (MiniMC::Support::Overload {
-	      [this,&eval,&state,&res,&offset,id](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
-		state->makeEvaluationContext(id).saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
-	      },
-		[this,&eval,&state,&res,&offset,id]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
-		state->makeEvaluationContext(id).saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
-	      },
-	      MiniMC::Support::Error<void> {}
+          for (auto aggr : eval.MEval (*content.aggregate)) {
+	    for (auto value : eval.MEval (*content.insertee)) {
+	      auto nstate = state->lcopy();
+	      T::visit (MiniMC::Support::Overload {
+		  [this,&eval,&nstate,&res,&offset,id](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
+		    nstate->makeEvaluationContext(id).saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
+		      },
+		    [this,&eval,&nstate,&res,&offset,id]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
+		    nstate->makeEvaluationContext(id).saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
+		  },
+		    MiniMC::Support::Error<void> {}
+		}
+		,
+		aggr,
+		value);
+	      co_yield nstate;
 	    }
- 	    ,
-	    aggr,
-	    value);
-	  co_yield state;
+	  }
         }
-
+	
         else if constexpr (op == MiniMC::Model::VMInstructionCode::ExtractValue) {
-	  typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
-	      [](const typename T::Aggregate& aggr) {return aggr;},
-	      MiniMC::Support::Error<typename T::Aggregate> {}	
-		},
-	    eval.Eval(*content.aggregate)
-	    );
-	  
-          switch (res.getType()->getTypeID()) {
-            case MiniMC::Model::TypeID::I8:
-              state->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));
-              break;
-            case MiniMC::Model::TypeID::I16:
-              state->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I16>(aggr, offset));
-              break;
-            case MiniMC::Model::TypeID::I32:
-              state->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I32>(aggr, offset));
-              break;
-            case MiniMC::Model::TypeID::I64:
-              state->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I64>(aggr, offset));
-              break;
-
-            case MiniMC::Model::TypeID::Pointer:
-              state->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
-              break;
-            case MiniMC::Model::TypeID::Aggregate:
-              state->makeEvaluationContext(id).saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
-              break;
-            default:
-              throw MiniMC::Support::Exception("Invalid Extract");
-          }
-	  co_yield state;
-        }
+	  for (auto aggregate : eval.MEval (*content.aggregate)) {
+	    typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
+		[](const typename T::Aggregate& aggr) {return aggr;},
+		  MiniMC::Support::Error<typename T::Aggregate> {}	
+	      },
+	      aggregate
+	      );
+	    auto nstate = state->lcopy ();
+	    switch (res.getType()->getTypeID()) {
+	    case MiniMC::Model::TypeID::I8:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));
+	      break;
+	    case MiniMC::Model::TypeID::I16:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I16>(aggr, offset));
+	      break;
+	    case MiniMC::Model::TypeID::I32:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I32>(aggr, offset));
+	      break;
+	    case MiniMC::Model::TypeID::I64:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I64>(aggr, offset));
+	      break;
+	      
+	    case MiniMC::Model::TypeID::Pointer:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
+	      break;
+	    case MiniMC::Model::TypeID::Aggregate:
+	      nstate->makeEvaluationContext(id).saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
+	      break;
+	    default:
+	      throw MiniMC::Support::Exception("Invalid Extract");
+	    }
+	    co_yield nstate;
+	  }
+	}
 	else
           throw NotImplemented<op>();
-      
+	
+	
       }
       
       };
