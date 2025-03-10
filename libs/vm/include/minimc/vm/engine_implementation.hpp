@@ -10,7 +10,7 @@
 #include "minimc/support/overload.hpp"
 
 #include <iostream>
-
+#include <ranges>
 namespace MiniMC {
   namespace VMT {
 
@@ -134,10 +134,10 @@ namespace MiniMC {
 		  [this,&state](T::Pointer l,T::Pointer r) { 
 		    addAssumption (*state,operations.PtrEq (l,r));
 		  },
-		    [this,&state](T::Pointer32 l,T::Pointer32 r) { 
-		      addAssumption (*state,operations.PtrEq (operations.Ptr32ToPtr(l),operations.Ptr32ToPtr(r)));
-		    },
-		    MiniMC::Support::Error<void>{}
+		  [this,&state](T::Pointer32 l,T::Pointer32 r) { 
+		    addAssumption (*state,operations.PtrEq (operations.Ptr32ToPtr(l),operations.Ptr32ToPtr(r)));
+		  },
+		  MiniMC::Support::Error<void>{}
 		    
 		    },ff,eval.Eval(*function)
 		);
@@ -155,7 +155,7 @@ namespace MiniMC {
 										   auto loadPtr = t.getValue();
 										   auto func = prgm.getFunction(loadPtr.base);
 										   return func;
-										 },
+										   										 },
 										 [this,&eval](const MiniMC::Model::SymbolicConstant& t) -> MiniMC::Model::Function_ptr {
 										   auto symb = t.getValue();
 										   return std::get<MiniMC::Model::Function_wptr>(symb.getUserData()).lock();
@@ -165,23 +165,41 @@ namespace MiniMC {
 									     *function
 									     );
 	  
-	  std::vector<T> params;
 	  if (func->isVarArgs()) {
 	    throw MiniMC::Support::Exception("Vararg functions are not supported");
 	  }
+
 	  
-	  
+	  std::vector<T> params;
 	  auto inserter = std::back_inserter(params);
-	  std::for_each(content.params.begin(), content.params.end(), [&inserter, &state,&eval](auto& v) { inserter = eval.Eval(*v); });
+	  if (content.params.size() != func->getParameters().size()) {
+	    throw MiniMC::Support::Exception ("Inconsistent number of parameters between call and function definition"); 
+	  }
+	  for (auto [formal,actual] : std::ranges::views::zip (func->getParameters(),content.params)) {
+	    if (*actual->getType () != *formal->getType()) {
+	      throw MiniMC::Support::Exception ("Inconsistent types at call site");
+	    }
+	    inserter = eval.Eval (*actual);
+	  }
 	  
 	  
 	  auto res = content.res;
 	  scontrol.push(func->getCFA().getInitialLocation(),  res);
+
+	  for (auto& r : func->getRegisterDescr().getRegisters()) {
+	    state->makeEvaluationContext(id).saveValue(r, operations.defaultValue(*r.getType()));
+	    
+	  }
+
+	 
 	  
-	  auto it = params.begin();
+	  /*auto it = params.begin();
 	  for (auto& p : func->getParameters()) {
 	    state->makeEvaluationContext(id).saveValue(*p, std::move(*it));
 	    ++it;
+	    }*/
+	  for (auto [formal,actual] : std::ranges::views::zip (func->getParameters(),params)) {
+	    state->makeEvaluationContext(id).saveValue(*formal, std::move(actual));
 	  }
 	  
 	  

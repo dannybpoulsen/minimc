@@ -222,6 +222,7 @@ namespace MiniMC {
 
       template<class T>
       T TValue<T>::interpretValue (const SMTLib::Solver& solver) const {
+	
 	if constexpr (MiniMC::Model::is_pointer_v<T>) {
 	  T pointer;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
@@ -260,7 +261,7 @@ namespace MiniMC {
 	  MiniMC::Support::SMT::extractBytes(ires.begin(), ires.end(), reinterpret_cast<MiniMC::BV8*>(&res));
 	  return res;
 	}
-
+	
 	if constexpr (std::is_same_v<T, bool>)
 	  {
 	    auto bres = std::get<bool>(solver.getModelValue(term));
@@ -297,7 +298,7 @@ namespace MiniMC {
 	  return MiniMC::VMT::Feasibility::Unknown;
 	}
       }
-
+      
       MiniMC::Model::Constant_ptr ConstraintSolver::eval (const Value& v) const {
 	return MiniMC::VMT::Pathformula::Value::visit (MiniMC::Support::Overload {
 	      [this](MiniMC::VMT::Pathformula::Value::I8& val) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make (val.interpretValue (smtsolver));},
