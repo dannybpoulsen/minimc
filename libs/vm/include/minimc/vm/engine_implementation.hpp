@@ -191,13 +191,6 @@ namespace MiniMC {
 	    
 	  }
 
-	 
-	  
-	  /*auto it = params.begin();
-	  for (auto& p : func->getParameters()) {
-	    state->makeEvaluationContext(id).saveValue(*p, std::move(*it));
-	    ++it;
-	    }*/
 	  for (auto [formal,actual] : std::ranges::views::zip (func->getParameters(),params)) {
 	    state->makeEvaluationContext(id).saveValue(*formal, std::move(actual));
 	  }
@@ -206,8 +199,6 @@ namespace MiniMC {
 	  co_yield state;
 	}
 	
-      
-
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Ret) {
 	  auto& content = instr.getOps();
 	  for (auto ret : eval.MEval(*content.value)) {
