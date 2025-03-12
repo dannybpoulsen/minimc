@@ -36,11 +36,20 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
   return manager (std::move(prgm));
 }
 
+MiniMC::Support::Messager setupMessager () {
+  MiniMC::Support::MessagePipelineBuilder builder;
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Error>> (std::cerr);
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Warning>> (std::cerr);
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Info>> (std::cout);
+  MiniMC::Support::MessageSink::setDefaultSink (builder.build());
+  return MiniMC::Support::Messager{};
+}
+
 int main(int argc, char* argv[]) {
   
   std::string input;
   std::string subcommand;
-  MiniMC::Support::Messager messager;
+  MiniMC::Support::Messager messager = setupMessager();;
   try {
     
     SetupOptions options;

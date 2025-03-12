@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <iostream>
+
 namespace MiniMC {
   namespace Linux {
     class ColorModifier {
@@ -32,11 +33,13 @@ namespace MiniMC {
     };
 	
     
+    inline std::ostream& operator<< (std::ostream& os, const MiniMC::Linux::ColorModifier& c) {
+      return c.apply(os);
+    }
+    
     
   }
 }
 
-inline std::ostream& operator<< (std::ostream& os, const MiniMC::Linux::ColorModifier& c) {
-  return c.apply(os);
-}
+
     
