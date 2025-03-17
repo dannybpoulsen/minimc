@@ -22,7 +22,7 @@ namespace MiniMC {
       class UsedWithoutDefinition : public StructureError{
       public:
 	UsedWithoutDefinition (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr l1,MiniMC::Model::Edge_ptr edge) : StructureError (std::move(instr)),l1(l1),edge(edge) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*l1,*edge);
 	}
 	

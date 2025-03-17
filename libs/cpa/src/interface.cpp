@@ -2,13 +2,12 @@
 #include "minimc/hash/hashing.hpp"
 #include "minimc/model/cfg.hpp"
 #include "minimc/support/overload.hpp"
-#include <ostream>
 
 namespace MiniMC {
   namespace CPA {
     
 
-    std::ostream& operator<<(std::ostream& os, const AnalysisState& state) {
+    MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
@@ -28,7 +27,7 @@ namespace MiniMC {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
 	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
 	  }
-	  os << std::endl;
+	  os << "\n";
 	}
       };
       
@@ -39,10 +38,10 @@ namespace MiniMC {
       }
       
       
-      return os << std::endl;;
+      return os << "\n";;
     }
     
-    std::ostream& StateOutputter::output (const AnalysisState& state, std::ostream& os) {
+    MiniMC::IO::ostream& StateOutputter::output (const AnalysisState& state, MiniMC::IO::ostream& os) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
@@ -53,17 +52,7 @@ namespace MiniMC {
       }
       os << "]\n";
 
-      /* auto printVStack = [&os,&state](auto& vstack,auto p ) {
-	 for (auto& reg : vstack.getRegisters ()) {
-	  os << reg.getSymbol().getFullName () << ":\t";
-	  
-	  for (const auto& datastate : state.dataStates ()) {
-	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
-	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
-	  }
-	  os << std::endl;
-	}
-	};*/
+     
       
       auto print = [&os,&state](auto& evals, auto index ) {
 	
@@ -73,7 +62,7 @@ namespace MiniMC {
 	  auto concretizer = datastate.getConcretizer ();
 	  for (auto& eval: evals) {
 	    auto symbval = builder.buildValue (index,*eval.value);
-	    os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << std::endl;
+	    os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << "\n";
 	    
 	  }
 	  os <<"}\n";
@@ -109,7 +98,7 @@ namespace MiniMC {
       }
       
       
-      return os << std::endl;;
+      return os << "\n";;
     }
 
     
@@ -147,14 +136,14 @@ namespace MiniMC {
       return true;
     }
 
-    std::ostream& CPAStateOutputter::output (const State& state, std::ostream& os) {
+    MiniMC::IO::ostream& CPAStateOutputter::output (const State& state, MiniMC::IO::ostream& os) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
         if(i != 0){
           os << ",";
         }
-	os <<  state.getLocationState ().getLocation (i).getSymbol().getName ();
+	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName ();
       }
       os << "]\n";
       
@@ -167,7 +156,7 @@ namespace MiniMC {
 	auto concretizer = state.getConcretizer ();
 	for (auto& eval: evals) {
 	  auto symbval = builder.buildValue (index,*eval.value);
-	  os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << std::endl;
+	  os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << "\n";
 	  
 	}
 	os <<"}\n";
@@ -203,7 +192,7 @@ namespace MiniMC {
       }
       
       
-      return os << std::endl;;
+      return os << "\n";;
     }
     
     

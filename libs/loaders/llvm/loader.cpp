@@ -54,7 +54,7 @@ namespace MiniMC {
     class FunctionNotDefined : public MiniMC::Support::WarningMessage {
     public:
       FunctionNotDefined (const std::string& funcname) : funcname(funcname) {}
-      std::ostream& to_string (std::ostream& os) const override {
+      MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const override {
 	return os << loc.format (funcname);
       }
       

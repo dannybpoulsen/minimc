@@ -13,6 +13,7 @@
 #include <vector>
 #include <variant>
 #include <expected>
+
 #include <initializer_list>
 
 namespace MiniMC {

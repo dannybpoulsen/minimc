@@ -16,7 +16,7 @@ namespace MiniMC {
                         cfg.getEdges().end(),
 		      [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
 	auto info = MiniMC::Model::LocationInfo{{MiniMC::Model::Attributes::AssertViolated},F->getRegisterDescr(),F->getFrame()};
-	auto eloc = cfg.makeLocation(frame.makeFresh (),info);
+	auto eloc = cfg.makeLocation(frame.makeFresh ("Assert"),info);
 	eloc->getInfo().getFlags () |= MiniMC::Model::Attributes::AssertViolated;
 	
 	for (auto E : wlist) {
