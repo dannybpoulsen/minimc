@@ -6,7 +6,7 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/localisation.hpp"
-
+#include "minimc/io/ostream.hpp"
 #include <iostream>
 
 namespace MiniMC {
@@ -38,7 +38,7 @@ namespace MiniMC {
 	
 	}
 	
-	virtual std::ostream& to_string (std::ostream& os) const {
+	MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const override {
 	  return os << message;
 	}
 	
@@ -54,7 +54,7 @@ namespace MiniMC {
 	
 	}
 	
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << message;
 	}
 	
@@ -70,7 +70,7 @@ namespace MiniMC {
 	
 	}
 	
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << message;
 	}
 	
@@ -86,7 +86,7 @@ namespace MiniMC {
 	
 	}
 	
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << message;
 	}
 	
@@ -100,7 +100,7 @@ namespace MiniMC {
       class MustBeSameType : public InstrTypeError{
       public:
 	MustBeSameType (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr l1, MiniMC::Model::Value_ptr l2 ) : InstrTypeError (std::move(instr)),l1(l1),l2(l2) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*l1,*l2);
 	}
 	
@@ -113,7 +113,7 @@ namespace MiniMC {
       class MustBeGivenTypeID : public InstrTypeError{
       public:
 	MustBeGivenTypeID (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr l1, MiniMC::Model::TypeID type ) : InstrTypeError (std::move(instr)),l1(l1),type(type) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*l1,type);
 	}
 	
@@ -126,7 +126,7 @@ namespace MiniMC {
       class MustBeGivenType : public InstrTypeError{
       public:
 	MustBeGivenType (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr l1, MiniMC::Model::Type_ptr type ) : InstrTypeError (std::move(instr)),l1(l1),type(type) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*l1,*type);
 	}
 	
@@ -139,7 +139,7 @@ namespace MiniMC {
       class MustBeInteger : public InstrTypeError{
       public:
 	MustBeInteger (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr l1 ) : InstrTypeError (std::move(instr)),l1(l1) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*l1);
 	}
 	
@@ -151,7 +151,7 @@ namespace MiniMC {
       class MustBeLarger : public InstrTypeError{
       public:
 	MustBeLarger (MiniMC::Model::Instruction instr, MiniMC::Model::Type_ptr t1,MiniMC::Model::Type_ptr t2 ) : InstrTypeError (std::move(instr)),t1(t1),t2(t2) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*t1,*t2);
 	}
 	
@@ -165,7 +165,7 @@ namespace MiniMC {
       class MustBeConstant : public InstrTypeError {
       public:
 	MustBeConstant (MiniMC::Model::Instruction instr, MiniMC::Model::Value_ptr t1 ) : InstrTypeError (std::move(instr)),val(t1) {}
-	virtual std::ostream& to_string (std::ostream& os) const {
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	  return os << loc.format (getInstr (),*val);
 	}
       private:
