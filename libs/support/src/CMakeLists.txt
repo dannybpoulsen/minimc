@@ -13,7 +13,7 @@ configure_file (
 )
 
 target_include_directories (support PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>  )
-target_link_libraries (support PUBLIC host )
+target_link_libraries (support PUBLIC host io)
 
 target_sources(support
     PUBLIC FILE_SET HEADERS 

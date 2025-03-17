@@ -16,7 +16,7 @@ namespace MiniMC {
   namespace Algorithms {
     namespace Reachability {
 
-      inline std::ostream& operator<< (std::ostream& os, const Progress& p) {
+      inline MiniMC::IO::ostream& operator<< (MiniMC::IO::ostream& os, const Progress& p) {
 	return os << MiniMC::Support::Localiser {"Waiting / Passed : %1% / %2%"}.format(p.waiting,p.passed);
       }
       

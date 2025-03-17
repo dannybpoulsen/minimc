@@ -18,9 +18,9 @@
 #include "minimc/support/localisation.hpp"
 #include "minimc/model/array.hpp"
 #include "minimc/cpa/query.hpp"
-#include <iosfwd>
 #include <memory>
 #include <ranges>
+#include "minimc/io/ostream.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -90,7 +90,7 @@ namespace MiniMC {
     class StateOutputter {
     public:
       StateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
-      std::ostream& output (const AnalysisState&, std::ostream& os);
+      MiniMC::IO::ostream& output (const AnalysisState&, MiniMC::IO::ostream& os);
     private:
       const MiniMC::Model::Program& prgm;
       
@@ -99,13 +99,13 @@ namespace MiniMC {
     class CPAStateOutputter {
     public:
       CPAStateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
-      std::ostream& output (const State&, std::ostream& os);
+      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os);
     private:
       const MiniMC::Model::Program& prgm;
       
     };
     
-    std::ostream& operator<<(std::ostream& os, const AnalysisState& state);
+    MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state);
     
     
     

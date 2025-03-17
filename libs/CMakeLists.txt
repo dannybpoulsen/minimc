@@ -1,6 +1,7 @@
 add_compile_options(-Wall -Wextra -fconcepts-diagnostics-depth=3)
 
 
+add_subdirectory (io)
 add_subdirectory (host)
 add_subdirectory (model)
 add_subdirectory (loaders)
@@ -16,6 +17,7 @@ add_subdirectory (smt)
 
 
 add_library (minimclib INTERFACE)
+target_link_libraries (minimclib INTERFACE io)
 target_link_libraries (minimclib INTERFACE model)
 target_link_libraries (minimclib INTERFACE loader)
 target_link_libraries (minimclib INTERFACE support)

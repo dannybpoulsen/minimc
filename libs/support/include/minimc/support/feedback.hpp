@@ -8,7 +8,9 @@
 
 #include <future>
 #include <list>
-#include <iosfwd>
+#include <optional>
+#include "minimc/io/ostream.hpp"
+
 
 using namespace std::chrono_literals;
 using namespace std::chrono_literals;
@@ -30,18 +32,19 @@ namespace MiniMC {
     public:
       Message ()  {} 
       virtual ~Message () {}
-      virtual std::ostream& to_string (std::ostream& ) const = 0;
+      virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& ) const = 0;
+      
       virtual Severity getType () const = 0;
     };
 
     template<class M>
-    concept HasToString = requires (const M& m, std::ostream& os) {
+    concept HasToString = requires (const M& m, MiniMC::IO::ostream& os) {
       {m.to_string (os)};
     };
     
     
     template<HasToString M>
-    inline std::ostream& operator<< (std::ostream& os, const M& m) {
+    inline MiniMC::IO::ostream& operator<< (MiniMC::IO::ostream& os, const M& m) {
       return m.to_string(os); 
     }
     
@@ -60,7 +63,7 @@ namespace MiniMC {
     using ProgressMessage = MessageT<Severity::Progress>;
     
     template<class M>
-    concept Outputtable = requires (const M& m, std::ostream& os) {
+    concept Outputtable = requires (const M& m, MiniMC::IO::ostream& os) {
       {os << m};
     };
     
@@ -68,7 +71,7 @@ namespace MiniMC {
     class TMessage : public MessageT<t> {
     public:
       TMessage (T m) : item(std::move(m)) {}
-      virtual std::ostream& to_string (std::ostream& os) const {
+      virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	return os << item;
       }
       
@@ -96,6 +99,7 @@ namespace MiniMC {
       virtual ~MessageSink() {}
       virtual void mess(const Message&) {}
       virtual void pumpProgress() {}
+      virtual MiniMC::IO::ostream& raw_stream (Severity) = 0;
       
       static std::shared_ptr<MessageSink> defaultSink ();
       static void setDefaultSink (std::shared_ptr<MessageSink>);
@@ -106,6 +110,7 @@ namespace MiniMC {
     public:
       virtual bool handle (const Message& ) = 0;
       virtual void pump () = 0;
+      virtual std::optional<MiniMC::IO::ostream*> raw_stream (Severity)  = 0;
     };
 
     class MessagePipeline : public MessageSink {
@@ -120,6 +125,19 @@ namespace MiniMC {
 
       void pumpProgress() override {
 	std::for_each (handlers.begin(),handlers.end(),[](auto& g) {g->pump();});
+      }
+
+      virtual MiniMC::IO::ostream& raw_stream (Severity sev) override {
+	for (auto& s : handlers) {
+	  {
+	    if (auto stream = s->raw_stream ( sev))
+	      return *stream.value();
+	    
+	  }
+	}
+
+	return MiniMC::IO::os_ostream::err();
+	
       }
       
       
@@ -147,16 +165,27 @@ namespace MiniMC {
     template<Severity sev>
     class StreamHandler : public MessageHandler {
     public:
-      StreamHandler (std::ostream& o) : stream(o) {}
-      void pump () override;
-      bool handle (const Message&) override;
+      StreamHandler (MiniMC::IO::ostream& o) : stream(o) {}
+      virtual void pump () override;
+      virtual bool handle (const Message&) override;
+      std::optional<MiniMC::IO::ostream*> raw_stream (Severity s) override {
+	if (sev == s)
+	  return {&stream};
+	return std::nullopt;
+      }
       
-      
-    private:
-      std::ostream& stream;
+    protected:
+      MiniMC::IO::ostream& stream;
     };
 
-
+    class ProgressStreamHandler : public StreamHandler<Severity::Progress> {
+    public:
+      ProgressStreamHandler (MiniMC::IO::ostream& o) : StreamHandler<Severity::Progress>(o) {}
+      bool handle (const Message&) override;
+      void pump () override;
+    private:
+      MiniMC::IO::str_ostream buffer;
+    };
     
     
     class Messager {
@@ -175,6 +204,9 @@ namespace MiniMC {
 	return (*this << TMessage<T,t> {std::forward<T>(inp)});
       }
 
+      MiniMC::IO::ostream& raw_stream (Severity sev) {
+	return sink->raw_stream(sev);
+      }
       
       void pumpProgress () {sink->pumpProgress();}
     private:

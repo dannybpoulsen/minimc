@@ -24,11 +24,12 @@ namespace MiniMC {
   namespace Model {
 
     enum class PointerSegments {
-    Stack = 'D',
-    Heap = 'H',
-    Location = 'L',
-    Function = 'F'
-  };
+      Stack = 'D',
+      Heap = 'H',
+      Location = 'L',
+      Function = 'F'
+    };
+    
   using seg_t = BV16;//decltype(pointer_t::segment);
   using base_t = BV16;//decltype(pointer_t::base);
   using func_t = base_t;

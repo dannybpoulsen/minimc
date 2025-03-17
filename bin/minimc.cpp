@@ -15,6 +15,7 @@
 
 
 #include "minimc/loaders/loader.hpp"
+#include "minimc/io/ostream.hpp"
 #include "options.hpp"
 
 namespace po = boost::program_options;
@@ -38,9 +39,10 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
 
 MiniMC::Support::Messager setupMessager () {
   MiniMC::Support::MessagePipelineBuilder builder;
-  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Error>> (std::cerr);
-  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Warning>> (std::cerr);
-  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Info>> (std::cout);
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Error>> (MiniMC::IO::os_ostream::err());
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Warning>> (MiniMC::IO::os_ostream::err());
+  builder.add<MiniMC::Support::StreamHandler<MiniMC::Support::Severity::Info>> (MiniMC::IO::os_ostream::out());
+  builder.add<MiniMC::Support::ProgressStreamHandler> (MiniMC::IO::os_ostream::out());
   MiniMC::Support::MessageSink::setDefaultSink (builder.build());
   return MiniMC::Support::Messager{};
 }
