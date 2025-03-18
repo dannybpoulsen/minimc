@@ -1,3 +1,6 @@
+#ifndef __RANDOM__
+#define __RANDOM__
+
 #include <random>
 
 namespace MiniMC {
@@ -20,3 +23,6 @@ namespace MiniMC {
     
   }
 }
+
+
+#endif

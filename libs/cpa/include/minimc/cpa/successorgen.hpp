@@ -54,6 +54,13 @@ namespace MiniMC {
 	  co_yield newstate;
       }
     }
+
+    template<class Ostream>
+    inline Ostream& operator<< (Ostream& str, const Transition& t) {
+      str << "@" << t.proc << " " << *t.edge;
+      return str;
+    }
+	    
     
         
   } // namespace Algorithms

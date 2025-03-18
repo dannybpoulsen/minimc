@@ -2,6 +2,7 @@ add_compile_options(-Wall -Wextra -fconcepts-diagnostics-depth=3)
 
 
 add_subdirectory (io)
+add_subdirectory (simulator)
 add_subdirectory (host)
 add_subdirectory (model)
 add_subdirectory (loaders)
@@ -29,6 +30,7 @@ target_link_libraries (minimclib INTERFACE util)
 target_link_libraries (minimclib INTERFACE host)
 target_link_libraries (minimclib INTERFACE smt)
 target_link_libraries (minimclib INTERFACE values)
+target_link_libraries (minimclib INTERFACE simulator)
 
 
 install (TARGETS host smt FILE_SET HEADERS)

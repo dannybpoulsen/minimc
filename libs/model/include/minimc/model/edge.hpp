@@ -3,11 +3,14 @@
 
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <utility>
 
 #include "minimc/model/variables.hpp"
 #include "minimc/model/location.hpp"
 #include "minimc/model/instructions.hpp"
+#include "minimc/io/ostream.hpp"
+
 
 namespace MiniMC {
   namespace Model {
@@ -48,6 +51,12 @@ namespace MiniMC {
       return os;
     }
 
+    inline MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const Edge& e) {
+      std::stringstream str;
+      str << e.getInstructions ();
+      return os << str.str();
+    }
+    
   } // namespace Model
 } // namespace MiniMC
 
