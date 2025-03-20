@@ -22,7 +22,8 @@ namespace MiniMC {
       auto& getState () const  {return *state;}
       bool hasState () const {return state != nullptr;} 
       std::generator<MiniMC::CPA::State_ptr> step (MiniMC::CPA::Transition) const;
-      std::generator<MiniMC::CPA::Transition> getTransitions () const; 
+      std::generator<MiniMC::CPA::Transition> getTransitions () const;
+      auto getTransfer () const {return transfer;}
     private:
       MiniMC::CPA::State_ptr state{nullptr};
       MiniMC::CPA::TCPA_ptr cpa;
@@ -32,7 +33,7 @@ namespace MiniMC {
 
     class Command {
     public:
-      virtual bool execute (Simulator* simu) = 0;
+      virtual bool execute (Simulator* simu) {return true;}
     };
 
     

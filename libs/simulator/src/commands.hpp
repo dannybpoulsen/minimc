@@ -4,6 +4,8 @@
 #include "minimc/simulator/simulator.hpp"
 #include "minimc/cpa/successorgen.hpp"
 #include "minimc/support/random.hpp"
+#include "minimc/support/feedback.hpp"
+#include "minimc/algorithms/reachability.hpp"
 
 #include <memory>
 
@@ -102,9 +104,48 @@ namespace MiniMC {
       MiniMC::IO::Prompter& prompter;
     };
 
+    class SearchCommand : public Command{
+    public:
+      SearchCommand (MiniMC::IO::ostream& os) : os(os) {}
+      bool execute (Simulator* simu) override {
+	if (simu->hasState ()) {
+	  MiniMC::Support::Messager messager;
+	  auto transfer = simu->getTransfer ();
+	  auto state = simu->getState().copy();
+
+	  MiniMC::Algorithms::Reachability::Reachability reach{transfer,messager};
+
+	  auto goal = [](const MiniMC::CPA::State& state) {
+	    auto& locationstate = state.getLocationState ();
+	    auto procs = locationstate.nbOfProcesses ();
+	    
+	    for (std::size_t i = 0; i < procs; ++i) {
+	      if (locationstate.isActive (i) && locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
+		return true;
+	    }
+	    
+	    return false;
+	  };
+	  auto res = reach.search (*state,goal);
+	  if (res.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
+	    os << "Found a state\n";
+	    simu->setState (res.foundState());
+	    
+	  }
+	  
+	  return true;
+	}
+	return false;
+      }
+    
+    private:
+      MiniMC::IO::ostream& os;
+    };
+    
+    
     class CommandBuilder {
     public:
-      CommandBuilder (MiniMC::IO::ostream&os, MiniMC::Model::Program* prmg) :  os(os),prgm(prmg) {}
+      CommandBuilder (MiniMC::IO::ostream&os, MiniMC::IO::Prompter& p, MiniMC::Model::Program* prmg) :  os(os),prompter(p),prgm(prmg) {}
       void startSimulation () {
 	cmd = std::make_unique<StartSimulation> (prgm);
       }
@@ -116,12 +157,31 @@ namespace MiniMC {
       void showTransitions () {
 	cmd = std::make_unique<ShowTransitionsCommand> (os);
       }
+
+      
+      void step () {
+	cmd = std::make_unique<StepSimulation> (os,prompter);
+      }
+
+      void skip () {
+	cmd = std::make_unique<Command> ();
+      }
+
+      void search () {
+	cmd = std::make_unique<SearchCommand> (os);
+      }
+
+      
+      
+      
+      
       
       auto get() {return std::move(cmd);}
       
     private:
       std::unique_ptr<Command> cmd {nullptr};
       MiniMC::IO::ostream& os;
+      MiniMC::IO::Prompter& prompter;
       MiniMC::Model::Program* prgm;
     };
     

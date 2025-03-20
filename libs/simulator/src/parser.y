@@ -47,7 +47,14 @@
 %token    START_SIMULATION 
 %token    SHOW_STATE
 %token    SHOW_TRANSITIONS
+%token    STEP
+%token    SEARCH
+%token    SYMBOLIC
 
+
+
+%token <std::int64_t> POS_NUMBER
+%token <std::int64_t> NEG_NUMBER
 
 %token END 0 "end of file"
 
@@ -56,13 +63,16 @@
 
 prgm : START_SIMULATION {builder.startSimulation ();} |
        SHOW_STATE {builder.showState();} |
-       SHOW_TRANSITIONS {builder.showTransitions();}
-       error END {}
+       SHOW_TRANSITIONS {builder.showTransitions();} | 
+       STEP {builder.step ();} |
+       SEARCH {builder.search ();} |
+       
+       error  {builder.skip ();}
 
 %%
 
 
 void  MiniMC::Simulator::Parser::error(const std::string &err_message )
 {
-  //messager << err_message;
+  messager << err_message;
 }

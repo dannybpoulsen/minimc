@@ -26,7 +26,7 @@ namespace MiniMC {
     
     
     std::unique_ptr<Command> CommandParser::parse () {
-      CommandBuilder builder{ostream,prgm};
+      CommandBuilder builder{ostream,prompter,prgm};
 
       std::string line = prompter.readline();
       if (line.size())
@@ -40,16 +40,6 @@ namespace MiniMC {
       auto cmd = builder.get();
       if (cmd)
 	return cmd;
-      else {
-	
-	
-	if (line  == std::string ("step")) {
-	  return std::make_unique<StepSimulation> (ostream,prompter);
-	}
-	
-	
-	
-      }
       
       
       return nullptr;
