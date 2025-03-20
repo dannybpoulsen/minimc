@@ -20,10 +20,11 @@ using token = MiniMC::Simulator::Parser::token;
 %option noyywrap
 %option yylineno
 %option c++
+%option prefix="ss"
 
 %%
 %{
-yylval = lval;
+  yylval = lval;
 %}
 "run"      {return token::START_SIMULATION;}
 "show"      {return token::SHOW_STATE;}
