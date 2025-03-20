@@ -45,6 +45,8 @@
 %define parse.assert
 
 %token    START_SIMULATION 
+%token    SHOW_STATE
+%token    SHOW_TRANSITIONS
 
 
 %token END 0 "end of file"
@@ -52,12 +54,15 @@
 
 %%
 
-prgm : START_SIMULATION {builder.startSimulation ();}
+prgm : START_SIMULATION {builder.startSimulation ();} |
+       SHOW_STATE {builder.showState();} |
+       SHOW_TRANSITIONS {builder.showTransitions();}
+       error END {}
 
 %%
 
 
 void  MiniMC::Simulator::Parser::error(const std::string &err_message )
 {
-  messager << err_message;
+  //messager << err_message;
 }

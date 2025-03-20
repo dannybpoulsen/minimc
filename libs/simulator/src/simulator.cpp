@@ -26,12 +26,12 @@ namespace MiniMC {
     
     
     std::unique_ptr<Command> CommandParser::parse () {
-      CommandBuilder builder{prgm};
+      CommandBuilder builder{ostream,prgm};
 
       std::string line = prompter.readline();
       if (line.size())
 	prompter.addHistory(line);
-
+      
       std::stringstream stream;
       stream.str(line);
       MiniMC::Simulator::Scanner scanner {&stream};
@@ -41,19 +41,14 @@ namespace MiniMC {
       if (cmd)
 	return cmd;
       else {
-      
-	if (line  == std::string ("showState")) {
-	  return std::make_unique<ShowStateCommand> (ostream,prgm);
-	}
 	
-	else if (line  == std::string ("step")) {
+	
+	if (line  == std::string ("step")) {
 	  return std::make_unique<StepSimulation> (ostream,prompter);
 	}
 	
-	else if (line  == std::string ("transitions")) {
-	  return std::make_unique<ShowTransitionsCommand> (ostream);
-      }
-
+	
+	
       }
       
       

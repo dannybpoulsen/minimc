@@ -25,12 +25,14 @@ using token = MiniMC::Simulator::Parser::token;
 %{
 yylval = lval;
 %}
-"startSimulation"      {return token::START_SIMULATION;}
+"run"      {return token::START_SIMULATION;}
+"show"      {return token::SHOW_STATE;}
+"transitions"      {return token::SHOW_TRANSITIONS;}
 
 
 
 <<EOF>> {return token::END;}
 
 			    
-.           {std::cerr << "Unexpected text" << yytext << std::endl;}
+.           {}
 %%

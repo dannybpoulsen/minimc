@@ -104,15 +104,24 @@ namespace MiniMC {
 
     class CommandBuilder {
     public:
-      CommandBuilder (MiniMC::Model::Program* prmg) :  prgm(prmg) {}
+      CommandBuilder (MiniMC::IO::ostream&os, MiniMC::Model::Program* prmg) :  os(os),prgm(prmg) {}
       void startSimulation () {
 	cmd = std::make_unique<StartSimulation> (prgm);
       }
 
+      void showState () {
+	cmd = std::make_unique<ShowStateCommand> (os,prgm);
+      }
+
+      void showTransitions () {
+	cmd = std::make_unique<ShowTransitionsCommand> (os);
+      }
+      
       auto get() {return std::move(cmd);}
       
     private:
       std::unique_ptr<Command> cmd {nullptr};
+      MiniMC::IO::ostream& os;
       MiniMC::Model::Program* prgm;
     };
     
