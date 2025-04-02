@@ -33,7 +33,7 @@ namespace MiniMC {
 
     class Command {
     public:
-      virtual bool execute (Simulator* simu) {return true;}
+      virtual bool execute (Simulator*) {return true;}
     };
 
     

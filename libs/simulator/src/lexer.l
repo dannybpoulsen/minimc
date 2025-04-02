@@ -32,11 +32,13 @@ using token = MiniMC::Simulator::Parser::token;
 "step"       {return token::STEP;}
 "search"       {return token::SEARCH;}
 "symbolic"       {return token::SYMBOLIC;}
+"eval"       {return token::CEVAL;}
+"seval"       {return token::SEVAL;}
 
 
 
-[0-9]+ {yylval->emplace<std::int64_t>(std::stoi(yytext)); return token::POS_NUMBER;}
--[1-9][0-9]*  {yylval->emplace<std::int8_t> (std::stoi(yytext)); return token::NEG_NUMBER; }
+[0-9]+ {yylval->emplace<std::uint64_t>(std::stoi(yytext)); return token::POS_NUMBER;}
+-[1-9][0-9]*  {yylval->emplace<std::int64_t> (std::stoi(yytext)); return token::NEG_NUMBER; }
 
 
 <<EOF>> {return token::END;}

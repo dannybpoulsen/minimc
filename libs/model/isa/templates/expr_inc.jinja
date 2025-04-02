@@ -387,4 +387,16 @@ default:
     auto visitValue(F&& f,MiniMC::Model::Value& v) {
       return visitValueT<Res,false,F>(std::forward<F>(f),v);
     }
-    
+
+    class ExpressionBuilder {
+    public:		    
+      void I8 (MiniMC::BV8 v)  {stack.push (I8Integer::make(v));}
+      void I16 (MiniMC::BV16 v)  {stack.push (I16Integer::make(v));}
+      void I32 (MiniMC::BV32 v)  {stack.push (I32Integer::make(v));}
+      void I64 (MiniMC::BV64 v)  {stack.push (I64Integer::make(v));}
+      
+      	   
+      auto get() {auto val = stack.top(); stack.pop(); return val;}
+    private:
+     std::stack<Value_ptr> stack;
+    };			  

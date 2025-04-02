@@ -19,10 +19,11 @@
 #include <cstdint>
 #include <string>
 #include "minimc/io/ostream.hpp"
+#include "minimc/model/variables.hpp"
     
  }
 
-%parse-param { MiniMC::Simulator::Scanner& scanner } {MiniMC::Simulator::CommandBuilder& builder}  {MiniMC::IO::ostream& messager}
+%parse-param { MiniMC::Simulator::Scanner& scanner } {MiniMC::Simulator::CommandBuilder& builder} {MiniMC::Model::ExpressionBuilder& exprbuilder}  {MiniMC::IO::ostream& messager}
 %initial-action
 {
 
@@ -50,10 +51,12 @@
 %token    STEP
 %token    SEARCH
 %token    SYMBOLIC
+%token    CEVAL
+%token    SEVAL
 
 
 
-%token <std::int64_t> POS_NUMBER
+%token <std::uint64_t> POS_NUMBER
 %token <std::int64_t> NEG_NUMBER
 
 %token END 0 "end of file"
@@ -66,8 +69,13 @@ prgm : START_SIMULATION {builder.startSimulation ();} |
        SHOW_TRANSITIONS {builder.showTransitions();} | 
        STEP {builder.step ();} |
        SEARCH {builder.search ();} |
-       
+       CEVAL expr {builder.evalExpression (exprbuilder.get());} |
+       SEVAL expr {builder.sevalExpression (exprbuilder.get());}|
        error  {builder.skip ();}
+
+
+expr :  POS_NUMBER {exprbuilder.I64 ($1);} 
+     |  error  {builder.skip ();}
 
 %%
 

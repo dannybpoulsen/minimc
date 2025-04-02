@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 #include <ranges>
-
+#include <stack>
 
 
 namespace MiniMC {

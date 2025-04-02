@@ -2,10 +2,10 @@
 #define _CPA_QUERY__
 
 #include "minimc/model/variables.hpp"
+#include "minimc/io/ostream.hpp"
 
 #include <iosfwd>
 #include <memory>
-
 
 
 namespace MiniMC {
@@ -13,15 +13,21 @@ namespace MiniMC {
     class QueryExpr {
     public:
       virtual ~QueryExpr () {}
-      virtual std::ostream& output (std::ostream&) const = 0;
+      virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream
+					   &) const = 0;
     };
 
     template<class T>
     class TQuery : public QueryExpr {
     public:
       TQuery (T t):value(t) {}
-      std::ostream& output (std::ostream& os) const override {return os << value;} 
-
+      
+      MiniMC::IO::ostream& output (MiniMC::IO::ostream& os) const override {
+	std::stringstream str;
+	str << value;
+	return os << str.str();
+      } 
+      
       auto getValue () const {return value;}
 	
     private:
@@ -42,7 +48,7 @@ namespace MiniMC {
       virtual MiniMC::Model::Constant_ptr evaluate (const QueryExpr&) const = 0;
     };
 
-    inline std::ostream& operator<< (std::ostream& os, const QueryExpr& e) {
+    inline MiniMC::IO::ostream& operator<< (MiniMC::IO::ostream& os, const QueryExpr& e) {
       return e.output (os);
     }
     

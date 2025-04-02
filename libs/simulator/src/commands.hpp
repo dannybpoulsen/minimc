@@ -41,12 +41,54 @@ namespace MiniMC {
 	  str << "No State" << MiniMC::IO::manipulator::endl;
 	return true;
       }
-    
+      
     private:
       MiniMC::IO::ostream& str;
     };
 
+    class EvalExpression : public Command{
+    public:
+      EvalExpression (MiniMC::IO::ostream& os, const MiniMC::Model::Value_ptr& val,std::size_t p = 0) : os(os),val(val),p(p) {}
+      bool execute (Simulator* simu) override {
+	if (simu->hasState ()) {
+	  auto seval = simu->getState().getBuilder().buildValue (p,*val);
+	  auto constant = simu->getState().getConcretizer ()->evaluate(*seval);
+	  os << *constant << MiniMC::IO::manipulator::endl;
+	}
+	else {
+	  os << "No State" << MiniMC::IO::manipulator::endl;
+	}
+	return true;
+      }
+    
+    private:
+      MiniMC::IO::ostream& os;
+      MiniMC::Model::Value_ptr val;
+      std::size_t p;
+      };
 
+
+    class SymbEvalExpression : public Command{
+    public:
+      SymbEvalExpression (MiniMC::IO::ostream& os,const MiniMC::Model::Value_ptr& val,std::size_t p = 0) : os(os),val(val),p(p) {}
+      bool execute(Simulator* simu) override {
+        if (simu->hasState ()) {
+	  auto seval = simu->getState().getBuilder().buildValue (p,*val);
+	  os << *seval << MiniMC::IO::manipulator::endl;
+	}
+	else {
+	  os << "No State" << MiniMC::IO::manipulator::endl ;
+	}
+	return true;
+      }
+      
+    private:
+      MiniMC::IO::ostream& os;
+      MiniMC::Model::Value_ptr val;
+      std::size_t p;
+    };
+
+ 
     
     class StartSimulation : public Command{
     public:
@@ -171,6 +213,13 @@ namespace MiniMC {
 	cmd = std::make_unique<SearchCommand> (os);
       }
 
+      void evalExpression (const MiniMC::Model::Value_ptr& v) {
+	cmd = std::make_unique<EvalExpression> (os,v);
+      }
+
+      void sevalExpression (const MiniMC::Model::Value_ptr& v) {
+	cmd = std::make_unique<SymbEvalExpression> (os,v);
+      }
       
       
       
