@@ -94,6 +94,10 @@ namespace MiniMC {
 	a.getExpression().accept(*this);
       }
 
+      void Compiler::visitUndefExpression (const Whiley::UndefExpression& a)  {
+	_internal->expr = MiniMC::Model::Undef::make(MiniMC::Model::I8Type::get());//cfac->makeUndef (MiniMC::Model::TypeID::I8);
+      }
+      
       void Compiler::visitBinaryExpression (const Whiley::BinaryExpression& be)  {
 	be.getLeft ().accept (*this);
 	auto le = _internal->expr;
@@ -187,14 +191,7 @@ namespace MiniMC {
       
 	
       } 
-      void Compiler::visitNonDetAssignStatement (const Whiley::NonDetAssignStatement& nd)  {
-      	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	auto reg = _internal->vars.at(nd.getAssignName());
-	auto undef = MiniMC::Model::Undef::make(MiniMC::Model::I8Type::get());//cfac->makeUndef (MiniMC::Model::TypeID::I8);
-	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
-	builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,undef);
-      } 
-      
+            
       void Compiler::visitIfStatement (const Whiley::IfStatement& iff )  {
 	iff.getCondition ().accept(*this);
 	auto cond = _internal->expr; 

@@ -13,12 +13,11 @@ namespace MiniMC {
 	void visitNumberExpression (const Whiley::NumberExpression& ) override ; 
 	void visitDerefExpression (const Whiley::DerefExpression& ) override ; // 
 	void visitCastExpression (const Whiley::CastExpression& ) override ; // 
-	
+	void visitUndefExpression (const Whiley::UndefExpression& ) override ; //
 	void visitBinaryExpression (const Whiley::BinaryExpression& ) override ;  
 	void visitAssignStatement (const Whiley::AssignStatement& ) override ; 
 	void visitAssertStatement (const Whiley::AssertStatement& ) override ; 
 	void visitAssumeStatement (const Whiley::AssumeStatement& ) override ; 
-	void visitNonDetAssignStatement (const Whiley::NonDetAssignStatement& ) override ; 
 	
 	void visitIfStatement (const Whiley::IfStatement& ) override ; 
 	void visitSkipStatement (const Whiley::SkipStatement& ) override ; 
