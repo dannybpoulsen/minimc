@@ -53,6 +53,15 @@
 %token    SYMBOLIC
 %token    CEVAL
 %token    SEVAL
+%token    UI8
+%token    UI16
+%token    UI32
+%token    UI64
+%token    SI8
+%token    SI16
+%token    SI32
+%token    SI64
+
 
 
 
@@ -74,8 +83,19 @@ prgm : START_SIMULATION {builder.startSimulation ();} |
        error  {builder.skip ();}
 
 
-expr :  POS_NUMBER {exprbuilder.I64 ($1);} 
-     |  error  {builder.skip ();}
+expr :  UI8 POS_NUMBER {exprbuilder.I8 ($2);}
+| UI16 POS_NUMBER {exprbuilder.I16 ($2);}
+| UI32 POS_NUMBER {exprbuilder.I32 ($2);}
+| UI64 POS_NUMBER {exprbuilder.I64 ($2);}
+| SI8 POS_NUMBER {exprbuilder.I8 (($2));}
+| SI16 POS_NUMBER {exprbuilder.I16 ( ($2));}
+| SI32 POS_NUMBER {exprbuilder.I32 ( ($2));}
+| SI64 POS_NUMBER {exprbuilder.I64 ( ($2));}
+| SI8 NEG_NUMBER {exprbuilder.I8 (std::bit_cast<MiniMC::BV64> ($2));}
+| SI16 NEG_NUMBER {exprbuilder.I16 (std::bit_cast<MiniMC::BV64> ($2));}
+| SI32 NEG_NUMBER {exprbuilder.I32 (std::bit_cast<MiniMC::BV64> ($2));}
+| SI64 NEG_NUMBER {exprbuilder.I64 (std::bit_cast<MiniMC::BV64> ($2));}
+|  error  {exprbuilder.I8 (0);}
 
 %%
 

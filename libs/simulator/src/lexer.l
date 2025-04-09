@@ -34,6 +34,14 @@ using token = MiniMC::Simulator::Parser::token;
 "symbolic"       {return token::SYMBOLIC;}
 "eval"       {return token::CEVAL;}
 "seval"       {return token::SEVAL;}
+"ui8"   {return token::UI8;}
+"ui16"   {return token::UI16;}
+"ui32"   {return token::UI32;}
+"ui64"   {return token::UI32;}
+"si8"   {return token::SI8;}
+"si16"   {return token::SI16;}
+"si32"   {return token::SI32;}
+"si64"   {return token::SI64;}
 
 
 

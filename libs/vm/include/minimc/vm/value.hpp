@@ -113,7 +113,7 @@ namespace MiniMC {
       {op.template Eq<Int> (left,left) } -> std::convertible_to<Bool>;
       {op.template NEq<Int> (left,left)  } -> std::convertible_to<Bool>;
       {op.template BoolAnd (right,right)  } -> std::convertible_to<Bool>;
-      };
+    };
 
     template<class Value,class Operation>
     concept IntOperation =  (IntOperation_<typename Value::I8,typename Value::Bool,Operation> &&
