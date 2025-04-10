@@ -25,7 +25,7 @@ namespace MiniMC {
     
     
     
-    std::unique_ptr<Command> CommandParser::parse () {
+    std::unique_ptr<Command> CommandParser::parse (FrameGetter getter) {	       
       CommandBuilder builder{ostream,prompter,prgm};
       MiniMC::Model::ExpressionBuilder ebuilder;
       
@@ -36,7 +36,7 @@ namespace MiniMC {
       std::stringstream stream;
       stream.str(line);
       MiniMC::Simulator::Scanner scanner {&stream};
-      MiniMC::Simulator::Parser parser{scanner,builder,ebuilder,ostream};
+      MiniMC::Simulator::Parser parser{scanner,{builder,ebuilder,ostream,getter}};
       parser.parse ();
       auto cmd = builder.get();
       if (cmd)

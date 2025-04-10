@@ -5,6 +5,7 @@
 #include "minimc/cpa/interface.hpp"
 #include "minimc/io/prompter.hpp"
 #include "minimc/io/ostream.hpp"
+#include "minimc/simulator/parsercontext.hpp"
 
 #include <memory>
 #include <generator>
@@ -37,10 +38,11 @@ namespace MiniMC {
     };
 
     
+    
     class CommandParser {
     public:
       CommandParser (MiniMC::IO::ostream& os, MiniMC::IO::Prompter& prompter, MiniMC::Model::Program* prgm) : ostream(os),prompter(prompter),prgm(prgm) {}
-      std::unique_ptr<Command> parse (); 
+      std::unique_ptr<Command> parse (FrameGetter); 
     private:
       MiniMC::IO::ostream& ostream;
       MiniMC::IO::Prompter& prompter;

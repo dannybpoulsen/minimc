@@ -21,11 +21,15 @@ using token = MiniMC::Simulator::Parser::token;
 %option yylineno
 %option c++
 %option prefix="ss"
+name    [a-zA-Z\_][a-zA-Z0-9\_\.-]*
 
 %%
 %{
   yylval = lval;
 %}
+
+
+
 "run"      {return token::START_SIMULATION;}
 "show"      {return token::SHOW_STATE;}
 "transitions"      {return token::SHOW_TRANSITIONS;}
@@ -42,6 +46,7 @@ using token = MiniMC::Simulator::Parser::token;
 "si16"   {return token::SI16;}
 "si32"   {return token::SI32;}
 "si64"   {return token::SI64;}
+{name}([:]{name})+ {yylval->emplace<std::string> (yytext); return token::SYMBOL_STRING;}
 
 
 

@@ -164,9 +164,16 @@ namespace MiniMC {
       bool resolveRecursive (const std::string& qname, Symbol& symb, S s) const {
 	std::stringstream stream {qname};
 	std::string inp;
+
+	if (this->symb.getFullName () != "") {
+	  std::cerr << this->symb.getFullName() << std::endl;
+	  std::getline (stream,inp,Symbol::data::delim);
+	  if(inp != this->symb.getName())
+	    return false;
+	}
 	
 	do {
-	  std::getline (stream,inp,Symbol::data::delim);  
+	  std::getline (stream,inp,Symbol::data::delim);
 	  if (stream.good ()) {
 	    if (s->frames.count(inp))
 	      s = s->frames.at(inp);

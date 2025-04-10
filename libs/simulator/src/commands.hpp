@@ -199,7 +199,6 @@ namespace MiniMC {
       void showTransitions () {
 	cmd = std::make_unique<ShowTransitionsCommand> (os);
       }
-
       
       void step () {
 	cmd = std::make_unique<StepSimulation> (os,prompter);
