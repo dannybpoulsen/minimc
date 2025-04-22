@@ -25,6 +25,11 @@ namespace MiniMC {
       std::generator<MiniMC::CPA::State_ptr> step (MiniMC::CPA::Transition) const;
       std::generator<MiniMC::CPA::Transition> getTransitions () const;
       auto getTransfer () const {return transfer;}
+      void updateCPA (MiniMC::CPA::TCPA_ptr cpa) {
+	this->cpa = cpa;
+	state = nullptr;
+	transfer = cpa->makeTransfer(*prgm);
+      }
     private:
       MiniMC::CPA::State_ptr state{nullptr};
       MiniMC::CPA::TCPA_ptr cpa;

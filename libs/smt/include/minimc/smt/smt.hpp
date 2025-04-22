@@ -5,6 +5,7 @@
 #include "minimc/host/types.hpp"
 #include <iostream>
 #include <memory>
+#include <expected>
 
 
 namespace MiniMC {
@@ -15,22 +16,39 @@ namespace MiniMC {
       struct SMTDescr {
         SMTDescr(SMTLib::SMTBackendRegistrar* r = nullptr) : r(r) {}
 	SMTDescr (const SMTDescr&) = default;
-        std::string name(); 
-        std::string descr(); 
+        std::string name() const; 
+        std::string descr() const; 
 	SMTLib::Context_ptr makeContext () const;
       private:
 	SMTLib::SMTBackendRegistrar* r;
       };
+      enum class Error {
+	NoSolver
+      };
+      
+      class SMTSolverRepository {
+      public:
+	static SMTSolverRepository& get ();
+	
+	std::expected<SMTDescr,Error> getBackend (const std::string& i ) {
+	  for (auto& r : descr) {
+	    if (r.name () == i) {
+	      return r;
+	    }
+	  }
+	  return std::unexpected (Error::NoSolver);
+	}
+	
+	auto& getSMTBackends () const {
+	  return descr;
+	}
+      private:
+	SMTSolverRepository ();
+	std::vector<SMTDescr> descr;
+      };
 
       
       
-      template <class Iterator>
-      void getSMTBackends(Iterator it) {
-        for (auto& itt : SMTLib::getSMTBackends()) {
-          it = itt;
-        }
-      }
-
       template<class Iterator,class EIterator>
       void extractBytes (Iterator it, Iterator end, EIterator dest) {
 	std::size_t bitscounted = 0;

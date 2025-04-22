@@ -20,7 +20,7 @@ namespace MiniMC {
       data (std::string s,  std::shared_ptr<data> p = nullptr) : parent(std::move(p)),name(s) {}
       
       std::ostream& output (std::ostream& os) const {
-	if (parent && !parent->isRoot ()) {
+	if (parent ) {
 	  
 	  return parent->output (os) << delim << name;
 	  
@@ -29,10 +29,11 @@ namespace MiniMC {
 	  return os << name;
       }
 
+      
       bool isRoot () const {
-	return parent == nullptr && name == "";
+	return parent == nullptr;
       }
-
+      
       MiniMC::Hash::hash_t hash () const {
 	if (!_hash) {
 	  MiniMC::Hash::Hasher hasher;
@@ -165,8 +166,7 @@ namespace MiniMC {
 	std::stringstream stream {qname};
 	std::string inp;
 
-	if (this->symb.getFullName () != "") {
-	  std::cerr << this->symb.getFullName() << std::endl;
+	if (this->symb.isRoot () && this->symb.getFullName () != "") {
 	  std::getline (stream,inp,Symbol::data::delim);
 	  if(inp != this->symb.getName())
 	    return false;

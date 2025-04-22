@@ -97,25 +97,23 @@ po::options_description loadOptions (SetupOptions& options) {
 
 po::options_description smtOptions (SetupOptions& options) {
   po::options_description smt("SMT Options");
-  std::vector<MiniMC::Support::SMT::SMTDescr> smts;
-  MiniMC::Support::SMT::getSMTBackends(std::back_inserter(smts));
-
-  auto setSMTSolver = [smts,&options](std::size_t val) {
-    if (val < smts.size()) {
-      options.smt.selsmt = smts[val];
+  auto& repo = MiniMC::Support::SMT::SMTSolverRepository::get();
+  auto setSMTSolver = [&repo,&options](std::string val) {
+    if (auto res = repo.getBackend(val)) { 
+      options.smt.selsmt = res.value();
     }
   };
 
-  if (smts.size()) {
+  if (repo.getSMTBackends().size()) {
     std::stringstream str;
     str << "SMT Solver\n";
     int i = 0;
-    for (auto& ss : smts) {
-      str << "\t " << i << ": " << ss.name() << "\n";
+    for (auto& ss : repo.getSMTBackends()) {
+      str << "\t " << ss.name() << "\n";
       i++;
     }
     
-    smt.add_options()("smt.solver", po::value<std::size_t>()->default_value(0)->notifier(setSMTSolver), str.str().c_str());
+    smt.add_options()("smt.solver", po::value<std::string>()->default_value("CVC4")->notifier(setSMTSolver), str.str().c_str());
   }
 
   

@@ -397,8 +397,82 @@ default:
       void I32 (MiniMC::BV32 v)  {stack.push (I32Integer::make(v));}
       void I64 (MiniMC::BV64 v)  {stack.push (I64Integer::make(v));}
       void symbol (MiniMC::Model::Symbol s) {stack.push(SymbolicConstant::make(s));}      
+
+      {%for N in all_bin_ops %}
+      void {{N.getName()}} () {
+      	   auto r = stack.top();stack.pop ();
+	   auto l = stack.top();stack.pop ();
+	   stack.push(std::make_shared<{{N.getName()}}Expr>(l,r));
+       }
+       {%endfor%}    
+
+       void Load () {
+       	    auto addr = stack.top();stack.pop();
+	    auto mem = stack.top();stack.pop();
+	    auto type = types.top();types.pop();
+	    stack.push(std::make_shared<LoadExpr> (mem,addr,type));
+       }
+
+       void Store () {
+       	    auto storee = stack.top();stack.pop();
+	    auto addr = stack.top();stack.pop();
+	    auto mem = stack.top();stack.pop();
+	    
+	    auto type = types.top();types.pop();
+	    stack.push(std::make_shared<StoreExpr> (mem,addr,storee));
+       }
+
+      {%for N in cast_ops %}
+      void {{N.getName()}} () {
+      	   auto f = stack.top();stack.pop ();
+	   auto type = types.top();types.pop(); 
+	   stack.push(std::make_shared<{{N.getName()}}Expr>(f,type));
+       }
+       {%endfor%}    
+
+     {%for N in all_unary_ops %}
+      void {{N.getName()}} () {
+      	   auto f = stack.top();stack.pop ();
+	   stack.push(std::make_shared<{{N.getName()}}Expr>(f));	
+       }
+       {%endfor%}
+
+      void pushI8Type () {
+      	   types.push (I8Type::get());
+	   }	      
+
+     void pushI16Type () {
+      	   types.push (I16Type::get());
+      }
+
+      void pushI32Type () {
+      	   types.push (I32Type::get());
+      }
+
+      void pushI64Type () {
+      	   types.push (I64Type::get());
+      }
+
+      void pushPointerType () {
+      	   types.push (PointerType::get());
+      }     
+      
+      void pushAggregateType (std::size_t n) {
+      	   types.push (AggregateType::get(n));
+      }     
+
+      auto& operator<< (Value_ptr ptr) {
+      	    stack.push(std::move(ptr));
+	    return *this;
+      }
+
+      auto& operator<< (Type_ptr ptr) {
+      	    types.push(std::move(ptr));
+	    return *this;
+      }
       
       auto get() {auto val = stack.top(); stack.pop(); return val;}
     private:
       std::stack<Value_ptr> stack;
-     };			  
+      std::stack<Type_ptr> types;
+};			  

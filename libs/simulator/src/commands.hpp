@@ -3,6 +3,9 @@
 
 #include "minimc/simulator/simulator.hpp"
 #include "minimc/cpa/successorgen.hpp"
+#include "minimc/cpa/interface.hpp"
+#include "minimc/smt/smt.hpp"
+
 #include "minimc/support/random.hpp"
 #include "minimc/support/feedback.hpp"
 #include "minimc/algorithms/reachability.hpp"
@@ -103,6 +106,19 @@ namespace MiniMC {
     
     private:
       MiniMC::Model::Program* prgm;
+    };
+
+    class SymbolicSimulator : public Command{
+    public:
+      SymbolicSimulator (MiniMC::Support::SMT::SMTDescr descr) : descr(descr) {}
+      bool execute (Simulator* simu) override {
+	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Pathformula> (descr);
+	simu->updateCPA (cpa);
+	return true;
+      }
+    
+    private:
+      MiniMC::Support::SMT::SMTDescr descr;
     };
     
     class StepSimulation : public Command{
@@ -219,7 +235,11 @@ namespace MiniMC {
       void sevalExpression (const MiniMC::Model::Value_ptr& v) {
 	cmd = std::make_unique<SymbEvalExpression> (os,v);
       }
-      
+
+
+      void makeSymbolic (MiniMC::Support::SMT::SMTDescr descr ) {
+	cmd = std::make_unique<SymbolicSimulator> (descr);
+      }
       
       
       

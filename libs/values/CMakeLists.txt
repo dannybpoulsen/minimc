@@ -1,5 +1,6 @@
 add_subdirectory(concrete)
 add_subdirectory(pathformula)
+add_subdirectory(symb)
 
 
 add_library(values INTERFACE)
