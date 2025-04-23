@@ -308,10 +308,10 @@ namespace MiniMC {
 		  createInstruction<MiniMC::Model::InstructionCode::UGt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SGE:
-		  createInstruction<MiniMC::Model::InstructionCode::SGE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SGe> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_UGE:
-		  createInstruction<MiniMC::Model::InstructionCode::UGE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::UGe> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SLT:
 		  createInstruction<MiniMC::Model::InstructionCode::SLt> (inst,gather);
@@ -320,10 +320,10 @@ namespace MiniMC {
 		  createInstruction<MiniMC::Model::InstructionCode::ULt> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_SLE:
-		  createInstruction<MiniMC::Model::InstructionCode::SLE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::SLe> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_ULE:
-		  createInstruction<MiniMC::Model::InstructionCode::ULE> (inst,gather);
+		  createInstruction<MiniMC::Model::InstructionCode::ULe> (inst,gather);
 		  break;
 		case llvm::CmpInst::ICMP_EQ:
 		  createInstruction<MiniMC::Model::InstructionCode::Eq> (inst,gather);

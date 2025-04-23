@@ -82,17 +82,17 @@ namespace MiniMC {
         return SMTLib::Ops::BVSGt;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::UGt) {
         return SMTLib::Ops::BVUGt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SGE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SGe) {
         return SMTLib::Ops::BVSGEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::UGE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::UGe) {
         return SMTLib::Ops::BVUGEq;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::SLt) {
         return SMTLib::Ops::BVSLt;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::ULt) {
         return SMTLib::Ops::BVULt;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SLE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::SLe) {
         return SMTLib::Ops::BVSLEq;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ULE) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::ULe) {
         return SMTLib::Ops::BVULEq;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::Eq) {
         return SMTLib::Ops::Equal;

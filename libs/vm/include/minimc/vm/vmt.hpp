@@ -404,12 +404,12 @@ namespace MiniMC {
 #define OPSI					\
       X(SGtExpr, SGt)			\
       X(UGtExpr, UGt)			\
-      X(SGEExpr, SGe)			\
-      X(UGEExpr, UGe)			\
+      X(SGeExpr, SGe)			\
+      X(UGeExpr, UGe)			\
       X(SLtExpr, SLt)			\
       X(ULtExpr, ULt)			\
-      X(SLEExpr, SLe)			\
-      X(ULEExpr, ULe)			\
+      X(SLeExpr, SLe)			\
+      X(ULeExpr, ULe)			\
       X(EqExpr, Eq)			\
       X(NEqExpr, NEq)			\
 
@@ -835,12 +835,12 @@ OPSI
 #define OPSI					\
       X(SGtExpr, SGt)			\
       X(UGtExpr, UGt)			\
-      X(SGEExpr, SGe)			\
-      X(UGEExpr, UGe)			\
+      X(SGeExpr, SGe)			\
+      X(UGeExpr, UGe)			\
       X(SLtExpr, SLt)			\
       X(ULtExpr, ULt)			\
-      X(SLEExpr, SLe)			\
-      X(ULEExpr, ULe)			\
+      X(SLeExpr, SLe)			\
+      X(ULeExpr, ULe)			\
       X(EqExpr, Eq)			\
       X(NEqExpr, NEq)			\
 

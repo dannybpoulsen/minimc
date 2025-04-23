@@ -213,7 +213,7 @@ Comparison:
   
 
   isge:
-    opcode: SGE
+    opcode: SGe
     params:
       - name: res
         type: t1
@@ -229,7 +229,7 @@ Comparison:
     assign_convertible: True
 
   iuge:
-    opcode: UGE
+    opcode: UGe
     params:
       - name: res
         type: t1
@@ -277,7 +277,7 @@ Comparison:
     assign_convertible: True
     
   isle:
-    opcode: SLE
+    opcode: SLe
     params:
       - name: res
         type: t1
@@ -293,7 +293,7 @@ Comparison:
     assign_convertible: True
 
   iule:
-    opcode: ULE
+    opcode: ULe
     params:
       - name: res
         type: t1

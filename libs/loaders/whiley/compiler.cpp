@@ -124,16 +124,16 @@ namespace MiniMC {
 	  break;
 	case Whiley::BinOps::LEq:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SLEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SLeExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ULEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::ULeExpr> (std::move(le),std::move(right));
 	  
 	  break;
 	case Whiley::BinOps::GEq:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SGEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::SGeExpr> (std::move(le),std::move(right));
 	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::UGEExpr> (std::move(le),std::move(right));
+	    _internal->expr = std::make_shared<MiniMC::Model::UGeExpr> (std::move(le),std::move(right));
 	  break;
 	case Whiley::BinOps::Lt:
 	  if (_signed)
