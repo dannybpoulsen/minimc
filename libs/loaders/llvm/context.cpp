@@ -16,6 +16,8 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/IR/Value.h>
 
+#include <llvm/Support/raw_ostream.h>
+
 namespace MiniMC {
   namespace Loaders {
 
@@ -85,16 +87,19 @@ namespace MiniMC {
       }
 
       else if (ty->isStructTy()) {
-        auto it = static_cast<llvm::StructType*>(ty);
+	auto it = static_cast<llvm::StructType*>(ty);
         std::size_t size = 0;
-        for (std::size_t i = 0; i < it->getNumElements(); ++i) {
-          size += computeSizeInBytes(it->getElementType(i));
-        }
+	
+	for (std::size_t i = 0; i < it->getNumElements(); ++i) {
+	  size += computeSizeInBytes(it->getElementType(i));
+	  
+	}
+	
         return size;
       }
 
       else if (ty->isIntegerTy ()) {
-	return (ty->getIntegerBitWidth() / 8)+((ty->getIntegerBitWidth() / 8 == 0) ? 0 : 1);
+	return (ty->getIntegerBitWidth() / 8)+((ty->getIntegerBitWidth() % 8 == 0) ? 0 : 1);
       }
       else if (ty->isPointerTy ()) {
 	return MiniMC::Model::PointerType::get()->getSize ();

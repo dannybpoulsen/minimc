@@ -394,9 +394,19 @@ Aggregate:
       t2:
         - Aggregate
       t3:
-        - Integer
-    vm: True
-    
+        - BV64
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<ExtractValueExpr> (std::get<1>(tup),std::get<2> (tup),std::get<0>(tup)->getType() );
+      return make<MiniMC::Model::InstructionCode::Assign> (std::get<0>(tup),expr);
+    replace_construction:
+      Value_ptr operator() (ExtractValueExpr&  expr) const  {
+      return std::make_shared<ExtractValueExpr> (Replace(expr.aggregate()),Replace(expr.offset()),expr.getExtractType());
+      }
+      
+      
   insertvalue:
     opcode: InsertValue
     params:
@@ -415,8 +425,13 @@ Aggregate:
         - Integer
       t3:
         - Any
-    vm: True
-    
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<InsertValueExpr> (std::get<1>(tup),std::get<2> (tup),std::get<3>(tup) );
+      return make<MiniMC::Model::InstructionCode::Assign> (std::get<0>(tup),expr);
+      
 Cast:
   trunc:
     opcode: Trunc
@@ -548,7 +563,7 @@ Cast:
     template_construction:
       auto tup = std::make_tuple (args...);
       return make<MiniMC::Model::InstructionCode::SExt> (std::get<0>(tup),std::get<1> (tup));
-    
+      
     
   IntToBool:
     opcode: IntToBool

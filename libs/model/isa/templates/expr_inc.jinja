@@ -56,6 +56,37 @@
 	MiniMC::Model::Type_ptr to_type;
     };
 
+    class ExtractValueExpr : public Value {
+    public:
+	ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type);
+	auto& aggregate ()  const {return *_aggregate;}
+	auto& offset ()  const {return *_offset;}
+	const auto& getExtractType () const {return type;}
+	std::ostream& output(std::ostream& os) const override {
+    		return os << "(ExtractValue "  << *_aggregate << " " <<*_offset <<   *type << ")";
+      	}
+    private:
+	MiniMC::Model::Value_ptr _aggregate;
+	MiniMC::Model::Value_ptr _offset;
+	MiniMC::Model::Type_ptr type;
+    };
+
+    class InsertValueExpr : public Value {
+    public:
+    InsertValueExpr (Value_ptr aggr, MiniMC::Model::Value_ptr off, Value_ptr inse);
+	auto& aggregate ()  const {return *_aggregate;}
+	auto& offset ()  const {return *_offset;}
+	auto& insertee () const {return *_insertee;}
+         std::ostream& output(std::ostream& os) const override {
+    		return os << "(InsertValue "  << *_aggregate << " " <<*_offset <<  *_insertee << ")";
+      	}
+private	:
+	MiniMC::Model::Value_ptr _aggregate;
+	MiniMC::Model::Value_ptr _offset;
+	MiniMC::Model::Value_ptr _insertee;
+    
+    };   
+    
     class LoadExpr : public Value {
     public:
     LoadExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
@@ -175,7 +206,9 @@
 			  SymbolicConstant,
 			  LoadExpr,
 			  StoreExpr,
-			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
+			  ExtractValueExpr,
+			  			  /*InsertValueExpr,*/
+			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
 			  {% endfor %}
 			  	  
 			  > ();
@@ -213,7 +246,11 @@
     inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),mem_expr(mem),to_type(to) {}
 
     inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo<StoreExpr>::type_t ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
-    
+
+    inline ExtractValueExpr::ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type) : Value(ValueInfo<ExtractValueExpr>::type_t()),_aggregate(aggr),_offset(off),type(type) {}
+
+  	       inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_ptr inse) : Value(ValueInfo<InsertValueExpr>::type_t()),_aggregate(aggr),_offset(off),_insertee(inse) {}
+
     
     template<class A>
     constexpr bool is_root = std::is_same_v<std::remove_const_t<A>,Bool>
@@ -295,7 +332,7 @@
 				    CType<MiniMC::Model::Register,cconsts> reg,
 				    CType<MiniMC::Model::Undef,cconsts> und,
 				    CType<MiniMC::Model::SymbolicConstant,cconsts> sc,
-				    {%for N in all_bin_ops+all_unary_ops+cast_ops %}
+				    {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}
         			    CType<MiniMC::Model::{{N.getName()}}Expr,cconsts> o{{loop.index}} {%if not loop.last %}, {%endif%}
 				    {%endfor%}
     ) {
@@ -310,7 +347,7 @@
       {e(reg)}->std::convertible_to<Res>;
       {e(und)}->std::convertible_to<Res>;
       {e(sc)}->std::convertible_to<Res>;
-      {%for N in all_bin_ops+all_unary_ops+cast_ops %}{e(o{{loop.index}}) }->std::convertible_to<Res>;
+      {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}{e(o{{loop.index}}) }->std::convertible_to<Res>;
            {%endfor%}
     
     };
@@ -364,7 +401,7 @@
      case ValueInfo<StoreExpr>::type_t ():
 	return f (static_cast<CType<StoreExpr,c>&> (v));
 	break;
-	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
+	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
        	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
 	     break;
 	   {%endfor%}    

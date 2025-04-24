@@ -28,7 +28,7 @@ namespace MiniMC {
 
       class ExprTypeError : public MiniMC::Support::ErrorMessage {
       public:
-	
+      	
       };
 
       class MustBeSameTypeExpr : public ExprTypeError{
@@ -95,6 +95,19 @@ namespace MiniMC {
 	
       };
 
+      class MustBeGivenTypeIDExpr : public ExprTypeError{
+      public:
+	MustBeGivenTypeIDExpr (const MiniMC::Model::Value& l1, MiniMC::Model::TypeID type ) {
+	  message = MiniMC::Support::Localiser{"'%2%' must be of type '%3%'."}.format(l1,type);
+	  	  
+	}	
+	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
+	  return os << message;
+	}
+	
+      private:
+        std::string message;
+};
       
       
       class MustBeSameType : public InstrTypeError{
@@ -325,6 +338,45 @@ namespace MiniMC {
 	  messager << MustBePointerExpr{expr.addr()};
 	}
 	expr.setType (res);
+	return res;
+
+      }
+
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::InsertValueExpr& expr) const  {
+       	auto aggrty = CheckType(expr.aggregate());
+	auto offsetty = CheckType(expr.offset());
+	auto inserteety = CheckType(expr.insertee());
+	
+	MiniMC::Model::Type_ptr res = aggrty;
+	if (!offsetty->isInteger ()) {
+	    messager << MustBeIntegerExpr {expr.offset ()};
+        }
+
+	if (!aggrty->isAggregate ()) {
+	   messager << MustBeGivenTypeIDExpr {expr.aggregate(), MiniMC::Model::TypeID::Aggregate};
+        }
+
+	expr.setType(res);
+	return res;
+
+      }
+
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::ExtractValueExpr& expr) const  {
+       	auto aggrty = CheckType(expr.aggregate());
+	auto offsetty = CheckType(expr.offset());
+	MiniMC::Model::Type_ptr res = expr.getExtractType();
+	     	 
+	if (!offsetty->isInteger ()) {
+	    messager << MustBeIntegerExpr {expr.offset ()};
+	    res = nullptr;	     
+	}
+
+	if (!aggrty->isAggregate ()) {
+	   messager << MustBeGivenTypeIDExpr {expr.aggregate(), MiniMC::Model::TypeID::Aggregate};
+	   res = nullptr;
+	}
+
+	expr.setType(res);
 	return res;
 
       }
@@ -629,7 +681,7 @@ namespace MiniMC {
 	  auto& content = tinst.getOps ();
 	  auto valT = CheckType(*content.op1);
           auto resT = CheckType(*content.res);
-	  if (valT != resT) {
+	  if (*valT != *resT) {
 	    messager << MustBeSameType {inst,content.op1,content.res};
             return false;
           }
@@ -638,7 +690,7 @@ namespace MiniMC {
 
         else if constexpr (i == VMInstructionCode::Ret) {
 	  auto& content = tinst.getOps ();
-	  if (tt != CheckType(*content.value)) {
+	  if (*tt != *CheckType(*content.value)) {
             messager << MustBeGivenType {inst,content.value,tt};
 	    
             return false;
@@ -678,10 +730,11 @@ namespace MiniMC {
           return true;
         }
 
-	else if constexpr (i == VMInstructionCode::ExtractValue ||
-                           i == VMInstructionCode::InsertValue
+	/*else if constexpr (i == VMInstructionCode::ExtractValue 
+                           
 			   ) {
-          auto& content = tinst.getOps ();
+
+	  auto& content = tinst.getOps ();
 	  if (!content.offset->getType ()->isInteger ()) {
 	    messager << MustBeInteger {inst,content.offset};
             return false;
@@ -692,16 +745,9 @@ namespace MiniMC {
             return false;
           }
 
-	  if constexpr (i == VMInstructionCode::InsertValue) {
-	    auto& content = tinst.getOps ();
-	    if (!CheckType(*content.res)->isAggregate ()) {
-	      messager << MustBeGivenTypeID {inst,content.res, MiniMC::Model::TypeID::Aggregate};
-            return false;
-	    }
-	  }
 	  
 	  return true;
-        }
+        }*/
         
         else if constexpr (i == VMInstructionCode::BitCast) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");

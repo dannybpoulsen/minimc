@@ -7,7 +7,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Constants.h>
 #include <unordered_map>
-
+#include <iostream>
 
 namespace MiniMC {
   namespace Loaders {
@@ -158,7 +158,9 @@ namespace MiniMC {
 	 }
 	 
 	 auto skipee = makeInteger(skip, MiniMC::Model::TypeID::I32);
-	 
+
+	 auto res = context.findValue(inst);
+	  
 	 gather.template addInstr<MiniMC::Model::InstructionCode::InsertValue>(
 	     context.findValue(inst),
 	     aggre,

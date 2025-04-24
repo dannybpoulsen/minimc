@@ -955,6 +955,78 @@ OPSI
 	
 	
       }
+
+      std::generator<Value> operator() (const MiniMC::Model::InsertValueExpr& expr) const  {
+	MiniMC::BV64 offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
+	    [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      MiniMC::Support::Error<MiniMC::BV64> {}
+	  },
+	  expr.offset()
+	  );
+	
+	for (auto aggr : MEval (expr.aggregate())) {
+	  for (auto value : MEval (expr.insertee())) {
+	    co_yield Value::visit (MiniMC::Support::Overload {
+		[this,offset](const typename Value::Aggregate& aggr,const typename Value::Aggregate& value) ->Value{
+		  return ops.template InsertAggregateValue(aggr, offset, value);
+		},
+		  [this,offset]<typename K>(const typename Value::Aggregate& aggr,const K& value) ->Value requires (!MiniMC::VMT::MemoryC<Value,K>) {
+		  return ops.template InsertBaseValue(aggr, offset, value);
+		},
+		  MiniMC::Support::Error<Value> {}
+	      }
+	      ,
+	      aggr,
+	      value);
+	    
+	  }
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::ExtractValueExpr& expr) const  {
+	MiniMC::BV64 offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
+	    [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
+	      MiniMC::Support::Error<MiniMC::BV64> {}
+	  },
+	  expr.offset()
+	  );
+	for (auto aggregate : MEval (expr.aggregate())) {
+	  typename Value::Aggregate aggr = Value::visit (MiniMC::Support::Overload {
+	      [](const typename Value::Aggregate& aggr) {return aggr;},
+	      MiniMC::Support::Error<typename Value::Aggregate> {}	
+	    },
+	    aggregate
+	    );
+	  switch (expr.getExtractType()->getTypeID()) {
+	    case MiniMC::Model::TypeID::I8:
+	      co_yield ops.template ExtractBaseValue<typename Value::I8>(aggr, offset);
+	      break;
+	    case MiniMC::Model::TypeID::I16:
+	      co_yield ops.template ExtractBaseValue<typename Value::I16>(aggr, offset);
+	      break;
+	    case MiniMC::Model::TypeID::I32:
+	      co_yield ops.template ExtractBaseValue<typename Value::I32>(aggr, offset);
+	      break;
+	    case MiniMC::Model::TypeID::I64:
+	      co_yield ops.template ExtractBaseValue<typename Value::I64>(aggr, offset);
+	      break;
+	      
+	    case MiniMC::Model::TypeID::Pointer:
+	      co_yield ops.template ExtractBaseValue<typename Value::Pointer>(aggr, offset);
+	      break;
+	    case MiniMC::Model::TypeID::Aggregate:
+	      co_yield ops.ExtractAggregateValue(aggr, offset, expr.getExtractType()->getSize());
+	      break;
+	    default:
+	      throw MiniMC::Support::Exception("Invalid Extract");
+	    }
+	}
+      }
+
       
       std::generator<Value> operator() (const MiniMC::Model::PtrSubExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {

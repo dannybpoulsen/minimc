@@ -256,7 +256,7 @@ namespace MiniMC {
 	  },
 	  *content.offset);
 	
-        if constexpr (op == MiniMC::Model::VMInstructionCode::InsertValue) {
+        /*if constexpr (op == MiniMC::Model::VMInstructionCode::InsertValue) {
           for (auto aggr : eval.MEval (*content.aggregate)) {
 	    for (auto value : eval.MEval (*content.insertee)) {
 	      auto nstate = state->lcopy();
@@ -275,9 +275,9 @@ namespace MiniMC {
 	      co_yield nstate;
 	    }
 	  }
-        }
+	  }
 	
-        else if constexpr (op == MiniMC::Model::VMInstructionCode::ExtractValue) {
+	  else if constexpr (op == MiniMC::Model::VMInstructionCode::ExtractValue) {
 	  for (auto aggregate : eval.MEval (*content.aggregate)) {
 	    typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
 		[](const typename T::Aggregate& aggr) {return aggr;},
@@ -312,14 +312,14 @@ namespace MiniMC {
 	    co_yield nstate;
 	  }
 	}
-	else
+	else */
           throw NotImplemented<op>();
 	
 	
       }
       
       };
-
+       
     template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
     template<VMState<Value> State>
     std::generator<std::shared_ptr<State>> Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,

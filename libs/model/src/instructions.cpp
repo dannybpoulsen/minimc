@@ -45,9 +45,9 @@ namespace MiniMC {
 	  return os;
 	}
 
-	else if constexpr ( i == VMInstructionCode::ExtractValue) {
+	/*else if constexpr ( i == VMInstructionCode::ExtractValue) {
 	  return os << *content.res << " = " << VMInstructionCode::ExtractValue << " " << *content.res->getType () << " " << *content.aggregate << " "  << *content.offset;
-	}
+	  }*/
 
 	else if constexpr ( i == VMInstructionCode::Assign) {
 	  return os << *content.res << " = " << *content.op1;
@@ -60,9 +60,6 @@ namespace MiniMC {
 	  
 	}
 	
-	else if constexpr ( i == VMInstructionCode::InsertValue) {
-	  return os << *content.res << " = " << VMInstructionCode::InsertValue << " " << *content.insertee->getType () << " " << *content.aggregate << " "  << *content.offset << " " << *content.insertee;
-	}
 	
 	else if constexpr ( i == VMInstructionCode::Uniform) {
 	  return os << VMInstructionCode::Uniform;
