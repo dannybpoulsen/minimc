@@ -83,8 +83,7 @@ namespace MiniMC {
       void Compiler::visitDerefExpression (const Whiley::DerefExpression& a)  {
 	a.getMem().accept (*this);
 	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ones = MiniMC::Model::I64Integer::make(1);//,MiniMC::Model::TypeID::I64);
-	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
+	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc); 
 	
 	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,MiniMC::Model::I8Type::get());
       }
@@ -266,8 +265,7 @@ namespace MiniMC {
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	a.getMemLoc().accept (*this);
 	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ones = MiniMC::Model::I64Integer::make(1);//cfac->makeIntegerConstant (1,MiniMC::Model::TypeID::I64);
-	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc,ones); 
+	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc); 
 	a.getExpression ().accept (*this);
 
 	builder.addInstr<MiniMC::Model::InstructionCode::Store> (_internal->heap_mem,_internal->heap_mem,ptr,_internal->expr);

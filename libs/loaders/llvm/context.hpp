@@ -371,8 +371,8 @@ namespace MiniMC {
 	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrSub>(
 	     context.getStackPointer(),
 	     context.getStackPointer(),
-	     skipsize,
-	     size
+	     std::make_shared<MiniMC::Model::MulExpr>(skipsize,
+						     size)
 	   );
 	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
 	     res,
@@ -420,8 +420,8 @@ namespace MiniMC {
 	gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>(
 									 result,
 									 address,
-									  skipsize,
-									  nbSkips);
+									 std::make_shared<MiniMC::Model::MulExpr>(skipsize,
+														  nbSkips));
 	
       }
 	//createInstruction<MiniMC::Model::InstructionCode::Alloc> (inst,gather);

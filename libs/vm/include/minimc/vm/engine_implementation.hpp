@@ -132,10 +132,10 @@ namespace MiniMC {
 	      function = solver.eval (ff);
 	      T::visit (MiniMC::Support::Overload {
 		  [this,&state](T::Pointer l,T::Pointer r) { 
-		    addAssumption (*state,operations.PtrEq (l,r));
+		    addAssumption (*state,operations.Eq (castPtrToAppropriateInteger(l),castPtrToAppropriateInteger(r)));
 		  },
 		  [this,&state](T::Pointer32 l,T::Pointer32 r) { 
-		    addAssumption (*state,operations.PtrEq (operations.Ptr32ToPtr(l),operations.Ptr32ToPtr(r)));
+		    addAssumption (*state,operations.Eq (castPtrToAppropriateInteger(l),castPtrToAppropriateInteger(r)));
 		  },
 		  MiniMC::Support::Error<void>{}
 		    

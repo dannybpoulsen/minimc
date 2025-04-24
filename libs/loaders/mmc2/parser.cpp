@@ -319,6 +319,10 @@ namespace MiniMC {
 	if (opcode == MiniMC::Model::InstructionCode::Store) {
 	  params = std::vector<MiniMC::Model::Value_ptr> {heap_var,heap_var,params.at(0),params.at(1)};
 	}
+	if (opcode == MiniMC::Model::InstructionCode::PtrAdd ||
+	    opcode == MiniMC::Model::InstructionCode::PtrSub) {
+	  params = std::vector<MiniMC::Model::Value_ptr> {params.at(0),params.at(1),std::make_shared<MiniMC::Model::MulExpr>(params.at(2),params.at(3))};
+	}
 	expect (NEWLINE);
 	return MiniMC::Model::makeInstruction (opcode,params);
       }

@@ -157,10 +157,7 @@ namespace MiniMC {
           return performOp<MiniMC::Host::CMP::NEQ>(l.getValue(), r.getValue());
         }
 
-        Value::Bool PtrEq(const Value::Pointer& xx, const Value::Pointer& yy) {
-          return typename Value::Bool(yy.getValue() == xx.getValue());
-        }
-
+        
         template <class T>
         Value::Pointer PtrAdd(const Value::Pointer& p, const T& t) const {
           return p.getValue().add( t.getValue());

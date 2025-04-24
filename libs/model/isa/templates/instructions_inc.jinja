@@ -219,7 +219,12 @@ template<VMInstructionCode>
 
     const std::unordered_map<std::string,MiniMC::Model::InstructionCode> str2opcode = {
     	  {%for i in ISA.getInstructions() %} { "{{i.getName()}}",  MiniMC::Model::InstructionCode::{{i.getName()}} } {%if not loop.last %},{%endif%}
-	  {% endfor %}
+	  {% endfor %},
+	  {"SGE",MiniMC::Model::InstructionCode::SGe},
+	  {"SLE",MiniMC::Model::InstructionCode::SLe},
+	  {"UGE",MiniMC::Model::InstructionCode::UGe},
+	  {"ULE",MiniMC::Model::InstructionCode::ULe},
+	  
 	  };
 	  
 

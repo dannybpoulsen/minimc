@@ -3,6 +3,7 @@
 
 #include "minimc/model/types.hpp"
 #include "minimc/hash/hashing.hpp"
+#include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/vm/vmt.hpp"
 
@@ -19,7 +20,8 @@ namespace MiniMC {
 	}
 
 	MiniMC::VMT::TriBool boolState () const {return MiniMC::VMT::TriBool::Unk;}
-	
+
+	auto getValue() const {return value;}
 	
       private:
 	MiniMC::Model::Value_ptr value;
@@ -49,7 +51,26 @@ namespace MiniMC {
 	  return builder.get();
         }
 
+	template<class T>
+	Value::Pointer PtrAdd (const Value::Pointer& p, const T& l) const requires MiniMC::VMT::Integer<Value,T> {
+	  MiniMC::Model::ExpressionBuilder builder;
+	  builder << p.getValue()
+		  << l.getValue();
+	  builder.PtrAdd();
+	  return builder.get();
+        
+	}
 
+	template<class T>
+	Value::Pointer PtrSub (const Value::Pointer& p, const T& l) const requires MiniMC::VMT::Integer<Value,T> {
+	  MiniMC::Model::ExpressionBuilder builder;
+	  builder << p.getValue()
+		  << l.getValue();
+	  builder.PtrSub();
+	  return builder.get();
+	}
+
+	
 #define OPS					\
 	X(Add)					\
 	X(Sub)					\
@@ -87,8 +108,9 @@ namespace MiniMC {
 	X(ULt)						\
 	X(ULe)						\
 	X(Eq)						\
-	X(NEq)
-	
+	X(NEq)						\
+
+
 #define X(NN)                                   \
 	template <typename T>						\
 	Value::Bool NN(const T& l, const T& r) const  requires MiniMC::VMT::Integer<Value, T>{ \
@@ -99,6 +121,28 @@ namespace MiniMC {
 	}
 	
 	OPS
+	
+#undef OPS
+#undef X
+
+#define OPS					\
+	X(Not)					\
+	X(LogNot)					\
+
+#define X(NN)					\
+	template<typename T>						\
+	Value::Bool NN(const T& l) const  requires MiniMC::VMT::Integer<Value, T>{ \
+	  MiniMC::Model::ExpressionBuilder builder;			\
+	  builder << l.getValue();					\
+	  builder.NN();							\
+	  return Value::Bool{builder.get()};				\
+	}
+
+	OPS
+#undef OPS
+#undef X
+
+	
 	
 	
       };

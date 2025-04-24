@@ -406,6 +406,19 @@ default:
        }
        {%endfor%}    
 
+       void PtrAdd () {
+      	   auto r = stack.top();stack.pop ();
+	   auto l = stack.top();stack.pop ();
+	   stack.push(std::make_shared<PtrAddExpr>(l,r));
+       }
+
+       void PtrSub () {
+      	   auto r = stack.top();stack.pop ();
+	   auto l = stack.top();stack.pop ();
+	   stack.push(std::make_shared<PtrSubExpr>(l,r));
+       }
+       
+
        void Load () {
        	    auto addr = stack.top();stack.pop();
 	    auto mem = stack.top();stack.pop();
@@ -431,7 +444,7 @@ default:
        {%endfor%}    
 
      {%for N in all_unary_ops %}
-      void {{N.getName()}} () {
+           void {{N.getName()}} () {
       	   auto f = stack.top();stack.pop ();
 	   stack.push(std::make_shared<{{N.getName()}}Expr>(f));	
        }

@@ -496,28 +496,26 @@ OPSI
 
       Value operator() (const MiniMC::Model::PtrAddExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
-	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
-	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    return  ops.PtrAdd(ptr, totalskip);
+	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return  ops.PtrAdd(ptr, skipsize);
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}
 	};
 	
-	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()),Eval(load.nbSkips()));
+	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()));
       }
 
       Value operator() (const MiniMC::Model::PtrSubExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
-	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
-	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    return ops.PtrSub(ptr, totalskip);
+	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return ops.PtrSub(ptr, skipsize);
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}
 	};
 	
-	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()),Eval(load.nbSkips()));
+	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()));
       }
       
       template<class T>
@@ -940,9 +938,8 @@ OPSI
       
       std::generator<Value> operator() (const MiniMC::Model::PtrAddExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
-	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
-	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    return  ops.PtrAdd(ptr, totalskip);
+	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return  ops.PtrAdd(ptr, skipsize);
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}
@@ -950,10 +947,8 @@ OPSI
 
 	for (auto ptr : MEval (load.ptr())) {
 	  for (auto skipsize : MEval (load.skipsize())) {
-	    for (auto nbskips : MEval (load.nbSkips ())) {
-	      co_yield Value::visit (visitor,ptr,skipsize,nbskips);
-	      
-	    }
+	      co_yield Value::visit (visitor,ptr,skipsize);  
+	    
 	  }
 	}
 	
@@ -963,9 +958,8 @@ OPSI
       
       std::generator<Value> operator() (const MiniMC::Model::PtrSubExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
-	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize,ValT& nbskips)->Value requires Integer<Value,ValT> {
-	    auto totalskip = ops.Mul(skipsize, nbskips);
-	    return ops.PtrSub(ptr, totalskip);
+	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return ops.PtrSub(ptr, skipsize);
 	    
 	  },
 	  MiniMC::Support::Error<Value>{}
@@ -973,9 +967,8 @@ OPSI
 
 	for (auto ptr : MEval(load.ptr())) {
 	  for (auto skipsize : MEval(load.skipsize ())) {
-	    for (auto nbskips : MEval (load.nbSkips())) {
-	      co_yield Value::visit (visitor,ptr,skipsize,nbskips);
-	    }
+	    co_yield Value::visit (visitor,ptr,skipsize);
+	    
 	  }
 	}
 	  

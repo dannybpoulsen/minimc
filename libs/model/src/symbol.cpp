@@ -21,7 +21,6 @@ namespace MiniMC {
       
       std::ostream& output (std::ostream& os) const {
 	if (parent ) {
-	  
 	  return parent->output (os) << delim << name;
 	  
 	}
