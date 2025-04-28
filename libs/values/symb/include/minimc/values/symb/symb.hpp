@@ -10,7 +10,7 @@
 namespace MiniMC {
   namespace Values {
     namespace Symb {
-      template<MiniMC::Model::TypeID> 
+      template<MiniMC::Model::TypeID TID> 
       class TValue : public MiniMC::Hash::RandomHash  {
       public:
 	TValue (MiniMC::Model::Value_ptr&& v) : value(std::move(v)) {}
@@ -22,7 +22,7 @@ namespace MiniMC {
 	MiniMC::VMT::TriBool boolState () const {return MiniMC::VMT::TriBool::Unk;}
 
 	auto getValue() const {return value;}
-	
+	static constexpr MiniMC::Model::TypeID tid ()  {return TID;}
       private:
 	MiniMC::Model::Value_ptr value;
       };
@@ -41,7 +41,24 @@ namespace MiniMC {
 					    TValue<MiniMC::Model::TypeID::Memory>
 					    >;
       
+	template<MiniMC::Model::TypeID To>
+	struct IntegerTypeConverter {
+	  MiniMC::Model::Type_ptr get() const {return MiniMC::Model::VoidType::get();}
+	};
 
+      template<>
+      MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I8>::get() const {return MiniMC::Model::I8Type::get();}
+
+      template<>
+      MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I16>::get() const {return MiniMC::Model::I16Type::get();}
+
+      template<>
+      MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I32>::get() const {return MiniMC::Model::I32Type::get();}
+
+      template<>
+      MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I64>::get() const {return MiniMC::Model::I64Type::get();}
+      
+      
       class Operations {
 	template <typename T>
         T Not(const T& l) const requires MiniMC::VMT::Integer<Value,T> {
@@ -141,10 +158,80 @@ namespace MiniMC {
 	OPS
 #undef OPS
 #undef X
+	
+	Value::Aggregate ExtractAggregateValue(const Value::Aggregate& value, const MiniMC::BV64 offset, std::size_t size) const  {
+	  MiniMC::Model::ExpressionBuilder builder;	\
+	  builder << value.getValue() << MiniMC::Model::I64Integer::make(offset) << MiniMC::Model::AggregateType::get(size);
+	  builder.ExtractValue();
+	  return builder.get();
+	  
+	}
+
+        template <class T>
+        Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee)  const requires (!MiniMC::VMT::MemoryC<Value,T>) {
+	  MiniMC::Model::ExpressionBuilder builder;	\
+	  builder << aggrvalue.getValue() << MiniMC::Model::I64Integer::make(offset) << insertee.getValue();
+	  builder.InsertValue();
+	  return builder.get ();
+	}
+	
+	Value::Aggregate InsertAggregateValue(const Value::Aggregate& aggr, const MiniMC::BV64 offset, const Value::Aggregate& insertee) const {
+	  MiniMC::Model::ExpressionBuilder builder;			\
+	  builder << aggr.getValue() << MiniMC::Model::I64Integer::make(offset) << insertee.getValue();
+	  builder.InsertValue();
+	  return builder.get ();
+	  
+	}
 
 	
+#define OPS						\
+	X(ZExt)						\
+	X(SExt)						\
+	X(Trunc)					\
 	
+#define X(NN)								\
+	template<MiniMC::Model::TypeID To,class T>			\
+	TValue<To> NN(const T& l) const  requires MiniMC::VMT::Integer<Value, T>{ \
+	  MiniMC::Model::ExpressionBuilder builder;			\
+	  builder << l.getValue() << IntegerTypeConverter<To>::get();	\
+	  builder.NN ();						\
+	  return TValue<To> {builder.get()};				\
+	}
 	
+	OPS
+#undef OPS
+#undef X
+
+	
+
+	template<class T>						
+	T PtrToInt(const Value::Pointer& l) const  requires MiniMC::VMT::Integer<Value, T>{ 
+	  MiniMC::Model::ExpressionBuilder builder;			
+	  builder << l.getValue() << IntegerTypeConverter<T::tid()>::get();	
+	  builder.PtrToInt ();						
+	  return T {builder.get()};				
+	}
+
+	template <class T>
+        T Ptr32ToInt(const Value::Pointer32& l) const {
+	  MiniMC::Model::ExpressionBuilder builder;			
+	  builder << l.getValue() << MiniMC::Model::I32Type::get();
+	  builder.BitCast ();
+	  builder << IntegerTypeConverter<T::tid()>::get();
+	  if constexpr (T::tid() == MiniMC::Model::TypeID::I64) {
+	    builder.ZExt();
+	    return builder.get();
+	  }
+	  else if constexpr (T::Tid() == MiniMC::Model::TypeID::I32)
+	    return builder.get();
+	  else {
+	    builder.Trunc();
+	    return builder.get();
+	  }
+	  
+	}
+
+
       };
       
     }

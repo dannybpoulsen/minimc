@@ -462,6 +462,7 @@ default:
 	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<LoadExpr> (mem,addr,type));
        }
+       
 
        void Store () {
        	    auto storee = stack.top();stack.pop();
@@ -470,6 +471,20 @@ default:
 	    
 	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<StoreExpr> (mem,addr,storee));
+       }
+
+       void InsertValue () {
+       	    auto insertee = stack.top();stack.pop();
+	    auto offset = stack.top();stack.pop();
+	    auto aggr = stack.top();stack.pop();
+	    stack.push(std::make_shared<InsertValueExpr> (aggr,offset,insertee));
+       }
+
+       void ExtractValue () {
+       	    auto offset = stack.top();stack.pop();
+	    auto aggr = stack.top();stack.pop();
+	    auto type = types.top();types.pop();
+	    stack.push(std::make_shared<ExtractValueExpr> (aggr,offset,type));
        }
 
       {%for N in cast_ops %}

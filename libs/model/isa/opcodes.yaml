@@ -394,7 +394,7 @@ Aggregate:
       t2:
         - Aggregate
       t3:
-        - BV64
+        - Integer
     vm: False
     assign_convertible: True
     template_construction:
@@ -458,12 +458,12 @@ Cast:
         type: t2
     types:
       t1:
-        - Integer
+        - Any
       t2:
-        - Integer
-    vm: True
+        - Any
+    vm: False
     size_constraints: BW(t2) == BW(t1)
-    
+    assign_convertible: True
     
   zext:
     opcode: ZExt

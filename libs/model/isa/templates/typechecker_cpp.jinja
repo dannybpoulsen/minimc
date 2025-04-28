@@ -196,7 +196,7 @@ namespace MiniMC {
     ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Bool)
   {%elif k =="Pointer" %}
     ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Pointer )
-  {%elif ok == "Pointe32" %}
+  {%elif ok == "Pointer32" %}
     ({{t.getName()}}->getTypeID () == MiniMC::Model::TypeID::Pointer32)
   {%else %}
     true
@@ -749,11 +749,11 @@ namespace MiniMC {
 	  return true;
         }*/
         
-        else if constexpr (i == VMInstructionCode::BitCast) {
+	/*else if constexpr (i == VMInstructionCode::BitCast) {
           MiniMC::Support::Localiser warning("TypeCheck not fully implemented for '%1%'");
 	  messager << MiniMC::Support::TWarning {warning.format(i)};
           return true;
-        }
+        }*/
 
         else if constexpr (i == VMInstructionCode::Uniform) {
 	  auto& content = tinst.getOps ();
