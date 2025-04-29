@@ -2,6 +2,7 @@
 #define _VM_CONCRETE_OPS__
 
 #include "minimc/host/operataions.hpp"
+#include "minimc/support/exceptions.hpp"
 #include "minimc/values/concrete/value.hpp"
 
 namespace MiniMC {
@@ -212,56 +213,7 @@ namespace MiniMC {
           return BoolValue(t.getValue());
         }
 
-        template <class T>
-        Value::Pointer IntToPtr(const T& t) const {
-	  Value::Pointer::underlying_type::PtrBV n;
-	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(decltype(n))) {
-	    n = MiniMC::Host::zext<typename T::underlying_type, decltype(n)>(t.getValue());
-	  }
-	  else {
-	    n = MiniMC::Host::trunc<typename T::underlying_type, decltype(n)>(t.getValue());
-	  }
-	  return std::bit_cast<PointerValue::underlying_type>(n);
-	}
-
-	template <class T>
-        T PtrToInt(const Value::Pointer& t) const  {
-	  typename T::underlying_type n;
-	  auto ptrval = std::bit_cast<Value::Pointer::underlying_type::PtrBV> (t.getValue());
-	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
-	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
-	  }
-	  else {
-	    n = MiniMC::Host::trunc<decltype(ptrval), decltype(n)>(ptrval);
-	  }
-	  return T{n};
-	}
-
-	template <class T>
-        T Ptr32ToInt(const Value::Pointer32& t) const {
-	  typename T::underlying_type n;
-	  auto ptrval = std::bit_cast<Value::Pointer32::underlying_type::PtrBV> (t.getValue());
-	  if constexpr (sizeof(typename T::underlying_type) >= sizeof(decltype(n))) {
-	    n = MiniMC::Host::zext<decltype(n),typename T::underlying_type>(ptrval);
-	  }
-	  else {
-	    n = MiniMC::Host::trunc<decltype(ptrval), decltype(n)>(ptrval);
-	  }
-	  return T{n};
-	}
-	
-	template <class T>
-        Value::Pointer32 IntToPtr32(const T& t) const {
-	  Value::Pointer32::underlying_type::PtrBV n;
-	  if constexpr (sizeof(typename T::underlying_type) <= sizeof(decltype(n))) {
-	    n = MiniMC::Host::zext<typename T::underlying_type, decltype(n)>(t.getValue());
-	  }
-	  else {
-	    n = MiniMC::Host::trunc<typename T::underlying_type, decltype(n)>(t.getValue());
-	  }
-	  return std::bit_cast<Value::Pointer32::underlying_type>(n);
-	}
-	
+        
 	
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer& p ) const  {
 	  Value::Pointer32::underlying_type p32{};
@@ -278,6 +230,37 @@ namespace MiniMC {
 	  p.offset = p32.getValue().offset;
 	  p.segment = p32.getValue().segment;
 	  return p;
+	}
+
+	template<typename To,typename From>
+	To  BitCast (const From& val) const requires (Integer<Value,To> && (Pointer<Value,From>) && sizeof(typename To::underlying_type) == sizeof(typename From::underlying_type)) {
+	  auto value = val.getValue();
+	  return {std::bit_cast<typename To::underlying_type> (value)};
+	};
+	
+	template<typename To,typename From>
+	To  BitCast (const From& val) const requires (Aggregate<Value,To> && (Integer<Value,From> || Pointer<Value,From>)) {
+	  auto value = val.getValue();
+	  return MiniMC::Util::Array {sizeof(value),reinterpret_cast<MiniMC::BV8*>(&value)};
+	};
+
+	
+	
+	template<typename To,typename From>
+	To  BitCast (const From& val) const requires (Pointer<Value,To> && Integer<Value,From> && sizeof(typename To::underlying_type) == sizeof(typename From::underlying_type)) {
+	  auto value = val.getValue();
+	  return {std::bit_cast<typename To::underlying_type> (value)};
+	}
+
+	template<typename To>
+	To  BitCast (const Value::Aggregate& val) const requires (!Aggregate<Value,To>) {
+	  auto value = val.getValue();
+	  if (value.getSize () != sizeof(To::underlying_type)) {
+	    throw MiniMC::Support::Exception {"Impropert bitcast"};
+	  }
+	  typename To::underlying_type res;
+	  std::copy(value.get_direct_access(),&res);
+	  return {std::bit_cast<typename To::underlying_type> (value)};
 	}
 	
         template <MiniMC::Model::TypeID to, typename T>

@@ -167,7 +167,6 @@ namespace MiniMC {
 	    std::string name{val->getName().str()};
 	    MiniMC::Model::Symbol symb = (name != "") ? frame.makeSymbol (name) : frame.makeFresh ();
 	    auto reg = load.getStack().addRegister(std::move(symb), type);
-	    std::cerr << "adding" << *reg << std::endl;
 	    load.addValue(val, reg);
           }
           return load.findValue(val);

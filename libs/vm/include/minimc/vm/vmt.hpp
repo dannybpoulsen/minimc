@@ -109,6 +109,9 @@ namespace MiniMC {
     template<class T,class R>
     concept Pointer = std::is_same_v<R,typename T::Pointer> || std::is_same_v<R,typename T::Pointer32>;
 
+    template<class T,class R>
+    concept Aggregate = std::is_same_v<R,typename T::Aggregate> ;
+    
     
     template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class Evaluator {
@@ -128,9 +131,9 @@ namespace MiniMC {
       template <class Castee>
       auto castPtrToAppropriateInteger(Castee&& v) const   {
         if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
-          return ops.template PtrToInt<typename Value::I64>(v);
+          return ops.template BitCast<typename Value::I64>(v);
         } else if constexpr (std::is_same_v<Castee, typename Value::Pointer32>) {
-          return ops.template Ptr32ToInt<typename Value::I32>(v);
+          return ops.template BitCast<typename Value::I32>(v);
         } else {
           return v;
         }
@@ -310,8 +313,20 @@ namespace MiniMC {
       
       Value operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
 	return Value::visit (  MiniMC::Support::Overload {
-	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {
-	      return ops.IntToPtr (v);
+	    [this]<typename T> (const  typename Value::I8& i8)->Value  {
+	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i8); 
+	      return ops.template BitCast<typename Value::Pointer> (extended);
+	    },
+	    [this]<typename T> (const  typename Value::I16& i16)->Value  {
+	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i16); 
+	      return ops.template BitCast<typename Value::Pointer> (extended);
+	    },
+	    [this]<typename T> (const  typename Value::I32& i32)->Value  {
+	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i32); 
+	      return ops.template BitCast<typename Value::Pointer> (extended);
+	    },
+	    [this]<typename T> (const  typename Value::I64& v)->Value  {
+	      return ops.template BitCast<typename Value::Pointer> (v);
 	    },
 	    MiniMC::Support::Error<Value>{}
 	  },
@@ -322,31 +337,34 @@ namespace MiniMC {
       Value operator() (const MiniMC::Model::PtrToIntExpr& sext) const  {
 	return Value::visit (  MiniMC::Support::Overload {
 	    [this,&sext](const typename Value::Pointer& val)->Value  {
+	      auto i64  = ops.template BitCast<typename Value::I64> (val);
 	      switch (sext.getToType ()->getTypeID ()) {
 	      case MiniMC::Model::TypeID::I8:
-		return ops.template PtrToInt<typename Value::I8> (val);
+		return ops.template Trunc<MiniMC::Model::TypeID::I8> (i64);
 	      case MiniMC::Model::TypeID::I16:
-		return ops.template PtrToInt<typename Value::I16> (val);
+		return ops.template Trunc<MiniMC::Model::TypeID::I16> (i64);
 	      case MiniMC::Model::TypeID::I32:
-		return ops.template PtrToInt<typename Value::I32> (val);
+		return ops.template Trunc<MiniMC::Model::TypeID::I32> (i64);
 	      case MiniMC::Model::TypeID::I64:
-		return ops.template PtrToInt<typename Value::I64> (val);
+		return i64;
 	      default:
 		std::unreachable();
 	      }
 	    },
 	      [this,&sext](const typename Value::Pointer32& val)->Value  {
-	      switch (sext.getToType ()->getTypeID ()) {
-	      case MiniMC::Model::TypeID::I8:
-		return ops.template Ptr32ToInt<typename Value::I8> (val);
-	      case MiniMC::Model::TypeID::I16:
-		return ops.template Ptr32ToInt<typename Value::I16> (val);
-	      case MiniMC::Model::TypeID::I32:
-		return ops.template Ptr32ToInt<typename Value::I32> (val);
-	      case MiniMC::Model::TypeID::I64:
-		return ops.template Ptr32ToInt<typename Value::I64> (val);
-	      default:
-		std::unreachable();
+		auto i32 = ops.template BitCast<typename Value::I32> (val);
+		
+		switch (sext.getToType ()->getTypeID ()) {
+		case MiniMC::Model::TypeID::I8:
+		  return ops.template Trunc<MiniMC::Model::TypeID::I8> (i32);
+		case MiniMC::Model::TypeID::I16:
+		  return ops.template Trunc<MiniMC::Model::TypeID::I16> (i32);
+		case MiniMC::Model::TypeID::I32:
+		  return i32;
+		case MiniMC::Model::TypeID::I64:
+		  return ops.template ZExt<MiniMC::Model::TypeID::I64> (i32);
+		default:
+		  std::unreachable();
 	      }
 	      },
 	  
@@ -552,9 +570,9 @@ OPSI
       template <class Castee>
       auto castPtrToAppropriateInteger(Castee&& v) const   {
         if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
-          return ops.template PtrToInt<typename Value::I64>(v);
+          return ops.template BitCast<typename Value::I64>(v);
         } else if constexpr (std::is_same_v<Castee, typename Value::Pointer32>) {
-          return ops.template Ptr32ToInt<typename Value::I32>(v);
+          return ops.template BitCast<typename Value::I32>(v);
         } else {
           return v;
         }
@@ -733,14 +751,27 @@ OPSI
       
       std::generator<Value> operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
 	for (auto v : MEval (sext.getFrom ())) {
-	  co_yield Value::visit (  MiniMC::Support::Overload {
-	      [this]<typename T> (const T v)->Value requires Integer<Value,T> {
-		return ops.IntToPtr (v);
+	  co_yield 
+	    Value::visit ( MiniMC::Support::Overload {
+		[this](const  typename Value::I8& i8)->Value  {
+		  auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i8); 
+		  return ops.template BitCast<typename Value::Pointer> (extended);
+		},
+		  [this](const  typename Value::I16& i16)->Value  {
+		    auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i16); 
+		    return ops.template BitCast<typename Value::Pointer> (extended);
+		  },
+		  [this] (const  typename Value::I32& i32)->Value  {
+		    auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i32); 
+		    return ops.template BitCast<typename Value::Pointer> (extended);
+		  },
+		  [this] (const  typename Value::I64& v)->Value  {
+		    return ops.template BitCast<typename Value::Pointer> (v);
+		  },
+		  MiniMC::Support::Error<Value>{}
 	      },
-	    MiniMC::Support::Error<Value>{}
-	    },
-	    v
-	    );
+	      v
+	      );
 	}
       }
 
@@ -748,29 +779,32 @@ OPSI
 	for (auto v : MEval (sext.getFrom ())) {
 	  co_yield Value::visit (  MiniMC::Support::Overload {
 	      [this,&sext](const typename Value::Pointer& val)->Value  {
+		auto i64 = ops.template BitCast<typename Value::I64> (val);
 		switch (sext.getToType ()->getTypeID ()) {
 		case MiniMC::Model::TypeID::I8:
-		  return ops.template PtrToInt<typename Value::I8> (val);
+		  return ops.template Trunc<MiniMC::Model::TypeID::I8> (i64);
 		case MiniMC::Model::TypeID::I16:
-		  return ops.template PtrToInt<typename Value::I16> (val);
+		  return ops.template Trunc<MiniMC::Model::TypeID::I16> (i64);
 		case MiniMC::Model::TypeID::I32:
-		  return ops.template PtrToInt<typename Value::I32> (val);
+		  return ops.template Trunc<MiniMC::Model::TypeID::I32> (i64);
 		case MiniMC::Model::TypeID::I64:
-		  return ops.template PtrToInt<typename Value::I64> (val);
+		  return i64;
 		default:
 		  std::unreachable();
 		}
 	      },
 		[this,&sext](const typename Value::Pointer32& val)->Value  {
+		  auto i32 = ops.template BitCast<typename Value::I32> (val);
+		  
 		  switch (sext.getToType ()->getTypeID ()) {
 		  case MiniMC::Model::TypeID::I8:
-		    return ops.template Ptr32ToInt<typename Value::I8> (val);
+		    return ops.template Trunc<MiniMC::Model::TypeID::I8> (i32);
 		  case MiniMC::Model::TypeID::I16:
-		    return ops.template Ptr32ToInt<typename Value::I16> (val);
+		    return ops.template Trunc<MiniMC::Model::TypeID::I16> (i32);
 		  case MiniMC::Model::TypeID::I32:
-		    return ops.template Ptr32ToInt<typename Value::I32> (val);
+		    return i32;
 		  case MiniMC::Model::TypeID::I64:
-		    return ops.template Ptr32ToInt<typename Value::I64> (val);
+		    return ops.template ZExt<MiniMC::Model::TypeID::I64> (i32);
 		  default:
 		    std::unreachable();
 		  }

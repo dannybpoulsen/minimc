@@ -51,9 +51,9 @@ namespace MiniMC {
       template <class Value>
       auto castPtrToAppropriateInteger(const Value& v) {
         if constexpr (std::is_same_v<Value, typename T::Pointer>) {
-          return operations.template PtrToInt<typename T::I64>(v);
+          return operations.template BitCast<typename T::I64>(v);
         } else if constexpr (std::is_same_v<Value, typename T::Pointer32>) {
-          return operations.template Ptr32ToInt<typename T::I32>(v);
+          return operations.template BitCast<typename T::I32>(v);
         } else {
           return v;
         }
@@ -256,63 +256,7 @@ namespace MiniMC {
 	  },
 	  *content.offset);
 	
-        /*if constexpr (op == MiniMC::Model::VMInstructionCode::InsertValue) {
-          for (auto aggr : eval.MEval (*content.aggregate)) {
-	    for (auto value : eval.MEval (*content.insertee)) {
-	      auto nstate = state->lcopy();
-	      T::visit (MiniMC::Support::Overload {
-		  [this,&eval,&nstate,&res,&offset,id](const typename T::Aggregate& aggr,const typename T::Aggregate& value) {
-		    nstate->makeEvaluationContext(id).saveValue(res, operations.template InsertAggregateValue(aggr, offset, value));
-		      },
-		    [this,&eval,&nstate,&res,&offset,id]<typename K>(const typename T::Aggregate& aggr,const K& value) requires (!MiniMC::VMT::MemoryC<T,K>) {
-		    nstate->makeEvaluationContext(id).saveValue(res, operations.template InsertBaseValue(aggr, offset, value));
-		  },
-		    MiniMC::Support::Error<void> {}
-		}
-		,
-		aggr,
-		value);
-	      co_yield nstate;
-	    }
-	  }
-	  }
-	
-	  else if constexpr (op == MiniMC::Model::VMInstructionCode::ExtractValue) {
-	  for (auto aggregate : eval.MEval (*content.aggregate)) {
-	    typename T::Aggregate aggr = T::visit (MiniMC::Support::Overload {
-		[](const typename T::Aggregate& aggr) {return aggr;},
-		  MiniMC::Support::Error<typename T::Aggregate> {}	
-	      },
-	      aggregate
-	      );
-	    auto nstate = state->lcopy ();
-	    switch (res.getType()->getTypeID()) {
-	    case MiniMC::Model::TypeID::I8:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I8>(aggr, offset));
-	      break;
-	    case MiniMC::Model::TypeID::I16:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I16>(aggr, offset));
-	      break;
-	    case MiniMC::Model::TypeID::I32:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I32>(aggr, offset));
-	      break;
-	    case MiniMC::Model::TypeID::I64:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::I64>(aggr, offset));
-	      break;
-	      
-	    case MiniMC::Model::TypeID::Pointer:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.template ExtractBaseValue<typename T::Pointer>(aggr, offset));
-	      break;
-	    case MiniMC::Model::TypeID::Aggregate:
-	      nstate->makeEvaluationContext(id).saveValue(res, operations.ExtractAggregateValue(aggr, offset, res.getType()->getSize()));
-	      break;
-	    default:
-	      throw MiniMC::Support::Exception("Invalid Extract");
-	    }
-	    co_yield nstate;
-	  }
-	}
-	else */
+        
           throw NotImplemented<op>();
 	
 	

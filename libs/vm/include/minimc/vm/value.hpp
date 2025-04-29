@@ -150,8 +150,8 @@ namespace MiniMC {
 				   AggregateOperation_<typename Value::I64,typename Value::Aggregate,Operation>
 				   ) ;
 
-    template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Caster>
-    concept CastOperation_ = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32) {
+    template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Aggregate,class Caster>
+    concept CastOperation_ = requires (Caster op, const I8& i8,const I16& i16, const I32& i32, const I64& i64, const Bool& b,  const Pointer& p, const Pointer32& p32, const Aggregate& aggr) {
       {op.template ZExt<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
       {op.template ZExt<MiniMC::Model::TypeID::I16> (i8)} -> std::convertible_to<I16>;
       {op.template ZExt<MiniMC::Model::TypeID::I32> (i8)} -> std::convertible_to<I32>;
@@ -201,33 +201,32 @@ namespace MiniMC {
       {op.template IntToBool<I32> (i32)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I64> (i64)} -> std::convertible_to<Bool>;
 
-      {op.template IntToPtr<I8> (i8)} -> std::convertible_to<Pointer>;
-      {op.template IntToPtr<I16> (i16)} -> std::convertible_to<Pointer>;
-      {op.template IntToPtr<I32> (i32)} -> std::convertible_to<Pointer>;
-      {op.template IntToPtr<I64> (i64)} -> std::convertible_to<Pointer>;
-      {op.template IntToPtr32<I8> (i8)} -> std::convertible_to<Pointer32>;
-      {op.template IntToPtr32<I16> (i16)} -> std::convertible_to<Pointer32>;
-      {op.template IntToPtr32<I32> (i32)} -> std::convertible_to<Pointer32>;
-      {op.template IntToPtr32<I64> (i64)} -> std::convertible_to<Pointer32>;
-
-      {op.template PtrToInt<I8> (p)} -> std::convertible_to<I8>;
-      {op.template PtrToInt<I16> (p)} -> std::convertible_to<I16>;
-      {op.template PtrToInt<I32> (p)} -> std::convertible_to<I32>;
-      {op.template PtrToInt<I64> (p)} -> std::convertible_to<I64>;
-      {op.template Ptr32ToInt<I8> (p32)} -> std::convertible_to<I8>;
-      {op.template Ptr32ToInt<I16> (p32)} -> std::convertible_to<I16>;
-      {op.template Ptr32ToInt<I32> (p32)} -> std::convertible_to<I32>;
-      {op.template Ptr32ToInt<I64> (p32)} -> std::convertible_to<I64>;
-      
       
       {op.template PtrToPtr32 (p)} -> std::convertible_to<Pointer32>;
       {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;
+      
+      {op.template BitCast<Aggregate> (i8)} -> std::convertible_to<Aggregate>;
+      {op.template BitCast<Aggregate> (i16)} -> std::convertible_to<Aggregate>;
+      {op.template BitCast<Aggregate> (i32)} -> std::convertible_to<Aggregate>;
+      {op.template BitCast<Pointer32> (i32)} -> std::convertible_to<Pointer32>;
+      {op.template BitCast<Aggregate> (i64)} -> std::convertible_to<Aggregate>;
+      {op.template BitCast<Pointer> (i64)} -> std::convertible_to<Pointer>;
+      {op.template BitCast<Aggregate> (p32)} -> std::convertible_to<Aggregate>;
+      {op.template BitCast<I32> (p32)} -> std::convertible_to<I32>;
+      {op.template BitCast<I64> (p)} -> std::convertible_to<I64>;
+      {op.template BitCast<I8> (aggr)} -> std::convertible_to<I8>;
+      {op.template BitCast<I16> (aggr)} -> std::convertible_to<I16>;
+      {op.template BitCast<I32> (aggr)} -> std::convertible_to<I32>;
+      {op.template BitCast<I64> (aggr)} -> std::convertible_to<I64>;
+      {op.template BitCast<Pointer32> (aggr)} -> std::convertible_to<Pointer32>;
+      {op.template BitCast<Pointer> (aggr)} -> std::convertible_to<Pointer>;
+      
       
     };
 
     template<class T,class Operation>
     concept CastOperation = CastOperation_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
-					     typename T::Bool,typename T::Pointer,typename T::Pointer32,Operation>;
+					   typename T::Bool,typename T::Pointer,typename T::Pointer32,typename T::Aggregate,Operation>;
     
 
         template<class Creato,class Res>

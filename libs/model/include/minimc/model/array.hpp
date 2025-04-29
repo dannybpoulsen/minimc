@@ -17,7 +17,7 @@ namespace MiniMC {
       Array(size_t s) : buffer(new MiniMC::BV8[s]), size(s) {
         std::fill(buffer.get(), buffer.get() + size, 0);
       }
-
+      
       Array(std::span<const MiniMC::BV8> span ) : buffer(new MiniMC::BV8[span.size()]), size(span.size()) {
 	std::copy(span.begin(),span.end(),buffer.get());
       }

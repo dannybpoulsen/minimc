@@ -159,7 +159,18 @@ namespace MiniMC {
 
 	template<class T>
 	T Ptr32ToInt (const Value::Pointer32&) const;
-	
+
+	template<typename To,typename From>
+	To  BitCast (const From& val) const   {
+	  auto term = val.getTerm();
+	  return {std::move(term)};
+	}
+
+	template<typename To,typename From>
+	To  BitCast (const From& val) const requires Aggregate<Value,To>  {
+	  auto term = val.getTerm();
+	  return {std::move(term),val.size()};
+	}
 	
 	
 	template <MiniMC::Model::TypeID to, class T>
