@@ -1,6 +1,7 @@
 #ifndef _VM_PATHFORMULA_VALUES__
 #define _VM_PATHFORMULA_VALUES__
 
+#include "minimc/model/types.hpp"
 #include "minimc/vm/vmt.hpp"
 #include "minimc/hash/hashing.hpp"
 #include <memory>
@@ -17,7 +18,7 @@ namespace MiniMC {
     namespace Pathformula {
 
       
-      template <typename v>
+      template <typename v,MiniMC::Model::TypeID>
       class TValue : public MiniMC::Hash::RandomHash{
       public:
         TValue() = default;
@@ -82,19 +83,19 @@ namespace MiniMC {
 	return os << "Mem";
       }
       
-      template <typename v>
-      auto& operator<<(std::ostream& o, const TValue<v>& val) {
+      template <typename v,MiniMC::Model::TypeID b>
+      auto& operator<<(std::ostream& o, const TValue<v,b>& val) {
         return val.output(o);
       }
 
-      using AggregateValue = TValue<MiniMC::Util::Array>;
-      using I64Value = TValue<MiniMC::BV64>;
-      using I32Value = TValue<MiniMC::BV32>;
-      using I16Value = TValue<MiniMC::BV16>;
-      using I8Value = TValue<MiniMC::BV8>;
-      using BoolValue = TValue<bool>;
-      using PointerValue = TValue<MiniMC::Model::pointer64_t>;
-      using Pointer32Value = TValue<MiniMC::Model::pointer32_t>;
+      using AggregateValue = TValue<MiniMC::Util::Array,MiniMC::Model::TypeID::Aggregate>;
+      using I64Value = TValue<MiniMC::BV64,MiniMC::Model::TypeID::I64>;
+      using I32Value = TValue<MiniMC::BV32,MiniMC::Model::TypeID::I32>;
+      using I16Value = TValue<MiniMC::BV16,MiniMC::Model::TypeID::I16>;
+      using I8Value = TValue<MiniMC::BV8,MiniMC::Model::TypeID::I8>;
+      using BoolValue = TValue<bool,MiniMC::Model::TypeID::Bool>;
+      using PointerValue = TValue<MiniMC::Model::pointer64_t,MiniMC::Model::TypeID::Pointer>;
+      using Pointer32Value = TValue<MiniMC::Model::pointer32_t,MiniMC::Model::TypeID::Pointer32>;
       
       using Value = MiniMC::VMT::GenericVal<I8Value,
 					    I16Value,
@@ -111,9 +112,9 @@ namespace MiniMC {
 } // namespace MiniMC
 
 namespace std {
-  template <typename T>
-  struct hash<MiniMC::VMT::Pathformula::TValue<T>> {
-    auto operator()(const MiniMC::VMT::Pathformula::TValue<T>& t) { return t.hash ();}//return bit_cast<MiniMC::Hash::hash_t>(&t); }
+  template <typename T,MiniMC::Model::TypeID id>
+  struct hash<MiniMC::VMT::Pathformula::TValue<T,id>> {
+    auto operator()(const MiniMC::VMT::Pathformula::TValue<T,id>& t) { return t.hash ();}//return bit_cast<MiniMC::Hash::hash_t>(&t); }
   };
 
   template <>

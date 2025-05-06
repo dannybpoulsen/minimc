@@ -105,6 +105,7 @@ prgm : START_SIMULATION {context.builder.startSimulation ();} |
     context.builder.skip();
   }
        } |
+       SYMBOLIC {context.builder.makeSymbolic();} | 
        CEVAL proc_expr {context.builder.evalExpression (context.ebuilder.get());} |
        SEVAL proc_expr {context.builder.sevalExpression (context.ebuilder.get());}|
        

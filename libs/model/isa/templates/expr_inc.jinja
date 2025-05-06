@@ -130,7 +130,30 @@ private	:
 	MiniMC::Model::Value_ptr addr_expr;
 	MiniMC::Model::Value_ptr _storee;
     };
-    
+
+    class PtrToPtr32Expr : public Value{
+    public:
+	PtrToPtr32Expr (MiniMC::Model::Value_ptr l);
+    	auto& conv () {return *_conv;}
+	const auto& conv () const {return *_conv;}
+	 std::ostream& output(std::ostream& os) const override {
+    	 	return os << "(PtrToPtr32 "  << *_conv <<  ")";
+      }	
+	private:
+	MiniMC::Model::Value_ptr _conv;
+    };   
+
+    class Ptr32ToPtrExpr : public Value {
+    public:
+	Ptr32ToPtrExpr (MiniMC::Model::Value_ptr l);
+    	auto& conv () {return *_conv;}
+		const auto& conv () const {return *_conv;}	
+	std::ostream& output(std::ostream& os) const override {
+    	 	return os << "(Ptr32ToPtr "  << *_conv << ")";
+      }	
+		private:
+	MiniMC::Model::Value_ptr _conv;
+    };  
 
     using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
@@ -206,6 +229,8 @@ private	:
 			  SymbolicConstant,
 			  LoadExpr,
 			  StoreExpr,
+			  Ptr32ToPtrExpr,
+			  PtrToPtr32Expr,
 			  ExtractValueExpr,
 			  			  /*InsertValueExpr,*/
 			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
@@ -246,6 +271,10 @@ private	:
     inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),mem_expr(mem),to_type(to) {}
 
     inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo<StoreExpr>::type_t ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
+
+    inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo<Ptr32ToPtrExpr>::type_t ()),_conv(conv) {}
+    inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo<Ptr32ToPtrExpr>::type_t ()),_conv(conv) {}
+    
 
     inline ExtractValueExpr::ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type) : Value(ValueInfo<ExtractValueExpr>::type_t()),_aggregate(aggr),_offset(off),type(type) {}
 
@@ -332,6 +361,9 @@ private	:
 				    CType<MiniMC::Model::Register,cconsts> reg,
 				    CType<MiniMC::Model::Undef,cconsts> und,
 				    CType<MiniMC::Model::SymbolicConstant,cconsts> sc,
+				    CType<Ptr32ToPtrExpr,cconsts> ptr32ptr,
+				    CType<PtrToPtr32Expr,cconsts> ptrptr32,
+				    
 				    {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}
         			    CType<MiniMC::Model::{{N.getName()}}Expr,cconsts> o{{loop.index}} {%if not loop.last %}, {%endif%}
 				    {%endfor%}
@@ -347,6 +379,9 @@ private	:
       {e(reg)}->std::convertible_to<Res>;
       {e(und)}->std::convertible_to<Res>;
       {e(sc)}->std::convertible_to<Res>;
+      {e(ptr32ptr)}->std::convertible_to<Res>;
+      {e(ptrptr32)}->std::convertible_to<Res>;
+      
       {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}{e(o{{loop.index}}) }->std::convertible_to<Res>;
            {%endfor%}
     
@@ -400,7 +435,10 @@ private	:
 	break;
      case ValueInfo<StoreExpr>::type_t ():
 	return f (static_cast<CType<StoreExpr,c>&> (v));
-	break;
+     case ValueInfo<Ptr32ToPtrExpr>::type_t ():
+	return f (static_cast<CType<Ptr32ToPtrExpr,c>&> (v));
+       case ValueInfo<PtrToPtr32Expr>::type_t ():
+	return f (static_cast<CType<PtrToPtr32Expr,c>&> (v));
 	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
        	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
 	     break;
@@ -454,7 +492,16 @@ default:
 	   auto l = stack.top();stack.pop ();
 	   stack.push(std::make_shared<PtrSubExpr>(l,r));
        }
-       
+
+       void Ptr32ToPtr () {
+      	   auto l = stack.top();stack.pop ();
+	   stack.push(std::make_shared<Ptr32ToPtrExpr>(l));
+       }
+
+       void PtrToPtr32 () {
+      	   auto l = stack.top();stack.pop ();
+	   stack.push(std::make_shared<PtrToPtr32Expr>(l));
+       }
 
        void Load () {
        	    auto addr = stack.top();stack.pop();

@@ -8,7 +8,7 @@ namespace MiniMC {
     namespace Pathformula {
       
       template <MiniMC::Model::TypeID to>
-      typename RetTyp<Value,to>::type Operations::BoolZExt(const BoolValue& val) const {
+      typename RetTyp<Value,to>::type Operations::ZExt(const BoolValue& val) const {
         constexpr std::size_t bitsize = MiniMC::Model::BitWidth<to>;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(1, bitsize);
@@ -16,7 +16,7 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::TypeID to>
-      typename RetTyp<Value,to>::type Operations::BoolSExt(const BoolValue& val) const { 
+      typename RetTyp<Value,to>::type Operations::SExt(const BoolValue& val) const { 
         constexpr std::size_t bitsize = MiniMC::Model::BitWidth<to>;
         auto zeros = builder.makeBVIntConst(0, bitsize);
         auto ones = builder.makeBVIntConst(~0, bitsize);
@@ -33,55 +33,7 @@ namespace MiniMC {
         return builder.buildTerm(SMTLib::Ops::ITE, {eq, ff,tt});
       }
 
-      template <class T>
-      Value::Pointer Operations::IntToPtr(const T& t)  const{
-	constexpr std::size_t ptrsize = PointerValue::intbitsize ();
-	constexpr std::size_t tsize = T::intbitsize ();
-	if constexpr (ptrsize >= tsize) {
-	  return builder.buildTerm (SMTLib::Ops::ZExt,{t.getTerm()},{ptrsize - tsize});
-	}
-	
-	return builder.buildTerm (SMTLib::Ops::Extract,{t.getTerm()},{ptrsize-1,0});
       
-
-      }
-
-      template <class T>
-      T Operations::PtrToInt(const typename Value::Pointer& ptr) const {
-	constexpr std::size_t ptrsize = Value::Pointer::intbitsize ();
-	constexpr std::size_t tsize = T::intbitsize ();
-	if constexpr (ptrsize < tsize) {
-	  return builder.buildTerm (SMTLib::Ops::ZExt,{ptr.getTerm()},{tsize - ptrsize});
-	}
-	
-	return builder.buildTerm (SMTLib::Ops::Extract,{ptr.getTerm()},{tsize-1,0});
-      
-
-      }
-
-      template <class T>
-      T Operations::Ptr32ToInt(const typename Value::Pointer32& ptr)  const{
-	constexpr std::size_t ptrsize =  Value::Pointer32::intbitsize ();
-	constexpr std::size_t tsize = T::intbitsize ();
-	if constexpr (ptrsize < tsize) {
-	  return builder.buildTerm (SMTLib::Ops::ZExt,{ptr.getTerm()},{tsize - ptrsize});
-	}
-	
-	return builder.buildTerm (SMTLib::Ops::Extract,{ptr.getTerm()},{tsize-1,0});
-      
-
-      }
-      
-      template <class T>
-      Value::Pointer32 Operations::IntToPtr32(const T& t) const{
-	constexpr std::size_t ptrsize = Value::Pointer32::intbitsize ();
-	constexpr std::size_t tsize = T::intbitsize ();
-	if constexpr (ptrsize >= tsize) {
-	  return builder.buildTerm (SMTLib::Ops::ZExt,{t.getTerm()},{ptrsize - tsize});
-	}
-	return builder.buildTerm (SMTLib::Ops::Extract,{t.getTerm()},{ptrsize-1,0});
-      }
-
       Value::Pointer32 Operations::PtrToPtr32 (const typename Value::Pointer& p) const {
 	constexpr std::size_t fromsize = Value::Pointer::intbitsize ();
 
@@ -151,52 +103,33 @@ namespace MiniMC {
       }
 
       template <MiniMC::Model::TypeID to, typename T>
-      typename RetTyp<Value,to>::type Operations::ZExt(const T& t) const {
+      typename RetTyp<Value,to>::type Operations::ZExt(const T& t) const requires MiniMC::VMT::Integer<Value,T> {
         constexpr std::size_t bits = MiniMC::Model::BitWidth<to> - T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::ZExt, {t.getTerm()}, {bits});
       }
 
       template <MiniMC::Model::TypeID to, typename T>
-      typename RetTyp<Value,to>::type Operations::SExt(const T& t) const {
+      typename RetTyp<Value,to>::type Operations::SExt(const T& t) const requires MiniMC::VMT::Integer<Value,T>  {
         constexpr std::size_t bits = MiniMC::Model::BitWidth<to>  -T::intbitsize ();
         return builder.buildTerm(SMTLib::Ops::SExt, {t.getTerm()}, {bits});
       }
 
       
-      template RetTyp<Value,MiniMC::Model::TypeID::I8>::type Operations::BoolZExt<MiniMC::Model::TypeID::I8> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I16>::type Operations::BoolZExt<MiniMC::Model::TypeID::I16> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I32>::type Operations::BoolZExt<MiniMC::Model::TypeID::I32> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I64>::type Operations::BoolZExt<MiniMC::Model::TypeID::I64> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I8>::type Operations::ZExt<MiniMC::Model::TypeID::I8> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I16>::type Operations::ZExt<MiniMC::Model::TypeID::I16> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I32>::type Operations::ZExt<MiniMC::Model::TypeID::I32> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I64>::type Operations::ZExt<MiniMC::Model::TypeID::I64> (const Value::Bool&) const;
 
-      template RetTyp<Value,MiniMC::Model::TypeID::I8>::type Operations::BoolSExt<MiniMC::Model::TypeID::I8> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I16>::type Operations::BoolSExt<MiniMC::Model::TypeID::I16> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I32>::type Operations::BoolSExt<MiniMC::Model::TypeID::I32> (const Value::Bool&) const;
-      template RetTyp<Value,MiniMC::Model::TypeID::I64>::type Operations::BoolSExt<MiniMC::Model::TypeID::I64> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I8>::type Operations::SExt<MiniMC::Model::TypeID::I8> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I16>::type Operations::SExt<MiniMC::Model::TypeID::I16> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I32>::type Operations::SExt<MiniMC::Model::TypeID::I32> (const Value::Bool&) const;
+      template RetTyp<Value,MiniMC::Model::TypeID::I64>::type Operations::SExt<MiniMC::Model::TypeID::I64> (const Value::Bool&) const;
       
       template Value::Bool Operations::IntToBool<Value::I8> (const Value::I8&) const;
       template Value::Bool Operations::IntToBool<Value::I16> (const Value::I16&) const;
       template Value::Bool Operations::IntToBool<Value::I32> (const Value::I32&) const;
       template Value::Bool Operations::IntToBool<Value::I64> (const Value::I64&) const;
 
-      template Value::Pointer Operations::IntToPtr<Value::I8> (const Value::I8&) const;
-      template Value::Pointer Operations::IntToPtr<Value::I16> (const Value::I16&) const;
-      template Value::Pointer Operations::IntToPtr<Value::I32> (const Value::I32&) const;
-      template Value::Pointer Operations::IntToPtr<Value::I64> (const Value::I64&) const;
-      template Value::Pointer32 Operations::IntToPtr32<Value::I8> (const Value::I8&) const;
-      template Value::Pointer32 Operations::IntToPtr32<Value::I16> (const Value::I16&) const;
-      template Value::Pointer32 Operations::IntToPtr32<Value::I32> (const Value::I32&) const;
-      template Value::Pointer32 Operations::IntToPtr32<Value::I64> (const Value::I64&) const;
-
-      template Value::I8 Operations::PtrToInt<Value::I8> (const Value::Pointer&) const;
-      template Value::I16 Operations::PtrToInt<Value::I16> (const Value::Pointer&) const;
-      template Value::I32 Operations::PtrToInt<Value::I32> (const Value::Pointer&) const;
-      template Value::I64 Operations::PtrToInt<Value::I64> (const Value::Pointer&)const;
-
-      template Value::I8 Operations::Ptr32ToInt<Value::I8> (const Value::Pointer32&) const;
-      template Value::I16 Operations::Ptr32ToInt<Value::I16> (const Value::Pointer32&) const;
-      template Value::I32 Operations::Ptr32ToInt<Value::I32> (const Value::Pointer32&) const;
-      template Value::I64 Operations::Ptr32ToInt<Value::I64> (const Value::Pointer32&) const;
-      
       
 
       
@@ -235,7 +168,6 @@ namespace MiniMC {
       template RetTyp<Value,MiniMC::Model::TypeID::I32>::type Operations::SExt<MiniMC::Model::TypeID::I32> (const Value::I8&) const;
       template RetTyp<Value,MiniMC::Model::TypeID::I64>::type Operations::SExt<MiniMC::Model::TypeID::I64> (const Value::I8&) const;
 
-      //template Value<ValType::Pointer> Casts::Trunc (const I64Value&);
       
       
     } // namespace Pathformula

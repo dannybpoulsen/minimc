@@ -2,7 +2,7 @@
 
 add_library (smt SHARED smt.cpp)
 
-target_link_libraries (smt PUBLIC host support  smtlib)
+target_link_libraries (smt PUBLIC host support  smtlib model)
 target_include_directories (smt PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>  )
 INSTALL (TARGETS smtlib)
 

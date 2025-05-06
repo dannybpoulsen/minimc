@@ -12,7 +12,19 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-    
+  land:
+    opcode: LogAnd
+    params:
+      - name: res
+        type: t1
+      - name: op1
+        type: t1
+      - name: op2
+        type: t1
+    types:
+      t1:
+        - Bool    
+    assign_convertible: True 
   sub:
     opcode: Sub
     params:
@@ -70,7 +82,7 @@ TAC:
 
 
   Shl:
-    opcode: Shl
+    opcode: LShl
     params:
       - name: res
         type: t1
@@ -579,7 +591,7 @@ Cast:
         - Bool
     vm: False
     assign_convertible: True
-
+    
     
 Memory:
   store:

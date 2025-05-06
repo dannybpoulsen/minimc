@@ -159,7 +159,7 @@ namespace MiniMC {
       
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecTrunc (T from) const {
-	if constexpr (T::intbitsize () >= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () >= MiniMC::Model::BitWidth<To>) {
 	  return ops.template Trunc<To> (from);
 	}
 	else {
@@ -196,7 +196,7 @@ namespace MiniMC {
 
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecZExt (T from) const {
-	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
 	  return ops.template ZExt<To> (from);
 	}
 	else {
@@ -225,15 +225,15 @@ namespace MiniMC {
 	    [&zext,this](const typename Value::Bool& b) ->Value  {
 	      switch (zext.getToType()->getTypeID()) {
 	      case MiniMC::Model::TypeID::I8:
-		return ops.template BoolZExt<MiniMC::Model::TypeID::I8>(b);
+		return ops.template ZExt<MiniMC::Model::TypeID::I8>(b);
 	      case MiniMC::Model::TypeID::I16:
-		return ops.template BoolZExt<MiniMC::Model::TypeID::I16>(b);
+		return ops.template ZExt<MiniMC::Model::TypeID::I16>(b);
 		break;
 	      case MiniMC::Model::TypeID::I32:
-		return ops.template BoolZExt<MiniMC::Model::TypeID::I32>(b);
+		return ops.template ZExt<MiniMC::Model::TypeID::I32>(b);
 		break;
 	      case MiniMC::Model::TypeID::I64:
-		return ops.template BoolZExt<MiniMC::Model::TypeID::I64>(b);
+		return ops.template ZExt<MiniMC::Model::TypeID::I64>(b);
 		break;
 	      default:
 		std::unreachable();
@@ -250,7 +250,7 @@ namespace MiniMC {
 
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecSExt (T from) const {
-	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
 	  return ops.template SExt<To> (from);
 	}
 	else {
@@ -279,15 +279,15 @@ namespace MiniMC {
 	    [&sext,this](const typename Value::Bool& b) ->Value  {
 	      switch (sext.getToType()->getTypeID()) {
 	      case MiniMC::Model::TypeID::I8:
-		return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(b);
+		return ops.template SExt<MiniMC::Model::TypeID::I8>(b);
 	      case MiniMC::Model::TypeID::I16:
-		return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(b);
+		return ops.template SExt<MiniMC::Model::TypeID::I16>(b);
 		break;
 	      case MiniMC::Model::TypeID::I32:
-		return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(b);
+		return ops.template SExt<MiniMC::Model::TypeID::I32>(b);
 		break;
 	      case MiniMC::Model::TypeID::I64:
-		return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(b);
+		return ops.template SExt<MiniMC::Model::TypeID::I64>(b);
 		break;
 	      default:
 		std::unreachable();
@@ -398,7 +398,7 @@ namespace MiniMC {
       X(MulExpr, Mul)				\
       X(UDivExpr, UDiv)				\
       X(SDivExpr, SDiv)				\
-      X(ShlExpr, LShl)				\
+      X(LShlExpr, LShl)				\
       X(AShrExpr, AShr)				\
       X(LShrExpr, LShr)				\
       X(AndExpr, And)				\
@@ -597,14 +597,14 @@ OPSI
       
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecTrunc (T from) const {
-	if constexpr (T::intbitsize () >= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () >= MiniMC::Model::BitWidth<To>) {
 	  return ops.template Trunc<To> (from);
 	}
 	else {
 	  throw MiniMC::Support::Exception ("Invalid Truncation");
 	}
       }
-
+      
       std::generator<Value> operator() (const MiniMC::Model::TruncExpr& trunc) const  {
 	auto visitor = MiniMC::Support::Overload {
 	  [&trunc,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
@@ -634,7 +634,7 @@ OPSI
 
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecZExt (T from) const {
-	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
 	  return ops.template ZExt<To> (from);
 	}
 	else {
@@ -664,15 +664,15 @@ OPSI
 		[&zext,this](const typename Value::Bool& b) ->Value  {
 		  switch (zext.getToType()->getTypeID()) {
 		  case MiniMC::Model::TypeID::I8:
-		    return ops.template BoolZExt<MiniMC::Model::TypeID::I8>(b);
+		    return ops.template ZExt<MiniMC::Model::TypeID::I8>(b);
 		  case MiniMC::Model::TypeID::I16:
-		    return ops.template BoolZExt<MiniMC::Model::TypeID::I16>(b);
+		    return ops.template ZExt<MiniMC::Model::TypeID::I16>(b);
 		    break;
 		  case MiniMC::Model::TypeID::I32:
-		    return ops.template BoolZExt<MiniMC::Model::TypeID::I32>(b);
+		    return ops.template ZExt<MiniMC::Model::TypeID::I32>(b);
 		    break;
 		  case MiniMC::Model::TypeID::I64:
-		    return ops.template BoolZExt<MiniMC::Model::TypeID::I64>(b);
+		    return ops.template ZExt<MiniMC::Model::TypeID::I64>(b);
 		    break;
 		  default:
 		    std::unreachable();
@@ -687,7 +687,7 @@ OPSI
 
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecSExt (T from) const {
-	if constexpr (T::intbitsize () <= MiniMC::Model::BitWidth<To>) {
+	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
 	  return ops.template SExt<To> (from);
 	}
 	else {
@@ -717,15 +717,15 @@ OPSI
 		[&sext,this](const typename Value::Bool& b) ->Value  {
 		  switch (sext.getToType()->getTypeID()) {
 		  case MiniMC::Model::TypeID::I8:
-		    return ops.template BoolSExt<MiniMC::Model::TypeID::I8>(b);
+		    return ops.template SExt<MiniMC::Model::TypeID::I8>(b);
 		  case MiniMC::Model::TypeID::I16:
-		    return ops.template BoolSExt<MiniMC::Model::TypeID::I16>(b);
+		    return ops.template SExt<MiniMC::Model::TypeID::I16>(b);
 		    break;
 		  case MiniMC::Model::TypeID::I32:
-		    return ops.template BoolSExt<MiniMC::Model::TypeID::I32>(b);
+		    return ops.template SExt<MiniMC::Model::TypeID::I32>(b);
 		    break;
 		  case MiniMC::Model::TypeID::I64:
-		    return ops.template BoolSExt<MiniMC::Model::TypeID::I64>(b);
+		    return ops.template SExt<MiniMC::Model::TypeID::I64>(b);
 		    break;
 		  default:
 		    std::unreachable();
@@ -738,6 +738,20 @@ OPSI
 	}
       }
 
+      std::generator<Value> operator() (const MiniMC::Model::LogAndExpr andd) const  {
+	for (auto o1 : MEval (andd.op1 ())) {
+	  for (auto o2 : MEval (andd.op2 ())) {
+	
+	  co_yield Value::visit (  MiniMC::Support::Overload {
+	      [this] (const Value::Bool v1,Value::Bool v2)->Value  {return ops.BoolAnd (v1,v2);},
+		MiniMC::Support::Error<Value>{}
+	    },
+	    o1,o2
+	    );
+	  }
+	}
+      }
+      
       std::generator<Value> operator() (const MiniMC::Model::IntToBoolExpr& sext) const  {
 	for (auto v : MEval (sext.getFrom ())) {
 	  co_yield Value::visit (  MiniMC::Support::Overload {
@@ -843,7 +857,7 @@ OPSI
       X(MulExpr, Mul)				\
       X(UDivExpr, UDiv)				\
       X(SDivExpr, SDiv)				\
-      X(ShlExpr, LShl)				\
+      X(LShlExpr, LShl)				\
       X(AShrExpr, AShr)				\
       X(LShrExpr, LShr)				\
       X(AndExpr, And)				\

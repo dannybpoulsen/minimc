@@ -327,7 +327,7 @@ namespace MiniMC {
 	  //Allocate block here
 	  auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (b.baseobj));
 	  auto size = eval.Eval (*MiniMC::Model::I64Integer::make (b.size));
-	  
+	  std::cerr << ptr << " " << size << std::endl; 
 	  Value::visit (
 			MiniMC::Support::Overload {
 			  [&_scontext,&b,&memcontrol,&regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem)  {

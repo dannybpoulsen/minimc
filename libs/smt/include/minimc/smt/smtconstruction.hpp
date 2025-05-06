@@ -108,7 +108,7 @@ namespace MiniMC {
         return SMTLib::Ops::BVUDiv;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::SDiv) {
         return SMTLib::Ops::BVSDiv;
-      } else if constexpr (Inst == MiniMC::Model::InstructionCode::Shl) {
+      } else if constexpr (Inst == MiniMC::Model::InstructionCode::LShl) {
         return SMTLib::Ops::BVLShl;
       } else if constexpr (Inst == MiniMC::Model::InstructionCode::LShr) {
         return SMTLib::Ops::BVLShr;

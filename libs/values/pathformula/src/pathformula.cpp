@@ -215,13 +215,13 @@ namespace MiniMC {
       
       
 
-      template <typename v>
-      std::ostream& TValue<v>::output(std::ostream& os) const {
+      template <typename v,MiniMC::Model::TypeID id>
+      std::ostream& TValue<v,id>::output(std::ostream& os) const {
         return term->output(os);
       }
 
-      template<class T>
-      T TValue<T>::interpretValue (const SMTLib::Solver& solver) const {
+      template<class T,MiniMC::Model::TypeID id>
+      T TValue<T,id>::interpretValue (const SMTLib::Solver& solver) const {
 	
 	if constexpr (MiniMC::Model::is_pointer_v<T>) {
 	  T pointer;
@@ -274,15 +274,15 @@ namespace MiniMC {
       }
       
       
-      template class TValue<bool>;
-      template class TValue<MiniMC::Model::pointer64_t>;
-      template class TValue<MiniMC::Model::pointer32_t>;
-      template class TValue<MiniMC::BV8>;
-      template class TValue<MiniMC::BV16>;
-      template class TValue<MiniMC::BV32>;
-      template class TValue<MiniMC::BV64>;
-      template class TValue<MiniMC::Util::Array>;
-
+      template class TValue<bool,MiniMC::Model::TypeID::Bool>;
+      template class TValue<MiniMC::Model::pointer64_t,MiniMC::Model::TypeID::Pointer>;
+      template class TValue<MiniMC::Model::pointer32_t,MiniMC::Model::TypeID::Pointer32>;
+      template class TValue<MiniMC::BV8,MiniMC::Model::TypeID::I8>;
+      template class TValue<MiniMC::BV16,MiniMC::Model::TypeID::I16>;
+      template class TValue<MiniMC::BV32,MiniMC::Model::TypeID::I32>;
+      template class TValue<MiniMC::BV64,MiniMC::Model::TypeID::I64>;
+      template class TValue<MiniMC::Util::Array,MiniMC::Model::TypeID::Aggregate>;
+      
       void ConstraintSolver::addConstraint (Value::Bool b) {
 	smtsolver.assert_formula (b.getTerm ());
       }

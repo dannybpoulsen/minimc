@@ -35,7 +35,7 @@ namespace MiniMC {
   X(NEq, NotEqual)
 
 
-      Value::Bool Operations::BoolAnd (const Value::Bool& l, const Value::Bool& r) {
+      Value::Bool Operations::BoolAnd (const Value::Bool& l, const Value::Bool& r) const {
 	
 	return builder.buildTerm(SMTLib::Ops::And, {l.getTerm(),r.getTerm ()});
       }

@@ -133,33 +133,22 @@ namespace MiniMC {
 	Value::Aggregate  InsertAggregateValue(const Value::Aggregate&, const MiniMC::BV64, const Value::Aggregate&) const;
 
 	template <MiniMC::Model::TypeID to>
-	typename RetTyp<Value,to>::type BoolZExt(const BoolValue& val) const;
+	typename RetTyp<Value,to>::type ZExt(const BoolValue& val) const;
 
 	template <MiniMC::Model::TypeID to>
-	typename RetTyp<Value,to>::type BoolSExt(const BoolValue& val) const;
-
+	typename RetTyp<Value,to>::type SExt(const BoolValue& val) const;
+	
 	template <class T>
         Value::Bool IntToBool(const T& t) const;
-
-	template <class T>
-        Value::Pointer IntToPtr(const T& t) const;
-
-	template <class T>
-        Value::Pointer32 IntToPtr32(const T& t) const;
 	
 	
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer&) const;
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32&) const;
-
-	Value::Bool BoolAnd (const Value::Bool&, const Value::Bool&); 
 	
-	template<class T>
-	T PtrToInt (const Value::Pointer&) const;
-
-	template<class T>
-	T Ptr32ToInt (const Value::Pointer32&) const;
-
+	Value::Bool BoolAnd (const Value::Bool&, const Value::Bool&) const; 
+	
+	
 	template<typename To,typename From>
 	To  BitCast (const From& val) const   {
 	  auto term = val.getTerm();
@@ -177,10 +166,10 @@ namespace MiniMC {
         typename RetTyp<Value,to>::type Trunc(const T& t) const;
 
 	template <MiniMC::Model::TypeID to, typename T>
-        typename RetTyp<Value,to>::type ZExt(const T& t) const;
+        typename RetTyp<Value,to>::type ZExt(const T& t) const requires MiniMC::VMT::Integer<Value,T> ;
 
 	template <MiniMC::Model::TypeID to, typename T>
-        typename RetTyp<Value,to>::type SExt(const T& t) const;
+        typename RetTyp<Value,to>::type SExt(const T& t) const requires MiniMC::VMT::Integer<Value,T> ;;
 
 
 	Value create (const MiniMC::Model::I8Integer& val)  const; 

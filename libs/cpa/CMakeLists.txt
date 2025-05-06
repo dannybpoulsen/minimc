@@ -6,7 +6,10 @@ target_include_directories (cpa_headers INTERFACE $<BUILD_INTERFACE:${PROJECT_SO
 
 
 add_subdirectory(internal) 
+
 add_subdirectory(concrete) 
+add_subdirectory(symbolic) 
+
 add_subdirectory(pathformula) 
 
 

@@ -282,7 +282,7 @@ namespace MiniMC {
 	createInstruction<MiniMC::Model::InstructionCode::UDiv> (inst,gather);
 	break;
       case llvm::Instruction::Shl:
-	createInstruction<MiniMC::Model::InstructionCode::Shl> (inst,gather);
+	createInstruction<MiniMC::Model::InstructionCode::LShl> (inst,gather);
 	break;
       case llvm::Instruction::LShr:
 	createInstruction<MiniMC::Model::InstructionCode::LShr> (inst,gather);

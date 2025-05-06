@@ -93,10 +93,11 @@ namespace MiniMC {
 	  return i.getType();
 	}
 
-	MiniMC::Model::Type_ptr operator() (MiniMC::Model::LoadExpr& i);
-	MiniMC::Model::Type_ptr operator() (MiniMC::Model::StoreExpr& i);
-				
 
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::PtrToPtr32Expr& i) const ;
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Ptr32ToPtrExpr& i) const ;
+						 			     
+						   
 	{% for i in ISA.getPseudoInstructions () %}
 	{%if i.isAssignConvertible () %}
 	MiniMC::Model::Type_ptr  operator() ({{i.getName ()}}Expr& ) const;

@@ -199,12 +199,12 @@ namespace MiniMC {
 	
 	
 	template <MiniMC::Model::TypeID to>
-        RetTyp<to>::type BoolZExt(const BoolValue& val) const  {
+        RetTyp<to>::type ZExt(const BoolValue& val) const  {
           return typename RetTyp<to>::type(val.getValue() ? 1 : 0);
         }
 
         template <MiniMC::Model::TypeID to>
-        RetTyp<to>::type BoolSExt(const BoolValue& val)  const {
+        RetTyp<to>::type SExt(const BoolValue& val)  const {
           return typename RetTyp<to>::type(val.getValue() ? std::numeric_limits<typename RetTyp<to>::backtype>::max() : 0);
         }
 

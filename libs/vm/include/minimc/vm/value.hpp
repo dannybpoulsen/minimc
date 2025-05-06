@@ -30,6 +30,7 @@ namespace MiniMC {
     template<class T, class... Ts>
     concept is_same = 
     (... && std::is_same<T, Ts>::value);
+
     
     template<typename Int8,
 	     typename Int16,
@@ -72,12 +73,23 @@ namespace MiniMC {
       
       auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, content);}
 
+      template<class V>
+      static constexpr std::size_t bitsize () {
+	if constexpr (std::is_same_v<V,I8>) return 8;
+	if constexpr (std::is_same_v<V,I16>) return 16;
+	if constexpr (std::is_same_v<V,I32>) return 32;
+	if constexpr (std::is_same_v<V,I64>) return 64;
+	if constexpr (std::is_same_v<V,Pointer>) return 64;
+	if constexpr (std::is_same_v<V,Pointer32>) return 32;
+	return 0;
+      }
       
     private:
       
       std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag,Memory> content;
     };
 
+    
     
     template<class G>
     concept Outputtable = requires (std::ostream& os, const G&g) {g.output (os);};
@@ -113,6 +125,8 @@ namespace MiniMC {
       {op.template Eq<Int> (left,left) } -> std::convertible_to<Bool>;
       {op.template NEq<Int> (left,left)  } -> std::convertible_to<Bool>;
       {op.template BoolAnd (right,right)  } -> std::convertible_to<Bool>;
+      {op.template BoolNegate (right)} -> std::convertible_to<Bool>;
+      
     };
 
     template<class Value,class Operation>
@@ -186,21 +200,21 @@ namespace MiniMC {
       {op.template Trunc<MiniMC::Model::TypeID::I8> (i8)} -> std::convertible_to<I8>;
 
 
-      {op.template BoolZExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
-      {op.template BoolZExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
-      {op.template BoolZExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
-      {op.template BoolZExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
+      {op.template ZExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
+      {op.template ZExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
+      {op.template ZExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
+      {op.template ZExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
 
-      {op.template BoolSExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
-      {op.template BoolSExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
-      {op.template BoolSExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
-      {op.template BoolSExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
+      {op.template SExt<MiniMC::Model::TypeID::I8> (b)} -> std::convertible_to<I8>;
+      {op.template SExt<MiniMC::Model::TypeID::I16> (b)} -> std::convertible_to<I16>;
+      {op.template SExt<MiniMC::Model::TypeID::I32> (b)} -> std::convertible_to<I32>;
+      {op.template SExt<MiniMC::Model::TypeID::I64> (b)} -> std::convertible_to<I64>;
       {op.template BoolNegate (b)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I8> (i8)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I16> (i16)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I32> (i32)} -> std::convertible_to<Bool>;
       {op.template IntToBool<I64> (i64)} -> std::convertible_to<Bool>;
-
+      
       
       {op.template PtrToPtr32 (p)} -> std::convertible_to<Pointer32>;
       {op.template Ptr32ToPtr (p32)} -> std::convertible_to<Pointer>;

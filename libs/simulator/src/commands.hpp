@@ -120,6 +120,17 @@ namespace MiniMC {
     private:
       MiniMC::Support::SMT::SMTDescr descr;
     };
+
+    class SymbolicExprSimulator : public Command{
+    public:
+      SymbolicExprSimulator () {}
+      bool execute (Simulator* simu) override {
+	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
+	simu->updateCPA (cpa);
+	return true;
+      }
+    };
+    
     
     class StepSimulation : public Command{
     public:
@@ -239,6 +250,10 @@ namespace MiniMC {
 
       void makeSymbolic (MiniMC::Support::SMT::SMTDescr descr ) {
 	cmd = std::make_unique<SymbolicSimulator> (descr);
+      }
+      
+      void makeSymbolic ( ) {
+	cmd = std::make_unique<SymbolicExprSimulator> ();
       }
       
       

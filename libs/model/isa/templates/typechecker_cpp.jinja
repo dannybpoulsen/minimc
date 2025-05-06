@@ -381,12 +381,33 @@ namespace MiniMC {
 
       }
 
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::PtrToPtr32Expr& i) const {
+      	auto convty = CheckType(i.conv());
+	auto res = MiniMC::Model::Pointer32Type::get(); 
+	if (convty->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+	   messager << MustBePointerExpr{i.conv()};
+	}
+	i.setType(res);
+	return res;
+      }
+
+      MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::Ptr32ToPtrExpr& i) const {
+      	auto convty = CheckType(i.conv());
+	auto res = MiniMC::Model::PointerType::get(); 
+	if (convty->getTypeID () != MiniMC::Model::TypeID::Pointer) {
+	   messager << MustBePointerExpr{i.conv()};
+	}
+	i.setType(res);
+	return res;
+      }     
+	
+
       MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::StoreExpr& expr) const  {
        	auto addrty = CheckType(expr.addr());
 	auto storeto = CheckType(expr.storeto());
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
-	if (addrty->getTypeID () == MiniMC::Model::TypeID::Pointer &&
+	if (addrty->getTypeID () == MiniMC::Model::TypeID::Pointer && 
 	    storeto->getTypeID () == MiniMC::Model::TypeID::Memory
 	    ) {	    
 	  res = storeto;

@@ -27,7 +27,7 @@ namespace MiniMC {
       private:
 	SMTLib::Solver& smtsolver;
       };
-
+      
       class ValueDefinition {
       public:
 	using Val = MiniMC::VMT::Pathformula::Value;

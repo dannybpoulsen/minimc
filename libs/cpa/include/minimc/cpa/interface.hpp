@@ -97,7 +97,8 @@ namespace MiniMC {
     
     enum class CPAType {
       Concrete,
-      Pathformula
+      Pathformula,
+      Symbolic
     };
 
     template<CPAType type,class... Args>
