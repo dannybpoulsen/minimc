@@ -7,7 +7,8 @@
 #include <iostream>
 #include <memory>
 #include <expected>
-
+#include <iostream>
+#include <bit>
 
 namespace MiniMC {
   namespace Support {
@@ -50,24 +51,52 @@ namespace MiniMC {
 
       
       
+      template<class Iterator>
+      Iterator extractByte (Iterator iter, MiniMC::BV8& b) {
+	b = 0;
+	for (int i = 0; i < 8; ++iter,++i) {
+	  if (*iter) {
+	    b |= 1 << i;
+	  }
+	}
+	return iter;
+      }
+
+      
+      
+      template<class Iterator,class T>
+      Iterator extract (Iterator iter, T& b) {
+	union {
+	  T val;
+	  MiniMC::BV8 d[sizeof(T)];
+	  
+	} data;
+	
+	for (unsigned int i = 0; i < sizeof(data.d); ++i) {
+	  iter = extractByte(iter,data.d[i]);
+	}
+	b = data.val;
+	return iter;
+      }
+
+      
       template<class Iterator,class EIterator>
       void extractBytes (Iterator it, Iterator end, EIterator dest) {
-	std::size_t bitscounted = 0;
-	for (; it != end; ++it,++bitscounted ) {
-	  if (*it) {
-	    std::size_t bytenumber = bitscounted / 8;
-	    std::size_t bit = bitscounted % 8;
-	    
-	    *(dest+bytenumber) |= (1 << bit);
-	  }
+	for (; it != end; ++dest,++it ) {
+	  
+	  MiniMC::BV8 buf{0};
+	  it = extractByte (it,buf);
+	  *dest = buf;
+	  
 	  
 	}
       }
 
+      
       class Translator   {
       public:
 	Translator (SMTLib::Context_ptr context) : context(context) {}
-	SMTLib::Term_ptr Translate (const MiniMC::Model::Value& v) {
+	SMTLib::Term_ptr Translate (const MiniMC::Model::Value& v) const {
 	  SMTLib::Term_ptr res = cached (v);
 	  if (!res) {
 	    res = MiniMC::Model::visitValue<SMTLib::Term_ptr>(*this,v);
@@ -77,58 +106,58 @@ namespace MiniMC {
 	  return res;
 	}
 	
-	SMTLib::Term_ptr operator() (const MiniMC::Model::I8Integer&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::I16Integer&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::I32Integer&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::I64Integer&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Bool&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Pointer&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Pointer32&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::AggregateConstant&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Register&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Undef&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SymbolicConstant&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::StoreExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::LoadExpr&);
+	SMTLib::Term_ptr operator() (const MiniMC::Model::I8Integer&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::I16Integer&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::I32Integer&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::I64Integer&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Bool&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Pointer&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Pointer32&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::AggregateConstant&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Register&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Undef&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SymbolicConstant&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::StoreExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::LoadExpr&) const;
 	
-	SMTLib::Term_ptr operator() (const MiniMC::Model::Ptr32ToPtrExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrToPtr32Expr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::AddExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::LogAndExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SubExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::MulExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::UDivExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SDivExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::LShlExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::LShrExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::AShrExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::AndExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::OrExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::XorExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SGtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::UGtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SGeExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::UGeExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SLtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::ULtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SLeExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::ULeExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::EqExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::NEqExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::NotExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::LogNotExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::TruncExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::BitCastExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::ZExtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SExtExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrToIntExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::IntToPtrExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::IntToBoolExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrAddExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrSubExpr&);
+	SMTLib::Term_ptr operator() (const MiniMC::Model::Ptr32ToPtrExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrToPtr32Expr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::AddExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::LogAndExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SubExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::MulExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::UDivExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SDivExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::LShlExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::LShrExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::AShrExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::AndExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::OrExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::XorExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SGtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::UGtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SGeExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::UGeExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SLtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::ULtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SLeExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::ULeExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::EqExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::NEqExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::NotExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::LogNotExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::TruncExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::BitCastExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::ZExtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::SExtExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrToIntExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::IntToPtrExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::IntToBoolExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrAddExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::PtrSubExpr&) const;
 	
-	SMTLib::Term_ptr operator() (const MiniMC::Model::ExtractValueExpr&);
-	SMTLib::Term_ptr operator() (const MiniMC::Model::InsertValueExpr&);
+	SMTLib::Term_ptr operator() (const MiniMC::Model::ExtractValueExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::InsertValueExpr&) const;
 	
 	
 	
@@ -139,12 +168,12 @@ namespace MiniMC {
 	    return terms.at(&v);
 	  return nullptr;
 	}
-	SMTLib::Term_ptr cache (const MiniMC::Model::Value& v, SMTLib::Term_ptr t) {
+	SMTLib::Term_ptr cache (const MiniMC::Model::Value& v, SMTLib::Term_ptr t) const {
 	  terms.emplace(&v,t);
 	  return t;
 	}
-	std::unordered_map<const MiniMC::Model::Value*,SMTLib::Term_ptr> terms;
-	std::size_t next{0};
+	mutable std::unordered_map<const MiniMC::Model::Value*,SMTLib::Term_ptr> terms;
+	mutable std::size_t next{0};
       };
       
     } // namespace SMT

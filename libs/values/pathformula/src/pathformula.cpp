@@ -224,29 +224,37 @@ namespace MiniMC {
       T TValue<T,id>::interpretValue (const SMTLib::Solver& solver) const {
 	
 	if constexpr (MiniMC::Model::is_pointer_v<T>) {
-	  T pointer;
+	  T res;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
+
+	  auto ires = std::get<SMTLib::bitvector> (solver.getModelValue(term));
+	  decltype(res.segment) seg{0};
+	  decltype(res.offset) offset{0};
+	  decltype(res.base) base{0};
 	  
-	  auto pointerres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
-	  assert(sizeof(T) == pointerres.size() / 8);
-	  auto beginoff = pointerres.begin()+((sizeof(T)-offsetof(T,offset)-sizeof(pointer.offset)))*8;
-	  auto segoff = pointerres.begin()+((sizeof(T)-offsetof(T,segment)-sizeof(pointer.segment)))*8;
-	  auto baseoff = pointerres.begin()+((sizeof(T)-offsetof(T,base)-sizeof(pointer.base)))*8;
+		
+	  auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
+	  iter = MiniMC::Support::SMT::extract (iter,base);
+	  iter = MiniMC::Support::SMT::extract (iter,seg);
+	  res.segment = seg;
+	  res.offset = offset;
+	  res.base = base;
+	  return res;
 	  
-	  
-	  MiniMC::Support::SMT::extractBytes(beginoff, beginoff+sizeof(pointer.offset)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.offset));
-	  MiniMC::Support::SMT::extractBytes(segoff, segoff+sizeof(pointer.segment)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.segment));
-	  MiniMC::Support::SMT::extractBytes(baseoff, baseoff+sizeof(pointer.base)*8, reinterpret_cast<MiniMC::BV8*>(&pointer.base));
-                
-	  return pointer;
 	}
 	else if constexpr (std::is_same_v<T,MiniMC::Util::Array>) {
 	  MiniMC::Util::Array res{size()};
 	  
 	  auto aggrres = std::get<SMTLib::bitvector>(solver.getModelValue(term));
-	  MiniMC::Support::SMT::extractBytes(aggrres.begin(), aggrres.end(), res.get_direct_access().begin());
+	  auto iter = aggrres.begin();
+	  for (size_t i = 0; i < size(); i++) {
+	    MiniMC::BV8 buf;
+	    iter = MiniMC::Support::SMT::extractByte (iter,buf);
+	    res.get_direct_access ()[i] = buf;
+	  }
 	  return res;
 	  
+								    
 	}
 
 	else if constexpr (std::is_same_v<T,MiniMC::BV8> ||
@@ -257,8 +265,7 @@ namespace MiniMC {
 	  T res{0};
 	  
 	  auto ires = std::get<SMTLib::bitvector>(solver.getModelValue(term));
-	  assert(sizeof(T) == ires.size() / 8);
-	  MiniMC::Support::SMT::extractBytes(ires.begin(), ires.end(), reinterpret_cast<MiniMC::BV8*>(&res));
+	  MiniMC::Support::SMT::extract(ires.begin(),res);
 	  return res;
 	}
 	

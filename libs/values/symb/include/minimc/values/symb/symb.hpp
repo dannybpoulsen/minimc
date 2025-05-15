@@ -1,12 +1,15 @@
 #ifndef _SYMB_VALUES__
 #define _SYMB_VALUES__
 
+#include "minimc/host/types.hpp"
 #include "minimc/model/types.hpp"
 #include "minimc/hash/hashing.hpp"
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/vm/vmt.hpp"
-
+#include "minimc/smt/smt.hpp"
+#include "minimc/model/checkers/typechecker.hpp"
+#include "smt/exceptions.hpp"
 namespace MiniMC {
   namespace Values {
     namespace Symb {
@@ -15,7 +18,7 @@ namespace MiniMC {
       public:
 	TValue () : value(nullptr) {}
 	TValue (MiniMC::Model::Value_ptr&& v) : value(std::move(v)) {}
-	auto& getEpr () const {return value;}
+	auto& getExpr () const {assert(value); return value;}
 	std::ostream& output(std::ostream& os) const {
 	  return value->output (os);
 	}
@@ -64,13 +67,28 @@ namespace MiniMC {
 
       template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::Pointer32>::get()  {return MiniMC::Model::Pointer32Type::get();}
-      
+
+      class TypecheckedExpressionBuilder : public MiniMC::Model::ExpressionBuilder{
+      public:
+	MiniMC::Model::Value_ptr get () {
+	  auto res = ExpressionBuilder::get();
+	  if (typechecker.CheckType(*res)) {
+	    return res;
+	  }
+	  else {
+	    throw MiniMC::Support::Exception ("Not type correct expression");
+	  }
+	}
+      private:
+	MiniMC::Model::Checkers::TypeChecker typechecker {MiniMC::Support::Messager{}};
+	
+      };
       
       class Operations {
       public:
 	template <typename T>
         T Not(const T& l) const requires MiniMC::VMT::Integer<Value,T> {
-	  MiniMC::Model::ExpressionBuilder builder;
+	  TypecheckedExpressionBuilder builder;
 	  builder << l.getValue();
 	  builder.Not();
 	  return builder.get();
@@ -78,7 +96,7 @@ namespace MiniMC {
 
 	template<class T>
 	Value::Pointer PtrAdd (const Value::Pointer& p, const T& l) const requires MiniMC::VMT::Integer<Value,T> {
-	  MiniMC::Model::ExpressionBuilder builder;
+	  TypecheckedExpressionBuilder builder;
 	  builder << p.getValue()
 		  << l.getValue();
 	  builder.PtrAdd();
@@ -88,7 +106,7 @@ namespace MiniMC {
 
 	template<class T>
 	Value::Pointer PtrSub (const Value::Pointer& p, const T& l) const requires MiniMC::VMT::Integer<Value,T> {
-	  MiniMC::Model::ExpressionBuilder builder;
+	  TypecheckedExpressionBuilder builder;
 	  builder << p.getValue()
 		  << l.getValue();
 	  builder.PtrSub();
@@ -96,14 +114,14 @@ namespace MiniMC {
 	}
 
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer& p) const  {
-	    MiniMC::Model::ExpressionBuilder builder;
+	    TypecheckedExpressionBuilder builder;
 	    builder << p.getValue();
 	    builder.PtrToPtr32 ();
 	    return builder.get();
 	}
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32& p) const {
-	    MiniMC::Model::ExpressionBuilder builder;
+	    TypecheckedExpressionBuilder builder;
 	    builder << p.getValue();
 	    builder.Ptr32ToPtr ();
 	    return builder.get();
@@ -127,7 +145,7 @@ namespace MiniMC {
 #define X(NN)								\
 	template<typename T>						\
 	T NN(const T& l, const T& r) const requires MiniMC::VMT::Integer<Value,T> { \
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue() <<  r.getValue();			\
 	  builder.NN();							\
 	  return builder.get();						\
@@ -153,7 +171,7 @@ namespace MiniMC {
 #define X(NN)                                   \
 	template <typename T>						\
 	Value::Bool NN(const T& l, const T& r) const  requires MiniMC::VMT::Integer<Value, T>{ \
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue() << r.getValue();			\
 	  builder.NN();							\
 	  return Value::Bool{builder.get()};				\
@@ -166,14 +184,14 @@ namespace MiniMC {
 
 	
 	Value::Bool BoolNegate(const Value::Bool& l) const  { \
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue();					\
 	  builder.LogNot();							\
 	  return {builder.get()};				\
 	}
 
 	Value::Bool BoolAnd(const Value::Bool& l,const Value::Bool& r) const { \
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue() << r.getValue();			\
 	  builder.LogAnd();							\
 	  return {builder.get()};				\
@@ -181,7 +199,7 @@ namespace MiniMC {
 
 	template <class T>
 	T ExtractBaseValue(const Value::Aggregate& value, const MiniMC::BV64 offset) const  {
-	  MiniMC::Model::ExpressionBuilder builder;	\
+	  TypecheckedExpressionBuilder builder;	\
 	  builder << value.getValue() << MiniMC::Model::I64Integer::make(offset);
 	  builder << IntegerTypeConverter<T::tid()>::get();
 	  builder.ExtractValue();
@@ -190,7 +208,7 @@ namespace MiniMC {
 	}
 	
 	Value::Aggregate ExtractAggregateValue(const Value::Aggregate& value, const MiniMC::BV64 offset, std::size_t size) const  {
-	  MiniMC::Model::ExpressionBuilder builder;	\
+	  TypecheckedExpressionBuilder builder;	\
 	  builder << value.getValue() << MiniMC::Model::I64Integer::make(offset) << MiniMC::Model::AggregateType::get(size);
 	  builder.ExtractValue();
 	  return builder.get();
@@ -199,14 +217,14 @@ namespace MiniMC {
 
         template <class T>
         Value::Aggregate InsertBaseValue(const Value::Aggregate& aggrvalue, const MiniMC::BV64 offset, const T& insertee)  const requires (!MiniMC::VMT::MemoryC<Value,T>) {
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << aggrvalue.getValue() << MiniMC::Model::I64Integer::make(offset) << insertee.getValue();
 	  builder.InsertValue();
 	  return builder.get ();
 	}
 	
 	Value::Aggregate InsertAggregateValue(const Value::Aggregate& aggr, const MiniMC::BV64 offset, const Value::Aggregate& insertee) const {
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << aggr.getValue() << MiniMC::Model::I64Integer::make(offset) << insertee.getValue();
 	  builder.InsertValue();
 	  return builder.get ();
@@ -222,7 +240,7 @@ namespace MiniMC {
 #define X(NN)								\
 	template<MiniMC::Model::TypeID To,class T>			\
 	TValue<To> NN(const T& l) const  requires MiniMC::VMT::Integer<Value, T>{ \
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue() << IntegerTypeConverter<To>::get();	\
 	  builder.NN ();						\
 	  return TValue<To> {builder.get()};				\
@@ -239,7 +257,7 @@ namespace MiniMC {
 #define X(NN)								\
 	template<MiniMC::Model::TypeID To>				\
 	TValue<To> NN(const Value::Bool& l) const {				\
-	  MiniMC::Model::ExpressionBuilder builder;			\
+	  TypecheckedExpressionBuilder builder;			\
 	  builder << l.getValue() << IntegerTypeConverter<To>::get();	\
 	  builder.NN ();						\
 	  return TValue<To> {builder.get()};				\
@@ -251,7 +269,7 @@ namespace MiniMC {
 
 	template<typename T>
 	Value::Bool IntToBool (const T& l) const requires MiniMC::VMT::Integer<Value,T> {
-	  MiniMC::Model::ExpressionBuilder builder;    
+	  TypecheckedExpressionBuilder builder;    
 	  builder << l.getValue();
 	  builder << MiniMC::Model::BoolType::get();
 	  builder.IntToBool ();
@@ -260,7 +278,7 @@ namespace MiniMC {
 
 	template<class To,class From>
 	To BitCast (const From& f) const requires MiniMC::VMT::Aggregate<Value,To>  {
-	  MiniMC::Model::ExpressionBuilder builder;    
+	  TypecheckedExpressionBuilder builder;    
 	  builder << f.getValue();
 	  builder << MiniMC::Model::AggregateType::get(f.getValue()->getType()->getSize());
 	  builder.BitCast ();
@@ -269,7 +287,7 @@ namespace MiniMC {
 
 	template<class To,class From>
 	To BitCast (const From& f) const requires (!MiniMC::VMT::Aggregate<Value,To>)  {
-	  MiniMC::Model::ExpressionBuilder builder;    
+	  TypecheckedExpressionBuilder builder;    
 	  builder << f.getValue();
 	  builder << IntegerTypeConverter<To::tid()>::get();
 	  builder.BitCast ();
@@ -372,14 +390,132 @@ namespace MiniMC {
 
       class ConstraintSolver {
       public:
-	void push () {}
-	void pop () {}	
-	void addConstraint (Value::Bool) {}
+	ConstraintSolver () : context(MiniMC::Support::SMT::SMTSolverRepository::get().getBackend("CVC4").value().makeContext()),solver(context->getSolver()),translator(context) {
+	}
+	
+	void push () {solver.push();}
+	void pop () {solver.pop();}	
+	void addConstraint (Value::Bool b) {
+	  auto form = translator.Translate(*b.getExpr());
+	  solver.assert_formula(form);
+	  
+	}
 	MiniMC::VMT::Feasibility check () const {
+	  switch (solver.check_sat()) {
+	  case SMTLib::Result::Satis:
+	    return MiniMC::VMT::Feasibility::Feasible;
+	  case SMTLib::Result::NSatis:
+	    return MiniMC::VMT::Feasibility::Infeasible;
+	  default:
+	    return MiniMC::VMT::Feasibility::Unknown;
+	  }
 	  return MiniMC::VMT::Feasibility::Feasible; 
 	}
 	
-	MiniMC::Model::Constant_ptr eval (const Value& ) const {return MiniMC::Model::I8Integer::make(0);}
+	MiniMC::Model::Constant_ptr eval (const Value& v) const {
+	  auto translated = Value::visit ([this](const auto& vv) {return translator.Translate(*vv.getExpr());},v);
+	  try {
+	    auto val = solver.getModelValue(translated);
+	    return Value::visit (MiniMC::Support::Overload {
+	      [&val](const Value::I8& ) ->MiniMC::Model::Constant_ptr {
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::BV8 res;
+		MiniMC::Support::SMT::extractByte (ires.begin(),res);
+		
+		return MiniMC::Model::I8Integer::make(res);
+	      },
+	      [&val](const Value::I16& ) ->MiniMC::Model::Constant_ptr {
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::BV16 res;
+		MiniMC::Support::SMT::extract (ires.begin(),res);
+		
+		return MiniMC::Model::I16Integer::make(res);
+
+	      },
+	      [&val](const Value::I32& ) ->MiniMC::Model::Constant_ptr {
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::BV32 res{0};
+		MiniMC::Support::SMT::extract (ires.begin(),res);
+		
+		return MiniMC::Model::I32Integer::make(res);
+
+	      },
+	      [&val](const Value::I64& ) ->MiniMC::Model::Constant_ptr{
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::BV64 res;
+		MiniMC::Support::SMT::extract (ires.begin(),res);
+		
+		return MiniMC::Model::I64Integer::make(res);
+
+	      },
+	      [&val](const Value::Pointer& ) ->MiniMC::Model::Constant_ptr {
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::Model::pointer_t res = MiniMC::Model::pointer_t::makeNullPointer();
+		decltype(res.segment) seg{0};
+		decltype(res.offset) offset{0};
+		decltype(res.base) base{0};
+
+		
+		auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
+		iter = MiniMC::Support::SMT::extract (iter,base);
+		iter = MiniMC::Support::SMT::extract (iter,seg);
+		res.segment = seg;
+		res.offset = offset;
+		res.base = base;
+		return MiniMC::Model::Pointer::make (res);
+		
+	      },
+	      [&val](const Value::Pointer32& ) ->MiniMC::Model::Constant_ptr {
+		auto ires = std::get<SMTLib::bitvector> (val);
+		MiniMC::Model::pointer32_t res = MiniMC::Model::pointer32_t::makeNullPointer();
+		decltype(res.segment) seg{0};
+		decltype(res.offset) offset{0};
+		decltype(res.base) base{0};
+
+		
+		auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
+		iter = MiniMC::Support::SMT::extract (iter,base);
+		iter = MiniMC::Support::SMT::extract (iter,seg);
+		res.segment = seg;
+		res.offset = offset;
+		res.base = base;
+		
+		return MiniMC::Model::Pointer32::make (res);
+		
+	      },
+	      [&val](const Value::Bool& ) ->MiniMC::Model::Constant_ptr {
+		  auto bres = std::get<bool>(val);
+		  return MiniMC::Model::Bool::make(bres);
+	  
+	      },
+		[&val](const Value::Aggregate& a) ->MiniMC::Model::Constant_ptr {
+		  MiniMC::Util::Array res{a.getExpr()->getType()->getSize()};
+	  
+		  auto aggrres = std::get<SMTLib::bitvector>(val);
+		  auto iter = aggrres.begin();
+		  for (size_t i = 0; i < a.getExpr()->getType()->getSize(); i++) {
+		    MiniMC::BV8 buf;
+		    iter = MiniMC::Support::SMT::extractByte (iter,buf);
+		    res.get_direct_access ()[i] = buf;
+		  }
+		  return MiniMC::Model::AggregateConstant::make(std::move(res));
+	  
+	      },
+		[](Value::Memory&) ->MiniMC::Model::Constant_ptr {return MiniMC::Model::I8Integer::make  (0);}
+		
+		},v
+	    );
+	    
+	    
+	  }catch(SMTLib::Exception& e) {
+	    return MiniMC::Model::I8Integer::make(0);
+	  }
+	  
+	}
+      private:
+	SMTLib::Context_ptr context;
+	SMTLib::Solver& solver;
+	MiniMC::Support::SMT::Translator translator;
       };
 
       class ValueDefinition  {

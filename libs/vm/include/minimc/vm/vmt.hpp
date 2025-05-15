@@ -511,10 +511,14 @@ OPSI
       }
 
       
-
+      
       Value operator() (const MiniMC::Model::PtrAddExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
 	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return  ops.PtrAdd(ptr, ops.template ZExt<MiniMC::Model::TypeID::I64> (skipsize));
+	    
+	  },
+	  [this,&load](Value::Pointer& ptr,Value::I64& skipsize)->Value  {
 	    return  ops.PtrAdd(ptr, skipsize);
 	    
 	  },
@@ -987,6 +991,10 @@ OPSI
       std::generator<Value> operator() (const MiniMC::Model::PtrAddExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
 	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return  ops.PtrAdd(ptr, ops.template ZExt<MiniMC::Model::TypeID::I64>(skipsize));
+	    
+	  },
+	  [this,&load](Value::Pointer& ptr,Value::I64& skipsize)->Value  {
 	    return  ops.PtrAdd(ptr, skipsize);
 	    
 	  },
@@ -1074,11 +1082,16 @@ OPSI
 	    }
 	}
       }
-
       
+
+					     
       std::generator<Value> operator() (const MiniMC::Model::PtrSubExpr& load) const  {
 	auto visitor = MiniMC::Support::Overload {
 	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
+	    return ops.PtrSub(ptr, ops.template ZExt<MiniMC::Model::TypeID::I64> (skipsize));
+	    
+	  },
+	  [this](Value::Pointer& ptr,Value::I64& skipsize)->Value  {
 	    return ops.PtrSub(ptr, skipsize);
 	    
 	  },

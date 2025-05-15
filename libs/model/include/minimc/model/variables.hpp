@@ -106,6 +106,7 @@ namespace MiniMC {
       ptr.offset = 0;
       return ptr;
     }
+
     
   };
   
