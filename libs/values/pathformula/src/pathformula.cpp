@@ -90,8 +90,12 @@ namespace MiniMC {
 	for (size_t i = 0; i < t.getSize (); ++i) {
 	  auto ones = builder->makeBVIntConst(i, Value::Pointer::intbitsize());
 	  auto curind = builder->buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
-	  concat << builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
-        }
+	  if (t.getTypeID () == MiniMC::Model::TypeID::Aggregate)
+	    concat >> builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
+	  else {
+	    concat << builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
+	  }
+	}
 	switch (t.getTypeID ()) {
 	case MiniMC::Model::TypeID::Bool:
 	  return Value::Bool{concat.getTerm()};
@@ -115,6 +119,8 @@ namespace MiniMC {
 	}
 	
       }
+
+      
 
       MemoryValue  Memory::allocate(const MemoryValue& mem, const Value::Pointer& , const Value::I64&) {
 	return MemoryValue (mem.getNextBlock()+1,mem.getMemVar());
