@@ -83,6 +83,12 @@ namespace MiniMC {
 	if constexpr (std::is_same_v<V,Pointer32>) return 32;
 	return 0;
       }
+
+      template<class V>
+      static constexpr std::size_t bytesize () {
+	return bitsize<V> () / 8;
+      }
+ 
       
     private:
       

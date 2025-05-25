@@ -61,7 +61,7 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
-	  MiniMC::VMT::Evaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
+	  MiniMC::VMT::MultiEvaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
 	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
 	    makeEvaluationContext (p)
 	  };

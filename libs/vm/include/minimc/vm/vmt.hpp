@@ -113,7 +113,7 @@ namespace MiniMC {
     concept Aggregate = std::is_same_v<R,typename T::Aggregate> ;
     
     
-    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    /*template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class Evaluator {
     public:
       Evaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
@@ -494,7 +494,8 @@ OPSI
 	  );
       }
 
-      Value operator() (const MiniMC::Model::StoreExpr& store) const  {
+      Value operator() (const MiniMC::Model::StoreExpr
+			& store) const  {
 	return Value::visit(MiniMC::Support::Overload {
 	    [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
 	      return  regstore.store(m,addr, t);
@@ -552,7 +553,8 @@ OPSI
       Operations ops;
       const RegStore regstore;
     };
-
+    */
+    
     template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class MultiEvaluator {
     public:
@@ -970,6 +972,7 @@ OPSI
 	    for (auto storee : MEval (store.storee ())) {
 	      co_yield Value::visit(MiniMC::Support::Overload {
 		[this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		 
 		  return  regstore.store(m,addr, t);
 		},
 		  [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {

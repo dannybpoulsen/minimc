@@ -478,11 +478,11 @@ namespace MiniMC {
 	if (p >= mixin.nbOfProcesses ()) {
 	  throw MiniMC::Support::Exception ("Not enough processes");
 	}
-	MiniMC::VMT::Evaluator<typename ValDef::Val,
-			       decltype(this->makeEvaluationContext(1)),
-			       decltype(valuedefinition.ops())
-			       > eval (valuedefinition.ops(),
-				       makeEvaluationContext(p));
+	MiniMC::VMT::MultiEvaluator<typename ValDef::Val,
+				decltype(this->makeEvaluationContext(1)),
+				decltype(valuedefinition.ops())
+				> eval (valuedefinition.ops(),
+					makeEvaluationContext(p));
 	return std::make_unique<TQuery<typename ValDef::Val>> (eval.Eval(val));
 	
       }
