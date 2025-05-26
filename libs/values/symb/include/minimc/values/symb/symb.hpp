@@ -372,7 +372,13 @@ namespace MiniMC {
       class MemoryOps {
       public:
 	Value load(const Value::Memory&, const typename Value::Pointer&, const MiniMC::Model::Type& ty) const {return Operations{}.defaultValue(ty);}
-	Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I8&) const  { return m;}
+	Value::Memory store(const Value::Memory& m, const Value::Pointer& p, const Value::I8& val) const  {
+	  TypecheckedExpressionBuilder builder;    
+	  builder << m.getValue() << p.getValue() << val.getValue();
+	  builder.Store();
+	  return builder.get();
+	}
+	
 	Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I16&)const  {return m;}
         Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I32&) const {return m;}
         Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I64&) const {return m;}

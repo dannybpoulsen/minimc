@@ -516,7 +516,6 @@ default:
 	    auto addr = stack.top();stack.pop();
 	    auto mem = stack.top();stack.pop();
 	    
-	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<StoreExpr> (mem,addr,storee));
        }
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.5)
 project(minimc VERSION 0.7.0)	
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(POLICY CMP0135)
