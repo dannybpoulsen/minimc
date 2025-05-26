@@ -81,10 +81,11 @@ namespace MiniMC {
         Freed = 4
       };
       struct HeapEntry {
-        HeapEntry(std::size_t size) : state(EntryState::InUse),
+        HeapEntry
+	(std::size_t size) : state(EntryState::InUse),
 				      content(size) {
         }
-
+	
         
 	void write(const std::span<const MiniMC::BV8> buffer, std::size_t offset) {
           assert(state == EntryState::InUse);
@@ -99,7 +100,7 @@ namespace MiniMC {
         
 	std::span<const MiniMC::BV8> read (std::size_t offset, std::size_t size) const {
 	  if (offset+size <= content.getSize()) {
-	    return content.get_direct_access().subspan (offset,offset+size);
+	    return content.get_direct_access().subspan (offset,size);
 	  }
 	  throw MiniMC::Support::BufferOverread();
           
