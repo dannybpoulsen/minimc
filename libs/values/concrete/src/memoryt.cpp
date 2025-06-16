@@ -72,10 +72,26 @@ namespace MiniMC {
       
       
     
-
+      std::generator<Value::I8> Memory::loadBytes(const MemoryValue& mvalue, const typename Value::Pointer& p, std::size_t bytes) const {
+	auto pointer = p.getValue();
+        auto base = MiniMC::Model::getBase(pointer);
+        auto offset = MiniMC::Model::getOffset(pointer);
+	auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
+	if (mvalue.getInternal().entries.count(base_pointer)) {
+          auto read = mvalue.getInternal().entries.at(base_pointer).read (offset,bytes);
+	  for (auto b : read) {
+	    co_yield Value::I8 (b);
+	  }
+	}
+	else {
+	  throw MiniMC::Support::BufferOverread();
+      
+	}
+	       
+      }
       
       Value Memory::load(const MemoryValue& mvalue, const typename Value::Pointer& p, const MiniMC::Model::Type& readType) const {
-
+	
         // Find out what pointer we are going to read from
         auto pointer = p.getValue();
         auto base = MiniMC::Model::getBase(pointer);

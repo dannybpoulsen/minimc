@@ -29,13 +29,15 @@ namespace MiniMC {
     
     
     template<class Eval,class T>
-    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value,std::size_t bytes) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
       
       {eval.saveValue (reg,std::move(t))};
       {ceval.load(p,mem,ty)}->std::convertible_to<T>;
-      {ceval.store(mem,p,value)}->std::convertible_to<T>;
+      {ceval.loadBytes(p,mem,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
+      
+      {ceval.store(mem,p,value)}->std::convertible_to<typename T::Memory>;
     } ;
     
     
@@ -111,449 +113,6 @@ namespace MiniMC {
 
     template<class T,class R>
     concept Aggregate = std::is_same_v<R,typename T::Aggregate> ;
-    
-    
-    /*template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
-    class Evaluator {
-    public:
-      Evaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
-      
-      Value Eval (const MiniMC::Model::Value& v)  const {
-	return  MiniMC::Model::visitValue<Value>(*this,v);
-      }
-
-      std::generator<Value> MEval (const MiniMC::Model::Value& v)  const {
-	co_yield MiniMC::Model::visitValue<Value>(*this,v);
-      }
-      
-            
-      
-      template <class Castee>
-      auto castPtrToAppropriateInteger(Castee&& v) const   {
-        if constexpr (std::is_same_v<Castee, typename Value::Pointer>) {
-          return ops.template BitCast<typename Value::I64>(v);
-        } else if constexpr (std::is_same_v<Castee, typename Value::Pointer32>) {
-          return ops.template BitCast<typename Value::I32>(v);
-        } else {
-          return v;
-        }
-      }
-
-      template<class T>
-      Value operator() (const T&) const  {
-	throw MiniMC::Support::Exception ("Not implemented");
-      }
-      
-      
-      template<class T>
-      Value operator() (const T& t) const requires (MiniMC::Model::is_root<T>) {
-	return  ops.create(t);
-      }
-
-      template<class T>
-      Value operator() (const MiniMC::Model::Undef& t) const  {
-	for (auto t : ops.create(t))
-	  return t;
-      }
-
-      
-      template<typename T, MiniMC::Model::TypeID To>
-      Value ExecTrunc (T from) const {
-	if constexpr (Value::template bitsize<T> () >= MiniMC::Model::BitWidth<To>) {
-	  return ops.template Trunc<To> (from);
-	}
-	else {
-	  throw MiniMC::Support::Exception ("Invalid Truncation");
-	}
-      }
-
-      Value operator() (const MiniMC::Model::TruncExpr& trunc) const  {
-	Value res = Value::visit (MiniMC::Support::Overload {
-	    [&trunc,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-	      switch (trunc.getToType()->getTypeID ()) {
-	      case MiniMC::Model::TypeID::I8:
-	      return ExecTrunc<T,MiniMC::Model::TypeID::I8> (b);
-	      case MiniMC::Model::TypeID::I16:
-	      return ExecTrunc<T,MiniMC::Model::TypeID::I16> (b);
-	      case MiniMC::Model::TypeID::I32:
-	      return ExecTrunc<T,MiniMC::Model::TypeID::I32> (b);
-	      case MiniMC::Model::TypeID::I64:
-	      return ExecTrunc<T,MiniMC::Model::TypeID::I64> (b);
-	      default:
-	      std::unreachable();
-	      }
-	      
-	    },
-	      MiniMC::Support::Error<Value> {}
-	  },
-	  Eval(trunc.getFrom ())
-	  );
-
-	return res;
-	
-      }
-
-
-      template<typename T, MiniMC::Model::TypeID To>
-      Value ExecZExt (T from) const {
-	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
-	  return ops.template ZExt<To> (from);
-	}
-	else {
-	  throw MiniMC::Support::Exception ("Invalid Truncation");
-	}
-      }
-
-      Value operator() (const MiniMC::Model::ZExtExpr& zext) const  {
-	Value res = Value::visit (MiniMC::Support::Overload {
-	    [&zext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-	      switch (zext.getToType()->getTypeID ()) {
-	      case MiniMC::Model::TypeID::I8:
-	      return ExecZExt<T,MiniMC::Model::TypeID::I8> (b);
-	      case MiniMC::Model::TypeID::I16:
-	      return ExecZExt<T,MiniMC::Model::TypeID::I16> (b);
-	      case MiniMC::Model::TypeID::I32:
-	      return ExecZExt<T,MiniMC::Model::TypeID::I32> (b);
-	      case MiniMC::Model::TypeID::I64:
-	      return ExecZExt<T,MiniMC::Model::TypeID::I64> (b);
-	      default:
-	      std::unreachable();
-	      }
-	      
-	    },
-	      
-	    [&zext,this](const typename Value::Bool& b) ->Value  {
-	      switch (zext.getToType()->getTypeID()) {
-	      case MiniMC::Model::TypeID::I8:
-		return ops.template ZExt<MiniMC::Model::TypeID::I8>(b);
-	      case MiniMC::Model::TypeID::I16:
-		return ops.template ZExt<MiniMC::Model::TypeID::I16>(b);
-		break;
-	      case MiniMC::Model::TypeID::I32:
-		return ops.template ZExt<MiniMC::Model::TypeID::I32>(b);
-		break;
-	      case MiniMC::Model::TypeID::I64:
-		return ops.template ZExt<MiniMC::Model::TypeID::I64>(b);
-		break;
-	      default:
-		std::unreachable();
-	      }
-	    },
-	    MiniMC::Support::Error<Value> {}
-	  },
-	  Eval(zext.getFrom ())
-	  );
-
-	return res;
-	
-      }
-
-      template<typename T, MiniMC::Model::TypeID To>
-      Value ExecSExt (T from) const {
-	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
-	  return ops.template SExt<To> (from);
-	}
-	else {
-	  throw MiniMC::Support::Exception ("Invalid Truncation");
-	}
-      }
-      
-      Value operator() (const MiniMC::Model::SExtExpr& sext) const  {
-	Value res = Value::visit (MiniMC::Support::Overload {
-	    [&sext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-	      switch (sext.getToType()->getTypeID ()) {
-	      case MiniMC::Model::TypeID::I8:
-	      return ExecSExt<T,MiniMC::Model::TypeID::I8> (b);
-	      case MiniMC::Model::TypeID::I16:
-	      return ExecSExt<T,MiniMC::Model::TypeID::I16> (b);
-	      case MiniMC::Model::TypeID::I32:
-	      return ExecSExt<T,MiniMC::Model::TypeID::I32> (b);
-	      case MiniMC::Model::TypeID::I64:
-	      return ExecSExt<T,MiniMC::Model::TypeID::I64> (b);
-	      default:
-	      std::unreachable();
-	      }
-	      
-	    },
-	      
-	    [&sext,this](const typename Value::Bool& b) ->Value  {
-	      switch (sext.getToType()->getTypeID()) {
-	      case MiniMC::Model::TypeID::I8:
-		return ops.template SExt<MiniMC::Model::TypeID::I8>(b);
-	      case MiniMC::Model::TypeID::I16:
-		return ops.template SExt<MiniMC::Model::TypeID::I16>(b);
-		break;
-	      case MiniMC::Model::TypeID::I32:
-		return ops.template SExt<MiniMC::Model::TypeID::I32>(b);
-		break;
-	      case MiniMC::Model::TypeID::I64:
-		return ops.template SExt<MiniMC::Model::TypeID::I64>(b);
-		break;
-	      default:
-		std::unreachable();
-	      }
-	    },
-	    MiniMC::Support::Error<Value> {}
-	  },
-	  Eval(sext.getFrom ())
-	  );
-
-	return res;
-	
-      }
-
-      Value operator() (const MiniMC::Model::IntToBoolExpr& sext) const  {
-	return Value::visit (  MiniMC::Support::Overload {
-	    [this]<typename T> (const T v)->Value requires Integer<Value,T> {return ops.IntToBool (v);},
-	    MiniMC::Support::Error<Value>{}
-	  },
-	  Eval (sext.getFrom ())
-	  );
-      }
-      
-      Value operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
-	return Value::visit (  MiniMC::Support::Overload {
-	    [this]<typename T> (const  typename Value::I8& i8)->Value  {
-	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i8); 
-	      return ops.template BitCast<typename Value::Pointer> (extended);
-	    },
-	    [this]<typename T> (const  typename Value::I16& i16)->Value  {
-	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i16); 
-	      return ops.template BitCast<typename Value::Pointer> (extended);
-	    },
-	    [this]<typename T> (const  typename Value::I32& i32)->Value  {
-	      auto extended = ops.template ZExt<MiniMC::Model::TypeID::I64> (i32); 
-	      return ops.template BitCast<typename Value::Pointer> (extended);
-	    },
-	    [this]<typename T> (const  typename Value::I64& v)->Value  {
-	      return ops.template BitCast<typename Value::Pointer> (v);
-	    },
-	    MiniMC::Support::Error<Value>{}
-	  },
-	  Eval (sext.getFrom ())
-	  );
-      }
-
-      Value operator() (const MiniMC::Model::PtrToIntExpr& sext) const  {
-	return Value::visit (  MiniMC::Support::Overload {
-	    [this,&sext](const typename Value::Pointer& val)->Value  {
-	      auto i64  = ops.template BitCast<typename Value::I64> (val);
-	      switch (sext.getToType ()->getTypeID ()) {
-	      case MiniMC::Model::TypeID::I8:
-		return ops.template Trunc<MiniMC::Model::TypeID::I8> (i64);
-	      case MiniMC::Model::TypeID::I16:
-		return ops.template Trunc<MiniMC::Model::TypeID::I16> (i64);
-	      case MiniMC::Model::TypeID::I32:
-		return ops.template Trunc<MiniMC::Model::TypeID::I32> (i64);
-	      case MiniMC::Model::TypeID::I64:
-		return i64;
-	      default:
-		std::unreachable();
-	      }
-	    },
-	      [this,&sext](const typename Value::Pointer32& val)->Value  {
-		auto i32 = ops.template BitCast<typename Value::I32> (val);
-		
-		switch (sext.getToType ()->getTypeID ()) {
-		case MiniMC::Model::TypeID::I8:
-		  return ops.template Trunc<MiniMC::Model::TypeID::I8> (i32);
-		case MiniMC::Model::TypeID::I16:
-		  return ops.template Trunc<MiniMC::Model::TypeID::I16> (i32);
-		case MiniMC::Model::TypeID::I32:
-		  return i32;
-		case MiniMC::Model::TypeID::I64:
-		  return ops.template ZExt<MiniMC::Model::TypeID::I64> (i32);
-		default:
-		  std::unreachable();
-	      }
-	      },
-	  
-	  MiniMC::Support::Error<Value>{}
-	  },
-	  Eval (sext.getFrom ())
-	  );
-      }
-      
-      Value operator() (const MiniMC::Model::Register& reg) const  {
-	return regstore.lookupRegister (reg);
-      }
-      
-      Value operator() (const MiniMC::Model::SymbolicConstant& s) const  {
-	return std::visit (
-		    MiniMC::Support::Overload {
-		      [this](const MiniMC::Model::Register_wptr& r)->Value {return regstore.lookupRegister (*r.lock());},
-		      [this,&s](const MiniMC::Model::HeapBlock_wptr&)->Value {return regstore.lookupSymbol (s.getValue());},
-		      MiniMC::Support::Error<Value>{}	 
-		    },
-		    
-		    s.getValue().getUserData()
-			   );
-      }
-      
-      
-      
-#define OPSI					\
-      X(AddExpr,Add)				\
-      X(SubExpr,Sub)				\
-      X(MulExpr, Mul)				\
-      X(UDivExpr, UDiv)				\
-      X(SDivExpr, SDiv)				\
-      X(LShlExpr, LShl)				\
-      X(AShrExpr, AShr)				\
-      X(LShrExpr, LShr)				\
-      X(AndExpr, And)				\
-      X(OrExpr, Or)				\
-      X(XorExpr, Xor)				\
-      
-#define X(CC,op)							\
-      Value operator() (const MiniMC::Model::CC& cc) const  {		\
-	auto l = Eval (cc.op1());					\
-	auto r = Eval (cc.op2());					\
-      return Value::visit (MiniMC::Support::Overload {			\
-      [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
-	return ops.op (ll,rr);},					\
-      [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
-    },l,r);								\
-}									
-      OPSI
-#undef X
-#undef OPSI
-
-#define OPSI					\
-      X(SGtExpr, SGt)			\
-      X(UGtExpr, UGt)			\
-      X(SGeExpr, SGe)			\
-      X(UGeExpr, UGe)			\
-      X(SLtExpr, SLt)			\
-      X(ULtExpr, ULt)			\
-      X(SLeExpr, SLe)			\
-      X(ULeExpr, ULe)			\
-      X(EqExpr, Eq)			\
-      X(NEqExpr, NEq)			\
-
-#define X(CC,op)							\
-      Value operator() (const MiniMC::Model::CC& cc) const  {		\
-	auto l = Eval (cc.op1 ());					\
-	auto r = Eval (cc.op2 ());					\
-	return Value::visit (MiniMC::Support::Overload {		\
-	    [this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
-	      return ops.op (ll,rr);},					\
-	      [this]<typename T> (T& ll, T& rr) -> Value requires Pointer<Value,T>  { \
-		return ops.op (castPtrToAppropriateInteger<T>(std::forward<T>(ll)),castPtrToAppropriateInteger<T>(std::forward<T>(rr)));}, \
-	      [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
-	      },l,r);							\
-      }									
-      OPSI
-#undef X
-#undef OPSI     
-      
-      
-#define OPSI								\
-      X(LogNotExpr, BoolNegate)						
-      
-#define X(CC,op)							\
-      Value operator() (const MiniMC::Model::CC& cc) const  {		\
-	auto l = Eval (cc.op1());					\
-	return Value::visit (MiniMC::Support::Overload {		\
-	  [this] (typename Value::Bool& ll) -> Value    {		\
-	    return ops.op (ll);					\
-	  },								\
-	  [](auto&) -> Value {throw MiniMC::Support::Exception ("Error");} \
-	    },l								\
-	  );								\
-      }									\
-      
-OPSI
-#undef X
-#undef OPSI   
-      
-      Value operator() (const MiniMC::Model::NotExpr& notex) const  {
-	return Value::visit (  MiniMC::Support::Overload {
-	    [this]<typename T> (const  T& t) ->Value requires Integer<Value,T>{
-	      return ops.Not (t);
-	    },
-	    MiniMC::Support::Error<Value>{}
-	  },
-	  Eval (notex.op1 ())
-	  );
-      }
-
-      
-      Value operator() (const MiniMC::Model::LoadExpr& load) const  {
-	return Value::visit (  MiniMC::Support::Overload {
-	    [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer& p) {
-	      return regstore.load (p,m,*load.getToType());
-	    },
-	    [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer32& p) {
-	      return regstore.load (ops.Ptr32ToPtr (p),m,*load.getToType());
-	    },
-	      MiniMC::Support::Error<Value>{}
-	  },
-	  Eval (load.mem()),
-	  Eval (load.addr ())
-	  );
-      }
-
-      Value operator() (const MiniMC::Model::StoreExpr
-			& store) const  {
-	return Value::visit(MiniMC::Support::Overload {
-	    [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-	      return  regstore.store(m,addr, t);
-	    },
-	    [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-	      return  regstore.store(m,ops.Ptr32ToPtr(addr), t);
-	    },
-	    MiniMC::Support::Error<Value> {}
-	  },
-	  Eval(store.storeto()),
-	  Eval(store.addr ()),
-	  Eval(store.storee())
-	  );
-      }
-
-      
-      
-      Value operator() (const MiniMC::Model::PtrAddExpr& load) const  {
-	auto visitor = MiniMC::Support::Overload {
-	  [this,&load]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
-	    return  ops.PtrAdd(ptr, ops.template ZExt<MiniMC::Model::TypeID::I64> (skipsize));
-	    
-	  },
-	  [this,&load](Value::Pointer& ptr,Value::I64& skipsize)->Value  {
-	    return  ops.PtrAdd(ptr, skipsize);
-	    
-	  },
-	  MiniMC::Support::Error<Value>{}
-	};
-	
-	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()));
-      }
-
-      Value operator() (const MiniMC::Model::PtrSubExpr& load) const  {
-	auto visitor = MiniMC::Support::Overload {
-	  [this]<typename ValT>(Value::Pointer& ptr,ValT& skipsize)->Value requires Integer<Value,ValT> {
-	    return ops.PtrSub(ptr, skipsize);
-	    
-	  },
-	  MiniMC::Support::Error<Value>{}
-	};
-	
-	return Value::visit (visitor,Eval(load.ptr()),Eval(load.skipsize()));
-      }
-      
-      template<class T>
-      Value operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {
-	throw MiniMC::Support::Exception ("Not Implemented");
-      }
-      
-      
-      
-      
-    private:
-      Operations ops;
-      const RegStore regstore;
-    };
-    */
     
     template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
     class MultiEvaluator {
@@ -945,6 +504,8 @@ OPSI
 	}
       }
       
+
+      
       
       std::generator<Value> operator() (const MiniMC::Model::LoadExpr& load) const  {
 	for (auto m : MEval (load.mem ())) {
@@ -970,13 +531,20 @@ OPSI
 	for ( auto storeto : MEval(store.storeto ())) {
 	  for (auto addr : MEval (store.addr ())) {
 	    for (auto storee : MEval (store.storee ())) {
+	      auto doStore = [this]<typename T>(Value::Memory m, Value::Pointer addr, T value ) -> Value requires (!Boolean<Value,T> && !MemoryC<Value,T>) {
+		auto ones = ops.create (MiniMC::Model::I64Integer{1});
+		for (auto b :  ops.bytes(value)) {
+		  m = regstore.store(m,addr,b);
+		  addr = ops.PtrAdd (addr,ones);
+		}
+		return Value{m};
+	      };
 	      co_yield Value::visit(MiniMC::Support::Overload {
-		[this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-		 
-		  return  regstore.store(m,addr, t);
-		},
-		  [this]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-		  return  regstore.store(m,ops.Ptr32ToPtr(addr), t);
+		  [this,doStore]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		    return doStore (m,addr,t);
+		  },
+		  [this,doStore]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		  return doStore (m,ops.Ptr32ToPtr(addr),t);
 		},
 		  MiniMC::Support::Error<Value> {}
 	      },

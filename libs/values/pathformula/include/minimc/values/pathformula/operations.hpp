@@ -160,6 +160,14 @@ namespace MiniMC {
 	  auto term = val.getTerm();
 	  return {std::move(term),val.size()};
 	}
+
+	std::generator<Value::I8> bytes (const Value::I8&) const; 
+	std::generator<Value::I8> bytes (const Value::I16&) const;
+	std::generator<Value::I8> bytes (const Value::I32&) const;
+	std::generator<Value::I8> bytes (const Value::I64&) const;
+	std::generator<Value::I8> bytes (const Value::Pointer&) const;
+	std::generator<Value::I8> bytes (const Value::Pointer32&) const;
+	std::generator<Value::I8> bytes (const Value::Aggregate&) const;
 	
 	
 	template <MiniMC::Model::TypeID to, class T>
@@ -175,7 +183,7 @@ namespace MiniMC {
 	Value create (const MiniMC::Model::I8Integer& val)  const; 
 	Value create (const MiniMC::Model::I16Integer& val) const ;
 	Value create (const MiniMC::Model::I32Integer& val) const ;
-	Value create (const MiniMC::Model::I64Integer& val) const ;
+	Value::I64 create (const MiniMC::Model::I64Integer& val) const ;
 	Value::Bool create (const MiniMC::Model::Bool& val) const   ;
 	Value create (const MiniMC::Model::Pointer& val) const ;
 	Value create (const MiniMC::Model::Pointer32& val) const;
@@ -185,6 +193,7 @@ namespace MiniMC {
 	Value unboundValue (const MiniMC::Model::Type&) const ;
 	Value defaultValue(const MiniMC::Model::Type&) const ;
 	
+
 	
       private:
 	SMTLib::TermBuilder& builder;
@@ -197,7 +206,9 @@ namespace MiniMC {
 	Memory (const Memory&) = default;
 	Memory& operator= (Memory&& m) = default;
 	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
-        // First parameter is address to store at, second is the value to state
+	std::generator<Value::I8> loadBytes(const MemoryValue&, const typename Value::Pointer&, std::size_t) const ;
+        
+	// First parameter is address to store at, second is the value to state
         MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) const ;
 	MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I16&) const ;
         MemoryValue store(const MemoryValue&,const Value::Pointer&, const Value::I32&) const ;

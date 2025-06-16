@@ -71,7 +71,7 @@ namespace MiniMC {
 	
 	auto& getMemVar () const {return mem_var;}
 	auto getNextBlock () const {return next_block;}
-	
+	std::ostream& output(std::ostream& os) const;
       private:
 	MiniMC::Model::base_t next_block = 0;
 	SMTLib::Term_ptr mem_var{nullptr};
@@ -79,8 +79,8 @@ namespace MiniMC {
       };
       
 
-      inline std::ostream& operator<< (std::ostream& os, const MemoryValue&) {
-	return os << "Mem";
+      inline std::ostream& operator<< (std::ostream& os, const MemoryValue& m) {
+	return m.output(os);
       }
       
       template <typename v,MiniMC::Model::TypeID b>

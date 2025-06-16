@@ -5,6 +5,8 @@
 #include "minimc/support/exceptions.hpp"
 #include "minimc/values/concrete/value.hpp"
 
+#include <span>
+
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
@@ -329,10 +331,30 @@ namespace MiniMC {
           }
         }
 
+	template<class T>
+	std::generator<Value::I8> bytes(const T& l) const requires (Integer<Value,T> || Pointer<Value,T>) 
+	{
+	  auto val = l.getValue();
+	  std::span<MiniMC::BV8> mspan {reinterpret_cast<MiniMC::BV8*> (&val),sizeof(val)};
+	  for (auto t : mspan) {
+	    co_yield Value::I8 (t);
+	  }
+	  
+	}
+
+	std::generator<Value::I8> bytes(const Value::Aggregate& l)  const 
+	{
+	  auto val = l.getValue();
+	  for (auto t : val.get_direct_access()) {
+	    co_yield Value::I8 (t);
+	  }
+	  
+	}
+	
 	Value create (const MiniMC::Model::I8Integer& val)  const  { return Value::I8{val.getValue()}; }
 	Value create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }
 	Value create (const MiniMC::Model::I32Integer& val) const  { return Value::I32{val.getValue()}; }
-	Value create (const MiniMC::Model::I64Integer& val) const  { return Value::I64{val.getValue()}; }
+	Value::I64 create (const MiniMC::Model::I64Integer& val) const  { return Value::I64{val.getValue()}; }
 	Value::Bool create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
 	Value create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
 	Value create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
@@ -343,7 +365,7 @@ namespace MiniMC {
 	
 	
       };
-
+      
     } // namespace Concrete
   }   // namespace VMT
 } // namespace MiniMC

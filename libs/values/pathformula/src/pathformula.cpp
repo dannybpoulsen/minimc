@@ -54,7 +54,7 @@ namespace MiniMC {
       Value Operations::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
       Value Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
       Value Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
-      Value Operations::create(const MiniMC::Model::I64Integer& val) const {  return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
+      Value::I64 Operations::create(const MiniMC::Model::I64Integer& val) const {  return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
       Value::Bool Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
       Value Operations::create(const MiniMC::Model::Pointer& val) const {
 	auto pointer = val.getValue ();
@@ -83,6 +83,16 @@ namespace MiniMC {
       std::generator<Value> Operations::create(const MiniMC::Model::Undef& val) const {
 	co_yield unboundValue(*val.getType());
       }
+
+      std::generator<Value::I8> Memory::loadBytes(const MemoryValue& mem, const typename Value::Pointer& startAddr, std::size_t bytes) const  {
+	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(builder);
+	for (size_t i = 0; i < bytes; ++i) {
+	  auto ones = builder->makeBVIntConst(i, Value::Pointer::intbitsize());
+	  auto curind = builder->buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
+	  co_yield Value::I8{builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind})};
+	  
+	}
+      }
       
       
       Value Memory::load(const MemoryValue& mem, const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
@@ -93,7 +103,7 @@ namespace MiniMC {
 	  if (t.getTypeID () == MiniMC::Model::TypeID::Aggregate)
 	    concat >> builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
 	  else {
-	    concat << builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
+	    concat >> builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
 	  }
 	}
 	switch (t.getTypeID ()) {
@@ -136,7 +146,7 @@ namespace MiniMC {
 	auto arr_sort = builder.makeSort(
 					  SMTLib::SortKind::Array, {builder.makeBVSort(Value::Pointer::intbitsize()),
 								   builder.makeBVSort(8)});
-	auto mem_var = builder.makeVar(arr_sort, "Mem");
+	auto mem_var = builder.makeVar(arr_sort, "Mem_mm");
 	return MemoryValue (0,mem_var);
       }
       
@@ -218,13 +228,23 @@ namespace MiniMC {
 	return MemoryValue(mem.getNextBlock(),mem_var);
       }
       
-      
+      std::ostream& MemoryValue::output(std::ostream& os) const {
+	if (mem_var)
+	  return mem_var->output(os);
+	else
+	  return os << "Uninit Mem";
+      }
       
 
       template <typename v,MiniMC::Model::TypeID id>
       std::ostream& TValue<v,id>::output(std::ostream& os) const {
         return term->output(os);
       }
+
+      
+
+      
+      
 
       template<class T,MiniMC::Model::TypeID id>
       T TValue<T,id>::interpretValue (const SMTLib::Solver& solver) const {

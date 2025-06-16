@@ -193,13 +193,17 @@ namespace MiniMC {
 	return memcontrol.load (m,p,t);
       }
 
-      Value store (const Value::Memory& m,const Value::Pointer p,  const Value& t) const {
+      std::generator<typename Value::I8> loadBytes (const Value::Pointer p, const Value::Memory& m , std::size_t s) const {
+	return memcontrol.loadBytes (m,p,s);
+      }
+      
+      Value::Memory store (const Value::Memory& m,const Value::Pointer p,  const Value& t) const {
 	return Value::visit (
 			     MiniMC::Support::Overload {
 			       [&m,&p,this]<typename T> (const T& v)  requires (!MiniMC::VMT::Boolean<Value,T> && !MiniMC::VMT::MemoryC<Value,T>) {
-				 return Value{memcontrol.store (m,p,v)}; 
+				 return memcontrol.store (m,p,v); 
 			       },
-				 MiniMC::Support::Error<Value>{}
+				 MiniMC::Support::Error<typename Value::Memory>{}
 			       },
 			     t);
       }
@@ -241,11 +245,16 @@ namespace MiniMC {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }
 
+      std::generator<typename Value::I8> loadBytes (const Value::Pointer, const Value::Memory&, std::size_t) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+      
+      
       Value lookupSymbol (MiniMC::Model::Symbol s) const {
 	return scontext.at(s);
       }
 
-      Value store (const Value::Memory& ,const Value::Pointer ,  const Value&) const {
+      Value::Memory store (const Value::Memory& ,const Value::Pointer ,  const Value&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
       
       }

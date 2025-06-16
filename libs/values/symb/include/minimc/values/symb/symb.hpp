@@ -317,7 +317,7 @@ namespace MiniMC {
 	  
 	}
 
-	Value create (const MiniMC::Model::I64Integer& v) const {
+	Value::I64 create (const MiniMC::Model::I64Integer& v) const {
 	  return Value::I64 {MiniMC::Model::I64Integer::make (v.getValue())};
 	  
 	}
@@ -364,14 +364,24 @@ namespace MiniMC {
 	std::generator<Value> create (const MiniMC::Model::Undef& undef ) const {
 	  co_yield defaultValue (*undef.getType());
 	}
-
 	
+	
+	std::generator<Value::I8> bytes (const Value::I8&) const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::I16&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::I32&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::I64&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::Pointer&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::Pointer32&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::Aggregate&)const{throw MiniMC::Support::Exception {"not implemented"};}
+
 	
       };
 
       class MemoryOps {
       public:
 	Value load(const Value::Memory&, const typename Value::Pointer&, const MiniMC::Model::Type& ty) const {return Operations{}.defaultValue(ty);}
+	std::generator<Value::I8> loadBytes(const Value::Memory&, const typename Value::Pointer&, std::size_t) const {throw MiniMC::Support::Exception ("Not Implemented");}
+	
 	Value::Memory store(const Value::Memory& m, const Value::Pointer& p, const Value::I8& val) const  {
 	  TypecheckedExpressionBuilder builder;    
 	  builder << m.getValue() << p.getValue() << val.getValue();

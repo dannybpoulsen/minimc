@@ -19,6 +19,8 @@ namespace MiniMC {
       public:
 	Memory ();
 	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const;
+	std::generator<Value::I8> loadBytes(const MemoryValue& mvalue, const typename Value::Pointer& p, std::size_t bytes) const;	
+
         // First parameter is address to store at, second is the value to state
         MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) const  ;
 	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I16&)const  ;

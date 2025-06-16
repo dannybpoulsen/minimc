@@ -82,11 +82,6 @@ namespace MiniMC {
 	return arr;
       }
       
-      
-      
-      /*const MiniMC::BV8* get_direct_access() const {
-        return buffer.get();
-	}*/
       const std::span<const MiniMC::BV8> get_direct_access () const {
 	return {buffer.get(), buffer.get()+getSize()};
       }

@@ -244,12 +244,29 @@ namespace MiniMC {
       
     };
 
+    template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Aggregate,class Aux>
+    concept AuxOperation_ = requires (Aux op, const I8& i8,const I16& i16, const I32& i32, const I64& i64,  const Pointer& p, const Pointer32& p32, const Aggregate& aggr) {
+      {op.bytes (i8)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (i16)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (i32)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (i64)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (p)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (p32)}->std::convertible_to<std::generator<I8>>;
+      {op.bytes (aggr)}->std::convertible_to<std::generator<I8>>;
+    
+    };
+
+    template<class T,class Operation>
+    concept AuxOperation = AuxOperation_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
+					   typename T::Bool,typename T::Pointer,typename T::Pointer32,typename T::Aggregate,Operation>;
+    
+    
     template<class T,class Operation>
     concept CastOperation = CastOperation_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
 					   typename T::Bool,typename T::Pointer,typename T::Pointer32,typename T::Aggregate,Operation>;
     
 
-        template<class Creato,class Res>
+    template<class Creato,class Res>
     concept Creator = requires (const Creato e,
 				const MiniMC::Model::I8Integer& i8,
 				const MiniMC::Model::I16Integer& i16,
@@ -264,7 +281,7 @@ namespace MiniMC {
       {e.create(i8)}->std::convertible_to<Res>;
       {e.create(i16)}->std::convertible_to<Res>;
       {e.create(i32)}->std::convertible_to<Res>;
-      {e.create(i64)}->std::convertible_to<Res>;
+      {e.create(i64)}->std::convertible_to<typename Res::I64>;
       {e.create(b)}->std::convertible_to<typename Res::Bool>;
       {e.create(ptr)}->std::convertible_to<Res>;
       {e.create(ptr32)}->std::convertible_to<Res>;
@@ -284,7 +301,8 @@ namespace MiniMC {
 					 const typename T::Aggregate& aggr,
 					 const typename T::Pointer& ptr,
 					 const typename T::Pointer32& ptr32,
-					 const MiniMC::Model::Type&ty
+					 const MiniMC::Model::Type&ty,
+					 const std::size_t bytes
 					 ) {
       {memc.store (mem,p,i8)}->std::convertible_to<typename T::Memory>;
       {memc.store (mem,p,i16)}->std::convertible_to<typename T::Memory>;
@@ -297,6 +315,7 @@ namespace MiniMC {
       {memc.allocate(mem,ptr,i64)}->std::convertible_to<typename T::Memory>;
       {memc.free (mem,p)}->std::convertible_to<typename T::Memory>;
       {memc.load (mem,p,ty)}->std::convertible_to<T>;
+      {memc.loadBytes (mem,p,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
     };
     
     
@@ -305,7 +324,8 @@ namespace MiniMC {
                   IntOperation<Value,Operation> &&
                   PointerOperation<Value,Operation> &&
                   AggregateOperation<Value,Operation> &&
-                  Creator<Operation,Value>
+                  Creator<Operation,Value> &&
+                  AuxOperation<Value,Operation>
       ;
 
      enum class Feasibility {

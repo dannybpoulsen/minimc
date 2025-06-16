@@ -143,7 +143,7 @@ namespace MiniMC {
       Value::Aggregate Operations::InsertAggregateValue(const Value::Aggregate& aggr, const std::size_t offset, const Value::Aggregate& val) const {
 	return {BVHelper{builder,aggr.getTerm (),aggr.size()}.storeBytes<LoadType::Straight> (offset,val.getTerm (),val.size()),aggr.size ()};
       }
-
+      
       template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I8&) const;
       template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I16&) const;
       template Value::Pointer Operations::PtrAdd (const Value::Pointer&,const Value::I32&) const;
@@ -170,6 +170,40 @@ namespace MiniMC {
       template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Pointer32&) const;  
       template Value::Aggregate Operations::InsertBaseValue(const Value::Aggregate&, std::size_t, const Value::Bool&) const;
 
+      template<class T>
+      std::generator<Value::I8> extractBytes (const T& b, SMTLib::TermBuilder& builder) {
+	for (std::size_t i = 0; i < Value::bytesize<T>(); i++) {
+	  co_yield Value::I8 {builder.buildTerm(SMTLib::Ops::Extract,{b.getTerm ()},{(i+1)*8-1,i*8})};	
+	}
+      }
+      
+      std::generator<Value::I8> Operations::bytes (const Value::I8& b) const {
+	return extractBytes(b,builder);
+      }
+      
+      std::generator<Value::I8> Operations::bytes (const Value::I16& b) const {
+	return extractBytes(b,builder);
+      }
+      
+      std::generator<Value::I8> Operations::bytes (const Value::I32& b) const
+      {
+	return extractBytes(b,builder);	
+      }
+      
+	
+      std::generator<Value::I8> Operations::bytes (const Value::I64& b) const{
+	return extractBytes(b,builder);
+      }
+      std::generator<Value::I8> Operations::bytes (const Value::Pointer& b)  const{ return extractBytes(b,builder);}
+      std::generator<Value::I8> Operations::bytes (const Value::Pointer32& b)const {return extractBytes(b,builder);} 
+      std::generator<Value::I8> Operations::bytes (const Value::Aggregate& b) const {
+	for (std::size_t i = 0; i  <  b.size(); ++i) {
+	  co_yield Value::I8 {builder.buildTerm(SMTLib::Ops::Extract,{b.getTerm ()},{(i+1)*8-1,i*8})};	
+	}
+	
+      }
+      
+      
     } // namespace Pathformula
   }   // namespace VMT
 } // namespace MiniMC
