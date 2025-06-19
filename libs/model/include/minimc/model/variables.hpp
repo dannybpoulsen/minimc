@@ -1,6 +1,7 @@
 #ifndef _VARIABLE__
 #define _VARIABLE__
 
+#include "minimc/hash/hashing.hpp"
 #include "minimc/model/types.hpp"
 #include "minimc/model/symbol.hpp"
 #include "minimc/support/exceptions.hpp"
@@ -56,13 +57,17 @@ namespace MiniMC {
     //for function pointer offset must be zero
     //for location pointer offset is the location inside the function jumped to
     offset_t offset{0};
-    using PtrBV = Ptrbv;  
+    using PtrBV = Ptrbv;
+    pointer_struct() {}
+    pointer_struct (seg_t seg, base_t base, offset_t off) : segment(seg),base(base),offset(off) {}
+    pointer_struct (const pointer_struct& oth)  = default;
+    
     pointer_struct add (offset_t off) const  {
-      return pointer_struct {.segment = segment,.base = base,.offset = offset+off};
+      return pointer_struct {segment,base,offset+off};
     }
 
     pointer_struct sub (offset_t off) const  {
-      return pointer_struct {.segment = segment,.base = base,.offset = offset-off};
+      return pointer_struct {segment,base,offset-off};
     }
     
     bool is_null () const {return base == 0 && segment == 0 && offset == 0;}
@@ -107,7 +112,12 @@ namespace MiniMC {
       return ptr;
     }
 
-    
+    MiniMC::Hash::hash_t hash ()  const {
+      MiniMC::Hash::Hasher hash{};
+      hash << base << base << offset;
+      return hash;
+    }
+      
   };
   
 

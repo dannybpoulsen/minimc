@@ -180,13 +180,13 @@ namespace MiniMC {
         typename RetTyp<Value,to>::type SExt(const T& t) const requires MiniMC::VMT::Integer<Value,T> ;;
 
 
-	Value create (const MiniMC::Model::I8Integer& val)  const; 
-	Value create (const MiniMC::Model::I16Integer& val) const ;
-	Value create (const MiniMC::Model::I32Integer& val) const ;
+	Value::I8 create (const MiniMC::Model::I8Integer& val)  const; 
+	Value::I16 create (const MiniMC::Model::I16Integer& val) const ;
+	Value::I32 create (const MiniMC::Model::I32Integer& val) const ;
 	Value::I64 create (const MiniMC::Model::I64Integer& val) const ;
 	Value::Bool create (const MiniMC::Model::Bool& val) const   ;
-	Value create (const MiniMC::Model::Pointer& val) const ;
-	Value create (const MiniMC::Model::Pointer32& val) const;
+	Value::Pointer create (const MiniMC::Model::Pointer& val) const ;
+	Value::Pointer32 create (const MiniMC::Model::Pointer32& val) const;
 	Value create (const MiniMC::Model::AggregateConstant& val) const;
 	std::generator<Value>create (const MiniMC::Model::Undef& und) const ;
 	Value create(const MiniMC::Model::SymbolicConstant& ) const    {throw MiniMC::Support::Exception ("Cannot Evaluate Symbolic Constants");}

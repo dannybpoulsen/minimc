@@ -62,8 +62,9 @@ namespace MiniMC {
       GenericVal (Bool val) : content(val) {}
       GenericVal (Aggregate ag) : content(ag) {}
       GenericVal (Memory mem) : content(mem) {}
-      
 
+      GenericVal (const GenericVal&) = default;
+      
       template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
       static auto visit (Func f,Values... values)  {
 	return std::visit (f,values.content...);
@@ -278,13 +279,13 @@ namespace MiniMC {
 				const MiniMC::Model::AggregateConstant& aggrc,
 				const MiniMC::Model::Undef& und,
  				const MiniMC::Model::Type& ty) {
-      {e.create(i8)}->std::convertible_to<Res>;
-      {e.create(i16)}->std::convertible_to<Res>;
-      {e.create(i32)}->std::convertible_to<Res>;
+      {e.create(i8)}->std::convertible_to<typename Res::I8>;
+      {e.create(i16)}->std::convertible_to<typename Res::I16>;
+      {e.create(i32)}->std::convertible_to<typename Res::I32>;
       {e.create(i64)}->std::convertible_to<typename Res::I64>;
       {e.create(b)}->std::convertible_to<typename Res::Bool>;
-      {e.create(ptr)}->std::convertible_to<Res>;
-      {e.create(ptr32)}->std::convertible_to<Res>;
+      {e.create(ptr)}->std::convertible_to<typename Res::Pointer>;
+      {e.create(ptr32)}->std::convertible_to<typename Res::Pointer32>;
       {e.create(aggrc)}->std::convertible_to<Res>;
       {e.create(und)}->std::convertible_to<std::generator<Res>>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;

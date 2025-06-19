@@ -34,12 +34,14 @@ namespace MiniMC {
       struct TValue {
         using underlying_type = T;
         TValue(T val) : value(val) {}
-
+	TValue (const TValue& ) = default;
+	
+	
         MiniMC::Hash::hash_t hash() const {
 	  if constexpr (std::is_integral_v<T>) 
 	    return value;
 	  else if constexpr (MiniMC::Model::is_pointer_v<T>)  {
-	    return std::bit_cast<typename T::PtrBV>(value);  
+	    return value.hash();  
 	  }
         }
 
@@ -56,7 +58,7 @@ namespace MiniMC {
       struct AggregateValue {
         AggregateValue(const MiniMC::Util::Array& array) : val(array) {}
         AggregateValue(const MiniMC::Util::Array&& array) : val(std::move(array)) {}
-
+	
         MiniMC::Hash::hash_t hash() const { return val.hash(); }
         auto getValue() const { return val; }
 	

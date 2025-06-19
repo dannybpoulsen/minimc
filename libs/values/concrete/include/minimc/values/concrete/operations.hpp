@@ -218,20 +218,20 @@ namespace MiniMC {
         
 	
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer& p ) const  {
-	  Value::Pointer32::underlying_type p32{};
-	  p32.base = p.getValue().base;
-	  p32.offset = p.getValue().offset;
-	  p32.segment = p.getValue().segment;
+	  //Value::Pointer32::underlying_type p32{};
+	  auto base = p.getValue().base;
+	  auto offset = p.getValue().offset;
+	  auto segment = p.getValue().segment;
 	  
-	  return p32;
+	  return Value::Pointer32::underlying_type{segment,base,offset};
 	}
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32& p32) const  {
-	  Value::Pointer::underlying_type p{};
-	  p.base = p32.getValue().base;
-	  p.offset = p32.getValue().offset;
-	  p.segment = p32.getValue().segment;
-	  return p;
+	  //Value::Pointer::underlying_type p{};
+	  auto base = p32.getValue().base;
+	  auto offset = p32.getValue().offset;
+	  auto segment = p32.getValue().segment;
+	  return Value::Pointer::underlying_type{segment,base,offset};
 	}
 
 	template<typename To,typename From>
@@ -351,13 +351,13 @@ namespace MiniMC {
 	  
 	}
 	
-	Value create (const MiniMC::Model::I8Integer& val)  const  { return Value::I8{val.getValue()}; }
-	Value create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }
-	Value create (const MiniMC::Model::I32Integer& val) const  { return Value::I32{val.getValue()}; }
+	Value::I8 create (const MiniMC::Model::I8Integer& val)  const  { return Value::I8{val.getValue()}; }
+	Value::I16 create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }
+	Value::I32 create (const MiniMC::Model::I32Integer& val) const  { return Value::I32{val.getValue()}; }
 	Value::I64 create (const MiniMC::Model::I64Integer& val) const  { return Value::I64{val.getValue()}; }
 	Value::Bool create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
-	Value create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
-	Value create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
+	Value::Pointer create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
+	Value::Pointer32 create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
 	Value create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}
 	std::generator<Value> create (const MiniMC::Model::Undef& und) const;
 	//Value unboundValue (const MiniMC::Model::Type&) const ;

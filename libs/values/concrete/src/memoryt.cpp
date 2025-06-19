@@ -18,13 +18,12 @@ namespace std {
 
   template<>
   struct hash<MiniMC::Model::pointer_t> {
-    auto operator()(const MiniMC::Model::pointer_t& op)  const {return std::bit_cast<MiniMC::Model::pointer_t::PtrBV> (op);
-    }
+    auto operator()(const MiniMC::Model::pointer_t& op)  const {return op.hash();}
   };
 
   template<>
   struct hash<MiniMC::Model::pointer32_t> {
-    auto operator()(const MiniMC::Model::pointer32_t& op) const {return std::bit_cast<MiniMC::Model::pointer32_t::PtrBV> (op);}
+    auto operator()(const MiniMC::Model::pointer32_t& op) const {return op.hash();}
   };
 
 } // namespace std
@@ -71,8 +70,8 @@ namespace MiniMC {
       
       
       
-    
-      std::generator<Value::I8> Memory::loadBytes(const MemoryValue& mvalue, const typename Value::Pointer& p, std::size_t bytes) const {
+      
+      std::generator<Value::I8> Memory::loadBytes(const MemoryValue& mvalue, const Value::Pointer& p, std::size_t bytes) const {
 	auto pointer = p.getValue();
         auto base = MiniMC::Model::getBase(pointer);
         auto offset = MiniMC::Model::getOffset(pointer);
@@ -143,7 +142,8 @@ namespace MiniMC {
 	auto pointer = p.getValue();
         auto value = v.getValue();
         auto base = MiniMC::Model::getBase(pointer);
-	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
+	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0);
+	
         auto offset = MiniMC::Model::getOffset(pointer);
         if (m.getInternal().entries.count(base_pointer)) {
           m.getInternal().entries.at(base_pointer).write(make_span(value), offset);

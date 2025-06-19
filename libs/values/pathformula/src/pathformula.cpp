@@ -51,12 +51,12 @@ namespace MiniMC {
       
       
       
-      Value Operations::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
-      Value Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
-      Value Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
+      Value::I8 Operations::create(const MiniMC::Model::I8Integer& val) const { return I8Value(builder.makeBVIntConst(val.getValue(), 8)); }
+      Value::I16 Operations::create(const MiniMC::Model::I16Integer& val) const { return I16Value(builder.makeBVIntConst(val.getValue(), 16)); }
+      Value::I32 Operations::create(const MiniMC::Model::I32Integer& val) const { return I32Value(builder.makeBVIntConst(val.getValue(), 32)); }
       Value::I64 Operations::create(const MiniMC::Model::I64Integer& val) const {  return I64Value(builder.makeBVIntConst(val.getValue(), 64)); }
       Value::Bool Operations::create(const MiniMC::Model::Bool& val) const { return BoolValue(builder.makeBoolConst(val.getValue())); }
-      Value Operations::create(const MiniMC::Model::Pointer& val) const {
+      Value::Pointer Operations::create(const MiniMC::Model::Pointer& val) const {
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -65,7 +65,7 @@ namespace MiniMC {
 	return PointerValue(chainer.getTerm ());
 	} 
 
-      Value Operations::create(const MiniMC::Model::Pointer32& val) const { 
+      Value::Pointer32 Operations::create(const MiniMC::Model::Pointer32& val) const { 
 	auto pointer = val.getValue ();
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	chainer << builder.makeBVIntConst(pointer.segment, sizeof(pointer.segment)*8)
@@ -250,22 +250,23 @@ namespace MiniMC {
       T TValue<T,id>::interpretValue (const SMTLib::Solver& solver) const {
 	
 	if constexpr (MiniMC::Model::is_pointer_v<T>) {
-	  T res;
+	  //T res;
 	  // std::memset (&pointer,0,sizeof(MiniMC::pointer_t));
 
 	  auto ires = std::get<SMTLib::bitvector> (solver.getModelValue(term));
-	  decltype(res.segment) seg{0};
-	  decltype(res.offset) offset{0};
-	  decltype(res.base) base{0};
+	  decltype(T::segment) seg{0};
+	  decltype(T::offset) offset{0};
+	  decltype(T::base) base{0};
 	  
 		
 	  auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
 	  iter = MiniMC::Support::SMT::extract (iter,base);
 	  iter = MiniMC::Support::SMT::extract (iter,seg);
-	  res.segment = seg;
+	  /*res.segment = seg;
 	  res.offset = offset;
 	  res.base = base;
-	  return res;
+	  return res;*/
+	  return T{seg,base,offset};
 	  
 	}
 	else if constexpr (std::is_same_v<T,MiniMC::Util::Array>) {

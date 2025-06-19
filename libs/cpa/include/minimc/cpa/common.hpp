@@ -192,9 +192,9 @@ namespace MiniMC {
       Value load (const Value::Pointer p, const Value::Memory& m, const MiniMC::Model::Type& t) const {
 	return memcontrol.load (m,p,t);
       }
-
+      
       std::generator<typename Value::I8> loadBytes (const Value::Pointer p, const Value::Memory& m , std::size_t s) const {
-	return memcontrol.loadBytes (m,p,s);
+	co_yield std::ranges::elements_of(memcontrol.loadBytes (m,p,s)); 
       }
       
       Value::Memory store (const Value::Memory& m,const Value::Pointer p,  const Value& t) const {

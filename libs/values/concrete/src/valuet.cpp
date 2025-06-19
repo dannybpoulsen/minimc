@@ -27,10 +27,10 @@ namespace MiniMC {
 	case MiniMC::Model::TypeID::Bool:
 	  return BoolValue(0);
 	case MiniMC::Model::TypeID::Pointer32:
-	  return Value::Pointer32(Value::Pointer32::underlying_type {});
+	  return Value::Pointer32(Value::Pointer32::underlying_type::makeNullPointer());
 	  
 	case MiniMC::Model::TypeID::Pointer:
-	  return Value::Pointer(Value::Pointer::underlying_type {});
+	  return Value::Pointer(Value::Pointer::underlying_type::makeNullPointer());
 	case MiniMC::Model::TypeID::I8:
 	  return Value::I8(0);
 	case MiniMC::Model::TypeID::I16:

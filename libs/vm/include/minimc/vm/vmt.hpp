@@ -504,23 +504,66 @@ OPSI
 	}
       }
       
+      Value::Pointer convertToPointer(const Value& t) const {
+	return t.visit (MiniMC::Support::Overload {
+	    [] (const typename Value::Pointer& p) {
+	      return p;
+	    },
+	    [this] (const typename Value::Pointer32& p) {
+	      return ops.Ptr32ToPtr(p);
+	    },
+	      MiniMC::Support::Error<typename Value::Pointer>{}
+	  }
+	  ,t);
+      }
 
       
+      
+      template<class T,class S,MiniMC::Model::TypeID id>
+      T doIntegerLoad (const Value::Pointer& p, const Value::Memory& m) const requires Integer<Value,T> {
+	auto s = ops.create(S{0});
+	auto shift = ops.create(S{0});
+
+	for (auto b: regstore.loadBytes (p,m,Value::template bytesize<T> ())) {
+	  
+	  
+	  if constexpr (id != MiniMC::Model::TypeID::I8) {
+	    auto extended = ops.template ZExt<id> (b);
+	    auto shifted = ops.LShl (extended,shift);
+	    s = ops.Or (s,shifted);
+	    shift = ops.Add (shift,ops.create(S{8}));
+	  }
+
+	  else {
+	    return b;
+	  }
+	  
+	}
+	return s;
+      }
       
       std::generator<Value> operator() (const MiniMC::Model::LoadExpr& load) const  {
 	for (auto m : MEval (load.mem ())) {
 	  for (auto a : MEval (load.addr ())) {
+	    auto pointer = convertToPointer (a);
 	    co_yield Value::visit (  MiniMC::Support::Overload {
-		[this,&load] (const typename Value::Memory& m,const  typename Value::Pointer& p) {
-		  return regstore.load (p,m,*load.getToType());
+		[this,&load,&pointer] (const typename Value::Memory& m) -> Value{
+		  switch (load.getToType()->getTypeID ()) {
+		  case MiniMC::Model::TypeID::I8:
+		    return  doIntegerLoad<typename Value::I8, MiniMC::Model::I8Integer,MiniMC::Model::TypeID::I8> (pointer,m);
+		  case MiniMC::Model::TypeID::I16:
+		    return  doIntegerLoad<typename Value::I16, MiniMC::Model::I16Integer,MiniMC::Model::TypeID::I16> (pointer,m);
+		  case MiniMC::Model::TypeID::I32:
+		    return  doIntegerLoad<typename Value::I32, MiniMC::Model::I32Integer,MiniMC::Model::TypeID::I32> (pointer,m);
+		  case MiniMC::Model::TypeID::I64:
+		    return  doIntegerLoad<typename Value::I64, MiniMC::Model::I64Integer,MiniMC::Model::TypeID::I64> (pointer,m);
+		  default:
+		    return  regstore.load (pointer,m,*load.getToType());
+		  }
 		},
-		  [this,&load] (const typename Value::Memory& m,const  typename Value::Pointer32& p) {
-		    return regstore.load (ops.Ptr32ToPtr (p),m,*load.getToType());
-		  },
-		  MiniMC::Support::Error<Value>{}
+		MiniMC::Support::Error<Value>{}
 	      },
-	      m,
-	      a
+	      m
 	      );
 	  }
 	}
@@ -531,25 +574,19 @@ OPSI
 	for ( auto storeto : MEval(store.storeto ())) {
 	  for (auto addr : MEval (store.addr ())) {
 	    for (auto storee : MEval (store.storee ())) {
-	      auto doStore = [this]<typename T>(Value::Memory m, Value::Pointer addr, T value ) -> Value requires (!Boolean<Value,T> && !MemoryC<Value,T>) {
-		auto ones = ops.create (MiniMC::Model::I64Integer{1});
-		for (auto b :  ops.bytes(value)) {
-		  m = regstore.store(m,addr,b);
-		  addr = ops.PtrAdd (addr,ones);
-		}
-		return Value{m};
-	      };
+	      auto pointer = convertToPointer (addr);
 	      co_yield Value::visit(MiniMC::Support::Overload {
-		  [this,doStore]<typename V>(const typename Value::Memory& m,const typename Value::Pointer& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-		    return doStore (m,addr,t);
+		  [this,&pointer]<typename V>(Value::Memory m,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
+		    auto ones = ops.create (MiniMC::Model::I64Integer{1});
+		    for (auto b :  ops.bytes(t)) {
+		      m = regstore.store(m,pointer,b);
+		      pointer = ops.PtrAdd (pointer,ones);
+		    }
+		    return Value{m};
 		  },
-		  [this,doStore]<typename V>(const typename Value::Memory& m,const typename Value::Pointer32& addr,const V& t) requires (!Boolean<Value,V> && !MemoryC<Value,V>) {
-		  return doStore (m,ops.Ptr32ToPtr(addr),t);
-		},
 		  MiniMC::Support::Error<Value> {}
 	      },
 	      storeto,
-	      addr,
 	      storee
 	      );
 	  }

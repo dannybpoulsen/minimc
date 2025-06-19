@@ -294,25 +294,25 @@ namespace MiniMC {
 	  return builder.get();
 	}
 	
-	Value create (const MiniMC::Model::I8Integer& v) const {
+	Value::I8 create (const MiniMC::Model::I8Integer& v) const {
 	  return Value::I8 {MiniMC::Model::I8Integer::make (v.getValue())};
 	}
 
 
-	Value create (const MiniMC::Model::Pointer& v) const {
+	Value::Pointer create (const MiniMC::Model::Pointer& v) const {
 	  return Value::Pointer {MiniMC::Model::Pointer::make (v.getValue())};
 	}
 
-	Value create (const MiniMC::Model::Pointer32& v) const {
+	Value::Pointer32 create (const MiniMC::Model::Pointer32& v) const {
 	  return Value::Pointer32 {MiniMC::Model::Pointer32::make (v.getValue())};
 	}
 	
-	Value create (const MiniMC::Model::I16Integer& v) const {
+	Value::I16 create (const MiniMC::Model::I16Integer& v) const {
 	  return Value::I16 {MiniMC::Model::I16Integer::make (v.getValue())};
 	  
 	}
 
-	Value create (const MiniMC::Model::I32Integer& v) const {
+	Value::I32 create (const MiniMC::Model::I32Integer& v) const {
 	  return Value::I32 {MiniMC::Model::I32Integer::make (v.getValue())};
 	  
 	}

@@ -50,7 +50,7 @@ namespace MiniMC {
       T read(std::size_t byte = 0) const {
         assert(buffer);
         assert(byte + sizeof(T) <= size);
-        T var;
+        T var{};
         std::copy(buffer.get() + byte, buffer.get() + byte + sizeof(T), reinterpret_cast<MiniMC::BV8*>(&var));
         return var;
       }
