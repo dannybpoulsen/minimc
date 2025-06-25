@@ -6,7 +6,9 @@ add_subdirectory (analysis)
 add_subdirectory (checkers)
 add_subdirectory (modifications)
 
-target_link_libraries (model PUBLIC modelisa $<TARGET_OBJECTS:checkers> $<TARGET_OBJECTS:modifications> $<TARGET_OBJECTS:modelanalysis> )
+target_link_libraries (model PUBLIC modelisa
+$<TARGET_OBJECTS:checkers>
+$<TARGET_OBJECTS:modifications> $<TARGET_OBJECTS:modelanalysis> )
 
 
 
