@@ -22,7 +22,7 @@ namespace MiniMC {
 	std::ostream& output(std::ostream& os) const {
 	  return value->output (os);
 	}
-
+	
 	MiniMC::VMT::TriBool boolState () const {return MiniMC::VMT::TriBool::Unk;}
 
 	auto getValue() const {return value;}
@@ -48,20 +48,39 @@ namespace MiniMC {
 	template<MiniMC::Model::TypeID To>
 	struct IntegerTypeConverter {
 	  static MiniMC::Model::Type_ptr get()  {return MiniMC::Model::VoidType::get();}
+	  static MiniMC::Model::Value_ptr makeIntegerValue(std::int64_t) ;
+	  
 	};
-
+      
       template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I8>::get()  {return MiniMC::Model::I8Type::get();}
 
       template<>
+      MiniMC::Model::Value_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I8>::makeIntegerValue(std::int64_t v)  {return MiniMC::Model::I8Integer::make(v);}
+      
+      
+      
+      template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I16>::get()  {return MiniMC::Model::I16Type::get();}
 
+      template<>
+      MiniMC::Model::Value_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I16>::makeIntegerValue(std::int64_t v)  {return MiniMC::Model::I16Integer::make(v);}
+      
+      
       template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I32>::get()  {return MiniMC::Model::I32Type::get();}
 
       template<>
+      MiniMC::Model::Value_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I32>::makeIntegerValue(std::int64_t v)  {return MiniMC::Model::I32Integer::make(v);}
+      
+      
+      template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I64>::get()  {return MiniMC::Model::I64Type::get();}
 
+      template<>
+      MiniMC::Model::Value_ptr IntegerTypeConverter<MiniMC::Model::TypeID::I64>::makeIntegerValue(std::int64_t v)  {return MiniMC::Model::I64Integer::make(v);}
+      
+      
       template<>
       MiniMC::Model::Type_ptr IntegerTypeConverter<MiniMC::Model::TypeID::Pointer>::get()  {return MiniMC::Model::PointerType::get();}
 
@@ -364,12 +383,37 @@ namespace MiniMC {
 	std::generator<Value> create (const MiniMC::Model::Undef& undef ) const {
 	  co_yield defaultValue (*undef.getType());
 	}
+
+	template<std::size_t bytes,class T>
+	std::generator<Value::I8> extract (const T& t) const {
+	  TypecheckedExpressionBuilder builder;
+	  for (std::size_t i = 0; i < bytes; i++) {
+	    builder << t.getValue();
+	    if (i > 0) {
+	      builder << IntegerTypeConverter<T::tid()>::makeIntegerValue(i*8);
+	      builder.AShr ();
+	    }
+	    builder << IntegerTypeConverter<MiniMC::Model::TypeID::I8>::get ();
+	    builder.Trunc();
+	    auto val = builder.get();
+	    co_yield Value::I8{std::move(val)};
+	  }
+	}
 	
-	
-	std::generator<Value::I8> bytes (const Value::I8&) const{throw MiniMC::Support::Exception {"not implemented"};}
-	std::generator<Value::I8> bytes (const Value::I16&)const{throw MiniMC::Support::Exception {"not implemented"};}
-	std::generator<Value::I8> bytes (const Value::I32&)const{throw MiniMC::Support::Exception {"not implemented"};}
-	std::generator<Value::I8> bytes (const Value::I64&)const{throw MiniMC::Support::Exception {"not implemented"};}
+	std::generator<Value::I8> bytes (const Value::I8& v) const{
+	  co_yield v;
+	}
+	std::generator<Value::I8> bytes (const Value::I16& v) const {
+	  co_yield std::ranges::elements_of (extract<2> (v));
+	}
+
+	std::generator<Value::I8> bytes (const Value::I32& v)const{
+	  co_yield std::ranges::elements_of (extract<4> (v));
+	}
+
+	std::generator<Value::I8> bytes (const Value::I64& v)const{
+	  co_yield std::ranges::elements_of (extract<8> (v));
+	}
 	std::generator<Value::I8> bytes (const Value::Pointer&)const{throw MiniMC::Support::Exception {"not implemented"};}
 	std::generator<Value::I8> bytes (const Value::Pointer32&)const{throw MiniMC::Support::Exception {"not implemented"};}
 	std::generator<Value::I8> bytes (const Value::Aggregate&)const{throw MiniMC::Support::Exception {"not implemented"};}
@@ -380,7 +424,22 @@ namespace MiniMC {
       class MemoryOps {
       public:
 	Value load(const Value::Memory&, const typename Value::Pointer&, const MiniMC::Model::Type& ty) const {return Operations{}.defaultValue(ty);}
-	std::generator<Value::I8> loadBytes(const Value::Memory&, const typename Value::Pointer&, std::size_t) const {throw MiniMC::Support::Exception ("Not Implemented");}
+	std::generator<Value::I8> loadBytes(const Value::Memory& m, const typename Value::Pointer& p , std::size_t bytes) const {
+	  TypecheckedExpressionBuilder builder;
+	  for (std::size_t i  = 0; i < bytes; ++i) {
+	    builder << m.getValue();
+	    builder << p.getValue();
+	    if (i) {
+	      builder << MiniMC::Model::I64Integer::make(i);
+	      builder.PtrAdd ();
+	    }
+	    builder << IntegerTypeConverter<MiniMC::Model::TypeID::I8>::get();
+	    builder.Load();
+	    auto val = builder.get();
+	    co_yield Value::I8{std::move(val)};
+	  }
+	}
+
 	
 	Value::Memory store(const Value::Memory& m, const Value::Pointer& p, const Value::I8& val) const  {
 	  TypecheckedExpressionBuilder builder;    

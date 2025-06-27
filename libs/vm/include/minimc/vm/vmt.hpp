@@ -537,7 +537,6 @@ OPSI
 	  else {
 	    return b;
 	  }
-	  
 	}
 	return s;
       }

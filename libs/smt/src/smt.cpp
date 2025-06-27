@@ -251,25 +251,47 @@ OPS
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::PtrSubExpr& expr) const {
 	return context->getBuilder().buildTerm(SMTLib::Ops::BVSub,{Translate(expr.ptr()),Translate(expr.skipsize())});
       }
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::ExtractValueExpr&) const {
 	throw MiniMC::Support::Exception ("ExtractValueValueExpr not implemented");
       }
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::InsertValueExpr&) const {
 	throw MiniMC::Support::Exception ("InsertValueValueExpr not implemented");
       
       }
-      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::StoreExpr&) const {
-	throw MiniMC::Support::Exception ("StoreExpr not implemented");
+      
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::StoreExpr& e) const {
+	SMTLib::Term_ptr addr = Translate(e.addr());
+	SMTLib::Term_ptr mem = Translate(e.storeto());	
+	SMTLib::Term_ptr storee = Translate(e.storee());
+ 
+	if (e.storee().getType()->getTypeID() == MiniMC::Model::TypeID::I8) {
+	  return context->getBuilder().buildTerm (SMTLib::Ops::Store,{mem,addr,storee});
+	}
+	else 
+	  throw MiniMC::Support::Exception ("StoreExpr not implemented");
+	
 	
       }
-      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::LoadExpr&) const {
-	throw MiniMC::Support::Exception ("LoadExpr not implemented");
+      
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::LoadExpr& e) const {
+	auto type = e.getToType();
+	auto addr = Translate(e.addr());
+	auto mem = Translate(e.mem());
+	if (type->getTypeID() == MiniMC::Model::TypeID::I8) {
+	  return context->getBuilder().buildTerm (SMTLib::Ops::Select,{mem,addr});
+	}
+	else 
+	  throw MiniMC::Support::Exception ("LoadExpr not implemented for non I8 Types");
 	
       }
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::Ptr32ToPtrExpr&) const {
 	throw MiniMC::Support::Exception ("Ptr32ToPtrExpr not implemented");
       
       }
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::PtrToPtr32Expr&) const {
 	throw MiniMC::Support::Exception ("PtrToPtr32Expr not implemented");	
       }
