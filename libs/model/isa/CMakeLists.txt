@@ -32,9 +32,10 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/checkers/typ
 add_custom_target(generate_typechecker ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/checkers/typechecker.hpp" )
 
 
-add_library (modelisa INTERFACE)
+add_library (modelisa STATIC ${CMAKE_CURRENT_BINARY_DIR}/typechecker.cpp)
 add_dependencies(modelisa generateISAHEADER generate_typechecker)
-target_include_directories (modelisa INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:/include>)
+target_include_directories (modelisa PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:/include>)
+target_link_libraries(modelisa PUBLIC hash support util)
 
 target_sources(modelisa
     PUBLIC FILE_SET HEADERS 

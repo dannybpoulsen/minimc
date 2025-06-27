@@ -24,7 +24,7 @@ struct CLICommand : public Command{
    
     std::unique_ptr<MiniMC::Simulator::Command> command;
     do {
-      auto framegetter = [&prgm](std::size_t t) {return prgm.getRootFrame ();};
+      auto framegetter = [&prgm]([[maybe_unused]]std::size_t t) {return prgm.getRootFrame ();};
       command = cmdparser.parse (framegetter);
       if(command)
 	command ->execute(&simulator);

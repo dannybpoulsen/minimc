@@ -1,13 +1,11 @@
-add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp)
+add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp structurechecker)
 target_include_directories (model PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:/include> )
 target_link_libraries (model PUBLIC util support host)
 
 add_subdirectory (analysis)
-add_subdirectory (checkers)
 add_subdirectory (modifications)
 
 target_link_libraries (model PUBLIC modelisa
-$<TARGET_OBJECTS:checkers>
 $<TARGET_OBJECTS:modifications> $<TARGET_OBJECTS:modelanalysis> )
 
 
