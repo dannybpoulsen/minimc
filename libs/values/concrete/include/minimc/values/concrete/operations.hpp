@@ -358,7 +358,7 @@ namespace MiniMC {
 	Value::Bool create (const MiniMC::Model::Bool& val) const   { return Value::Bool{val.getValue()}; }
 	Value::Pointer create (const MiniMC::Model::Pointer& val) const  { return Value::Pointer{val.getValue()}; }
 	Value::Pointer32 create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
-	Value create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}
+	Value::Aggregate create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}
 	std::generator<Value> create (const MiniMC::Model::Undef& und) const;
 	//Value unboundValue (const MiniMC::Model::Type&) const ;
 	Value defaultValue(const MiniMC::Model::Type&) const ;

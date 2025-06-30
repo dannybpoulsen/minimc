@@ -76,6 +76,8 @@ namespace MiniMC {
       SMTLib::TermBuilder* builder;
     };
 
+    
+    
     template <MiniMC::Model::InstructionCode Inst>
     constexpr SMTLib::Ops convertToSMTOp() {
       if constexpr (Inst == MiniMC::Model::InstructionCode::SGt) {

@@ -175,6 +175,22 @@ namespace MiniMC {
 	mutable std::unordered_map<const MiniMC::Model::Value*,SMTLib::Term_ptr> terms;
 	mutable std::size_t next{0};
       };
+
+      struct BVHelper {
+	BVHelper (SMTLib::TermBuilder& b, const SMTLib::Term_ptr& ptr,std::size_t size) : builder(b),value(ptr),termsize(size) {}
+	
+	auto extractByte (std::size_t offset) {
+	    auto lowbit = offset*8;
+	    auto highbit = lowbit+7;
+	    return builder.buildTerm(SMTLib::Ops::Extract, {value}, {highbit,lowbit}); 
+	}
+
+	
+      private:
+	SMTLib::TermBuilder& builder;
+	const SMTLib::Term_ptr& value;
+	std::size_t termsize;
+      };
       
     } // namespace SMT
   }   // namespace Support

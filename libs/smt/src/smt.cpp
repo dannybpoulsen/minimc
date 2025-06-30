@@ -255,9 +255,36 @@ OPS
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::ExtractValueExpr&) const {
 	throw MiniMC::Support::Exception ("ExtractValueValueExpr not implemented");
       }
+
       
-      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::InsertValueExpr&) const {
-	throw MiniMC::Support::Exception ("InsertValueValueExpr not implemented");
+      
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::InsertValueExpr& insertexpr) const {
+	auto aggr = Translate (insertexpr.aggregate());
+	auto offset = MiniMC::Model::visitValue<MiniMC::BV64>(
+						MiniMC::Support::Overload {
+						  [](const MiniMC::Model::I64Integer& v)->MiniMC::BV64 {return v.getValue();},
+						    MiniMC::Support::Error<MiniMC::BV64> {}
+						},
+						insertexpr.offset()
+							      );
+	auto insertee = Translate(insertexpr.insertee());
+
+	if (insertexpr.insertee().getType()->getTypeID () != MiniMC::Model::TypeID::I8) {
+	  throw MiniMC::Support::Exception ("Can only insert BV8 into aggregates");
+	}
+
+	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer {&context->getBuilder()};
+	MiniMC::Support::SMT::BVHelper helper{context->getBuilder(),aggr,insertexpr.aggregate().getType()->getSize()};
+	for (std::size_t i = 0 ; i  < insertexpr.aggregate().getType()->getSize(); ++i) {
+	  if (i != offset)
+	    chainer >> helper.extractByte(i);
+	  else {
+	    chainer >> insertee;
+	  }
+	}
+	auto term = chainer.getTerm(); 
+	return term;;
+	//throw MiniMC::Support::Exception ("InsertValueValueExpr not implemented");
       
       }
       

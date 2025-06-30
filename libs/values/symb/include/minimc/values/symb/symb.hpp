@@ -346,7 +346,7 @@ namespace MiniMC {
 	  
 	}
 
-	Value create (const MiniMC::Model::AggregateConstant& v) const {
+	Value::Aggregate create (const MiniMC::Model::AggregateConstant& v) const {
 	  auto data = v.getData();
 	  return Value::Aggregate {MiniMC::Model::AggregateConstant::make (std::move(data))};
 	  

@@ -246,7 +246,7 @@ namespace MiniMC {
     };
 
     template<class I8, class I16,class I32,class I64, typename Bool, typename Pointer,class Pointer32,class Aggregate,class Aux>
-    concept AuxOperation_ = requires (Aux op, const I8& i8,const I16& i16, const I32& i32, const I64& i64,  const Pointer& p, const Pointer32& p32, const Aggregate& aggr) {
+    concept AuxOperation_ = requires (Aux op, const I8& i8,const I16& i16, const I32& i32, const I64& i64,  const Pointer& p, const Pointer32& p32, const Aggregate& aggr,std::size_t offset,std::size_t by) {
       {op.bytes (i8)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (i16)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (i32)}->std::convertible_to<std::generator<I8>>;
@@ -254,7 +254,7 @@ namespace MiniMC {
       {op.bytes (p)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (p32)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (aggr)}->std::convertible_to<std::generator<I8>>;
-    
+      //{op.extractbytes (aggr,offset,by)}->std::convertible_to<std::generator<I8>>;
     };
 
     template<class T,class Operation>
@@ -286,7 +286,7 @@ namespace MiniMC {
       {e.create(b)}->std::convertible_to<typename Res::Bool>;
       {e.create(ptr)}->std::convertible_to<typename Res::Pointer>;
       {e.create(ptr32)}->std::convertible_to<typename Res::Pointer32>;
-      {e.create(aggrc)}->std::convertible_to<Res>;
+      {e.create(aggrc)}->std::convertible_to<typename Res::Aggregate>;
       {e.create(und)}->std::convertible_to<std::generator<Res>>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;
     };

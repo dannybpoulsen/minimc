@@ -73,7 +73,7 @@ namespace MiniMC {
 		  << builder.makeBVIntConst(pointer.offset, sizeof(pointer.offset)*8);
 	  return Value::Pointer32(chainer.getTerm ());
 	}
-      Value Operations::create(const MiniMC::Model::AggregateConstant& val) const {
+      Value::Aggregate Operations::create(const MiniMC::Model::AggregateConstant& val) const {
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer{&builder};
 	for (auto byte : val.getData().get_direct_access()) {
 	  chainer >> (builder.makeBVIntConst(byte, 8));

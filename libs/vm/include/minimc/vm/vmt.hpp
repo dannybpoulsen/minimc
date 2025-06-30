@@ -556,8 +556,27 @@ OPSI
 		    return  doIntegerLoad<typename Value::I32, MiniMC::Model::I32Integer,MiniMC::Model::TypeID::I32> (pointer,m);
 		  case MiniMC::Model::TypeID::I64:
 		    return  doIntegerLoad<typename Value::I64, MiniMC::Model::I64Integer,MiniMC::Model::TypeID::I64> (pointer,m);
+		  case MiniMC::Model::TypeID::Pointer: {
+		    typename Value::I64 integer = doIntegerLoad<typename Value::I64, MiniMC::Model::I64Integer,MiniMC::Model::TypeID::I64> (pointer,m);
+		    
+		    return ops.template BitCast<typename Value::Pointer> (integer);
+		  }
+		  case MiniMC::Model::TypeID::Pointer32: {
+		    typename Value::I32 integer = doIntegerLoad<typename Value::I32, MiniMC::Model::I32Integer,MiniMC::Model::TypeID::I32> (pointer,m);
+		    return ops.template BitCast<typename Value::Pointer32> (integer);
+		  }
+		  case MiniMC::Model::TypeID::Aggregate: {
+		    auto aggr = ops.create (MiniMC::Model::AggregateConstant {MiniMC::Util::Array (load.getToType()->getSize())});
+		    for (auto [index,b]: std::views::enumerate(regstore.loadBytes (pointer,m,load.getToType()->getSize()))) {
+		      aggr = ops.InsertBaseValue (aggr,index,b);
+		    }
+		    
+		    return aggr;
+		    
+		  }
 		  default:
-		    return  regstore.load (pointer,m,*load.getToType());
+		    //TODO: Make load of pointers  and aggregates use the loadBytes functions
+		    throw MiniMC::Support::Exception ("Unsupported load");
 		  }
 		},
 		MiniMC::Support::Error<Value>{}
