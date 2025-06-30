@@ -202,6 +202,14 @@ namespace MiniMC {
 	}
 	
       }
+
+      std::generator<Value::I8> Operations::extractbytes(const Value::Aggregate& l,std::size_t offset, std::size_t bytes)  const {
+	auto aggr = l.getTerm ();
+	for (std::size_t i = offset; i < bytes; i++) {
+	  co_yield Value::I8 {builder.buildTerm(SMTLib::Ops::Extract,{aggr},{(i+1)*8-1,i*8})};	
+	}
+      }
+      
       
       
     } // namespace Pathformula

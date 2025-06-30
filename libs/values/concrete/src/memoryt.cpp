@@ -89,48 +89,7 @@ namespace MiniMC {
 	       
       }
       
-      Value Memory::load(const MemoryValue& mvalue, const typename Value::Pointer& p, const MiniMC::Model::Type& readType) const {
-	
-        // Find out what pointer we are going to read from
-        auto pointer = p.getValue();
-        auto base = MiniMC::Model::getBase(pointer);
-        auto offset = MiniMC::Model::getOffset(pointer);
-	auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
-	if (mvalue.getInternal().entries.count(base_pointer)) {
-          auto read = mvalue.getInternal().entries.at(base_pointer).read (offset,readType.getSize ());
-	  
-	  
-          switch (readType.getTypeID()) {
-	  case MiniMC::Model::TypeID::Bool:
-	    return Value::Bool{*reinterpret_cast<const Value::Bool::underlying_type*> (read.data())};
-	  case MiniMC::Model::TypeID::I8: 
-	    return Value::I8{*reinterpret_cast<const Value::I8::underlying_type*> (read.data())};
-	  case MiniMC::Model::TypeID::I16:
-	    return Value::I16{*reinterpret_cast<const Value::I16::underlying_type*> (read.data())};
-	    
-	  case MiniMC::Model::TypeID::I32:
-	    return Value::I32{*reinterpret_cast<const Value::I32::underlying_type*> (read.data())};
-	    
-	  case MiniMC::Model::TypeID::I64:
-	    return Value::I64{*reinterpret_cast<const Value::I64::underlying_type*> (read.data())};
-	    
-	  case MiniMC::Model::TypeID::Pointer32:
-	    return Value::Pointer32{*reinterpret_cast<const Value::Pointer32::underlying_type*> (read.data())};
-	    
-	  case MiniMC::Model::TypeID::Pointer:
-	    return Value::Pointer{*reinterpret_cast<const Value::Pointer::underlying_type*> (read.data())};
-	  case MiniMC::Model::TypeID::Aggregate:
-	    return Value::Aggregate {read};
-	  default:
-	    throw MiniMC::Support::Exception("Error");
-	    
-	    break;
-          }
-        }
-	
-        throw MiniMC::Support::BufferOverread();
-      }
-
+      
       template<class T>
       std::span<const MiniMC::BV8> make_span (const T& v) {
 	return {reinterpret_cast<const MiniMC::BV8*>(&v),reinterpret_cast<const MiniMC::BV8*>(&v)+sizeof(T)};

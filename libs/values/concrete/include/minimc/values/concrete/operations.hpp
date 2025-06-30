@@ -350,6 +350,17 @@ namespace MiniMC {
 	  }
 	  
 	}
+
+	std::generator<Value::I8> extractbytes(const Value::Aggregate& l,std::size_t offset, std::size_t bytes)  const 
+	{
+	  if (offset +bytes >=l.getValue().getSize()) {
+	    throw MiniMC::Support::Exception {"Extracting too many bytes from aggregate"};
+	  }
+	  for (auto b : l.getValue().get_direct_access ().subspan (offset,bytes)) {
+	    co_yield Value::I8 {b};
+	  }
+	  
+	}
 	
 	Value::I8 create (const MiniMC::Model::I8Integer& val)  const  { return Value::I8{val.getValue()}; }
 	Value::I16 create (const MiniMC::Model::I16Integer& val) const { return Value::I16{val.getValue()}; }

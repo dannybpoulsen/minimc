@@ -254,7 +254,7 @@ namespace MiniMC {
       {op.bytes (p)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (p32)}->std::convertible_to<std::generator<I8>>;
       {op.bytes (aggr)}->std::convertible_to<std::generator<I8>>;
-      //{op.extractbytes (aggr,offset,by)}->std::convertible_to<std::generator<I8>>;
+      {op.extractbytes (aggr,offset,by)}->std::convertible_to<std::generator<I8>>;
     };
 
     template<class T,class Operation>
@@ -315,7 +315,6 @@ namespace MiniMC {
       {memc.find_space(mem,i64)}->std::convertible_to<typename T::Pointer>;
       {memc.allocate(mem,ptr,i64)}->std::convertible_to<typename T::Memory>;
       {memc.free (mem,p)}->std::convertible_to<typename T::Memory>;
-      {memc.load (mem,p,ty)}->std::convertible_to<T>;
       {memc.loadBytes (mem,p,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
     };
     

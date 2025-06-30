@@ -95,41 +95,7 @@ namespace MiniMC {
       }
       
       
-      Value Memory::load(const MemoryValue& mem, const typename Value::Pointer& startAddr, const MiniMC::Model::Type& t) const {
-	MiniMC::Util::Chainer<SMTLib::Ops::Concat> concat(builder);
-	for (size_t i = 0; i < t.getSize (); ++i) {
-	  auto ones = builder->makeBVIntConst(i, Value::Pointer::intbitsize());
-	  auto curind = builder->buildTerm(SMTLib::Ops::BVAdd, {startAddr.getTerm (), ones});
-	  if (t.getTypeID () == MiniMC::Model::TypeID::Aggregate)
-	    concat >> builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
-	  else {
-	    concat >> builder->buildTerm(SMTLib::Ops::Select, {mem.getMemVar (), curind});
-	  }
-	}
-	switch (t.getTypeID ()) {
-	case MiniMC::Model::TypeID::Bool:
-	  return Value::Bool{concat.getTerm()};
-	case MiniMC::Model::TypeID::I8:
-	  return Value::I8{concat.getTerm()};
-	case MiniMC::Model::TypeID::I16:
-	  return Value::I16{concat.getTerm()};
-	case MiniMC::Model::TypeID::I32:
-	  return Value::I32{concat.getTerm()};
-	case MiniMC::Model::TypeID::I64:
-	  return Value::I64{concat.getTerm()};
-	case MiniMC::Model::TypeID::Pointer:
-	  return Value::Pointer{concat.getTerm()};
-	case MiniMC::Model::TypeID::Pointer32:
-	  return Value::Pointer32{concat.getTerm()};
-	case MiniMC::Model::TypeID::Aggregate:
-	  return Value::Aggregate{concat.getTerm(),t.getSize ()};
-	case MiniMC::Model::TypeID::Void:
-	default:
-	  throw MiniMC::Support::Exception ("Float and DOuble unsupported");
-	}
-	
-      }
-
+      
       
 
       MemoryValue  Memory::allocate(const MemoryValue& mem, const Value::Pointer& , const Value::I64&) {

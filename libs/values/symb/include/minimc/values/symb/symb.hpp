@@ -414,16 +414,29 @@ namespace MiniMC {
 	std::generator<Value::I8> bytes (const Value::I64& v)const{
 	  co_yield std::ranges::elements_of (extract<8> (v));
 	}
+	
 	std::generator<Value::I8> bytes (const Value::Pointer&)const{throw MiniMC::Support::Exception {"not implemented"};}
+
 	std::generator<Value::I8> bytes (const Value::Pointer32&)const{throw MiniMC::Support::Exception {"not implemented"};}
+
 	std::generator<Value::I8> bytes (const Value::Aggregate&)const{throw MiniMC::Support::Exception {"not implemented"};}
 
-	
+	std::generator<Value::I8> extractbytes (const Value::Aggregate& l,std::size_t offset, std::size_t bytes)  const {
+	  TypecheckedExpressionBuilder builder;
+	  for (std::size_t i  = offset; i < bytes; ++i) {
+	    builder << l.getValue();
+	    builder << MiniMC::Model::I64Integer::make(i);
+	    builder << MiniMC::Model::I8Type::get();
+	    builder.ExtractValue();
+	    co_yield Value::I8{builder.get()};
+	  }
+	}
+
+		
       };
 
       class MemoryOps {
       public:
-	Value load(const Value::Memory&, const typename Value::Pointer&, const MiniMC::Model::Type& ty) const {return Operations{}.defaultValue(ty);}
 	std::generator<Value::I8> loadBytes(const Value::Memory& m, const typename Value::Pointer& p , std::size_t bytes) const {
 	  TypecheckedExpressionBuilder builder;
 	  for (std::size_t i  = 0; i < bytes; ++i) {

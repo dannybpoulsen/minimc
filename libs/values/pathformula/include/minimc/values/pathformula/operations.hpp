@@ -168,6 +168,7 @@ namespace MiniMC {
 	std::generator<Value::I8> bytes (const Value::Pointer&) const;
 	std::generator<Value::I8> bytes (const Value::Pointer32&) const;
 	std::generator<Value::I8> bytes (const Value::Aggregate&) const;
+	std::generator<Value::I8> extractbytes(const Value::Aggregate& l,std::size_t offset, std::size_t bytes)  const;
 	
 	
 	template <MiniMC::Model::TypeID to, class T>
@@ -205,7 +206,6 @@ namespace MiniMC {
 	Memory (SMTLib::TermBuilder& b);
 	Memory (const Memory&) = default;
 	Memory& operator= (Memory&& m) = default;
-	Value load(const MemoryValue&, const typename Value::Pointer&, const MiniMC::Model::Type&) const ;
 	std::generator<Value::I8> loadBytes(const MemoryValue&, const typename Value::Pointer&, std::size_t) const ;
         
 	// First parameter is address to store at, second is the value to state

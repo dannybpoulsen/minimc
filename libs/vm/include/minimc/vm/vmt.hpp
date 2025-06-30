@@ -667,6 +667,29 @@ OPSI
 	}
       }
 
+      template<class T,class S,MiniMC::Model::TypeID id>
+      T doIntegerExtract (const Value::Aggregate& aggr,std::size_t offset) const requires Integer<Value,T> {
+	auto s = ops.create(S{0});
+	auto shift = ops.create(S{0});
+
+	for (auto b: ops.extractbytes (aggr,offset,Value::template bytesize<T> ())) {
+	  
+	  
+	  if constexpr (id != MiniMC::Model::TypeID::I8) {
+	    auto extended = ops.template ZExt<id> (b);
+	    auto shifted = ops.LShl (extended,shift);
+	    s = ops.Or (s,shifted);
+	    shift = ops.Add (shift,ops.create(S{8}));
+	  }
+
+	  else {
+	    return b;
+	  }
+	}
+	return s;
+      }
+      
+      
       std::generator<Value> operator() (const MiniMC::Model::ExtractValueExpr& expr) const  {
 	MiniMC::BV64 offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
 	    [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
@@ -684,28 +707,43 @@ OPSI
 	    aggregate
 	    );
 	  switch (expr.getExtractType()->getTypeID()) {
-	    case MiniMC::Model::TypeID::I8:
-	      co_yield ops.template ExtractBaseValue<typename Value::I8>(aggr, offset);
-	      break;
-	    case MiniMC::Model::TypeID::I16:
-	      co_yield ops.template ExtractBaseValue<typename Value::I16>(aggr, offset);
-	      break;
-	    case MiniMC::Model::TypeID::I32:
-	      co_yield ops.template ExtractBaseValue<typename Value::I32>(aggr, offset);
-	      break;
-	    case MiniMC::Model::TypeID::I64:
-	      co_yield ops.template ExtractBaseValue<typename Value::I64>(aggr, offset);
-	      break;
-	      
-	    case MiniMC::Model::TypeID::Pointer:
-	      co_yield ops.template ExtractBaseValue<typename Value::Pointer>(aggr, offset);
-	      break;
-	    case MiniMC::Model::TypeID::Aggregate:
-	      co_yield ops.ExtractAggregateValue(aggr, offset, expr.getExtractType()->getSize());
-	      break;
-	    default:
-	      throw MiniMC::Support::Exception("Invalid Extract");
+	  case MiniMC::Model::TypeID::I8:
+	    co_yield doIntegerExtract<typename Value::I8,MiniMC::Model::I8Integer,MiniMC::Model::TypeID::I8> (aggr,offset);
+	    break;
+	  case MiniMC::Model::TypeID::I16:
+	    co_yield doIntegerExtract<typename Value::I16,MiniMC::Model::I16Integer,MiniMC::Model::TypeID::I16> (aggr,offset);
+	    
+	    break;
+	  case MiniMC::Model::TypeID::I32:
+	    co_yield doIntegerExtract<typename Value::I32,MiniMC::Model::I32Integer,MiniMC::Model::TypeID::I32> (aggr,offset);
+	    
+	    break;
+	  case MiniMC::Model::TypeID::I64:
+	    co_yield doIntegerExtract<typename Value::I64,MiniMC::Model::I64Integer,MiniMC::Model::TypeID::I64> (aggr,offset);
+	    break;
+	    
+	  case MiniMC::Model::TypeID::Pointer: {
+	    auto integer = doIntegerExtract<typename Value::I64,MiniMC::Model::I64Integer,MiniMC::Model::TypeID::I64> (aggr,offset);
+	    co_yield ops.template BitCast<typename Value::Pointer> (integer);
+	    break;
+	  }
+	  case MiniMC::Model::TypeID::Pointer32: {
+	    auto integer = doIntegerExtract<typename Value::I32,MiniMC::Model::I32Integer,MiniMC::Model::TypeID::I32> (aggr,offset);
+	    co_yield ops.template BitCast<typename Value::Pointer32> (integer);
+	    break;
+	  }
+	  case MiniMC::Model::TypeID::Aggregate: {
+	    auto aggr = ops.create (MiniMC::Model::AggregateConstant {MiniMC::Util::Array (expr.getExtractType()->getSize())});
+	    for (auto [index,b]: std::views::enumerate(ops.extractbytes (aggr,offset,expr.getExtractType()->getSize()))) {
+	      aggr = ops.InsertBaseValue (aggr,index,b);
 	    }
+	    co_yield  aggr;
+	    //co_yield ops.ExtractAggregateValue(aggr, offset, expr.getExtractType()->getSize());
+	    break;
+	  }
+	  default:
+	    throw MiniMC::Support::Exception("Invalid Extract");
+	  }
 	}
       }
       
