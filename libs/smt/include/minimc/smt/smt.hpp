@@ -9,6 +9,7 @@
 #include <expected>
 #include <iostream>
 #include <bit>
+#include <iostream>
 
 namespace MiniMC {
   namespace Support {
@@ -97,6 +98,7 @@ namespace MiniMC {
       public:
 	Translator (SMTLib::Context_ptr context) : context(context) {}
 	SMTLib::Term_ptr Translate (const MiniMC::Model::Value& v) const {
+	  
 	  SMTLib::Term_ptr res = cached (v);
 	  if (!res) {
 	    res = MiniMC::Model::visitValue<SMTLib::Term_ptr>(*this,v);
@@ -184,7 +186,15 @@ namespace MiniMC {
 	    auto highbit = lowbit+7;
 	    return builder.buildTerm(SMTLib::Ops::Extract, {value}, {highbit,lowbit}); 
 	}
-
+	
+	auto extractBytes (std::size_t offset,std::size_t bytes) {
+	  if (bytes+offset > termsize)
+	    throw MiniMC::Support::Exception ("Attemp to extract too many bytes");
+	  auto lowbit = offset*8;
+	  auto highbit = lowbit+bytes*8-1;
+	  return builder.buildTerm(SMTLib::Ops::Extract, {value}, {highbit,lowbit}); 
+	}
+	
 	
       private:
 	SMTLib::TermBuilder& builder;

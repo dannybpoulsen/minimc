@@ -272,24 +272,47 @@ OPS
 	if (insertexpr.insertee().getType()->getTypeID () != MiniMC::Model::TypeID::I8) {
 	  throw MiniMC::Support::Exception ("Can only insert BV8 into aggregates");
 	}
+	auto termsize = insertexpr.aggregate().getType()->getSize();
+	MiniMC::Support::SMT::BVHelper helper{context->getBuilder(),aggr,termsize};
+	SMTLib::Term_ptr pre = nullptr;
+	SMTLib::Term_ptr post = nullptr;
 
+	if (offset == 0) {
+	  post = helper.extractBytes (1,termsize -1);  
+	}
+
+	else if (offset + 1 == termsize) {
+	  pre = helper.extractBytes(0,termsize-1);
+	}
+	
+	else {
+	  pre = helper.extractBytes (0,offset);
+	  post = helper.extractBytes (offset+1,termsize-offset-1);
+	  
+	}
+	
 	MiniMC::Util::Chainer<SMTLib::Ops::Concat> chainer {&context->getBuilder()};
-	MiniMC::Support::SMT::BVHelper helper{context->getBuilder(),aggr,insertexpr.aggregate().getType()->getSize()};
-	for (std::size_t i = 0 ; i  < insertexpr.aggregate().getType()->getSize(); ++i) {
+	if (pre)
+	  chainer >>  pre;
+	chainer >> insertee;
+	if (post)
+	chainer >> post;
+	/*for (std::size_t i = 0 ; i  < insertexpr.aggregate().getType()->getSize(); ++i) {
+	  
 	  if (i != offset)
 	    chainer >> helper.extractByte(i);
 	  else {
 	    chainer >> insertee;
 	  }
-	}
+	  }*/
 	auto term = chainer.getTerm(); 
 	return term;;
 	//throw MiniMC::Support::Exception ("InsertValueValueExpr not implemented");
       
       }
-      
-      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::StoreExpr& e) const {
-	SMTLib::Term_ptr addr = Translate(e.addr());
+
+      SMTLib::Term_ptr Translator::operator()(const MiniMC::Model::StoreExpr& e) const {
+        SMTLib::Term_ptr addr = Translate(e.addr());
 	SMTLib::Term_ptr mem = Translate(e.storeto());	
 	SMTLib::Term_ptr storee = Translate(e.storee());
  

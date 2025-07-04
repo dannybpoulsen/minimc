@@ -64,7 +64,8 @@ namespace MiniMC {
 	  //Insert at beginning
 	  if (offset == 0) {
 	    
-	    auto extracted = extractBytes<LoadType::Straight> (insert_size,termsize-insert_size);   return  (chainer <<extracted << ins_converted).getTerm ();
+	    auto extracted = extractBytes<LoadType::Straight> (insert_size,termsize-insert_size);
+	    return  (chainer <<extracted << ins_converted).getTerm ();
 	    
 	  }
 

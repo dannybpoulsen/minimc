@@ -31,12 +31,32 @@ namespace MiniMC {
 
       Compiler::~Compiler() {}
 
+      auto makeType (Whiley::Type t) {
+	switch(t) {
+	case Whiley::Type::SI8:
+	case Whiley::Type::UI8:
+	  return MiniMC::Model::I8Type::get();
+	case Whiley::Type::SI16:
+	case Whiley::Type::UI16:
+	  return MiniMC::Model::I16Type::get();
+	case Whiley::Type::SI32:
+	case Whiley::Type::UI32:
+	  return MiniMC::Model::I32Type::get();
+	case Whiley::Type::SI64:
+	case Whiley::Type::UI64:
+	  return MiniMC::Model::I64Type::get();
+	default:
+	  return MiniMC::Model::I8Type::get();
+	}
+      };
+      
       
       MiniMC::Model::Program Compiler::compile (const ::Whiley::Program& prgm) {
 	_internal = std::make_unique<Internal> ();
 
 	//Make variables
 	auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
+		
 	auto rootFrame = _internal->prgm.getRootFrame();
 	
 	_internal->heap_mem = _internal->prgm.getPersistentRegs().addRegister (rootFrame.makeSymbol ("mem"),MiniMC::Model::MemoryType::get());
@@ -51,7 +71,7 @@ namespace MiniMC {
 	for (auto& var : prgm.getVars ()) {
 	  std::string name = var.getName();
 	  auto symbol = rootFrame.makeSymbol (name);
-	  auto reg = register_descr.addRegister (std::move(symbol),type);
+	  auto reg = register_descr.addRegister (std::move(symbol),makeType(var.getType()));
 	  _internal->vars.emplace(name,reg);
 	}
 
@@ -77,7 +97,7 @@ namespace MiniMC {
       }
 
       void Compiler::visitNumberExpression (const Whiley::NumberExpression& n )  {
-	_internal->expr = MiniMC::Model::I8Integer::make(n.getValue());
+	_internal->expr = MiniMC::Model::I64Integer::make(n.getValue());
       } 
 
       void Compiler::visitDerefExpression (const Whiley::DerefExpression& a)  {
@@ -85,25 +105,55 @@ namespace MiniMC {
 	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
 	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc); 
 	
-	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,MiniMC::Model::I8Type::get());
+	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,makeType(a.getLoadType()));
       }
 
+      bool isSigned (Whiley::Type r) {
+	switch (r) {
+	case Whiley::Type::SI8:
+	case Whiley::Type::SI16:
+	case Whiley::Type::SI32:
+	case Whiley::Type::SI64:
+	  return true;
+	default:
+	  return false;
+	}
+      }
+      
       
       void Compiler::visitCastExpression (const Whiley::CastExpression& a)  {
 	a.getExpression().accept(*this);
+	if (Whiley::bytesize(a.getType ()) == Whiley::bytesize(a.getExpression().getType()))
+	  return;
+	else {
+	  MiniMC::Model::ExpressionBuilder builder;
+	  builder << _internal->expr;
+	  builder << makeType(a.getType());
+	  if (Whiley::bytesize(a.getType ()) > Whiley::bytesize(a.getExpression().getType())) {
+	    if (isSigned (a.getType()))
+	      builder.SExt ();
+	    else
+	      builder.ZExt ();
+	    
+	  }
+	  else
+	    builder.Trunc();
+	  _internal->expr = builder.get();
+	}
       }
 
       void Compiler::visitUndefExpression (const Whiley::UndefExpression& a)  {
-	_internal->expr = MiniMC::Model::Undef::make(MiniMC::Model::I8Type::get());//cfac->makeUndef (MiniMC::Model::TypeID::I8);
+	_internal->expr = MiniMC::Model::Undef::make(makeType(a.getType()));//cfac->makeUndef (MiniMC::Model::TypeID::I8);
       }
+
       
       void Compiler::visitBinaryExpression (const Whiley::BinaryExpression& be)  {
 	be.getLeft ().accept (*this);
 	auto le = _internal->expr;
 	be.getRight ().accept (*this);
 	auto right = _internal->expr;
-	bool _signed = be.getLeft().getType () == Whiley::Type::SI8 ||
-	  be.getRight().getType () == Whiley::Type::SI8;   
+	bool _signed = isSigned(be.getLeft().getType ()) ||
+	  isSigned(be.getRight().getType ());   
 	switch (be.getOp ()) {
 	case Whiley::BinOps::Add:
 	  _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (std::move(le),std::move(right));
