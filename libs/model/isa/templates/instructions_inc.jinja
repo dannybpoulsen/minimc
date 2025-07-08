@@ -45,7 +45,7 @@ public:
 
    Value_ptr Replace (Value_ptr& ptr ) const {
    	     if (ptr) {
-	     	return MiniMC::Model::visitValue<Value_ptr>(*this,*ptr);
+	     	return MiniMC::Model::visitValue(*this,*ptr);
 	     }
 	     else
 		return nullptr;
@@ -53,14 +53,14 @@ public:
 
    Value_ptr Replace (const Value_ptr& ptr ) const {
    	     if (ptr) {
-	     	return MiniMC::Model::visitValue<Value_ptr>(*this,const_cast<Value&>(*ptr));
+	     	return MiniMC::Model::visitValue(*this,const_cast<Value&>(*ptr));
 	     }
 	     else
 		return nullptr;
    }
 
   Value_ptr Replace (Value& val ) const {
-  	return MiniMC::Model::visitValue<Value_ptr>(*this,val);
+  	return MiniMC::Model::visitValue(*this,val);
 	     
   }
 

@@ -101,7 +101,7 @@ namespace MiniMC {
 	  
 	  SMTLib::Term_ptr res = cached (v);
 	  if (!res) {
-	    res = MiniMC::Model::visitValue<SMTLib::Term_ptr>(*this,v);
+	    res = MiniMC::Model::visitValue(*this,v);
 	    assert(res);
 	    cache(v,res);
 	  }

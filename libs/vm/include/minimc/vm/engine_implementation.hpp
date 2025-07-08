@@ -144,7 +144,7 @@ namespace MiniMC {
 	      solver.pop ();
 	    }
 	  }
-	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+	  auto func = MiniMC::Model::visitValue(
 									     MiniMC::Support::Overload{
 									       [this](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
 										 auto loadPtr = t.getValue();

@@ -1,5 +1,6 @@
 
-     {% for N in all_bin_ops+all_unary_ops+pointer_ops %}
+     #include <concepts>
+{% for N in all_bin_ops+all_unary_ops+pointer_ops %}
      class {{N.getName()}}Expr : public Value {
      	   public:
      	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %});
@@ -189,65 +190,53 @@ private	:
    {% endfor %}
    
 
-      
-    
-    template<type_id_t i , class T, class F, class... Args>
-    constexpr auto  auto_index ()  {
-      if constexpr ( std::is_same_v<T,F>) {
-	return i;
-      }
-      else {
-	return auto_index<i+1,T,Args...> ();
-      }
+template<class... Args>      
+struct AutoIndexer {
+  template<class T>
+  static constexpr auto index () {return index_impl<0,T,Args...> ();}
+
+private:
+  template<type_id_t i , class T, class F, class... args>
+  static constexpr auto  index_impl ()  {
+    if constexpr ( std::is_same_v<T,F>) {
+      return i;
     }
-    
-    template<type_id_t i , class T, class F>
-    constexpr auto  auto_index ()  {
-      if constexpr ( std::is_same_v<T,F>) {
-	return i;
-      }
-      else {
+    else {
+      if constexpr (sizeof...(args) == 0)
 	return []<bool b = false> {static_assert (b);}();
+      else {
+      
+	return index_impl<i+1,T,args...> ();
       }
     }
+  }
+
+};
 
 
-    template <class T>
-    struct ValueInfo {
-      static constexpr auto type_t () {
-	return auto_index<0,T,
-			  I8Integer,
-			  I16Integer,
-			  I32Integer,
-			  I64Integer,
-			  Bool,
-			  Pointer,
-			  Pointer32, 
-			  AggregateConstant,
-			  Register,
-			  Undef,
-			  SymbolicConstant,
-			  LoadExpr,
-			  StoreExpr,
-			  Ptr32ToPtrExpr,
-			  PtrToPtr32Expr,
-			  ExtractValueExpr,
-			  			  /*InsertValueExpr,*/
-			  {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
-			  {% endfor %}
-			  	  
-			  > ();
-      }
-    };
+struct ValueInfo {
+private:
+  using _indexer = AutoIndexer<
+      {% for N in plain_non_generated_names  %}{{N}}, {% endfor %}
+      {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
+    {% endfor %}
     
+    >;
+public:
+  template <class T>
+  static constexpr auto type_t () {
+    return _indexer::index<T> ();
+  }
+};
+
     
     template <class T, bool is_bool>
-    inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo<TConstant<T, is_bool>>::type_t()),
+    inline TConstant<T, is_bool>::TConstant(T val) : Constant(ValueInfo::type_t<TConstant<T, is_bool>>()),
                                                      value(val) {
 						     setType(_inner_type());
     }
     
-    inline SymbolicConstant::SymbolicConstant (MiniMC::Model::Symbol val)  : Constant(ValueInfo<SymbolicConstant>::type_t()), symbol(val) {
+    inline SymbolicConstant::SymbolicConstant (MiniMC::Model::Symbol val)  : Constant(ValueInfo::type_t<SymbolicConstant>()), symbol(val) {
     	    auto type = std::visit (MiniMC::Support::Overload {
 	        	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
       	  		  [](const MiniMC::Model::Function_wptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
@@ -261,24 +250,24 @@ private	:
 
     {% for N in all_bin_ops+all_unary_ops+pointer_ops%}
        
-    inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo<{{N.getName()}}Expr>::type_t()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
+    inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo::type_t<{{N.getName()}}Expr>()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
 
     {%endfor %}
 
     template<CastOps c>
-    inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<CastExpression<c>>::type_t ()),from_expr(v),to_type(to) {}
+    inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<CastExpression<c>> ()),from_expr(v),to_type(to) {}
 
-    inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo<LoadExpr>::type_t ()),addr_expr(v),mem_expr(mem),to_type(to) {}
+    inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<LoadExpr> ()),addr_expr(v),mem_expr(mem),to_type(to) {}
 
-    inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo<StoreExpr>::type_t ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
+    inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo::type_t<StoreExpr> ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
 
-    inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo<Ptr32ToPtrExpr>::type_t ()),_conv(conv) {}
-    inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo<Ptr32ToPtrExpr>::type_t ()),_conv(conv) {}
+    inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
+    inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
     
 
-    inline ExtractValueExpr::ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type) : Value(ValueInfo<ExtractValueExpr>::type_t()),_aggregate(aggr),_offset(off),type(type) {}
+    inline ExtractValueExpr::ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type) : Value(ValueInfo::type_t<ExtractValueExpr>()),_aggregate(aggr),_offset(off),type(type) {}
 
-  	       inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_ptr inse) : Value(ValueInfo<InsertValueExpr>::type_t()),_aggregate(aggr),_offset(off),_insertee(inse) {}
+inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_ptr inse) : Value(ValueInfo::type_t<InsertValueExpr>()),_aggregate(aggr),_offset(off),_insertee(inse) {}
 
     
     template<class A>
@@ -348,120 +337,67 @@ private	:
     template<class T,bool consts>
     using CType = typename std::conditional<consts,const T,T>::type; 
     
-    template<class E,class Res = void,bool cconsts =true>
-    concept TValueVisitator = requires(const E e,
-				    CType<MiniMC::Model::I8Integer,cconsts>& i8,
-				    CType<MiniMC::Model::I16Integer,cconsts> i16,
-				    CType<MiniMC::Model::I32Integer,cconsts> i32,
-				    CType<MiniMC::Model::I64Integer,cconsts> i64,
-				    CType<MiniMC::Model::Bool,cconsts> b,
-				    CType<MiniMC::Model::Pointer,cconsts> ptr,
-				    CType<MiniMC::Model::Pointer32,cconsts> ptr32,
-				    CType<MiniMC::Model::AggregateConstant,cconsts> aggrc,
-				    CType<MiniMC::Model::Register,cconsts> reg,
-				    CType<MiniMC::Model::Undef,cconsts> und,
-				    CType<MiniMC::Model::SymbolicConstant,cconsts> sc,
-				    CType<Ptr32ToPtrExpr,cconsts> ptr32ptr,
-				    CType<PtrToPtr32Expr,cconsts> ptrptr32,
-				    
-				    {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}
-        			    CType<MiniMC::Model::{{N.getName()}}Expr,cconsts> o{{loop.index}} {%if not loop.last %}, {%endif%}
-				    {%endfor%}
-    ) {
-      {e(i8)}->std::convertible_to<Res>;
-      {e(i16)}->std::convertible_to<Res>;
-      {e(i32)}->std::convertible_to<Res>;
-      {e(i64)}->std::convertible_to<Res>;
-      {e(b)}->std::convertible_to<Res>;
-      {e(ptr)}->std::convertible_to<Res>;
-      {e(ptr32)}->std::convertible_to<Res>;
-      {e(aggrc)}->std::convertible_to<Res>;
-      {e(reg)}->std::convertible_to<Res>;
-      {e(und)}->std::convertible_to<Res>;
-      {e(sc)}->std::convertible_to<Res>;
-      {e(ptr32ptr)}->std::convertible_to<Res>;
-      {e(ptrptr32)}->std::convertible_to<Res>;
-      
-      {%for N in all_bin_ops+all_unary_ops+cast_ops+aggr_ops %}{e(o{{loop.index}}) }->std::convertible_to<Res>;
-           {%endfor%}
-    
-    };
 
-    template<class E,class Res = void>
-    concept ValueVisitator = TValueVisitator<E,Res,true>;
+template <class F, class... Vs>
+struct Dispatcher {
+  template<class... T>
+  static auto dispatch (F f,Vs&... vs) {return std::invoke(f,(vs.template as<T> ())...);}
+};
 
-    template<class E,class Res = void>
-    concept MutableValueVisitator = TValueVisitator<E,Res,false>;
-    
-    
-    template <class Res,bool c, TValueVisitator<Res,c> F>
-    auto visitValueT(F&& f,CType<MiniMC::Model::Value,c>& v)  {
-      switch (v.type_t ()) {
-      case ValueInfo<I8Integer>::type_t ():
-	return f (static_cast<CType<I8Integer,c>&> (v));
-	break;
-      case ValueInfo<I16Integer>::type_t ():
-	return f (static_cast<CType<I16Integer,c>&> (v));
-	break;
-      case ValueInfo<I32Integer>::type_t ():
-	return f (static_cast<CType<I32Integer,c>&> (v));
-	break;
-      case ValueInfo<I64Integer>::type_t ():
-	return f (static_cast<CType<I64Integer,c>&> (v));
-	break;
-      case ValueInfo<Bool>::type_t ():
-	return f (static_cast<CType<Bool,c>&> (v));
-	break;
-      case ValueInfo<Pointer>::type_t ():
-	return f (static_cast<CType<Pointer,c>&> (v));
-	break;
-      case ValueInfo<Pointer32>::type_t ():
-	return f (static_cast<CType<Pointer32,c>&> (v));
-	break;
-      case ValueInfo<AggregateConstant>::type_t ():
-	return f (static_cast<CType<AggregateConstant,c>&> (v));
-	break;
-      case ValueInfo<Register>::type_t ():
-	return f (static_cast<CType<Register,c>&> (v));
-	break;
-      case ValueInfo<Undef>::type_t ():
-	return f (static_cast<CType<Undef,c>&> (v));
-	break;
-      case ValueInfo<SymbolicConstant>::type_t ():
-	return f (static_cast<CType<SymbolicConstant,c>&> (v));
-	break;
-     case ValueInfo<LoadExpr>::type_t ():
-	return f (static_cast<CType<LoadExpr,c>&> (v));
-	break;
-     case ValueInfo<StoreExpr>::type_t ():
-	return f (static_cast<CType<StoreExpr,c>&> (v));
-     case ValueInfo<Ptr32ToPtrExpr>::type_t ():
-	return f (static_cast<CType<Ptr32ToPtrExpr,c>&> (v));
-       case ValueInfo<PtrToPtr32Expr>::type_t ():
-	return f (static_cast<CType<PtrToPtr32Expr,c>&> (v));
-	   {%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}case ValueInfo<{{N.getName()}}Expr>::type_t ():
-       	     return f (static_cast<CType<{{N.getName()}}Expr,c>&> (v));
-	     break;
-	   {%endfor%}    
+template <class F, class... Vs>
+struct LocateDispatcher {
+  
+  template<class VV,class... VVs>
+  struct Locate_impl {
+    template<class... T>
+    static auto locate_impl (VV& vv, VVs&... vs) {
+      switch (vv.type_t ()) {
+	{%for N in plain_non_generated_names %}case ValueInfo::type_t<{{N}}> ():
+	if constexpr (sizeof...(VVs) == 0)
+	    return &Dispatcher<F,Vs...>::template dispatch<T...,{{N}}>;
+	else return Locate_impl<VVs...>::template locate_impl<T...,{{N}}> (vs...);    	
+	{%endfor%}
+	{%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
+	if constexpr (sizeof...(VVs) == 0)
+	  return &Dispatcher<F,Vs...>::template dispatch<T...,{{N.getName()}}Expr>;
+	else return Locate_impl<VVs...>::template locate_impl<T...,{{N.getName()}}Expr> (vs...);    	
+	{%endfor%}
 default:		
 #ifdef NDEBUG
 	std::unreachable();
 #else
 	throw MiniMC::Support::Exception ("Missing category");
 #endif
-        }
+      }
       
     }
+  };
 
-    template <class Res,ValueVisitator<Res> F>
-    auto visitValue(F&& f,const MiniMC::Model::Value& v) {
-      return visitValueT<Res,true,F>(std::forward<F>(f),v);
-    }
+  
+  
+  static auto locate (Vs&... vs) {
+    return Locate_impl<Vs...>::locate_impl (vs...);
+  }
+  
+};
 
-    template <class Res,MutableValueVisitator<Res> F>
-    auto visitValue(F&& f,MiniMC::Model::Value& v) {
-      return visitValueT<Res,false,F>(std::forward<F>(f),v);
-    }
+
+template <class F,class... V>
+auto visitValueT(F&& f,V&... v)  {
+  return (*LocateDispatcher<F,V...>::locate (v...)) (f,v...);
+}
+
+
+
+/*template <class  F>
+auto visitValue(F&& f,const MiniMC::Model::Value& v) {
+  return visitValueT(std::forward<F>(f),v);
+  }*/
+
+template <class F, class... Vals>
+auto visitValue(F&& f,Vals&&... v) {
+  return visitValueT(std::forward<F>(f),std::forward<Vals>(v)...);
+}
 
     
     class ExpressionBuilder {
@@ -586,4 +522,58 @@ default:
     private:
       std::stack<Value_ptr> stack;
       std::stack<Type_ptr> types;
-};			  
+
+};
+
+struct ExprSimplifier  {
+        ExprSimplifier()   {}
+  MiniMC::Model::Value_ptr  Simplify ( MiniMC::Model::Value& v) const {
+    return visitValue (*this,v);
+  }
+
+
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Register& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Bool& i) const {return i .shared_from_this();}
+	
+
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I8Integer& i) const {return i .shared_from_this();}	
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I16Integer& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I32Integer& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I64Integer& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer32& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::SymbolicConstant& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Undef& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::AggregateConstant& i) const {return i .shared_from_this();}
+  
+	MiniMC::Model::Value_ptr operator() (MiniMC::Model::PtrToPtr32Expr& i) const {return i .shared_from_this();}
+	MiniMC::Model::Value_ptr operator() (MiniMC::Model::Ptr32ToPtrExpr& i) const {return i .shared_from_this();}
+						 			     
+						   
+	{% for i in ISA.getPseudoInstructions () %}
+	{%if i.isAssignConvertible () %}
+	MiniMC::Model::Value_ptr  operator() ({{i.getName ()}}Expr& ) const;
+	
+	{%endif %}
+	{%endfor %}
+};
+
+
+template <class T>
+T& Value::as () {
+  if (type_t () == ValueInfo::type_t<T> ())
+    return static_cast<T&> (*this);
+  else throw
+	 MiniMC::Support::Exception ("Error");
+}
+
+template <class T>
+const T& Value::as () const {
+  if (type_t () == ValueInfo::type_t<T> ())
+    return static_cast<const T&> (*this);
+  else throw
+	 MiniMC::Support::Exception ("Error");
+}
+
+template<class T>
+concept Integer = std::is_same_v<T,I8Integer> || std::is_same_v<T,I16Integer> || std::is_same_v<T,I32Integer>  || std::is_same_v<T,I64Integer>;

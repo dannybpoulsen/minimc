@@ -55,7 +55,7 @@ namespace MiniMC {
       std::generator<Value> Operations::create (const MiniMC::Model::Undef& und) const {
 	MiniMC::Model::NonDetGenerator gen;
 	for (auto t  : gen.generate(*und.getType ())) {
-	  co_yield MiniMC::Model::visitValue<Value> (
+	  co_yield MiniMC::Model::visitValue (
 						     MiniMC::Support::Overload {
 						       [this]<typename T>(T& v)->Value requires (MiniMC::Model::is_root<T> && ! MiniMC::Model::is_register<T> && !MiniMC::Model::is_symbolic<T> ) {
 							 return this->create(v);

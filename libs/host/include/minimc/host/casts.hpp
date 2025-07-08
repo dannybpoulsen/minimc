@@ -10,7 +10,7 @@ namespace MiniMC {
 
     template <class T, class P>
     P sext(const T t);
-
+    
     template <class T, class P>
     P trunc(const T& t) {
       static_assert(sizeof(P) <= sizeof(T));
@@ -22,7 +22,8 @@ namespace MiniMC {
 
       return std::bit_cast<P>(res);
     }
-
+    
+    
   } // namespace Support
 } // namespace MiniMC
 

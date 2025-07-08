@@ -82,7 +82,7 @@ namespace MiniMC {
 
         template <typename T>
         T LShl(const T& l, const T& r) const requires Integer<Value,T> {
-          return performOp<MiniMC::Host::TAC::Shl>(l.getValue(), r.getValue());
+          return performOp<MiniMC::Host::TAC::LShl>(l.getValue(), r.getValue());
         }
 
         template <typename T>

@@ -62,7 +62,7 @@ TEST_CASE("Add") {
   auto val = res_state->getBuilder ().buildValue (0,*symbol_value);
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
-  auto res_val = MiniMC::Model::visitValue<MiniMC::BV8> (MiniMC::Support::Overload {
+  auto res_val = MiniMC::Model::visitValue (MiniMC::Support::Overload {
       [](const MiniMC::Model::I8Integer& i8) {return i8.getValue ();},
       MiniMC::Support::Error<MiniMC::BV8>{}
     },

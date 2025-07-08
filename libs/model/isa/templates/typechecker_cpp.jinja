@@ -627,7 +627,7 @@ namespace MiniMC {
 	       return true;
 	  					      
 	  }	  
-	  auto func = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+	  auto func = MiniMC::Model::visitValue(
 						
 						MiniMC::Model::Overload{
 						  [&function_not_exists,this](const MiniMC::Model::Pointer& val) -> Function_ptr {

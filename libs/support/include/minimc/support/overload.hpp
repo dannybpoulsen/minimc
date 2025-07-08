@@ -47,7 +47,7 @@ namespace MiniMC {
       template<class... Args>
       void operator() (Args... ) const {}
     };
-    
+
     
     template<class... Ts>
     struct Overload : Ts... {

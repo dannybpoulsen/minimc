@@ -26,7 +26,7 @@ namespace MiniMC {
 	bool Check(const MiniMC::Model::Program& prgm );
 	bool Check(MiniMC::Model::Function&);
 	MiniMC::Model::Type_ptr  CheckType ( MiniMC::Model::Value& v) const  {
-	  return MiniMC::Model::visitValue<MiniMC::Model::Type_ptr> (*this, v);
+	  return MiniMC::Model::visitValue (*this, v);
 	}
 
 

@@ -32,7 +32,7 @@ namespace MiniMC {
           out = std::copy(reinterpret_cast<MiniMC::BV8*>(&value_insert), reinterpret_cast<MiniMC::BV8*>(&value_insert) + sizeof(value_insert), out);
         };
 
-	MiniMC::Model::visitValue<void>(
+	MiniMC::Model::visitValue(
 					MiniMC::Support::Overload {
 					  [addType](const MiniMC::Model::I8Integer& c) {addType(c);},
 					    [addType](const MiniMC::Model::I16Integer& c) {addType(c);},
@@ -61,14 +61,14 @@ namespace MiniMC {
     }
     
 
-    Undef::Undef(MiniMC::Model::Type_ptr t) : Constant(ValueInfo<Undef>::type_t()) {setType(t);}
-    Register::Register(const Symbol& name,RegisterInfo&& place) : Value(ValueInfo<Register>::type_t()),
+    Undef::Undef(MiniMC::Model::Type_ptr t) : Constant(ValueInfo::type_t<Undef>()) {setType(t);}
+    Register::Register(const Symbol& name,RegisterInfo&& place) : Value(ValueInfo::type_t<Register>()),
 								  place (std::move(place)),
 							    
 								  name(name) {}
 
     
-    AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo<AggregateConstant>::type_t()),data(std::move(arr)) {
+    AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo::type_t<AggregateConstant>()),data(std::move(arr)) {
       setType (MiniMC::Model::AggregateType::get(data.getSize()));
     }
     

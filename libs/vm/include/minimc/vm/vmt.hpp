@@ -128,7 +128,7 @@ namespace MiniMC {
       }
       
       std::generator<Value> MEval (const MiniMC::Model::Value& v)  const {
-	co_yield std::ranges::elements_of(MiniMC::Model::visitValue<std::generator<Value>>(*this,v));
+	co_yield std::ranges::elements_of(MiniMC::Model::visitValue(*this,v));
       }
 
       
@@ -639,7 +639,7 @@ OPSI
       }
 
       std::generator<Value> operator() (const MiniMC::Model::InsertValueExpr& expr) const  {
-	MiniMC::BV64 offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
+	MiniMC::BV64 offset = MiniMC::Model::visitValue(MiniMC::Support::Overload{
 	    [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },
@@ -691,7 +691,7 @@ OPSI
       
       
       std::generator<Value> operator() (const MiniMC::Model::ExtractValueExpr& expr) const  {
-	MiniMC::BV64 offset = MiniMC::Model::visitValue<MiniMC::BV64>(MiniMC::Support::Overload{
+	MiniMC::BV64 offset = MiniMC::Model::visitValue(MiniMC::Support::Overload{
 	    [](const MiniMC::Model::I16Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I32Integer& value) -> MiniMC::BV64 { return value.getValue(); },
 	      [](const MiniMC::Model::I64Integer& value) -> MiniMC::BV64 { return value.getValue(); },

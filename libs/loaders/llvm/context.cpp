@@ -47,7 +47,6 @@ namespace MiniMC {
       else if (type->isArrayTy()) {
         return MiniMC::Model::TypeID::Aggregate;
       }
-
       throw MiniMC::Support::Exception("Unknown Type");
     }
 

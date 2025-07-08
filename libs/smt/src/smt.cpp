@@ -214,7 +214,8 @@ OPS
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::SExtExpr& expr) const {
 	auto fromType = expr.getFrom ().getType();
-	auto toType = expr.getToType();  
+	auto toType = expr.getToType();
+	std::cerr << expr << " " << *toType << " " << expr.getFrom() << std::endl;
 	if (fromType->getTypeID() != MiniMC::Model::TypeID::Bool) {
 	  std::size_t bits = toType->getSize()*8 - fromType->getSize()*8;
 	  return  context->getBuilder().buildTerm(SMTLib::Ops::SExt,{Translate(expr.getFrom())},{bits});
@@ -260,7 +261,7 @@ OPS
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::InsertValueExpr& insertexpr) const {
 	auto aggr = Translate (insertexpr.aggregate());
-	auto offset = MiniMC::Model::visitValue<MiniMC::BV64>(
+	MiniMC::BV64 offset = MiniMC::Model::visitValue(
 						MiniMC::Support::Overload {
 						  [](const MiniMC::Model::I64Integer& v)->MiniMC::BV64 {return v.getValue();},
 						    MiniMC::Support::Error<MiniMC::BV64> {}

@@ -20,7 +20,7 @@ namespace MiniMC {
         auto instrs = edge->getInstructions();
         auto call_content = instrs.last ().getAs<MiniMC::Model::VMInstructionCode::Call>().getOps ();
 
-	auto cfunc = MiniMC::Model::visitValue<MiniMC::Model::Function_ptr>(
+	auto cfunc = MiniMC::Model::visitValue(
 									   MiniMC::Support::Overload{
 									     [&prgm](const MiniMC::Model::Pointer& t) -> MiniMC::Model::Function_ptr {
 									       auto loadPtr = t.getValue();

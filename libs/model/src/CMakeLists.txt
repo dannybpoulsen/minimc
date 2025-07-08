@@ -1,4 +1,4 @@
-add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp structurechecker)
+add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp structurechecker expression_simplifier.cpp)
 target_include_directories (model PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:/include> )
 target_link_libraries (model PUBLIC util support host)
 

@@ -96,9 +96,9 @@ TEST_SUITE ("Multiplication") {
 
 TEST_SUITE ("Shift left") {
   TEST_CASE ("BV8") {
-    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::Shl> (MiniMC::BV8{1},MiniMC::BV8{1}) == MiniMC::BV8(2));
-    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::Shl> (MiniMC::BV8{255},MiniMC::BV8{8}) == MiniMC::BV8(0));
-    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::Shl> (MiniMC::BV8{255},MiniMC::BV8{7}) == MiniMC::BV8(128));
+    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::LShl> (MiniMC::BV8{1},MiniMC::BV8{1}) == MiniMC::BV8(2));
+    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::LShl> (MiniMC::BV8{255},MiniMC::BV8{8}) == MiniMC::BV8(0));
+    CHECK (MiniMC::Host::Op<MiniMC::Host::TAC::LShl> (MiniMC::BV8{255},MiniMC::BV8{7}) == MiniMC::BV8(128));
     
   }
 }

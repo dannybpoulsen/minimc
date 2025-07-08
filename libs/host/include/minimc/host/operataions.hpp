@@ -10,7 +10,7 @@ namespace MiniMC {
       Mul,
       UDiv,
       SDiv,
-      Shl,
+      LShl,
       LShr,
       AShr,
       And,
@@ -67,7 +67,7 @@ namespace MiniMC {
 	return sdivimpl(l,r);
       }
 
-      else if constexpr (o == TAC::Shl) {
+      else if constexpr (o == TAC::LShl) {
 	return l << r;
       }
 

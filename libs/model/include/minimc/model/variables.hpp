@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <ranges>
+#include <experimental/array>
 #include <stack>
 
 
@@ -145,9 +146,9 @@ namespace MiniMC {
   template<>
   struct is_pointer<pointer32_t> : public std::true_type {};
 
-    template<>
+  template<>
   struct is_pointer<pointer64_t> : public std::true_type {};
-
+    
   
   template<typename T>
   constexpr bool is_pointer_v = is_pointer<T>::value;
@@ -194,6 +195,7 @@ namespace MiniMC {
      * Values can also be local or global to a given function.
      */
     class Register;
+
     class Value : public std::enable_shared_from_this<Value>{
     public:
       virtual ~Value() {}
@@ -212,6 +214,13 @@ namespace MiniMC {
       operator std::string() const {
         return this->string_repr();
       }
+
+      template<class T>
+      T& as ();
+
+      template<class T>
+      const T& as () const;
+
       
       virtual const Register& asRegister () const {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
       virtual Register& asRegister () {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
@@ -237,6 +246,11 @@ namespace MiniMC {
     }
 
     using Value_ptr = std::shared_ptr<Value>;
+
+    template<class T,class... Args>
+    Value_ptr makeExpr (Args... args) {
+      return std::make_shared<T> (std::forward<Args> (args)...);
+    }
     
     class Constant : public Value {
     public:
@@ -302,6 +316,8 @@ namespace MiniMC {
 	return outputType (os) << ">";
       }
       TConstant(T val);
+
+      using underlying_type = T;
       
     private:
       Type_ptr _inner_type ();
@@ -449,6 +465,8 @@ namespace MiniMC {
     using VariableMap = MiniMC::Util::FixedVector<Register, T, VariablePtrIndexer>;
 
     #include "minimc/model/expr.inc"
+
+    
     
   } // namespace Model
 } // namespace MiniMC
