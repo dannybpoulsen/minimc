@@ -14,6 +14,8 @@
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/overload.hpp"
 
+#include <iostream>
+
 namespace MiniMC {
   namespace Model {
     namespace Checkers {
@@ -26,10 +28,10 @@ namespace MiniMC {
 	bool Check(const MiniMC::Model::Program& prgm );
 	bool Check(MiniMC::Model::Function&);
 	MiniMC::Model::Type_ptr  CheckType ( MiniMC::Model::Value& v) const  {
-	  return MiniMC::Model::visitValue (*this, v);
+	auto type = MiniMC::Model::visitValue (*this, v); 
+	return type;
 	}
-
-
+		
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Register& i) const  {
 	  return i.getType();
 	}

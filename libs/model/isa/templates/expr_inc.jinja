@@ -526,28 +526,31 @@ auto visitValue(F&& f,Vals&&... v) {
 };
 
 struct ExprSimplifier  {
-        ExprSimplifier()   {}
+       ExprSimplifier()   {}
   MiniMC::Model::Value_ptr  Simplify ( MiniMC::Model::Value& v) const {
-    return visitValue (*this,v);
+  //return v.shared_from_this ();
+  return visitValue (*this,v);
   }
 
 
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::Register& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Bool& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Bool& i) const {return MiniMC::Model::Bool::make(i.getValue());}
 	
 
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I8Integer& i) const {return i .shared_from_this();}	
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I16Integer& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I32Integer& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I64Integer& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer32& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::SymbolicConstant& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Undef& i) const {return i .shared_from_this();}
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::AggregateConstant& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I8Integer& i) const {return MiniMC::Model::I8Integer::make(i.getValue());}	
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I16Integer& i) const {return MiniMC::Model::I16Integer::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I32Integer& i) const {return MiniMC::Model::I32Integer::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::I64Integer& i) const {return MiniMC::Model::I64Integer::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer& i) const {return MiniMC::Model::Pointer::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer32& i) const {return MiniMC::Model::Pointer32::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::SymbolicConstant& i) const {return MiniMC::Model::SymbolicConstant::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Undef& i) const {return MiniMC::Model::Undef::make(i.getType());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::AggregateConstant& i) const {
+  auto aggr = i.getData();
+return MiniMC::Model::AggregateConstant::make(std::move(aggr));}
   
-	MiniMC::Model::Value_ptr operator() (MiniMC::Model::PtrToPtr32Expr& i) const {return i .shared_from_this();}
-	MiniMC::Model::Value_ptr operator() (MiniMC::Model::Ptr32ToPtrExpr& i) const {return i .shared_from_this();}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::PtrToPtr32Expr& i) const {return MiniMC::Model::makeExpr<MiniMC::Model::PtrToPtr32Expr> (Simplify (i.conv()));}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Ptr32ToPtrExpr& i) const {return MiniMC::Model::makeExpr<MiniMC::Model::Ptr32ToPtrExpr> (Simplify (i.conv()));}
 						 			     
 						   
 	{% for i in ISA.getPseudoInstructions () %}

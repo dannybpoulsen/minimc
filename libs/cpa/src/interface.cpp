@@ -22,7 +22,7 @@ namespace MiniMC {
       auto printVStack = [&os,&state](auto& vstack,auto p ) {
 	for (auto& reg : vstack.getRegisters ()) {
 	  os << reg.getSymbol().getFullName () << ":\t";
-	  
+	  os.flush();
 	  for (const auto& datastate : state.dataStates ()) {
 	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
 	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
@@ -85,7 +85,6 @@ namespace MiniMC {
 	      auto heap_block = w.lock();
 	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
-	      
 	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (heap_block->heap_register,constant,aggr));
 	      
 	    },

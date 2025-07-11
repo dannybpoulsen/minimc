@@ -83,7 +83,7 @@ namespace MiniMC {
       public:
 	MustBeIntegerExpr (const MiniMC::Model::Value& l1 )  {
 	  message = MiniMC::Support::Localiser {"'%1%' must be integer."}.format(l1);
-	
+	  	
 	}
 	
 	virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
@@ -329,8 +329,8 @@ namespace MiniMC {
 
        MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::LoadExpr& expr) const  {
        	auto lty = CheckType(expr.addr());
-	
-	MiniMC::Model::Type_ptr res = nullptr;;
+	CheckType (expr.mem());
+	MiniMC::Model::Type_ptr res = nullptr;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Pointer ) {
 	  res = expr.getToType();
 	}
@@ -405,6 +405,7 @@ namespace MiniMC {
       MiniMC::Model::Type_ptr TypeChecker::operator() (MiniMC::Model::StoreExpr& expr) const  {
        	auto addrty = CheckType(expr.addr());
 	auto storeto = CheckType(expr.storeto());
+	CheckType(expr.storee());
 	
 	MiniMC::Model::Type_ptr res = nullptr;;
 	if (addrty->getTypeID () == MiniMC::Model::TypeID::Pointer && 

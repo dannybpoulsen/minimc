@@ -98,7 +98,6 @@ namespace MiniMC {
       public:
 	Translator (SMTLib::Context_ptr context) : context(context) {}
 	SMTLib::Term_ptr Translate (const MiniMC::Model::Value& v) const {
-	  
 	  SMTLib::Term_ptr res = cached (v);
 	  if (!res) {
 	    res = MiniMC::Model::visitValue(*this,v);

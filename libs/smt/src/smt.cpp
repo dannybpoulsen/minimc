@@ -215,7 +215,6 @@ OPS
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::SExtExpr& expr) const {
 	auto fromType = expr.getFrom ().getType();
 	auto toType = expr.getToType();
-	std::cerr << expr << " " << *toType << " " << expr.getFrom() << std::endl;
 	if (fromType->getTypeID() != MiniMC::Model::TypeID::Bool) {
 	  std::size_t bits = toType->getSize()*8 - fromType->getSize()*8;
 	  return  context->getBuilder().buildTerm(SMTLib::Ops::SExt,{Translate(expr.getFrom())},{bits});
