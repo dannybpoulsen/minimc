@@ -24,6 +24,7 @@ namespace MiniMC {
       Warning,
       Info,
       Progress,
+      SubProgress
     };
 
     
@@ -49,11 +50,11 @@ namespace MiniMC {
     }
     
     
-     template<Severity t>
+    template<Severity t>
     class MessageT : public Message {
     public:
       Severity getType() const override {return t;}
-       
+      
     };
     
 
@@ -61,6 +62,7 @@ namespace MiniMC {
     using WarningMessage = MessageT<Severity::Warning>;
     using InfoMessage = MessageT<Severity::Info>;
     using ProgressMessage = MessageT<Severity::Progress>;
+    using SubProgressMessage = MessageT<Severity::SubProgress>;
     
     template<class M>
     concept Outputtable = requires (const M& m, MiniMC::IO::ostream& os) {
@@ -91,6 +93,9 @@ namespace MiniMC {
     template<class T>
     using TProgress = TMessage<T,Severity::Progress>;
 
+    template<class T>
+    using TSubProgress = TMessage<T,Severity::SubProgress>;
+    
     
     
     
@@ -105,7 +110,7 @@ namespace MiniMC {
       static void setDefaultSink (std::shared_ptr<MessageSink>);
       
     };
-    
+
     class MessageHandler {
     public:
       virtual bool handle (const Message& ) = 0;
@@ -115,6 +120,8 @@ namespace MiniMC {
 
     class MessagePipeline : public MessageSink {
     public:
+      MessagePipeline ()  {}
+      
       MessagePipeline (std::list<std::unique_ptr<MessageHandler>>&& handlers) : handlers(std::move(handlers))  {}
       void mess(const Message& m) override {
 	for (auto& s : handlers) {
@@ -138,7 +145,7 @@ namespace MiniMC {
 
 	return MiniMC::IO::os_ostream::err();
 	
-      }
+	}
       
       
       
@@ -152,7 +159,7 @@ namespace MiniMC {
       auto add (Args&&... args) {
 	handlers.push_back (std::make_unique<T>(std::forward<Args>(args)...));
       }
-
+      
       std::shared_ptr<MessagePipeline> build() {
 	return std::make_shared<MessagePipeline> (std::move(handlers));
       }
@@ -178,14 +185,25 @@ namespace MiniMC {
       MiniMC::IO::ostream& stream;
     };
 
-    class ProgressStreamHandler : public StreamHandler<Severity::Progress> {
+    class ProgressStreamHandler : public MessageHandler {
     public:
-      ProgressStreamHandler (MiniMC::IO::ostream& o) : StreamHandler<Severity::Progress>(o) {}
+      ProgressStreamHandler (MiniMC::IO::ostream& o) : stream(o) {}
       bool handle (const Message&) override;
       void pump () override;
+      virtual std::optional<MiniMC::IO::ostream*> raw_stream (Severity s) {
+	if (s== Severity::Progress || s== Severity::SubProgress)
+	  return &stream;
+	else
+	  return std::nullopt;
+      };
+    
     private:
       MiniMC::IO::str_ostream buffer;
+      MiniMC::IO::str_ostream sub_message;
+      MiniMC::IO::ostream& stream;
+    
     };
+    
     
     
     class Messager {
@@ -203,7 +221,7 @@ namespace MiniMC {
       auto& operator<< (T&& inp) requires (!std::derived_from<T,Message>) {
 	return (*this << TMessage<T,t> {std::forward<T>(inp)});
       }
-
+      
       MiniMC::IO::ostream& raw_stream (Severity sev) {
 	return sink->raw_stream(sev);
       }
@@ -214,6 +232,17 @@ namespace MiniMC {
       
     };
 
+    class SubProgresSenderClearer {
+    public:
+      SubProgresSenderClearer (const std::string& mess) {
+	Messager{} << TSubProgress<std::string> {mess};
+      }
+      
+      ~SubProgresSenderClearer () {
+	Messager{} << TSubProgress<std::string> {std::string("")} ;
+      }  
+    };
+    
     class AsyncExecutor {
     public:
       template<class F, class... Args>
