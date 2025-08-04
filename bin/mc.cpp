@@ -132,7 +132,7 @@ namespace {
       
       if (locoptions.symbolic)
 	//cpa.add<MiniMC::CPA::CPAType::Pathformula>(sopt.smt.selsmt);
-	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Pathformula> (sopt.smt.selsmt);
+	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
       else
 	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
       

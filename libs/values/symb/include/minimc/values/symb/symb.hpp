@@ -10,6 +10,8 @@
 #include "minimc/smt/smt.hpp"
 #include "minimc/model/checkers/typechecker.hpp"
 #include "smt/exceptions.hpp"
+#include "minimc/support/feedback.hpp"
+
 namespace MiniMC {
   namespace Values {
     namespace Symb {
@@ -490,11 +492,13 @@ namespace MiniMC {
 	void push () {solver.push();}
 	void pop () {solver.pop();}	
 	void addConstraint (Value::Bool b) {
+	  MiniMC::Support::SubProgresSenderClearer {std::string {"Encoding"}};
 	  auto form = translator.Translate(*b.getExpr());
 	  solver.assert_formula(form);
 	  
 	}
 	MiniMC::VMT::Feasibility check () const {
+	  MiniMC::Support::SubProgresSenderClearer {std::string {"SMT-solving"}};
 	  switch (solver.check_sat()) {
 	  case SMTLib::Result::Satis:
 	    return MiniMC::VMT::Feasibility::Feasible;
