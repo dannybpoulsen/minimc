@@ -286,7 +286,6 @@ namespace MiniMC {
       std::vector<std::shared_ptr<State>> worklist;
       worklist.push_back (nstate);
       for (it = instr.begin(); it != end;  ++it) {
-	std::cerr << *it << std::endl;
 	std::vector<std::shared_ptr<State>> newlist;
 	for (auto cstate : worklist)
 	  for (auto state :  it->visit ([this,&cstate,id](auto& t) {return _impl->template runInstruction (t, *cstate,id);})) {

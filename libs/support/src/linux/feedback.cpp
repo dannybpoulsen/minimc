@@ -61,7 +61,6 @@ namespace MiniMC {
       else if (m.getType() == Severity::SubProgress) {
 	sub_message.clear();
 	sub_message << m; 
-	pump ();
 	return true;
 	
       }

@@ -72,7 +72,7 @@ namespace MiniMC {
     template<Outputtable T, Severity t>
     class TMessage : public MessageT<t> {
     public:
-      TMessage (T m) : item(std::move(m)) {}
+      TMessage (T m) : item(m) {}
       virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	return os << item;
       }
@@ -216,26 +216,28 @@ namespace MiniMC {
 	sink->mess(mess);
 	return *this;
       }
-
-      template<Outputtable T,Severity t= Severity::Info>
+      
+      /*template<Outputtable T,Severity t= Severity::Info>
       auto& operator<< (T&& inp) requires (!std::derived_from<T,Message>) {
 	return (*this << TMessage<T,t> {std::forward<T>(inp)});
-      }
+	}*/
       
       MiniMC::IO::ostream& raw_stream (Severity sev) {
 	return sink->raw_stream(sev);
       }
       
       void pumpProgress () {sink->pumpProgress();}
+      
     private:
       std::shared_ptr<MessageSink> sink; 
       
     };
 
+    template<class T>
     class SubProgresSenderClearer {
     public:
-      SubProgresSenderClearer (const std::string& mess) {
-	Messager{} << TSubProgress<std::string> {mess};
+      SubProgresSenderClearer (const T& mess) {
+	Messager{} << TSubProgress<T> {mess};
       }
       
       ~SubProgresSenderClearer () {

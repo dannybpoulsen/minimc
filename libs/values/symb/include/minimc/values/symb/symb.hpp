@@ -486,13 +486,13 @@ namespace MiniMC {
 	void push () {solver.push();}
 	void pop () {solver.pop();}	
 	void addConstraint (Value::Bool b) {
-	  MiniMC::Support::SubProgresSenderClearer {std::string {"Encoding"}};
+	  MiniMC::Support::SubProgresSenderClearer clear {std::string {"Encoding"}};
 	  auto form = translator.Translate(*b.getExpr());
 	  solver.assert_formula(form);
 	  
 	}
 	MiniMC::VMT::Feasibility check () const {
-	  MiniMC::Support::SubProgresSenderClearer {std::string {"SMT-solving"}};
+	  MiniMC::Support::SubProgresSenderClearer clear {std::string {"SMT-solving"}};
 	  switch (solver.check_sat()) {
 	  case SMTLib::Result::Satis:
 	    return MiniMC::VMT::Feasibility::Feasible;
