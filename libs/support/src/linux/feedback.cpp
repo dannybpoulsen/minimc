@@ -39,7 +39,7 @@ namespace MiniMC {
       static const MiniMC::IO::ColorMod color() {return {MiniMC::IO::ColorMod::Color::BLUE};}
       static const std::string text () {return "\33[2K\r";}
     };
-    
+
     template<Severity t>
     bool StreamHandler<t>::handle(const Message& m) {
       if (m.getType() == t) {
@@ -61,7 +61,6 @@ namespace MiniMC {
       else if (m.getType() == Severity::SubProgress) {
 	sub_message.clear();
 	sub_message << m; 
-	pump ();
 	return true;
 	
       }
@@ -75,7 +74,7 @@ namespace MiniMC {
       stream << "\r" << MiniMC::IO::manipulator::clearline  << "["  << std::string{prorg[i]} << "] " << buffer.str() << " ( " << sub_message.str() <<" )"<< "\r" <<  MiniMC::IO::manipulator::flush ;
       i = (i +1) % (sizeof(prorg)-1); 
     }
-   
+
     template class StreamHandler<Severity::Info>;
     template class StreamHandler<Severity::Warning>;
     template class StreamHandler<Severity::Error>;

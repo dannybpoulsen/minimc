@@ -50,11 +50,11 @@ namespace MiniMC {
     }
     
     
-    template<Severity t>
+     template<Severity t>
     class MessageT : public Message {
     public:
       Severity getType() const override {return t;}
-      
+       
     };
     
 
@@ -72,7 +72,7 @@ namespace MiniMC {
     template<Outputtable T, Severity t>
     class TMessage : public MessageT<t> {
     public:
-      TMessage (T m) : item(std::move(m)) {}
+      TMessage (T m) : item(m) {}
       virtual MiniMC::IO::ostream& to_string (MiniMC::IO::ostream& os) const {
 	return os << item;
       }
@@ -110,7 +110,7 @@ namespace MiniMC {
       static void setDefaultSink (std::shared_ptr<MessageSink>);
       
     };
-
+    
     class MessageHandler {
     public:
       virtual bool handle (const Message& ) = 0;
@@ -145,7 +145,7 @@ namespace MiniMC {
 
 	return MiniMC::IO::os_ostream::err();
 	
-	}
+      }
       
       
       
@@ -159,7 +159,7 @@ namespace MiniMC {
       auto add (Args&&... args) {
 	handlers.push_back (std::make_unique<T>(std::forward<Args>(args)...));
       }
-      
+
       std::shared_ptr<MessagePipeline> build() {
 	return std::make_shared<MessagePipeline> (std::move(handlers));
       }
@@ -216,26 +216,28 @@ namespace MiniMC {
 	sink->mess(mess);
 	return *this;
       }
-
-      template<Outputtable T,Severity t= Severity::Info>
+      
+      /*template<Outputtable T,Severity t= Severity::Info>
       auto& operator<< (T&& inp) requires (!std::derived_from<T,Message>) {
 	return (*this << TMessage<T,t> {std::forward<T>(inp)});
-      }
+	}*/
       
       MiniMC::IO::ostream& raw_stream (Severity sev) {
 	return sink->raw_stream(sev);
       }
       
       void pumpProgress () {sink->pumpProgress();}
+      
     private:
       std::shared_ptr<MessageSink> sink; 
       
     };
 
+    template<class T>
     class SubProgresSenderClearer {
     public:
-      SubProgresSenderClearer (const std::string& mess) {
-	Messager{} << TSubProgress<std::string> {mess};
+      SubProgresSenderClearer (const T& mess) {
+	Messager{} << TSubProgress<T> {mess};
       }
       
       ~SubProgresSenderClearer () {

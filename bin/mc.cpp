@@ -100,7 +100,7 @@ namespace {
       auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal](){return reach.search(*initstate,goal);});
       
       if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
-	messager << "Found Violation\n";
+	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
 	
 	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.raw_stream (MiniMC::Support::Severity::Info)) << "\n";
 	
