@@ -29,6 +29,8 @@ namespace MiniMC {
 	bool Check(MiniMC::Model::Function&);
 	MiniMC::Model::Type_ptr  CheckType ( MiniMC::Model::Value& v) const  {
 	MiniMC::Support::SubProgresSenderClearer<std::string> clear (std::string{"Typechecking"});			 
+	if (v.getType() != nullptr)
+	   return v.getType();
 	auto type = MiniMC::Model::visitValue (*this, v); 
 	return type;
 	}

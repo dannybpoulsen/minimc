@@ -106,8 +106,8 @@ namespace MiniMC {
       virtual void pumpProgress() {}
       virtual MiniMC::IO::ostream& raw_stream (Severity) = 0;
       
-      static std::shared_ptr<MessageSink> defaultSink ();
-      static void setDefaultSink (std::shared_ptr<MessageSink>);
+      static std::unique_ptr<MessageSink>& defaultSink ();
+      static void setDefaultSink (std::unique_ptr<MessageSink>&&);
       
     };
     
@@ -160,8 +160,8 @@ namespace MiniMC {
 	handlers.push_back (std::make_unique<T>(std::forward<Args>(args)...));
       }
 
-      std::shared_ptr<MessagePipeline> build() {
-	return std::make_shared<MessagePipeline> (std::move(handlers));
+      std::unique_ptr<MessagePipeline> build() {
+	return std::make_unique<MessagePipeline> (std::move(handlers));
       }
       
     private:
@@ -208,28 +208,22 @@ namespace MiniMC {
     
     class Messager {
     public:
-      Messager (std::shared_ptr<MessageSink> sink = MessageSink::defaultSink ()) : sink(std::move(sink)) {}
+      Messager () {}
       
       
       template<class T>
       auto& operator<< (T&& mess) requires std::derived_from<T,Message> {
-	sink->mess(mess);
+	MessageSink::defaultSink()->mess(mess);
 	return *this;
       }
       
-      /*template<Outputtable T,Severity t= Severity::Info>
-      auto& operator<< (T&& inp) requires (!std::derived_from<T,Message>) {
-	return (*this << TMessage<T,t> {std::forward<T>(inp)});
-	}*/
-      
       MiniMC::IO::ostream& raw_stream (Severity sev) {
-	return sink->raw_stream(sev);
+	return MessageSink::defaultSink()->raw_stream(sev);
       }
       
-      void pumpProgress () {sink->pumpProgress();}
+      void pumpProgress () {MessageSink::defaultSink()->pumpProgress();}
       
     private:
-      std::shared_ptr<MessageSink> sink; 
       
     };
 

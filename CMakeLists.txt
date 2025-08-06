@@ -12,14 +12,18 @@ set (CMAKE_CXX_STANDARD 23)
 
 option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
 option (ENABLE_PYTHON "Enable Python Binding" OFF)
-option (MINIMC32PTr "Use 32Bit pointers" OFF)
+option (ENABLE_PROFILING "Enable profiling" OFF)
+
+
 
 enable_testing()
 
 add_compile_options(-Wall -Wextra -Wpedantic)
-if(MINIMC32PTr)
-	add_compile_definitions(MINIMC32)
-endif()
+if(ENABLE_PROFILING)
+	message(STATUS "Enabled profiling")
+	add_compile_options(-pg)
+endif(ENABLE_PROFILING)
+
 
 include (dependencies/doctest.cmake)
 include (dependencies/smtlib.cmake)

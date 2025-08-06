@@ -2,13 +2,13 @@
 
 namespace MiniMC {
   namespace Support {
-    std::shared_ptr<MessageSink> defSink = std::make_shared<MessagePipeline> ();
+    std::unique_ptr<MessageSink> defSink = std::make_unique<MessagePipeline> ();
     
-    void MessageSink::setDefaultSink (std::shared_ptr<MessageSink> d) {
-      defSink = d;
+    void MessageSink::setDefaultSink (std::unique_ptr<MessageSink>&& d) {
+      std::swap(defSink,d);
     }
     
-    std::shared_ptr<MessageSink> MessageSink::defaultSink () {
+    std::unique_ptr<MessageSink>& MessageSink::defaultSink () {
       return defSink;
     }
     

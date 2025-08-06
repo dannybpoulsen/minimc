@@ -261,12 +261,12 @@ OPS
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::InsertValueExpr& insertexpr) const {
 	auto aggr = Translate (insertexpr.aggregate());
 	MiniMC::BV64 offset = MiniMC::Model::visitValue(
-						MiniMC::Support::Overload {
-						  [](const MiniMC::Model::I64Integer& v)->MiniMC::BV64 {return v.getValue();},
-						    MiniMC::Support::Error<MiniMC::BV64> {}
-						},
-						insertexpr.offset()
-							      );
+							MiniMC::Support::Overload {
+							  [](const MiniMC::Model::I64Integer& v)->MiniMC::BV64 {return v.getValue();},
+							    MiniMC::Support::Error<MiniMC::BV64> {}
+							},
+							insertexpr.offset()
+							);
 	auto insertee = Translate(insertexpr.insertee());
 
 	if (insertexpr.insertee().getType()->getTypeID () != MiniMC::Model::TypeID::I8) {
