@@ -1,5 +1,6 @@
 
      #include <concepts>
+     #include "minimc/support/feedback.hpp"
 {% for N in all_bin_ops+all_unary_ops+pointer_ops %}
      class {{N.getName()}}Expr : public Value {
      	   public:
@@ -528,7 +529,7 @@ auto visitValue(F&& f,Vals&&... v) {
 struct ExprSimplifier  {
        ExprSimplifier()   {}
   MiniMC::Model::Value_ptr  Simplify ( MiniMC::Model::Value& v) const {
-  //return v.shared_from_this ();
+  			    MiniMC::Support::SubProgresSenderClearer<std::string> clear (std::string ("Simplifying")); 
   return visitValue (*this,v);
   }
 

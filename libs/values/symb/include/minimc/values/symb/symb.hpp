@@ -94,7 +94,7 @@ namespace MiniMC {
 	MiniMC::Model::Value_ptr get () {
 	  auto res = ExpressionBuilder::get();
 	  res = simplifier.Simplify (*res);
-
+	  
 	  auto type = typechecker.CheckType(*res);
 	   
 	  

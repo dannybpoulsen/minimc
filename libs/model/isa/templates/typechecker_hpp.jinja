@@ -28,6 +28,7 @@ namespace MiniMC {
 	bool Check(const MiniMC::Model::Program& prgm );
 	bool Check(MiniMC::Model::Function&);
 	MiniMC::Model::Type_ptr  CheckType ( MiniMC::Model::Value& v) const  {
+	MiniMC::Support::SubProgresSenderClearer<std::string> clear (std::string{"Typechecking"});			 
 	auto type = MiniMC::Model::visitValue (*this, v); 
 	return type;
 	}
