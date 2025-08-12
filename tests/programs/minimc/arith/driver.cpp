@@ -108,7 +108,6 @@ TEST_CASE("UDiv") {
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"UDiv.mmc"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({
       prgm.getEntryPoints (),
@@ -129,7 +128,6 @@ TEST_CASE("SDiv") {
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"SDiv.mmc"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({
       prgm.getEntryPoints (),
@@ -151,7 +149,6 @@ TEST_CASE("Shl") {
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Shl.mmc"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({
       prgm.getEntryPoints (),
@@ -172,7 +169,6 @@ TEST_CASE("AShr") {
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Ashr.mmc"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({
       prgm.getEntryPoints (),

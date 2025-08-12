@@ -87,13 +87,14 @@ namespace MiniMC {
     
     using TCPA_ptr = std::shared_ptr<ICPA>;    
     
-    class AnalysisTransfer {
+    /*class AnalysisTransfer {
     public:
       AnalysisTransfer (std::vector<Transferer_ptr>&& dtransfers) : dataTransfers(std::move(dtransfers)) {}
       bool Transfer (const AnalysisState&, const Transition&, AnalysisState&);
     private:
       std::vector<Transferer_ptr> dataTransfers;    
     };
+    */
     
     enum class CPAType {
       Concrete,
@@ -104,7 +105,7 @@ namespace MiniMC {
     template<CPAType type,class... Args>
     TCPA_ptr makeCPA (Args... args);
     
-    class AnalysisBuilder {
+    /*class AnalysisBuilder {
     public:
       template<CPAType t,class... Args>
       auto& add (Args&&... args) {
@@ -129,7 +130,7 @@ namespace MiniMC {
     private:
       std::vector<TCPA_ptr> data_cpa;
     };
-    
+    */
   } // namespace CPA
 } // namespace MiniMC
 

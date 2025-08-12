@@ -7,7 +7,7 @@ namespace MiniMC {
   namespace CPA {
     
 
-    MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state) {
+    /*   MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
@@ -40,8 +40,8 @@ namespace MiniMC {
       
       return os << "\n";;
     }
-    
-    MiniMC::IO::ostream& StateOutputter::output (const AnalysisState& state, MiniMC::IO::ostream& os) {
+    */
+    /*MiniMC::IO::ostream& StateOutputter::output (const AnalysisState& state, MiniMC::IO::ostream& os) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
@@ -81,7 +81,7 @@ namespace MiniMC {
 	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
 	  std::visit (MiniMC::Support::Overload {
 	   [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
-	    [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
+	     [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
 	      auto heap_block = w.lock();
 	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
@@ -100,18 +100,18 @@ namespace MiniMC {
       return os << "\n";;
     }
 
+    */
     
-    
-    MiniMC::Hash::hash_t AnalysisState::hash() const {
+    /*MiniMC::Hash::hash_t AnalysisState::hash() const {
       MiniMC::Hash::Hasher hashing;
       for (auto& state : dataStates ()) {
 	hashing << state;
       }
       return hashing;
-    }
+      }*/
     
     
-    bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
+    /*bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
       
       
       std::vector<State_ptr> datas;
@@ -133,7 +133,7 @@ namespace MiniMC {
       
       
       return true;
-    }
+      }*/
 
     MiniMC::IO::ostream& CPAStateOutputter::output (const State& state, MiniMC::IO::ostream& os) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();

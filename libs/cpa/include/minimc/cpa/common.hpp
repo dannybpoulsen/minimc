@@ -500,7 +500,7 @@ namespace MiniMC {
       const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
       
       virtual const Solver_ptr getConcretizer() const override {
-	auto solver = valuedefinition.solver();
+	auto solver = constraint_solver();
 	auto ssolver = std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (std::move(solver));
 	ssolver->addConstraint (getPathform());
 	return std::move(ssolver);
@@ -509,7 +509,7 @@ namespace MiniMC {
       auto constraint_solver() const {
 	return valuedefinition.solver();
       }
-
+      
       ValDef::Val::Bool getPathform () const { return mixin.getPathform();}
       void setPathform (ValDef::Val::Bool&& p ) { mixin.setPathform(std::move(p));}
       

@@ -48,7 +48,6 @@ TEST_CASE("Pointer") {
   loadRegistrar->setOption<std::vector<std::string>> (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto  cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -69,7 +68,6 @@ TEST_CASE("Pointer") {
   loadRegistrar->setOption<std::vector<std::string>>  (1,{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
 
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),
@@ -91,7 +89,6 @@ TEST_CASE("Pointer") {
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
 
 
-  MiniMC::CPA::AnalysisBuilder analysis_builder;
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
   auto initialState = cpa->makeInitialState({prgm.getEntryPoints (),
       prgm.getHeapLayout (),

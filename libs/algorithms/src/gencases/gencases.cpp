@@ -1,4 +1,5 @@
 #include "minimc/algorithms/gencases.hpp"
+#include "minimc/cpa/interface.hpp"
 #include "minimc/cpa/pathformula.hpp"
 #include "minimc/cpa/successorgen.hpp"
 #include "minimc/smt/smt.hpp"
@@ -21,12 +22,13 @@ namespace MiniMC {
 				   MiniMC::Support::SMT::SMTDescr smt
 						      ) {
 	TestCaseGenResult res {func->getParameters()};
-	MiniMC::CPA::AnalysisBuilder cpa;
+	/*MiniMC::CPA::AnalysisBuilder cpa;
 	cpa.add<MiniMC::CPA::CPAType::Pathformula>(smt);
-      
+	*/
+	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Pathformula> (smt);
 	
 	      
-	auto initstate = cpa.makeInitialState({
+	auto initstate = cpa->makeInitialState({
 	    {func},
 	    {},
 	    _internal->program}
@@ -35,21 +37,21 @@ namespace MiniMC {
 	std::vector<MiniMC::CPA::QueryExpr_ptr> params_sym; 
       
 	for (auto& p : res.vars ()) {
-	  params_sym.push_back (initstate.dataStates()[0].getBuilder().buildValue (0,*p));
+	  params_sym.push_back (initstate->getBuilder().buildValue (0,*p));
 	}
 	
 	
-	auto transfer =  cpa.makeTransfer (_internal->program);
-	std::vector<MiniMC::CPA::AnalysisState> waiting;
+	auto transfer =  cpa->makeTransfer (_internal->program);
+	std::vector<MiniMC::CPA::State_ptr> waiting;
 	waiting.push_back (initstate);
 	while (waiting.size ()) {
 	  auto s = std::move(waiting.back());
 	  waiting.pop_back();
 	  
-	  for (auto state : MiniMC::CPA::successors (s,transfer)) {
-	    auto concretizer = state.dataStates()[0].getConcretizer ();
+	  for (auto state : MiniMC::CPA::successors (*s,*transfer)) {
+	    auto concretizer = state->getConcretizer ();
 	    if (concretizer->isFeasible () == MiniMC::CPA::Solver::Feasibility::Feasible) {
-	      if (!state.getLocationState().isActive (0))  {
+	      if (!state->getLocationState().isActive (0))  {
 		std::vector<MiniMC::Model::Value_ptr> values;
 		auto inserter = std::back_inserter (values);
 		std::for_each (params_sym.begin (),params_sym.end (),[&inserter,&concretizer](auto& sym_val){inserter = concretizer->evaluate (*sym_val);});

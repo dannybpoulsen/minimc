@@ -70,7 +70,7 @@ namespace MiniMC {
     
     
     
-    class AnalysisState  {
+    /*class AnalysisState  {
     public: 
       AnalysisState ()   {}
       AnalysisState (std::vector<State_ptr>&& dstates) : datastates(std::move(dstates))  {
@@ -86,8 +86,8 @@ namespace MiniMC {
     private:
       std::vector<State_ptr> datastates;   
     };
-    
-    class StateOutputter {
+    */
+    /*class StateOutputter {
     public:
       StateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
       MiniMC::IO::ostream& output (const AnalysisState&, MiniMC::IO::ostream& os);
@@ -95,7 +95,7 @@ namespace MiniMC {
       const MiniMC::Model::Program& prgm;
       
     };
-    
+    */
     class CPAStateOutputter {
     public:
       CPAStateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
@@ -105,7 +105,7 @@ namespace MiniMC {
       
     };
     
-    MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state);
+    //MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state);
     
     
     

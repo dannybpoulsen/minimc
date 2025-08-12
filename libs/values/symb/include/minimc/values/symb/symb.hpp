@@ -490,22 +490,29 @@ namespace MiniMC {
 	void push () {solver.push();}
 	void pop () {solver.pop();}	
 	void addConstraint (Value::Bool b) {
+	  _cachedVer = MiniMC::VMT::Feasibility::Unknown;
 	  MiniMC::Support::SubProgresSenderClearer clear {std::string {"Encoding"}};
 	  auto form = translator.Translate(*b.getExpr());
 	  solver.assert_formula(form);
 	  
 	}
+
 	MiniMC::VMT::Feasibility check () const {
 	  MiniMC::Support::SubProgresSenderClearer clear {std::string {"SMT-solving"}};
-	  switch (solver.check_sat()) {
-	  case SMTLib::Result::Satis:
-	    return MiniMC::VMT::Feasibility::Feasible;
-	  case SMTLib::Result::NSatis:
-	    return MiniMC::VMT::Feasibility::Infeasible;
-	  default:
-	    return MiniMC::VMT::Feasibility::Unknown;
+	  if (_cachedVer == MiniMC::VMT::Feasibility::Unknown) {
+	    switch (solver.check_sat()) {
+	    case SMTLib::Result::Satis:
+	      
+	      _cachedVer = MiniMC::VMT::Feasibility::Feasible;
+	      break;
+	     case SMTLib::Result::NSatis:
+	      _cachedVer = MiniMC::VMT::Feasibility::Infeasible;
+	      break; 
+	    default:
+	      _cachedVer = MiniMC::VMT::Feasibility::Unknown;
+	    }
 	  }
-	  return MiniMC::VMT::Feasibility::Feasible; 
+	  return _cachedVer;
 	}
 	
 	MiniMC::Model::Constant_ptr eval (const Value& v) const {
@@ -612,6 +619,7 @@ namespace MiniMC {
 	SMTLib::Context_ptr context;
 	SMTLib::Solver& solver;
 	MiniMC::Support::SMT::Translator translator;
+	mutable MiniMC::VMT::Feasibility _cachedVer {MiniMC::VMT::Feasibility::Unknown};
       };
 
       class ValueDefinition  {
