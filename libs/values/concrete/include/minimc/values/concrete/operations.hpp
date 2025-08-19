@@ -218,16 +218,14 @@ namespace MiniMC {
         
 	
 	Value::Pointer32 PtrToPtr32 (const Value::Pointer& p ) const  {
-	  //Value::Pointer32::underlying_type p32{};
-	  auto base = p.getValue().base;
-	  auto offset = p.getValue().offset;
-	  auto segment = p.getValue().segment;
+	  auto base = static_cast<Value::Pointer32::underlying_type::BaseT>(p.getValue().base);
+	  auto offset = static_cast<Value::Pointer32::underlying_type::OffsetT>(p.getValue().offset);
+							     auto segment = static_cast<Value::Pointer32::underlying_type::SegT>(p.getValue().segment);
 	  
-	  return Value::Pointer32::underlying_type{segment,base,offset};
+							     return Value::Pointer32::underlying_type{segment,base,offset};
 	}
 
 	Value::Pointer Ptr32ToPtr (const Value::Pointer32& p32) const  {
-	  //Value::Pointer::underlying_type p{};
 	  auto base = p32.getValue().base;
 	  auto offset = p32.getValue().offset;
 	  auto segment = p32.getValue().segment;

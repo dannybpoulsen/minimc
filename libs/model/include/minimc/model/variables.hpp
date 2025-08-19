@@ -46,6 +46,10 @@ namespace MiniMC {
             typename offset_t = BV32,
             typename Ptrbv = BV64>
   struct __attribute__((packed)) pointer_struct {
+    using SegT = seg_t;
+    using BaseT = base_t;
+    using OffsetT = offset_t;
+    
     //Used for identifying if the pointer is a
     // data pointer
     // location pointer
