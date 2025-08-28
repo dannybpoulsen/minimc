@@ -67,25 +67,29 @@ namespace MiniMC {
 	_internal->heap_pointer = MiniMC::Model::SymbolicConstant::make (heap);
 	_internal->heap_pointer->setType(MiniMC::Model::PointerType::get());
 	
-	auto& register_descr =  _internal->prgm.getCPURegs(); 
-	for (auto& var : prgm.getVars ()) {
-	  std::string name = var.getName();
-	  auto symbol = rootFrame.makeSymbol (name);
-	  auto reg = register_descr.addRegister (std::move(symbol),makeType(var.getType()));
-	  _internal->vars.emplace(name,reg);
-	}
+	std::vector<MiniMC::Model::Register_ptr> params;
 
-	
 	_internal->frame = rootFrame.create ("_main");
 	auto func_name = rootFrame.makeSymbol ("_main");
 	MiniMC::Model::RegisterDescr descr;
+	
+	for (auto& var : prgm.getVars ()) {
+	  std::string name = var.getName();
+	  auto symbol = _internal->frame.makeSymbol (name);
+	  auto reg = descr.addRegister (std::move(symbol),makeType(var.getType()));
+	  _internal->vars.emplace(name,reg);
+	  if (var.isParamter())
+	    params.push_back (reg);
+	}
+
+	
 	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,_internal->frame);
 	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->make({}));
 	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
 	_internal->cfa.setInitial (_internal->start);
 	prgm.getStmt().accept (*this);
 
-	_internal->prgm.addFunction (func_name,{},MiniMC::Model::VoidType::get(),std::move(descr),std::move(_internal->cfa),false,_internal->frame); 
+	_internal->prgm.addFunction (func_name,params,MiniMC::Model::VoidType::get(),std::move(descr),std::move(_internal->cfa),false,_internal->frame); 
 	
 	_internal->prgm.addEntryPoint (func_name);
 	

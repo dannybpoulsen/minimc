@@ -26,8 +26,8 @@ namespace MiniMC {
 
       auto& getLocation () const {return loc;}
       void setLocation (MiniMC::Model::Location_ptr l)  {loc = l;}
-      bool isCPU() const {return loc == nullptr;}
-
+      bool isCPU() const {return (loc == nullptr) ;}
+      
       auto returnRegister () const {return ret;}
       auto getValueOfRegister (const MiniMC::Model::Register& r) const {
 	return values[r];
@@ -391,7 +391,9 @@ namespace MiniMC {
       
       //LocationInfo
       size_t nbOfProcesses() const override {return stacks.size();}
-      bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU();}
+      bool isActive(size_t id) const override {return !getProc(id).activeRecord().isCPU()
+	  && getLocation(id).hasOutgoingEdge()
+	  ;}
       MiniMC::Model::Location& getLocation(proc_id id) const override   {return *getProc(id).activeRecord().getLocation();}
 
       template<MiniMC::VMT::MemoryOperations<Value> MemControl>

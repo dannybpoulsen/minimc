@@ -30,8 +30,8 @@ namespace {
       auto func = prgm.getFunction (locoptions.function);
       
       MiniMC::Algorithms::GenCases::TestCaseGenerator generator {prgm};
-      auto res = generator.generate (messager,func,sopt.smt.selsmt);
-
+      auto res = MiniMC::Support::AsyncExecutor{}.execute(messager,[&generator,&messager,&func,&sopt](){return generator.generate (messager,func,sopt.smt.selsmt);});
+      
       for (auto& casee : res.cases ()) {
 	auto reg_it = res.vars().begin ();
 	auto val_it = casee.values().begin ();

@@ -70,32 +70,7 @@ namespace MiniMC {
     
     
     
-    /*class AnalysisState  {
-    public: 
-      AnalysisState ()   {}
-      AnalysisState (std::vector<State_ptr>&& dstates) : datastates(std::move(dstates))  {
-     }
-      
-      auto dataStates () const {
-	return datastates | std::views::transform([](auto& r)->const State& {return *r;});
-      }
-      
-      auto& getLocationState () const {return datastates.at(0)->getLocationState ();}
-      
-      MiniMC::Hash::hash_t hash() const;
-    private:
-      std::vector<State_ptr> datastates;   
-    };
-    */
-    /*class StateOutputter {
-    public:
-      StateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
-      MiniMC::IO::ostream& output (const AnalysisState&, MiniMC::IO::ostream& os);
-    private:
-      const MiniMC::Model::Program& prgm;
-      
-    };
-    */
+    
     class CPAStateOutputter {
     public:
       CPAStateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
