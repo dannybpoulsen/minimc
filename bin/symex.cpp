@@ -19,9 +19,9 @@ namespace {
   public:
 
     void addOptions (po::options_description& op) {
-      po::options_description desc("Symex Options");
+      po::options_description desc("Test Case Generation Options");
       desc.add_options()
-	("symex.function",po::value<std::string> (&locoptions.function)->default_value ("main"),"Set Function to analyse\n");
+	("gencases.function",po::value<std::string> (&locoptions.function)->default_value ("main"),"Set Function to analyse\n");
       op.add(desc);
       
     }
@@ -47,8 +47,8 @@ namespace {
     }
     
     
-    std::string getName () const override {return "symex";}
-    std::string getDescritpion () const override {return "Execute function symbolically. ";}
+    std::string getName () const override {return "gencases";}
+    std::string getDescritpion () const override {return "Generate test cases for function ";}
     
   private:
     LocalOptions locoptions;
