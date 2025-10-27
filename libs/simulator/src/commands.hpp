@@ -201,6 +201,10 @@ namespace MiniMC {
 	    simu->setState (res.foundState());
 	    
 	  }
+
+	  else {
+	    os << "No luck\n";
+	  }
 	  
 	  return true;
 	}

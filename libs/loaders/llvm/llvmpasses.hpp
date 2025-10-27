@@ -1,3 +1,4 @@
+#include <llvm/IR/IRBuilder.h>
 struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager&) {
         for (auto& Arg : F.args())
@@ -25,23 +26,25 @@ struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
       llvm::PreservedAnalyses run(llvm::Function& F, llvm::FunctionAnalysisManager&) {
 
         for (llvm::BasicBlock& BB : F) {
-          for (llvm::Instruction& I : BB) {
-            handle(&I);
+	  auto iter = BB.begin();
+	  for (; iter != BB.end();++iter) {
+            handle(iter);
           }
         }
         return llvm::PreservedAnalyses::none();
       }
 
-      void handle(llvm::Instruction* inst) {
+      void handle(auto iter) {
+	llvm::Instruction* inst = &*iter; 
         auto ops = inst->getNumOperands();
         for (std::size_t i = 0; i < ops; i++) {
           auto op = inst->getOperand(i);
           llvm::ConstantExpr* oop = nullptr;
           if ((oop = llvm::dyn_cast<llvm::ConstantExpr>(op))) {
             auto ninst = oop->getAsInstruction();
-            ninst->insertBefore(inst);
+            auto niter = ninst->insertInto(inst->getParent(), iter);
             inst->setOperand(i, ninst);
-            handle(ninst);
+            handle(niter);
           }
         }
       }
@@ -90,13 +93,14 @@ struct InstructionNamer : public llvm::PassInfoMixin<InstructionNamer> {
           while (BI != BE) {
             auto& I = *BI++;
             if (I.getOpcode() == llvm::Instruction::GetElementPtr) {
+	      llvm::IRBuilder builder {&I};
               llvm::GetElementPtrInst* inst = llvm::dyn_cast<llvm::GetElementPtrInst>(&I);
               llvm::Value* indexList[1] = {inst->getOperand(1)};
-              auto prev = llvm::GetElementPtrInst::Create(inst->getSourceElementType (), inst->getOperand(0), llvm::ArrayRef<llvm::Value*>(indexList, 1), "_gep__", inst);
-              const std::size_t E = inst->getNumOperands();
+              auto prev = builder.CreateGEP (inst->getSourceElementType (), inst->getOperand(0), llvm::ArrayRef<llvm::Value*>(indexList, 1), "_gep__", inst);
+	      const std::size_t E = inst->getNumOperands();
               for (std::size_t oper = 2; oper < E; ++oper) {
                 llvm::Value* indexList[2] = {zero, inst->getOperand(oper)};
-                prev = llvm::GetElementPtrInst::Create(prev->getResultElementType (), prev, llvm::ArrayRef<llvm::Value*>(indexList, 2), "_gep__", inst);
+                prev = builder.CreateGEP (llvm::dyn_cast<llvm::GetElementPtrInst> (prev)->getResultElementType (), prev, llvm::ArrayRef<llvm::Value*>(indexList, 2), "_gep__", inst);
               }
               I.replaceAllUsesWith(prev);
               I.eraseFromParent();
