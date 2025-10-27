@@ -86,7 +86,7 @@ namespace {
 	auto procs = locationstate.nbOfProcesses ();
       
 	for (std::size_t i = 0; i < procs; ++i) {
-	  if (locationstate.isActive (i) && locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
+	  if ( locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
 	    return true;
 	}
 	
