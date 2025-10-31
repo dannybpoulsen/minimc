@@ -23,6 +23,8 @@ namespace MiniMC {
 	void visitSkipStatement (const Whiley::SkipStatement& ) override ; 
 	void visitWhileStatement (const Whiley::WhileStatement& ) override ; 
 	void visitSequenceStatement (const Whiley::SequenceStatement& ) override ; 
+	void visitChooseStatement (const Whiley::ChooseStatement& ) override ; 
+	
 	void visitMemAssignStatement (const Whiley::MemAssignStatement&) override;
 
       private:

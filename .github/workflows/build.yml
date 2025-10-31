@@ -9,7 +9,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: BuildDep
-      run:  apk update && apk add python3 py3-pip cmake g++ make llvm18-dev llvm18-static llvm18-gtest git flex-dev bison boost-dev py3-jinja2 py3-yaml xxhash-dev readline && ln -s /usr/bin/llvm-config-18 /usr/bin/llvm-config 
+      run:  apk update && apk add python3 py3-pip cmake g++ make llvm18-dev llvm18-static llvm18-gtest git flex-dev bison boost-dev py3-jinja2 py3-yaml xxhash-dev readline-dev && ln -s /usr/bin/llvm-config-18 /usr/bin/llvm-config 
     - name: Setup
       run: mkdir build && cd build && cmake  -DCMAKE_BUILD_TYPE=Release ..
     - name: build

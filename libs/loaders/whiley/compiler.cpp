@@ -168,6 +168,9 @@ namespace MiniMC {
 	case Whiley::BinOps::Mul:
 	  _internal->expr = std::make_shared<MiniMC::Model::MulExpr> (std::move(le),std::move(right));
 	  break;
+	case Whiley::BinOps::Mod:
+	  throw MiniMC::Support::Exception {"Modulo operations not supported in MiniMC"};
+	break;
 	case Whiley::BinOps::Div:
 	  if (_signed)
 	    _internal->expr = std::make_shared<MiniMC::Model::SDivExpr> (std::move(le),std::move(right));
@@ -175,76 +178,93 @@ namespace MiniMC {
 	    _internal->expr = std::make_shared<MiniMC::Model::UDivExpr> (std::move(le),std::move(right));
 	  
 	  break;
-	case Whiley::BinOps::LEq:
-	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SLeExpr> (std::move(le),std::move(right));
-	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ULeExpr> (std::move(le),std::move(right));
+	  case Whiley::BinOps::LEq:
+	    if (_signed)
+	      _internal->expr = std::make_shared<MiniMC::Model::SLeExpr> (std::move(le),std::move(right));
+	    else
+	      _internal->expr = std::make_shared<MiniMC::Model::ULeExpr> (std::move(le),std::move(right));
 	  
-	  break;
-	case Whiley::BinOps::GEq:
-	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SGeExpr> (std::move(le),std::move(right));
-	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::UGeExpr> (std::move(le),std::move(right));
-	  break;
-	case Whiley::BinOps::Lt:
-	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SLtExpr> (std::move(le),std::move(right));
-	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::ULtExpr> (std::move(le),std::move(right));
+	    break;
+	    case Whiley::BinOps::GEq:
+	      if (_signed)
+		_internal->expr = std::make_shared<MiniMC::Model::SGeExpr> (std::move(le),std::move(right));
+	      else
+		_internal->expr = std::make_shared<MiniMC::Model::UGeExpr> (std::move(le),std::move(right));
+	      break;
+	      case Whiley::BinOps::Lt:
+		if (_signed)
+		  _internal->expr = std::make_shared<MiniMC::Model::SLtExpr> (std::move(le),std::move(right));
+		else
+		  _internal->expr = std::make_shared<MiniMC::Model::ULtExpr> (std::move(le),std::move(right));
 	  
-	  break;
-	case Whiley::BinOps::Gt:
-	  if(_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SGtExpr> (std::move(le),std::move(right));
-	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::UGtExpr> (std::move(le),std::move(right));
+		break;
+		case Whiley::BinOps::Gt:
+		  if(_signed)
+		    _internal->expr = std::make_shared<MiniMC::Model::SGtExpr> (std::move(le),std::move(right));
+		  else
+		    _internal->expr = std::make_shared<MiniMC::Model::UGtExpr> (std::move(le),std::move(right));
 	  
-	  break;
-      case Whiley::BinOps::Eq:
-	_internal->expr = std::make_shared<MiniMC::Model::EqExpr> (std::move(le),std::move(right));
-	break;
-	case Whiley::BinOps::NEq:
-	  _internal->expr = std::make_shared<MiniMC::Model::NEqExpr> (std::move(le),std::move(right));
-	  break;
+		  break;
+		  case Whiley::BinOps::Eq:
+		    _internal->expr = std::make_shared<MiniMC::Model::EqExpr> (std::move(le),std::move(right));
+		    break;
+		    case Whiley::BinOps::NEq:
+		      _internal->expr = std::make_shared<MiniMC::Model::NEqExpr> (std::move(le),std::move(right));
+		      break;
 	  
-	
-	}
+	  
       }
+    }
         
 	
-      void Compiler::visitAssignStatement (const Whiley::AssignStatement& ass)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	auto reg = _internal->vars.at(ass.getAssignName());
-	ass.getExpression ().accept(*this);
+    void Compiler::visitAssignStatement (const Whiley::AssignStatement& ass)  {
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      auto reg = _internal->vars.at(ass.getAssignName());
+      ass.getExpression ().accept(*this);
       
-	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+      MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 
-	builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,_internal->expr);
+      builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,_internal->expr);
 	
-      } 
-      void Compiler::visitAssertStatement (const Whiley::AssertStatement& a)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	a.getExpression().accept (*this);
-
-	
-	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
-
-	builder.addInstr<MiniMC::Model::InstructionCode::Assert> (_internal->expr);
-      } 
-      void Compiler::visitAssumeStatement (const Whiley::AssumeStatement& a)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	a.getExpression().accept (*this);
+    } 
+    void Compiler::visitAssertStatement (const Whiley::AssertStatement& a)  {
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      a.getExpression().accept (*this);
 
 	
-	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+      MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 
-	builder.addInstr<MiniMC::Model::InstructionCode::Assume> (_internal->expr);
+      builder.addInstr<MiniMC::Model::InstructionCode::Assert> (_internal->expr);
+    } 
+    void Compiler::visitAssumeStatement (const Whiley::AssumeStatement& a)  {
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      a.getExpression().accept (*this);
+
+	
+      MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+
+      builder.addInstr<MiniMC::Model::InstructionCode::Assume> (_internal->expr);
       
 	
-      } 
-            
+    } 
+
+    void Compiler::visitChooseStatement (const Whiley::ChooseStatement& iff )  {
+      auto start = _internal->start;
+      auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	
+      for (auto& stmt : iff.getStatements()) {
+	auto nstart = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	  
+	{
+	  MiniMC::Model::EdgeBuilder  b {_internal->cfa,start,nstart,_internal->frame,false};
+	}
+	  
+	  _internal->start = nstart;
+	  stmt->accept(*this);
+	  MiniMC::Model::EdgeBuilder builder2 {_internal->cfa,_internal->end,done_loc,_internal->frame,false};
+	}
+	_internal->end = done_loc;
+      }
       void Compiler::visitIfStatement (const Whiley::IfStatement& iff )  {
 	iff.getCondition ().accept(*this);
 	auto cond = _internal->expr; 
