@@ -86,51 +86,16 @@ namespace MiniMC {
     };
     
     using TCPA_ptr = std::shared_ptr<ICPA>;    
-    
-    /*class AnalysisTransfer {
-    public:
-      AnalysisTransfer (std::vector<Transferer_ptr>&& dtransfers) : dataTransfers(std::move(dtransfers)) {}
-      bool Transfer (const AnalysisState&, const Transition&, AnalysisState&);
-    private:
-      std::vector<Transferer_ptr> dataTransfers;    
-    };
-    */
-    
+
     enum class CPAType {
       Concrete,
-      Pathformula,
       Symbolic
     };
 
     template<CPAType type,class... Args>
     TCPA_ptr makeCPA (Args... args);
     
-    /*class AnalysisBuilder {
-    public:
-      template<CPAType t,class... Args>
-      auto& add (Args&&... args) {
-	data_cpa.push_back (makeCPA<t> (std::forward<Args> (args)...));//std::make_shared<T> (std::forward<Args> (args)...));
-	return *this;
-      }
-      
-      AnalysisTransfer makeTransfer (const MiniMC::Model::Program& prgm) const  {
-	std::vector<Transferer_ptr> datas;
-	for (auto& d : data_cpa)
-	  datas.push_back (d->makeTransfer (prgm));
-	return AnalysisTransfer (std::move(datas));
-      }
-      
-      AnalysisState makeInitialState (const InitialiseDescr& descr) const  {
-	std::vector<State_ptr> datas;
-	for (auto& d : data_cpa) 
-	  datas.push_back (d->makeInitialState (descr));
-	return AnalysisState (std::move(datas));
-      }
-      
-    private:
-      std::vector<TCPA_ptr> data_cpa;
-    };
-    */
+    
   } // namespace CPA
 } // namespace MiniMC
 

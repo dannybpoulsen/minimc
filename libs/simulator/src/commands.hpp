@@ -108,19 +108,6 @@ namespace MiniMC {
       MiniMC::Model::Program* prgm;
     };
 
-    class SymbolicSimulator : public Command{
-    public:
-      SymbolicSimulator (MiniMC::Support::SMT::SMTDescr descr) : descr(descr) {}
-      bool execute (Simulator* simu) override {
-	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Pathformula> (descr);
-	simu->updateCPA (cpa);
-	return true;
-      }
-    
-    private:
-      MiniMC::Support::SMT::SMTDescr descr;
-    };
-
     class SymbolicExprSimulator : public Command{
     public:
       SymbolicExprSimulator () {}
@@ -246,14 +233,9 @@ namespace MiniMC {
       void evalExpression (const MiniMC::Model::Value_ptr& v) {
 	cmd = std::make_unique<EvalExpression> (os,v);
       }
-
+      
       void sevalExpression (const MiniMC::Model::Value_ptr& v) {
 	cmd = std::make_unique<SymbEvalExpression> (os,v);
-      }
-
-
-      void makeSymbolic (MiniMC::Support::SMT::SMTDescr descr ) {
-	cmd = std::make_unique<SymbolicSimulator> (descr);
       }
       
       void makeSymbolic ( ) {

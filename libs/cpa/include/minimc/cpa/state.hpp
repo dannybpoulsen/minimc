@@ -80,7 +80,6 @@ namespace MiniMC {
       
     };
     
-    //MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state);
     
     
     

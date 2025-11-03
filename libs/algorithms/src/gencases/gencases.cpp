@@ -1,6 +1,5 @@
 #include "minimc/algorithms/gencases.hpp"
 #include "minimc/cpa/interface.hpp"
-#include "minimc/cpa/pathformula.hpp"
 #include "minimc/cpa/successorgen.hpp"
 #include "minimc/smt/smt.hpp"
 

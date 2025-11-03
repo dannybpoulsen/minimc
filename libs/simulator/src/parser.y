@@ -95,16 +95,6 @@ prgm : START_SIMULATION {context.builder.startSimulation ();} |
        SHOW_TRANSITIONS {context.builder.showTransitions();} | 
        STEP {context.builder.step ();} |
        SEARCH {context.builder.search ();} |
-       SYMBOLIC SYMBOL_STRING {
-  auto smt = MiniMC::Support::SMT::SMTSolverRepository::get().getBackend ($2);
-  if (smt) {
-    context.builder.makeSymbolic(smt.value());
-  }
-  else {
-    context.os << "Unknown SMT Solver " << $2;
-    context.builder.skip();
-  }
-       } |
        SYMBOLIC {context.builder.makeSymbolic();} | 
        CEVAL proc_expr {context.builder.evalExpression (context.ebuilder.get());} |
        SEVAL proc_expr {context.builder.sevalExpression (context.ebuilder.get());}|

@@ -10,7 +10,7 @@ add_subdirectory(internal)
 add_subdirectory(concrete) 
 add_subdirectory(symbolic) 
 
-add_subdirectory(pathformula) 
+#add_subdirectory(pathformula) 
 
 
 add_subdirectory (src)
