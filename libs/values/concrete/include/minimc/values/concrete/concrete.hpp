@@ -60,6 +60,7 @@ namespace MiniMC {
 	Operations ops () const {return Operations{};}
 	Memory memops () const {return Memory{};}
 	ConstraintSolver solver () const  {return ConstraintSolver{};}
+	ConstraintSolver solver (MiniMC::VMT::SolverOptions) const  {return ConstraintSolver{};}
       };
       
       

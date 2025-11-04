@@ -502,12 +502,20 @@ namespace MiniMC {
       const MiniMC::CPA::LocationInfo& getLocationState () const {return mixin;}
       
       virtual const Solver_ptr getConcretizer() const override {
-	auto solver = constraint_solver();
+	auto solver = valuedefinition.solver();
 	auto ssolver = std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver())>> (std::move(solver));
 	ssolver->addConstraint (getPathform());
 	return std::move(ssolver);
       }
 
+      virtual const Solver_ptr getConcretizer(MiniMC::VMT::SolverOptions sopts) const override {
+	auto solver = valuedefinition.solver(sopts);
+	auto ssolver = std::make_unique<Solver<typename ValDef::Val,decltype(valuedefinition.solver(sopts))>> (std::move(solver));
+	ssolver->addConstraint (getPathform());
+	return std::move(ssolver);
+      }
+      
+      
       auto constraint_solver() const {
 	return valuedefinition.solver();
       }

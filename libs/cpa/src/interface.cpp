@@ -7,135 +7,8 @@ namespace MiniMC {
   namespace CPA {
     
 
-    /*   MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const AnalysisState& state) {
-      auto nbProcs = state.getLocationState ().nbOfProcesses ();
-      os << "[";
-      for (std::size_t i = 0; i < nbProcs; i++) {
-        if(i != 0){
-          os << ",";
-        }
-	if (state.getLocationState().isActive (i))
-	  os <<  state.getLocationState ().getLocation (i).getSymbol ().getFullName ();
-      }
-      os << "]\n";
-
-      auto printVStack = [&os,&state](auto& vstack,auto p ) {
-	for (auto& reg : vstack.getRegisters ()) {
-	  os << reg.getSymbol().getFullName () << ":\t";
-	  os.flush();
-	  for (const auto& datastate : state.dataStates ()) {
-	    auto symbval = datastate.getBuilder ().buildValue (p,reg);
-	    os << "  " << *datastate.getConcretizer ()->evaluate (*symbval);
-	  }
-	  os << "\n";
-	}
-      };
-      
-      for (std::size_t p = 0; p < nbProcs; p++) {
-	if (state.getLocationState().isActive (p)) {
-	  printVStack (state.getLocationState().getLocation(p).getInfo().getRegisters (),p);
-	}
-      }
-      
-      
-      return os << "\n";;
-    }
-    */
-    /*MiniMC::IO::ostream& StateOutputter::output (const AnalysisState& state, MiniMC::IO::ostream& os) {
-      auto nbProcs = state.getLocationState ().nbOfProcesses ();
-      os << "[";
-      for (std::size_t i = 0; i < nbProcs; i++) {
-        if(i != 0){
-          os << ",";
-        }
-	os <<  state.getLocationState ().getLocation (i).getSymbol().getName ();
-      }
-      os << "]\n";
-
-     
-      
-      auto print = [&os,&state](auto& evals, auto index ) {
-	
-	for (const auto& datastate : state.dataStates ()) {
-	  os << "{\n";
-	  auto& builder = datastate.getBuilder ();
-	  auto concretizer = datastate.getConcretizer ();
-	  for (auto& eval: evals) {
-	    auto symbval = builder.buildValue (index,*eval.value);
-	    os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << "\n";
-	    
-	  }
-	  os <<"}\n";
-	}
-	
-      };
-      
-      struct EvalStruct {
-	EvalStruct (MiniMC::Model::Symbol symb, MiniMC::Model::Value_ptr p) : symb(symb),value(p) {}
-	MiniMC::Model::Symbol symb;
-	MiniMC::Model::Value_ptr value;
-      };
-      
-      for (std::size_t p = 0; p < nbProcs; p++) {
-	std::vector<EvalStruct> values;
-	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
-	  std::visit (MiniMC::Support::Overload {
-	   [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
-	     [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
-	      auto heap_block = w.lock();
-	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
-	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
-	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (heap_block->heap_register,constant,aggr));
-	      
-	    },
-	     MiniMC::Support::Ignore{}
-	    },
-	    p.getUserData()
-	    );
-	}
-	print (values,p);
-      }
-      
-      
-      return os << "\n";;
-    }
-
-    */
-    
-    /*MiniMC::Hash::hash_t AnalysisState::hash() const {
-      MiniMC::Hash::Hasher hashing;
-      for (auto& state : dataStates ()) {
-	hashing << state;
-      }
-      return hashing;
-      }*/
-    
-    
-    /*bool AnalysisTransfer::Transfer (const AnalysisState& state, const Transition& trans, AnalysisState& res) {
-      
-      
-      std::vector<State_ptr> datas;
-      auto datastate_view = state.dataStates ();
-      auto dit = datastate_view.begin();
-      auto tit = dataTransfers.begin ();
-      for (; tit != dataTransfers.end (); ++tit,++dit) {
-	State_ptr res = nullptr;
-	
-	for (auto t :  (*tit)->doTransfer (*dit,trans)) {
-	  res = t;
-	  break;
-	}
-	if (!res)
-	  return false;
-	datas.push_back (std::move(res));
-      }
-      res = AnalysisState{std::move(datas)};
-      
-      
-      return true;
-      }*/
-
-    MiniMC::IO::ostream& CPAStateOutputter::output (const State& state, MiniMC::IO::ostream& os) {
+ 
+    MiniMC::IO::ostream& CPAConcreteStateOutputter::output (const State& state, MiniMC::IO::ostream& os) {
       auto nbProcs = state.getLocationState ().nbOfProcesses ();
       os << "[";
       for (std::size_t i = 0; i < nbProcs; i++) {
@@ -148,11 +21,11 @@ namespace MiniMC {
       
 
       
-      auto print = [&os,&state](auto& evals, auto index ) {
+      auto print = [&os,&state,this](auto& evals, auto index ) {
 	
 	os << "{\n";
 	auto& builder = state.getBuilder ();
-	auto concretizer = state.getConcretizer ();
+	auto concretizer = state.getConcretizer (options);
 	for (auto& eval: evals) {
 	  auto symbval = builder.buildValue (index,*eval.value);
 	  os << eval.symb.getFullName () << " " <<  *concretizer->evaluate (*symbval) << "\n";
@@ -194,6 +67,69 @@ namespace MiniMC {
       return os << "\n";;
     }
     
+
+       MiniMC::IO::ostream& CPAStateOutputter::output (const State& state, MiniMC::IO::ostream& os) {
+      auto nbProcs = state.getLocationState ().nbOfProcesses ();
+      os << "[";
+      for (std::size_t i = 0; i < nbProcs; i++) {
+        if(i != 0){
+          os << ",";
+        }
+	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName ();
+      }
+      os << "]\n";
+      
+
+      
+      auto print = [&os,&state](auto& evals, auto index ) {
+	
+	os << "{\n";
+	auto& builder = state.getBuilder ();
+	for (auto& eval: evals) {
+	  auto symbval = builder.buildValue (index,*eval.value);
+	  MiniMC::IO::str_ostream stringstream;
+	  stringstream << *symbval;
+	  auto str = stringstream.str();
+	  os << eval.symb.getFullName () << " " <<  ((str.length() <=20) ? str : std::string{"TOO LARGE"}) << "\n";
+	  
+	}
+	os <<"}\n";
+	
+	
+      };
+      
+      struct EvalStruct {
+	EvalStruct (MiniMC::Model::Symbol symb, MiniMC::Model::Value_ptr p) : symb(symb),value(p) {}
+	MiniMC::Model::Symbol symb;
+	MiniMC::Model::Value_ptr value;
+      };
+      
+      for (std::size_t p = 0; p < nbProcs; p++) {
+	std::vector<EvalStruct> values;
+	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
+	  std::visit (MiniMC::Support::Overload {
+	   [&values,&p](const MiniMC::Model::Register_wptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
+	    [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
+	      auto heap_block = w.lock();
+	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
+	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
+	      
+	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (heap_block->heap_register,constant,aggr));
+	      
+	    },
+	     MiniMC::Support::Ignore{}
+	    },
+	    p.getUserData()
+	    );
+	}
+	print (values,p);
+      }
+      
+      
+      return os << "\n";;
+    }
+    
+
     
     
   } // namespace CPA

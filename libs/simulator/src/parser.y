@@ -96,8 +96,19 @@ prgm : START_SIMULATION {context.builder.startSimulation ();} |
        STEP {context.builder.step ();} |
        SEARCH {context.builder.search ();} |
        SYMBOLIC {context.builder.makeSymbolic();} | 
-       CEVAL proc_expr {context.builder.evalExpression (context.ebuilder.get());} |
-       SEVAL proc_expr {context.builder.sevalExpression (context.ebuilder.get());}|
+       CEVAL proc_expr  {context.builder.evalExpression (context.ebuilder.get());} |
+       CEVAL SYMBOL_STRING  proc_expr  {
+      auto smt = MiniMC::Support::SMT::SMTSolverRepository::get().getBackend ($2);
+      if (smt) {
+	context.builder.evalExpression(context.ebuilder.get(),smt.value().makeContext());
+      }
+      else {
+	context.os << "Unknown SMT Solver " << $2;
+	context.builder.skip();
+      }
+     } |
+      
+     SEVAL proc_expr {context.builder.sevalExpression (context.ebuilder.get());}|
        
        error  {context.builder.skip ();}
 
@@ -125,10 +136,12 @@ expr :  UI8 POS_NUMBER {context.ebuilder.I8 ($2);}
   if (context.getter (context.proc).resolveQualified ($1,symb)) {
     context.ebuilder.symbol(symb);
   }
-  else
+  else {
+    context.os << "Can't locate symbol" << $1 <<"\n";
     context.ebuilder.I64(0);
 
-    }
+  }
+ }
 |  error  {context.ebuilder.I8 (0);}
 
 type : BV8 {context.ebuilder.pushI8Type ();}

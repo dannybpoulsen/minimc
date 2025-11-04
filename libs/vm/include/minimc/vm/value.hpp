@@ -9,6 +9,7 @@
 #include "minimc/model/array.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/hash/hashing.hpp"
+#include "minimc/smt/smt.hpp"
 #include <generator>
 
 namespace MiniMC {
@@ -345,11 +346,19 @@ namespace MiniMC {
       {csol.eval (v)}->std::convertible_to<MiniMC::Model::Constant_ptr>;
     };
 
+    struct SolverOptions {
+      SolverOptions (SMTLib::Context_ptr context):context(std::move(context)) {}
+      SolverOptions (const SolverOptions&) = default;
+      SMTLib::Context_ptr context;
+      
+    };
+    
     template<class Def>
-    concept ValueDefinition = requires (const Def def) {
+    concept ValueDefinition = requires (const Def def,SolverOptions sol) {
       {def.ops ()}->Ops<typename Def::Val>;
       {def.memops ()}->MemoryOperations<typename Def::Val>;
       {def.solver ()}->ConstraintSolver<typename Def::Val>;
+      {def.solver (sol)}->ConstraintSolver<typename Def::Val>;
       
     };
     

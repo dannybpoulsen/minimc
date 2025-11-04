@@ -484,7 +484,7 @@ namespace MiniMC {
 
       class ConstraintSolver {
       public:
-	ConstraintSolver () : context(MiniMC::Support::SMT::SMTSolverRepository::get().getBackend("CVC4").value().makeContext()),solver(context->getSolver()),translator(context) {
+	ConstraintSolver (SMTLib::Context_ptr context= MiniMC::Support::SMT::SMTSolverRepository::get().getBackend("CVC4").value().makeContext()) : context(context),solver(context->getSolver()),translator(context) {
 	}
 	
 	void push () {solver.push();}
@@ -628,6 +628,8 @@ namespace MiniMC {
 	Operations ops () const {return Operations{};}
 	MemoryOps memops () const {return MemoryOps{};}
 	ConstraintSolver solver () const  {return ConstraintSolver{};}
+	ConstraintSolver solver (MiniMC::VMT::SolverOptions opt) const  {return ConstraintSolver{opt.context};}
+	
       };
       
     }

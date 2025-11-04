@@ -1,9 +1,12 @@
 
 add_library (cpa SHARED interface.cpp )
 target_link_libraries (cpa PUBLIC
-		      concrete_headers model hash PRIVATE -Wl,-whole-archive
+		      concrete_headers model hash
+		      vm
+		      PRIVATE -Wl,-whole-archive
 		      concrete
 		      symb
+		      
 		      -Wl,-no-whole-archive)
 
 target_include_directories (cpa PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)

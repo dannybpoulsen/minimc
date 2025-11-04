@@ -413,7 +413,7 @@ namespace MiniMC {
 
       MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg, const MiniMC::Model::Value_ptr& heap_mem) {
       static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol(), ++nb);
+      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol().getName(), ++nb);
       auto frame = program.getRootFrame().create(name);
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack;

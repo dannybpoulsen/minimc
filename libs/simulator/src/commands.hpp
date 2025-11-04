@@ -35,7 +35,6 @@ namespace MiniMC {
       ShowTransitionsCommand (MiniMC::IO::ostream& os) : str(os) {}
       bool execute (Simulator* simu) override {
 	if (simu->hasState ()) {
-	  //MiniMC::CPA::CPAStateOutputter{*prgm}.output(simu->getState(),str);
 	  for (auto t : transitions (simu->getState())) {
 	    str << t << MiniMC::IO::manipulator::endl;
 	  }
@@ -51,11 +50,15 @@ namespace MiniMC {
 
     class EvalExpression : public Command{
     public:
-      EvalExpression (MiniMC::IO::ostream& os, const MiniMC::Model::Value_ptr& val,std::size_t p = 0) : os(os),val(val),p(p) {}
+      EvalExpression (MiniMC::IO::ostream& os, const MiniMC::Model::Value_ptr& val,std::size_t p = 0, SMTLib::Context_ptr context = nullptr) : os(os),val(val),p(p),context(std::move(context)) {}
       bool execute (Simulator* simu) override {
 	if (simu->hasState ()) {
 	  auto seval = simu->getState().getBuilder().buildValue (p,*val);
-	  auto constant = simu->getState().getConcretizer ()->evaluate(*seval);
+	  MiniMC::Model::Constant_ptr constant;
+	  if (context)
+	    constant = simu->getState().getConcretizer ({context})->evaluate(*seval);
+	  else
+	    constant = simu->getState().getConcretizer ()->evaluate(*seval);
 	  os << *constant << MiniMC::IO::manipulator::endl;
 	}
 	else {
@@ -68,6 +71,7 @@ namespace MiniMC {
       MiniMC::IO::ostream& os;
       MiniMC::Model::Value_ptr val;
       std::size_t p;
+      SMTLib::Context_ptr context;
       };
 
 
@@ -230,8 +234,8 @@ namespace MiniMC {
 	cmd = std::make_unique<SearchCommand> (os);
       }
 
-      void evalExpression (const MiniMC::Model::Value_ptr& v) {
-	cmd = std::make_unique<EvalExpression> (os,v);
+      void evalExpression (const MiniMC::Model::Value_ptr& v, const SMTLib::Context_ptr context = nullptr) {
+	cmd = std::make_unique<EvalExpression> (os,v, 0,context);
       }
       
       void sevalExpression (const MiniMC::Model::Value_ptr& v) {

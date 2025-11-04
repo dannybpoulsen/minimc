@@ -21,6 +21,8 @@
 #include <memory>
 #include <ranges>
 #include "minimc/io/ostream.hpp"
+#include "minimc/smt/smt.hpp"
+#include "minimc/vm/value.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -41,7 +43,7 @@ namespace MiniMC {
       virtual MiniMC::Model::Constant_ptr evaluate (const QueryExpr&) const override = 0;
       
     };
-    
+
     using Solver_ptr = std::shared_ptr<Solver>;
     
     struct LocationInfo {
@@ -62,6 +64,7 @@ namespace MiniMC {
     public:
       virtual ~State () {}
       virtual const Solver_ptr getConcretizer() const = 0;
+      virtual const Solver_ptr getConcretizer(MiniMC::VMT::SolverOptions) const = 0;
       virtual const QueryBuilder& getBuilder () const = 0;
       virtual const LocationInfo& getLocationState () const  = 0;
       virtual State_ptr copy() const = 0;
@@ -78,6 +81,15 @@ namespace MiniMC {
     private:
       const MiniMC::Model::Program& prgm;
       
+    };
+
+    class CPAConcreteStateOutputter {
+    public:
+      CPAConcreteStateOutputter (const MiniMC::Model::Program& prgm,MiniMC::VMT::SolverOptions opt) : prgm(prgm),options(opt) {}
+      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os);
+    private:
+      const MiniMC::Model::Program& prgm;
+      MiniMC::VMT::SolverOptions options;
     };
     
     

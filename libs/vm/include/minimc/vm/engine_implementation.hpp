@@ -25,7 +25,6 @@ namespace MiniMC {
       typename T::Bool asserts;
       typename T::Bool assumes;
       
-      
     public:
       Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
       
