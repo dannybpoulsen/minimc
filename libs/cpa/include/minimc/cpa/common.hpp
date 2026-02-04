@@ -192,6 +192,19 @@ namespace MiniMC {
       Value load (const Value::Pointer p, const Value::Memory& m, const MiniMC::Model::Type& t) const {
 	return memcontrol.load (m,p,t);
       }
+
+      
+      Value find_space (const Value::Memory m, const Value::I64& s) const {
+	return memcontrol.find_space (m,s);
+      }
+
+      Value check_free (const Value::Memory& m, const Value::Pointer& p, const Value::I64& s) const {
+	return memcontrol.checkFree(m,p,s);
+      }
+      
+      Value allocate (const Value::Memory m, Value::Pointer ptr, const Value::I64& s) const {
+	return memcontrol.allocate (m,ptr,s);
+      }
       
       std::generator<typename Value::I8> loadBytes (const Value::Pointer p, const Value::Memory& m , std::size_t s) const {
 	co_yield std::ranges::elements_of(memcontrol.loadBytes (m,p,s)); 
@@ -200,7 +213,7 @@ namespace MiniMC {
       Value::Memory store (const Value::Memory& m,const Value::Pointer p,  const Value& t) const {
 	return Value::visit (
 			     MiniMC::Support::Overload {
-			       [&m,&p,this]<typename T> (const T& v)  requires (!MiniMC::VMT::Boolean<Value,T> && !MiniMC::VMT::MemoryC<Value,T>) {
+			       [&m,&p,this] (const Value::I8& v) {
 				 return memcontrol.store (m,p,v); 
 			       },
 				 MiniMC::Support::Error<typename Value::Memory>{}
@@ -253,11 +266,24 @@ namespace MiniMC {
       Value lookupSymbol (MiniMC::Model::Symbol s) const {
 	return scontext.at(s);
       }
-
+      
       Value::Memory store (const Value::Memory& ,const Value::Pointer ,  const Value&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
-      
+	
       }
+
+      Value find_space (const Value::Memory&, const Value::I64&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+
+      Value check_free (const Value::Memory&, const Value::Pointer&, const Value::I64&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+
+      Value allocate (const Value::Memory&, const Value::Pointer&, const Value::I64&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+      
       
     private:
       StaticContext<Value>& scontext;
@@ -353,10 +379,14 @@ namespace MiniMC {
             Value valueToStor = eval.Eval(*b.value);
 	    
 	    Value::visit (MiniMC::Support::Overload {
-		[&b,&_scontext,&memcontrol,&regstore]<typename K>(const Value::Pointer& ptr, const K& value, const Value::Memory& mem) requires (!std::is_same_v<K,typename Value::Bool> && !std::is_same_v<K,typename Value::Memory>) {
-		  
-		  auto mem2 = memcontrol.store (mem,ptr,value);
-		  regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
+		[&b,&_scontext,&memcontrol,&regstore,&ops]<typename K>(const Value::Pointer& ptr, const K& value, const Value::Memory& mem) requires (!std::is_same_v<K,typename Value::Bool> && !std::is_same_v<K,typename Value::Memory>) {
+		  auto ones = ops.create (MiniMC::Model::I64Integer{1});
+		  auto ptr_c = ptr;
+		  for (auto by : ops.bytes(value)) {
+		    auto mem2 = memcontrol.store (mem,ptr_c,by);
+		    ptr_c = ops.PtrAdd (ptr_c,ones);
+		    regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
+		  }
 			  
 		},
 		  [](const auto&, const auto&,const auto& ) {

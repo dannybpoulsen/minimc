@@ -30,8 +30,10 @@ namespace MiniMC {
 	MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::Pointer32&) const ;
 	
 	// PArameter is size to allocate
-	MemoryValue allocate(const MemoryValue&, const Value::Pointer&,const Value::I64&) ;	
-	Value::Pointer find_space(const MemoryValue&, const Value::I64&) ;
+	MemoryValue allocate(const MemoryValue&, const Value::Pointer&,const Value::I64&) const;	
+	Value::Bool checkFree(const MemoryValue&, const Value::Pointer&,const Value::I64&) const ;	
+	
+	Value::Pointer find_space(const MemoryValue&, const Value::I64&) const;
 	
         MemoryValue free(const MemoryValue&, const Value::Pointer&);  
 	

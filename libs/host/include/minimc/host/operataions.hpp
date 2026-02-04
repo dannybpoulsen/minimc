@@ -129,7 +129,7 @@ namespace MiniMC {
       }
 
       else if constexpr (o == CMP::ULE) {
-	return l >= r;   
+	return l <= r;   
       }
 
       else if constexpr (o == CMP::EQ) {

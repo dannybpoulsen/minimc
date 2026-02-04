@@ -26,10 +26,16 @@ namespace MiniMC {
     public:
       NotImplemented () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Instruction '%1%' not supported."}.format (c)) {}
     };
-    
+
+
+    template<class c>
+    class NotImplementedExpr : public MiniMC::Support::Exception {
+    public:
+      NotImplementedExpr () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Expression '%1%' not supported."}.format (typeid(c).name())) {}
+    };
     
     template<class Eval,class T>
-    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value,std::size_t bytes) {
+    concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value,std::size_t bytes, const T::I64&si64) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
       
@@ -38,6 +44,10 @@ namespace MiniMC {
       {ceval.loadBytes(p,mem,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
       
       {ceval.store(mem,p,value)}->std::convertible_to<typename T::Memory>;
+      {ceval.find_space(mem,si64)}->std::convertible_to<T>;
+      {ceval.check_free(mem,p,si64)}->std::convertible_to<T>;
+      {ceval.allocate(mem,p,si64)}->std::convertible_to<T>;
+      
     } ;
     
     
@@ -145,7 +155,7 @@ namespace MiniMC {
 
       template<class T>
       std::generator<Value> operator() (const T&) const  {
-	throw MiniMC::Support::Exception ("Not implemented");
+	throw NotImplementedExpr<T> ();
       }
       
       
@@ -761,7 +771,7 @@ OPSI
 	  },
 	  MiniMC::Support::Error<Value>{}
 	};
-
+	
 	for (auto ptr : MEval(load.ptr())) {
 	  for (auto skipsize : MEval(load.skipsize ())) {
 	    co_yield Value::visit (visitor,ptr,skipsize);
@@ -770,14 +780,77 @@ OPSI
 	}
 	  
       }
+
+      std::generator<Value> operator() (const MiniMC::Model::FindSpaceExpr& cc) const  { 
+
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Memory& mem,ValT& size)->Value requires Integer<Value,ValT> {
+	    return regstore.find_space(mem, ops.template ZExt<MiniMC::Model::TypeID::I64> (size)); 
+	  },
+	  [this](Value::Memory& mem,Value::I64& size)->Value  {
+	    return regstore.find_space(mem, size);
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
       
+	for (auto mem : MEval(cc.memory())) {
+	  for (auto size : MEval(cc.size ())) {
+	    co_yield Value::visit (visitor,mem,size);
+	  }
+	}
+      }
+
+      std::generator<Value> operator() (const MiniMC::Model::AllocExpr& cc) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Memory& mem,Value::Pointer& p, ValT& size)->Value requires Integer<Value,ValT> {
+	    return regstore.allocate(mem, p,ops.template ZExt<MiniMC::Model::TypeID::I64> (size)); 
+	  },
+	  [this](Value::Memory& mem,Value::Pointer& p,Value::I64& size)->Value  {
+	    return regstore.allocate(mem, p,size);
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
+	
+	for (auto mem : MEval(cc.memory())) {
+	  for (auto pointer : MEval(cc.pointer ())) {
+	    for (auto size : MEval(cc.size ())) {
+	      co_yield Value::visit (visitor,mem,pointer,size);
+	    }
+	  }
+	}
+	
+      }	
+      
+      std::generator<Value> operator() (const MiniMC::Model::CheckFreeExpr& cc) const  { 
+	auto visitor = MiniMC::Support::Overload {
+	  [this]<typename ValT>(Value::Memory& mem,Value::Pointer& p, ValT& size)->Value requires Integer<Value,ValT> {
+	    return regstore.check_free(mem, p,ops.template ZExt<MiniMC::Model::TypeID::I64> (size)); 
+	  },
+	  [this](Value::Memory& mem,Value::Pointer& p,Value::I64& size)->Value  {
+	    return regstore.check_free(mem, p,size);
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
+	
+	for (auto mem : MEval(cc.memory())) {
+	  for (auto pointer : MEval(cc.pointer ())) {
+	    for (auto size : MEval(cc.size ())) {
+	      co_yield Value::visit (visitor,mem,pointer,size);
+	    }
+	  }
+	}
+      }
+    
       template<class T>
       std::generator<Value> operator() (const T&) const requires (MiniMC::Model::is_bin_arith<T> || MiniMC::Model::is_bin_cmp<T>) {
-	throw MiniMC::Support::Exception ("Not Implemented");
+	throw NotImplementedExpr<T> ();
       }
       
       
-      
+     
       
     private:
       Operations ops;

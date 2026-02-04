@@ -60,7 +60,7 @@ name    [a-zA-Z\_][a-zA-Z0-9\_\.-]*
 "BV64"   {return token::BV64;}
 "Pointer"   {return token::POINTER;}
 "Aggr"   {return token::AGGR;}
-
+"symbols" {return token::SYMBOLS;}
 
 {name}([:]{name})* {yylval->emplace<std::string> (yytext); return token::SYMBOL_STRING;}
 

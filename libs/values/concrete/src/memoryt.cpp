@@ -44,7 +44,7 @@ namespace MiniMC {
 	  return allocate (size,pointer);
 	}
 
-	MiniMC::Model::pointer_t find_space (const Value::I64& ) {
+	MiniMC::Model::pointer_t find_space (const Value::I64& ) const {
 	  return  MiniMC::Model::pointer_t::makeHeapPointer(next, 0);
 	}
 	
@@ -52,13 +52,17 @@ namespace MiniMC {
 	  if (!entries.count(pointer) && MiniMC::Model::getOffset (pointer)==0) { 
 	    auto size_ = size.getValue();
 	    auto base = MiniMC::Model::getBase (pointer);
-	    next = (base > next) ? base +1 : next;
+	    next = (base > next) ? base +1 : next+1;
 	    allocated_ptrs.push_back (pointer);
 	    entries.emplace(pointer,size_);
 	    
 	    return pointer;
 	  }
 	  throw MiniMC::Support::Exception ("Error allocating memory");
+	}
+
+	bool is_free (MiniMC::Model::pointer_t pointer) {
+	  return !entries.count(pointer) && MiniMC::Model::getOffset (pointer)==0;
 	}
 	
         std::unordered_map<MiniMC::Model::pointer_t, HeapEntry> entries;
@@ -109,46 +113,7 @@ namespace MiniMC {
         }
 	return m;
       }
-
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I16& v) const {
-	auto m = mvalue.deep_copy();
-	auto pointer = p.getValue();
-        auto value = v.getValue();
-        auto base = MiniMC::Model::getBase(pointer);
-        auto offset = MiniMC::Model::getOffset(pointer);
-	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m.getInternal().entries.count(base_pointer)) {
-          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
-        }
-	return m;
-      }
-
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I32& v) const{
-	auto m = mvalue.deep_copy();
-	auto pointer = p.getValue();
-        auto value = v.getValue();
-	auto base = MiniMC::Model::getBase(pointer);
-        auto offset = MiniMC::Model::getOffset(pointer);
-	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m.getInternal().entries.count(base_pointer)) {
-          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
-        }
-	return m;
-      }
-
-      MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::I64& v) const{
-	auto m = mvalue.deep_copy();
-	auto pointer = p.getValue();
-        auto value = v.getValue();
-        auto base = MiniMC::Model::getBase(pointer);
-        auto offset = MiniMC::Model::getOffset(pointer);
-	auto base_pointer = decltype(pointer)::makeHeapPointer (base,0); 
-	if (m.getInternal().entries.count(base_pointer)) {
-          m.getInternal().entries.at(base_pointer).write(make_span(value), offset);
-        }
-	return m;
-      }
-
+     
       MemoryValue Memory::store(const MemoryValue& mvalue,const Value::Pointer& p, const Value::Aggregate& v) const {
 	auto m = mvalue.deep_copy();
 	auto pointer = p.getValue();
@@ -189,13 +154,19 @@ namespace MiniMC {
       }
       
       // PArameter is size to allocate
-      MemoryValue Memory::allocate(const MemoryValue& mvalue,const Value::Pointer& pointer, const Value::I64& size) {
+      MemoryValue Memory::allocate(const MemoryValue& mvalue,const Value::Pointer& pointer, const Value::I64& size) const {
 	MemoryValue m = mvalue.deep_copy();
 	m.getInternal().allocate (size,pointer.getValue());
 	return m;
       }
+
+      // PArameter is size to allocate
+      Value::Bool Memory::checkFree(const MemoryValue& mvalue,const Value::Pointer& pointer, const Value::I64&) const {
+	return Value::Bool{mvalue.getInternal().is_free (pointer.getValue())};
+      }
       
-      Value::Pointer Memory::find_space(const MemoryValue& mvalue,const Value::I64& size) {
+      
+      Value::Pointer Memory::find_space(const MemoryValue& mvalue,const Value::I64& size) const {
         return Value::Pointer(mvalue.getInternal().find_space(size));
       }
       

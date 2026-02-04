@@ -63,6 +63,7 @@
 %token    RPARAN
 %token    LBRACE
 %token    RBRACE
+%token    SYMBOLS
 
 %token    ADD
 %token    SUB
@@ -84,7 +85,6 @@
 
 %token <std::uint64_t> POS_NUMBER
 %token <std::int64_t> NEG_NUMBER
-
 %token END 0 "end of file"
 
 
@@ -92,7 +92,9 @@
 
 prgm : START_SIMULATION {context.builder.startSimulation ();} |
        SHOW_STATE {context.builder.showState();} |
-       SHOW_TRANSITIONS {context.builder.showTransitions();} | 
+       SHOW_TRANSITIONS {context.builder.showTransitions();} |
+       SYMBOLS POS_NUMBER {context.builder.makeShowSymbols($2);} | 
+       SYMBOLS {context.builder.makeShowSymbols(0);} | 
        STEP {context.builder.step ();} |
        SEARCH {context.builder.search ();} |
        SYMBOLIC {context.builder.makeSymbolic();} | 
@@ -109,10 +111,11 @@ prgm : START_SIMULATION {context.builder.startSimulation ();} |
      } |
       
      SEVAL proc_expr {context.builder.sevalExpression (context.ebuilder.get());}|
-       
-       error  {context.builder.skip ();}
+     
+     error  {context.builder.skip ();}
 
-proc_expr : POS_NUMBER { context.proc = $1; } expr
+proc_expr : POS_NUMBER { context.proc = $1; } expr {context.proc=0;}
+          |  expr
 
 expr :  UI8 POS_NUMBER {context.ebuilder.I8 ($2);}
 | UI16 POS_NUMBER {context.ebuilder.I16 ($2);}

@@ -818,7 +818,37 @@ namespace MiniMC {
 	}
 	return res;
       }
-      
+
+       MiniMC::Model::Type_ptr  TypeChecker::operator() (FindSpaceExpr& expr)  const {
+         auto memoryty = CheckType(expr.memory());
+       	 auto sizety = CheckType(expr.size());
+	 MiniMC::Model::Type_ptr  	 res = Model::PointerType::get();
+        
+	 if (!sizety->isInteger()) {
+	    messager << MustBeIntegerExpr {expr};
+	    res = nullptr;
+	   }
+	 return res;
+	   }      	   
+
+       MiniMC::Model::Type_ptr  TypeChecker::operator() (AllocExpr& expr)  const {
+       	auto memoryty = CheckType(expr.memory());
+       	auto sizety = CheckType(expr.size());
+	auto pointerty = CheckType(expr.pointer());
+	
+	MiniMC::Model::Type_ptr  	 res = Model::MemoryType::get();
+        return res;
+       }      
+       
+       MiniMC::Model::Type_ptr  TypeChecker::operator() (CheckFreeExpr& expr)  const {
+       	auto memoryty = CheckType(expr.memory());
+       	auto sizety = CheckType(expr.size());
+	auto pointerty = CheckType(expr.pointer());
+	
+	MiniMC::Model::Type_ptr  	 res = Model::BoolType::get();
+        return res;
+       }  
+
       bool TypeChecker::Check(const MiniMC::Model::Program& p) {
         prgm = &p;
         bool res = true;

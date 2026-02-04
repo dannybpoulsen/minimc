@@ -89,6 +89,19 @@ namespace MiniMC {
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::Register&) const {
 	throw MiniMC::Support::Exception ("Registers should not be present in SMT-Translated expressions");
       }
+
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::AllocExpr&) const {
+	throw MiniMC::Support::Exception ("Alloc should not be present in SMT-Translated expressions");
+      }
+
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::CheckFreeExpr&) const {
+	throw MiniMC::Support::Exception ("CheckFree should not be present in SMT-Translated expressions");
+      }
+      
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::FindSpaceExpr&) const {
+	throw MiniMC::Support::Exception ("Alloc should not be present in SMT-Translated expressions");
+      }
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::Undef& und) const {
 	auto type = und.getType ();
 	std::stringstream str;

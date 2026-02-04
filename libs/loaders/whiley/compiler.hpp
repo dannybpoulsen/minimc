@@ -24,11 +24,16 @@ namespace MiniMC {
 	void visitWhileStatement (const Whiley::WhileStatement& ) override ; 
 	void visitSequenceStatement (const Whiley::SequenceStatement& ) override ; 
 	void visitChooseStatement (const Whiley::ChooseStatement& ) override ; 
+	void visitAllocStatement (const Whiley::AllocStatement& ) override ; 
+	void visitFreeStatement (const Whiley::FreeStatement& ) override ; 
+	
 	
 	void visitMemAssignStatement (const Whiley::MemAssignStatement&) override;
-
-      private:
+	void visitReturnStatement (const Whiley::ReturnStatement&) override;
+	void visitCallStatement (const Whiley::CallStatement&) override;
 	
+      private:
+	void writeFunction (Whiley::Symbol symb);
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
         };

@@ -594,6 +594,79 @@ Cast:
     
     
 Memory:
+  findspace:
+    opcode: FindSpace
+    params:
+      - name: res
+        type: t1
+      - name: memory
+        type: t2
+      - name: size
+        type: t2
+    types:
+      t1:
+        - Pointer
+      t2:
+        - Memory
+      t3:
+        - Integer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::FindSpaceExpr> (std::get<1>(tup),std::get<2>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+
+  alloc:
+    opcode: Alloc
+    params:
+      - name: res
+        type: t1
+      - name: memory
+        type: t1
+      - name: pointer
+        type: t2
+      - name: size
+        type: t3
+    types:
+      t1:
+        - Memory
+      t2:
+        - Pointer
+      t3:
+        - Integer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::AllocExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+
+  CheckFree:
+    opcode: CheckFree
+    params:
+      - name: res
+        type: t1
+      - name: memory
+        type: t1
+      - name: pointer
+        type: t2
+      - name: size
+        type: t3
+    types:
+      t1:
+        - Bool
+      t2:
+        - Pointer
+      t3:
+        - Integer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::CheckFreeExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+  
   store:
     opcode: Store
     params:

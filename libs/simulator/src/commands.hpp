@@ -48,6 +48,43 @@ namespace MiniMC {
       MiniMC::IO::ostream& str;
     };
 
+    inline std::string symbol_descr_text (const MiniMC::Model::Symbol& s) {
+      std::stringstream str;
+
+      std::visit (MiniMC::Support::Overload {
+	  [&str](const MiniMC::Model::Register_wptr&) {str << "Register";},
+	    [&str](const MiniMC::Model::Function_wptr&) {str << "Function";},
+	    [&str](const MiniMC::Model::Location_wptr&) {str << "Location";},
+	    [&str](const MiniMC::Model::HeapBlock_wptr&) {str << "HeapObject";},
+	    [&str](const std::monostate& ) {str << "??";}
+	    }
+	,s.getUserData());
+      return str.str();
+    }
+    
+    
+    class ShowSymbols : public Command{
+    public:
+      ShowSymbols (std::size_t p, MiniMC::IO::ostream& os) : str(os),proc(p) {}
+      bool execute (Simulator* simu) override {
+	if (simu->hasState ()) {
+	  for (auto s : simu->getState().getLocationState().getLocation(0).getInfo().getFrame().local_and_parent_symbols()) {
+	    str << s.getFullName () << " " << symbol_descr_text(s) << MiniMC::IO::manipulator::endl;
+	  }
+	  /*for (auto t : transitions (simu->getState())) {
+	    str << t << MiniMC::IO::manipulator::endl;
+	    }*/
+	}
+	else
+	  str << "No State" << MiniMC::IO::manipulator::endl;
+	return true;
+      }
+      
+    private:
+      MiniMC::IO::ostream& str;
+      std::size_t proc;
+    };
+    
     class EvalExpression : public Command{
     public:
       EvalExpression (MiniMC::IO::ostream& os, const MiniMC::Model::Value_ptr& val,std::size_t p = 0, SMTLib::Context_ptr context = nullptr) : os(os),val(val),p(p),context(std::move(context)) {}
@@ -246,6 +283,9 @@ namespace MiniMC {
 	cmd = std::make_unique<SymbolicExprSimulator> ();
       }
       
+      void makeShowSymbols (std::size_t t) {
+	cmd = std::make_unique<ShowSymbols> (t,os);
+      }
       
       
       

@@ -133,6 +133,73 @@ private	:
 	MiniMC::Model::Value_ptr _storee;
     };
 
+   class FindSpaceExpr : public Value {
+    public:
+    FindSpaceExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr size);
+    auto& memory ()  { return *mem_expr;}
+    const auto& memory () const { return *mem_expr;}
+    
+    auto& size ()  { return *size_expr;}
+    const auto& size () const { return *size_expr;}
+
+
+    
+    std::ostream& output(std::ostream& os) const override {
+        		return os << "(FindSpace "  << memory () << " " <<size ()<< ")";
+      }	
+    private:
+
+	MiniMC::Model::Value_ptr mem_expr;
+	MiniMC::Model::Value_ptr size_expr;
+};
+
+    class AllocExpr : public Value {
+    public:
+    AllocExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer, MiniMC::Model::Value_ptr size);
+    auto& memory ()  { return *mem_expr;}
+    const auto& memory () const { return *mem_expr;}
+    	  
+    auto& size ()  { return *size_expr;}
+    const auto& size () const { return *size_expr;}
+
+    auto& pointer ()  { return *pointer_expr;}
+    const auto& pointer () const { return *pointer_expr;}
+    
+    
+    std::ostream& output(std::ostream& os) const override {
+        		return os << "(Alloc "  << memory () << " " <<" " << pointer () << " " <<size ()<< ")";
+      }	
+    private:
+
+	MiniMC::Model::Value_ptr mem_expr;
+	MiniMC::Model::Value_ptr size_expr;
+	MiniMC::Model::Value_ptr pointer_expr;
+	};
+
+        class CheckFreeExpr : public Value {
+    public:
+    CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer, MiniMC::Model::Value_ptr size);
+    auto& memory ()  { return *mem_expr;}
+    const auto& memory () const { return *mem_expr;}
+    	  
+    auto& size ()  { return *size_expr;}
+    const auto& size () const { return *size_expr;}
+
+    auto& pointer ()  { return *pointer_expr;}
+    const auto& pointer () const { return *pointer_expr;}
+    
+    
+    std::ostream& output(std::ostream& os) const override {
+        		return os << "(CheckFree "  << memory () << " " <<" " << pointer () << " " <<size ()<< ")";
+      }	
+    private:
+
+	MiniMC::Model::Value_ptr mem_expr;
+	MiniMC::Model::Value_ptr size_expr;
+	MiniMC::Model::Value_ptr pointer_expr;
+	};
+
+
     class PtrToPtr32Expr : public Value{
     public:
 	PtrToPtr32Expr (MiniMC::Model::Value_ptr l);
@@ -257,10 +324,14 @@ public:
 
     template<CastOps c>
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<CastExpression<c>> ()),from_expr(v),to_type(to) {}
-
+    
     inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<LoadExpr> ()),addr_expr(v),mem_expr(mem),to_type(to) {}
 
     inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo::type_t<StoreExpr> ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
+
+    inline FindSpaceExpr::FindSpaceExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<FindSpaceExpr> ()),mem_expr(mem),size_expr(size) {}
+    inline AllocExpr::AllocExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<AllocExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}
+    inline CheckFreeExpr::CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<CheckFreeExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}	   
 
     inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
     inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
@@ -470,6 +541,21 @@ auto visitValue(F&& f,Vals&&... v) {
 	    stack.push(std::make_shared<ExtractValueExpr> (aggr,offset,type));
        }
 
+       void FindSpace () {
+       	    auto size = stack.top();stack.pop();
+	    auto mem = stack.top();stack.pop();
+	    
+	    stack.push(std::make_shared<FindSpaceExpr> (mem,size));
+       }
+
+       void Alloc () {
+       	    auto size = stack.top();stack.pop();
+	    auto ptr = stack.top();stack.pop();
+	    auto mem = stack.top();stack.pop();
+	    
+	    stack.push(std::make_shared<AllocExpr> (mem,ptr,size));
+       }
+
       {%for N in cast_ops %}
       void {{N.getName()}} () {
       	   auto f = stack.top();stack.pop ();
@@ -483,7 +569,7 @@ auto visitValue(F&& f,Vals&&... v) {
       	   auto f = stack.top();stack.pop ();
 	   stack.push(std::make_shared<{{N.getName()}}Expr>(f));	
        }
-       {%endfor%}
+      {%endfor%}
 
       void pushI8Type () {
       	   types.push (I8Type::get());

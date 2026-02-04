@@ -5,7 +5,6 @@
 namespace MiniMC {
   namespace Model {
 
-    
 #define OPS					\
     X(Add)					\
     X(Sub)					\
@@ -19,21 +18,21 @@ namespace MiniMC {
     X(Or)					\
     X(Xor)					\
 
-
+    
 #define X(OP)								\
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::OP##Expr& i) const { \
-    auto op1 = Simplify (i.op1());					\
+      auto op1 = Simplify (i.op1());					\
     auto op2 = Simplify (i.op2());					\
-    									\
+									\
     return MiniMC::Model::visitValue ( MiniMC::Support::Overload {	\
-    []<typename T>(T& l, T& r)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> { \
+	[]<typename T>(T& l, T& r)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> { \
       return T::make (MiniMC::Host::Op<MiniMC::Host::TAC::OP> (l.getValue(),r.getValue())); \
     },									\
-      [&op1,&op2](auto&, auto&)->MiniMC::Model::Value_ptr{return MiniMC::Model::makeExpr<MiniMC::Model::OP##Expr> (op1,op2);} \
-  },		 \
-    *op1,*op2);	 \
+											      [&op1,&op2](auto&, auto&)->MiniMC::Model::Value_ptr{return MiniMC::Model::makeExpr<MiniMC::Model::OP##Expr> (op1,op2);} \
+											      }, \
+      *op1,*op2);				\
 		 \
- }
+    }		 \
 
     OPS
 #undef OPS    
@@ -237,7 +236,19 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::ExtractValueExpr& i) const {
       return MiniMC::Model::makeExpr<MiniMC::Model::ExtractValueExpr> (Simplify (i.aggregate()),Simplify (i.offset()),i.getExtractType());
     }
-	
+
+    MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::AllocExpr& i) const {
+      return MiniMC::Model::makeExpr<MiniMC::Model::AllocExpr> (Simplify (i.memory()),Simplify (i.pointer()),Simplify(i.size()));
+    }
+
+    MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::CheckFreeExpr& i) const {
+      return MiniMC::Model::makeExpr<MiniMC::Model::CheckFreeExpr> (Simplify (i.memory()),Simplify (i.pointer()),Simplify(i.size()));
+    }
+    
+    MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::FindSpaceExpr& i) const {
+      return MiniMC::Model::makeExpr<MiniMC::Model::FindSpaceExpr> (Simplify (i.memory()),Simplify(i.size()));
+    }
+    
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::InsertValueExpr& i) const {
       return MiniMC::Model::makeExpr<MiniMC::Model::InsertValueExpr> (Simplify (i.aggregate()),Simplify(i.offset()),Simplify (i.insertee()));
       

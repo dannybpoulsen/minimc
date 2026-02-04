@@ -14,7 +14,7 @@ namespace MiniMC {
         MiniMC::Hash::hash_t hash() const {
           return val;
         }
-
+	
 	MiniMC::VMT::TriBool boolState () const {
 	  return val ? MiniMC::VMT::TriBool::True : MiniMC::VMT::TriBool::False; 
 	    

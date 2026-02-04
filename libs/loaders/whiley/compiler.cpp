@@ -3,11 +3,14 @@
 #include "minimc/model/source.hpp"
 #include "minimc/model/builder.hpp"
 
+#include "minimc/model/symbol.hpp"
+#include "minimc/model/variables.hpp"
 #include "whiley/ast.hpp"
 #include "compiler.hpp"
 
 #include <unordered_map>
 #include <memory>
+#include <variant>
 
 namespace MiniMC {
   namespace Loaders {
@@ -23,7 +26,7 @@ namespace MiniMC {
 	MiniMC::Model::Value_ptr heap_pointer;
 	MiniMC::Model::Value_ptr heap_mem;
 	
-	std::unordered_map<std::string,MiniMC::Model::Register_ptr> vars;
+	//std::unordered_map<std::string,MiniMC::Model::Register_ptr> vars;
 	std::unique_ptr<MiniMC::Model::LocationInfoCreator> locinfo;
       };
 	
@@ -45,11 +48,16 @@ namespace MiniMC {
 	case Whiley::Type::SI64:
 	case Whiley::Type::UI64:
 	  return MiniMC::Model::I64Type::get();
+	
+	case Whiley::Type::Pointer:
+	    return MiniMC::Model::PointerType::get();
+	
 	default:
 	  return MiniMC::Model::I8Type::get();
 	}
       };
       
+
       
       MiniMC::Model::Program Compiler::compile (const ::Whiley::Program& prgm) {
 	_internal = std::make_unique<Internal> ();
@@ -69,24 +77,45 @@ namespace MiniMC {
 	
 	std::vector<MiniMC::Model::Register_ptr> params;
 
-	_internal->frame = rootFrame.create ("_main");
+	auto main_func_frame = rootFrame.create ("_main");
 	auto func_name = rootFrame.makeSymbol ("_main");
 	MiniMC::Model::RegisterDescr descr;
 	
-	for (auto& var : prgm.getVars ()) {
-	  std::string name = var.getName();
-	  auto symbol = _internal->frame.makeSymbol (name);
-	  auto reg = descr.addRegister (std::move(symbol),makeType(var.getType()));
-	  _internal->vars.emplace(name,reg);
-	  if (var.isParamter())
-	    params.push_back (reg);
-	}
-
-	
-	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,_internal->frame);
-	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->make({}));
-	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
+	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,main_func_frame);
+	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("_iniit"),_internal->locinfo->make({}));
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("_end"),_internal->locinfo->make({}));
 	_internal->cfa.setInitial (_internal->start);
+	{
+	  MiniMC::Model::EdgeBuilder edgebuilder {_internal->cfa,_internal->start,_internal->end,main_func_frame,false};
+	
+	
+	  for (auto var : prgm.getVars ()) {
+	    std::string name = var.getName();
+	    MiniMC::Model::Frame frame = rootFrame;
+	    auto symbol = rootFrame.makeSymbol (name);
+	    auto reg = _internal->prgm.getCPURegs().addRegister (std::move(symbol),makeType(var.getType()));  
+	    if (var.isParamter()) {
+	      auto psymbol = main_func_frame.makeSymbol (name);
+	      auto preg = descr.addRegister (std::move(psymbol),makeType(var.getType()));
+	      params.push_back (preg);
+	      edgebuilder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,preg);
+	    }
+	  }
+	  
+	  _internal->frame = rootFrame;
+	  for (auto var : prgm.getFrame().getLocalSymbols()) {
+	    if (std::holds_alternative<Whiley::Function_ptr> (var.getUserData()))
+	      writeFunction(var);
+	  }
+	}
+	
+	
+	_internal->frame = main_func_frame;
+	_internal->start = _internal->end;
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
+	
+	
+	
 	prgm.getStmt().accept (*this);
 
 	_internal->prgm.addFunction (func_name,params,MiniMC::Model::VoidType::get(),std::move(descr),std::move(_internal->cfa),false,_internal->frame); 
@@ -95,21 +124,92 @@ namespace MiniMC {
 	
 	return std::move(_internal->prgm);
       }
+
+      void Compiler::writeFunction (Whiley::Symbol symb) {
+	std::vector<MiniMC::Model::Register_ptr> params;
+	auto func_name = _internal->frame.makeSymbol (symb.getName());
+	_internal->frame = _internal->frame.create(symb.getName());
+	MiniMC::Model::RegisterDescr descr;
+	auto wh_func = std::get<Whiley::Function_ptr> (symb.getUserData());
+
+	for (auto s : wh_func->getFrame().getLocalSymbols()) {
+	  std::visit (Whiley::overloaded {
+	      [&s,this,&descr](const Whiley::VarDecl& decl) {
+		std::string name = s.getName();
+		auto symbol = _internal->frame.makeSymbol (name);
+		auto reg = descr.addRegister (std::move(symbol),makeType(decl.type));
+	      },
+		[&s,this,&descr](const Whiley::ParamDecl& decl) {
+		std::string name = s.getName();
+		auto symbol = _internal->frame.makeSymbol (name);
+		auto reg = descr.addRegister (std::move(symbol),makeType(decl.type));
+		},
+		[] (auto&) {}
+	    },
+	    s.getUserData()
+	    );
+	}
+
+	for (auto h : wh_func->getParams()) {
+	  MiniMC::Model::Symbol s;
+	  _internal->frame.resolve(h.getName(),s);
+	  params.push_back(std::get<MiniMC::Model::Register_wptr> (s.getUserData()).lock());
+	}
 	
+	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,_internal->frame);
+	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->make({}));
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
+	_internal->cfa.setInitial (_internal->start);
+	wh_func->getStmt()->accept (*this);
+
+	_internal->prgm.addFunction (func_name,params,makeType(wh_func->returns()),std::move(descr),std::move(_internal->cfa),false,_internal->frame); 
+	
+	_internal->frame = _internal->frame.close();
+      }
+      
       void Compiler::visitIdentifier (const Whiley::Identifier& id)  {
-	_internal->expr = _internal->vars.at(id.getName());
+	MiniMC::Model::Symbol symb;
+	if (_internal->frame.resolve(id.getName(),symb)) {
+	  auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
+	  
+	  _internal->expr = reg;//MiniMC::Model::makeExpr<MiniMC::Model::SymbolicConstant> (symb);
+	}
+	//_internal->expr = _internal->vars.at(id.getName());
       }
 
       void Compiler::visitNumberExpression (const Whiley::NumberExpression& n )  {
 	_internal->expr = MiniMC::Model::I64Integer::make(n.getValue());
       } 
 
+      void Compiler::visitAllocStatement (const Whiley::AllocStatement& alloc)  {
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+	MiniMC::Model::Symbol symb;
+	if (_internal->frame.resolve(alloc.getAssignName(),symb)) {
+	  auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
+	  alloc.getExpression().accept (*this);
+	  
+	  builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,std::make_shared<MiniMC::Model::FindSpaceExpr> (_internal->heap_mem,_internal->expr));
+	  builder.addInstr<MiniMC::Model::InstructionCode::Assume> (std::make_shared<MiniMC::Model::CheckFreeExpr> (_internal->heap_mem,reg,_internal->expr));
+	  builder.addInstr<MiniMC::Model::InstructionCode::Assign> (_internal->heap_mem,std::make_shared<MiniMC::Model::AllocExpr> (_internal->heap_mem,reg,_internal->expr));
+	}
+	
+	
+      }
+
+      void Compiler::visitFreeStatement (const Whiley::FreeStatement& )  {
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+
+      }
+      
+      
       void Compiler::visitDerefExpression (const Whiley::DerefExpression& a)  {
 	a.getMem().accept (*this);
-	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc); 
+	/*auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());*/
+	//auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,_internal->expr); 
 	
-	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,ptr,makeType(a.getLoadType()));
+	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,_internal->expr,makeType(a.getLoadType()));
       }
 
       bool isSigned (Whiley::Type r) {
@@ -160,8 +260,13 @@ namespace MiniMC {
 	  isSigned(be.getRight().getType ());   
 	switch (be.getOp ()) {
 	case Whiley::BinOps::Add:
-	  _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (std::move(le),std::move(right));
-	  break;
+	  if (be.getLeft().getType() == Whiley::Type::Pointer) {
+	    _internal->expr = std::make_shared<MiniMC::Model::PtrAddExpr> (std::move(le),std::move(right));
+	  }
+	  else {
+	    _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (std::move(le),std::move(right));
+	  }
+	    break;
 	case Whiley::BinOps::Sub:
 	  _internal->expr = std::make_shared<MiniMC::Model::SubExpr> (std::move(le),std::move(right));
 	  break;
@@ -219,7 +324,9 @@ namespace MiniMC {
 	
     void Compiler::visitAssignStatement (const Whiley::AssignStatement& ass)  {
       _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-      auto reg = _internal->vars.at(ass.getAssignName());
+      MiniMC::Model::Symbol symb;
+      _internal->frame.resolve (ass.getAssignName(),symb);
+      auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
       ass.getExpression ().accept(*this);
       
       MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
@@ -325,7 +432,38 @@ namespace MiniMC {
 	
 	_internal->end  = loop_done;
 	
-      } 
+      }
+
+      void Compiler::visitReturnStatement (const Whiley::ReturnStatement& ret)   {
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+	ret.getExpr().accept(*this);
+	builder.addInstr<MiniMC::Model::InstructionCode::Ret> (_internal->expr);
+      }
+      
+      void Compiler::visitCallStatement (const Whiley::CallStatement& c)  {
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+	MiniMC::Model::Symbol symb;
+	MiniMC::Model::Symbol func_symb;
+	
+	if (_internal->frame.resolve (c.assignname(),symb) && _internal->frame.resolve (c.funcname(),func_symb)) {
+	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+	  
+	  std::vector<MiniMC::Model::Value_ptr> params;
+
+	  for (auto& a : c.parameters()) {
+	    a->accept (*this);
+	    params.push_back(_internal->expr);
+	  }
+
+	  auto symb_expr = MiniMC::Model::makeExpr<MiniMC::Model::SymbolicConstant> (func_symb); 
+	  
+	  builder.addInstr<MiniMC::Model::InstructionCode::Call> (reg,symb_expr,params);
+	}
+      }
+      
+      
       void Compiler::visitSequenceStatement (const Whiley::SequenceStatement& s)  {
 	s.getFirst().accept (*this);
 	_internal->start = _internal->end;
@@ -338,8 +476,8 @@ namespace MiniMC {
 	
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	a.getMemLoc().accept (*this);
-	auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());
-	auto ptr = std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,convert_loc); 
+	/*auto convert_loc = std::make_shared<MiniMC::Model::ZExtExpr> (_internal->expr,MiniMC::Model::I64Type::get());*/
+	auto ptr = _internal->expr;//std::make_shared<MiniMC::Model::PtrAddExpr> (_internal->heap_pointer,_internal->expr); 
 	a.getExpression ().accept (*this);
 
 	builder.addInstr<MiniMC::Model::InstructionCode::Store> (_internal->heap_mem,_internal->heap_mem,ptr,_internal->expr);
