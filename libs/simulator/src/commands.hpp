@@ -213,15 +213,7 @@ namespace MiniMC {
 	  MiniMC::Algorithms::Reachability::Reachability reach{transfer,messager};
 
 	  auto goal = [](const MiniMC::CPA::State& state) {
-	    auto& locationstate = state.getLocationState ();
-	    auto procs = locationstate.nbOfProcesses ();
-	    
-	    for (std::size_t i = 0; i < procs; ++i) {
-	      if (locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
-		return true;
-	    }
-	    
-	    return false;
+	    return state.isSet (MiniMC::VMT::FlagType::AssertViolated);
 	  };
 	  auto res = reach.search (*state,goal);
 	  if (res.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {

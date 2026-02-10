@@ -94,7 +94,9 @@ namespace MiniMC {
 	    co_yield tstate;
 
 	    auto fstate = ostate.lcopy ();
-	    addAssumption (*fstate,obj);
+	    fstate->setFlag (MiniMC::VMT::FlagType::AssertViolated);
+	    
+	    addAssumption (*fstate,operations.BoolNegate(obj));
 	    co_yield fstate;
 	  
 	    
