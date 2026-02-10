@@ -33,6 +33,12 @@ namespace MiniMC {
     public:
       NotImplementedExpr () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Expression '%1%' not supported."}.format (typeid(c).name())) {}
     };
+
+
+    enum class FlagType {
+      AssertViolated = 0,
+    };
+  
     
     template<class Eval,class T>
     concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value,std::size_t bytes, const T::I64&si64) {
@@ -63,13 +69,8 @@ namespace MiniMC {
     };
 
     
-    enum class  Status{
-      Ok,
-      AssumeViolated,
-      AssertViolated,
-      UnsupportedOperation
-    };
-
+    
+    
 
 
     template<class State>
@@ -102,10 +103,11 @@ namespace MiniMC {
     
     template<class State,class V>
     concept VMState =  StackControllable<State> &&
-      ValueLookupable<State,V> && requires (State& s,typename V::Bool&& v) {
+      ValueLookupable<State,V> && requires (State& s,typename V::Bool&& v,FlagType t) {
       {s.getPathform()}->std::convertible_to<typename V::Bool>;
       {s.setPathform(std::move(v))};
       {s.constraint_solver ()} -> ConstraintSolver<V>;
+      {s.setFlag(t)};
     };
     
     template<class T,class R>
@@ -864,12 +866,6 @@ OPSI
     template<class Value, Ops<Value> Operations, MemoryOperations<Value> MemControl>
     class Engine {
     public:
-      struct Result {
-	Result (Value::Bool assertions, Value::Bool assumes, Status status) : assertions(assertions),assumes(assumes),status(status) {}
-	Value::Bool assertions;
-	Value::Bool assumes;
-	Status status;
-      };
       
       Engine (Operations&& ops,MemControl&& memcontrol, const MiniMC::Model::Program& prgm);
       ~Engine ();

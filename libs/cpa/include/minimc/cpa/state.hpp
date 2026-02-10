@@ -23,6 +23,7 @@
 #include "minimc/io/ostream.hpp"
 #include "minimc/smt/smt.hpp"
 #include "minimc/vm/value.hpp"
+#include "minimc/vm/vmt.hpp"
 
 namespace MiniMC {
   namespace CPA {
@@ -69,6 +70,8 @@ namespace MiniMC {
       virtual const LocationInfo& getLocationState () const  = 0;
       virtual State_ptr copy() const = 0;
       virtual MiniMC::Hash::hash_t hash() const = 0;
+      virtual bool isSet (MiniMC::VMT::FlagType)  const = 0;
+      virtual void setFlag (MiniMC::VMT::FlagType) = 0;
     };
     
     

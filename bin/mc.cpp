@@ -5,6 +5,7 @@
 #include "minimc/algorithms/reachability.hpp"
 #include "minimc/cpa/interface.hpp"
 
+#include "minimc/vm/vmt.hpp"
 #include "options.hpp"
 #include "plugin.hpp"
 
@@ -82,7 +83,7 @@ namespace {
 	  prgm});
       
       auto goal = [](const MiniMC::CPA::State& state) {
-	auto& locationstate = state.getLocationState ();
+	/*auto& locationstate = state.getLocationState ();
 	auto procs = locationstate.nbOfProcesses ();
       
 	for (std::size_t i = 0; i < procs; ++i) {
@@ -90,7 +91,8 @@ namespace {
 	    return true;
 	}
 	
-	return false;
+	return false;*/
+	return state.isSet (MiniMC::VMT::FlagType::AssertViolated);
       };
       
     

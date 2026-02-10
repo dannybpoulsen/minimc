@@ -15,7 +15,7 @@ auto loadProgram (auto& loader, const std::string& s) {
 
   MiniMC::Model::Modifications::ProgramManager manager;
   manager.add<MiniMC::Model::Modifications::LowerPhi> ();
-  manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
+  //manager.add<MiniMC::Model::Modifications::SplitAsserts> ();
   
   
   return manager(std::move(loader.loadFromFile (path,mess).value()));
@@ -23,15 +23,7 @@ auto loadProgram (auto& loader, const std::string& s) {
 }
 
 auto goal (const MiniMC::CPA::State& state) {
-  auto& locationstate = state.getLocationState ();
-  auto procs = locationstate.nbOfProcesses ();
-  
-  for (std::size_t i = 0; i < procs; ++i) {
-    if (locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
-      return true;
-  }
-  
-  return false;
+  return state.isSet (MiniMC::VMT::FlagType::AssertViolated);
 };
 
 

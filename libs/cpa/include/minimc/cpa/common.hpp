@@ -9,6 +9,8 @@
 #include "minimc/cpa/interface.hpp"
 #include <memory>
 #include <ranges>
+#include <bitset>
+#include <type_traits>
 
 namespace MiniMC {
   namespace CPA {
@@ -292,7 +294,40 @@ namespace MiniMC {
     };
     
    
-    
+    class Flags {
+    public:
+      Flags () {}
+      
+      Flags(const Flags& ) = default;
+      Flags( Flags&& ) = default;
+      
+      auto& operator|= (MiniMC::VMT::FlagType flag) {
+	sets.set(static_cast<int> (flag));
+	return *this;
+      }
+      
+      auto& unset (MiniMC::VMT::FlagType flag) {
+	sets.reset(static_cast<int> (flag));
+	return *this;
+      }
+      
+      
+      
+      auto operator& (MiniMC::VMT::FlagType flag) const {
+	return sets.test (static_cast<int> (flag));
+      }
+
+      auto hash () const  {
+	return std::hash<std::bitset<1>>{}(sets);
+      }
+      
+    private:
+      std::bitset<1> sets;
+    };
+
+
+
+
     template<class Value>
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
@@ -412,6 +447,7 @@ namespace MiniMC {
 	  hash << vl;
 	}
 	hash << getPathform ();
+	hash << flags;
 	return hash;
       }
 
@@ -434,13 +470,15 @@ namespace MiniMC {
       
       Value::Bool getPathform () const { return pathform;}
       void setPathform (Value::Bool&& p ) { pathform = std::move(p);}
-      
+      void setFlag (MiniMC::VMT::FlagType flag)  {flags |= flag; }
+      bool isSet (MiniMC::VMT::FlagType flag) const   {return flags & flag; }
       
     private:
       std::vector<ActivationStack<Value> > stacks;
       ActivationRecord<Value> persistent;
       std::shared_ptr<StaticContext<Value> > scontext;
       Value::Bool pathform;
+      Flags flags;
     };
     
     
@@ -552,7 +590,8 @@ namespace MiniMC {
       
       ValDef::Val::Bool getPathform () const { return mixin.getPathform();}
       void setPathform (ValDef::Val::Bool&& p ) { mixin.setPathform(std::move(p));}
-      
+      void setFlag (MiniMC::VMT::FlagType t) override  {mixin.setFlag(t);}
+      bool isSet (MiniMC::VMT::FlagType flag) const override  {return mixin.isSet(flag); }
       
     private:
       StateMixin<typename ValDef::Val> mixin;
@@ -574,10 +613,12 @@ namespace MiniMC {
 	
 	if (nstate.getProc(id).activeRecord ().getLocation () == e.getFrom ()) {
 	  nstate.getProc(id).activeRecord().setLocation (e.getTo ());
-	
+	  
 
 	  auto& instr = e.getInstructions();
 	  for (auto t :  engine.execute(instr,nstate,id)) {
+	    if (e.getTo ()->getInfo().getFlags().isSet (MiniMC::Model::Attributes::AssertViolated))
+	      t->setFlag (MiniMC::VMT::FlagType::AssertViolated);
 	    co_yield t;
 	  }
 	  

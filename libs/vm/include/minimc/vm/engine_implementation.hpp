@@ -22,8 +22,6 @@ namespace MiniMC {
       const MiniMC::Model::Program& prgm;
       Operations operations;
       MemControl memcontrol;
-      typename T::Bool asserts;
-      typename T::Bool assumes;
       
     public:
       Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
@@ -33,14 +31,7 @@ namespace MiniMC {
 	return MiniMC::VMT::makeEvaluator<T> (store,operations);
       }
 
-      void reset (T::Bool pathform) {
-	asserts = operations.create (MiniMC::Model::Bool(true));
-	assumes = pathform;
-      }
 
-      auto getAssertions () const {return asserts;}
-      auto getAssumes () const {return assumes;}
-      void addAssertion (T::Bool b) {asserts = operations.BoolAnd (asserts,b);}
       
       template<class State>
       void addAssumption (State& st, T::Bool b) {
@@ -85,7 +76,29 @@ namespace MiniMC {
 	    co_yield state;
 	} 
 	else if constexpr (op == MiniMC::Model::VMInstructionCode::Assert) {
-	  addAssertion (obj);
+	  if (obj.boolState () == TriBool::False) {
+	    auto nstate = ostate.lcopy ();
+	    addAssumption (*nstate,operations.BoolNegate(obj));
+	    nstate->setFlag (MiniMC::VMT::FlagType::AssertViolated);
+	    co_yield nstate;
+	  }
+
+	  else if  (obj.boolState () == TriBool::True) {
+	    auto nstate = ostate.lcopy ();
+	    addAssumption (*nstate,obj);
+	    co_yield nstate;
+	  }
+	  else {
+	    auto tstate = ostate.lcopy ();
+	    addAssumption (*tstate,obj);
+	    co_yield tstate;
+
+	    auto fstate = ostate.lcopy ();
+	    addAssumption (*fstate,obj);
+	    co_yield fstate;
+	  
+	    
+	  }
 	  if (obj.boolState () != TriBool::False)
 	    co_yield state;
 	} else

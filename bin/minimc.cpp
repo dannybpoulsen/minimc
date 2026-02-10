@@ -24,7 +24,7 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
   MiniMC::Model::Modifications::ProgramManager manager;
   using namespace  MiniMC::Model::Modifications;
   
-  manager.add<SplitAsserts> ();
+  //manager.add<SplitAsserts> ();
   if (options.unrollLoops) {
     manager.add<UnrollLoops> (options.unrollLoops);
   }
