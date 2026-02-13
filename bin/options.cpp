@@ -30,24 +30,24 @@ struct Overload : Ts ... {
     using Ts::operator() ...;
 };
 
-std::unordered_map<std::string,MiniMC::Loaders::Loader_ptr > loaders;
+//std::unordered_map<std::string,MiniMC::Loaders::Loader_ptr > loaders;
 
 po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
-  
-  auto setLoader = [&options](auto& val) {
+  options.load.loader = std::make_shared<MiniMC::Loaders::GenericLoader> ();
+  /*auto setLoader = [&options](auto& val) {
     auto load = loaders.find (val);
     if ( load != loaders.end ()) {
       options.load.loader = load->second;
     }
     else
       throw MiniMC::Support::ConfigurationException ("Can't find specificed Loader");
-  };
+      };*/
 
   general.add_options()
     ("inputfile", po::value<std::string>(&options.load.inputname), "Input file");
-  std::stringstream str;
+  /*std::stringstream str;
   str << "Model Loader\n";
   int i = 0;
   for (auto& loader : MiniMC::Loaders::getLoaders ()) {
@@ -56,26 +56,26 @@ po::options_description loadOptions (SetupOptions& options) {
   }
   general.add_options ()
     ("loader",po::value<std::string> ()->default_value(std::string{"LLVM"})->notifier (setLoader),str.str().c_str());
-
-  for (auto& loader_reg : MiniMC::Loaders::getLoaders ()) {
+  */
+  /*for (auto& loader_reg : MiniMC::Loaders::getLoaders ()) {
     auto loader = loader_reg->makeLoader ();
     loaders.insert (std::make_pair (loader_reg->getName (),loader));
-    
-    po::options_description opt_arr(loader_reg->getName ());
-    for (auto& opt : loader->getOptions ()) {
+  */
+  //po::options_description opt_arr = general;// (loader_reg->getName ());
+    for (auto opt : options.load.loader->getOptions()) {
       std::visit (
 		  Overload {
-		    [loader_reg,&opt_arr](MiniMC::Loaders::BoolOption& t) {
+		    [&general](MiniMC::Loaders::BoolOption& t) {
 		      std::stringstream str;
-		      str << loader_reg->getName() <<"."<<t.name;
-		      opt_arr.add_options ()
+		      str << t.name;
+		      general.add_options ()
 			(str.str().c_str (),boost::program_options::bool_switch(t.value),t.description.c_str());
 		    
 		    },
-		    [loader_reg,&opt_arr](auto& t){
+		    [&general](auto& t){
 		      std::stringstream str;
-		      str << loader_reg->getName() <<"."<<t.name;
-		      opt_arr.add_options ()
+		      str <<t.name;
+		      general.add_options ()
 			(str.str().c_str (),boost::program_options::value(t.value),t.description.c_str());
 		    },
 		      
@@ -86,9 +86,8 @@ po::options_description loadOptions (SetupOptions& options) {
       
     
     }
-    general.add (opt_arr);
-    
-  }
+    //general.add (opt_arr);
+    //}
   
   return general;
 }

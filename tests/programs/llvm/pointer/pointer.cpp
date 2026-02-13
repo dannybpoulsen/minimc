@@ -37,7 +37,7 @@ TEST_CASE("Pointer") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
-  loadRegistrar->setOption<std::vector<std::string>> (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string>> ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp.ll"); 
   
   auto  cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
@@ -57,7 +57,7 @@ TEST_CASE("Pointer") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<std::vector<std::string>>  (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string>>  ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"null_pointer_cmp_2.ll");
 
   auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
@@ -77,7 +77,7 @@ TEST_CASE("Pointer") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
-  loadRegistrar->setOption<std::vector<std::string>>  (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string>>  ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"pointer_conversion.ll");
 
 

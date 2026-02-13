@@ -15,19 +15,23 @@ namespace MiniMC {
 namespace Loaders {
 
 
-class WhileyLoader2 : public Loader {
+class WhileyLoader2 : public LoaderDirect {
 public:
-  WhileyLoader2(){}
+  WhileyLoader2() : LoaderDirect("whiley") {}
 
   LoadResult loadFromFile(const std::string &file,  MiniMC::Support::Messager&) override {
-    ::Whiley::WParser parser;
-    if (auto parseres = parser.parse (file)) {
-      auto prgm = parseres.get();
-      if (Whiley::TypeChecker{}.CheckProgram(prgm))
-	return MiniMC::Loaders::whiley::Compiler {}.compile(prgm);
+    try {::Whiley::WParser parser;
+      if (auto parseres = parser.parse (file)) {
+	auto prgm = parseres.get();
+	if (Whiley::TypeChecker{}.CheckProgram(prgm))
+	  return MiniMC::Loaders::whiley::Compiler {}.compile(prgm);
+      }
+      //return MiniMC::Model::Program{};
+      return std::unexpected{Error::LoadFailed};
     }
-    return MiniMC::Model::Program{};
-      
+    catch (std::runtime_error& ) {
+      return std::unexpected{Error::LoadFailed};
+    }
   }
   LoadResult loadFromString(const std::string &inp,  MiniMC::Support::Messager&) override {
    MiniMC::Model::Program program;

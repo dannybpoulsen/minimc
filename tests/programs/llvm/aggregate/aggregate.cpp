@@ -41,7 +41,7 @@ TEST_CASE("Frame") {
   //Arrange
   MiniMC::Support::Messager mess;
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<std::vector<std::string> > (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string> > ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   CHECK(MiniMC::Model::Checkers::TypeChecker{mess}.Check (prgm));
   
@@ -51,7 +51,7 @@ TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<std::vector<std::string>> (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string>> ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_fail.ll");
   
 
@@ -72,7 +72,7 @@ TEST_CASE("Frame") {
   MiniMC::Support::Messager mess;
   //Arrange
   auto loadRegistrar = makeLoader (); //MiniMC::Loaders::findLoader ("LLVM");
-  loadRegistrar->setOption<std::vector<std::string> > (1,{"main"});
+  loadRegistrar->setOption<std::vector<std::string> > ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loadRegistrar,"insert_extract_nofai.ll");
   
 

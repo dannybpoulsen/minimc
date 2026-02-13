@@ -13,7 +13,9 @@
 #include <vector>
 #include <variant>
 #include <expected>
-
+#include <generator>
+#include <unordered_map>
+#include <iostream>
 #include <initializer_list>
 
 namespace MiniMC {
@@ -26,6 +28,7 @@ namespace MiniMC {
     
     template <class T>
     struct TOption {
+      TOption (const TOption& ) = default;
       using ValueType = T;
       TOption (const std::string name,
 	       const std::string descr,
@@ -50,40 +53,82 @@ namespace MiniMC {
     
     enum class Error {
       ParseError,
-      ProgramError
+      ProgramError,
+      LoadFailed
     };
 
     using LoadResult = std::expected<MiniMC::Model::Program,Error>;
-    
+
     struct Loader {
-      Loader()  {}
+      virtual LoadResult loadFromFile(const std::string& file, MiniMC::Support::Messager&) = 0;
+      virtual LoadResult loadFromString(const std::string& str, MiniMC::Support::Messager&) = 0;
+      virtual std::string getName() const = 0;
+
+      template<class T>
+      void setOption (std::string i, T t) {
+	std::visit (MiniMC::Support::Overload {
+	    [&t]<typename Opt>(Opt opt) requires std::is_same_v<T,typename Opt::ValueType> {
+	      opt.set(t);},
+	      MiniMC::Support::Error<void> {}
+	  },
+	  getOption (i)
+	  );
+	
+      }
+      virtual std::generator<LoaderOption> getOptions ()  = 0;
       
-      virtual ~Loader() {}
+    protected:
+      virtual LoaderOption  getOption(std::string) = 0; 
+    };
+    
+    struct LoaderDirect : public Loader {
+      LoaderDirect(const std::string name) : name(std::move(name))  {}
+      
+      virtual ~LoaderDirect() {}
       virtual LoadResult loadFromFile(const std::string& file, MiniMC::Support::Messager&) = 0;
       virtual LoadResult loadFromString(const std::string& str, MiniMC::Support::Messager&) = 0;
       
       
-      template<class T>
-      void setOption (std::size_t i, T t) {
-	std::visit (MiniMC::Support::Overload {
-	    [&t]<typename Opt>(Opt& opt) requires std::is_same_v<T,typename Opt::ValueType> {
-	      opt.set(t);},
-	      MiniMC::Support::Error<void> {}
-	  },
-	      options.at(i)
-	  );
-	  
-      }
-	  
       
-      auto& getOptions () {return options;}
+      std::string getName() const override {return name;}
+      std::generator<LoaderOption> getOptions () override {
+	for (auto& g : options)
+	  co_yield g.second;
+      }
     protected:
-      template<class T,class... Args>
-      void addOption (Args... args) {options.push_back (T{args...}); }
-      std::vector<LoaderOption> options;
+      LoaderOption getOption (std::string s) {return options.at (s);}
+      
+      template<class T,class Arg>
+      void addOption (std::string name, std::string descr, Arg args) {options.emplace (getName()+"."+name,T{getName()+"."+name,descr,args}); }
+      std::unordered_map<std::string,LoaderOption> options;
+      std::string name;
     };
 
     using Loader_ptr = std::shared_ptr<Loader>;
+
+    
+    struct GenericLoader : public Loader {
+      GenericLoader ();
+      
+      LoadResult loadFromFile(const std::string& file, MiniMC::Support::Messager&) override;
+      LoadResult loadFromString(const std::string& str, MiniMC::Support::Messager&) override;
+      
+      
+      std::string getName() const override {return "Generic";}
+      std::generator<LoaderOption> getOptions () override {
+	for (auto& l : loaders) {
+	  for (auto g : l->getOptions()) {
+	    co_yield g;
+	  }
+	}
+      }
+    protected:
+    protected:
+      LoaderOption getOption (std::string) {throw MiniMC::Support::Exception ("Cannot set option on GenericLoader");}
+    private:
+      std::vector<Loader_ptr> loaders;
+    };
+    
 
     struct LoaderRegistrar {
       LoaderRegistrar(std::string name);

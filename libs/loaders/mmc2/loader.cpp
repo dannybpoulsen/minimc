@@ -11,9 +11,9 @@ namespace MiniMC {
 namespace Loaders {
 
 
-class MMCLoader2 : public Loader {
+class MMCLoader2 : public LoaderDirect {
 public:
-  MMCLoader2(){}
+  MMCLoader2() : LoaderDirect("MMC") {}
 
   LoadResult loadFromFile(const std::string &file,  MiniMC::Support::Messager&) override {
     std::fstream str;

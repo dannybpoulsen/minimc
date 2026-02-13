@@ -41,7 +41,7 @@ TEST_CASE("Phi") {
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);
   auto loader = loadRegistrar->makeLoader ();
-  loader->setOption<std::vector<std::string>> (1,{"main"});
+  loader->setOption<std::vector<std::string>> ("LLVM.entry",{"main"});
   auto prgm = loadProgram (*loader,"phi_atomic.ll");
 
 

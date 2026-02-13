@@ -66,9 +66,9 @@ namespace MiniMC {
     MiniMC::Model::TypeID getTypeID(llvm::Type* type);
     
     
-    class LLVMLoader : public Loader {
+    class LLVMLoader : public LoaderDirect {
     public:
-      LLVMLoader()  {
+      LLVMLoader()  : LoaderDirect("LLVM") {
 
 	addOption<IntOption>("stack", "StackSize", &stacksize);
 	addOption<VecStringOption>("entry", "Entry point function", &entry);
@@ -468,7 +468,7 @@ namespace MiniMC {
         }
       }
 
-      virtual MiniMC::Model::Program readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Support::Messager& mess) {
+      virtual LoadResult readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Support::Messager& mess) {
         MiniMC::Model::Program prgm;
 	sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), MiniMC::Model::PointerType::get());
 	auto heap_mem = prgm.getPersistentRegs().addRegister(prgm.getRootFrame().makeFresh("heap_mem"), MiniMC::Model::MemoryType::get());
@@ -478,7 +478,7 @@ namespace MiniMC {
         std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
         std::unique_ptr<llvm::Module> module = parseIR(*buffer, diag, *context);
         if (!module) {
-          throw LoadError{};
+          return std::unexpected{MiniMC::Loaders::Error::LoadFailed};
         }
 
         llvmModifications(*module,mess);
