@@ -1,7 +1,7 @@
 
      #include <concepts>
      #include "minimc/support/feedback.hpp"
-{% for N in all_bin_ops+all_unary_ops+pointer_ops %}
+{% for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Pointer","memory"]) %}
      class {{N.getName()}}Expr : public Value {
      	   public:
      	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %});
@@ -29,14 +29,14 @@
      
 
     enum class CastOps {
-     {% for N in cast_ops %}{{N.getName()}} {% if not loop.last %}, {%endif %}
+     {% for N in ISA.getExpressionsFromGroups (["Cast"]) %}{{N.getName()}} {% if not loop.last %}, {%endif %}
      {% endfor %}    	 	 
     };
     
     template<CastOps>
     struct CastOpsDetails {};
 
-     {% for N in cast_ops %}
+     {% for N in ISA.getExpressionsFromGroups (["Cast"]) %}
      template<> struct CastOpsDetails<CastOps::{{N.getName()}}> {
       		static consteval auto text () {return "{{N.getName()}}";}
      }; 
@@ -133,93 +133,6 @@ private	:
 	MiniMC::Model::Value_ptr _storee;
     };
 
-   class FindSpaceExpr : public Value {
-    public:
-    FindSpaceExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr size);
-    auto& memory ()  { return *mem_expr;}
-    const auto& memory () const { return *mem_expr;}
-    
-    auto& size ()  { return *size_expr;}
-    const auto& size () const { return *size_expr;}
-
-
-    
-    std::ostream& output(std::ostream& os) const override {
-        		return os << "(FindSpace "  << memory () << " " <<size ()<< ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr mem_expr;
-	MiniMC::Model::Value_ptr size_expr;
-};
-
-    class AllocExpr : public Value {
-    public:
-    AllocExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer, MiniMC::Model::Value_ptr size);
-    auto& memory ()  { return *mem_expr;}
-    const auto& memory () const { return *mem_expr;}
-    	  
-    auto& size ()  { return *size_expr;}
-    const auto& size () const { return *size_expr;}
-
-    auto& pointer ()  { return *pointer_expr;}
-    const auto& pointer () const { return *pointer_expr;}
-    
-    
-    std::ostream& output(std::ostream& os) const override {
-        		return os << "(Alloc "  << memory () << " " <<" " << pointer () << " " <<size ()<< ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr mem_expr;
-	MiniMC::Model::Value_ptr size_expr;
-	MiniMC::Model::Value_ptr pointer_expr;
-	};
-
-	    class FreeExpr : public Value {
-    public:
-    FreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer);
-    auto& memory ()  { return *mem_expr;}
-    const auto& memory () const { return *mem_expr;}
-    	  
-
-    auto& pointer ()  { return *pointer_expr;}
-    const auto& pointer () const { return *pointer_expr;}
-    
-    
-    std::ostream& output(std::ostream& os) const override {
-        		return os << "(Free "  << memory () << " " <<" " << pointer () <<  ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr mem_expr;
-	MiniMC::Model::Value_ptr pointer_expr;
-	};
-
-
-        class CheckFreeExpr : public Value {
-    public:
-    CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer, MiniMC::Model::Value_ptr size);
-    auto& memory ()  { return *mem_expr;}
-    const auto& memory () const { return *mem_expr;}
-    	  
-    auto& size ()  { return *size_expr;}
-    const auto& size () const { return *size_expr;}
-
-    auto& pointer ()  { return *pointer_expr;}
-    const auto& pointer () const { return *pointer_expr;}
-    
-    
-    std::ostream& output(std::ostream& os) const override {
-        		return os << "(CheckFree "  << memory () << " " <<" " << pointer () << " " <<size ()<< ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr mem_expr;
-	MiniMC::Model::Value_ptr size_expr;
-	MiniMC::Model::Value_ptr pointer_expr;
-	};
-
 
     class PtrToPtr32Expr : public Value{
     public:
@@ -275,7 +188,7 @@ private	:
     inline Type_ptr TConstant<MiniMC::Model::pointer32_t,false>::_inner_type () {return MiniMC::Model::Pointer32Type::get();}
     	   
 
-   {% for N in cast_ops %}using {{N.getName()}}Expr = CastExpression<CastOps::{{N.getName()}}>;
+   {% for N in ISA.getExpressionsFromGroups(["Cast"]) %}using {{N.getName()}}Expr = CastExpression<CastOps::{{N.getName()}}>;
    {% endfor %}
    
 
@@ -307,7 +220,7 @@ struct ValueInfo {
 private:
   using _indexer = AutoIndexer<
       {% for N in plain_non_generated_names  %}{{N}}, {% endfor %}
-      {% for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
+      {% for N in ISA.getExpressionsFromGroups(["TAC","Cast","Comparison","Unary","Pointer","Aggregate"]) %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
     {% endfor %}
     
     >;
@@ -337,7 +250,7 @@ public:
 	    setType(type);
     }
 
-    {% for N in all_bin_ops+all_unary_ops+pointer_ops%}
+    {% for N in ISA.getExpressionsFromGroups (["TAC","Comparison","Unary","Pointer","memory"])%}
        
     inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo::type_t<{{N.getName()}}Expr>()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
 
@@ -350,10 +263,6 @@ public:
 
     inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo::type_t<StoreExpr> ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
 
-    inline FindSpaceExpr::FindSpaceExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<FindSpaceExpr> ()),mem_expr(mem),size_expr(size) {}
-    inline AllocExpr::AllocExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<AllocExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}
-      inline FreeExpr::FreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr) : Value(ValueInfo::type_t<FreeExpr> ()),mem_expr(mem),pointer_expr(ptr) {}
-inline CheckFreeExpr::CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<CheckFreeExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}	   
 
     inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
     inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
@@ -391,24 +300,24 @@ inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_pt
       || std::is_same_v<std::remove_const_t<A>,I64Integer>;
 
 
-    {%if arit_ops|length > 0 %}  
+    {%if ISA.getExpressionsFromGroups(["TAC"])|length > 0 %}  
     template<class A>
     constexpr bool is_bin_arith =
-      {% for N in arit_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in ISA.getExpressionsFromGroups(["TAC"]) %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     ;
     {%endif%}
-    {%if cmp_ops|length > 0 %}  
+    {%if ISA.getExpressionsFromGroups(["Comparison"])|length > 0 %}  
     template<class A>
     constexpr bool is_bin_cmp = 
-      {% for N in cmp_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in ISA.getExpressionsFromGroups(["Comparison"]) %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     
     ;
     
     template<class A>
     constexpr bool is_unary = 
-      {% for N in all_unary_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in ISA.getExpressionsFromGroups(["Unary"]) %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     
     ;
@@ -416,7 +325,7 @@ inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_pt
     {%if cast_ops|length > 0 %}  
     template<class A>
     constexpr bool is_cast =
-      {% for N in cast_ops %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
+      {% for N in ISA.getExpressionsFromGroups(["Cast"]) %} std::is_same_v<std::remove_const_t<A>,{{N.getName()}}Expr> {%if not loop.last %} || {%endif%} 
       {% endfor %}
     ;
     {%endif %}
@@ -451,7 +360,7 @@ struct LocateDispatcher {
 	    return &Dispatcher<F,Vs...>::template dispatch<T...,{{N}}>;
 	else return Locate_impl<VVs...>::template locate_impl<T...,{{N}}> (vs...);    	
 	{%endfor%}
-	{%for N in all_bin_ops+all_unary_ops+cast_ops+pointer_ops+aggr_ops %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
+	{%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate"]) %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
 	if constexpr (sizeof...(VVs) == 0)
 	  return &Dispatcher<F,Vs...>::template dispatch<T...,{{N.getName()}}Expr>;
 	else return Locate_impl<VVs...>::template locate_impl<T...,{{N.getName()}}Expr> (vs...);    	
@@ -483,11 +392,6 @@ auto visitValueT(F&& f,V&... v)  {
 
 
 
-/*template <class  F>
-auto visitValue(F&& f,const MiniMC::Model::Value& v) {
-  return visitValueT(std::forward<F>(f),v);
-  }*/
-
 template <class F, class... Vals>
 auto visitValue(F&& f,Vals&&... v) {
   return visitValueT(std::forward<F>(f),std::forward<Vals>(v)...);
@@ -503,25 +407,25 @@ auto visitValue(F&& f,Vals&&... v) {
       void I64 (MiniMC::BV64 v)  {stack.push (I64Integer::make(v));}
       void symbol (MiniMC::Model::Symbol s) {stack.push(SymbolicConstant::make(s));}      
 
-      {%for N in all_bin_ops %}
+      {%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Pointer","memory","Unary"]) %}
       void {{N.getName()}} () {
-      	   auto r = stack.top();stack.pop ();
-	   auto l = stack.top();stack.pop ();
-	   stack.push(std::make_shared<{{N.getName()}}Expr>(l,r));
+      	   {%for I in N.getNonResOperands() %}
+	   	 auto {{ I.getName() }} = stack.top();stack.pop();
+	   {%endfor %}
+	   /*auto r = stack.top();stack.pop ();
+	   auto l = stack.top();stack.pop ();*/
+	   stack.push(std::make_shared<{{N.getName()}}Expr>(
+		{%for I in N.getNonResOperands() %}
+	   	 {{ I.getName() }}
+		 {%if not loop.last %}, {%endif%}
+		 {% endfor %}
+	   
+		)
+	   
+	   );
        }
        {%endfor%}    
 
-       void PtrAdd () {
-      	   auto r = stack.top();stack.pop ();
-	   auto l = stack.top();stack.pop ();
-	   stack.push(std::make_shared<PtrAddExpr>(l,r));
-       }
-
-       void PtrSub () {
-      	   auto r = stack.top();stack.pop ();
-	   auto l = stack.top();stack.pop ();
-	   stack.push(std::make_shared<PtrSubExpr>(l,r));
-       }
 
        void Ptr32ToPtr () {
       	   auto l = stack.top();stack.pop ();
@@ -549,7 +453,7 @@ auto visitValue(F&& f,Vals&&... v) {
 	    stack.push(std::make_shared<StoreExpr> (mem,addr,storee));
        }
 
-       void InsertValue () {
+        void InsertValue () {
        	    auto insertee = stack.top();stack.pop();
 	    auto offset = stack.top();stack.pop();
 	    auto aggr = stack.top();stack.pop();
@@ -561,32 +465,9 @@ auto visitValue(F&& f,Vals&&... v) {
 	    auto aggr = stack.top();stack.pop();
 	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<ExtractValueExpr> (aggr,offset,type));
-       }
+       }       
 
-       void FindSpace () {
-       	    auto size = stack.top();stack.pop();
-	    auto mem = stack.top();stack.pop();
-	    
-	    stack.push(std::make_shared<FindSpaceExpr> (mem,size));
-       }
-
-       void Alloc () {
-       	    auto size = stack.top();stack.pop();
-	    auto ptr = stack.top();stack.pop();
-	    auto mem = stack.top();stack.pop();
-	    
-	    stack.push(std::make_shared<AllocExpr> (mem,ptr,size));
-       }
-
-       void Free () {
-       	    auto ptr = stack.top();stack.pop();
-	    auto mem = stack.top();stack.pop();
-	    
-	    stack.push(std::make_shared<FreeExpr> (mem,ptr));
-       }
-       
-
-      {%for N in cast_ops %}
+      {%for N in ISA.getExpressionsFromGroups(["Cast"]) %}
       void {{N.getName()}} () {
       	   auto f = stack.top();stack.pop ();
 	   auto type = types.top();types.pop(); 
@@ -594,13 +475,7 @@ auto visitValue(F&& f,Vals&&... v) {
        }
        {%endfor%}    
 
-     {%for N in all_unary_ops %}
-           void {{N.getName()}} () {
-      	   auto f = stack.top();stack.pop ();
-	   stack.push(std::make_shared<{{N.getName()}}Expr>(f));	
-       }
-      {%endfor%}
-
+     
       void pushI8Type () {
       	   types.push (I8Type::get());
 	   }	      

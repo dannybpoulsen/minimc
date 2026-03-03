@@ -160,12 +160,14 @@ class ISA:
         for i in self._groups:
             yield from [(i,j) for j in i.getInstructions () if not  j.isVM ()]
 
-    def getExpressionsFromGrouo (self,groups):
+    def getExpressionsFromGroups (self,groups):
+        ret = []
         for i in self._groups:
             if i.getName() in groups:
-                if i.isAssignConvertible():
-                    yield from i.getInstructions()
-                
+                for j in i.getInstructions():
+                    if j.isAssignConvertible():
+                        ret.append(j)
+        return  ret
 
 def parseSizeConstraints (inp,types):
     BW = (pp.Word ("BW") + pp.Literal ("(") + pp.Word(pp.alphanums) + pp.Literal (")")).set_parse_action (lambda toks: types[toks[2]])

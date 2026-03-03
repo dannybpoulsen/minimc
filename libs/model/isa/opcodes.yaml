@@ -593,7 +593,7 @@ Cast:
     assign_convertible: True
     
     
-Memory:
+memory:
   findspace:
     opcode: FindSpace
     params:
@@ -686,7 +686,7 @@ Memory:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::CheckFreeExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
       return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
-  
+loadstore:  
   store:
     opcode: Store
     params:
