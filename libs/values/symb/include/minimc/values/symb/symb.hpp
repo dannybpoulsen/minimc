@@ -528,12 +528,6 @@ namespace MiniMC {
 	    builder.LogNot();
 	    
 	    
-	    /*builder << p.getValue() << alloc.pointer;
-	    builder.UGe ();
-	    builder << p.getValue() << alloc.pointer <<  s.getValue();
-	    builder.Add ();
-	    builder.SLe ();
-	    builder.LogNot();*/
 	    builder.LogAnd ();
 	  }
 	  //return Value::Bool{MiniMC::Model::Bool::make(true)};
@@ -541,7 +535,9 @@ namespace MiniMC {
 	}
 	Value::Pointer find_space(const Value::Memory&, const Value::I64&) const {return Value::Pointer{MiniMC::Model::Undef::make (MiniMC::Model::PointerType::get())};}
 	
-        Value::Memory free(const Value::Memory& m, const Value::Pointer&){return m;}  
+	Value::Memory free(const Value::Memory& m, const Value::Pointer&) const {
+	  return  m;
+	}  
       private:
       };
 

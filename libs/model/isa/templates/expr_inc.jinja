@@ -176,6 +176,27 @@ private	:
 	MiniMC::Model::Value_ptr pointer_expr;
 	};
 
+	    class FreeExpr : public Value {
+    public:
+    FreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer);
+    auto& memory ()  { return *mem_expr;}
+    const auto& memory () const { return *mem_expr;}
+    	  
+
+    auto& pointer ()  { return *pointer_expr;}
+    const auto& pointer () const { return *pointer_expr;}
+    
+    
+    std::ostream& output(std::ostream& os) const override {
+        		return os << "(Free "  << memory () << " " <<" " << pointer () <<  ")";
+      }	
+    private:
+
+	MiniMC::Model::Value_ptr mem_expr;
+	MiniMC::Model::Value_ptr pointer_expr;
+	};
+
+
         class CheckFreeExpr : public Value {
     public:
     CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr pointer, MiniMC::Model::Value_ptr size);
@@ -331,7 +352,8 @@ public:
 
     inline FindSpaceExpr::FindSpaceExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<FindSpaceExpr> ()),mem_expr(mem),size_expr(size) {}
     inline AllocExpr::AllocExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<AllocExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}
-    inline CheckFreeExpr::CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<CheckFreeExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}	   
+      inline FreeExpr::FreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr) : Value(ValueInfo::type_t<FreeExpr> ()),mem_expr(mem),pointer_expr(ptr) {}
+inline CheckFreeExpr::CheckFreeExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr ptr, MiniMC::Model::Value_ptr size) : Value(ValueInfo::type_t<CheckFreeExpr> ()),mem_expr(mem),size_expr(size),pointer_expr(ptr) {}	   
 
     inline Ptr32ToPtrExpr::Ptr32ToPtrExpr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
     inline PtrToPtr32Expr::PtrToPtr32Expr (MiniMC::Model::Value_ptr conv) : Value(ValueInfo::type_t<Ptr32ToPtrExpr> ()),_conv(conv) {}
@@ -555,6 +577,14 @@ auto visitValue(F&& f,Vals&&... v) {
 	    
 	    stack.push(std::make_shared<AllocExpr> (mem,ptr,size));
        }
+
+       void Free () {
+       	    auto ptr = stack.top();stack.pop();
+	    auto mem = stack.top();stack.pop();
+	    
+	    stack.push(std::make_shared<FreeExpr> (mem,ptr));
+       }
+       
 
       {%for N in cast_ops %}
       void {{N.getName()}} () {

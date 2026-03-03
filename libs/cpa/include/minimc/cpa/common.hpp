@@ -207,6 +207,10 @@ namespace MiniMC {
       Value allocate (const Value::Memory m, Value::Pointer ptr, const Value::I64& s) const {
 	return memcontrol.allocate (m,ptr,s);
       }
+
+      Value free (const Value::Memory m, Value::Pointer ptr) const {
+	return memcontrol.free (m,ptr);
+      }
       
       std::generator<typename Value::I8> loadBytes (const Value::Pointer p, const Value::Memory& m , std::size_t s) const {
 	co_yield std::ranges::elements_of(memcontrol.loadBytes (m,p,s)); 
@@ -283,6 +287,10 @@ namespace MiniMC {
       }
 
       Value allocate (const Value::Memory&, const Value::Pointer&, const Value::I64&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+
+      Value free (const Value::Memory&, const Value::Pointer&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }
       

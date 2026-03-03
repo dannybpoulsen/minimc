@@ -307,16 +307,10 @@ namespace MiniMC {
 					 const std::size_t bytes
 					 ) {
 					   {memc.store (mem,p,i8)}->std::convertible_to<typename T::Memory>;
-					   /*{memc.store (mem,p,i16)}->std::convertible_to<typename T::Memory>;
-      {memc.store (mem,p,i32)}->std::convertible_to<typename T::Memory>;
-      {memc.store (mem,p,i64)}->std::convertible_to<typename T::Memory>;
-      {memc.store (mem,p,aggr)}->std::convertible_to<typename T::Memory>;
-      {memc.store (mem,p,ptr)}->std::convertible_to<typename T::Memory>;
-      {memc.store (mem,p,ptr32)}->std::convertible_to<typename T::Memory>;*/
-      {memc.find_space(mem,i64)}->std::convertible_to<typename T::Pointer>;
-      {memc.allocate(mem,ptr,i64)}->std::convertible_to<typename T::Memory>;
-      {memc.free (mem,p)}->std::convertible_to<typename T::Memory>;
-      {memc.loadBytes (mem,p,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
+					   {memc.find_space(mem,i64)}->std::convertible_to<typename T::Pointer>;
+					   {memc.allocate(mem,ptr,i64)}->std::convertible_to<typename T::Memory>;
+					   {memc.free (mem,p)}->std::convertible_to<typename T::Memory>;
+					   {memc.loadBytes (mem,p,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
     };
     
     

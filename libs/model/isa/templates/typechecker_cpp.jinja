@@ -839,7 +839,15 @@ namespace MiniMC {
 	MiniMC::Model::Type_ptr  	 res = Model::MemoryType::get();
         return res;
        }      
-       
+
+       MiniMC::Model::Type_ptr  TypeChecker::operator() (FreeExpr& expr)  const {
+       	auto memoryty = CheckType(expr.memory());
+       	auto pointerty = CheckType(expr.pointer());
+	
+	MiniMC::Model::Type_ptr  	 res = Model::MemoryType::get();
+        return res;
+       } 
+
        MiniMC::Model::Type_ptr  TypeChecker::operator() (CheckFreeExpr& expr)  const {
        	auto memoryty = CheckType(expr.memory());
        	auto sizety = CheckType(expr.size());

@@ -170,13 +170,13 @@ namespace MiniMC {
         return Value::Pointer(mvalue.getInternal().find_space(size));
       }
       
-      MemoryValue Memory::free(const MemoryValue& mvalue,const Value::Pointer& p) {
+      MemoryValue Memory::free(const MemoryValue& mvalue,const Value::Pointer& p) const {
 	MemoryValue m = mvalue.deep_copy();
 	if (m.getInternal().entries.count(p.getValue())) {
 	  m.getInternal().entries.at(p.getValue()).setState (EntryState::Freed);
         }
 	
-	return m;
+	return  m;
       }
 
       

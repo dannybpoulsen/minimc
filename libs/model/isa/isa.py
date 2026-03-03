@@ -143,7 +143,7 @@ class ISA:
     def getInstructionsWithGroupName (self):
         for i in self._groups:
             yield from [(i.getName(),j) for j in i.getInstructions ()]
-
+    
     def getNonAssignableInstructions (self):
         for i in self._groups:
             yield from [j for j in i.getInstructions () if not j.isAssignConvertible ()]
@@ -159,7 +159,13 @@ class ISA:
     def getPseudoGroupedInstructions (self):
         for i in self._groups:
             yield from [(i,j) for j in i.getInstructions () if not  j.isVM ()]
-    
+
+    def getExpressionsFromGrouo (self,groups):
+        for i in self._groups:
+            if i.getName() in groups:
+                if i.isAssignConvertible():
+                    yield from i.getInstructions()
+                
 
 def parseSizeConstraints (inp,types):
     BW = (pp.Word ("BW") + pp.Literal ("(") + pp.Word(pp.alphanums) + pp.Literal (")")).set_parse_action (lambda toks: types[toks[2]])

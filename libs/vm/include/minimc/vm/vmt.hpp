@@ -53,6 +53,7 @@ namespace MiniMC {
       {ceval.find_space(mem,si64)}->std::convertible_to<T>;
       {ceval.check_free(mem,p,si64)}->std::convertible_to<T>;
       {ceval.allocate(mem,p,si64)}->std::convertible_to<T>;
+      {ceval.free(mem,p)}->std::convertible_to<T>;
       
     } ;
     
@@ -820,6 +821,24 @@ OPSI
 	    for (auto size : MEval(cc.size ())) {
 	      co_yield Value::visit (visitor,mem,pointer,size);
 	    }
+	  }
+	}
+	
+      }
+
+
+      std::generator<Value> operator() (const MiniMC::Model::FreeExpr& cc) const  {
+	auto visitor = MiniMC::Support::Overload {
+	  [this](Value::Memory& mem,Value::Pointer& p)->Value  {
+	    return regstore.free(mem, p);
+	  },
+	  MiniMC::Support::Error<Value>{}
+	};
+	
+	
+	for (auto mem : MEval(cc.memory())) {
+	  for (auto pointer : MEval(cc.pointer ())) {
+	    co_yield Value::visit (visitor,mem,pointer);
 	  }
 	}
 	

@@ -35,7 +35,7 @@ namespace MiniMC {
 	
 	Value::Pointer find_space(const MemoryValue&, const Value::I64&) const;
 	
-        MemoryValue free(const MemoryValue&, const Value::Pointer&);  
+	MemoryValue free(const MemoryValue&, const Value::Pointer&) const;  
 	
       };
       

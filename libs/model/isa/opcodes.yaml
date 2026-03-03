@@ -641,6 +641,26 @@ Memory:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::AllocExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
       return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+  free:
+    opcode: Free
+    params:
+      - name: res
+        type: t1
+      - name: memory
+        type: t1
+      - name: pointer
+        type: t2
+    types:
+      t1:
+        - Memory
+      t2:
+        - Pointer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::FreeExpr> (std::get<1>(tup),std::get<2>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
 
   CheckFree:
     opcode: CheckFree

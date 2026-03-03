@@ -94,6 +94,11 @@ namespace MiniMC {
 	throw MiniMC::Support::Exception ("Alloc should not be present in SMT-Translated expressions");
       }
 
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::FreeExpr&) const {
+	throw MiniMC::Support::Exception ("Free should not be present in SMT-Translated expressions");
+      }
+      
+      
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::CheckFreeExpr&) const {
 	throw MiniMC::Support::Exception ("CheckFree should not be present in SMT-Translated expressions");
       }
