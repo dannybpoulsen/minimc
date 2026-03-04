@@ -197,9 +197,13 @@ namespace MiniMC {
 	
       }
 
-      void Compiler::visitFreeStatement (const Whiley::FreeStatement& )  {
+      void Compiler::visitFreeStatement (const Whiley::FreeStatement& free)  {
 	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	free.getExpression().accept (*this);
+	  
+	
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+	builder.addInstr<MiniMC::Model::InstructionCode::Assign> (_internal->heap_mem,std::make_shared<MiniMC::Model::FreeExpr> (_internal->heap_mem,_internal->expr));
 
       }
       

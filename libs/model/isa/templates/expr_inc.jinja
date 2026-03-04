@@ -409,7 +409,7 @@ auto visitValue(F&& f,Vals&&... v) {
 
       {%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Pointer","memory","Unary"]) %}
       void {{N.getName()}} () {
-      	   {%for I in N.getNonResOperands() %}
+      	   {%for I in N.getNonResOperands() | reverse %}
 	   	 auto {{ I.getName() }} = stack.top();stack.pop();
 	   {%endfor %}
 	   /*auto r = stack.top();stack.pop ();
