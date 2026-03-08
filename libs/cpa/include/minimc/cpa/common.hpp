@@ -203,6 +203,11 @@ namespace MiniMC {
       Value check_free (const Value::Memory& m, const Value::Pointer& p, const Value::I64& s) const {
 	return memcontrol.checkFree(m,p,s);
       }
+
+      Value valid_pointer (const Value::Memory& m, const Value::Pointer& p) const {
+	return memcontrol.valid_pointer(m,p);
+      }
+      
       
       Value allocate (const Value::Memory m, Value::Pointer ptr, const Value::I64& s) const {
 	return memcontrol.allocate (m,ptr,s);
@@ -286,6 +291,11 @@ namespace MiniMC {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }
 
+      Value valid_pointer (const Value::Memory&, const Value::Pointer&) const {
+	throw MiniMC::Support::Exception {"Not implemented"};
+      }
+      
+      
       Value allocate (const Value::Memory&, const Value::Pointer&, const Value::I64&) const {
 	throw MiniMC::Support::Exception {"Not implemented"};
       }

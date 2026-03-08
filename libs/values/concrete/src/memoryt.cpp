@@ -179,6 +179,11 @@ namespace MiniMC {
 	return  m;
       }
 
+
+      Value::Bool Memory::valid_pointer(const MemoryValue&, const Value::Pointer&) const  {
+	throw MiniMC::Support::Exception ("Valid_pointer not implemented");
+      }
+	
       
       MiniMC::Hash::hash_t MemoryValue::hash() const {
 	MiniMC::Hash::Hasher hash;

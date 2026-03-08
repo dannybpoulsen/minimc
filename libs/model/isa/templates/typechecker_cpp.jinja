@@ -857,6 +857,15 @@ namespace MiniMC {
         return res;
        }  
 
+       MiniMC::Model::Type_ptr  TypeChecker::operator() (ValidPointerExpr& expr)  const {
+       	auto memoryty = CheckType(expr.memory());
+	auto pointerty = CheckType(expr.pointer());
+	
+	MiniMC::Model::Type_ptr  	 res = Model::BoolType::get();
+        return res;
+       }  
+
+
       bool TypeChecker::Check(const MiniMC::Model::Program& p) {
         prgm = &p;
         bool res = true;
@@ -866,6 +875,7 @@ namespace MiniMC {
 	prgm = nullptr;
         return res;
       }
+      
     } // namespace Checkers
   }   // namespace Model
 } // namespace MiniMC

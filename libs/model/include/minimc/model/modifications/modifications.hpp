@@ -20,6 +20,7 @@ namespace MiniMC {
 #include "minimc/model/modifications/removephi.hpp"
 #include "minimc/model/modifications/splitasserts.hpp"
 #include "minimc/model/modifications/expandnondet.hpp"
+#include "minimc/model/modifications/instrument_loads.hpp"
 
 
 #endif 

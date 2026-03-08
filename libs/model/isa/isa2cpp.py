@@ -42,11 +42,7 @@ def writeExpressions(ISA,output):
         "LoadExpr",
         "StoreExpr",
         "Ptr32ToPtrExpr",
-        "PtrToPtr32Expr",
-        "FindSpaceExpr",
-        "AllocExpr",
-        "CheckFreeExpr",
-        "FreeExpr"
+        "PtrToPtr32Expr"
     ]
     output.write(template.render (ISA=ISA,plain_non_generated_names=plain_non_generated_names)) 
     

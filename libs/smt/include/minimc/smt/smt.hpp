@@ -163,6 +163,7 @@ namespace MiniMC {
 	SMTLib::Term_ptr operator() (const MiniMC::Model::AllocExpr&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::FreeExpr&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::CheckFreeExpr&) const;
+	SMTLib::Term_ptr operator() (const MiniMC::Model::ValidPointerExpr&) const;
 	
 	
 	

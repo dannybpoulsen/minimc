@@ -245,6 +245,11 @@ OPS
 	}
 	    
       }
+
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::ValidPointerExpr&) const {
+	throw MiniMC::Support::Exception ("ValidPointerExpr should not be present in SMT-Translated expressions");
+      }
+      
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::PtrToIntExpr&) const {
 	throw MiniMC::Support::Exception ("PtrToIntExpr should not be present in SMT-Translated expressions");
@@ -357,7 +362,7 @@ OPS
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::Ptr32ToPtrExpr&) const {
 	throw MiniMC::Support::Exception ("Ptr32ToPtrExpr not implemented");
-      
+	
       }
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::PtrToPtr32Expr&) const {

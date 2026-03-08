@@ -47,6 +47,8 @@
     public:
     CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
     const auto& getFrom () const { return *from_expr;}
+    const auto& op1 () const { return *from_expr;}
+    	  
     const auto& getToType() const {return to_type;}
     auto& getFrom ()  { return *from_expr;}
     
@@ -219,8 +221,8 @@ private:
 struct ValueInfo {
 private:
   using _indexer = AutoIndexer<
-      {% for N in plain_non_generated_names  %}{{N}}, {% endfor %}
-      {% for N in ISA.getExpressionsFromGroups(["TAC","Cast","Comparison","Unary","Pointer","Aggregate"]) %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
+    {% for N in plain_non_generated_names  %}{{N}}, {% endfor %}
+    {% for N in ISA.getExpressionsFromGroups(["TAC","Cast","Comparison","Unary","Pointer","Aggregate","memory"]) %}{{N.getName()}}Expr{% if not loop.last %},{%endif%}
     {% endfor %}
     
     >;
@@ -360,7 +362,7 @@ struct LocateDispatcher {
 	    return &Dispatcher<F,Vs...>::template dispatch<T...,{{N}}>;
 	else return Locate_impl<VVs...>::template locate_impl<T...,{{N}}> (vs...);    	
 	{%endfor%}
-	{%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate"]) %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
+	{%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate","memory"]) %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
 	if constexpr (sizeof...(VVs) == 0)
 	  return &Dispatcher<F,Vs...>::template dispatch<T...,{{N.getName()}}Expr>;
 	else return Locate_impl<VVs...>::template locate_impl<T...,{{N.getName()}}Expr> (vs...);    	
@@ -397,6 +399,28 @@ auto visitValue(F&& f,Vals&&... v) {
   return visitValueT(std::forward<F>(f),std::forward<Vals>(v)...);
 }
 
+
+template <class F>
+void visitSubExpressions(F&& f,const MiniMC::Model::Value& vv) {
+      switch (vv.type_t ()) {
+      	{%for N in plain_non_generated_names %}case ValueInfo::type_t<{{N}}> ():
+	 f(vv.template as<{{N}}> ());
+	break;
+	{%endfor%}
+	{%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate","memory"]) %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
+	{
+		auto& nn = vv.template as<{{N.getName()}}Expr> ();
+		{%for K in N.getNonResOperands () %}
+		visitSubExpressions (f,nn.{{K.getName()}} ());
+		{%endfor %}
+		f(nn);
+		break;
+		
+	}	
+	{%endfor%}	  
+
+     }    
+}
     
     class ExpressionBuilder {
     public:		    

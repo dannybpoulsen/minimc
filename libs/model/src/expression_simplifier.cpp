@@ -248,6 +248,10 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::CheckFreeExpr& i) const {
       return MiniMC::Model::makeExpr<MiniMC::Model::CheckFreeExpr> (Simplify (i.memory()),Simplify (i.pointer()),Simplify(i.size()));
     }
+
+    MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::ValidPointerExpr& i) const {
+      return MiniMC::Model::makeExpr<MiniMC::Model::ValidPointerExpr> (Simplify (i.memory()),Simplify (i.pointer()));
+    }
     
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::FindSpaceExpr& i) const {
       return MiniMC::Model::makeExpr<MiniMC::Model::FindSpaceExpr> (Simplify (i.memory()),Simplify(i.size()));

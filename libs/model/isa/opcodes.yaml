@@ -190,6 +190,7 @@ Unary:
       t1:
         - Bool    
     assign_convertible: True
+
 Comparison:
   isgt:
     opcode: SGt
@@ -668,7 +669,7 @@ memory:
       - name: res
         type: t1
       - name: memory
-        type: t1
+        type: t4
       - name: pointer
         type: t2
       - name: size
@@ -676,6 +677,8 @@ memory:
     types:
       t1:
         - Bool
+      t4:
+        - Memory
       t2:
         - Pointer
       t3:
@@ -685,6 +688,29 @@ memory:
     template_construction:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::CheckFreeExpr> (std::get<1>(tup),std::get<2>(tup),std::get<3>(tup));
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+
+  VakidPointer:
+    opcode: ValidPointer
+    params:
+      - name: res
+        type: t1
+      - name: memory
+        type: t2
+      - name: pointer
+        type: t3
+    types:
+      t1:
+        - Bool
+      t2:
+        - Memory
+      t3:
+        - Pointer
+    vm: False
+    assign_convertible: True
+    template_construction:
+      auto tup = std::make_tuple (args...);
+      auto expr = std::make_shared<MiniMC::Model::ValidPointerExpr> (std::get<1>(tup),std::get<2>(tup));
       return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
 loadstore:  
   store:

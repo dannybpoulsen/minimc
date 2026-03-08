@@ -24,6 +24,8 @@ struct transform_options {
   std::size_t unrollLoops{0};
   std::size_t inlineFunctions{0};
   bool lower_phi{true};
+  bool loadasserts{false};
+
   };
 
 

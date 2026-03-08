@@ -52,10 +52,10 @@ namespace MiniMC {
       {ceval.store(mem,p,value)}->std::convertible_to<typename T::Memory>;
       {ceval.find_space(mem,si64)}->std::convertible_to<T>;
       {ceval.check_free(mem,p,si64)}->std::convertible_to<T>;
+      {ceval.valid_pointer(mem,p)}->std::convertible_to<T>;
       {ceval.allocate(mem,p,si64)}->std::convertible_to<T>;
       {ceval.free(mem,p)}->std::convertible_to<T>;
-      
-    } ;
+    };
     
     
     template<class StackC>

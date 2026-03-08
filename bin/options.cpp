@@ -21,7 +21,8 @@ po::options_description transformOptions (SetupOptions& options) {
   po::options_description general("Transform Options");
   general.add_options()
     ("transform.unroll", boost::program_options::value(&options.transform.unrollLoops) , "Unroll (all) loops")
-    ("transform.inline", boost::program_options::value(&options.transform.inlineFunctions) , "Inline function calls for all entry_points");
+    ("transform.inline", boost::program_options::value(&options.transform.inlineFunctions) , "Inline function calls for all entry_points")
+    ("transform.loadassert", boost::program_options::bool_switch(&options.transform.loadasserts) , "Instrument load in all functions");
   return general;
 }
 

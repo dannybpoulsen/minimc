@@ -497,43 +497,65 @@ namespace MiniMC {
 	  return builder.get();
 	}
 	
-	/*Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I16&)const  {return m;}
-        Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I32&) const {return m;}
-        Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::I64&) const {return m;}
-	Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::Aggregate&) const {return m;}
-	Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::Pointer&) const {return m;}
-	Value::Memory store(const Value::Memory& m, const Value::Pointer&, const Value::Pointer32&) const {return m;}
-	*/
+	
 	// PArameter is size to allocate
 	Value::Memory allocate(const Value::Memory& m, const Value::Pointer& p,const Value::I64& s) const {
 	  Value::Memory copy{m};
 	  copy.addAllocation (p.getValue(),s.getValue());
 	  return copy;
 	}
+
+	Value::Bool valid_pointer(const Value::Memory& m, const Value::Pointer& p) const {
+	  throw MiniMC::Support::Exception ("Valid_pointer not implemented");
+	}
 	Value::Bool checkFree(const Value::Memory& m, const Value::Pointer& p, const Value::I64& s) const {
 	  MiniMC::Model::ExpressionBuilder builder;
 	  builder << p.getValue() << MiniMC::Model::Pointer::make(MiniMC::Model::pointer_t::makeNullPointer());
 	  builder.NEq ();
 	  for (auto& alloc : m.getBlock()) {
-	    builder << p.getValue()  << s.getValue();
+	    builder << p.getValue() << s.getValue();
 	    builder.PtrAdd ();
 	    builder << alloc.pointer;
-	    builder.SGe ();
+	    builder.SGe();
 
-	    builder << p.getValue() ;
+	    builder << p.getValue();
 	    builder << alloc.pointer << alloc.size;
-	    builder.PtrAdd ();
+	    builder.PtrAdd();
 	    builder.SLe ();
-	    builder.LogAnd();
-	    builder.LogNot();
 	    
+
 	    
 	    builder.LogAnd ();
+	    builder.LogNot ();
+
+	    builder.LogAnd();
 	  }
-	  //return Value::Bool{MiniMC::Model::Bool::make(true)};
 	  return Value::Bool{builder.get()};
 	}
-	Value::Pointer find_space(const Value::Memory&, const Value::I64&) const {return Value::Pointer{MiniMC::Model::Undef::make (MiniMC::Model::PointerType::get())};}
+	
+	Value::Pointer find_space(const Value::Memory&, const Value::I64&) const {
+	  MiniMC::Model::ExpressionBuilder builder;
+	  
+	  builder.I64(0);
+	  builder.I16 (static_cast<MiniMC::BV16>(MiniMC::Model::PointerSegments::Heap));
+	  builder.pushI64Type();
+	  builder.ZExt();
+	  builder.I64 (64-16);
+	  builder.LShl();
+	  builder.Or();
+	  builder << MiniMC::Model::Undef::make (MiniMC::Model::I16Type::get());
+	  builder.pushI64Type();
+	  builder.ZExt();
+	  builder.I64 (32);
+	  builder.LShl();
+	  builder.Or();
+	  
+	  builder.pushPointerType ();
+	  builder.BitCast();
+	  
+	  return Value::Pointer{builder.get()};
+	  //return Value::Pointer{MiniMC::Model::Undef::make (MiniMC::Model::PointerType::get())};
+	}
 	
 	Value::Memory free(const Value::Memory& m, const Value::Pointer&) const {
 	  return  m;

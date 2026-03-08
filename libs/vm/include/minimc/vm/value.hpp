@@ -334,9 +334,7 @@ namespace MiniMC {
       {sol.addConstraint (r)};
       {sol.push ()};
       {sol.pop ()};
-      
       {csol.check ()}->std::convertible_to<Feasibility>;
-      
       {csol.eval (v)}->std::convertible_to<MiniMC::Model::Constant_ptr>;
     };
 
