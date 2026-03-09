@@ -12,5 +12,5 @@ add_test(NAME MODEL_SIMPLIFY COMMAND simplifier)
 add_subdirectory (analysis)
 
 
-add_executable (visitor visitor.cpp)
-target_link_libraries (visitor model)
+#add_executable (visitor visitor.cpp)
+#target_link_libraries (visitor model)

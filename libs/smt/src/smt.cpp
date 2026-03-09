@@ -204,43 +204,43 @@ OPS
 	return context->getBuilder().buildTerm (SMTLib::Ops::Not, {translat});
       }
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::TruncExpr& expr) const {
-	auto fromType = expr.getFrom ().getType();
-	auto toType = expr.getToType();
+	auto fromType = expr.op1().getType();
+	auto toType = expr.toType();
 	std::size_t highbit = toType->getSize()*8 -1;
-	return context->getBuilder().buildTerm (SMTLib::Ops::Extract, {Translate(expr.getFrom())},{highbit,0});
+	return context->getBuilder().buildTerm (SMTLib::Ops::Extract, {Translate(expr.op1())},{highbit,0});
       }
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::BitCastExpr& expr) const {
-	return Translate(expr.getFrom());
+	return Translate(expr.op1());
       }
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::ZExtExpr& expr) const {
-	auto fromType = expr.getFrom ().getType();
-	auto toType = expr.getToType();  
+	auto fromType = expr.op1().getType();
+	auto toType = expr.toType();  
 	if (fromType->getTypeID() != MiniMC::Model::TypeID::Bool) {
 	  assert(fromType);
 	  assert(toType);
 	  std::size_t bits = toType->getSize()*8 - fromType->getSize()*8;
-	  return context->getBuilder().buildTerm(SMTLib::Ops::ZExt,{Translate(expr.getFrom())},{bits});
+	  return context->getBuilder().buildTerm(SMTLib::Ops::ZExt,{Translate(expr.op1())},{bits});
 	}
 	else {
 	  auto zeros = context->getBuilder().makeBVIntConst(0, toType->getSize()*8);
 	  auto ones = context->getBuilder().makeBVIntConst(1, toType->getSize()*8);
-	  auto res = context->getBuilder().buildTerm(SMTLib::Ops::ITE, {Translate(expr.getFrom()), ones, zeros});
+	  auto res = context->getBuilder().buildTerm(SMTLib::Ops::ITE, {Translate(expr.op1()), ones, zeros});
 	  return res;
 	  
 	}
       }
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::SExtExpr& expr) const {
-	auto fromType = expr.getFrom ().getType();
-	auto toType = expr.getToType();
+	auto fromType = expr.op1().getType();
+	auto toType = expr.toType();
 	if (fromType->getTypeID() != MiniMC::Model::TypeID::Bool) {
 	  std::size_t bits = toType->getSize()*8 - fromType->getSize()*8;
-	  return  context->getBuilder().buildTerm(SMTLib::Ops::SExt,{Translate(expr.getFrom())},{bits});
+	  return  context->getBuilder().buildTerm(SMTLib::Ops::SExt,{Translate(expr.op1())},{bits});
 	}
 	else {
 	  auto zeros = context->getBuilder().makeBVIntConst(0, toType->getSize()*8);
 	  auto ones = context->getBuilder().makeBVIntConst(~0, toType->getSize()*8);
-	  return context->getBuilder().buildTerm(SMTLib::Ops::ITE, {Translate(expr.getFrom()), ones, zeros});
+	  return context->getBuilder().buildTerm(SMTLib::Ops::ITE, {Translate(expr.op1()), ones, zeros});
 	  
 	}
 	    
@@ -262,8 +262,8 @@ OPS
 	auto& builder = context->getBuilder();
 	auto tt = builder.makeBoolConst(true);
 	auto ff = builder.makeBoolConst(false);
-        auto zeros = builder.makeBVIntConst(0, expr.getFrom().getType()->getSize()*8);
-        auto eq = builder.buildTerm(SMTLib::Ops::Equal, {Translate(expr.getFrom()), zeros});
+        auto zeros = builder.makeBVIntConst(0, expr.op1().getType()->getSize()*8);
+        auto eq = builder.buildTerm(SMTLib::Ops::Equal, {Translate(expr.op1()), zeros});
         return builder.buildTerm(SMTLib::Ops::ITE, {eq, ff,tt});
 	
       }

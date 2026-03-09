@@ -62,7 +62,7 @@ class Operand:
         return f"{self._name}{str}"
     
 class Instruction:
-    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False,typedescriptors = {},sizes = None, tempreplace = None):
+    def __init__(self,name, operands = [],assign = False,tempcreate = None,vm = False,typedescriptors = {},sizes = None, tempreplace = None,extratypes = None):
         self._name = name
         self._operands = operands
         self._assign = assign
@@ -71,6 +71,7 @@ class Instruction:
         self._types = typedescriptors 
         self._sizes = sizes
         self._tempreplace = tempreplace
+        self._extratypes = extratypes or []
         
     def getName (self):
         return self._name
@@ -103,6 +104,9 @@ class Instruction:
     def temp_creation (self):
         return self._tempcreate
 
+    def extratypes (self):
+        return self._extratypes
+    
     def isVM (self):
         return self._vm
     
@@ -212,8 +216,10 @@ def readISA (path):
                 assign_convertible = data.get("assign_convertible",False)
                 temp_create = data.get("template_construction",None)
                 temp_replace = data.get("replace_construction",None)
+                extratypes = data.get("extra_types",None)
+                
                 vm = data.get("vm",False)
-                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm,types,size,temp_replace))
+                instr.append (Instruction (opcode,ops,assign_convertible,temp_create,vm,types,size,temp_replace,extratypes))
             groups.append (InstructionGroup (gname,instr))
         return ISA(groups)
     

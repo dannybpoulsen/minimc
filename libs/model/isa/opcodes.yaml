@@ -461,7 +461,8 @@ Cast:
     size_constraints: BW(t2) >= BW(t1)
     vm: False
     assign_convertible: True
-    
+    extra_types:
+      - toType
   bitcast:
     opcode: BitCast
     params:
@@ -477,7 +478,9 @@ Cast:
     vm: False
     size_constraints: BW(t2) == BW(t1)
     assign_convertible: True
-    
+    extra_types:
+      - toType
+
   zext:
     opcode: ZExt
     params:
@@ -494,7 +497,8 @@ Cast:
     size_constraints: BW(t2) <= BW(t1)
     vm: False
     assign_convertible: True
-    
+    extra_types:
+      - toType
     
   sext:
     opcode: SExt
@@ -512,7 +516,9 @@ Cast:
     size_constraints: BW(t2) <= BW(t1)
     vm: False
     assign_convertible: True  
-    
+    extra_types:
+      - toType
+
   ptrtoint:
     opcode: PtrToInt
     params:
@@ -527,7 +533,9 @@ Cast:
         - Pointer
     vm: False
     assign_convertible: True
-    
+    extra_types:
+      - toType
+
   inttoptr:
     opcode: IntToPtr
     params:
@@ -542,7 +550,9 @@ Cast:
         - Pointer
     vm: False
     assign_convertible: True
-    
+    extra_types:
+      - toType
+
   BoolZExt:
     opcode: BoolZExt
     params:
@@ -592,7 +602,8 @@ Cast:
         - Bool
     vm: False
     assign_convertible: True
-    
+    extra_types:
+      - toType
     
 memory:
   findspace:

@@ -280,15 +280,14 @@ namespace MiniMC {
 
       {%macro cast_instruction(i) %}
 	MiniMC::Model::Type_ptr  TypeChecker::operator() ({{i.getName()}}Expr& expr)  const {
-	{%for o in i.getNonResOperands () %}MiniMC::Model::Type_ptr {{o}}_ty = CheckType(expr.getFrom ());	
+	{%for o in i.getNonResOperands () %}MiniMC::Model::Type_ptr {{o}}_ty = CheckType(expr.{{o}}());	
         {%endfor %}
 	
 
 	{%for t,tp in i.getTypes ().items() %}
-	  {%for o in tp.NonResoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = {{o.getName ()}}_ty; 
-	  {%endif %}
+	  {%for o in tp.NonResoperands () %} MiniMC::Model::Type_ptr {{t}} = {{o.getName ()}}_ty;
 	  {%endfor%}
-	  {%for o in tp.Resoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = expr.getToType (); 
+	  {%for o in tp.Resoperands () %}{%if loop.first %} MiniMC::Model::Type_ptr {{t}} = expr.toType(); 
 	  {%endif %}
 	  {%endfor %}
 	{%if tp.NonResoperands() | length > 0 %} 
@@ -305,7 +304,7 @@ namespace MiniMC {
 	
 	
 	
-	expr.setType (expr.getToType ());
+	expr.setType (expr.toType ());
 	return expr.getType();
 	}
       {%endmacro %}

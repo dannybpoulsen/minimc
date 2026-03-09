@@ -186,7 +186,7 @@ namespace MiniMC {
       std::generator<Value> operator() (const MiniMC::Model::TruncExpr& trunc) const  {
 	auto visitor = MiniMC::Support::Overload {
 	  [&trunc,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-	    switch (trunc.getToType()->getTypeID ()) {
+	    switch (trunc.toType()->getTypeID ()) {
 	    case MiniMC::Model::TypeID::I8:
 	    return ExecTrunc<T,MiniMC::Model::TypeID::I8> (b);
 	    case MiniMC::Model::TypeID::I16:
@@ -205,7 +205,7 @@ namespace MiniMC {
 
 	auto transform = [&visitor](Value v) -> Value {return Value::visit (visitor,v);};
 	
-	for (Value v :  MEval(trunc.getFrom ()))
+	for (Value v :  MEval(trunc.op1 ()))
 	  co_yield transform (v);	
       }
 
@@ -221,10 +221,10 @@ namespace MiniMC {
       }
 
       std::generator<Value> operator() (const MiniMC::Model::ZExtExpr& zext) const  {
-	for (auto v: MEval (zext.getFrom ())) {
+	for (auto v: MEval (zext.op1 ())) {
 	  co_yield  Value::visit (MiniMC::Support::Overload {
 	      [&zext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-		switch (zext.getToType()->getTypeID ()) {
+		switch (zext.toType()->getTypeID ()) {
 		case MiniMC::Model::TypeID::I8:
 		return ExecZExt<T,MiniMC::Model::TypeID::I8> (b);
 		case MiniMC::Model::TypeID::I16:
@@ -240,7 +240,7 @@ namespace MiniMC {
 	      },
 	      
 		[&zext,this](const typename Value::Bool& b) ->Value  {
-		  switch (zext.getToType()->getTypeID()) {
+		  switch (zext.toType()->getTypeID()) {
 		  case MiniMC::Model::TypeID::I8:
 		    return ops.template ZExt<MiniMC::Model::TypeID::I8>(b);
 		  case MiniMC::Model::TypeID::I16:
@@ -274,10 +274,10 @@ namespace MiniMC {
       }
       
       std::generator<Value> operator() (const MiniMC::Model::SExtExpr& sext) const  {
-	for (auto v : MEval (sext.getFrom ())) {
+	for (auto v : MEval (sext.op1 ())) {
 	  co_yield Value::visit (MiniMC::Support::Overload {
 	      [&sext,this]<typename T>(const T& b) ->Value requires Integer<Value,T> {
-		switch (sext.getToType()->getTypeID ()) {
+		switch (sext.toType()->getTypeID ()) {
 		case MiniMC::Model::TypeID::I8:
 		return ExecSExt<T,MiniMC::Model::TypeID::I8> (b);
 		case MiniMC::Model::TypeID::I16:
@@ -293,7 +293,7 @@ namespace MiniMC {
 	      },
 		
 		[&sext,this](const typename Value::Bool& b) ->Value  {
-		  switch (sext.getToType()->getTypeID()) {
+		  switch (sext.toType()->getTypeID()) {
 		  case MiniMC::Model::TypeID::I8:
 		    return ops.template SExt<MiniMC::Model::TypeID::I8>(b);
 		  case MiniMC::Model::TypeID::I16:
@@ -331,7 +331,7 @@ namespace MiniMC {
       }
       
       std::generator<Value> operator() (const MiniMC::Model::IntToBoolExpr& sext) const  {
-	for (auto v : MEval (sext.getFrom ())) {
+	for (auto v : MEval (sext.op1 ())) {
 	  co_yield Value::visit (  MiniMC::Support::Overload {
 	      [this]<typename T> (const T v)->Value requires Integer<Value,T> {return ops.IntToBool (v);},
 		MiniMC::Support::Error<Value>{}
@@ -342,7 +342,7 @@ namespace MiniMC {
       }
       
       std::generator<Value> operator() (const MiniMC::Model::IntToPtrExpr& sext) const  {
-	for (auto v : MEval (sext.getFrom ())) {
+	for (auto v : MEval (sext.op1 ())) {
 	  co_yield 
 	    Value::visit ( MiniMC::Support::Overload {
 		[this](const  typename Value::I8& i8)->Value  {
@@ -368,11 +368,11 @@ namespace MiniMC {
       }
 
       std::generator<Value> operator() (const MiniMC::Model::PtrToIntExpr& sext) const  {
-	for (auto v : MEval (sext.getFrom ())) {
+	for (auto v : MEval (sext.op1 ())) {
 	  co_yield Value::visit (  MiniMC::Support::Overload {
 	      [this,&sext](const typename Value::Pointer& val)->Value  {
 		auto i64 = ops.template BitCast<typename Value::I64> (val);
-		switch (sext.getToType ()->getTypeID ()) {
+		switch (sext.toType ()->getTypeID ()) {
 		case MiniMC::Model::TypeID::I8:
 		  return ops.template Trunc<MiniMC::Model::TypeID::I8> (i64);
 		case MiniMC::Model::TypeID::I16:
@@ -388,7 +388,7 @@ namespace MiniMC {
 		[this,&sext](const typename Value::Pointer32& val)->Value  {
 		  auto i32 = ops.template BitCast<typename Value::I32> (val);
 		  
-		  switch (sext.getToType ()->getTypeID ()) {
+		  switch (sext.toType ()->getTypeID ()) {
 		  case MiniMC::Model::TypeID::I8:
 		    return ops.template Trunc<MiniMC::Model::TypeID::I8> (i32);
 		  case MiniMC::Model::TypeID::I16:

@@ -79,29 +79,30 @@ public:
    	return replacer(r);
    }
 
-   {%for g in ISA.getGroups () %} 
+ {%for g in ISA.getGroups () %} 
    {% for i in g.getPseudoInstructions () %}
-   {%if i.temp_replace () %}
-   {{i.temp_replace()}}
-   {%elif g.getName () != "Cast" %} 
-   {%if i.isAssignConvertible () %}
-   Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
-   	     return std::make_shared<{{i.getName()}}Expr> ({%for o in i.getNonResOperands () %}Replace(expr.{{o.getName()}}()) {%if not loop.last %},{%endif%} {%endfor %} );
+     {%if i.temp_replace () %}
+       {{i.temp_replace()}}
+     {%elif i.isAssignConvertible () %}
+       Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
+       return std::make_shared<{{i.getName()}}Expr> ({%for o in i.getNonResOperands () %}Replace(expr.{{o.getName()}}()) {%if not loop.last %},{%endif%} {%endfor %}   {%if i.extratypes () | length > 0 %}
+    ,
+    {%for o in i.extratypes () %}
+      expr.{{o}} ()
+      {%if not loop.last %},{%endif %}
+    {% endfor %}
+  {%endif %}
+ );
    	     //	 throw MiniMC::Support::Exception ("Cannot copy {{i.getName ()}}Expr");
-   }
-   {%endif %}
+       }
+
    
-   {%elif not i.temp_creation() %}
-   Value_ptr operator() ({{i.getName()}}Expr&  expr) const  {
-   	     return std::make_shared<{{i.getName()}}Expr> (Replace (expr.getFrom ()),expr.getToType () );
-   	     //	 throw MiniMC::Support::Exception ("Cannot copy {{i.getName ()}}Expr");
-   }
+      
+    {%endif %}
+    
+  {%endfor %}
    
-   {%endif %}
-   
-   {%endfor %}
-   
-   {% endfor %}
+ {% endfor %}
    
 
 private:

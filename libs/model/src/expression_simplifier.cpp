@@ -78,10 +78,10 @@ namespace MiniMC {
     
     MiniMC::Model::Value_ptr
     ExprSimplifier::operator()(MiniMC::Model::TruncExpr& i) const {
-      auto op1 = Simplify (i.getFrom());
+      auto op1 = Simplify (i.op1());
       return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
 	  [&i]<typename T>(T& l)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> {
-	    switch (i.getToType()->getTypeID ()) {
+	    switch (i.toType()->getTypeID ()) {
 	    case MiniMC::Model::TypeID::I8:
 	    return MiniMC::Model::I8Integer::make (trunc_checked<typename T::underlying_type,MiniMC::Model::I8Integer::underlying_type> (l.getValue ()));
 	    case MiniMC::Model::TypeID::I16:
@@ -97,17 +97,17 @@ namespace MiniMC {
 	    
 	  },								
 	    [&op1,&i](auto&)->MiniMC::Model::Value_ptr{
-	      return MiniMC::Model::makeExpr<MiniMC::Model::TruncExpr> (op1,i.getToType());} 
+	      return MiniMC::Model::makeExpr<MiniMC::Model::TruncExpr> (op1,i.toType());} 
 	    },
 	*op1
 	);
       
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::ZExtExpr& i) const {
-      auto op1 = Simplify (i.getFrom());
+      auto op1 = Simplify (i.op1());
       return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
 	  [&i]<typename T>(T& l)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> {
-	    switch (i.getToType()->getTypeID ()) {
+	    switch (i.toType()->getTypeID ()) {
 	    case MiniMC::Model::TypeID::I8:
 	    return MiniMC::Model::I8Integer::make (zext_checked<typename T::underlying_type,MiniMC::Model::I8Integer::underlying_type> (l.getValue ()));
 	    case MiniMC::Model::TypeID::I16:
@@ -123,17 +123,17 @@ namespace MiniMC {
 	    
 	  },								
 	    [&op1,&i](auto&)->MiniMC::Model::Value_ptr{
-	      return MiniMC::Model::makeExpr<MiniMC::Model::ZExtExpr> (op1,i.getToType());} 
+	      return MiniMC::Model::makeExpr<MiniMC::Model::ZExtExpr> (op1,i.toType());} 
 	    },
 	*op1
 	);
       
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::SExtExpr& i) const {
-      auto op1 = Simplify (i.getFrom());
+      auto op1 = Simplify (i.op1 ());
       return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
 	  [&i]<typename T>(T& l)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> {
-	    switch (i.getToType()->getTypeID ()) {
+	    switch (i.toType()->getTypeID ()) {
 	    case MiniMC::Model::TypeID::I8:
 	    return MiniMC::Model::I8Integer::make (sext_checked<typename T::underlying_type,MiniMC::Model::I8Integer::underlying_type> (l.getValue ()));
 	    case MiniMC::Model::TypeID::I16:
@@ -148,7 +148,7 @@ namespace MiniMC {
 	    
 	  },								
 	    [&op1,&i](auto&)->MiniMC::Model::Value_ptr{
-	      return MiniMC::Model::makeExpr<MiniMC::Model::SExtExpr> (op1,i.getToType());} 
+	      return MiniMC::Model::makeExpr<MiniMC::Model::SExtExpr> (op1,i.toType());} 
 	    },
 	*op1
 	);
@@ -262,15 +262,15 @@ namespace MiniMC {
       
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::BitCastExpr& i) const {
-      return MiniMC::Model::makeExpr<MiniMC::Model::BitCastExpr> (Simplify (i.getFrom()),i.getToType());
+      return MiniMC::Model::makeExpr<MiniMC::Model::BitCastExpr> (Simplify (i.op1()),i.toType());
       
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::PtrToIntExpr& i) const {
-      return MiniMC::Model::makeExpr<MiniMC::Model::PtrToIntExpr> (Simplify (i.getFrom()),i.getToType());
+      return MiniMC::Model::makeExpr<MiniMC::Model::PtrToIntExpr> (Simplify (i.op1()),i.toType());
      
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::IntToPtrExpr& i) const {
-      return MiniMC::Model::makeExpr<MiniMC::Model::IntToPtrExpr> (Simplify (i.getFrom()),i.getToType());
+      return MiniMC::Model::makeExpr<MiniMC::Model::IntToPtrExpr> (Simplify (i.op1()),i.toType());
       
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::StoreExpr& i) const {

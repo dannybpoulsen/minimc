@@ -1,10 +1,19 @@
 
      #include <concepts>
      #include "minimc/support/feedback.hpp"
-{% for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Pointer","memory"]) %}
+{% for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Cast","Unary","Pointer","memory"]) %}
      class {{N.getName()}}Expr : public Value {
      	   public:
-     	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %});
+     	   {{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}
+  {%if N.extratypes () | length > 0 %}
+    ,
+    {%for o in N.extratypes () %}
+      Type_ptr {{o}}
+      {%if not loop.last %},{%endif %}
+    {% endfor %}
+  {%endif %}
+	   
+);
 	   {%for o in N.getNonResOperands () %}
 	   auto& {{o.getName()}} () { return *_{{o.getName()}};}
 	   const auto& {{o.getName()}}  ()const  { return *_{{o.getName()}};}
@@ -15,20 +24,30 @@
 	   	return os << "(" << "{{N.getName()}}" <<  {%for o in N.getNonResOperands () %} *_{{o.getName ()}} << {%endfor%} ")";
       	   }		
       
+           {%for o in N.extratypes () %}
+
+	    auto& {{o}} () { return _{{o}};}
+	   const auto& {{o}}  ()const  { return _{{o}};}
+	   
+	   {%endfor%}
+	   
 
 	   private:
 
 	   {%for o in N.getNonResOperands () %}
 	   Value_ptr _{{o.getName()}};
 	   {%endfor%}
-	   
+	   {%for o in N.extratypes () %}
+	   Type_ptr _{{o}};
+	   {%endfor%}
+	      
      };
 
      {%endfor %}
 
      
 
-    enum class CastOps {
+  /*  enum class CastOps {
      {% for N in ISA.getExpressionsFromGroups (["Cast"]) %}{{N.getName()}} {% if not loop.last %}, {%endif %}
      {% endfor %}    	 	 
     };
@@ -59,7 +78,7 @@
 	MiniMC::Model::Value_ptr from_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
-
+    */
     class ExtractValueExpr : public Value {
     public:
 	ExtractValueExpr (Value_ptr aggr, Value_ptr off, Type_ptr type);
@@ -160,7 +179,7 @@ private	:
 	MiniMC::Model::Value_ptr _conv;
     };  
 
-    using Bool = TConstant<MiniMC::BV8, true>;
+     using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
     using I16Integer = TConstant<MiniMC::BV16>;
     using I32Integer = TConstant<MiniMC::BV32>;
@@ -189,10 +208,10 @@ private	:
     template<>   
     inline Type_ptr TConstant<MiniMC::Model::pointer32_t,false>::_inner_type () {return MiniMC::Model::Pointer32Type::get();}
     	   
-
+/*
    {% for N in ISA.getExpressionsFromGroups(["Cast"]) %}using {{N.getName()}}Expr = CastExpression<CastOps::{{N.getName()}}>;
    {% endfor %}
-   
+  */ 
 
 template<class... Args>      
 struct AutoIndexer {
@@ -252,15 +271,29 @@ public:
 	    setType(type);
     }
 
-    {% for N in ISA.getExpressionsFromGroups (["TAC","Comparison","Unary","Pointer","memory"])%}
+    {% for N in ISA.getExpressionsFromGroups (["TAC","Cast","Comparison","Unary","Pointer","memory"])%}
        
-    inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}) : Value(ValueInfo::type_t<{{N.getName()}}Expr>()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {}
+    inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}  {%if N.extratypes () | length > 0 %}
+    ,
+    {%for o in N.extratypes () %}
+      Type_ptr {{o}}
+      
+      {%if not loop.last %},{%endif %}
+    {% endfor %}
+  {%endif %}
+) : Value(ValueInfo::type_t<{{N.getName()}}Expr>()){%if N.getNonResOperands ()|length > 0 %}, {%for o in N.getNonResOperands () %} _{{o.getName()}}({{o.getName()}}) {%if not loop.last %},{%endif%}{%endfor %} {%endif %}  {%if N.extratypes () | length > 0 %}
+    ,
+    {%for o in N.extratypes () %}
+      _{{o}}({{o}})
+      {%if not loop.last %},{%endif %}
+    {% endfor %}
+  {%endif %}  {}
 
     {%endfor %}
 
-    template<CastOps c>
+    /*template<CastOps c>
     inline CastExpression<c>::CastExpression (MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<CastExpression<c>> ()),from_expr(v),to_type(to) {}
-    
+    */
     inline LoadExpr::LoadExpr (MiniMC::Model::Value_ptr mem,MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to) : Value(ValueInfo::type_t<LoadExpr> ()),addr_expr(v),mem_expr(mem),to_type(to) {}
 
     inline StoreExpr::StoreExpr (MiniMC::Model::Value_ptr storeto,MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee) : Value(ValueInfo::type_t<StoreExpr> ()),store_to_expr(storeto),addr_expr(addr),_storee(storee) {}
