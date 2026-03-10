@@ -277,7 +277,7 @@ namespace MiniMC {
       return MiniMC::Model::makeExpr<MiniMC::Model::StoreExpr> (Simplify(i.storeto()),Simplify (i.addr()),Simplify(i.storee()));
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::LoadExpr& i) const {
-      return MiniMC::Model::makeExpr<MiniMC::Model::LoadExpr> (Simplify(i.mem()),Simplify (i.addr()),i.getToType());
+      return MiniMC::Model::makeExpr<MiniMC::Model::LoadExpr> (Simplify(i.mem()),Simplify (i.addr()),i.loadType());
     }
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::IntToBoolExpr& i) const {return i.shared_from_this();}
     

@@ -331,7 +331,7 @@ namespace MiniMC {
 	CheckType (expr.mem());
 	MiniMC::Model::Type_ptr res = nullptr;
 	if (lty->getTypeID () == MiniMC::Model::TypeID::Pointer ) {
-	  res = expr.getToType();
+	  res = expr.loadType();
 	}
 	else {
 	  messager << MustBePointerExpr{expr.addr()};

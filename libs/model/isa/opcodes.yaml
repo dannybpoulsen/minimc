@@ -11,6 +11,7 @@ TAC:
     types:
       t1:
         - Integer
+    vm: False
     assign_convertible: True
   land:
     opcode: LogAnd
@@ -23,7 +24,9 @@ TAC:
         type: t1
     types:
       t1:
-        - Bool    
+        - Bool
+    vm: False
+    
     assign_convertible: True 
   sub:
     opcode: Sub
@@ -37,6 +40,7 @@ TAC:
     types:
       t1:
         - Integer
+    vm: False
     assign_convertible: True
   mul:
     opcode: Mul
@@ -50,6 +54,7 @@ TAC:
     types:
       t1:
         - Integer
+    vm: False
     assign_convertible: True
 
   udiv:
@@ -64,6 +69,7 @@ TAC:
     types:
       t1:
         - Integer
+    vm: False
     assign_convertible: True
 
   sdiv:
@@ -79,7 +85,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
 
   Shl:
     opcode: LShl
@@ -94,7 +101,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   lshr:
     opcode: LShr
     params:
@@ -108,7 +116,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   ashr:
     opcode: AShr
     params:
@@ -122,7 +131,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
       
   and:
     opcode: And
@@ -137,7 +147,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   or:
     opcode: Or
     params:
@@ -151,7 +162,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
 
   xor:
     opcode: Xor
@@ -166,7 +178,8 @@ TAC:
       t1:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
 Unary:
   not:
     opcode: Not
@@ -179,6 +192,8 @@ Unary:
       t1:
         - Integer
     assign_convertible: True
+    vm: False
+    
   lnot:
     opcode: LogNot
     params:
@@ -190,7 +205,8 @@ Unary:
       t1:
         - Bool    
     assign_convertible: True
-
+    vm: False
+    
 Comparison:
   isgt:
     opcode: SGt
@@ -207,7 +223,8 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
-  
+    vm: False
+    
   iugt:
     opcode: UGt
     params:
@@ -223,7 +240,8 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
-  
+    vm: False
+    
 
   isge:
     opcode: SGe
@@ -240,7 +258,8 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   iuge:
     opcode: UGe
     params:
@@ -256,6 +275,7 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
+    vm: False
     
   islt:
     opcode: SLt
@@ -272,7 +292,8 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   iult:
     opcode: ULt
     params:
@@ -304,7 +325,8 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
-
+    vm: False
+    
   iule:
     opcode: ULe
     params:
@@ -320,6 +342,7 @@ Comparison:
       t2:
         - Integer
     assign_convertible: True
+    vm: False
     
   ieq:
     opcode: Eq
@@ -337,7 +360,8 @@ Comparison:
         - Integer
         - Pointer
     assign_convertible: True
-
+    vm: False
+    
 
   ineq:
     opcode: NEq
@@ -355,7 +379,8 @@ Comparison:
         - Integer
         - Pointer
     assign_convertible: True
-
+    vm: False
+    
 Pointer:
   ptradd: 
     opcode: PtrAdd
@@ -723,6 +748,7 @@ memory:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::ValidPointerExpr> (std::get<1>(tup),std::get<2>(tup));
       return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
+
 loadstore:  
   store:
     opcode: Store
@@ -753,7 +779,7 @@ loadstore:
     params:
       - name: res
         type: t1
-      - name: memory
+      - name: mem
         type: t3 
       - name: addr
         type: t2
@@ -764,17 +790,14 @@ loadstore:
         - Pointer
       t3:
         - Memory
+    extra_types:
+        - loadType
     vm: False
     assign_convertible: True
     template_construction:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::LoadExpr> (std::get<1>(tup),std::get<2>(tup),std::get<0>(tup)->getType());
-      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);
-    replace_construction:
-      Value_ptr operator() (LoadExpr&  expr) const  {
-      return std::make_shared<LoadExpr> (Replace(expr.mem()),Replace(expr.addr()),expr.getToType());
-      }
-      
+      return make<VMInstructionCode::Assign> (std::get<0>(tup),expr);  
 Internal:
   skip:
     opcode: Skip

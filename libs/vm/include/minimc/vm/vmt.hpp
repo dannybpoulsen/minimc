@@ -560,7 +560,7 @@ OPSI
 	    auto pointer = convertToPointer (a);
 	    co_yield Value::visit (  MiniMC::Support::Overload {
 		[this,&load,&pointer] (const typename Value::Memory& m) -> Value{
-		  switch (load.getToType()->getTypeID ()) {
+		  switch (load.loadType()->getTypeID ()) {
 		  case MiniMC::Model::TypeID::I8:
 		    return  doIntegerLoad<typename Value::I8, MiniMC::Model::I8Integer,MiniMC::Model::TypeID::I8> (pointer,m);
 		  case MiniMC::Model::TypeID::I16:
@@ -579,8 +579,8 @@ OPSI
 		    return ops.template BitCast<typename Value::Pointer32> (integer);
 		  }
 		  case MiniMC::Model::TypeID::Aggregate: {
-		    auto aggr = ops.create (MiniMC::Model::AggregateConstant {MiniMC::Util::Array (load.getToType()->getSize())});
-		    for (auto [index,b]: std::views::enumerate(regstore.loadBytes (pointer,m,load.getToType()->getSize()))) {
+		    auto aggr = ops.create (MiniMC::Model::AggregateConstant {MiniMC::Util::Array (load.loadType()->getSize())});
+		    for (auto [index,b]: std::views::enumerate(regstore.loadBytes (pointer,m,load.loadType()->getSize()))) {
 		      aggr = ops.InsertBaseValue (aggr,index,b);
 		    }
 		    

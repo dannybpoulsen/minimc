@@ -98,6 +98,11 @@ namespace MiniMC {
         return instr.insert(erase(repl), beg, end);
       }
 
+      template <class Iterator>
+      auto insert(iterator repl, Iterator beg, Iterator end) {
+        return instr.insert(repl, beg, end);
+      }
+      
       std::ostream& output (std::ostream& os) const  {
 	return os << instr;
       }

@@ -349,7 +349,7 @@ OPS
       }
       
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::LoadExpr& e) const {
-	auto type = e.getToType();
+	auto type = e.loadType();
 	auto addr = Translate(e.addr());
 	auto mem = Translate(e.mem());
 	if (type->getTypeID() == MiniMC::Model::TypeID::I8) {

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "minimc/model/instructions.hpp"
 #include "minimc/model/modifications/instrument_loads.hpp"
 #include "minimc/model/variables.hpp"
@@ -8,20 +10,36 @@ namespace MiniMC {
   namespace Model {
     namespace Modifications {
       bool InstrumentLoads::runFunction(const MiniMC::Model::Function_ptr& F) {
-	auto frame = F->getFrame ();
-	//MiniMC::Model::LocationInfoCreator locc(F->getRegisterDescr ());
 	auto& cfg = F->getCFA();
-	MiniMC::Support::WorkingList<MiniMC::Model::Edge_ptr> wlist;
-	auto inserter = wlist.inserter();
-	std::for_each(cfg.getEdges().begin(),
-                        cfg.getEdges().end(),
-		      [&](const MiniMC::Model::Edge_ptr& e) { inserter = e; });
-	auto info = MiniMC::Model::LocationInfo{{MiniMC::Model::Attributes::AssertViolated},F->getRegisterDescr(),F->getFrame()};
-	auto eloc = cfg.makeLocation(frame.makeFresh ("Assert"),info);
-	eloc->getInfo().getFlags () |= MiniMC::Model::Attributes::AssertViolated;
-
-	throw MiniMC::Support::Exception ("Load Instrumentation not implemented");
-
+	for (auto& e : cfg.getEdges()) {
+	  
+	  auto& instr = e->getInstructions();
+	  auto it = instr.begin();
+	  for (; it != instr.end();++it) {
+	    InstructionStream stream;
+	    
+	    it->visitExpressions ([&stream](auto& expr) {
+	      visitSubExpressions (MiniMC::Support::Overload {
+		  [&stream](MiniMC::Model::LoadExpr& load) {
+		    MiniMC::Model::ExpressionBuilder builder;
+		    (builder << load.mem().shared_from_this() << load.addr().shared_from_this()).ValidPointer();
+		    stream.add<VMInstructionCode::Assert> (builder.get());
+		  },
+		    MiniMC::Support::Ignore {}
+		}
+		, *expr);
+	      
+	    }
+	      
+	      ); 
+	    
+	    it = instr.insert (it,stream.begin(),stream.end());
+	    
+	  }
+	  
+	}
+	     
+	
 	return true;
       }
       

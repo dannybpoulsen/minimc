@@ -412,9 +412,29 @@ template<VMInstructionCode>
 
       template<VMInstructionCode c>
       auto& getAs () const {return std::get<TInstruction<c>> (internal);}
-      
+
       auto  visit (auto v) const {return std::visit(v,internal);}
-      
+
+       template<class F>
+       void visitExpressions (F f) {
+       this->visit (
+       MiniMC::Support::Overload {
+	     {%for i in ISA.getVMInstructions() %}	
+	       [f](const TInstruction<VMInstructionCode::{{i.getName()}}>& i) {
+	       {%for o in i.getNonResOperands() %}
+		    {%if not o.isMultiParam() %}
+		      f(i.getOps().{{o.getName()}});
+		      {%endif %} 
+		  {%endfor %}
+	       }
+	       {%if not loop.last %},{%endif%}
+	     {%endfor %}
+
+	  }
+	  );
+	  }
+
+	  
       /** 
        * Write a textual representation to \p os
        *
@@ -442,6 +462,9 @@ template<VMInstructionCode>
 
     
     std::ostream& operator<<(std::ostream& os, const std::vector<Instruction>& str);
-
-
       
+ {%for g in ISA.getGroups () %} 
+   {% for i in g.getVMInstructions () %}	
+      // {{i.getName()}}
+   {%endfor %}
+{%endfor %}

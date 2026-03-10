@@ -160,6 +160,11 @@ class ISA:
         for i in self._groups:
             yield from [j for j in i.getInstructions () if not  j.isVM ()]
 
+    def getVMInstructions (self):
+        for i in self._groups:
+            yield from [j for j in i.getInstructions () if  j.isVM ()]
+    
+            
     def getPseudoGroupedInstructions (self):
         for i in self._groups:
             yield from [(i,j) for j in i.getInstructions () if not  j.isVM ()]
