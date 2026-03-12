@@ -12,11 +12,10 @@ namespace MiniMC {
       bool InstrumentLoads::runFunction(const MiniMC::Model::Function_ptr& F) {
 	auto& cfg = F->getCFA();
 	for (auto& e : cfg.getEdges()) {
-	  
+	  InstructionStream stream;
 	  auto& instr = e->getInstructions();
 	  auto it = instr.begin();
 	  for (; it != instr.end();++it) {
-	    InstructionStream stream;
 	    
 	    it->visitExpressions ([&stream](auto& expr) {
 	      visitSubExpressions (MiniMC::Support::Overload {
@@ -33,10 +32,10 @@ namespace MiniMC {
 	      
 	      ); 
 	    
-	    it = instr.insert (it,stream.begin(),stream.end());
 	    
 	  }
-	  
+	  instr.insert (instr.begin(),stream.begin(),stream.end());
+	    
 	}
 	     
 	

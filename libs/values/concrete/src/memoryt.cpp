@@ -64,6 +64,13 @@ namespace MiniMC {
 	bool is_free (MiniMC::Model::pointer_t pointer) {
 	  return !entries.count(pointer) && MiniMC::Model::getOffset (pointer)==0;
 	}
+
+	bool valid (MiniMC::Model::pointer_t pointer) {
+	  auto base = MiniMC::Model::getBase(pointer);
+	  auto base_pointer = MiniMC::Model::pointer_t::makeHeapPointer (base,0);
+	  
+	  return entries.count(base_pointer) && MiniMC::Model::getOffset (pointer) < entries.at(base_pointer).size() && entries.at(base_pointer).state == EntryState::InUse ;
+	}
 	
         std::unordered_map<MiniMC::Model::pointer_t, HeapEntry> entries;
 	std::vector<MiniMC::Model::pointer_t> allocated_ptrs;
@@ -180,8 +187,8 @@ namespace MiniMC {
       }
 
 
-      Value::Bool Memory::valid_pointer(const MemoryValue&, const Value::Pointer&) const  {
-	throw MiniMC::Support::Exception ("Valid_pointer not implemented");
+      Value::Bool Memory::valid_pointer(const MemoryValue& mem, const Value::Pointer& p) const  {
+	return Value::Bool{mem.getInternal().valid(p.getValue()) };
       }
 	
       

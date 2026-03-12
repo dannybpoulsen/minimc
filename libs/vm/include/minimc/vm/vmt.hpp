@@ -210,6 +210,21 @@ namespace MiniMC {
       }
 
 
+      std::generator<Value> operator() (const MiniMC::Model::ValidPointerExpr& valid_ptr) const  {
+	for (auto m: MEval (valid_ptr.memory ())) {
+	  for (auto p: MEval (valid_ptr.pointer ())) {
+	    co_yield  Value::visit (MiniMC::Support::Overload {
+		[this](const Value::Memory& mem, const Value::Pointer& ptr) {
+		  return regstore.valid_pointer(mem,ptr);
+		},
+		MiniMC::Support::Error<Value> {}	
+	      }
+	      ,m,p);
+	  }
+	}
+	
+      }
+      
       template<typename T, MiniMC::Model::TypeID To>
       Value ExecZExt (T from) const {
 	if constexpr (Value::template bitsize<T> () <= MiniMC::Model::BitWidth<To>) {
