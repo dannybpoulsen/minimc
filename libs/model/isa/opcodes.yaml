@@ -906,6 +906,7 @@ AssertAssume:
     types:
       t1:
         - Bool
+    vm: False
     template_construction:
       auto tup = std::make_tuple (args...);
       auto expr = std::make_shared<MiniMC::Model::LogNotExpr> (std::get<0> (tup));

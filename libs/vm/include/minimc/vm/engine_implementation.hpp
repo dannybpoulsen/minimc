@@ -8,6 +8,7 @@
 #include "minimc/vm/value.hpp"
 #include "minimc/vm/vmt.hpp"
 #include "minimc/support/overload.hpp"
+#include "vmt.hpp"
 
 #include <iostream>
 #include <ranges>
@@ -301,10 +302,16 @@ namespace MiniMC {
       worklist.push_back (nstate);
       for (it = instr.begin(); it != end;  ++it) {
 	std::vector<std::shared_ptr<State>> newlist;
-	for (auto cstate : worklist)
-	  for (auto state :  it->visit ([this,&cstate,id](auto& t) {return _impl->template runInstruction (t, *cstate,id);})) {
-	    newlist.push_back (state);
+	for (auto cstate : worklist) {
+	  if (cstate->isSet (MiniMC::VMT::FlagType::AssertViolated)) {
+	    newlist.push_back (cstate);
 	  }
+	  else {
+	    for (auto state :  it->visit ([this,&cstate,id](auto& t) {return _impl->template runInstruction (t, *cstate,id);})) {
+	      newlist.push_back (state);
+	    }
+	  }
+	}
 	std::swap(worklist,newlist);
 	newlist.clear();
       }

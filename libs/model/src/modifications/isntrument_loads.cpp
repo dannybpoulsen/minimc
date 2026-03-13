@@ -23,7 +23,16 @@ namespace MiniMC {
 		    MiniMC::Model::ExpressionBuilder builder;
 		    (builder << load.mem().shared_from_this() << load.addr().shared_from_this()).ValidPointer();
 		    stream.add<VMInstructionCode::Assert> (builder.get());
+		    (builder << load.mem().shared_from_this() << load.addr().shared_from_this()).I64(load.loadType()->getSize()).PtrAdd().ValidPointer();
+		    stream.add<VMInstructionCode::Assert> (builder.get());
 		  },
+		    [&stream](MiniMC::Model::StoreExpr& store) {
+		    MiniMC::Model::ExpressionBuilder builder;
+		    (builder << store.storeto().shared_from_this() << store.addr().shared_from_this()).ValidPointer();
+		    stream.add<VMInstructionCode::Assert> (builder.get());
+		    (builder << store.storeto().shared_from_this() << store.addr().shared_from_this()).I64(store.storee().getType()->getSize()).PtrAdd().ValidPointer();
+		    stream.add<VMInstructionCode::Assert> (builder.get());
+		    },
 		    MiniMC::Support::Ignore {}
 		}
 		, *expr);

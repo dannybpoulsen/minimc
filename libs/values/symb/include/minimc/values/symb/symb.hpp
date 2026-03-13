@@ -506,7 +506,18 @@ namespace MiniMC {
 	}
 
 	Value::Bool valid_pointer(const Value::Memory& m, const Value::Pointer& p) const {
-	  throw MiniMC::Support::Exception ("Valid_pointer not implemented");
+	  MiniMC::Model::ExpressionBuilder builder;
+	  builder << std::make_shared<MiniMC::Model::Bool> (true);
+	  for (auto& alloc : m.getBlock()) {
+	    (builder << p.getValue () << alloc.pointer).SLt ();
+	    (builder << p.getValue() << alloc.pointer << alloc.size).PtrAdd ().SGt ();
+	    builder.LogAnd().LogNot();
+	    builder.LogAnd();
+	  }
+
+	  builder.LogNot();
+	  return Value::Bool{builder.get()};
+	  
 	}
 	Value::Bool checkFree(const Value::Memory& m, const Value::Pointer& p, const Value::I64& s) const {
 	  MiniMC::Model::ExpressionBuilder builder;

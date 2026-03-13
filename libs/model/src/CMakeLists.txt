@@ -23,7 +23,6 @@ target_sources(model
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/source.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/symbol.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/types.hpp
-	  ${PROJECT_SOURCE_DIR}/include/minimc/model/utils.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/valuevisitor.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/variables.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/analysis/loops.hpp

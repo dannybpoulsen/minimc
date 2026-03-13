@@ -458,14 +458,14 @@ void visitSubExpressions(F&& f,MiniMC::Model::Value& vv) {
     class ExpressionBuilder {
     public:		    
       ExpressionBuilder()  {}
-      void I8 (MiniMC::BV8 v)  {stack.push (I8Integer::make(v));}
-      void I16 (MiniMC::BV16 v)  {stack.push (I16Integer::make(v));}
-      void I32 (MiniMC::BV32 v)  {stack.push (I32Integer::make(v));}
-      void I64 (MiniMC::BV64 v)  {stack.push (I64Integer::make(v));}
-      void symbol (MiniMC::Model::Symbol s) {stack.push(SymbolicConstant::make(s));}      
+      auto& I8 (MiniMC::BV8 v)  {stack.push (I8Integer::make(v)); return *this;}
+      auto& I16 (MiniMC::BV16 v)  {stack.push (I16Integer::make(v));return *this;}
+      auto& I32 (MiniMC::BV32 v)  {stack.push (I32Integer::make(v));return *this;}
+      auto& I64 (MiniMC::BV64 v)  {stack.push (I64Integer::make(v));return *this;}
+      auto& symbol (MiniMC::Model::Symbol s) {stack.push(SymbolicConstant::make(s)); return *this;}      
 
       {%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Pointer","memory","Unary"]) %}
-      void {{N.getName()}} () {
+      auto& {{N.getName()}} () {
       	   {%for I in N.getNonResOperands() | reverse %}
 	   	 auto {{ I.getName() }} = stack.top();stack.pop();
 	   {%endfor %}
@@ -480,82 +480,91 @@ void visitSubExpressions(F&& f,MiniMC::Model::Value& vv) {
 		)
 	   
 	   );
+	    return *this;
        }
        {%endfor%}    
 
 
-       void Ptr32ToPtr () {
+       auto& Ptr32ToPtr () {
       	   auto l = stack.top();stack.pop ();
 	   stack.push(std::make_shared<Ptr32ToPtrExpr>(l));
+	    return *this;
        }
 
-       void PtrToPtr32 () {
+       auto& PtrToPtr32 () {
       	   auto l = stack.top();stack.pop ();
 	   stack.push(std::make_shared<PtrToPtr32Expr>(l));
+	    return *this;
        }
 
-       void Load () {
+       auto& Load () {
        	    auto addr = stack.top();stack.pop();
 	    auto mem = stack.top();stack.pop();
 	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<LoadExpr> (mem,addr,type));
+	     return *this;
        }
        
 
-       void Store () {
+       auto& Store () {
        	    auto storee = stack.top();stack.pop();
 	    auto addr = stack.top();stack.pop();
 	    auto mem = stack.top();stack.pop();
 	    
 	    stack.push(std::make_shared<StoreExpr> (mem,addr,storee));
+	     return *this;
        }
 
-        void InsertValue () {
+        auto& InsertValue () {
        	    auto insertee = stack.top();stack.pop();
 	    auto offset = stack.top();stack.pop();
 	    auto aggr = stack.top();stack.pop();
 	    stack.push(std::make_shared<InsertValueExpr> (aggr,offset,insertee));
+	     return *this;
        }
 
-       void ExtractValue () {
+       auto& ExtractValue () {
        	    auto offset = stack.top();stack.pop();
 	    auto aggr = stack.top();stack.pop();
 	    auto type = types.top();types.pop();
 	    stack.push(std::make_shared<ExtractValueExpr> (aggr,offset,type));
+	     return *this;
        }       
 
       {%for N in ISA.getExpressionsFromGroups(["Cast"]) %}
-      void {{N.getName()}} () {
+      auto& {{N.getName()}} () {
       	   auto f = stack.top();stack.pop ();
 	   auto type = types.top();types.pop(); 
 	   stack.push(std::make_shared<{{N.getName()}}Expr>(f,type));
+	    return *this;
        }
        {%endfor%}    
 
      
-      void pushI8Type () {
-      	   types.push (I8Type::get());
+      auto& pushI8Type () {
+      	   types.push (I8Type::get()); return *this;
 	   }	      
 
-     void pushI16Type () {
-      	   types.push (I16Type::get());
+     auto& pushI16Type () {
+      	   types.push (I16Type::get()); return *this;
       }
 
-      void pushI32Type () {
-      	   types.push (I32Type::get());
+      auto& pushI32Type () {
+      	   types.push (I32Type::get()); return *this;
       }
 
-      void pushI64Type () {
-      	   types.push (I64Type::get());
+      auto& pushI64Type () {
+      	   types.push (I64Type::get()); return *this;
       }
 
-      void pushPointerType () {
-      	   types.push (PointerType::get());
+      auto& pushPointerType () {
+      	   types.push (PointerType::get()); return *this;
       }     
       
-      void pushAggregateType (std::size_t n) {
-      	   types.push (AggregateType::get(n));
-      }     
+      auto& pushAggregateType (std::size_t n) {
+      	   types.push (AggregateType::get(n)); return *this;
+     	   
+     }     
 
       auto& operator<< (Value_ptr ptr) {
       	    stack.push(std::move(ptr));
