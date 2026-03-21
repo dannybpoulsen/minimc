@@ -84,6 +84,7 @@ namespace MiniMC {
 	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,main_func_frame);
 	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("_iniit"),_internal->locinfo->make({}));
 	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("_end"),_internal->locinfo->make({}));
+	auto end_init = _internal->end;
 	_internal->cfa.setInitial (_internal->start);
 	{
 	  MiniMC::Model::EdgeBuilder edgebuilder {_internal->cfa,_internal->start,_internal->end,main_func_frame,false};
@@ -101,17 +102,20 @@ namespace MiniMC {
 	      edgebuilder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,preg);
 	    }
 	  }
-	  
-	  _internal->frame = rootFrame;
-	  for (auto var : prgm.getFrame().getLocalSymbols()) {
-	    if (std::holds_alternative<Whiley::Function_ptr> (var.getUserData()))
-	      writeFunction(var);
-	  }
+	}
+	auto main_func_cfa = std::move(_internal->cfa);
+	
+	_internal->frame = rootFrame;
+	for (auto var : prgm.getFrame().getLocalSymbols()) {
+	  if (std::holds_alternative<Whiley::Function_ptr> (var.getUserData()))
+	    writeFunction(var);
 	}
 	
 	
+	
 	_internal->frame = main_func_frame;
-	_internal->start = _internal->end;
+	_internal->start = end_init;
+	_internal->cfa = std::move(main_func_cfa);
 	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
 	
 	

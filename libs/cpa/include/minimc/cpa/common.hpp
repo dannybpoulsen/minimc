@@ -630,15 +630,15 @@ namespace MiniMC {
         auto& nstate = static_cast<CPAState<ValDef>&>(*resstate);
 	
 	if (nstate.getProc(id).activeRecord ().getLocation () == e.getFrom ()) {
-	  //nstate.getProc(id).activeRecord().setLocation (e.getTo ());
+	  nstate.getProc(id).activeRecord().setLocation (e.getTo ());
 	  
 
 	  auto& instr = e.getInstructions();
 	  for (auto t :  engine.execute(instr,nstate,id)) {
 	    if (e.getTo ()->getInfo().getFlags().isSet (MiniMC::Model::Attributes::AssertViolated))
 	      t->setFlag (MiniMC::VMT::FlagType::AssertViolated);
-	    if (!t->isSet (MiniMC::VMT::FlagType::AssertViolated))
-	      t->getProc(id).activeRecord().setLocation(e.getTo());
+	    /*if (!t->isSet (MiniMC::VMT::FlagType::AssertViolated))
+	      t->getProc(id).activeRecord().setLocation(e.getTo());*/
 	    co_yield t;
 	  }
 	  

@@ -48,6 +48,8 @@ namespace MiniMC {
 	return locations.back();
       }
 
+      CFA& operator=(CFA&&) = default;
+      
       /**
        * Make a new edge
        *
