@@ -104,6 +104,7 @@ namespace MiniMC {
 	  }
 	}
 	auto main_func_cfa = std::move(_internal->cfa);
+	auto loc_info = std::move(_internal->locinfo);
 	
 	_internal->frame = rootFrame;
 	for (auto var : prgm.getFrame().getLocalSymbols()) {
@@ -115,6 +116,7 @@ namespace MiniMC {
 	
 	_internal->frame = main_func_frame;
 	_internal->start = end_init;
+	_internal->locinfo = std::move(loc_info);
 	_internal->cfa = std::move(main_func_cfa);
 	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
 	
