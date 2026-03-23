@@ -31,6 +31,7 @@ namespace MiniMC {
 	void visitMemAssignStatement (const Whiley::MemAssignStatement&) override;
 	void visitReturnStatement (const Whiley::ReturnStatement&) override;
 	void visitCallStatement (const Whiley::CallStatement&) override;
+	void visitIncrementDecrementStatement (const Whiley::IncrementDecrementStatement&) override;
 	
       private:
 	void writeFunction (Whiley::Symbol symb);

@@ -343,7 +343,40 @@ namespace MiniMC {
 
       builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,_internal->expr);
 	
-    } 
+    }
+
+    void Compiler::visitIncrementDecrementStatement (const Whiley::IncrementDecrementStatement& ass)  {
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      MiniMC::Model::Symbol symb;
+      _internal->frame.resolve (ass.getIncrementee(),symb);
+      auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
+      //ass.getExpression ().accept(*this);
+      MiniMC::Model::ExpressionBuilder exprbuilder;
+      exprbuilder << reg;
+      switch (reg->getType()->getTypeID()) {
+      case MiniMC::Model::TypeID::I8:
+	exprbuilder.I8 (1);
+	break;
+      case MiniMC::Model::TypeID::I16:
+	exprbuilder.I16 (1);
+	break;
+      case MiniMC::Model::TypeID::I32:
+	exprbuilder.I32 (1);
+	break;
+      case MiniMC::Model::TypeID::I64:
+	exprbuilder.I64 (1);
+	break;
+      default:
+	throw MiniMC::Support::Exception ("Can't increment expression");
+      }
+      exprbuilder.Add ();
+      
+      MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
+
+      builder.addInstr<MiniMC::Model::InstructionCode::Assign> (reg,exprbuilder.get());
+	
+    }
+      
     void Compiler::visitAssertStatement (const Whiley::AssertStatement& a)  {
       _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
       a.getExpression().accept (*this);
