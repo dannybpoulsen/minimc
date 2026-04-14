@@ -67,16 +67,21 @@ namespace MiniMC {
 	~Reachability ();
 	[[nodiscard]] Result search (const MiniMC::CPA::State&,
 				     GoalFunction,
-				     FilterFunction = DefaultFilter
+				     FilterFunction = DefaultFilter,
+				     SearchStrategy = SearchStrategy::BFS
 				     );
 	
+	[[nodiscard]] Result continueSearch ();
 	
-	void setSearchStrategy (SearchStrategy);
 	
       private:
+
+	[[nodiscard]] Result search ();
+	
 	struct Internal;
 	std::unique_ptr<Internal> _internal;
 	MiniMC::Support::Messager mess;
+	MiniMC::CPA::Transferer_ptr transfer;
       };
       
       

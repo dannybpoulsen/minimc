@@ -15,14 +15,9 @@ namespace po = boost::program_options;
 
 namespace {
   
-  enum class ExpectReach {
-    Reachable,
-    NotReachable,
-    Inconclusive
-  };
+
   
   struct LocalOptions {
-    ExpectReach expect{ExpectReach::Inconclusive};
     MiniMC::Algorithms::Reachability::SearchStrategy search_strat{MiniMC::Algorithms::Reachability::SearchStrategy::DFS};
     bool symbolic{false};
   };
@@ -30,21 +25,6 @@ namespace {
   class MCCommand :public Command {
   public:
     void addOptions (po::options_description& op) {
-      
-      auto setExpected= [this] (int val) {
-	switch (val) {
-	case 1:
-	  locoptions.expect = ExpectReach::Reachable;
-	  break;
-	case 2:
-	  locoptions.expect = ExpectReach::Inconclusive;
-	  break;
-	default:
-	  locoptions.expect = ExpectReach::NotReachable;
-	  break;
-	  
-	}
-      };
       
       auto setSearchStrategy= [this] (const std::string val) {
 	if (val == "DFS") {
@@ -56,17 +36,13 @@ namespace {
 	}
       };
       
-      po::options_description desc("MC Options");
+      po::options_description desc("MCAll Options");
       desc.add_options()
-	("mc.expect",po::value<int> ()->default_value (0)->notifier (setExpected),"Set the expected verification result\n"
-	 "\t 1 AssertViolation\n"
-	 "\t 2 Inconclusive\n"
-	 "\t 0 NoViolation\n")
-	("mc.strategy",po::value<std::string> ()->default_value ({"DFS"})->notifier (setSearchStrategy),"Select search strategy\n"
+	("mcall.strategy",po::value<std::string> ()->default_value ({"DFS"})->notifier (setSearchStrategy),"Select search strategy\n"
 	 "\t BFS\n"
 	 "\t DFS\n"
 	 )
-	("mc.symbolic",po::bool_switch (&locoptions.symbolic),"Do a symbolic execution")
+	("mcall.symbolic",po::bool_switch (&locoptions.symbolic),"Do a symbolic execution")
 	
 	;
       
@@ -91,33 +67,22 @@ namespace {
       
       auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal,this](){return reach.search(*initstate,goal,MiniMC::Algorithms::Reachability::DefaultFilter,locoptions.search_strat);});
       
-      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
+      while (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
 	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
 	
 	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.raw_stream (MiniMC::Support::Severity::Info)) << "\n";
-	
-	if (locoptions.expect == ExpectReach::Reachable)
-	  return MiniMC::Host::ExitCodes::AllGood;
-	else
-	  return MiniMC::Host::ExitCodes::UnexpectedResult;
+	result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach](){return reach.continueSearch();});
       }
-      
-      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
-	messager <<  MiniMC::Support::TInfo<std::string> {"No violation found"};
-	if (locoptions.expect == ExpectReach::Reachable)
-	  return MiniMC::Host::ExitCodes::UnexpectedResult;
-	else
-	  return MiniMC::Host::ExitCodes::AllGood;
-      }
-      
+
+	  
       
       
       return MiniMC::Host::ExitCodes::AllGood;
     }
     
     
-    std::string getName () const override {return "mc";}
-    std::string getDescritpion () const override {return "Check whether it is possible to reach an assert violation. ";}
+    std::string getName () const override {return "mcall";}
+    std::string getDescritpion () const override {return "Get all possiblilites of violating an assert ";}
     
   private:
     MiniMC::CPA::TCPA_ptr makeCPA (const SetupOptions& sopt) {

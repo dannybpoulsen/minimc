@@ -83,66 +83,87 @@ namespace MiniMC {
       }
 
       struct Reachability::Internal {
-	Internal (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Messager mess, std::unique_ptr<WaitingList<MiniMC::CPA::State_ptr>>&& waiting = std::make_unique<DFSList<MiniMC::CPA::State_ptr>> () ) : transfer(transfer),mess(mess),waiting(std::move(waiting)) {}
-	MiniMC::CPA::Transferer_ptr transfer;
-	MiniMC::Support::Messager mess;
+	Internal (std::unique_ptr<WaitingList<MiniMC::CPA::State_ptr>>&& waiting,GoalFunction goal,FilterFunction filter ) : waiting(std::move(waiting)),storage(std::make_unique<MiniMC::Storage::HashStorage<MiniMC::CPA::State>> ()),goal(goal),filter(filter) {}
+	
 	std::unique_ptr<WaitingList<MiniMC::CPA::State_ptr>> waiting;
-	
-	
+	std::unique_ptr<MiniMC::Storage::Store<MiniMC::CPA::State>> storage;
+	GoalFunction goal;
+	FilterFunction filter;
       };
 
       
       Reachability::~Reachability (){}
-      Reachability::Reachability (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Messager mess) : _internal(std::make_unique<Internal> (transfer,mess))  {}
+      Reachability::Reachability (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Messager mess) : mess(mess),transfer(transfer)  {}
+
+      std::unique_ptr<WaitingList<MiniMC::CPA::State_ptr>> getSearchStrategy (SearchStrategy strat) {
+	switch (strat) {
+	case SearchStrategy::DFS:
+	  return std::make_unique<DFSList<MiniMC::CPA::State_ptr> > ();
+	  break;
+	case SearchStrategy::BFS:
+	  return std::make_unique<BFSList<MiniMC::CPA::State_ptr>> ();
+	default:
+	  std::unreachable();
+	}
+      }
+	
       
-      Result Reachability::search (const MiniMC::CPA::State& state, GoalFunction goal,FilterFunction filter) {
-	MiniMC::Storage::HashStorage<MiniMC::CPA::State> storage;
-	auto insert = [this,&storage,filter](auto&& state) {  
-	  auto filterres = filter(*state);
+      Result Reachability::search (const MiniMC::CPA::State& state, GoalFunction goal,FilterFunction filter, SearchStrategy strat) {
+	_internal = std::make_unique<Internal> (getSearchStrategy (strat),goal,filter); 
+	auto nstate = state.copy();
+	_internal->storage->insert (*nstate);
+	_internal->waiting->insert (nstate);
+	return search ();
+      }
+
+      [[nodiscard]] Result Reachability::continueSearch () {
+	if (_internal == nullptr) {
+	  return Result{0};
+	}
+
+	return search ();
+      }
+	
+
+      Result Reachability::search () {
+	auto insert = [this](auto&& state) {  
+	  auto filterres = _internal->filter(*state);
 	  if (filterres == StateStatus::Keep) {
-	    auto ins = storage.insert (*state);
+	    auto ins = _internal->storage->insert (*state);
 	    if (ins) {
 	      _internal->waiting->insert (state);
 	    }
 	  }
 	};
-	mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};
+	mess << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
 	
-	insert(state.copy());
 	while (*_internal->waiting) {
 	  auto searchee = _internal->waiting->pop ();
-	  if (goal(*searchee)) {
-	    return Result {std::move(searchee),storage.size()};
+	  if (_internal->goal(*searchee)) {
+	    return Result {std::move(searchee),_internal->storage->size()};
 	  }
 	  
 	  
-	  for (auto newstate : successors (*searchee,*_internal->transfer))
+	  for (auto newstate : successors (*searchee,*transfer))
 	    insert(newstate);
 	  
 	  
-	
-	  mess << MiniMC::Support::TProgress {Progress{storage.size (), _internal->waiting->size ()}};
 	  
-
+	  mess << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
 	  
-	}
-	
-	return Result{storage.size ()};
-	
-	
-      }
-
-      void Reachability::setSearchStrategy (SearchStrategy strat) {
-	switch (strat) {
-	case SearchStrategy::DFS:
-	  _internal->waiting = std::make_unique<DFSList<MiniMC::CPA::State_ptr> > ();
-	  break;
-	case SearchStrategy::BFS:
-	  _internal->waiting = std::make_unique<BFSList<MiniMC::CPA::State_ptr>> ();
+	  
 	  
 	}
-      }
 	
+	return Result{_internal->storage->size ()};	
+	
+      }
+      
+      /*void Reachability::setSearchStrategy (SearchStrategy strat) {
+	
+	}
+	}*/
+      
       
     }
   }
