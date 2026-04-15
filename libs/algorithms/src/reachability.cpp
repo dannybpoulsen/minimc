@@ -93,8 +93,8 @@ namespace MiniMC {
 
       
       Reachability::~Reachability (){}
-      Reachability::Reachability (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Messager mess) : mess(mess),transfer(transfer)  {}
-
+      Reachability::Reachability (MiniMC::CPA::Transferer_ptr transfer, MiniMC::Support::Interaction mess) : mess(mess),transfer(transfer)  {}
+      
       std::unique_ptr<WaitingList<MiniMC::CPA::State_ptr>> getSearchStrategy (SearchStrategy strat) {
 	switch (strat) {
 	case SearchStrategy::DFS:
@@ -135,9 +135,9 @@ namespace MiniMC {
 	    }
 	  }
 	};
-	mess << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
+	mess.getMessager() << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
 	
-	while (*_internal->waiting) {
+	while (*_internal->waiting && mess.getInteractor().curEvent () == MiniMC::Support::Event::Continue) {
 	  auto searchee = _internal->waiting->pop ();
 	  if (_internal->goal(*searchee)) {
 	    return Result {std::move(searchee),_internal->storage->size()};
@@ -149,7 +149,7 @@ namespace MiniMC {
 	  
 	  
 	  
-	  mess << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
+	  mess.getMessager() << MiniMC::Support::TProgress {Progress{_internal->storage->size (), _internal->waiting->size ()}};
 	  
 	  
 	  
@@ -159,10 +159,6 @@ namespace MiniMC {
 	
       }
       
-      /*void Reachability::setSearchStrategy (SearchStrategy strat) {
-	
-	}
-	}*/
       
       
     }

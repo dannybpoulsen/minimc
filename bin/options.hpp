@@ -33,7 +33,7 @@ struct SetupOptions {
   SMTOption smt;
   load_options load;
   transform_options transform;
-  
+  std::size_t timeout{0};
   
   Command* command = nullptr;
   bool help;

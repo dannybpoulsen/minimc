@@ -14,7 +14,7 @@ int main () {
   MiniMC::Support::MessageSink::setDefaultSink (builder.build());
 
 
-  MiniMC::Support::Messager messager;
+  MiniMC::Support::Interaction messager {MiniMC::Support::Messager{},MiniMC::Support::Interactor{}};
   MiniMC::Support::AsyncExecutor exec;
   auto func = []() {
     MiniMC::Support::Messager messager;

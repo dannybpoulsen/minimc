@@ -50,17 +50,31 @@ MiniMC::Support::Messager setupMessager () {
   return MiniMC::Support::Messager{};
 }
 
+MiniMC::Support::Interactor setupInteractor (const SetupOptions& opt) {
+  if (opt.timeout)
+    MiniMC::Support::InteractionSource::setDefaultSource (std::make_shared<MiniMC::Support::InteractionTimeouter> (std::chrono::seconds{opt.timeout}));
+  return MiniMC::Support::Interactor{};
+      
+}
+
 int main(int argc, char* argv[]) {
   
   std::string input;
   std::string subcommand;
-  MiniMC::Support::Messager messager = setupMessager();;
+  MiniMC::Support::Messager messager = setupMessager();
+      
   try {
-    
+  
     SetupOptions options;
     bool ok = parseOptions(argc, argv, options);
+
+    
     
     if (ok) {
+      MiniMC::Support::Interactor inter = setupInteractor(options);
+      
+      MiniMC::Support::Interaction interact {messager,inter};
+  
       // Load Program
       auto loader = options.load.loader;
       auto loadres = loader->loadFromFile (options.load.inputname,messager);
@@ -74,7 +88,7 @@ int main(int argc, char* argv[]) {
 	}
 	MiniMC::Model::Program prgm2 = transformProgram (std::move(prgm),options.transform, messager);
 	if (options.command) {
-	  auto res = options.command->runCommand(std::move(prgm2),messager,options);
+	  auto res = options.command->runCommand(std::move(prgm2),interact,options);
 	  return static_cast<int>(res);
 	}
 	

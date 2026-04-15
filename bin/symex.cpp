@@ -26,21 +26,21 @@ namespace {
       
     }
     
-    MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager& messager,const SetupOptions& sopt) {    
+    MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Interaction& messager,const SetupOptions& sopt) {    
       auto func = prgm.getFunction (locoptions.function);
       
       MiniMC::Algorithms::GenCases::TestCaseGenerator generator {prgm};
-      auto res = MiniMC::Support::AsyncExecutor{}.execute(messager,[&generator,&messager,&func,&sopt](){return generator.generate (messager,func,sopt.smt.selsmt);});
+      auto res = MiniMC::Support::AsyncExecutor{}.execute(messager,[&generator,&messager,&func,&sopt](){return generator.generate (messager.getMessager(),func,sopt.smt.selsmt);});
       
       for (auto& casee : res.cases ()) {
 	auto reg_it = res.vars().begin ();
 	auto val_it = casee.values().begin ();
 	for (; reg_it != res.vars().end () && val_it != casee.values().end (); ++reg_it, ++val_it) {
-	  messager << MiniMC::Support::TInfo<std::string> (MiniMC::Support::Localiser{"%1%            : %2%"}.format (**reg_it,**val_it));
+	  messager.getMessager() << MiniMC::Support::TInfo<std::string> (MiniMC::Support::Localiser{"%1%            : %2%"}.format (**reg_it,**val_it));
 	    //std::cout << **reg_it  << " : " << **val_it << std::endl;
 	  
 	}
-	messager << MiniMC::Support::TInfo<std::string> ( "=====================");
+	messager.getMessager() << MiniMC::Support::TInfo<std::string> ( "=====================");
       }
       
       return MiniMC::Host::ExitCodes::AllGood;

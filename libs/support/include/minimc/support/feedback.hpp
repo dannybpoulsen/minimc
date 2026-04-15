@@ -2,9 +2,11 @@
 #define _FEEDBACK__
 
 
+#include <chrono>
 #include <memory>
 #include <sstream>
 #include <type_traits>
+#include <iostream>
 
 #include <future>
 #include <list>
@@ -106,8 +108,8 @@ namespace MiniMC {
       virtual void pumpProgress() {}
       virtual MiniMC::IO::ostream& raw_stream (Severity) = 0;
       
-      static std::unique_ptr<MessageSink>& defaultSink ();
-      static void setDefaultSink (std::unique_ptr<MessageSink>&&);
+      static std::shared_ptr<MessageSink> defaultSink ();
+      static void setDefaultSink (std::shared_ptr<MessageSink>&&);
       
     };
     
@@ -160,7 +162,7 @@ namespace MiniMC {
 	handlers.push_back (std::make_unique<T>(std::forward<Args>(args)...));
       }
 
-      std::unique_ptr<MessagePipeline> build() {
+      std::shared_ptr<MessagePipeline> build() {
 	return std::make_unique<MessagePipeline> (std::move(handlers));
       }
       
@@ -204,11 +206,9 @@ namespace MiniMC {
     
     };
     
-    
-    
     class Messager {
     public:
-      Messager () {}
+      Messager (std::shared_ptr<MessageSink>&& sink = MessageSink::defaultSink()) : sink(sink) {}
       
       
       template<class T>
@@ -218,13 +218,13 @@ namespace MiniMC {
       }
       
       MiniMC::IO::ostream& raw_stream (Severity sev) {
-	return MessageSink::defaultSink()->raw_stream(sev);
+	return sink->raw_stream(sev);
       }
       
-      void pumpProgress () {MessageSink::defaultSink()->pumpProgress();}
+      void pumpProgress () {sink->pumpProgress();}
       
     private:
-      
+      std::shared_ptr<MessageSink> sink;
     };
 
     template<class T>
@@ -238,16 +238,73 @@ namespace MiniMC {
 	Messager{} << TSubProgress<std::string> {std::string("")} ;
       }  
     };
+
+    enum class Event {
+      Continue,
+      Stop
+    };
+    
+    class InteractionSource {
+    public:
+      virtual Event event ()  {return Event::Continue;}
+      static std::shared_ptr<InteractionSource> defaultSource ();
+      static void setDefaultSource (std::shared_ptr<InteractionSource>&& );
+    };
+
+    class InteractionTimeouter : public InteractionSource {
+    public:
+      InteractionTimeouter (std::chrono::seconds timeout) : timeoutafter(timeout),started(std::chrono::high_resolution_clock::now()) {}
+			    
+      virtual Event event () override  {
+	if (started + timeoutafter < std::chrono::high_resolution_clock::now()) {
+	  return Event::Stop;
+	}
+	return Event::Continue;
+	
+      }
+      
+      using time_point_t = std::chrono::time_point<std::chrono::high_resolution_clock>;
+      private:
+      std::chrono::seconds timeoutafter;
+      time_point_t started;
+    };
+
+
+    class Interactor  {
+    public:
+      Interactor (std::shared_ptr<InteractionSource> source= InteractionSource::defaultSource ()) : source(source),ev(std::make_shared<Event> (Event::Stop)) {} 
+      Interactor (const Interactor& ) = default;
+      Event curEvent () const {
+	return *ev;
+      }
+      void pushEvent () {*ev = source->event ();}
+      
+    private:
+      std::shared_ptr<InteractionSource> source;
+      std::shared_ptr<Event> ev;
+    };
+
+
+    class Interaction {
+    public:
+      Interaction (Messager mess = MiniMC::Support::Messager{}, Interactor inter = MiniMC::Support::Interactor{}) : mess(mess),inter(inter) {}
+      auto& getMessager () {return mess;}
+      auto& getInteractor () {return inter;}
+    private:
+      Messager mess;
+      Interactor inter;
+    };
     
     class AsyncExecutor {
     public:
       template<class F, class... Args>
-      auto execute (Messager& mess, F f,Args... args) {
+      auto execute (Interaction& inter, F f,Args... args) {
 	auto res = std::async(f,args...);
 	std::future_status status;
 	do {
+	  inter.getInteractor().pushEvent();
 	  status = res.wait_for(500ms);
-	  mess.pumpProgress();
+	  inter.getMessager().pumpProgress();
 	}while(status != std::future_status::ready);
 	return res.get();
       }

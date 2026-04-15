@@ -51,7 +51,7 @@ namespace {
     }    
 
     
-    MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager& messager,const SetupOptions& sopt) {    
+    MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Interaction& messager,const SetupOptions& sopt) {    
       auto cpa = makeCPA (sopt);
       
       auto initstate = cpa->makeInitialState({prgm.getEntryPoints (),
@@ -68,9 +68,9 @@ namespace {
       auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal,this](){return reach.search(*initstate,goal,MiniMC::Algorithms::Reachability::DefaultFilter,locoptions.search_strat);});
       
       while (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
-	messager << MiniMC::Support::TInfo<std::string> {"Found Violation"};
+	messager.getMessager() << MiniMC::Support::TInfo<std::string> {"Found Violation"};
 	
-	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.raw_stream (MiniMC::Support::Severity::Info)) << "\n";
+	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.getMessager().raw_stream (MiniMC::Support::Severity::Info)) << "\n";
 	result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach](){return reach.continueSearch();});
       }
 

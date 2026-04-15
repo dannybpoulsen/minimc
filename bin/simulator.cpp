@@ -16,7 +16,7 @@ namespace po = boost::program_options;
 
 struct CLICommand : public Command{
   
-  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager&,const SetupOptions&)  {
+  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Interaction&,const SetupOptions&)  {
     auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
     MiniMC::Simulator::Simulator simulator {cpa,&prgm};
     MiniMC::IO::StreamPrompter prompter {std::cin,MiniMC::IO::os_ostream::out()};

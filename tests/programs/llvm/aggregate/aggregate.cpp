@@ -48,7 +48,7 @@ TEST_CASE("Frame") {
 }
 
 TEST_CASE("Frame") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();//MiniMC::Loaders::findLoader ("LLVM");
   loadRegistrar->setOption<std::vector<std::string>> ("LLVM.entry",{"main"});

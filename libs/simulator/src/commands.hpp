@@ -206,10 +206,10 @@ namespace MiniMC {
       SearchCommand (MiniMC::IO::ostream& os) : os(os) {}
       bool execute (Simulator* simu) override {
 	if (simu->hasState ()) {
-	  MiniMC::Support::Messager messager;
 	  auto transfer = simu->getTransfer ();
 	  auto state = simu->getState().copy();
 
+	  MiniMC::Support::Interaction messager (MiniMC::Support::Messager {},MiniMC::Support::Interactor {});
 	  MiniMC::Algorithms::Reachability::Reachability reach{transfer,messager};
 
 	  auto goal = [](const MiniMC::CPA::State& state) {

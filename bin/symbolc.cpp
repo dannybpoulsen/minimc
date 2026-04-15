@@ -27,7 +27,7 @@ std::string symbol_descr_text (const MiniMC::Model::Symbol& s) {
 
 
 struct ConvCCommand : public Command{
-  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager&,const SetupOptions&)  {
+  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Interaction&,const SetupOptions&)  {
 
     for (auto s : prgm.getRootFrame().symbols () ) {
       std::cerr << std::format ("{:20} {:20} ", s.getFullName(), symbol_descr_text(s)) << std::endl;

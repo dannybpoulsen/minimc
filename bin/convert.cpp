@@ -10,7 +10,7 @@ namespace po = boost::program_options;
 
 
 struct ConvCommand : public Command{
-  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Messager&,const SetupOptions&)  {
+  MiniMC::Host::ExitCodes runCommand (MiniMC::Model::Program&& prgm, MiniMC::Support::Interaction&,const SetupOptions&)  {
     MiniMC::Model::writeProgram (std::cout,prgm);
     
     return MiniMC::Host::ExitCodes::AllGood;

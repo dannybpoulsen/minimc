@@ -37,32 +37,9 @@ po::options_description loadOptions (SetupOptions& options) {
   
   po::options_description general("Load Options");
   options.load.loader = std::make_shared<MiniMC::Loaders::GenericLoader> ();
-  /*auto setLoader = [&options](auto& val) {
-    auto load = loaders.find (val);
-    if ( load != loaders.end ()) {
-      options.load.loader = load->second;
-    }
-    else
-      throw MiniMC::Support::ConfigurationException ("Can't find specificed Loader");
-      };*/
-
   general.add_options()
+    ("timeout", po::value<std::size_t>(&options.timeout), "Timeout")
     ("inputfile", po::value<std::string>(&options.load.inputname), "Input file");
-  /*std::stringstream str;
-  str << "Model Loader\n";
-  int i = 0;
-  for (auto& loader : MiniMC::Loaders::getLoaders ()) {
-    str << "\t "  << loader->getName () << "\n";
-    i++;
-  }
-  general.add_options ()
-    ("loader",po::value<std::string> ()->default_value(std::string{"LLVM"})->notifier (setLoader),str.str().c_str());
-  */
-  /*for (auto& loader_reg : MiniMC::Loaders::getLoaders ()) {
-    auto loader = loader_reg->makeLoader ();
-    loaders.insert (std::make_pair (loader_reg->getName (),loader));
-  */
-  //po::options_description opt_arr = general;// (loader_reg->getName ());
     for (auto opt : options.load.loader->getOptions()) {
       std::visit (
 		  Overload {
