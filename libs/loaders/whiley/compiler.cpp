@@ -283,6 +283,15 @@ namespace MiniMC {
 	case Whiley::BinOps::Mul:
 	  _internal->expr = std::make_shared<MiniMC::Model::MulExpr> (std::move(le),std::move(right));
 	  break;
+	case Whiley::BinOps::Xor:
+	  _internal->expr = std::make_shared<MiniMC::Model::XorExpr> (std::move(le),std::move(right));
+	  break;
+	case Whiley::BinOps::Or:
+	  _internal->expr = std::make_shared<MiniMC::Model::OrExpr> (std::move(le),std::move(right));
+	  break;
+	case Whiley::BinOps::And:
+	  _internal->expr = std::make_shared<MiniMC::Model::AndExpr> (std::move(le),std::move(right));
+	  break;
 	case Whiley::BinOps::Mod:
 	  throw MiniMC::Support::Exception {"Modulo operations not supported in MiniMC"};
 	break;
