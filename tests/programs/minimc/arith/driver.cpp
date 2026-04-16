@@ -20,16 +20,8 @@ auto loadProgram (auto& loader, const std::string& s) {
   
 }
 
-auto goal (const MiniMC::CPA::State& state) {
-  auto& locationstate = state.getLocationState ();
-  auto procs = locationstate.nbOfProcesses ();
-  
-  for (std::size_t i = 0; i < procs; ++i) {
-    if (locationstate.getLocation (i).getInfo ().getFlags ().isSet (MiniMC::Model::Attributes::AssertViolated))
-      return true;
-  }
-  
-  return false;
+auto goal (const MiniMC::CPA::State& state) {  
+  return state.isSet (MiniMC::VMT::FlagType::AssertViolated);
 };
 
 
@@ -40,7 +32,7 @@ auto makeLoader () {
 }
 
 TEST_CASE("Add") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Add.mmc"); 
@@ -60,7 +52,7 @@ TEST_CASE("Add") {
 }
 
 TEST_CASE("Sub") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Sub.mmc"); 
@@ -82,7 +74,7 @@ TEST_CASE("Sub") {
 
 
 TEST_CASE("Mul") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Mul.mmc"); 
@@ -103,7 +95,7 @@ TEST_CASE("Mul") {
 }
 
 TEST_CASE("UDiv") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"UDiv.mmc"); 
@@ -123,7 +115,7 @@ TEST_CASE("UDiv") {
 }
 
 TEST_CASE("SDiv") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"SDiv.mmc"); 
@@ -144,7 +136,7 @@ TEST_CASE("SDiv") {
 
 
 TEST_CASE("Shl") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Shl.mmc"); 
@@ -164,7 +156,7 @@ TEST_CASE("Shl") {
 }
 
 TEST_CASE("AShr") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = makeLoader ();
   auto prgm = loadProgram (*loadRegistrar,"Ashr.mmc"); 

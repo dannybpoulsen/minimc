@@ -272,7 +272,7 @@ namespace MiniMC {
 
     class Interactor  {
     public:
-      Interactor (std::shared_ptr<InteractionSource> source= InteractionSource::defaultSource ()) : source(source),ev(std::make_shared<Event> (Event::Stop)) {} 
+      Interactor (std::shared_ptr<InteractionSource> source= InteractionSource::defaultSource ()) : source(source),ev(std::make_shared<Event> (Event::Continue)) {} 
       Interactor (const Interactor& ) = default;
       Event curEvent () const {
 	return *ev;
@@ -287,7 +287,7 @@ namespace MiniMC {
 
     class Interaction {
     public:
-      Interaction (Messager mess = MiniMC::Support::Messager{}, Interactor inter = MiniMC::Support::Interactor{}) : mess(mess),inter(inter) {}
+      explicit Interaction (Messager mess = MiniMC::Support::Messager{}, Interactor inter = MiniMC::Support::Interactor{}) : mess(mess),inter(inter) {}
       auto& getMessager () {return mess;}
       auto& getInteractor () {return inter;}
     private:

@@ -36,7 +36,7 @@ auto goal (const MiniMC::CPA::State& state) {
 
 
 TEST_CASE("Phi") {
-  MiniMC::Support::Messager mess;
+  MiniMC::Support::Interaction mess;
   //Arrange
   auto loadRegistrar = MiniMC::Loaders::findLoader ("LLVM");
   REQUIRE (loadRegistrar != nullptr);

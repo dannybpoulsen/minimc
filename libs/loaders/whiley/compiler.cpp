@@ -222,18 +222,6 @@ namespace MiniMC {
 	_internal->expr = std::make_shared<MiniMC::Model::LoadExpr> (_internal->heap_mem,_internal->expr,makeType(a.getLoadType()));
       }
 
-      bool isSigned (Whiley::Type r) {
-	switch (r) {
-	case Whiley::Type::SI8:
-	case Whiley::Type::SI16:
-	case Whiley::Type::SI32:
-	case Whiley::Type::SI64:
-	  return true;
-	default:
-	  return false;
-	}
-      }
-      
       
       void Compiler::visitCastExpression (const Whiley::CastExpression& a)  {
 	a.getExpression().accept(*this);
@@ -291,6 +279,9 @@ namespace MiniMC {
 	  break;
 	case Whiley::BinOps::And:
 	  _internal->expr = std::make_shared<MiniMC::Model::AndExpr> (std::move(le),std::move(right));
+	  break;
+	case Whiley::BinOps::LShl:
+	  _internal->expr = std::make_shared<MiniMC::Model::LShlExpr> (std::move(le),std::move(right));
 	  break;
 	case Whiley::BinOps::Mod:
 	  throw MiniMC::Support::Exception {"Modulo operations not supported in MiniMC"};
