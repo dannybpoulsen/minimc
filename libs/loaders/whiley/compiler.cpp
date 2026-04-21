@@ -4,6 +4,7 @@
 #include "minimc/model/builder.hpp"
 
 #include "minimc/model/symbol.hpp"
+#include "minimc/model/types.hpp"
 #include "minimc/model/variables.hpp"
 #include "whiley/ast.hpp"
 #include "compiler.hpp"
@@ -109,6 +110,11 @@ namespace MiniMC {
 	_internal->frame = rootFrame;
 	for (auto var : prgm.getFrame().getLocalSymbols()) {
 	  if (std::holds_alternative<Whiley::Function_ptr> (var.getUserData()))
+	    _internal->frame.makeSymbol (var.getName());
+	}
+
+	for (auto var : prgm.getFrame().getLocalSymbols()) {
+	  if (std::holds_alternative<Whiley::Function_ptr> (var.getUserData()))
 	    writeFunction(var);
 	}
 	
@@ -133,7 +139,8 @@ namespace MiniMC {
 
       void Compiler::writeFunction (Whiley::Symbol symb) {
 	std::vector<MiniMC::Model::Register_ptr> params;
-	auto func_name = _internal->frame.makeSymbol (symb.getName());
+	MiniMC::Model::Symbol func_name;
+	_internal->frame.resolve (symb.getName(),func_name);
 	_internal->frame = _internal->frame.create(symb.getName());
 	MiniMC::Model::RegisterDescr descr;
 	auto wh_func = std::get<Whiley::Function_ptr> (symb.getUserData());
@@ -255,80 +262,94 @@ namespace MiniMC {
 	be.getRight ().accept (*this);
 	auto right = _internal->expr;
 	bool _signed = isSigned(be.getLeft().getType ()) ||
-	  isSigned(be.getRight().getType ());   
+	  isSigned(be.getRight().getType ());
+	MiniMC::Model::ExpressionBuilder builder;
+	builder << le << right;
 	switch (be.getOp ()) {
 	case Whiley::BinOps::Add:
 	  if (be.getLeft().getType() == Whiley::Type::Pointer) {
-	    _internal->expr = std::make_shared<MiniMC::Model::PtrAddExpr> (std::move(le),std::move(right));
+	    //_internal->expr = std::make_shared<MiniMC::Model::PtrAddExpr> (std::move(le),std::move(right));
+	    builder.PtrAdd ();
 	  }
 	  else {
-	    _internal->expr = std::make_shared<MiniMC::Model::AddExpr> (std::move(le),std::move(right));
+	    builder.Add();
 	  }
 	    break;
 	case Whiley::BinOps::Sub:
-	  _internal->expr = std::make_shared<MiniMC::Model::SubExpr> (std::move(le),std::move(right));
+	  builder.Sub();
 	  break;
 	case Whiley::BinOps::Mul:
-	  _internal->expr = std::make_shared<MiniMC::Model::MulExpr> (std::move(le),std::move(right));
+	  builder.Mul();
 	  break;
 	case Whiley::BinOps::Xor:
-	  _internal->expr = std::make_shared<MiniMC::Model::XorExpr> (std::move(le),std::move(right));
+	  builder.Xor();
 	  break;
 	case Whiley::BinOps::Or:
-	  _internal->expr = std::make_shared<MiniMC::Model::OrExpr> (std::move(le),std::move(right));
+	  builder.Or();
 	  break;
 	case Whiley::BinOps::And:
-	  _internal->expr = std::make_shared<MiniMC::Model::AndExpr> (std::move(le),std::move(right));
+	  builder.And();
 	  break;
 	case Whiley::BinOps::LShl:
-	  _internal->expr = std::make_shared<MiniMC::Model::LShlExpr> (std::move(le),std::move(right));
+	  builder.LShl();
 	  break;
 	case Whiley::BinOps::Mod:
 	  throw MiniMC::Support::Exception {"Modulo operations not supported in MiniMC"};
 	break;
 	case Whiley::BinOps::Div:
 	  if (_signed)
-	    _internal->expr = std::make_shared<MiniMC::Model::SDivExpr> (std::move(le),std::move(right));
-	  else
-	    _internal->expr = std::make_shared<MiniMC::Model::UDivExpr> (std::move(le),std::move(right));
+	    builder.SDiv();
 	  
+	  else
+	    builder.UDiv();
 	  break;
 	  case Whiley::BinOps::LEq:
 	    if (_signed)
-	      _internal->expr = std::make_shared<MiniMC::Model::SLeExpr> (std::move(le),std::move(right));
+	      //_internal->expr = std::make_shared<MiniMC::Model::SLeExpr> (std::move(le),std::move(right));
+	      builder.SLe().pushI8Type().ZExt();
 	    else
-	      _internal->expr = std::make_shared<MiniMC::Model::ULeExpr> (std::move(le),std::move(right));
-	  
+	      //_internal->expr = std::make_shared<MiniMC::Model::ULeExpr> (std::move(le),std::move(right));
+	      builder.ULe().pushI8Type().ZExt();
 	    break;
 	    case Whiley::BinOps::GEq:
 	      if (_signed)
-		_internal->expr = std::make_shared<MiniMC::Model::SGeExpr> (std::move(le),std::move(right));
+		builder.SGe().pushI8Type().ZExt();
+		//_internal->expr = std::make_shared<MiniMC::Model::SGeExpr> (std::move(le),std::move(right));
 	      else
-		_internal->expr = std::make_shared<MiniMC::Model::UGeExpr> (std::move(le),std::move(right));
+		builder.UGe().pushI8Type().ZExt();
+	      //_internal->expr = std::make_shared<MiniMC::Model::UGeExpr> (std::move(le),std::move(right));
 	      break;
 	      case Whiley::BinOps::Lt:
 		if (_signed)
-		  _internal->expr = std::make_shared<MiniMC::Model::SLtExpr> (std::move(le),std::move(right));
+		  //_internal->expr = std::make_shared<MiniMC::Model::SLtExpr> (std::move(le),std::move(right));
+		  builder.SLt().pushI8Type().ZExt();
 		else
-		  _internal->expr = std::make_shared<MiniMC::Model::ULtExpr> (std::move(le),std::move(right));
+		    builder.ULt().pushI8Type().ZExt();
+		
+		//_internal->expr = std::make_shared<MiniMC::Model::ULtExpr> (std::move(le),std::move(right));
 	  
 		break;
 		case Whiley::BinOps::Gt:
 		  if(_signed)
-		    _internal->expr = std::make_shared<MiniMC::Model::SGtExpr> (std::move(le),std::move(right));
+		    //_internal->expr = std::make_shared<MiniMC::Model::SGtExpr> (std::move(le),std::move(right));
+		    builder.SGt().pushI8Type().ZExt();
 		  else
-		    _internal->expr = std::make_shared<MiniMC::Model::UGtExpr> (std::move(le),std::move(right));
-	  
+		    //_internal->expr = std::make_shared<MiniMC::Model::UGtExpr> (std::move(le),std::move(right));
+		    builder.UGt().pushI8Type().ZExt();
+		  
 		  break;
 		  case Whiley::BinOps::Eq:
-		    _internal->expr = std::make_shared<MiniMC::Model::EqExpr> (std::move(le),std::move(right));
+		    //_internal->expr = std::make_shared<MiniMC::Model::EqExpr> (std::move(le),std::move(right));
+		    builder.Eq().pushI8Type().ZExt();
 		    break;
 		    case Whiley::BinOps::NEq:
-		      _internal->expr = std::make_shared<MiniMC::Model::NEqExpr> (std::move(le),std::move(right));
+		      //_internal->expr = std::make_shared<MiniMC::Model::NEqExpr> (std::move(le),std::move(right));
+		      builder.NEq().pushI8Type().ZExt();
 		      break;
+		      
 	  
-	  
-      }
+	}
+	_internal->expr = builder.get();
     }
         
 	
@@ -381,10 +402,13 @@ namespace MiniMC {
       _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
       a.getExpression().accept (*this);
 
-	
+      MiniMC::Model::ExpressionBuilder ebuilder;
+      ebuilder << _internal->expr;
+      ebuilder.pushBoolType();
+      ebuilder.IntToBool();
       MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 
-      builder.addInstr<MiniMC::Model::InstructionCode::Assert> (_internal->expr);
+      builder.addInstr<MiniMC::Model::InstructionCode::Assert> (ebuilder.get());
     } 
     void Compiler::visitAssumeStatement (const Whiley::AssumeStatement& a)  {
       _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
@@ -393,7 +417,12 @@ namespace MiniMC {
 	
       MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 
-      builder.addInstr<MiniMC::Model::InstructionCode::Assume> (_internal->expr);
+      MiniMC::Model::ExpressionBuilder ebuilder;
+      ebuilder << _internal->expr;
+      ebuilder.pushBoolType();
+      ebuilder.IntToBool();
+      
+      builder.addInstr<MiniMC::Model::InstructionCode::Assume> (ebuilder.get());
       
 	
     } 
@@ -417,7 +446,7 @@ namespace MiniMC {
       }
       void Compiler::visitIfStatement (const Whiley::IfStatement& iff )  {
 	iff.getCondition ().accept(*this);
-	auto cond = _internal->expr; 
+	auto cond = std::make_shared<MiniMC::Model::IntToBoolExpr>(_internal->expr,MiniMC::Model::BoolType::get()); 
 	auto if_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
 	auto else_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
 	auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
@@ -450,6 +479,8 @@ namespace MiniMC {
       } 
       void Compiler::visitWhileStatement (const Whiley::WhileStatement& w )  {
 	w.getCondition().accept(*this);
+
+	auto cond = std::make_shared<MiniMC::Model::IntToBoolExpr>(_internal->expr,MiniMC::Model::BoolType::get());
 	
 	auto exec_loop  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
 	
@@ -458,13 +489,13 @@ namespace MiniMC {
 	
 	{
 	  MiniMC::Model::EdgeBuilder exec_builder {_internal->cfa,_internal->start,exec_loop,_internal->frame,false};
-	  exec_builder.addInstr<MiniMC::Model::InstructionCode::Assume> (_internal->expr);
+	  exec_builder.addInstr<MiniMC::Model::InstructionCode::Assume> (cond);
 	}
 	  
 	{
 	  
 	  MiniMC::Model::EdgeBuilder non_exec_builder {_internal->cfa,_internal->start,loop_done,_internal->frame,false};
-	  non_exec_builder.addInstr<MiniMC::Model::InstructionCode::Assume> (std::make_shared<MiniMC::Model::LogNotExpr> (_internal->expr));
+	  non_exec_builder.addInstr<MiniMC::Model::InstructionCode::Assume> (std::make_shared<MiniMC::Model::LogNotExpr> (cond));
 	}
 	auto loop_head = _internal->start;
 	_internal->start = exec_loop;
@@ -489,9 +520,12 @@ namespace MiniMC {
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	MiniMC::Model::Symbol symb;
 	MiniMC::Model::Symbol func_symb;
+
+	MiniMC::Model::Register_ptr reg = nullptr;
+	if (_internal->frame.resolve (c.assignname(),symb))
+	  reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
 	
-	if (_internal->frame.resolve (c.assignname(),symb) && _internal->frame.resolve (c.funcname(),func_symb)) {
-	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+	if (_internal->frame.resolve (c.funcname(),func_symb)) {
 	  
 	  std::vector<MiniMC::Model::Value_ptr> params;
 
@@ -504,6 +538,7 @@ namespace MiniMC {
 	  
 	  builder.addInstr<MiniMC::Model::InstructionCode::Call> (reg,symb_expr,params);
 	}
+	
       }
       
       

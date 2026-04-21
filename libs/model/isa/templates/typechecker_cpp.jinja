@@ -291,7 +291,7 @@ namespace MiniMC {
 	  {%endif %}
 	  {%endfor %}
 	{%if tp.NonResoperands() | length > 0 %} 
-	  if (!{{type_constraint(tp) }}) {
+	  if (!{{type_constraint(tp) }}) {   
 	  messager << MiniMC::Support::TError<std::string> {MiniMC::Support::Localiser{"'%1%' does not meet it's type constraints"}.format (*{{tp.getName()}})};
 	  return nullptr;
 	}
@@ -807,10 +807,9 @@ namespace MiniMC {
 	  const auto& instrkeeper = E->getInstructions ();
 	  if (instrkeeper) {
 	    for (auto& I : instrkeeper) {
-	      if (!I.visit ([this,&F,&I](auto& instr) {
-		return doCheck (instr,I,F.getReturnType ());
-	      })) {
-		res = false;
+	      if (!I.visit (				
+	      	 [this,&F,&I](auto& instr) {return doCheck (instr,I,F.getReturnType ());})	) {
+		res = false;	    
 	      }
 	    }
 	  }
@@ -869,8 +868,8 @@ namespace MiniMC {
         prgm = &p;
         bool res = true;
         for (auto& F : prgm->getFunctions()) {
-	  res = res && Check (*F);
-        }
+	    res = res && Check (*F);
+	}
 	prgm = nullptr;
         return res;
       }

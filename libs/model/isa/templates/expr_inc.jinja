@@ -540,7 +540,10 @@ void visitSubExpressions(F&& f,MiniMC::Model::Value& vv) {
        }
        {%endfor%}    
 
-     
+       auto& pushBoolType () {
+      	   types.push (BoolType::get()); return *this;
+	   }
+
       auto& pushI8Type () {
       	   types.push (I8Type::get()); return *this;
 	   }	      
