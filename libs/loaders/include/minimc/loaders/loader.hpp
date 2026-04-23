@@ -15,6 +15,7 @@
 #include <expected>
 #include <generator>
 #include <unordered_map>
+#include <optional>
 #include <iostream>
 #include <initializer_list>
 
@@ -66,19 +67,20 @@ namespace MiniMC {
 
       template<class T>
       void setOption (std::string i, T t) {
-	std::visit (MiniMC::Support::Overload {
-	    [&t]<typename Opt>(Opt opt) requires std::is_same_v<T,typename Opt::ValueType> {
-	      opt.set(t);},
-	      MiniMC::Support::Error<void> {}
-	  },
-	  getOption (i)
+	if (auto res =  getOption (i)) {
+	 
+	  std::visit (MiniMC::Support::Overload {
+	      [&t]<typename Opt>(Opt opt) requires std::is_same_v<T,typename Opt::ValueType> {
+		opt.set(t);},
+											       MiniMC::Support::Error<void> {}
+	    },
+	    res.value()
 	  );
+	}
 	
       }
       virtual std::generator<LoaderOption> getOptions ()  = 0;
-      
-    protected:
-      virtual LoaderOption  getOption(std::string) = 0; 
+      virtual std::optional<LoaderOption>  getOption(std::string) = 0; 
     };
     
     struct LoaderDirect : public Loader {
@@ -95,8 +97,12 @@ namespace MiniMC {
 	for (auto& g : options)
 	  co_yield g.second;
       }
-    protected:
-      LoaderOption getOption (std::string s) {return options.at (s);}
+      
+      std::optional<LoaderOption> getOption (std::string s) {
+	if (options.count(s))
+	  return options.at (s);
+	return std::nullopt;
+      }
       
       template<class T,class Arg>
       void addOption (std::string name, std::string descr, Arg args) {options.emplace (getName()+"."+name,T{getName()+"."+name,descr,args}); }
@@ -122,9 +128,15 @@ namespace MiniMC {
 	  }
 	}
       }
-    protected:
-    protected:
-      LoaderOption getOption (std::string) {throw MiniMC::Support::Exception ("Cannot set option on GenericLoader");}
+
+      std::optional<LoaderOption> getOption (std::string s) override {
+	for (auto& l : loaders) {
+	  if (auto opt = l->getOption(s))
+	    return opt;
+	 
+	}
+	return std::nullopt;
+      }
     private:
       std::vector<Loader_ptr> loaders;
     };

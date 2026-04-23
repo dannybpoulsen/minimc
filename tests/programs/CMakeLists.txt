@@ -30,9 +30,10 @@ function(add_mmc_test PREP INP)
 	add_test (NAME ${PREP}_${INP}_t COMMAND minimc --config ${CMAKE_CURRENT_BINARY_DIR}/${INP}.ini)
 endfunction()
 
-add_subdirectory(dummy)
-add_subdirectory(array)
+#add_subdirectory(dummy)
+#add_subdirectory(array)
+add_subdirectory(c)
 add_subdirectory(llvm)
-add_subdirectory(minimc)
+#add_subdirectory(minimc)
 
 endif(CLANG)

@@ -14,6 +14,5 @@ add_subdirectory(symbolic)
 
 
 add_subdirectory (src)
-install (TARGETS cpa  EXPORT MiniMCTargets FILE_SET HEADERS
-)
+
 add_library(MiniMC::cpa ALIAS cpa)
