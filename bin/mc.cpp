@@ -15,14 +15,8 @@ namespace po = boost::program_options;
 
 namespace {
   
-  enum class ExpectReach {
-    Reachable,
-    NotReachable,
-    Inconclusive
-  };
   
   struct LocalOptions {
-    ExpectReach expect{ExpectReach::Inconclusive};
     MiniMC::Algorithms::Reachability::SearchStrategy search_strat{MiniMC::Algorithms::Reachability::SearchStrategy::DFS};
     bool symbolic{false};
   };
@@ -30,22 +24,6 @@ namespace {
   class MCCommand :public Command {
   public:
     void addOptions (po::options_description& op) {
-      
-      auto setExpected= [this] (int val) {
-	switch (val) {
-	case 1:
-	  locoptions.expect = ExpectReach::Reachable;
-	  break;
-	case 2:
-	  locoptions.expect = ExpectReach::Inconclusive;
-	  break;
-	default:
-	  locoptions.expect = ExpectReach::NotReachable;
-	  break;
-	  
-	}
-      };
-      
       auto setSearchStrategy= [this] (const std::string val) {
 	if (val == "DFS") {
 	  locoptions.search_strat = MiniMC::Algorithms::Reachability::SearchStrategy::DFS;
@@ -58,10 +36,6 @@ namespace {
       
       po::options_description desc("MC Options");
       desc.add_options()
-	("mc.expect",po::value<int> ()->default_value (0)->notifier (setExpected),"Set the expected verification result\n"
-	 "\t 1 AssertViolation\n"
-	 "\t 2 Inconclusive\n"
-	 "\t 0 NoViolation\n")
 	("mc.strategy",po::value<std::string> ()->default_value ({"DFS"})->notifier (setSearchStrategy),"Select search strategy\n"
 	 "\t BFS\n"
 	 "\t DFS\n"
@@ -96,19 +70,8 @@ namespace {
 	
 	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.getMessager().raw_stream (MiniMC::Support::Severity::Info)) << "\n";
 	
-	if (locoptions.expect == ExpectReach::Reachable)
-	  return MiniMC::Host::ExitCodes::AllGood;
-	else
-	  return MiniMC::Host::ExitCodes::UnexpectedResult;
       }
       
-      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::NotFound) {
-	messager.getMessager() <<  MiniMC::Support::TInfo<std::string> {"No violation found"};
-	if (locoptions.expect == ExpectReach::Reachable)
-	  return MiniMC::Host::ExitCodes::UnexpectedResult;
-	else
-	  return MiniMC::Host::ExitCodes::AllGood;
-      }
       
       
       
