@@ -1,6 +1,7 @@
 #include <boost/program_options.hpp>
 #include <sstream>
 
+#include "minimc/cpa/state.hpp"
 #include "minimc/loaders/loader.hpp"
 #include "minimc/algorithms/reachability.hpp"
 #include "minimc/cpa/interface.hpp"
@@ -19,7 +20,9 @@ namespace {
   struct LocalOptions {
     MiniMC::Algorithms::Reachability::SearchStrategy search_strat{MiniMC::Algorithms::Reachability::SearchStrategy::DFS};
     bool symbolic{false};
-  };
+    bool concretize{false};
+    bool all{false};
+    };
   
   class MCCommand :public Command {
   public:
@@ -41,6 +44,8 @@ namespace {
 	 "\t DFS\n"
 	 )
 	("mc.symbolic",po::bool_switch (&locoptions.symbolic),"Do a symbolic execution")
+	("mc.concretize",po::bool_switch (&locoptions.concretize),"Concretize states")
+	("mc.all",po::bool_switch (&locoptions.all),"Find all violations")
 	
 	;
       
@@ -62,13 +67,24 @@ namespace {
       
     
       MiniMC::Algorithms::Reachability::Reachability reach {cpa->makeTransfer(prgm),messager};
-      
+
+      std::unique_ptr<MiniMC::CPA::StateOutputter> outputter =  std::make_unique<MiniMC::CPA::CPAStateOutputter> (prgm);
+      if  (locoptions.concretize)
+	outputter = std::make_unique<MiniMC::CPA::CPAConcreteStateOutputter> (prgm,sopt.smt.selsmt.makeContext());
+	
       auto result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach,&initstate,&goal,this](){return reach.search(*initstate,goal,MiniMC::Algorithms::Reachability::DefaultFilter,locoptions.search_strat);});
       
-      if (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found) {
+      
+      bool findMore = true;
+      while (result.verdict () == MiniMC::Algorithms::Reachability::Verdict::Found && findMore) {
 	messager.getMessager() << MiniMC::Support::TInfo<std::string> {"Found Violation"};
 	
-	MiniMC::CPA::CPAStateOutputter{prgm}.output (*result.foundState(),messager.getMessager().raw_stream (MiniMC::Support::Severity::Info)) << "\n";
+	outputter->output (*result.foundState(),messager.getMessager().raw_stream (MiniMC::Support::Severity::Info)) << "\n";
+	
+	findMore = locoptions.all;
+	if (findMore)
+	  result = MiniMC::Support::AsyncExecutor{}.execute(messager,[&reach](){return reach.continueSearch();});
+	
 	
       }
       

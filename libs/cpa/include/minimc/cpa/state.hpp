@@ -74,22 +74,29 @@ namespace MiniMC {
       virtual void setFlag (MiniMC::VMT::FlagType) = 0;
     };
     
+
+
+    class StateOutputter  {
+    public:
+      virtual ~StateOutputter () {}
+      virtual MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os) = 0;
+      
+    };
     
     
-    
-    class CPAStateOutputter {
+    class CPAStateOutputter : public StateOutputter{
     public:
       CPAStateOutputter (const MiniMC::Model::Program& prgm) : prgm(prgm) {}
-      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os);
+      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os) override;
     private:
       const MiniMC::Model::Program& prgm;
       
     };
 
-    class CPAConcreteStateOutputter {
+    class CPAConcreteStateOutputter : public StateOutputter {
     public:
       CPAConcreteStateOutputter (const MiniMC::Model::Program& prgm,MiniMC::VMT::SolverOptions opt) : prgm(prgm),options(opt) {}
-      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os);
+      MiniMC::IO::ostream& output (const State&, MiniMC::IO::ostream& os) override;
     private:
       const MiniMC::Model::Program& prgm;
       MiniMC::VMT::SolverOptions options;
