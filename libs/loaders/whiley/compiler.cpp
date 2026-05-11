@@ -24,7 +24,6 @@ namespace MiniMC {
 	MiniMC::Model::Location_ptr start;
 	MiniMC::Model::Location_ptr end;
 	MiniMC::Model::Value_ptr expr;
-	MiniMC::Model::Value_ptr heap_pointer;
 	MiniMC::Model::Value_ptr heap_mem;
 	
 	//std::unordered_map<std::string,MiniMC::Model::Register_ptr> vars;
@@ -71,10 +70,10 @@ namespace MiniMC {
 	_internal->heap_mem = _internal->prgm.getPersistentRegs().addRegister (rootFrame.makeSymbol ("mem"),MiniMC::Model::MemoryType::get());
 	
 	
-	auto heap = rootFrame.makeSymbol ("heap");
-	_internal->prgm.getHeapLayout ().addBlock (heap,MiniMC::Model::pointer_t::makeHeapPointer(0,0),256,_internal->heap_mem);
-	_internal->heap_pointer = MiniMC::Model::SymbolicConstant::make (heap);
-	_internal->heap_pointer->setType(MiniMC::Model::PointerType::get());
+	//auto heap = rootFrame.makeSymbol ("heap");
+	//_internal->prgm.getHeapLayout ().addBlock (heap,MiniMC::Model::pointer_t::makeHeapPointer(0,0),256,_internal->heap_mem);
+	//_internal->heap_pointer = MiniMC::Model::SymbolicConstant::make (heap);
+	//_internal->heap_pointer->setType(MiniMC::Model::PointerType::get());
 	
 	std::vector<MiniMC::Model::Register_ptr> params;
 

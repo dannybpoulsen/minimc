@@ -11,7 +11,7 @@ add_executable (minimc minimc.cpp mc.cpp plugin.cpp options.cpp convert.cpp
 symex.cpp
 symbolc.cpp
 simulator.cpp
-mcall.cpp
+#mcall.cpp
 )
 
 target_link_libraries  (minimc minimclib ${Boost_LIBRARIES})
