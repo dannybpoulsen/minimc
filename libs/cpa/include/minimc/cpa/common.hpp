@@ -575,9 +575,9 @@ namespace MiniMC {
 	  throw MiniMC::Support::Exception ("Not enough processes");
 	}
 	MiniMC::VMT::MultiEvaluator<typename ValDef::Val,
-				decltype(this->makeEvaluationContext(1)),
-				decltype(valuedefinition.ops())
-				> eval (valuedefinition.ops(),
+				    decltype(this->makeEvaluationContext(1)),
+				    decltype(valuedefinition.ops())
+				    > eval (valuedefinition.ops(),
 					makeEvaluationContext(p));
 	return std::make_unique<TQuery<typename ValDef::Val>> (eval.Eval(val));
 	
@@ -637,8 +637,6 @@ namespace MiniMC {
 	  for (auto t :  engine.execute(instr,nstate,id)) {
 	    if (e.getTo ()->getInfo().getFlags().isSet (MiniMC::Model::Attributes::AssertViolated))
 	      t->setFlag (MiniMC::VMT::FlagType::AssertViolated);
-	    /*if (!t->isSet (MiniMC::VMT::FlagType::AssertViolated))
-	      t->getProc(id).activeRecord().setLocation(e.getTo());*/
 	    co_yield t;
 	  }
 	  

@@ -40,7 +40,8 @@ namespace MiniMC {
     enum class Attributes {
       AssertViolated = 1 << 0,  /**< Indicates an assert was violated */
       
-      UnrollFailed = 1 << 1 /** Indicates loop unrolling was unsufficient **/
+      UnrollFailed = 1 << 1, /** Indicates loop unrolling was unsufficient **/
+      Committed = 1 << 2
     };
     
     using LocFlags = FlagSet<Attributes>;

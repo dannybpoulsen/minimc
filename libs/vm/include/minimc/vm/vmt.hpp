@@ -34,21 +34,19 @@ namespace MiniMC {
       NotImplementedExpr () : MiniMC::Support::Exception (MiniMC::Support::Localiser{"Expression '%1%' not supported."}.format (typeid(c).name())) {}
     };
 
-
+    
     enum class FlagType {
       AssertViolated = 0,
     };
-  
+    
     
     template<class Eval,class T>
     concept RegisterStore = requires (MiniMC::Model::Symbol s, const MiniMC::Model::Register& reg, const Eval& ceval, Eval& eval,  T&& t, const T::Pointer p,const T::Memory& mem,const MiniMC::Model::Type& ty, const T& value,std::size_t bytes, const T::I64&si64) {
       {ceval.lookupRegister (reg)} -> std::convertible_to<T>;
       {ceval.lookupSymbol (s)} -> std::convertible_to<T>;
-      
       {eval.saveValue (reg,std::move(t))};
       {ceval.load(p,mem,ty)}->std::convertible_to<T>;
-      {ceval.loadBytes(p,mem,bytes)}->std::convertible_to<std::generator<typename T::I8>>;
-      
+      {ceval.loadBytes(p,mem,bytes)}->std::convertible_to<std::generator<typename T::I8>>;     
       {ceval.store(mem,p,value)}->std::convertible_to<typename T::Memory>;
       {ceval.find_space(mem,si64)}->std::convertible_to<T>;
       {ceval.check_free(mem,p,si64)}->std::convertible_to<T>;
@@ -70,41 +68,10 @@ namespace MiniMC {
     };
 
     
-    
-    
-
-
-    template<class State>
-    concept StackControllable = requires (State& state, MiniMC::Model::proc_t id) {
-      {state.getStackControl (id)} ->StackControl;
-    };
-
-    
-
-
-    template<class State,typename T>
-    concept HasMemory = requires (State& state) {
-      {state.getMemory ()} ->MemoryOperations<T>;
-      
-    };
-
-    template<class State,typename Memory>
-    concept HasMemoryNew = requires (State& state,Memory&& m) {
-      {state.getMemory ()} ->std::convertible_to<Memory&>;
-      {state.setMemory (m)};
-      
-    };
-
-    
-    template<class State,typename T>
-    concept ValueLookupable = requires (State& state, MiniMC::Model::proc_t id) {
-      {state.makeEvaluationContext (id)} ->RegisterStore<T>;
-    };
-
-    
     template<class State,class V>
-    concept VMState =  StackControllable<State> &&
-      ValueLookupable<State,V> && requires (State& s,typename V::Bool&& v,FlagType t) {
+    concept VMState =   requires (State& s,typename V::Bool&& v,FlagType t,MiniMC::Model::proc_t id) {
+      {s.getStackControl (id)}->StackControl;
+      {s.makeEvaluationContext (id)} ->RegisterStore<V>;
       {s.getPathform()}->std::convertible_to<typename V::Bool>;
       {s.setPathform(std::move(v))};
       {s.constraint_solver ()} -> ConstraintSolver<V>;
@@ -603,7 +570,6 @@ OPSI
 		    
 		  }
 		  default:
-		    //TODO: Make load of pointers  and aggregates use the loadBytes functions
 		    throw MiniMC::Support::Exception ("Unsupported load");
 		  }
 		},
