@@ -15,6 +15,12 @@ namespace MiniMC {
 	return *this;
       }
 
+      auto& unset (const T& t) {
+	value ^= static_cast<V> (t);
+	return *this;
+      }
+      
+      
       auto& operator= (const FlagSet<T>& oth) {value = oth.value; return *this;} 
       
       bool isSet (const T& t) const {

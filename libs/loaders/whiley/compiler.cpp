@@ -82,8 +82,8 @@ namespace MiniMC {
 	MiniMC::Model::RegisterDescr descr;
 	
 	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,main_func_frame);
-	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("_iniit"),_internal->locinfo->make({}));
-	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("_end"),_internal->locinfo->make({}));
+	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("_iniit"),_internal->locinfo->makeF());
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("_end"),_internal->locinfo->makeF());
 	auto end_init = _internal->end;
 	_internal->cfa.setInitial (_internal->start);
 	{
@@ -123,7 +123,7 @@ namespace MiniMC {
 	_internal->start = end_init;
 	_internal->locinfo = std::move(loc_info);
 	_internal->cfa = std::move(main_func_cfa);
-	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->makeF());
 	
 	
 	
@@ -169,8 +169,8 @@ namespace MiniMC {
 	}
 	
 	_internal->locinfo = std::make_unique<MiniMC::Model::LocationInfoCreator> (descr,_internal->frame);
-	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->make({}));
-	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->make({}));
+	_internal->start = _internal->cfa.makeLocation (_internal->frame.makeFresh ("start"),_internal->locinfo->makeF());
+	_internal->end =  _internal->cfa.makeLocation (_internal->frame.makeFresh ("end"),_internal->locinfo->makeF());
 	_internal->cfa.setInitial (_internal->start);
 	wh_func->getStmt()->accept (*this);
 
@@ -194,7 +194,7 @@ namespace MiniMC {
       } 
 
       void Compiler::visitAllocStatement (const Whiley::AllocStatement& alloc)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	MiniMC::Model::Symbol symb;
 	if (_internal->frame.resolve(alloc.getAssignName(),symb)) {
@@ -210,7 +210,7 @@ namespace MiniMC {
       }
 
       void Compiler::visitFreeStatement (const Whiley::FreeStatement& free)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	free.getExpression().accept (*this);
 	  
 	
@@ -353,7 +353,7 @@ namespace MiniMC {
         
 	
     void Compiler::visitAssignStatement (const Whiley::AssignStatement& ass)  {
-      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
       MiniMC::Model::Symbol symb;
       _internal->frame.resolve (ass.getAssignName(),symb);
       auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
@@ -366,7 +366,7 @@ namespace MiniMC {
     }
 
     void Compiler::visitIncrementDecrementStatement (const Whiley::IncrementDecrementStatement& ass)  {
-      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
       MiniMC::Model::Symbol symb;
       _internal->frame.resolve (ass.getIncrementee(),symb);
       auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
@@ -398,7 +398,7 @@ namespace MiniMC {
     }
       
     void Compiler::visitAssertStatement (const Whiley::AssertStatement& a)  {
-      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
       a.getExpression().accept (*this);
 
       MiniMC::Model::ExpressionBuilder ebuilder;
@@ -410,7 +410,7 @@ namespace MiniMC {
       builder.addInstr<MiniMC::Model::InstructionCode::Assert> (ebuilder.get());
     } 
     void Compiler::visitAssumeStatement (const Whiley::AssumeStatement& a)  {
-      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      _internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
       a.getExpression().accept (*this);
 
 	
@@ -428,10 +428,10 @@ namespace MiniMC {
 
     void Compiler::visitChooseStatement (const Whiley::ChooseStatement& iff )  {
       auto start = _internal->start;
-      auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+      auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	
       for (auto& stmt : iff.getStatements()) {
-	auto nstart = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto nstart = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	  
 	{
 	  MiniMC::Model::EdgeBuilder  b {_internal->cfa,start,nstart,_internal->frame,false};
@@ -446,9 +446,9 @@ namespace MiniMC {
       void Compiler::visitIfStatement (const Whiley::IfStatement& iff )  {
 	iff.getCondition ().accept(*this);
 	auto cond = std::make_shared<MiniMC::Model::IntToBoolExpr>(_internal->expr,MiniMC::Model::BoolType::get()); 
-	auto if_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	auto else_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
-	auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto if_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
+	auto else_branch = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
+	auto done_loc = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	auto start = _internal->start;
 	{
 	  MiniMC::Model::EdgeBuilder builder {_internal->cfa,start,if_branch,_internal->frame,false};
@@ -472,7 +472,7 @@ namespace MiniMC {
 	  
       } 
       void Compiler::visitSkipStatement (const Whiley::SkipStatement& )  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	
       } 
@@ -481,9 +481,9 @@ namespace MiniMC {
 
 	auto cond = std::make_shared<MiniMC::Model::IntToBoolExpr>(_internal->expr,MiniMC::Model::BoolType::get());
 	
-	auto exec_loop  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto exec_loop  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	
-	auto loop_done  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	auto loop_done  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	
 	
 	{
@@ -508,14 +508,25 @@ namespace MiniMC {
       }
 
       void Compiler::visitReturnStatement (const Whiley::ReturnStatement& ret)   {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	ret.getExpr().accept(*this);
 	builder.addInstr<MiniMC::Model::InstructionCode::Ret> (_internal->expr);
       }
+
+      void Compiler::visitAtomicStatement (const Whiley::AtomicStatement& c)  {
+	_internal->locinfo->template setFlag<MiniMC::Model::Attributes::Committed> ();
+	c.getStmt().accept(*this);
+	_internal->locinfo->template unsetFlag<MiniMC::Model::Attributes::Committed> ();
+	
+	auto end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
+	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->end,end,_internal->frame,false};
+	_internal->end = end;
+	
+      }
       
       void Compiler::visitCallStatement (const Whiley::CallStatement& c)  {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	MiniMC::Model::EdgeBuilder builder {_internal->cfa,_internal->start,_internal->end,_internal->frame,false};
 	MiniMC::Model::Symbol symb;
 	MiniMC::Model::Symbol func_symb;
@@ -547,7 +558,7 @@ namespace MiniMC {
 	s.getSecond().accept (*this);
       } 
       void Compiler::visitMemAssignStatement (const Whiley::MemAssignStatement& a) {
-	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->make ({}));
+	_internal->end  = _internal->cfa.makeLocation (_internal->frame.makeFresh(),_internal->locinfo->makeF());
 	
 	
 	

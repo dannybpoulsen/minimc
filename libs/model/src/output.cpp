@@ -32,6 +32,9 @@ namespace MiniMC {
 	else if (cur->getInfo().getFlags ().isSet(Attributes::UnrollFailed)){
           os << "    @UnrollFailed\n";
         }
+	else if (cur->getInfo().getFlags ().isSet(Attributes::Committed)){
+          os << "    @Committed\n";
+        }
 	os << "    [" << "\n";
 	auto it = cur->ebegin ();
 	auto end = cur->eend ();

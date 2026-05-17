@@ -70,14 +70,21 @@ namespace MiniMC {
         return LocationInfo(type, registers, frame, info);
       }
 
-      
-      /*LocationInfo make(const LocationInfo& loc) {	
-        return LocationInfo(loc.flags, loc.active_registers, loc.source);
-	}*/
+      LocationInfo makeF(const SourceInfo& info = {}) {
+        return LocationInfo(flags, registers, frame, info);
+      }
 
+      template<Attributes attr>
+      void setFlag () {flags |= attr;}
+
+      template<Attributes attr>
+      void unsetFlag () {flags.unset(attr);}
+      
+      
     private:
       const MiniMC::Model::RegisterDescr registers;
       MiniMC::Model::Frame frame;
+      LocFlags flags;
     };
     
   } // namespace Model

@@ -88,7 +88,8 @@ namespace {
 	
       }
       
-      
+      messager.getMessager().raw_stream (MiniMC::Support::Severity::Info) << "\n" << "Searched " << result.exploredStates() << "\n";
+	
       
       
       return MiniMC::Host::ExitCodes::AllGood;
