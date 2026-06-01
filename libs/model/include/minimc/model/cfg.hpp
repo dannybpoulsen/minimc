@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "minimc/model/edge.hpp"
@@ -86,7 +87,7 @@ namespace MiniMC {
       void deleteEdge(const Edge* edge) {
         edge->getFrom()->removeEdge(edge);
         edge->getTo()->removeIncomingEdge(edge);
-
+	
         auto it = std::find_if(edges.begin(), edges.end(), [edge](auto& e) {return e.get() == edge;});
         if (it != edges.end()) {
           edges.erase(it);
@@ -190,41 +191,28 @@ namespace MiniMC {
       
       auto& getFunctions() const { return functions; }
 
-      void addEntryPoint(const std::string& str) {
-        auto function = getFunction(str);
-        entrypoints.push_back(function);
-      }
-
       void addEntryPoint(MiniMC::Model::Symbol symb) {
-        auto function = getFunction(symb);
-        entrypoints.push_back(function);
+        entrypoints.push_back(symb);
       }
       
       Function_ptr getFunction(MiniMC::Model::func_t id) const {
         return functions.at(id);
       }
-
-      Function_ptr getFunction(const std::string& name) const {
-	Symbol symb;
-	if (frame.resolve (name,symb)) {
-	  return getFunction (symb);
-	}
-	throw MiniMC::Support::FunctionDoesNotExist(name);	
-      }
-
+      
       Function_ptr getFunction(const MiniMC::Model::Symbol& symb) const {
-	
-	if (function_map.count(symb)) {
-	  return function_map.at(symb);
+	if (std::holds_alternative<Function_wptr> (symb.getUserData ())) {
+	  return std::get<Function_wptr> (symb.getUserData()).lock();
 	}
-	throw MiniMC::Support::FunctionDoesNotExist(symb.getFullName ());
+	return nullptr;
       }
       
       bool functionExists(MiniMC::Model::func_t id) const {
-        return static_cast<std::size_t> (id) < functions.size();
+	return static_cast<std::size_t> (id) < functions.size();
       }
       
-      auto& getEntryPoints() const { return entrypoints; }
+      auto& getEntryPoints() const {
+	return entrypoints;
+      }
       
       HeapLayout& getHeapLayout () {return heaplayout;}
       const HeapLayout& getHeapLayout () const  {return heaplayout;}
@@ -238,11 +226,11 @@ namespace MiniMC {
       
       
       auto& getRootFrame () {return frame;}
-        auto& getRootFrame () const {return frame;}
+      auto& getRootFrame () const {return frame;}
     
     private:
       std::vector<Function_ptr> functions;
-      std::vector<Function_ptr> entrypoints;
+      std::vector<Symbol> entrypoints;
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
       MiniMC::Model::RegisterDescr cpu_regs;

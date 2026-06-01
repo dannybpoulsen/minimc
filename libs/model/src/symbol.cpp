@@ -1,6 +1,7 @@
 #include "minimc/model/symbol.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/hash/hashing.hpp"
+#include "minimc/support/overload.hpp"
 
 #include <stdexcept>
 #include <string>
@@ -11,6 +12,7 @@
 #include <list>
 #include <cassert>
 #include <algorithm>
+#include <variant>
 
 namespace MiniMC {
   namespace Model {
@@ -321,7 +323,23 @@ namespace MiniMC {
       co_yield std::ranges::elements_of(_internal->gen_parent_symbols());
     }
     
-      
+
+    std::size_t Frame::numberOfRegisters () const {
+      std::size_t regs{0};
+      for (auto t : local_symbols()) {
+	if (std::holds_alternative<MiniMC::Model::Register_wptr> (t.getUserData()))
+	  regs++;
+      }
+      return regs;
+    }
+    
+    bool Frame::hasSymbol (const Symbol& s) const {
+      for (auto ss : local_symbols()) {
+	if (s == ss)
+	  return true;
+      }
+      return false;
+    }
     
   }
 }

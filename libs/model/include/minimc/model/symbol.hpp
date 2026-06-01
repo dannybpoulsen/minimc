@@ -56,7 +56,7 @@ namespace MiniMC {
       const UserData& getUserData () const ;
       MiniMC::Hash::hash_t hash () const;
       bool operator== (const Symbol& d) const ;
-      
+
       struct data;
     protected:
       explicit Symbol (const std::string&);
@@ -92,6 +92,10 @@ namespace MiniMC {
       std::generator<Symbol> local_symbols () const ;
       std::generator<Symbol> local_and_parent_symbols () const ;
       
+      bool hasSymbol (const Symbol& ) const;
+
+      
+      std::size_t numberOfRegisters () const;
     private:
       struct Internal;
       Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}

@@ -20,17 +20,18 @@ TEST_CASE("Add") {
   MiniMC::Model::RegisterDescr descr;
   
   
-  auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
-  auto symb = prgm.getRootFrame ().makeFresh ();
-  auto symbol_value = MiniMC::Model::SymbolicConstant::make(symb);
   
-  auto res = descr.addRegister (std::move(symb),type);
-
   
   MiniMC::Model::CFA cfa{};
   auto frame = prgm.getRootFrame ().create ("KK");
-  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
-  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
+  auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
+  auto symb = frame.makeFresh ();
+  auto symbol_value = MiniMC::Model::SymbolicConstant::make(symb);
+  
+  auto res = descr.addRegister (std::move(symb),type);
+  
+  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
+  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   cfa.setInitial (init);
   {  
     MiniMC::Model::EdgeBuilder builder{cfa,init,end,frame};
@@ -46,7 +47,7 @@ TEST_CASE("Add") {
 				frame);
 
   MiniMC::CPA::Concrete::CPA cpa;
-  auto init_state = cpa.makeInitialState ({{func},{},prgm});
+  auto init_state = cpa.makeInitialState ({{func->getSymbol()},{},prgm});
   auto transfer = cpa.makeTransfer (prgm);
 
   

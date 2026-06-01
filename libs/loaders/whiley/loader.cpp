@@ -19,24 +19,35 @@ class WhileyLoader2 : public LoaderDirect {
 public:
   WhileyLoader2() : LoaderDirect("whiley") {}
 
-  LoadResult loadFromFile(const std::string &file,  MiniMC::Support::Messager&) override {
-    try {::Whiley::WParser parser;
-      if (auto parseres = parser.parse (file)) {
+  LoadResult loadFromFile(const std::string &file,  MiniMC::Support::Messager& m) override {
+    std::ifstream ifs;
+    
+    ifs.open (file, std::ifstream::in);
+    return load(ifs,m);
+  }
+  LoadResult loadFromString(const std::string& s,  MiniMC::Support::Messager& m) override {
+    std::stringstream str;
+    str.str(s);
+    return load(str,m);
+  }
+
+private:
+  LoadResult load(std::istream& ff,  MiniMC::Support::Messager&)  {
+    try {
+      ::Whiley::WParser parser;
+      if (auto parseres = parser.parse (ff)) {
 	auto prgm = parseres.get();
 	if (Whiley::TypeChecker{}.CheckProgram(prgm))
 	  return MiniMC::Loaders::whiley::Compiler {}.compile(prgm);
       }
-      //return MiniMC::Model::Program{};
       return std::unexpected{Error::LoadFailed};
     }
     catch (std::runtime_error& ) {
       return std::unexpected{Error::LoadFailed};
     }
+
   }
-  LoadResult loadFromString(const std::string &inp,  MiniMC::Support::Messager&) override {
-   MiniMC::Model::Program program;
-   return program;
-  }
+  
 };
 
 class WhileyLoadRegistrar : public LoaderRegistrar {

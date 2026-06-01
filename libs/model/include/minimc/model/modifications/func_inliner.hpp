@@ -20,8 +20,10 @@ namespace MiniMC {
 	
 	MiniMC::Model::Program operator() (MiniMC::Model::Program&& program) {
 	  prgm = &program;
-	  for (auto& func : prgm->getEntryPoints ())
+	  for (auto& symb : prgm->getEntryPoints ()) {
+	    auto func = std::get<Function_wptr> (symb.getUserData()).lock();
 	    runFunction (func,depth);
+	  }
 	  prgm = nullptr;
 	  return program;
 	}

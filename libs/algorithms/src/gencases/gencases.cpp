@@ -28,10 +28,10 @@ namespace MiniMC {
       TestCaseGenerator::~TestCaseGenerator () {}
 
       TestCaseGenResult TestCaseGenerator::generate  (MiniMC::Support::Messager& mess,
-				   MiniMC::Model::Function_ptr& func,
+				   MiniMC::Model::Symbol& func,
 				   MiniMC::Support::SMT::SMTDescr smt
 						      ) {
-	TestCaseGenResult res {func->getParameters()};
+	TestCaseGenResult res {std::get<MiniMC::Model::Function_wptr>(func.getUserData()).lock()->getParameters()};
 	
 	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
 	

@@ -90,7 +90,7 @@ namespace MiniMC {
       
       os << "# Entrypoints" <<"\n";
       for (auto& F : p.getEntryPoints ()) {
-	os << "  " << F->getSymbol () << "\n";
+	os << "  " << F << "\n";
       }
 
       os << "# Heap" <<"\n";

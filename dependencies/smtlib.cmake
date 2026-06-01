@@ -5,7 +5,7 @@ FetchContent_Declare(
     smtlib
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/smtlib
     GIT_REPOSITORY https://gitlab.com/dannybpoulsen/smtlib.git
-    GIT_TAG  afafd038c675911915ab0893218df46440ad7848
+    GIT_TAG  origin/master
 )
 
 FetchContent_MakeAvailable(smtlib)

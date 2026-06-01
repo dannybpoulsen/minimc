@@ -28,7 +28,6 @@ target_sources(model
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/analysis/loops.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/analysis/dominator.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/checkers/structuralchecker.hpp
-	  ${PROJECT_SOURCE_DIR}/include/minimc/model/modifications/expandnondet.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/modifications/func_inliner.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/modifications/loops.hpp
 	  ${PROJECT_SOURCE_DIR}/include/minimc/model/modifications/modifications.hpp

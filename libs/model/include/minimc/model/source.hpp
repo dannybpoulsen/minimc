@@ -47,19 +47,17 @@ namespace MiniMC {
     using LocFlags = FlagSet<Attributes>;
     
     struct LocationInfo {
-      explicit LocationInfo(LocFlags flags, MiniMC::Model::RegisterDescr registers, MiniMC::Model::Frame frame,  SourceInfo info = SourceInfo{})  : flags(flags), source(std::move(info)),active_registers(std::move(registers)),frame(frame) {}
+      explicit LocationInfo(LocFlags flags, MiniMC::Model::Frame frame,  SourceInfo info = SourceInfo{})  : flags(flags), source(std::move(info)),frame(frame) {}
       LocationInfo (const LocationInfo&) = default;
 
       
       
-      const RegisterDescr& getRegisters () const {return active_registers;}
       const auto& getFrame () const {return frame;}
       auto& getFlags () const  {return flags;} 
       auto& getFlags () {return flags;} 
       
       LocFlags flags;
       SourceInfo source;
-      const MiniMC::Model::RegisterDescr active_registers;
       MiniMC::Model::Frame frame;
     };
     
@@ -67,11 +65,11 @@ namespace MiniMC {
       LocationInfoCreator(const MiniMC::Model::RegisterDescr& regs, MiniMC::Model::Frame frame) : registers(regs),frame(frame) {}
       
       LocationInfo make(LocFlags type, const SourceInfo& info = {}) {
-        return LocationInfo(type, registers, frame, info);
+        return LocationInfo(type, frame, info);
       }
 
       LocationInfo makeF(const SourceInfo& info = {}) {
-        return LocationInfo(flags, registers, frame, info);
+        return LocationInfo(flags, frame, info);
       }
 
       template<Attributes attr>

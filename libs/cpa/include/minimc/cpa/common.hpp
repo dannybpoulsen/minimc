@@ -1,6 +1,7 @@
 #ifndef _CPA_COMMON__
 #define _CPA_COMMON__
 
+#include "minimc/support/overload.hpp"
 #include "minimc/cpa/query.hpp"
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/vmt.hpp"
@@ -39,14 +40,10 @@ namespace MiniMC {
 	if (!loc)
 	  return false;
 	
-	else return loc->getInfo().getRegisters().hasSymbol (r);
+	else return loc->getInfo().getFrame().hasSymbol (r);
 	
       }
 
-      auto getValue (const MiniMC::Model::Symbol& r) const {
-	return getValueOfRegister(*loc->getInfo().getRegisters().getRegister (r));
-      }
-      
       void setValueOfRegister (const MiniMC::Model::Register& r,Value&& v) {
 	values.set(r,std::move(v));
       }
@@ -80,7 +77,7 @@ namespace MiniMC {
       }
       
       void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Value_ptr& ret) {
-        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getRegisters().getTotalRegisters()},ret,loc});
+        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getFrame().numberOfRegisters()},ret,loc});
       }
 
       
@@ -171,14 +168,25 @@ namespace MiniMC {
       }
 
       Value lookupSymbol (MiniMC::Model::Symbol s) const {
-	if (scontext.hasSymbol(s))
-	  return scontext.at(s);
-	else {
-	  auto record = values.searchForRecordWithSymbol (s);
-	  if (record) {
-	    return record->getValue (s);
-	  }
-	}
+
+	auto val = std::visit (MiniMC::Support::Overload {
+	    [this,&s](MiniMC::Model::Register_wptr& r) ->std::optional<Value>{
+	      auto record = values.searchForRecordWithSymbol (s);
+	      if (record)
+		return record->getValueOfRegister(*r.lock());
+	      return std::nullopt;
+	    },
+	      [&s,this](auto& )->std::optional<Value> {
+		if (scontext.hasSymbol (s))
+		  return scontext.at(s);
+		return std::nullopt;
+	      }
+	      },
+	  s.getUserData()
+	  );
+	
+	if (val)
+	  return val.value();
 	MiniMC::Support::Localiser loc {"Cannot localise symbol %1%"};
 	throw MiniMC::Support::Exception (loc.format(s));
       }

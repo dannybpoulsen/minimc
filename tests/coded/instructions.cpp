@@ -20,13 +20,14 @@ TEST_CASE("Add") {
   MiniMC::Model::RegisterDescr descr;
   
   
-  auto type = MiniMC::Model::I8Type::get();;
-  auto res = descr.addRegister (prgm.getRootFrame ().makeFresh (),type);
-
+  
   MiniMC::Model::CFA cfa{};
   auto frame = prgm.getRootFrame ().create ("KK");
-  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
-  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},descr,frame});
+  auto type = MiniMC::Model::I8Type::get();;
+  auto res = descr.addRegister (frame.makeFresh (),type);
+  
+  auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
+  auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   cfa.setInitial (init);
   {  
     MiniMC::Model::EdgeBuilder builder{cfa,init,end,frame};
@@ -42,7 +43,7 @@ TEST_CASE("Add") {
 				frame);
 
   MiniMC::CPA::Concrete::CPA cpa;
-  auto init_state = cpa.makeInitialState ({{func},{},prgm});
+  auto init_state = cpa.makeInitialState ({{func->getSymbol()},{},prgm});
   auto transfer = cpa.makeTransfer (prgm);
 
   MiniMC::CPA::State_ptr res_state = nullptr;

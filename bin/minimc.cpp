@@ -32,7 +32,7 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
     manager.add<InlineFunctions> (options.inlineFunctions);
   }
    if (options.loadasserts) {
-    manager.add<InstrumentLoads> ();
+     manager.add<InstrumentLoads> ();
   }
   if (options.lower_phi) {
     manager.add<LowerPhi> ();

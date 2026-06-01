@@ -35,13 +35,13 @@ namespace MiniMC {
     
     struct InitialiseDescr {
     public:
-      InitialiseDescr(std::vector<MiniMC::Model::Function_ptr> entri_func,
+      InitialiseDescr(std::vector<MiniMC::Model::Symbol> entri_func,
                       MiniMC::Model::HeapLayout heap,
                       const MiniMC::Model::Program& program) : heap(std::move(heap)),
                                                                prgm(program) {
 	
 	for (auto& F : entri_func) {
-	  entries.push_back (F);
+	  entries.push_back (std::get<MiniMC::Model::Function_wptr>(F.getUserData()).lock());
 	}
       }
 

@@ -54,18 +54,20 @@ namespace MiniMC {
        */
       edge_iterator ieend() { return incomingEdges.end(); }
 
+      
+      auto nbOutgoingEdges() const {
+        return edges.size();
+      }
+
       /** 
        * Check if this location has outoing edges
        *
        * @return true if it has outgoing edges, false if not
        */
       bool hasOutgoingEdge() const {
-        return edges.size();
+        return nbOutgoingEdges();
       }
-
-      auto nbOutgoingEdges() const {
-        return edges.size();
-      }
+      
       
       MiniMC::Hash::hash_t hash () const {
 	return getID ();
@@ -88,21 +90,7 @@ namespace MiniMC {
       const auto& getSymbol () const {return symb;}
       void rename (MiniMC::Model::Symbol symb)  {this->symb = symb;}
       
-      bool isOutgoing(const MiniMC::Model::Edge_ptr& e) {
-        auto it = std::find_if(edges.begin(), edges.end(),
-                               [&e](auto& ptr1) {
-                                 return ptr1 == e.get ();
-                               });
-        return it != edges.end();
-      }
-
-      bool isIncoming(const MiniMC::Model::Edge_ptr& e) {
-        auto it = std::find_if(incomingEdges.begin(), incomingEdges.end(),
-                               [&e](auto& ptr1) {
-                                 return ptr1  == e.get();
-                               });
-        return it != incomingEdges.end();
-      }
+      
       
       void setSymbol (MiniMC::Model::Symbol s) {symb = s;}
       
@@ -136,7 +124,7 @@ namespace MiniMC {
                                });
         assert(it != incomingEdges.end());
         incomingEdges.erase(it);
-      }
+	}
 
       
     private:

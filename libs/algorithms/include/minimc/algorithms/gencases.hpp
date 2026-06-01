@@ -44,7 +44,7 @@ namespace MiniMC {
 	TestCaseGenerator (MiniMC::Model::Program& prgm);
 	~TestCaseGenerator ();
 	[[nodiscard]] TestCaseGenResult generate  (MiniMC::Support::Messager& mess,
-				     MiniMC::Model::Function_ptr& function,
+				     MiniMC::Model::Symbol& function,
 				     MiniMC::Support::SMT::SMTDescr smt
 				     );
 	

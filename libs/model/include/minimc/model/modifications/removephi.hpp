@@ -32,16 +32,16 @@ namespace MiniMC {
 		    
 		    auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();
 		    if (used.count(content.res.get())) {
-			auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
-			replacemap.insert(std::make_pair(content.res.get(), nvar));
-			stream.add<MiniMC::Model::VMInstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
+		      auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
+		      replacemap.insert(std::make_pair(content.res.get(), nvar));
+		      stream.add<MiniMC::Model::VMInstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
 		    }
 		    
 		  }
 		  
                   for (auto& inst : instrstream) {
                     auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();
-
+		    
                     auto val = replacemap.count(content.op1.get()) ? replacemap.at(content.op1.get()) : content.op1;
                     stream.add<MiniMC::Model::VMInstructionCode::Assign>(content.res, val);
                   }
