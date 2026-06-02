@@ -12,7 +12,7 @@ namespace MiniMC {
       template <class LocInserter>
       void unrollLoop(MiniMC::Model::CFA& cfg, const MiniMC::Model::Analysis::Loop* loop, std::size_t amount, LocInserter linserter, MiniMC::Model::LocationInfoCreator& locInf,Frame& frame ) {
         std::vector<SymbolTable<MiniMC::Model::Location_ptr>> unrolledLocations;
-	auto inf = locInf.make ( {});
+	auto inf = locInf.make ();
 	auto deadLoc = cfg.makeLocation(frame.makeFresh (),inf);
         deadLoc->getInfo().getFlags() |= MiniMC::Model::Attributes::UnrollFailed ;
 	for (size_t i = 0; i < amount; i++) {
@@ -58,7 +58,7 @@ namespace MiniMC {
       bool UnrollLoops::runFunction(const MiniMC::Model::Function_ptr& func) {
         MiniMC::Support::Messager{} << MiniMC::Support::TWarning {(MiniMC::Support::Localiser("Unrolling Loops for: '%1%'").format(func->getSymbol()))};
         auto& cfg = func->getCFA();
-	MiniMC::Model::LocationInfoCreator locc {func->getRegisterDescr (),func->getFrame()};
+	MiniMC::Model::LocationInfoCreator locc {func->getFrame()};
         auto loopinfo = MiniMC::Model::Analysis::createLoopInfo(cfg);
         std::vector<MiniMC::Model::Analysis::Loop*> loops;
         loopinfo.enumerate_loops(std::back_inserter(loops));

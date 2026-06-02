@@ -420,7 +420,7 @@ template<VMInstructionCode>
        this->visit (
        MiniMC::Support::Overload {
 	     {%for i in ISA.getVMInstructions() %}	
-	       [f](const TInstruction<VMInstructionCode::{{i.getName()}}>& i) {
+	       [f]( [[maybe_unused]]  const TInstruction<VMInstructionCode::{{i.getName()}}>& i) {
 	       {%for o in i.getNonResOperands() %}
 		    {%if not o.isMultiParam() %}
 		      f(i.getOps().{{o.getName()}});

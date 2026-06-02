@@ -15,7 +15,8 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName ();
+	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName () << " # ";
+	os <<  state.getLocationState ().getLocation (i).getInfo().getSource();
       }
       os << "]\n";
       
@@ -75,7 +76,8 @@ namespace MiniMC {
         if(i != 0){
           os << ",";
         }
-	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName ();
+	os <<  state.getLocationState ().getLocation (i).getSymbol().getFullName () << " # ";
+	os <<  state.getLocationState ().getLocation (i).getInfo().getSource();
       }
       os << "]\n";
       

@@ -75,7 +75,7 @@ namespace MiniMC {
       
       const LocationInfo& getInfo() const { return info; }
       LocationInfo& getInfo() { return info; }
-
+      
       /** 
        * Count the number of incoming edges
        *

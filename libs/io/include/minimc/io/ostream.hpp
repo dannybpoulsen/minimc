@@ -75,7 +75,7 @@ namespace MiniMC {
     
     
     template<Outputtable O>
-    inline ostream& operator<< (ostream& os, O& o) {
+    inline ostream& operator<< (ostream& os, O&& o) {
       return o.output(os);
     }
     

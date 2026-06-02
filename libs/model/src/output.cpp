@@ -25,7 +25,8 @@ namespace MiniMC {
       while (waiting.size ()) {
 	auto cur = waiting.back ();
 	waiting.pop_back ();
-	os << "    " << "BB" << cur->getID ()<< " " << " {" << cur->getSymbol().getFullName () <<"}\n";
+	os << "    " << "BB" << cur->getID ()<< " " << " {" << cur->getSymbol().getFullName () <<" # ";
+	cur->getInfo().getSource().out(os) << "} \n";
         if(cur->getInfo().getFlags ().isSet(Attributes::AssertViolated)){
           os << "    @AssertViolated\n";
         }

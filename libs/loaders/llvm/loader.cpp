@@ -154,7 +154,7 @@ namespace MiniMC {
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Register_ptr> params;
         MiniMC::Model::RegisterDescr variablestack;
-        MiniMC::Model::LocationInfoCreator locinfoc(variablestack,frame);
+        MiniMC::Model::LocationInfoCreator locinfoc(frame);
    
         auto sp_mem = variablestack.addRegister(frame.makeFresh("sp_mem"), MiniMC::Model::PointerType::get());
 	
@@ -193,10 +193,10 @@ namespace MiniMC {
 
         if (F.isDeclaration()) {
           mess << FunctionNotDefined {F.getName().str()};
-
-          auto iinit = locinfoc.make(MiniMC::Model::LocFlags{}, *source_loc);
+	  
+          auto iinit = locinfoc.make();
           auto init = cfg.makeLocation(frame.makeSymbol("init"), iinit);
-          auto einit = locinfoc.make(MiniMC::Model::LocFlags{}, *source_loc);
+          auto einit = locinfoc.make();
           auto end = cfg.makeLocation(frame.makeSymbol("exit"), einit);
 
           cfg.setInitial(init);
@@ -267,7 +267,7 @@ namespace MiniMC {
             if (locmap.count(BB)) {
               return locmap.at(BB);
             } else {
-              auto info = locinfoc.make(MiniMC::Model::LocFlags{}, *source_loc);
+              auto info = locinfoc.make();
               auto location = cfg.makeLocation(frame.makeSymbol(BB->getName().str()+std::string("_enter")), info);
               locmap.insert(std::make_pair(BB, location));
               waiting.push_back(BB);
@@ -417,13 +417,13 @@ namespace MiniMC {
       auto frame = program.getRootFrame().create(name);
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack;
-      MiniMC::Model::LocationInfoCreator locinf(vstack,frame);
+      MiniMC::Model::LocationInfoCreator locinf(frame);
 
       auto funcpointer = MiniMC::Model::SymbolicConstant::make(function->getSymbol());
       funcpointer->setType(MiniMC::Model::PointerType::get());
-      auto iinfo = locinf.make({});
+      auto iinfo = locinf.make();
       auto init = cfg.makeLocation(frame.makeFresh("init"), iinfo);
-      auto einfo = locinf.make({});
+      auto einfo = locinf.make();
 
       auto end = cfg.makeLocation(frame.makeFresh("end"), einfo);
 
