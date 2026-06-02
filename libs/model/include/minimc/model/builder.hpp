@@ -45,8 +45,6 @@ namespace MiniMC {
       EdgeBuilder& addInstr (Args... args)  {
 	if (!isPhi) {
 	  if constexpr (code == MiniMC::Model::InstructionCode::Call ||
-			code == MiniMC::Model::InstructionCode::NonDet ||
-			code == MiniMC::Model::InstructionCode::Uniform ||	  
 			code ==MiniMC::Model::InstructionCode::Assert
 			){
 	    auto instr = MiniMC::Model::Instruction::make<code> (args...);

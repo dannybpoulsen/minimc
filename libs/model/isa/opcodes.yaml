@@ -833,35 +833,7 @@ Internal:
       t1:
         - Any
     vm: True
-    
-  nondet:
-    opcode: NonDet
-    params:
-      - name: res
-        type: t1
-      - name: min
-        type: t1
-      - name: max
-        type: t1
-    types:
-      t1:
-        - Integer
-    vm: True
-    
-  uniform:
-    opcode: Uniform
-    params:
-      - name: res
-        type: t1
-      - name: min
-        type: t1
-      - name: max
-        type: t1
-    types:
-      t1:
-        - Integer
-    vm: True
-    
+        
   ret:
     opcode: Ret
     params:

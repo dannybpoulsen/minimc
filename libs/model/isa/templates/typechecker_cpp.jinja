@@ -727,8 +727,8 @@ namespace MiniMC {
           }
           return true;
         }
-
-        else if constexpr (i == VMInstructionCode::NonDet) {
+	
+        /*else if constexpr (i == VMInstructionCode::NonDet) {
 	  auto& content = tinst.getOps ();
 	  auto type = CheckType(*content.res);
           if (!type->isInteger ()) {
@@ -737,7 +737,7 @@ namespace MiniMC {
           }
 
           return true;
-        }
+        }*/
 
         else if constexpr (i == VMInstructionCode::Assert ||
                            i == VMInstructionCode::Assume ) {
@@ -776,7 +776,7 @@ namespace MiniMC {
           return true;
         }*/
 
-        else if constexpr (i == VMInstructionCode::Uniform) {
+	/*        else if constexpr (i == VMInstructionCode::Uniform) {
 	  auto& content = tinst.getOps ();
           if (!MiniMC::Model::isSameType({CheckType(*content.res),
 		CheckType(*content.max),
@@ -793,7 +793,7 @@ namespace MiniMC {
           }
 
           return true;
-        }
+        }*/
 
         else {
           []<bool b = false>() { static_assert(b && "cannot type check instruction"); }

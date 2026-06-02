@@ -25,9 +25,9 @@ namespace MiniMC {
 	  return os << *content.res << " = " << i << " "<< *content.res->getType () << " " <<  *content.op1;
 	}
 	
-	else if constexpr (i == VMInstructionCode::NonDet) {
+	/*else if constexpr (i == VMInstructionCode::NonDet) {
 	  return os << *content.res << " = " << VMInstructionCode::NonDet << " "  << *content.res->getType () << " " << *content.min << " " << *content.max;
-	}
+	  }*/
 	
       
 	else if constexpr (i == VMInstructionCode::Assert ||
@@ -61,9 +61,9 @@ namespace MiniMC {
 	}
 	
 	
-	else if constexpr ( i == VMInstructionCode::Uniform) {
+	/*else if constexpr ( i == VMInstructionCode::Uniform) {
 	  return os << VMInstructionCode::Uniform;
-	}
+	  }*/
 	
 	/*else if constexpr ( i == VMInstructionCode::Store ) {
 	  return os << *content.res << " = " << VMInstructionCode::Store << "  " << *content.storeto << " " << *content.addr << " " << *content.storee;	

@@ -236,16 +236,6 @@ namespace MiniMC {
           co_yield state;
         }
 
-        else if constexpr (op == MiniMC::Model::VMInstructionCode::NonDet) {
-	  auto& content = instr.getOps();
-          auto& res = content.res->asRegister ();
-	  for (auto ret : eval.MEval(*MiniMC::Model::Undef::make(res.getType()))) {
-	    auto nstate = state->lcopy ();
-	    nstate->makeEvaluationContext(id).saveValue(res, std::move(ret));
-	    co_yield nstate;
-	  }
-        }
-
         else {
 	  throw NotImplemented<op>();
         }
