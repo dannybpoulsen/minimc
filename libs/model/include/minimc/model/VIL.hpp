@@ -4,7 +4,8 @@
 #include <memory>
 #include <vector>
 
-
+#include "minimc/io/ostream.hpp"
+#include "minimc/model/cfg.hpp"
 #include "minimc/model/source.hpp"
 #include "minimc/model/instructions.hpp"
 
@@ -12,10 +13,32 @@
 namespace MiniMC {
   namespace Model {
     namespace VIL {
+
+      class Statement;
+      class InstructionStatement;
+      class SequenceStatement;
+      class BranchStatement;
+      class LoopStatement;
+      
+      class StatementVisitor {
+      public:
+	virtual ~StatementVisitor() {}
+	virtual void visitInstructionStatement (const InstructionStatement&) = 0;
+	virtual void visitSequenceStatement (const SequenceStatement&) = 0;
+	virtual void visitBranchStatement (const BranchStatement&) = 0;
+	virtual void visitLoopStatement (const LoopStatement&) = 0;	
+	
+      };
+
+      
+      
       class Statement {
       public:
 	Statement (MiniMC::Model::SourceInfo sinfo) : source(sinfo) {}
 	~Statement () {}
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& ) const = 0;
+	virtual void accept (StatementVisitor& ) const = 0;
+	auto getSource () const {return source;}
       private:
 	MiniMC::Model::SourceInfo source;
       };
@@ -24,7 +47,10 @@ namespace MiniMC {
       
       class InstructionStatement : public Statement {
       public:
-	InstructionStatement (MiniMC::Model::Instruction instruction, MiniMC::Model::SourceInfo sinfo) : Statement(sinfo),instruction(instruction) {} 
+	InstructionStatement (MiniMC::Model::Instruction instruction, MiniMC::Model::SourceInfo sinfo) : Statement(sinfo),instruction(instruction) {}
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& o) const {return o << instruction;} 
+	void accept (StatementVisitor& sv) const override {sv.visitInstructionStatement (*this);}
+	Instruction getInstruction () const {return instruction;}
       private:
 	MiniMC::Model::Instruction instruction;
       };
@@ -32,6 +58,19 @@ namespace MiniMC {
       class SequenceStatement : public Statement {
       public:
 	SequenceStatement (Statement_ptr l, Statement_ptr r, MiniMC::Model::SourceInfo sinfo) : Statement(sinfo),left(std::move(l)),right(std::move(r)) {}
+
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& o) const {
+	  left-> output(o);
+	  o << " ";
+	  right->output(o);
+	  return o;
+	} 
+
+	void accept (StatementVisitor& sv) const override {sv.visitSequenceStatement (*this);}
+
+	auto& getLeft () const {return *left;}
+	auto& getRight () const {return *right;}
+	
 	
       private:
 	Statement_ptr left;
@@ -42,6 +81,19 @@ namespace MiniMC {
       public:
 	BranchStatement (std::vector<Statement_ptr> stmts,  MiniMC::Model::SourceInfo sinfo) : Statement(sinfo),stmts(std::move(stmts)) {}
 
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& o) const {
+	  o << "[ ";
+	  for (auto& s : stmts) {
+	    o<< "{";
+	    s -> output(o) << "} ";
+	  }
+	  return o << "]";
+	} 
+
+	void accept (StatementVisitor& sv) const override {sv.visitBranchStatement (*this);}
+	
+	auto& getBranches () const {return stmts;}
+	
       private:
 	std::vector<Statement_ptr> stmts;
       };
@@ -49,6 +101,17 @@ namespace MiniMC {
       class LoopStatement : public Statement {
       public:
 	LoopStatement (Statement_ptr stmt, MiniMC::Model::Value_ptr val, MiniMC::Model::SourceInfo info) : Statement(info), stmt(std::move(stmt)), condition(std::move(val)) {}
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& o) const {
+	  o << " < " << *condition << " > {";
+	  stmt->output(o) << "}";
+	  return o;
+	}
+
+	void accept (StatementVisitor& sv) const override {sv.visitLoopStatement (*this);}
+
+	auto& getStatement() const {return stmt;}
+	auto& getCondition () const {return condition;}
+	
       private:
 	Statement_ptr stmt;
 	MiniMC::Model::Value_ptr condition;
@@ -56,6 +119,7 @@ namespace MiniMC {
       
       class StatementBuilder : public MiniMC::Model::ExpressionBuilder {
       public:
+	Statement_ptr getStatement() { auto st = stmts.top();stmts.pop();return st;}
 	StatementBuilder& Assign (MiniMC::Model::Register_ptr r, MiniMC::Model::SourceInfo sinfo = {});
 	StatementBuilder& RetVoid (MiniMC::Model::SourceInfo sinfo = {});
 	StatementBuilder& Ret (MiniMC::Model::SourceInfo sinfo = {});
@@ -70,6 +134,19 @@ namespace MiniMC {
       private:
 	
 	std::stack<Statement_ptr> stmts;
+      };
+
+      class VILtoCFA : private StatementVisitor {
+      public:
+	~VILtoCFA ();
+	MiniMC::Model::CFA convert (const Statement&, MiniMC::Model::Frame);
+	void visitInstructionStatement (const InstructionStatement&) override;
+	void visitSequenceStatement (const SequenceStatement&) override;
+	void visitBranchStatement (const BranchStatement&) override;
+	void visitLoopStatement (const LoopStatement&) override;	
+      private:
+	struct Internal;
+	Internal* _internal;
       };
       
     }

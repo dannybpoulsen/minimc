@@ -240,7 +240,7 @@ namespace MiniMC {
       
     };
     
-    Function_ptr createEntryPoint(Program& program, Function_ptr function,std::vector<MiniMC::Model::Value_ptr>&&);
+
   } // namespace Model
 } // namespace MiniMC
 

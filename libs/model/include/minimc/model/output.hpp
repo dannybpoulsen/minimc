@@ -6,6 +6,8 @@
 namespace MiniMC {
   namespace Model {
     class Program;
+    class CFA;
+    void writeCFA (std::ostream&, const MiniMC::Model::CFA&);
     void writeProgram (std::ostream&, const MiniMC::Model::Program&);
   }
 }

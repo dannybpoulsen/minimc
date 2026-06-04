@@ -12,3 +12,7 @@ add_test(NAME MODEL_SIMPLIFY COMMAND simplifier)
 add_subdirectory (analysis)
 
 
+add_executable (VIL VIL.cpp)
+target_link_libraries (VIL model)
+
+

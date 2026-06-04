@@ -3,8 +3,8 @@
 namespace MiniMC {
   namespace Model {
     
-    template<class I>
-    std::ostream& format (std::ostream& os, const I& inst) {
+    template<class O, class I>
+    O& format (O& os, const I& inst) {
       constexpr auto i = I::getOpcode ();
       if constexpr (!hasOperands<I::getOpcode ()> ) {
 	return os << I::getOpcode ();
@@ -93,7 +93,12 @@ namespace MiniMC {
     
 
     std::ostream& Instruction::output(std::ostream& os) const {
-      visit ([&os](const auto& a) {format (os,a);});
+      visit ([&os](const auto& a) {format<std::ostream> (os,a);});
+      return os;
+    }
+
+    MiniMC::IO::ostream& Instruction::output(MiniMC::IO::ostream& os) const {
+      visit ([&os](const auto& a) {format<MiniMC::IO::ostream> (os,a);});
       return os;
     }
     

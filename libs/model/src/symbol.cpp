@@ -30,6 +30,14 @@ namespace MiniMC {
 	  return os << name;
       }
 
+      MiniMC::IO::ostream& output (MiniMC::IO::ostream& os) const {
+	if (parent ) {
+	  return parent->output (os) << delim << name;
+	  
+	}
+	else
+	  return os << name;
+      }
       
       bool isRoot () const {
 	return parent == nullptr;
@@ -126,6 +134,11 @@ namespace MiniMC {
     std::ostream& Symbol::output (std::ostream& os ) const {
       return _internal->output ( os);
     }
+    
+    MiniMC::IO::ostream& Symbol::output (MiniMC::IO::ostream& os ) const {
+      return _internal->output ( os);
+    }
+    
     
     
     Symbol Symbol::from_string (const  std::string& str) {

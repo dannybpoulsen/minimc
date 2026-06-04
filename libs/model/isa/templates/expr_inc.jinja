@@ -22,7 +22,11 @@
 
 	   std::ostream& output(std::ostream& os) const override {
 	   	return os << "(" << "{{N.getName()}}" <<  {%for o in N.getNonResOperands () %} *_{{o.getName ()}} << {%endfor%} ")";
-      	   }		
+      	   }
+
+	   MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+	   	return os << "(" << "{{N.getName()}}" <<  {%for o in N.getNonResOperands () %} *_{{o.getName ()}} << {%endfor%} ")";
+      	   }
       
            {%for o in N.extratypes () %}
 
@@ -74,7 +78,11 @@
     std::ostream& output(std::ostream& os) const override {
     		  return os << "(" <<CastOpsDetails<op>::text()   << *from_expr << " to " << *to_type << ")";
       }	
-    private:
+
+    MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+    		  return os << "(" <<CastOpsDetails<op>::text()   << *from_expr << " to " << *to_type << ")";
+      }	
+private:
 	MiniMC::Model::Value_ptr from_expr;
 	MiniMC::Model::Type_ptr to_type;
     };
@@ -86,6 +94,10 @@
 	auto& offset ()  const {return *_offset;}
 	const auto& getExtractType () const {return type;}
 	std::ostream& output(std::ostream& os) const override {
+    		return os << "(ExtractValue "  << *_aggregate << " " <<*_offset <<   *type << ")";
+      	}
+
+	MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
     		return os << "(ExtractValue "  << *_aggregate << " " <<*_offset <<   *type << ")";
       	}
     private:
@@ -103,57 +115,15 @@
          std::ostream& output(std::ostream& os) const override {
     		return os << "(InsertValue "  << *_aggregate << " " <<*_offset <<  *_insertee << ")";
       	}
+	MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+    		return os << "(InsertValue "  << *_aggregate << " " <<*_offset <<  *_insertee << ")";
+      	}
 private	:
 	MiniMC::Model::Value_ptr _aggregate;
 	MiniMC::Model::Value_ptr _offset;
 	MiniMC::Model::Value_ptr _insertee;
     
     };   
-/*    
-    class LoadExpr : public Value {
-    public:
-    LoadExpr (MiniMC::Model::Value_ptr mem, MiniMC::Model::Value_ptr v, MiniMC::Model::Type_ptr to);
-    const auto& getToType() const {return to_type;}
-    auto& addr ()  { return *addr_expr;}
-    const auto& addr () const { return *addr_expr;}
-
-    auto& mem ()  { return *mem_expr;}
-    const auto& mem () const { return *mem_expr;}
-    
-
-    std::ostream& output(std::ostream& os) const override {
-    		return os << "(Load "  << *mem_expr << " " <<*addr_expr << " to " << *to_type << ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr addr_expr;
-	MiniMC::Model::Value_ptr mem_expr;
-	MiniMC::Model::Type_ptr to_type;
-    };
-
-    class StoreExpr : public Value {
-    public:
-    StoreExpr (MiniMC::Model::Value_ptr storeto, MiniMC::Model::Value_ptr addr, MiniMC::Model::Value_ptr storee);
-    auto& addr ()  { return *addr_expr;}
-    const auto& addr () const { return *addr_expr;}
-    
-    auto& storeto ()  { return *store_to_expr;}
-    const auto& storeto () const { return *store_to_expr;}
-
-    auto& storee ()  { return *_storee;}
-    const auto& storee () const { return *_storee;}
-    
-    
-    std::ostream& output(std::ostream& os) const override {
-    		return os << "(Store "  << *store_to_expr << " " <<*addr_expr << "  " << *_storee << ")";
-      }	
-    private:
-
-	MiniMC::Model::Value_ptr store_to_expr;
-	MiniMC::Model::Value_ptr addr_expr;
-	MiniMC::Model::Value_ptr _storee;
-    };
-    */
 
     class PtrToPtr32Expr : public Value{
     public:
@@ -162,7 +132,10 @@ private	:
 	const auto& conv () const {return *_conv;}
 	 std::ostream& output(std::ostream& os) const override {
     	 	return os << "(PtrToPtr32 "  << *_conv <<  ")";
-      }	
+ 		     }
+        MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+    	 	return os << "(PtrToPtr32 "  << *_conv <<  ")";
+ 		     }
 	private:
 	MiniMC::Model::Value_ptr _conv;
     };   
@@ -173,6 +146,9 @@ private	:
     	auto& conv () {return *_conv;}
 		const auto& conv () const {return *_conv;}	
 	std::ostream& output(std::ostream& os) const override {
+    	 	return os << "(Ptr32ToPtr "  << *_conv << ")";
+      }
+      	MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
     	 	return os << "(Ptr32ToPtr "  << *_conv << ")";
       }	
 		private:

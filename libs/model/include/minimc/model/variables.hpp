@@ -9,6 +9,7 @@
 #include "minimc/host/types.hpp"
 #include "minimc/util/valuemap.hpp"
 #include "minimc/model/array.hpp"
+#include "minimc/io/ostream.hpp"
 #include <algorithm>
 #include <limits>
 #include <memory>
@@ -209,6 +210,8 @@ namespace MiniMC {
       virtual bool isConstant() const { return false; }
       
       virtual std::ostream& output(std::ostream& os) const = 0;
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const = 0;
+      
       const std::string string_repr() const {
         std::stringstream str;
         this->output(str);
@@ -239,6 +242,14 @@ namespace MiniMC {
 	else
 	  return os;
       }
+
+      MiniMC::IO::ostream& outputType (MiniMC::IO::ostream& os) const {
+	if (type)
+	  return os << *type;
+	else
+	  return os;
+      }
+      
     private:
 
       Type_ptr type;
@@ -284,6 +295,10 @@ namespace MiniMC {
         os << "<Undef ";
 	return outputType (os) <<  ">";
       }
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+        os << "<Undef ";
+	return outputType (os) <<  ">";
+      }
     };
 
     using Constant_ptr = std::shared_ptr<Constant>;
@@ -319,6 +334,20 @@ namespace MiniMC {
 	}
 	return outputType (os) << ">";
       }
+
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+	if constexpr (std::is_integral_v<T>) {
+	  MiniMC::BV64 val = value;
+	  //os << std::showbase << std::hex ;
+	  os << "<" <<  val << " ";
+	}
+	else {
+	  os << "<" <<  value << " ";
+	}
+	return outputType (os) << ">";
+      }
+      
+      
       TConstant(T val);
 
       using underlying_type = T;
@@ -350,6 +379,11 @@ namespace MiniMC {
 	return outputType (os) << ">";
       }
 
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
+	os << "<" <<  symbol << " ";
+	return outputType (os) << ">";
+      }
+      
     private:
       MiniMC::Model::Symbol symbol;
     };
@@ -374,6 +408,13 @@ namespace MiniMC {
       std::size_t getSize() const override { return data.getSize (); }
 
       virtual std::ostream& output(std::ostream& os) const override {
+        MiniMC::Support::STDEncode encoder;
+        os << "< $" << encoder.encode(data.get_direct_access ()) << "$ ";
+	return outputType (os) << ">";
+      
+      }
+
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override {
         MiniMC::Support::STDEncode encoder;
         os << "< $" << encoder.encode(data.get_direct_access ()) << "$ ";
 	return outputType (os) << ">";
@@ -416,6 +457,10 @@ namespace MiniMC {
     public:
       Register(const Symbol& name,RegisterInfo&& p);
       virtual std::ostream& output(std::ostream& os) const {
+        return os << "<" << name << " " << *getType ()  << ">";
+      }
+
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
       }
       

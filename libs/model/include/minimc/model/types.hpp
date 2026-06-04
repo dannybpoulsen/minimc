@@ -14,6 +14,8 @@
 #include <sstream>
 #include <string>
 
+#include "minimc/io/ostream.hpp"
+
 namespace MiniMC {
   namespace Model {
     /**
@@ -34,6 +36,7 @@ namespace MiniMC {
     };
 
     std::ostream& operator<< (std::ostream& os, TypeID id);
+    MiniMC::IO::ostream& operator<< (MiniMC::IO::ostream& os, TypeID id);
     
     template<TypeID id>
     struct Type_trait {
@@ -101,6 +104,7 @@ namespace MiniMC {
       Type() {}
       virtual ~Type() {}
       virtual std::ostream& output(std::ostream& os) const = 0;
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const = 0;
       
       /** 
        * Calculate this types size in bytes
@@ -155,6 +159,10 @@ namespace MiniMC {
       std::ostream& output(std::ostream& os) const override  {
 	return os << getTypeID();
       }
+
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const override  {
+	return os << getTypeID();
+      }
       
       TypeID getTypeID () const override {return id;}
       
@@ -189,6 +197,14 @@ namespace MiniMC {
 	copy << "Aggr" << std::dec << std::noshowbase << size;
 	return os;
       }
+
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const { 
+	//std::ostream copy (os.rdbuf());  
+	//copy << "Aggr" << std::dec << std::noshowbase << size;
+	os <<  "Aggr" <<  size;
+	return os;
+      }
+      
       TypeID getTypeID () const override{ return TypeID::Aggregate;}
       
       bool innerEq(const Type& t) const override { return size == static_cast<const AggregateType&>(t).size; }

@@ -1,5 +1,6 @@
 #include <utility>
 #include <tuple>
+#include "minimc/io/ostream.hpp"
 enum class InstructionCode {	
      {%for i in ISA.getInstructions () %}{{i.getName ()}}{%if not loop.last %},{%endif%}    
 {% endfor %}
@@ -210,6 +211,15 @@ template<VMInstructionCode>
     >;
 
     inline std::ostream& operator<< (std::ostream& os, VMInstructionCode oc) {
+    	   switch (oc) {
+	  	  {%for i in ISA.getVMInstructions() %} case VMInstructionCode::{{i.getName()}}:return os << "{{i.getName()}}";
+		  {%endfor%}	   
+	   	  default:
+		  std::unreachable();
+	   }
+   }
+
+   inline MiniMC::IO::ostream& operator<< (MiniMC::IO::ostream& os, VMInstructionCode oc) {
     	   switch (oc) {
 	  	  {%for i in ISA.getVMInstructions() %} case VMInstructionCode::{{i.getName()}}:return os << "{{i.getName()}}";
 		  {%endfor%}	   
@@ -443,7 +453,8 @@ template<VMInstructionCode>
        * @return Reference to \p os, to allowing chaining outputs.
        */
       std::ostream& output(std::ostream& os) const;
-
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const;
+            
     private:
       
       template<VMInstructionCode op> 

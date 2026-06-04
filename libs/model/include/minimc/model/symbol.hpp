@@ -10,6 +10,7 @@
 #include <generator>
 
 #include "minimc/hash/hashing.hpp"
+#include "minimc/io/ostream.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -49,6 +50,7 @@ namespace MiniMC {
       bool hasPrefix () const;
       bool isRoot () const;
       std::ostream& output (std::ostream& ) const;  
+      MiniMC::IO::ostream& output (MiniMC::IO::ostream& ) const;
       std::string to_string () const; 
       std::string getName () const;
       std::string getFullName () const {return to_string ();}
