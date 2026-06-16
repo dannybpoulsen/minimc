@@ -72,6 +72,12 @@ namespace MiniMC {
 	stmts.push (std::make_shared<SequenceStatement> (f,s,sinfo));
 	return *this;
       }
+
+      StatementBuilder& StatementBuilder::Atomic (MiniMC::Model::SourceInfo sinfo) {
+	auto s = stmts.top ();stmts.pop();
+	stmts.push (std::make_shared<AtomicStatement> (s,sinfo));
+	return *this;
+      }
       
       StatementBuilder& StatementBuilder::If (MiniMC::Model::SourceInfo sinfo) {
 	if (instrs.size()) {
@@ -192,6 +198,15 @@ namespace MiniMC {
 	
       }
 
+      void VILtoCFA::visitAtomicStatement (const AtomicStatement& s)  {
+	MiniMC::Model::InfoResetter reset (_internal->infc);
+	_internal->start->getInfo().getFlags() |= MiniMC::Model::Attributes::Committed;
+	_internal->infc.template setFlag<MiniMC::Model::Attributes::Committed> (); 
+	s.getInner().accept(*this);
+	
+      }
+      
+      
       void VILtoCFA::visitBranchStatement (const BranchStatement& bs)  {
 	MiniMC::Model::InfoResetter reset (_internal->infc);
 	auto start = _internal->start;

@@ -407,6 +407,7 @@ namespace MiniMC {
 
       void Compiler::visitAtomicStatement(const Whiley::AtomicStatement& c) {
 	c.getStmt().accept(*this);
+	_internal->builder.Atomic();
       }
       
       void Compiler::visitCallStatement(const Whiley::CallStatement& c) {

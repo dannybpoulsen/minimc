@@ -20,6 +20,7 @@ namespace MiniMC {
       class BranchStatement;
       class LoopStatement;
       class InstructionSequence;
+      class AtomicStatement;
       
       class StatementVisitor {
       public:
@@ -29,6 +30,7 @@ namespace MiniMC {
 	virtual void visitSequenceStatement (const SequenceStatement&) = 0;
 	virtual void visitBranchStatement (const BranchStatement&) = 0;
 	virtual void visitLoopStatement (const LoopStatement&) = 0;	
+	virtual void visitAtomicStatement (const AtomicStatement&) = 0;	
 	
       };
 
@@ -88,6 +90,26 @@ namespace MiniMC {
 	Statement_ptr left;
 	Statement_ptr right;
       };
+
+      class AtomicStatement : public Statement {
+      public:
+	AtomicStatement (Statement_ptr l, MiniMC::Model::SourceInfo sinfo) : Statement(sinfo),_inner(std::move(l)) {}
+
+	virtual MiniMC::IO::ostream& output (MiniMC::IO::ostream& o) const {
+	  o << "[";
+	  
+	  _inner-> output(o);
+	  return o << "]";
+	} 
+
+	void accept (StatementVisitor& sv) const override {sv.visitAtomicStatement (*this);}
+
+	auto& getInner () const {return *_inner;}
+	
+	
+      private:
+	Statement_ptr _inner;
+      };
       
       class BranchStatement : public Statement {
       public:
@@ -146,6 +168,7 @@ namespace MiniMC {
 	StatementBuilder& Skip (MiniMC::Model::SourceInfo sinfo = {});
 	
 	StatementBuilder& Sequence (MiniMC::Model::SourceInfo sinfo = {});
+	StatementBuilder& Atomic (MiniMC::Model::SourceInfo sinfo = {});
 	StatementBuilder& operator<< (Statement_ptr ptr) {stmts.push(ptr);return *this;}
       private:
 	
@@ -162,6 +185,8 @@ namespace MiniMC {
 	void visitBranchStatement (const BranchStatement&) override;
 	void visitLoopStatement (const LoopStatement&) override;	
 	void visitInstructionSequence (const InstructionSequence&) override;
+	void visitAtomicStatement (const AtomicStatement&) override;	
+	
       private:
 	struct Internal;
 	Internal* _internal;
