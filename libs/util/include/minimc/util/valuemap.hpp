@@ -4,7 +4,6 @@
 #include <functional>
 #include <memory>
 #include <ostream>
-
 #include "minimc/hash/hashing.hpp"
 
 namespace MiniMC {

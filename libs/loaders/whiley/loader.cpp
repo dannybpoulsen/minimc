@@ -42,7 +42,8 @@ private:
       }
       return std::unexpected{Error::LoadFailed};
     }
-    catch (std::runtime_error& ) {
+    catch (std::runtime_error& e ) {
+      std::cerr << e.what () << std::endl;
       return std::unexpected{Error::LoadFailed};
     }
 
