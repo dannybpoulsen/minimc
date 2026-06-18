@@ -42,7 +42,7 @@ TEST_CASE("Add") {
 				false,
 				frame);
 
-  MiniMC::CPA::Concrete::CPA cpa;
+  MiniMC::CPA::Concrete::CPA cpa{MiniMC::Model::NonDetGenerator{}};
   auto init_state = cpa.makeInitialState ({{func->getSymbol()},{},prgm});
   auto transfer = cpa.makeTransfer (prgm);
 

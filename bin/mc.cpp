@@ -21,6 +21,7 @@ namespace {
     MiniMC::Algorithms::Reachability::SearchStrategy search_strat{MiniMC::Algorithms::Reachability::SearchStrategy::DFS};
     bool symbolic{false};
     bool concretize{false};
+    std::size_t fuzz{0};
     bool all{false};
     };
   
@@ -44,6 +45,7 @@ namespace {
 	 "\t DFS\n"
 	 )
 	("mc.symbolic",po::bool_switch (&locoptions.symbolic),"Do a symbolic execution")
+	("mc.fuzz",po::value<std::size_t> (&locoptions.fuzz),"Use fuzzy concrete")
 	("mc.concretize",po::bool_switch (&locoptions.concretize),"Concretize states")
 	("mc.all",po::bool_switch (&locoptions.all),"Find all violations")
 	
@@ -105,6 +107,8 @@ namespace {
       if (locoptions.symbolic)
 	//cpa.add<MiniMC::CPA::CPAType::Pathformula>(sopt.smt.selsmt);
 	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
+      else if (locoptions.fuzz)
+	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Probabilistic> (static_cast<std::size_t> (locoptions.fuzz));
       else
 	return MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Concrete> ();
       

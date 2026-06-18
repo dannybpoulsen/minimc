@@ -48,8 +48,14 @@ namespace MiniMC {
         return MiniMC::Host::Op<op>(l, r);
       }
 
-      struct Operations {
+      
+
+      template<class NonDetGen>
+      struct Operations{ 
 	using Domain = Value;
+
+	Operations(NonDetGen gen) :generator(gen) {}
+	
 	template <typename T>
         T Not(const T& l) const requires Integer<Value,T> {
           return ~l.getValue();
@@ -369,10 +375,35 @@ namespace MiniMC {
 	Value::Pointer32 create (const MiniMC::Model::Pointer32& val) const   { return Value::Pointer32{val.getValue()}; }
 	Value::Aggregate create (const MiniMC::Model::AggregateConstant& val) const   {return AggregateValue(val.getData());}
 	std::generator<Value> create (const MiniMC::Model::Undef& und) const;
-	//Value unboundValue (const MiniMC::Model::Type&) const ;
-	Value defaultValue(const MiniMC::Model::Type&) const ;
-	
-	
+	Value defaultValue(const MiniMC::Model::Type& t) const  {
+	  switch (t.getTypeID()) {
+	  case MiniMC::Model::TypeID::Bool:
+	    return BoolValue(0);
+	  case MiniMC::Model::TypeID::Pointer32:
+	    return Value::Pointer32(Value::Pointer32::underlying_type::makeNullPointer());
+	    
+	  case MiniMC::Model::TypeID::Pointer:
+	    return Value::Pointer(Value::Pointer::underlying_type::makeNullPointer());
+	  case MiniMC::Model::TypeID::I8:
+	    return Value::I8(0);
+	  case MiniMC::Model::TypeID::I16:
+	    return Value::I16(0);
+	  case MiniMC::Model::TypeID::I32:
+	    return Value::I32(0);
+	  case MiniMC::Model::TypeID::I64:
+	    return Value::I64(0);
+	    
+	  case MiniMC::Model::TypeID::Aggregate:
+	    return Value::Aggregate{MiniMC::Util::Array{t.getSize()}};
+	  case MiniMC::Model::TypeID::Memory:
+	    return Value::Memory{};
+	  default:
+	    break;
+	  }
+	  
+	  throw MiniMC::Support::Exception("Erro");
+	}
+	NonDetGen generator;
       };
       
     } // namespace Concrete

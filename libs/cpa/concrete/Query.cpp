@@ -20,7 +20,12 @@ namespace MiniMC {
     } // namespace Concrete
     template<>
     MiniMC::CPA::TCPA_ptr makeCPA<CPAType::Concrete> () {
-      return std::make_shared<Concrete::CPA> ();
+      return std::make_shared<Concrete::CPA> (MiniMC::Model::NonDetGenerator{});
+    }
+
+    template<>
+    MiniMC::CPA::TCPA_ptr makeCPA<CPAType::Probabilistic,std::size_t> (std::size_t fuzz) {
+      return std::make_shared<Concrete::StochasticCPA> (MiniMC::Model::StochasticGenerator{fuzz});
     }
     
   }   // namespace CPA

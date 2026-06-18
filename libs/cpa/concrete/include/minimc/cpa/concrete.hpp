@@ -21,6 +21,7 @@ namespace MiniMC {
     namespace Concrete {
       
       using CPA = MiniMC::CPA::Common::CPA<MiniMC::VMT::Concrete::ValueDefinition>;
+      using StochasticCPA = MiniMC::CPA::Common::CPA<MiniMC::VMT::Concrete::StochasticValueDefinition>;
       
     } // namespace Concrete
   }   // namespace CPA

@@ -8,7 +8,7 @@
 #include "minimc/vm/vmt.hpp"
 #include "minimc/values/concrete/value.hpp"
 #include "minimc/values/concrete/operations.hpp"
-
+#include "minimc/model/nondet_generator.hpp"
 #include <memory>
 
 namespace MiniMC {
@@ -57,15 +57,20 @@ namespace MiniMC {
 	Value::Bool constraints{true};
       };
 
-      class ValueDefinition  {
+      template<class NonDet>
+      class TValueDefinition  {
       public:
 	using Val = Value;
-	Operations ops () const {return Operations{};}
+	TValueDefinition (NonDet nd) : nondet(nd) {}
+	Operations<NonDet> ops () const {return Operations<NonDet>{nondet};}
 	Memory memops () const {return Memory{};}
 	ConstraintSolver solver () const  {return ConstraintSolver{};}
 	ConstraintSolver solver (MiniMC::VMT::SolverOptions) const  {return ConstraintSolver{};}
+	NonDet nondet;
       };
       
+      using ValueDefinition = TValueDefinition<MiniMC::Model::NonDetGenerator>;
+      using StochasticValueDefinition = TValueDefinition<MiniMC::Model::StochasticGenerator>;
       
       
     } // namespace Concrete

@@ -89,7 +89,8 @@ namespace MiniMC {
 
     enum class CPAType {
       Concrete,
-      Symbolic
+      Symbolic,
+      Probabilistic
     };
 
     template<CPAType type,class... Args>
