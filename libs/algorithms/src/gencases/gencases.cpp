@@ -31,7 +31,8 @@ namespace MiniMC {
 				   MiniMC::Model::Symbol& func,
 				   MiniMC::Support::SMT::SMTDescr smt
 						      ) {
-	TestCaseGenResult res {std::get<MiniMC::Model::Function_wptr>(func.getUserData()).lock()->getParameters()};
+	auto params = std::get<MiniMC::Model::Function_wptr>(func.getUserData()).lock()->getParameters();
+	TestCaseGenResult res {{params.begin(),params.end()}};
 	
 	auto cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
 	

@@ -72,7 +72,7 @@ namespace MiniMC {
 		auto& content = instr.getOps ();
 		ninstr.last() = Instruction::make<VMInstructionCode::Assign> ( 
 									      call_content.res,
-									    content.value 
+									      content.value 
 									       );	
 		func->getCFA().makeEdge (ne_from,edge->getTo (),std::move(ninstr));
 		func->getCFA ().deleteEdge (ne.get());
@@ -83,18 +83,17 @@ namespace MiniMC {
 		}
 	    );
 	}
-	auto& parameters = cfunc->getParameters();
+	//auto& parameters = cfunc->getParameters();
         
         MiniMC::Model::InstructionStream str;
         for (auto it = instrs.begin(); it != instrs.end() - 1; ++it) {
           str.add(*it);
         }	
-	auto it = parameters.begin();
-	for (size_t i = 0; i < call_content.params.size (); i++, it++) {
-          
+
+	for (auto [formal,actual] : std::views::zip (cfunc->getParameters(),call_content.params)) {
           str.add<VMInstructionCode::Assign> (
-					    valmap.at(std::static_pointer_cast<MiniMC::Model::Register> (*it)->getSymbol ()),
-					    call_content.params.at(i));  
+					      valmap.at(formal->getSymbol ()),
+					      actual );  
         }
 
 	func->getCFA ().makeEdge (edge->getFrom(),locmap.at(cfunc->getCFA().getInitialLocation()->getSymbol ()),std::move(str));

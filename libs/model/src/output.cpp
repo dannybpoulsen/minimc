@@ -60,7 +60,7 @@ namespace MiniMC {
 	os << "    " << reg << "\n";
       }
       os << "  .parameters" << "\n";
-      for (auto& reg : F.getParameters ()) {
+      for (auto reg : F.getParameters ()) {
 	os << "    " << reg->getSymbol ().getFullName () << "\n";
       }
       os << "  .returns" <<  "\n";

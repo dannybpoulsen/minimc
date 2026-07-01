@@ -9,12 +9,13 @@
 namespace MiniMC {
   namespace Model {
     struct Copier {
-      using RegReplaceMap = std::unordered_map<Register*,Register_ptr>;
+      using RegReplaceMap = std::unordered_map<MiniMC::Model::Symbol,Register_ptr>;
       
       void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
 	
 	for (auto& v : vars.getRegisters ()) {
-	  map.emplace (&v,stack.addRegister (frame.makeSymbol (v.getSymbol().getName ()),v.getType ()));
+	  auto vv = stack.addRegister (frame.makeSymbol (v.getSymbol().getName ()),v.getType ());
+	  map.emplace (v.getSymbol(),vv);
 	}
       }
       
@@ -22,7 +23,7 @@ namespace MiniMC {
 							      const RegReplaceMap& repl
 							   ) {
 	auto replaceF = [&repl](auto& v) -> MiniMC::Model::Value_ptr {
-	    return repl.at (&v);
+	  return repl.at (v.getSymbol());
 	};
         MiniMC::Model::Replacer replacer{replaceF};
         
@@ -40,7 +41,7 @@ namespace MiniMC {
 		    ) {
 	MiniMC::Model::CFA ncfa;
 	std::unordered_map<Location_ptr, Location_ptr> locMap;
-
+	
 	for (auto& loc : cfa.getLocations ()) {
 	  locMap.emplace (loc,ncfa.makeLocation (frame.makeSymbol (loc->getSymbol ().getName ()), loc->getInfo ()));
 	}
@@ -66,9 +67,8 @@ namespace MiniMC {
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);
 	std::vector<Register_ptr> parameters;
-	std::for_each (function->getParameters().begin (),
-		       function->getParameters ().end(),
-		       [&map,&parameters](auto& vv) {parameters.push_back (map.at (vv.get()));}
+	std::ranges::for_each (function->getParameters(),
+			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv->getSymbol()));}
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();

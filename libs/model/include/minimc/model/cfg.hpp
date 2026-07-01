@@ -140,7 +140,7 @@ namespace MiniMC {
       Function (Function&&) = default;
       auto& getSymbol() { return name; }
       auto& getSymbol() const { return name; }
-      auto& getParameters() const { return parameters; }
+      auto getParameters() const { return parameters | std::views::transform ([](auto& r) {return r;});}
       auto& getRegisterDescr() const { return registerdescr; }
       auto& getRegisterDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
