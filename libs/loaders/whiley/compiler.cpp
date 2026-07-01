@@ -97,7 +97,7 @@ namespace MiniMC {
 
 	
 	MiniMC::Model::RegisterDescr descr;
-        std::vector<MiniMC::Model::Register_ptr> params;
+        std::vector<MiniMC::Model::Symbol> params;
 	
         auto main_func_symbol = _internal->frame.makeSymbol("_main");
 	_internal->frame = _internal->frame.create("_main");
@@ -110,7 +110,7 @@ namespace MiniMC {
 	  if (var.isParamter()) {
 	    auto psymbol = _internal->frame.makeFresh(name);
 	    auto preg = descr.addRegister(std::move(psymbol), makeType(var.getType()));
-	    params.push_back(preg);
+	    params.push_back(preg->getSymbol());
 	    static_cast<MiniMC::Model::ExpressionBuilder&>(_internal->builder) << preg;
 	    _internal->builder.Assign(reg);
 	  }
@@ -147,11 +147,11 @@ namespace MiniMC {
 	    s.getUserData());
         }
 
-	std::vector<MiniMC::Model::Register_ptr> params;
+	std::vector<MiniMC::Model::Symbol> params;
         for (auto h : wh_func->getParams()) {
           MiniMC::Model::Symbol s;
           _internal->frame.resolve(h.getName(), s);
-          params.push_back(std::get<MiniMC::Model::Register_wptr>(s.getUserData()).lock());
+          params.push_back(s);
         }
 	wh_func->getStmt()->accept(*this);
 	auto cfa = MiniMC::Model::VIL::VILtoCFA{}.convert(*_internal->builder.getStatement(),_internal->frame);

@@ -152,7 +152,7 @@ namespace MiniMC {
         std::string fname = F.getName().str();
         auto frame = prgm.getRootFrame().create(fname);
         MiniMC::Model::CFA cfg;
-        std::vector<MiniMC::Model::Register_ptr> params;
+        std::vector<MiniMC::Model::Symbol> params;
         MiniMC::Model::RegisterDescr variablestack;
         MiniMC::Model::LocationInfoCreator locinfoc(frame);
    
@@ -188,7 +188,7 @@ namespace MiniMC {
         for (auto itt = F.arg_begin(); itt != F.arg_end(); itt++) {
           auto lltype = itt->getType();
           auto type = load.getType(lltype);
-          params.push_back(std::static_pointer_cast<MiniMC::Model::Register>(makeVariable(itt)));
+          params.push_back(std::static_pointer_cast<MiniMC::Model::Register>(makeVariable(itt))->getSymbol());
         }
 
         if (F.isDeclaration()) {

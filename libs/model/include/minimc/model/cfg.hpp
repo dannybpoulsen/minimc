@@ -117,30 +117,32 @@ namespace MiniMC {
     public:
       Function(MiniMC::Model::func_t id,
                const Symbol& name,
-               const std::vector<Register_ptr>& params,
+               const std::vector<MiniMC::Model::Symbol>& params,
                const Type_ptr rtype,
                RegisterDescr&& registerdescr,
-	       CFA&& cfa,
+               CFA&& cfa,
                Program& prgm,
-	       bool varargs,
-	       MiniMC::Model::Frame frame
-	       ) : name(name),
-		   parameters(params),
-		   registerdescr(std::move(registerdescr)),
-		   cfa(std::move(cfa)),
-		   id(id),
-		   prgm(prgm),
-		   retType(rtype),
-		   varargs(varargs),
-		   frame(frame)
-                                          
+               bool varargs,
+               MiniMC::Model::Frame frame) : name(name),
+					     parameters(params),
+                                             registerdescr(std::move(registerdescr)),
+                                             cfa(std::move(cfa)),
+                                             id(id),
+                                             prgm(prgm),
+                                             retType(rtype),
+                                             varargs(varargs),
+                                             frame(frame)
+
       {
+        /*for (auto& r : params) {
+	  parameters.push_back(r->getSymbol());
+	  }*/
       }
       Function (const Function&) = delete;
       Function (Function&&) = default;
       auto& getSymbol() { return name; }
       auto& getSymbol() const { return name; }
-      auto getParameters() const { return parameters | std::views::transform ([](auto& r) {return r;});}
+      auto getParameters() const { return parameters | std::views::transform ([](auto& r) {return std::get<MiniMC::Model::Register_wptr> (r.getUserData()).lock();});}
       auto& getRegisterDescr() const { return registerdescr; }
       auto& getRegisterDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
@@ -154,7 +156,7 @@ namespace MiniMC {
       auto function_ptr () const {return MiniMC::Model::Pointer(MiniMC::Model::pointer64_t::makeFunctionPointer(id));}
     private:
       Symbol name;
-      std::vector<Register_ptr> parameters;
+      std::vector<Symbol> parameters;
       RegisterDescr registerdescr;
       CFA cfa;
       MiniMC::Model::func_t id;
@@ -174,7 +176,7 @@ namespace MiniMC {
       Program (const Program&) = delete ;
       Program (Program&&) = default;
       Function_ptr addFunction(const MiniMC::Model::Symbol& symbol,
-			       const std::vector<Register_ptr>& params,
+			       const std::vector<Symbol>& params,
 			       const Type_ptr retType,
 			       RegisterDescr&& registerdescr,
 			       CFA&& cfg,

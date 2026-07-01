@@ -114,13 +114,13 @@ namespace MiniMC {
 	return false;
       }
 
-      std::vector<MiniMC::Model::Register_ptr> Parser::parseParameters () {
-	std::vector<MiniMC::Model::Register_ptr> res;
+      std::vector<MiniMC::Model::Symbol> Parser::parseParameters () {
+	std::vector<MiniMC::Model::Symbol> res;
 	Token tok;
 	while (get().type != RETURNS) {
 	  auto symb = parseSymbol ();
 	  expect (NEWLINE);
-	  res.emplace_back (variableMap.at (symb));
+	  res.emplace_back (variableMap.at (symb)->getSymbol());
 	}
 	return res;
       }
@@ -133,7 +133,7 @@ namespace MiniMC {
 	auto symbol = parseNewSymbol ();
 	expect (NEWLINE);
 	MiniMC::Model::RegisterDescr rdescr;
-	std::vector<MiniMC::Model::Register_ptr> params;
+	std::vector<MiniMC::Model::Symbol> params;
 	
 	curFrame = curFrame.create (symbol.getName ());
 	if (match (REGISTERS)) {

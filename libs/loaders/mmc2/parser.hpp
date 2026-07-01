@@ -55,7 +55,7 @@ namespace MiniMC {
 	bool parseFunctionDeclarations ();
 	bool parseFunction ();
 	bool parseEntryPoints ();
-	std::vector<MiniMC::Model::Register_ptr> parseParameters ();
+	std::vector<MiniMC::Model::Symbol> parseParameters ();
 	
 	
 	void parseHeapSetup ();

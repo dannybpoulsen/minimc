@@ -66,9 +66,9 @@ namespace MiniMC {
 	
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);
-	std::vector<Register_ptr> parameters;
+	std::vector<MiniMC::Model::Symbol> parameters;
 	std::ranges::for_each (function->getParameters(),
-			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv->getSymbol()));}
+			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv->getSymbol())->getSymbol());}
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();
