@@ -191,7 +191,7 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception ("Inconsistent number of parameters between call and function definition"); 
 	  }
 	  for (auto [formal,actual] : std::ranges::views::zip (func->getParameters(),content.params)) {
-	    if (*actual->getType () != *formal->getType()) {
+	    if (*actual->getType () != *std::get<MiniMC::Model::Register_wptr> (formal.getUserData()).lock()->getType()) {
 	      throw MiniMC::Support::Exception ("Inconsistent types at call site");
 	    }
 	    inserter = eval.Eval (*actual);
@@ -206,8 +206,9 @@ namespace MiniMC {
 	    
 	  }
 
-	  for (auto [formal,actual] : std::ranges::views::zip (func->getParameters(),params)) {
-	    state->makeEvaluationContext(id).saveValue(*formal, std::move(actual));
+          for (auto [formal, actual] : std::ranges::views::zip(func->getParameters(), params)) {
+	    auto reg = std::get<MiniMC::Model::Register_wptr> (formal.getUserData()).lock();
+	    state->makeEvaluationContext(id).saveValue(*reg, std::move(actual));
 	  }
 	  
 	  

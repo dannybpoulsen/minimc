@@ -68,7 +68,7 @@ namespace MiniMC {
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);
 	std::vector<MiniMC::Model::Symbol> parameters;
 	std::ranges::for_each (function->getParameters(),
-			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv->getSymbol())->getSymbol());}
+			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv)->getSymbol());}
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();

@@ -22,7 +22,7 @@ namespace MiniMC {
       }
 
       FixedVector (FixedVector&& o) : mem(std::move(o.mem)),size(o.size) {     }
-      
+      FixedVector& operator=(FixedVector&& f) = default;       
       const T& at(const F& f) const {
         assert(Index{}(f) < size);
         return mem.get()[Index{}(f)];

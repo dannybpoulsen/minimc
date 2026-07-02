@@ -10,19 +10,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules;${CMAKE_MODULE_PATH}")
 set (CMAKE_CXX_STANDARD 23)
 
-option (ENABLE_SYMBOLIC "Enable Symbolic Representations" ON)
-option (ENABLE_PYTHON "Enable Python Binding" OFF)
-option (ENABLE_PROFILING "Enable profiling" OFF)
 
 
 
 enable_testing()
 
 add_compile_options(-Wall -Wextra -Wpedantic)
-if(ENABLE_PROFILING)
-	message(STATUS "Enabled profiling")
-	add_compile_options(-pg)
-endif(ENABLE_PROFILING)
 
 
 include (dependencies/doctest.cmake)

@@ -92,7 +92,7 @@ namespace MiniMC {
 
 	for (auto [formal,actual] : std::views::zip (cfunc->getParameters(),call_content.params)) {
           str.add<VMInstructionCode::Assign> (
-					      valmap.at(formal->getSymbol ()),
+					      valmap.at(formal),
 					      actual );  
         }
 

@@ -22,7 +22,10 @@ namespace MiniMC {
 
       class TestCaseGenResult {
       public:
-	TestCaseGenResult (std::vector<MiniMC::Model::Register_ptr> params) : _vars(std::move(params)) {}
+        TestCaseGenResult(std::vector<MiniMC::Model::Symbol> params) {
+          for (auto& s : params)
+	    _vars.push_back (std::get<MiniMC::Model::Register_wptr> (s.getUserData ()).lock());
+          }
 	void addTestCase (TestCase&& casee){
 	  if (casee.values().size () != _vars.size ()) {
 	    throw MiniMC::Support::Exception ("Error. Inconsistent amount of values for test case");

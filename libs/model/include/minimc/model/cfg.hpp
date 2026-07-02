@@ -142,7 +142,7 @@ namespace MiniMC {
       Function (Function&&) = default;
       auto& getSymbol() { return name; }
       auto& getSymbol() const { return name; }
-      auto getParameters() const { return parameters | std::views::transform ([](auto& r) {return std::get<MiniMC::Model::Register_wptr> (r.getUserData()).lock();});}
+      auto getParameters() const { return parameters ;}
       auto& getRegisterDescr() const { return registerdescr; }
       auto& getRegisterDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
