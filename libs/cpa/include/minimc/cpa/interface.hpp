@@ -76,8 +76,16 @@ namespace MiniMC {
     
     
     using Transferer_ptr = std::shared_ptr<Transfer>;
-    
-    
+
+    class StateBuilder {
+    public:
+      ~StateBuilder() {}
+      virtual MiniMC::CPA::State_ptr build() = 0;
+      virtual StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterDescr& descr) = 0;
+      virtual StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) = 0;
+      virtual StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterDescr& cpuregs, const MiniMC::Model::RegisterDescr& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) = 0;
+      virtual StateBuilder& addConstraint(MiniMC::Model::Value& b) = 0;
+      };      
     
     struct ICPA {
       virtual ~ICPA() {}

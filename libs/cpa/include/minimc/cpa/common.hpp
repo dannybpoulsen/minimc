@@ -374,104 +374,6 @@ namespace MiniMC {
       StateMixin (StateMixin&&) = default;
       StateMixin (const StateMixin&) = default;
       
-      
-      template<MiniMC::VMT::Ops<Value> Operations,MiniMC::VMT::MemoryOperations<Value> MemControl>
-      static StateMixin createInitialState (const MiniMC::CPA::InitialiseDescr& descr,Operations&& ops, MemControl&& memcontrol) {
-	
-	std::vector<ActivationStack<Value>> stack;
-	auto _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
-	ActivationRecord<Value> persistent {descr.getProgram().getPersistentRegs ().getTotalRegisters(),nullptr,nullptr};
-	for (auto& v : descr.getProgram().getPersistentRegs().getRegisters()) {
-	  persistent.setValueOfRegister(v,ops.defaultValue (*v.getType()));
-	}
-	for (auto& f : descr.getEntries()) {
-          auto& vstack = f.getFunction()->getRegisterDescr();
-	  
-	  ActivationStack<Value> cs {descr.getProgram().getCPURegs(),descr.getProgram().getMetaRegs()};
-	  cs.push (f.getFunction()->getCFA().getInitialLocation (),nullptr);
-
-	  
-	  
-	  
-	  EvaluationContext<Value,MemControl> regstore {cs,persistent,memcontrol,*_scontext};
-	  for (auto& v : vstack.getRegisters()) {
-            regstore.saveValue  (v,ops.defaultValue (*v.getType ()));
-	  }
-
-	  for (auto& reg : descr.getProgram().getCPURegs().getRegisters()) {
-	    auto val = ops.defaultValue (*reg.getType ());
-	    regstore.saveValue (reg,std::move(val));
-	  }
-
-	  for (auto& reg : descr.getProgram().getMetaRegs().getRegisters()) {
-	    auto val = ops.defaultValue (*reg.getType ());
-	    regstore.saveValue (reg,std::move(val));
-	  }
-
-	  auto pit = f.getParams ().begin ();
-	  auto rit = f.getFunction()->getParameters().begin ();
-	  auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,ops);
-	  for (; pit != f.getParams ().end ();++pit,++rit) {
-            // TODO: Updatee this
-	    auto reg =  std::get<MiniMC::Model::Register_wptr> (rit->getUserData()).lock();            
-	    regstore.saveValue  (*reg,eval.Eval (**pit));
-	  } 
-	  
-          stack.push_back(cs);
-	  
-        }
-
-	DummyRegisterStore<Value> regstore{*_scontext,persistent};
-	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,ops);
-	
-	for (auto& b : descr.getHeap ().blocks()) {
-	  //Allocate block here
-	  auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (b.baseobj));
-	  auto size = eval.Eval (*MiniMC::Model::I64Integer::make (b.size));
-	  Value::visit (
-			MiniMC::Support::Overload {
-			  [&_scontext,&b,&memcontrol,&regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem)  {
-			    auto mem2 = memcontrol.allocate (mem,ptr,size);
-			    _scontext->addSymbol (b.symbol,ptr);
-			    regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
-			  },
-			    MiniMC::Support::Error<void>{}
-			},
-			ptr,size,eval.Eval(*b.heap_register)
-			);
-	  
-	  if (b.value) {
-	    Value ptr = eval.Eval (*MiniMC::Model::Pointer::make (b.baseobj));
-            Value valueToStor = eval.Eval(*b.value);
-	    
-	    Value::visit (MiniMC::Support::Overload {
-		[&b,&_scontext,&memcontrol,&regstore,&ops]<typename K>(const Value::Pointer& ptr, const K& value, const Value::Memory& mem) requires (!std::is_same_v<K,typename Value::Bool> && !std::is_same_v<K,typename Value::Memory>) {
-		  auto ones = ops.create (MiniMC::Model::I64Integer{1});
-		  auto ptr_c = ptr;
-		  for (auto by : ops.bytes(value)) {
-		    auto mem2 = memcontrol.store (mem,ptr_c,by);
-		    ptr_c = ops.PtrAdd (ptr_c,ones);
-		    regstore.saveValue (b.heap_register->asRegister(),Value{mem2});
-		  }
-			  
-		},
-		  [](const auto&, const auto&,const auto& ) {
-		    throw MiniMC::Support::Exception ("Error");
-		},
-		  
-		  
-		  },
-	      ptr,
-	      valueToStor,
-	      eval.Eval(*b.heap_register)
-	      
-	      );
-	    }
-	}
-	
-	return StateMixin {std::move(stack),std::move(persistent),ops.create (MiniMC::Model::Bool (true)),std::move(_scontext)}; 
-      }
-      
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
 	for (auto& vl : stacks) {
@@ -631,16 +533,18 @@ namespace MiniMC {
 
 
     template <MiniMC::VMT::ValueDefinition ValDef>
-    class StateBuilder {
+    class StateBuilder : public MiniMC::CPA::StateBuilder{
       using Value = ValDef::Val;
     public:
-      StateBuilder (ValDef d) : valdef(d) {}
-      MiniMC::CPA::State_ptr build() {
-        return makeState<CPAState<ValDef>> (StateMixin<typename ValDef::Val> {std::move(stack),std::move(persistent),valdef.ops().create (MiniMC::Model::Bool (true)),std::move(_scontext)},valdef);
+      StateBuilder(ValDef d) : valdef(d) {
+	path = valdef.ops().create(MiniMC::Model::Bool(true));
+        }
+      MiniMC::CPA::State_ptr build() override{
+        return makeState<CPAState<ValDef>> (StateMixin<typename ValDef::Val> {std::move(stack),std::move(persistent),path,std::move(_scontext)},valdef);
 	
       }
 
-      auto& addPersistentRegisters(const MiniMC::Model::RegisterDescr& descr) {
+      MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterDescr& descr) override {
         persistent = ActivationRecord<typename ValDef::Val>{descr.getTotalRegisters(), nullptr, nullptr};
 	for (auto& v : descr.getRegisters()) {
 	  persistent.setValueOfRegister(v,valdef.ops().defaultValue (*v.getType()));
@@ -648,7 +552,7 @@ namespace MiniMC {
 	return *this;
       }
 
-      auto& addHeapBlock(const MiniMC::Model::HeapBlock& block) {
+      MiniMC::CPA::StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) override {
 	DummyRegisterStore<Value> regstore{*_scontext,persistent};
 	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,valdef.ops());
 	auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (block.baseobj));
@@ -693,9 +597,9 @@ namespace MiniMC {
         }
 	return *this;
       }
-
-      auto& addThread(const MiniMC::Model::Function& f,const MiniMC::Model::RegisterDescr& cpuregs,const MiniMC::Model::RegisterDescr& metaregs,std::vector<MiniMC::Model::Value_ptr> params) {
-        ActivationStack<Value> cs{cpuregs, metaregs};
+      
+      MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterDescr& cpuregs, const MiniMC::Model::RegisterDescr& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
+	ActivationStack<Value> cs{cpuregs, metaregs};
         cs.push(f.getCFA().getInitialLocation(), nullptr);
 
         auto memops = valdef.memops();
@@ -716,13 +620,29 @@ namespace MiniMC {
 	}          
         stack.push_back(cs);
 	return *this;
+      }
+
+      MiniMC::CPA::StateBuilder& addConstraint(MiniMC::Model::Value& b) {
+	DummyRegisterStore<Value> regstore{*_scontext,persistent};
+        auto eval = MiniMC::VMT::makeEvaluator<Value>(regstore, valdef.ops());
+	auto converted = eval.Eval (b);
+        Value::visit(
+            MiniMC::Support::Overload{
+	      [this](const Value::Bool& v) { path = valdef.ops().BoolAnd(path, v); },
+		MiniMC::Support::Error<void>{}
+	    },
+	    converted
+		     );                
+		                 
+        return *this;        
       }        
       
     private:
       ValDef valdef;      
       std::vector<ActivationStack<Value>> stack;
       ActivationRecord<Value> persistent{0,nullptr,nullptr};
-      std::shared_ptr<MiniMC::CPA::Common::StaticContext<Value>>  _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>> ();
+      std::shared_ptr<MiniMC::CPA::Common::StaticContext<Value>> _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>>();
+      Value::Bool path;
     };
     
     template<MiniMC::VMT::ValueDefinition ValDef>
@@ -780,7 +700,10 @@ namespace MiniMC {
 	}          
         
 	return builder.build ();
-        }
+      }
+
+      
+      
       virtual Transferer_ptr makeTransfer(const MiniMC::Model::Program& prgm ) const {return std::make_shared<Transferer<ValDef>> (valdef,prgm);}
     private:
       ValDef valdef;
