@@ -671,14 +671,15 @@ namespace MiniMC {
 	      return false;
 	    }
 	    
-	    auto nbParams = content.params.size();
-	    auto it = func->getParameters().begin();
+	    /*auto nbParams = content.params.size();
+	    auto it = func->getParameters().begin();*/
 	    
-	    for (size_t j = 0; j < nbParams; j++, ++it) {
-	      auto form_type = CheckType(*(*it));
-	      auto act_type = CheckType(*content.params.at(j));
+	    for (auto [form_param,act_param] : std::views::zip(func->getParameters(),content.params)) {
+	    	auto form_reg = std::get<MiniMC::Model::Register_wptr> (form_param.getUserData()).lock ();
+		auto form_type = CheckType(*form_reg);	     
+	      auto act_type = CheckType(*act_param);
 	      if (form_type != act_type) {
-		messager << MustBeGivenType {inst,*it,act_type};
+		messager << MustBeGivenType {inst,form_reg,act_type};
 
 		return false;
 	      }
