@@ -8,6 +8,7 @@
 #include <list>
 #include <variant>
 #include <generator>
+#include <optional>
 
 #include "minimc/hash/hashing.hpp"
 #include "minimc/io/ostream.hpp"
@@ -82,8 +83,8 @@ namespace MiniMC {
       Frame create (const std::string& s);
       
       Frame close ();
-      bool resolve (const std::string&, Symbol& s) const ;
-      bool resolveQualified (const std::string&, Symbol& s) const ;
+      std::optional<Symbol> resolve (const std::string&) const ;
+      std::optional<Symbol>resolveQualified (const std::string&) const ;
       Symbol makeSymbol (const std::string& s);
       
       Symbol makeFresh (const std::string& = "fresh");

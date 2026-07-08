@@ -135,9 +135,8 @@ expr :  UI8 POS_NUMBER {context.ebuilder.I8 ($2);}
 | LPARAN LOAD expr expr type RPARAN {context.ebuilder.Load ();
 }
 | SYMBOL_STRING {
-  MiniMC::Model::Symbol symb;
-  if (context.getter (context.proc).resolveQualified ($1,symb)) {
-    context.ebuilder.symbol(symb);
+  if (auto symb = context.getter (context.proc).resolveQualified ($1)) {
+    context.ebuilder.symbol(symb.value());
   }
   else {
     context.os << "Can't locate symbol" << $1 <<"\n";

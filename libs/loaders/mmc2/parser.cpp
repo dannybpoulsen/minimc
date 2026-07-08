@@ -10,9 +10,9 @@ namespace MiniMC {
 	Token tok;
 	if (!match (IDENTIFIER,&tok))
 	  expect (QUALIFIEDNAME,&tok);
-	MiniMC::Model::Symbol symbol;
-	if (curFrame.resolveQualified (tok.get<std::string> (),symbol)) {
-	  if (symbolsUsedBeforeDef.count (symbol)) {
+	if (auto symb_ = curFrame.resolveQualified (tok.get<std::string> ())) {
+	  auto symbol = symb_.value();
+          if (symbolsUsedBeforeDef.count (symbol)) {
 	    symbolsUsedBeforeDef.erase (symbol);
 	    return symbol;
 	  }
@@ -33,17 +33,16 @@ namespace MiniMC {
 
       MiniMC::Model::Symbol Parser::parseSymbol () {
 	Token tok;
-	bool res = false;
-	MiniMC::Model::Symbol symb;
 	
 	if (!match (IDENTIFIER,&tok) ) {
 	  expect (QUALIFIEDNAME,&tok);
 	}
-	res = curFrame.resolveQualified (tok.get<std::string> (),symb);
+	
+        auto res = curFrame.resolveQualified (tok.get<std::string> ());
 	if (res)
-	  return symb;
+	  return res.value();
 	else {
-	  symb = MiniMC::Model::Symbol::from_string (tok.get<std::string> ());
+	  auto symb = MiniMC::Model::Symbol::from_string (tok.get<std::string> ());
 	  auto res =  prgm->getRootFrame().makeSymbol (symb.getName ());
 	  symbolsUsedBeforeDef.insert (res);
 	  return res;
@@ -163,9 +162,8 @@ namespace MiniMC {
 	  Token tok;
 	  expect (IDENTIFIER,&tok);
 	  expect (NEWLINE);
-	  MiniMC::Model::Symbol symb;
-	  if (curFrame.resolve (tok.get<std::string> (),symb))
-	    prgm->addEntryPoint (symb);
+	  if (auto symb = curFrame.resolve (tok.get<std::string> ()))
+	    prgm->addEntryPoint (symb.value());
 	  else {
 	    throw MiniMC::Support::Exception (MiniMC::Support::Localiser ("Cannot resolve name '%1%'").format (tok.get<std::string> ()));
 	  }

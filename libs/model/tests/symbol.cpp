@@ -39,10 +39,10 @@ TEST_CASE("Frame") {
 TEST_CASE("Frame") {
   MiniMC::Model::Frame frame;
   frame.makeSymbol ("main");
-  MiniMC::Model::Symbol symb;
-  
-  REQUIRE (frame.resolve ("main",symb));
-  CHECK (symb.getFullName () == ":main");
+  std::optional<MiniMC::Model::Symbol> symb;
+  symb = frame.resolve ("main");
+  REQUIRE (symb);
+  CHECK (symb.value().getFullName () == ":main");
 }
 
 TEST_CASE("Frame") {
@@ -50,12 +50,11 @@ TEST_CASE("Frame") {
   auto sframe  = frame.create ("main");
   
   auto smb = sframe.makeSymbol ("echo");
-
-  MiniMC::Model::Symbol symb;
-
-  REQUIRE (sframe.resolve ("echo",symb));
-  CHECK (symb.getName () == "echo");
-  CHECK (symb.getFullName () == ":main:echo");
+  std::optional<MiniMC::Model::Symbol> symb = sframe.resolve ("echo");
+  
+  REQUIRE (symb  );
+  CHECK (symb.value().getName () == "echo");
+  CHECK (symb.value().getFullName () == ":main:echo");
 }
 
 TEST_CASE("Frame") {
@@ -64,12 +63,12 @@ TEST_CASE("Frame") {
   auto sframe  = frame.create ("main");
   
   auto smb = sframe.makeSymbol ("echo");
+  std::optional<MiniMC::Model::Symbol> symb = sframe.resolve ("delta");
+  
 
-  MiniMC::Model::Symbol symb;
-
-  REQUIRE (sframe.resolve ("delta",symb));
-  CHECK (symb.getName () == "delta");
-  CHECK (symb.getFullName () == ":delta");
+  REQUIRE (symb );
+  CHECK (symb.value().getName () == "delta");
+  CHECK (symb.value().getFullName () == ":delta");
 }
 
 
@@ -81,11 +80,12 @@ TEST_CASE("Frame") {
   auto smb = sframe.makeSymbol ("echo");
 
   
-  MiniMC::Model::Symbol symb;
-  REQUIRE (sframe.resolve ("echo",symb));
+  std::optional<MiniMC::Model::Symbol> symb = sframe.resolve ("echo");
   
-  CHECK (symb.getName () == "echo");
-  CHECK (symb.getFullName () == ":main:echo");
+  REQUIRE (symb );
+  
+  CHECK (symb.value().getName () == "echo");
+  CHECK (symb.value().getFullName () == ":main:echo");
 }
 
 TEST_CASE("Frame Resolve") {
@@ -96,11 +96,11 @@ TEST_CASE("Frame Resolve") {
   auto smb = sframe.makeSymbol ("echo");
 
   
-  MiniMC::Model::Symbol symb;
-  REQUIRE (sframe.resolveQualified ("main:echo",symb));
+  auto  symb =sframe.resolveQualified ("main:echo") ;
+  REQUIRE (symb);
   
-  CHECK (symb.getName () == "echo");
-  CHECK (symb.getFullName () == ":main:echo");
+  CHECK (symb.value().getName () == "echo");
+  CHECK (symb.value().getFullName () == ":main:echo");
 }
 
 TEST_CASE("Frame Resolve") {
@@ -111,22 +111,22 @@ TEST_CASE("Frame Resolve") {
   auto smb = sframe.makeSymbol ("echo");
   
   
-  MiniMC::Model::Symbol symb;
-  REQUIRE (sframe.resolveQualified ("delta",symb));
+  auto symb = sframe.resolveQualified ("delta");
+  REQUIRE (symb);
   
-  CHECK (symb.getName () == "delta");
-  CHECK (symb.getFullName () == ":delta");
+  CHECK (symb.value().getName () == "delta");
+  CHECK (symb.value().getFullName () == ":delta");
 }
 
 TEST_CASE("Frame Resolve Root") {
   MiniMC::Model::Frame frame;
   frame.makeSymbol ("delta");
   
-  MiniMC::Model::Symbol symb;
-  REQUIRE (frame.resolveQualified ("delta",symb));
+  auto  symb =  frame.resolveQualified ("delta");
+  REQUIRE (symb);
   
-  CHECK (symb.getName () == "delta");
-  CHECK (symb.getFullName () == ":delta");
+  CHECK (symb.value().getName () == "delta");
+  CHECK (symb.value().getFullName () == ":delta");
 }
 
 

@@ -222,9 +222,8 @@ namespace MiniMC {
 	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>(nvar, val).
 	      template addInstr<MiniMC::Model::InstructionCode::Assert>(nvar);
 	  }
-	  
-	    
-	}
+        }
+        
 	else {
 	  std::vector<MiniMC::Model::Value_ptr> params;
 	  MiniMC::Model::Value_ptr func_ptr = context.findValue(cinst->getCalledOperand ());

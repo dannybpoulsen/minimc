@@ -104,8 +104,8 @@ namespace MiniMC {
 	
 	for (auto var : prgm.getVars()) {
 	  std::string name = var.getName();
-	  MiniMC::Model::Symbol symb;
-	  _internal->frame.resolve(name,symb);
+	  
+	  auto symb = _internal->frame.resolve(name).value();
 	  auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
 	  if (var.isParamter()) {
 	    auto psymbol = _internal->frame.makeFresh(name);
@@ -125,8 +125,7 @@ namespace MiniMC {
       }
 
       void Compiler::writeFunction(Whiley::Symbol symb) {
-        MiniMC::Model::Symbol func_name;
-	_internal->frame.resolve(symb.getName(), func_name);
+        auto func_name = _internal->frame.resolve(symb.getName()).value();
 	MiniMC::Model::RegisterDescr descr;
 	
         _internal->frame = _internal->frame.create(symb.getName());
@@ -149,8 +148,7 @@ namespace MiniMC {
 
 	std::vector<MiniMC::Model::Symbol> params;
         for (auto h : wh_func->getParams()) {
-          MiniMC::Model::Symbol s;
-          _internal->frame.resolve(h.getName(), s);
+          auto s = _internal->frame.resolve(h.getName()).value();
           params.push_back(s);
         }
 	wh_func->getStmt()->accept(*this);
@@ -163,11 +161,10 @@ namespace MiniMC {
       }
 
       void Compiler::visitIdentifier(const Whiley::Identifier& id) {
-	MiniMC::Model::Symbol symb;
 	
-	if (_internal->frame.resolve(id.getName(), symb)) {
+	if (auto symb = _internal->frame.resolve(id.getName())) {
 	  
-	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
 	  
 	  auto& exprbuilder = static_cast<MiniMC::Model::ExpressionBuilder&> (_internal->builder);
 	  exprbuilder << reg;
@@ -187,11 +184,10 @@ namespace MiniMC {
 
       void Compiler::visitAllocStatement(const Whiley::AllocStatement& alloc) {
         auto& builder = static_cast<MiniMC::Model::ExpressionBuilder&> (_internal->builder); 
-        MiniMC::Model::Symbol symb;
 	alloc.getExpression().accept(*this);
 	auto expr = builder.get();
-	if (_internal->frame.resolve(alloc.getAssignName(), symb)) {
-	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+	if (auto symb = _internal->frame.resolve(alloc.getAssignName())) {
+	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
 	  builder << _internal->heap_mem << expr;;
           builder.FindSpace();
 	  _internal->builder.Assign (reg);
@@ -326,8 +322,7 @@ namespace MiniMC {
       }
 
       void Compiler::visitAssignStatement(const Whiley::AssignStatement& ass) {
-	MiniMC::Model::Symbol symb;
-        _internal->frame.resolve(ass.getAssignName(), symb);
+        auto symb = _internal->frame.resolve(ass.getAssignName()).value();
         auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
         ass.getExpression().accept(*this);
 	
@@ -336,8 +331,8 @@ namespace MiniMC {
 
       void Compiler::visitIncrementDecrementStatement(const Whiley::IncrementDecrementStatement& ass) {
 	auto& exprbuilder = static_cast<MiniMC::Model::ExpressionBuilder&> (_internal->builder);
-	MiniMC::Model::Symbol symb;
-        _internal->frame.resolve(ass.getIncrementee(), symb);
+	
+        auto symb = _internal->frame.resolve(ass.getIncrementee()).value();
         auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
         exprbuilder << reg;
         switch (reg->getType()->getTypeID()) {
@@ -389,7 +384,7 @@ namespace MiniMC {
 	iff.getElseBody().accept(*this);
 	_internal->builder.If ();
       }
-      void Compiler::visitSkipStatement(const Whiley::SkipStatement& s) {
+      void Compiler::visitSkipStatement(const Whiley::SkipStatement&) {
 	_internal->builder.Skip().InstrSequence();
       }
       void Compiler::visitWhileStatement(const Whiley::WhileStatement& w) {
@@ -416,11 +411,11 @@ namespace MiniMC {
         MiniMC::Model::Symbol func_symb;
 	
 	MiniMC::Model::Register_ptr reg = nullptr;
-        if (_internal->frame.resolve(c.assignname(), symb))
-          reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+        if (auto symb = _internal->frame.resolve(c.assignname()))
+          reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
 	
-        if (_internal->frame.resolve(c.funcname(), func_symb)) {
-	  auto symb_expr = MiniMC::Model::makeExpr<MiniMC::Model::SymbolicConstant>(func_symb);
+        if (auto func_symb = _internal->frame.resolve(c.funcname())) {
+	  auto symb_expr = MiniMC::Model::makeExpr<MiniMC::Model::SymbolicConstant>(func_symb.value());
 	  std::size_t params=0;
 	  for (auto& a : c.parameters()) {
 	    a->accept(*this);   

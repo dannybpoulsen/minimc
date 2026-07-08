@@ -159,31 +159,31 @@ namespace MiniMC {
       Internal (Symbol symb,std::weak_ptr<Internal> p) : symb(symb),parent(p) {}
       
       
-      bool resolve (const std::string& s, Symbol& symb) const {
+      std::optional<Symbol>resolve (const std::string& s) const {
 	auto it = symbols.find(s);
 	if (it != symbols.end ()) {
-	  symb = it->second;
-	  return true;
+	  return it->second;
+	  
 	}
 	else if (!parent.expired ()){
-	  return parent.lock ()->resolve(s,symb);
+	  return parent.lock ()->resolve(s);
 	}
 	else {
-	  return false;
+	  return std::nullopt;
 	}
       }
 
 
       
       template<class S>
-      bool resolveRecursive (const std::string& qname, Symbol& symb, S s) const {
+      std::optional<Symbol> resolveRecursive (const std::string& qname, S s) const {
 	std::stringstream stream {qname};
 	std::string inp;
 
 	if (this->symb.isRoot () && this->symb.getFullName () != "") {
 	  std::getline (stream,inp,Symbol::data::delim);
 	  if(inp != this->symb.getName())
-	    return false;
+	    return std::nullopt;
 	}
 	
 	do {
@@ -192,35 +192,35 @@ namespace MiniMC {
 	    if (s->frames.count(inp))
 	      s = s->frames.at(inp);
 	    else
-	      return false;
+	      return std::nullopt;;
 	  }
 	  else  {
 	    if (s->symbols.count(inp)) {
-	      symb = s->symbols.at(inp);
-	      return true;
+	      return s->symbols.at(inp);
+	      
 	    }
 	    else
-	      return false;
+	      return std::nullopt;
 	    
 	  }
 	}while (stream.good ());
 	
-	return false;
+	return std::nullopt;
 		
       }
       
-      bool qualifiedResolve (const std::string& s, Symbol& symb)const {
+      std::optional<Symbol> qualifiedResolve (const std::string& s)const {
 	if (parent.expired ())
-	  return resolveRecursive (s,symb,this->shared_from_this());
+	  return resolveRecursive (s,this->shared_from_this());
 	auto p = parent;
 	while (!p.expired ()) {
 	  auto q = p.lock ();
 	  if (q->parent.expired ())
-	    return resolveRecursive (s,symb,q);
+	    return resolveRecursive (s,q);
 	  else
 	    p = q->parent;
 	}
-	throw std::runtime_error ("Can't find root frame");
+	return std::nullopt;
       }
 
       std::generator<Symbol> gen_symbols () {
@@ -286,12 +286,12 @@ namespace MiniMC {
       return Frame (_internal->parent.lock ());
     }
 
-    bool Frame::resolve (const std::string& s, Symbol& symb) const{
-      return _internal->resolve( s,symb);
+    std::optional<Symbol> Frame::resolve (const std::string& s) const{
+      return _internal->resolve( s);
     }
 
-    bool Frame::resolveQualified (const std::string& s, Symbol& symb) const {
-      return _internal->qualifiedResolve ( s,symb);
+    std::optional<Symbol> Frame::resolveQualified (const std::string& s) const {
+      return _internal->qualifiedResolve ( s);
     }
     
     

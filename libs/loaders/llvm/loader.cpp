@@ -426,9 +426,9 @@ namespace MiniMC {
       
       void setupEntryPoints(MiniMC::Model::Program& prgm, MiniMC::Model::Value_ptr heap_mem) {
         for (const auto& e : entry) {
-	  MiniMC::Model::Symbol symbol;
-	  if (prgm.getRootFrame().resolve (e,symbol)) {
-	    auto func = prgm.getFunction(symbol);
+	  
+	  if (auto symbol = prgm.getRootFrame().resolve (e)) {
+	    auto func = prgm.getFunction(symbol.value());
 	    auto entry = createEntryPoint(stacksize, prgm, func, {},sp,heap_mem);
 	    
 	    prgm.addEntryPoint(entry->getSymbol());
