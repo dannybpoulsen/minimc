@@ -38,7 +38,8 @@ TEST_CASE("Add") {
     builder.addInstr<MiniMC::Model::InstructionCode::Add> (res,MiniMC::Model::I8Integer::make(1),MiniMC::Model::I8Integer::make(2));
   }
 
-  auto func = prgm.addFunction (prgm.getRootFrame().makeFresh (),
+  auto symb_f = prgm.getRootFrame().makeFresh ();
+  auto func = prgm.addFunction (symb_f,
 				{},
 				MiniMC::Model::VoidType::get(),
 				std::move(descr),
@@ -47,7 +48,7 @@ TEST_CASE("Add") {
 				frame);
 
   MiniMC::CPA::Concrete::CPA cpa{MiniMC::Model::NonDetGenerator{}};
-  auto init_state = cpa.makeInitialState ({{func->getSymbol()},{},prgm});
+  auto init_state = cpa.makeInitialState ({{symb_f},{},prgm});
   auto transfer = cpa.makeTransfer (prgm);
 
   

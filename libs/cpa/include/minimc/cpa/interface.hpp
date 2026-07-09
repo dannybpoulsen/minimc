@@ -41,7 +41,7 @@ namespace MiniMC {
                                                                prgm(program) {
 	
 	for (auto& F : entri_func) {
-	  entries.push_back (std::get<MiniMC::Model::Function_wptr>(F.getUserData()).lock());
+	  entries.push_back (std::get<MiniMC::Model::Function_ptr>(F.getUserData()));
 	}
       }
 

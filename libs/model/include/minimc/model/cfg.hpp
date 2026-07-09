@@ -116,7 +116,7 @@ namespace MiniMC {
     class Function  {
     public:
       Function(MiniMC::Model::func_t id,
-               const Symbol& name,
+               const std::string& name,
                const std::vector<MiniMC::Model::Symbol>& params,
                const Type_ptr rtype,
                RegisterDescr&& registerdescr,
@@ -134,14 +134,13 @@ namespace MiniMC {
                                              frame(frame)
 
       {
-        /*for (auto& r : params) {
-	  parameters.push_back(r->getSymbol());
-	  }*/
+	
       }
       Function (const Function&) = delete;
       Function (Function&&) = default;
-      auto& getSymbol() { return name; }
-      auto& getSymbol() const { return name; }
+      /*auto& getSymbol() { return name; }
+	auto& getSymbol() const { return name; }*/
+      const auto& getName() const {return name;} 
       auto getParameters() const { return parameters ;}
       auto& getRegisterDescr() const { return registerdescr; }
       auto& getRegisterDescr() { return registerdescr; }
@@ -155,7 +154,7 @@ namespace MiniMC {
       auto isVarArgs () const {return varargs;}
       auto function_ptr () const {return MiniMC::Model::Pointer(MiniMC::Model::pointer64_t::makeFunctionPointer(id));}
     private:
-      Symbol name;
+      std::string  name;
       std::vector<Symbol> parameters;
       RegisterDescr registerdescr;
       CFA cfa;
@@ -175,7 +174,7 @@ namespace MiniMC {
 
       Program (const Program&) = delete ;
       Program (Program&&) = default;
-      Function_ptr addFunction(const MiniMC::Model::Symbol& symbol,
+      Function_ptr addFunction(MiniMC::Model::Symbol symbol,
 			       const std::vector<Symbol>& params,
 			       const Type_ptr retType,
 			       RegisterDescr&& registerdescr,
@@ -183,8 +182,9 @@ namespace MiniMC {
 			       bool varargs,
 			       Frame frame
 		) {
-        functions.push_back(std::make_shared<Function>(functions.size(), symbol, params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
-	functions.back()->getSymbol().setUserData (functions.back ());
+	functions.push_back(std::make_shared<Function>(functions.size(), symbol.getFullName(), params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
+	//functions.back()->getSymbol().setUserData (functions.back ());
+	symbol.setUserData (functions.back());
 	function_map.emplace(symbol, functions.back());
         return functions.back();
       }
@@ -202,8 +202,8 @@ namespace MiniMC {
       }
       
       Function_ptr getFunction(const MiniMC::Model::Symbol& symb) const {
-	if (std::holds_alternative<Function_wptr> (symb.getUserData ())) {
-	  return std::get<Function_wptr> (symb.getUserData()).lock();
+	if (std::holds_alternative<Function_ptr> (symb.getUserData ())) {
+	  return std::get<Function_ptr> (symb.getUserData());
 	}
 	return nullptr;
       }

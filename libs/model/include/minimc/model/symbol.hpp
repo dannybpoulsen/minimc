@@ -23,13 +23,13 @@ namespace MiniMC {
     
     
     using Register_wptr = std::weak_ptr<Register>;
-    using Function_wptr = std::weak_ptr<Function>;
+    using Function_ptr = std::shared_ptr<Function>;
     using Location_wptr = std::weak_ptr<Location>;
     using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
     
     
     using UserData = std::variant<Register_wptr,
-				  Function_wptr,
+				  Function_ptr,
 				  Location_wptr,
 				  HeapBlock_wptr,
 				  std::monostate>;

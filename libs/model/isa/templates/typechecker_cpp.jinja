@@ -667,7 +667,7 @@ namespace MiniMC {
 	  MiniMC::Support::Localiser inconsistent_parameters("Inconsistent number of parameters between call and function prototype '%1%'");
 	  if (!func->isVarArgs ()) {
 	    if (func->getParameters().size() != content.params.size() ) {
-	      messager << MiniMC::Support::TError<std::string> {inconsistent_parameters.format (func->getSymbol ().getName ())};
+	      messager << MiniMC::Support::TError<std::string> {inconsistent_parameters.format (func->getName ())};
 	      return false;
 	    }
 	    
@@ -686,12 +686,12 @@ namespace MiniMC {
 	    }
 	  }
 	  else {
-	    messager << MiniMC::Support::TWarning<std::string> {function_is_var_args.format (func->getSymbol ().getName ())};
+	    messager << MiniMC::Support::TWarning<std::string> {function_is_var_args.format (func->getName ())};
 	  }
 	  if (content.res) {
 	    auto resType = CheckType(*content.res);
 	    if (resType != func->getReturnType()) {
-	      messager << MiniMC::Support::TError {inconsistent_parameters.format (func->getSymbol ().getName ())};
+	      messager << MiniMC::Support::TError {inconsistent_parameters.format (func->getName ())};
 	      return false;
 	    }
 	  }

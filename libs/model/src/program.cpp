@@ -61,8 +61,8 @@ namespace MiniMC {
       }
 
       auto copyFunction (const Function_ptr& function,RegReplaceMap map,Program& prgm) {
-	auto frame = prgm.getRootFrame().create (function->getSymbol().getName ());
-	auto symbol = prgm.getRootFrame().makeSymbol (function->getSymbol().getName ());
+	auto frame = prgm.getRootFrame().create (function->getName ());
+	auto symbol = prgm.getRootFrame().makeSymbol (function->getName ());
 	
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
 	copyVariables (function->getRegisterDescr (),map,varstack,frame);

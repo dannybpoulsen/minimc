@@ -376,15 +376,16 @@ namespace MiniMC {
         mpm.run(module, mam);
       }
 
-      MiniMC::Model::Function_ptr createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, MiniMC::Model::Function_ptr function, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg, const MiniMC::Model::Value_ptr& heap_mem) {
+      MiniMC::Model::Symbol createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, const MiniMC::Model::Symbol function_symb, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg, const MiniMC::Model::Value_ptr& heap_mem) {
       static std::size_t nb = 0;
-      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function->getSymbol().getName(), ++nb);
+      auto function = std::get<MiniMC::Model::Function_ptr> (function_symb.getUserData ());
+      const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function_symb.getName(), ++nb);
       auto frame = program.getRootFrame().create(name);
       MiniMC::Model::CFA cfg;
       MiniMC::Model::RegisterDescr vstack;
       MiniMC::Model::LocationInfoCreator locinf(frame);
 
-      auto funcpointer = MiniMC::Model::SymbolicConstant::make(function->getSymbol());
+      auto funcpointer = MiniMC::Model::SymbolicConstant::make(function_symb);
       funcpointer->setType(MiniMC::Model::PointerType::get());
       auto iinfo = locinf.make();
       auto init = cfg.makeLocation(frame.makeFresh("init"), iinfo);
@@ -415,12 +416,15 @@ namespace MiniMC {
 	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
 	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
       }
-      return program.addFunction(program.getRootFrame().makeSymbol (name), {},
+      auto entry_symb = program.getRootFrame().makeSymbol (name);
+      program.addFunction(entry_symb, {},
                                  MiniMC::Model::VoidType::get(),
                                  std::move(vstack),
                                  std::move(cfg),
                                  false,
                                  frame);
+
+      return entry_symb;
       }
       
       
@@ -428,10 +432,10 @@ namespace MiniMC {
         for (const auto& e : entry) {
 	  
 	  if (auto symbol = prgm.getRootFrame().resolve (e)) {
-	    auto func = prgm.getFunction(symbol.value());
-	    auto entry = createEntryPoint(stacksize, prgm, func, {},sp,heap_mem);
+	    //auto func = prgm.getFunction(symbol.value());
+	    auto entry = createEntryPoint(stacksize, prgm, symbol.value(), {},sp,heap_mem);
 	    
-	    prgm.addEntryPoint(entry->getSymbol());
+	    prgm.addEntryPoint(entry);
 	  }
         }
       }
