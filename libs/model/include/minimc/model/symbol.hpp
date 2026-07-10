@@ -23,6 +23,8 @@ namespace MiniMC {
     
     
     using Register_wptr = std::weak_ptr<Register>;
+    using Register_ptr = std::shared_ptr<Register>;
+    
     using Function_ptr = std::shared_ptr<Function>;
     using Location_wptr = std::weak_ptr<Location>;
     using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
@@ -97,7 +99,7 @@ namespace MiniMC {
       
       bool hasSymbol (const Symbol& ) const;
 
-      
+      std::generator<std::tuple<Symbol,MiniMC::Model::Register_ptr>> local_registers () const ;
       std::size_t numberOfRegisters () const;
     private:
       struct Internal;

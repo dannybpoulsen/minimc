@@ -11,14 +11,6 @@ namespace MiniMC {
     struct Copier {
       using RegReplaceMap = std::unordered_map<MiniMC::Model::Symbol,Register_ptr>;
       
-      void copyVariables ( const MiniMC::Model::RegisterDescr& vars, RegReplaceMap& map,MiniMC::Model::RegisterDescr& stack, MiniMC::Model::Frame& frame) {
-	
-	for (auto& v : vars.getRegisters ()) {
-	  auto vv = stack.addRegister (frame.makeSymbol (v.getSymbol().getName ()),v.getType ());
-	  map.emplace (v.getSymbol(),vv);
-	}
-      }
-      
       MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
 							      const RegReplaceMap& repl
 							   ) {
@@ -65,7 +57,11 @@ namespace MiniMC {
 	auto symbol = prgm.getRootFrame().makeSymbol (function->getName ());
 	
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
-	copyVariables (function->getRegisterDescr (),map,varstack,frame);
+	for (auto [symb,v] : function->getFrame().local_registers()) {
+	  auto vv = varstack.addRegister (frame.makeSymbol(symb.getName()),v->getType ());
+	  map.emplace (symb,vv);
+	}
+	
 	std::vector<MiniMC::Model::Symbol> parameters;
 	std::ranges::for_each (function->getParameters(),
 			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv)->getSymbol());}
@@ -73,13 +69,13 @@ namespace MiniMC {
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();
 	return prgm.addFunction (symbol,
-				    parameters,
-				    retType,
-				    std::move(varstack),
-				    std::move(cfa),
-				    function->isVarArgs (),
-				    frame
-				    );
+				 parameters,
+				 retType,
+				 std::move(varstack),
+				 std::move(cfa),
+				 function->isVarArgs (),
+				 frame
+				 );
       }
 
       

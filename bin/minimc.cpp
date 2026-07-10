@@ -25,12 +25,6 @@ MiniMC::Model::Program transformProgram (MiniMC::Model::Program&& prgm, const tr
   using namespace  MiniMC::Model::Modifications;
   
   //manager.add<SplitAsserts> ();
-  if (options.unrollLoops) {
-    manager.add<UnrollLoops> (options.unrollLoops);
-  }
-  if (options.inlineFunctions) {
-    manager.add<InlineFunctions> (options.inlineFunctions);
-  }
    if (options.loadasserts) {
      manager.add<InstrumentLoads> ();
   }

@@ -1,6 +1,6 @@
 #ifndef _HELPERS__
 #define _HELPERS__
-
+/*
 #include "minimc/model/cfg.hpp"
 #include "minimc/support/exceptions.hpp"
 #include <algorithm>
@@ -82,5 +82,5 @@ namespace MiniMC {
     } // namespace Modifications
   }   // namespace Model
 } // namespace MiniMC
-
+*/
 #endif

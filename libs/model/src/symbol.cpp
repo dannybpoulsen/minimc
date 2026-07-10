@@ -335,7 +335,13 @@ namespace MiniMC {
     std::generator<Symbol> Frame::local_and_parent_symbols () const {
       co_yield std::ranges::elements_of(_internal->gen_parent_symbols());
     }
-    
+
+    std::generator<std::tuple<Symbol,MiniMC::Model::Register_ptr>> Frame::local_registers () const {
+      for (auto t : local_symbols()) {
+	if (std::holds_alternative<MiniMC::Model::Register_wptr> (t.getUserData()))
+	  co_yield std::make_tuple(t,std::get<MiniMC::Model::Register_wptr> (t.getUserData()).lock());
+      }
+    }
 
     std::size_t Frame::numberOfRegisters () const {
       std::size_t regs{0};

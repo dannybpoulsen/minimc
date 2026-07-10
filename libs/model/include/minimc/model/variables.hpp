@@ -501,7 +501,7 @@ namespace MiniMC {
       std::shared_ptr<Data> _internal;
     };
     
-    using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
+    //using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
     
     
     
