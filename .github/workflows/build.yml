@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     container: alpine
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: BuildDep
       run:  apk update && apk add python3 py3-pip py3-parsing cmake g++ make llvm18-dev llvm18-static llvm18-gtest git flex-dev bison boost-dev py3-jinja2 py3-yaml xxhash-dev readline-dev && ln -s /usr/bin/llvm-config-18 /usr/bin/llvm-config 
     - name: Setup
@@ -16,7 +16,7 @@ jobs:
       run: cd build && make
     - name: package
       run: cd build && make package
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       with:
         name: build 
         path: build/*.zip 
