@@ -201,8 +201,8 @@ namespace MiniMC {
 	  auto res = content.res;
 	  scontrol.push(func->getCFA().getInitialLocation(),  res);
 
-	  for (auto& r : func->getRegisterDescr().getRegisters()) {
-	    state->makeEvaluationContext(id).saveValue(r, operations.defaultValue(*r.getType()));
+	  for (auto[_,reg] : func->getFrame().local_registers()) {
+	    state->makeEvaluationContext(id).saveValue(*reg, operations.defaultValue(*reg->getType()));
 	    
 	  }
 

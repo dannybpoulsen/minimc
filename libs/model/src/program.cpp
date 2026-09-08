@@ -74,7 +74,6 @@ namespace MiniMC {
 	return prgm.addFunction (symbol,
 				 parameters,
 				 retType,
-				 std::move(varstack),
 				 std::move(cfa),
 				 function->isVarArgs (),
 				 frame

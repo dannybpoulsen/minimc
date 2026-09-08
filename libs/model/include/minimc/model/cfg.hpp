@@ -119,14 +119,12 @@ namespace MiniMC {
                const std::string& name,
                const std::vector<MiniMC::Model::Symbol>& params,
                const Type_ptr rtype,
-               RegisterDescr&& registerdescr,
                CFA&& cfa,
                Program& prgm,
                bool varargs,
                MiniMC::Model::Frame frame) : name(name),
 					     parameters(params),
-                                             registerdescr(std::move(registerdescr)),
-                                             cfa(std::move(cfa)),
+					     cfa(std::move(cfa)),
                                              id(id),
                                              prgm(prgm),
                                              retType(rtype),
@@ -142,21 +140,20 @@ namespace MiniMC {
 	auto& getSymbol() const { return name; }*/
       const auto& getName() const {return name;} 
       auto getParameters() const { return parameters ;}
-      auto& getRegisterDescr() const { return registerdescr; }
-      auto& getRegisterDescr() { return registerdescr; }
       auto& getCFA() const { return cfa; }
       auto& getCFA()  { return cfa; }
       
       auto& getID() const { return id; }
       auto& getReturnType() const { return retType; }
       auto& getFrame () {return frame;}
+      auto& getFrame () const {return frame;}
+      
       Program& getPrgm() const { return prgm; }
       auto isVarArgs () const {return varargs;}
       auto function_ptr () const {return MiniMC::Model::Pointer(MiniMC::Model::pointer64_t::makeFunctionPointer(id));}
     private:
       std::string  name;
       std::vector<Symbol> parameters;
-      RegisterDescr registerdescr;
       CFA cfa;
       MiniMC::Model::func_t id;
       Program& prgm;
@@ -177,13 +174,11 @@ namespace MiniMC {
       Function_ptr addFunction(MiniMC::Model::Symbol symbol,
 			       const std::vector<Symbol>& params,
 			       const Type_ptr retType,
-			       RegisterDescr&& registerdescr,
 			       CFA&& cfg,
 			       bool varargs,
 			       Frame frame
 		) {
-	functions.push_back(std::make_shared<Function>(functions.size(), symbol.getFullName(), params, retType, std::move(registerdescr), std::move(cfg), *this,varargs,frame));
-	//functions.back()->getSymbol().setUserData (functions.back ());
+	functions.push_back(std::make_shared<Function>(functions.size(), symbol.getFullName(), params, retType,  std::move(cfg), *this,varargs,frame));
 	symbol.setUserData (functions.back());
 	function_map.emplace(symbol, functions.back());
         return functions.back();

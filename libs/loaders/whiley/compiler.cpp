@@ -119,7 +119,7 @@ namespace MiniMC {
 
 	prgm.getStmt().accept (*this);
 	auto cfa = MiniMC::Model::VIL::VILtoCFA{}.convert(*_internal->builder.getStatement(),_internal->frame);
-	_internal->prgm.addFunction(main_func_symbol, params, MiniMC::Model::VoidType::get(), std::move(descr), std::move(cfa), false, _internal->frame);
+	_internal->prgm.addFunction(main_func_symbol, params, MiniMC::Model::VoidType::get(),  std::move(cfa), false, _internal->frame);
 	_internal->prgm.addEntryPoint(main_func_symbol);
         return std::move(_internal->prgm);
       }
@@ -153,7 +153,7 @@ namespace MiniMC {
         }
 	wh_func->getStmt()->accept(*this);
 	auto cfa = MiniMC::Model::VIL::VILtoCFA{}.convert(*_internal->builder.getStatement(),_internal->frame);
-	_internal->prgm.addFunction(func_name, params, makeType(wh_func->returns()), std::move(descr), std::move(cfa), false, _internal->frame);
+	_internal->prgm.addFunction(func_name, params, makeType(wh_func->returns()),  std::move(cfa), false, _internal->frame);
 	
 	
 	_internal->frame = _internal->frame.close();

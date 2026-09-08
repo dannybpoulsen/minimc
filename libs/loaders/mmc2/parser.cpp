@@ -146,7 +146,7 @@ namespace MiniMC {
 	MiniMC::Model::Type_ptr resType = parseReturns ();
 	MiniMC::Model::CFA cfa = parseCFA (rdescr);
 	
-	prgm->addFunction (symbol,std::move(params),resType,std::move(rdescr),std::move(cfa),false,curFrame);
+	prgm->addFunction (symbol,std::move(params),resType,std::move(cfa),false,curFrame);
 	
 	variableMap = oldVarmap;	   
 	curFrame = curFrame.close ();

@@ -42,7 +42,6 @@ TEST_CASE("Add") {
   auto func = prgm.addFunction (symb_f,
 				{},
 				MiniMC::Model::VoidType::get(),
-				std::move(descr),
 				std::move(cfa),
 				false,
 				frame);

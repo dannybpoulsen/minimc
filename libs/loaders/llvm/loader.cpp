@@ -213,7 +213,7 @@ namespace MiniMC {
             }
           }
 
-          prgm.addFunction(function2symb.at (&F), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
+          prgm.addFunction(function2symb.at (&F), params, returnTy,  std::move(cfg), F.isVarArg(), frame);
         }
 
         else {
@@ -330,7 +330,7 @@ namespace MiniMC {
 	  }
 	
 	  
-          prgm.addFunction(function2symb.at(&F), params, returnTy, std::move(variablestack), std::move(cfg), F.isVarArg(), frame);
+          prgm.addFunction(function2symb.at(&F), params, returnTy,  std::move(cfg), F.isVarArg(), frame);
         }
       }
 
@@ -420,12 +420,11 @@ namespace MiniMC {
       }
       auto entry_symb = program.getRootFrame().makeSymbol (name);
       program.addFunction(entry_symb, {},
-                                 MiniMC::Model::VoidType::get(),
-                                 std::move(vstack),
-                                 std::move(cfg),
-                                 false,
-                                 frame);
-
+			  MiniMC::Model::VoidType::get(),
+                          std::move(cfg),
+			  false,
+			  frame);
+      
       return entry_symb;
       }
       
