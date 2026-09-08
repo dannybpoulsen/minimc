@@ -1,4 +1,4 @@
-add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp structurechecker expression_simplifier.cpp expression_simplifier_cast.cpp expression_simplifier_cast.cpp expression_simplifier_comp.cpp expression_simplifier_TAC.cpp VIL.cpp)
+add_library (model SHARED cfg.cpp types.cpp variables.cpp program.cpp instructions.cpp  output.cpp symbol.cpp structurechecker.cpp expression_simplifier.cpp expression_simplifier_cast.cpp expression_simplifier_cast.cpp expression_simplifier_comp.cpp expression_simplifier_TAC.cpp VIL.cpp)
 target_include_directories (model PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:/include> )
 target_link_libraries (model PUBLIC util   host)
 

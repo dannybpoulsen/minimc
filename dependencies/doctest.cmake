@@ -4,7 +4,7 @@ FetchContent_Declare(
     doctest
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
-    GIT_TAG v2.4.12
+    GIT_TAG v2.5.3
 )
 
 
