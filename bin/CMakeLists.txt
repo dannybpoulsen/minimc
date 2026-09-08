@@ -1,5 +1,5 @@
 project (binary CXX)
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS program_options CONFIG REQUIRED)
 
 if(ENABLE_SYMBOLIC)
     target_compile_options (support PUBLIC -DMINIMC_SYMBOLIC)
