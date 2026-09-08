@@ -166,8 +166,10 @@ namespace MiniMC {
             auto type = load.getType(val->getType());
 	    std::string name{val->getName().str()};
 	    MiniMC::Model::Symbol symb = (name != "") ? frame.makeSymbol (name) : frame.makeFresh ();
-	    auto reg = load.getStack().addRegister(std::move(symb), type);
-	    load.addValue(val, reg);
+            auto reg = load.getStack().addRegister(symb, type);
+            auto symb_constant = MiniMC::Model::SymbolicConstant::make(symb);
+	    symb_constant->setType(reg->getType());
+	    load.addValue(val, symb_constant);
           }
           return load.findValue(val);
         };
@@ -188,7 +190,7 @@ namespace MiniMC {
         for (auto itt = F.arg_begin(); itt != F.arg_end(); itt++) {
           auto lltype = itt->getType();
           auto type = load.getType(lltype);
-          params.push_back(std::static_pointer_cast<MiniMC::Model::Register>(makeVariable(itt))->getSymbol());
+          params.push_back(std::static_pointer_cast<MiniMC::Model::SymbolicConstant>(makeVariable(itt))->getValue());
         }
 
         if (F.isDeclaration()) {

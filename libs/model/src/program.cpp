@@ -9,13 +9,15 @@
 namespace MiniMC {
   namespace Model {
     struct Copier {
-      using RegReplaceMap = std::unordered_map<MiniMC::Model::Symbol,Register_ptr>;
-      
-      MiniMC::Model::InstructionStream copyInstructionStream (const MiniMC::Model::InstructionStream& instr,
-							      const RegReplaceMap& repl
+      using RegReplaceMap = std::unordered_map<MiniMC::Model::Symbol,MiniMC::Model::Symbol>;
+
+      MiniMC::Model::InstructionStream copyInstructionStream(const MiniMC::Model::InstructionStream& instr,
+                                                             const RegReplaceMap& repl,
+							     Frame frame
 							   ) {
-	auto replaceF = [&repl](auto& v) -> MiniMC::Model::Value_ptr {
-	  return repl.at (v.getSymbol());
+        auto replaceF = [&repl, &frame](const MiniMC::Model::Register& v) -> MiniMC::Model::Value_ptr {
+	  auto symbol = frame.resolve(v.getName());
+          return std::get<MiniMC::Model::Register_ptr> (repl.at (symbol.value()).getUserData());
 	};
         MiniMC::Model::Replacer replacer{replaceF};
         
@@ -43,7 +45,7 @@ namespace MiniMC {
 	for (auto& e : cfa.getEdges ()) {
 	  auto& instrs = e->getInstructions();
 	  
-	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()),copyInstructionStream (instrs,vars));
+	  auto nedge = ncfa.makeEdge (locMap.at (e->getFrom ()), locMap.at (e->getTo ()),copyInstructionStream (instrs,vars,frame));
 
 	  
 	}
@@ -57,14 +59,15 @@ namespace MiniMC {
 	auto symbol = prgm.getRootFrame().makeSymbol (function->getName ());
 	
 	MiniMC::Model::RegisterDescr varstack{MiniMC::Model::RegType::Local};
-	for (auto [symb,v] : function->getFrame().local_registers()) {
-	  auto vv = varstack.addRegister (frame.makeSymbol(symb.getName()),v->getType ());
-	  map.emplace (symb,vv);
+        for (auto [symb, v] : function->getFrame().local_registers()) {
+	  auto nsym =  frame.makeSymbol(symb.getName());
+	  varstack.addRegister (nsym,v->getType ());
+	  map.emplace (symb,nsym);
 	}
 	
 	std::vector<MiniMC::Model::Symbol> parameters;
 	std::ranges::for_each (function->getParameters(),
-			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv)->getSymbol());}
+			       [&map,&parameters](auto vv) {parameters.push_back (map.at (vv));}
 		       );
 	auto cfa = copyCFA (function->getCFA (),map,frame);
 	auto retType  = function->getReturnType ();

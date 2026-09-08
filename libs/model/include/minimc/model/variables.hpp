@@ -383,6 +383,21 @@ namespace MiniMC {
 	os << "<" <<  symbol << " ";
 	return outputType (os) << ">";
       }
+
+      virtual const Register& asRegister() const {
+        if (std::holds_alternative<MiniMC::Model::Register_ptr>(symbol.getUserData())) {
+	  return *std::get<MiniMC::Model::Register_ptr>(symbol.getUserData());
+	}          
+        throw MiniMC::Support::Exception("Cannot convert to value to register");
+      }
+
+      virtual Register& asRegister() {
+	if (std::holds_alternative<MiniMC::Model::Register_ptr>(symbol.getUserData())) {
+	  return *std::get<MiniMC::Model::Register_ptr>(symbol.getUserData());
+	}
+        throw MiniMC::Support::Exception("Cannot convert to value to register");
+      }
+      
       
     private:
       MiniMC::Model::Symbol symbol;
@@ -455,7 +470,7 @@ namespace MiniMC {
     
     class Register : public Value {
     public:
-      Register(const Symbol& name,RegisterInfo&& p);
+      Register(const std::string& name,RegisterInfo&& p);
       virtual std::ostream& output(std::ostream& os) const {
         return os << "<" << name << " " << *getType ()  << ">";
       }
@@ -465,7 +480,7 @@ namespace MiniMC {
       }
       
       bool isRegister() const override { return true; }
-      auto getSymbol () const {return name;}
+      auto getName () const {return name;}
       auto getId  () const {return place.getId ();}
       auto getRegType () const {return place.getRegType ();}
       const Register& asRegister () const {return *this;}
@@ -473,7 +488,7 @@ namespace MiniMC {
       
     private:
       RegisterInfo place;
-      Symbol name;
+      std::string name;
     };
 
     using Register_ptr = std::shared_ptr<Register>;
@@ -485,17 +500,17 @@ namespace MiniMC {
       RegisterDescr(const RegisterDescr&) = default;
       RegisterDescr(RegisterDescr&&) = default;
       RegisterDescr& operator= (RegisterDescr&&) = default;
-      Register_ptr addRegister(Symbol&& name, const Type_ptr& type);
+      Register_ptr addRegister(Symbol name, const Type_ptr& type);
       auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
-      bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s);}
-      auto& getRegister (const Symbol& s) const {return _internal->variable_map.at(s);}
+      bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s.getName());}
+      auto& getRegister (const Symbol& s) const {return _internal->variable_map.at(s.getName());}
       
      
       auto getTotalRegisters() const { return _internal->variable_map.size(); }
     private:
       struct Data {
 	Data (RegType tt) : types(tt) {}
-	std::unordered_map<Symbol,Register_ptr> variable_map;
+	std::unordered_map<std::string,Register_ptr> variable_map;
 	RegType types;
       };
       std::shared_ptr<Data> _internal;

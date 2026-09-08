@@ -615,7 +615,7 @@ namespace MiniMC {
         }
 	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,valdef.ops());
         for (auto [formal, act] : std::views::zip(f.getParameters(), params)) {
-	  auto reg =  std::get<MiniMC::Model::Register_wptr> (formal.getUserData()).lock();            
+	  auto reg =  std::get<MiniMC::Model::Register_ptr> (formal.getUserData());            
 	  regstore.saveValue  (*reg,eval.Eval (*act));
 	}          
         stack.push_back(cs);

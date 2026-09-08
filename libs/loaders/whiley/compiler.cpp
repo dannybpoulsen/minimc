@@ -106,11 +106,11 @@ namespace MiniMC {
 	  std::string name = var.getName();
 	  
 	  auto symb = _internal->frame.resolve(name).value();
-	  auto reg = std::get<MiniMC::Model::Register_wptr> (symb.getUserData()).lock();
+	  auto reg = std::get<MiniMC::Model::Register_ptr> (symb.getUserData());
 	  if (var.isParamter()) {
 	    auto psymbol = _internal->frame.makeFresh(name);
-	    auto preg = descr.addRegister(std::move(psymbol), makeType(var.getType()));
-	    params.push_back(preg->getSymbol());
+	    auto preg = descr.addRegister(psymbol, makeType(var.getType()));
+	    params.push_back(psymbol);
 	    static_cast<MiniMC::Model::ExpressionBuilder&>(_internal->builder) << preg;
 	    _internal->builder.Assign(reg);
 	  }
@@ -164,7 +164,7 @@ namespace MiniMC {
 	
 	if (auto symb = _internal->frame.resolve(id.getName())) {
 	  
-	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
+	  auto reg = std::get<MiniMC::Model::Register_ptr>(symb.value().getUserData());
 	  
 	  auto& exprbuilder = static_cast<MiniMC::Model::ExpressionBuilder&> (_internal->builder);
 	  exprbuilder << reg;
@@ -187,7 +187,7 @@ namespace MiniMC {
 	alloc.getExpression().accept(*this);
 	auto expr = builder.get();
 	if (auto symb = _internal->frame.resolve(alloc.getAssignName())) {
-	  auto reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
+	  auto reg = std::get<MiniMC::Model::Register_ptr>(symb.value().getUserData());
 	  builder << _internal->heap_mem << expr;;
           builder.FindSpace();
 	  _internal->builder.Assign (reg);
@@ -323,7 +323,7 @@ namespace MiniMC {
 
       void Compiler::visitAssignStatement(const Whiley::AssignStatement& ass) {
         auto symb = _internal->frame.resolve(ass.getAssignName()).value();
-        auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+        auto reg = std::get<MiniMC::Model::Register_ptr>(symb.getUserData());
         ass.getExpression().accept(*this);
 	
         _internal->builder.Assign (reg).InstrSequence();
@@ -333,7 +333,7 @@ namespace MiniMC {
 	auto& exprbuilder = static_cast<MiniMC::Model::ExpressionBuilder&> (_internal->builder);
 	
         auto symb = _internal->frame.resolve(ass.getIncrementee()).value();
-        auto reg = std::get<MiniMC::Model::Register_wptr>(symb.getUserData()).lock();
+        auto reg = std::get<MiniMC::Model::Register_ptr>(symb.getUserData());
         exprbuilder << reg;
         switch (reg->getType()->getTypeID()) {
           case MiniMC::Model::TypeID::I8:
@@ -412,7 +412,7 @@ namespace MiniMC {
 	
 	MiniMC::Model::Register_ptr reg = nullptr;
         if (auto symb = _internal->frame.resolve(c.assignname()))
-          reg = std::get<MiniMC::Model::Register_wptr>(symb.value().getUserData()).lock();
+          reg = std::get<MiniMC::Model::Register_ptr>(symb.value().getUserData());
 	
         if (auto func_symb = _internal->frame.resolve(c.funcname())) {
 	  auto symb_expr = MiniMC::Model::makeExpr<MiniMC::Model::SymbolicConstant>(func_symb.value());

@@ -30,7 +30,7 @@ namespace MiniMC {
     using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
     
     
-    using UserData = std::variant<Register_wptr,
+    using UserData = std::variant<Register_ptr,
 				  Function_ptr,
 				  Location_wptr,
 				  HeapBlock_wptr,

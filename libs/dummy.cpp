@@ -13,6 +13,10 @@ namespace MiniMC {
     case MiniMC::CPA::CPAType::Symbolic:
       cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Symbolic> ();
       break;
+    case MiniMC::CPA::CPAType::Probabilistic:
+      cpa = MiniMC::CPA::makeCPA<MiniMC::CPA::CPAType::Probabilistic> (10UL);
+      break;
+      
     }
     return true;
   }

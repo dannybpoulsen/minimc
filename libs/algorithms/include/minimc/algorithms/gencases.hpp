@@ -24,7 +24,7 @@ namespace MiniMC {
       public:
         TestCaseGenResult(std::vector<MiniMC::Model::Symbol> params) {
           for (auto& s : params)
-	    _vars.push_back (std::get<MiniMC::Model::Register_wptr> (s.getUserData ()).lock());
+	    _vars.push_back (std::get<MiniMC::Model::Register_ptr> (s.getUserData ()));
           }
 	void addTestCase (TestCase&& casee){
 	  if (casee.values().size () != _vars.size ()) {

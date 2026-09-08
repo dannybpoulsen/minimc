@@ -119,7 +119,7 @@ namespace MiniMC {
 	while (get().type != RETURNS) {
 	  auto symb = parseSymbol ();
 	  expect (NEWLINE);
-	  res.emplace_back (variableMap.at (symb)->getSymbol());
+	  res.emplace_back (symb);
 	}
 	return res;
       }
