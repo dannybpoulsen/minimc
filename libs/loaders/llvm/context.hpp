@@ -207,33 +207,29 @@ namespace MiniMC {
       else if constexpr (MiniMC::Model::InstructionCode::Call == code) {
 	
 	auto cinst = llvm::dyn_cast<llvm::CallInst>(inst);
-	auto func = cinst->getCalledFunction();
+        auto func = cinst->getCalledFunction();
+	std::vector<MiniMC::Model::Value_ptr> params;	 
+        for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
+	  params.push_back(context.findValue(*it));
+	}
 	if (func && func->getName() == "assert") {
-	  auto val = context.findValue(*cinst->arg_begin());
-	  if (val->getType()->getTypeID() == MiniMC::Model::TypeID::Bool) {
-	    
-	    gather.template addInstr<MiniMC::Model::InstructionCode::Assert>(val);
-	  }
+	  auto val = params.at (0);
+          MiniMC::Model::ExpressionBuilder builder;
+          builder << val;
 	  
-	  else if (val->getType()->isInteger ()) {
-	    auto ntype = MiniMC::Model::BoolType::get();
-	    auto nvar = context.getStack().addRegister(context.getFrame ().makeFresh ("bool"), ntype);
-	    gather.
-	      template addInstr<MiniMC::Model::InstructionCode::IntToBool>(nvar, val).
-	      template addInstr<MiniMC::Model::InstructionCode::Assert>(nvar);
+          if (val->getType()->isInteger()) {
+            builder.pushBoolType();
+	    builder.IntToBool();
 	  }
+          gather.template addInstr<MiniMC::Model::InstructionCode::Assert>(builder.get());
+
         }
-        
-	else {
-	  std::vector<MiniMC::Model::Value_ptr> params;
+
+        else {
 	  MiniMC::Model::Value_ptr func_ptr = context.findValue(cinst->getCalledOperand ());
 	  MiniMC::Model::Value_ptr res = nullptr;
 	  if (!inst->getType()->isVoidTy()) {
 	    res = context.findValue(inst);
-	  }
-	  auto type = MiniMC::Model::I64Type::get();
-	  for (auto it = cinst->arg_begin(); it != cinst->arg_end(); ++it) {
-	    params.push_back(context.findValue(*it));
 	  }
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>(
 	      res,
@@ -278,7 +274,7 @@ namespace MiniMC {
 	createInstruction<MiniMC::Model::InstructionCode::UDiv> (inst,gather);
 	break;
       case llvm::Instruction::SDiv:
-	createInstruction<MiniMC::Model::InstructionCode::UDiv> (inst,gather);
+	createInstruction<MiniMC::Model::InstructionCode::SDiv> (inst,gather);
 	break;
       case llvm::Instruction::Shl:
 	createInstruction<MiniMC::Model::InstructionCode::LShl> (inst,gather);

@@ -675,7 +675,7 @@ namespace MiniMC {
 	    auto it = func->getParameters().begin();*/
 	    
 	    for (auto [form_param,act_param] : std::views::zip(func->getParameters(),content.params)) {
-	    	auto form_reg = std::get<MiniMC::Model::Register_wptr> (form_param.getUserData()).lock ();
+	    	auto form_reg = std::get<MiniMC::Model::Register_ptr> (form_param.getUserData());
 		auto form_type = CheckType(*form_reg);	     
 	      auto act_type = CheckType(*act_param);
 	      if (form_type != act_type) {

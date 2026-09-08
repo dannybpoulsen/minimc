@@ -70,10 +70,7 @@ namespace MiniMC {
       virtual ~Transfer () {}
       virtual std::generator<State_ptr> doTransfer(const State&, const Transition&) = 0;
     };
-    
-    
-    
-    
+
     
     using Transferer_ptr = std::shared_ptr<Transfer>;
 
