@@ -2,6 +2,7 @@
 #define _LOOPANALYSIS__
 
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
 #include <memory>
 #include <set>
 

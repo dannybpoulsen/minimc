@@ -1,9 +1,9 @@
 #ifndef _LOADER__
 #define _LOADER__
 
-#include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
+
 #include "minimc/support/exceptions.hpp"
-#include "minimc/support/localisation.hpp"
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/overload.hpp"
 

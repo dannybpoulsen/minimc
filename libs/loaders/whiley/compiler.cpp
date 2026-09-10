@@ -2,6 +2,7 @@
 #include "minimc/model/VIL.hpp"
 #include "minimc/model/builder.hpp"
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/model/source.hpp"
 
 #include "compiler.hpp"

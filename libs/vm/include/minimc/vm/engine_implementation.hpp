@@ -3,7 +3,7 @@
 #define _ENGINE_IMPLE__
 
 #include "minimc/model/cfg.hpp"
-#include "minimc/model/valuevisitor.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/vm/vmt.hpp"

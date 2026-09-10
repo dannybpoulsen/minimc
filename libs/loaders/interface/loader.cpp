@@ -1,5 +1,5 @@
 #include "minimc/loaders/loader.hpp"
-
+#include "minimc/model/program.hpp"
 #include <vector>
 #include <unordered_map>
 

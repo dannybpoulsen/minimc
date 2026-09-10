@@ -1,4 +1,6 @@
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/model/instructions.hpp"
 #include "minimc/model/variables.hpp"
 

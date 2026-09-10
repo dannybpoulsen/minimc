@@ -1,7 +1,7 @@
 #ifndef _MODIFICATIONS__
 #define _MODIFICATIONS__
 
-#include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
 #include "minimc/support/pipes.hpp"
 
 

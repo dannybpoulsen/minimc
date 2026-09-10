@@ -29,20 +29,17 @@
 #include <llvm/PassRegistry.h>
 
 
-#include <functional>
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include <type_traits>
 #include <unordered_set>
-#include <variant>
 
 #include "llvmpasses.hpp"
 #include "minimc/loaders/loader.hpp"
 #include "minimc/model/cfg.hpp"
-#include "minimc/support/exceptions.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/support/feedback.hpp"
 #include "minimc/support/localisation.hpp"
 

@@ -1,6 +1,7 @@
 #include "parser.hpp"
 #include "minimc/model/types.hpp"
 #include "minimc/model/variables.hpp"
+#include "minimc/model/program.hpp"
 
 namespace MiniMC {
   namespace  Loaders {

@@ -6,12 +6,10 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/value.hpp"
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
 #include "minimc/model/instructions.hpp"
-#include "minimc/model/heaplayout.hpp"
-#include "minimc/model/valuevisitor.hpp"
 #include "minimc/support/overload.hpp"
 #include <type_traits>
-#include <iostream>
 #include <utility>
 #include <generator>
 

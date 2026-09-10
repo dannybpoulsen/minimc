@@ -1,7 +1,7 @@
 #ifndef _STRUCTURECHECK__
 #define _STRUCTURECHECK__
 
-#include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
 #include "minimc/support/feedback.hpp"
 
 #include <memory>

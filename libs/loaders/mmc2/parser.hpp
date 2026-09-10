@@ -1,5 +1,6 @@
 #include "Scanner.hpp"
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
 #include <istream>
 #include <unordered_set>
 

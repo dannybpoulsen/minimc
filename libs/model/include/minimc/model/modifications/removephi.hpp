@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "minimc/model/cfg.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/model/instructions.hpp"
 #include "minimc/model/modifications/modifications.hpp"
 

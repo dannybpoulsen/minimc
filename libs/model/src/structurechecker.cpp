@@ -1,4 +1,5 @@
 #include "minimc/model/checkers/structuralchecker.hpp"
+#include "minimc/model/program.hpp"
 #include "minimc/model/valuevisitor.hpp"
 
 #include <unordered_set>

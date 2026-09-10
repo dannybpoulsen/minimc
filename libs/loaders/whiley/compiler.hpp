@@ -1,4 +1,5 @@
-#include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
+
 #include "whiley/ast.hpp"
 
 namespace MiniMC {

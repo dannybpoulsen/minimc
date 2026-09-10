@@ -1,5 +1,8 @@
 #include "minimc/model/output.hpp"
 #include "minimc/model/cfg.hpp"
+#include "minimc/model/function.hpp"
+#include "minimc/model/program.hpp"
+
 
 #include <ostream>
 #include <list>
