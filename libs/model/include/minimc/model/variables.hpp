@@ -457,12 +457,15 @@ namespace MiniMC {
     
     class RegisterInfo {
     public:
-      explicit RegisterInfo(std::size_t id,RegType rtype = RegType::Local) :  id(id),type(rtype) {}
+      explicit RegisterInfo(std::size_t id,Type_ptr type,RegType rtype = RegType::Local) :  id(id),reg_type(rtype),type(type) {}
       std::size_t getId() const { return id; }
-      auto getRegType () const {return type;}
+      auto getRegType () const {return reg_type;}
+      auto getType () const {return type;}
+      
     private:
       std::size_t id;
-      RegType type;
+      RegType reg_type;
+      Type_ptr type;
     };
 
     class RegisterDescr;
@@ -482,7 +485,9 @@ namespace MiniMC {
       bool isRegister() const override { return true; }
       auto getName () const {return name;}
       auto getId  () const {return place.getId ();}
-      auto getRegType () const {return place.getRegType ();}
+      auto getRegType() const { return place.getRegType(); }
+      //In lack of better name
+      auto getSystemType () const {return place.getType ();}
       const Register& asRegister () const {return *this;}
       Register& asRegister () {return *this;}
       
@@ -516,7 +521,6 @@ namespace MiniMC {
       std::shared_ptr<Data> _internal;
     };
     
-    //using RegisterDescr_uptr = std::unique_ptr<RegisterDescr>;
     
     
     

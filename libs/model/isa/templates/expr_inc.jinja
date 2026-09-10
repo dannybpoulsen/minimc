@@ -236,15 +236,7 @@ public:
     }
     
     inline SymbolicConstant::SymbolicConstant (MiniMC::Model::Symbol val)  : Constant(ValueInfo::type_t<SymbolicConstant>()), symbol(val) {
-    	    auto type = std::visit (MiniMC::Support::Overload {
-	        	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
-      	  		  [](const MiniMC::Model::Function_ptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
-     	  		  [](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
-	  		  [](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
-	  		  [](const std::monostate& ) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();}
-	  	}
-	    ,val.getUserData());
-	    setType(type);
+    	    
     }
 
     {% for N in ISA.getExpressionsFromGroups (["TAC","Cast","Comparison","Unary","Pointer","memory","loadstore"])%}

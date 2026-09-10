@@ -39,7 +39,8 @@ namespace MiniMC {
 	}
 		
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Register& i) const  {
-	  return i.getType();
+	  i.setType(i.getSystemType());
+	  return i.getSystemType();
 	}
 	
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Bool& i) const  {
@@ -81,7 +82,7 @@ namespace MiniMC {
 
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::SymbolicConstant& i) const  {
 	  auto type = std::visit (MiniMC::Support::Overload {
-	        	  [](const MiniMC::Model::Register_wptr&r ) ->MiniMC::Model::Type_ptr {return r.lock()->getType();},
+	        	  [](const MiniMC::Model::Register_ptr&r ) ->MiniMC::Model::Type_ptr {return r->getSystemType();},
       	  		  [](const MiniMC::Model::Function_ptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
      	  		  [](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
 	  		  [](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
