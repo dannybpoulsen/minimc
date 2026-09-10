@@ -1,7 +1,6 @@
 #include "minimc/host/operataions.hpp"
 #include "minimc/host/types.hpp"
 #include <cstdint>
-#include <iostream>
 
 namespace MiniMC {
   namespace Host {
