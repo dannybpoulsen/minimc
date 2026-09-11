@@ -241,7 +241,7 @@ namespace MiniMC {
 
           auto buildphi = [&load](llvm::BasicBlock* from, llvm::BasicBlock* to, auto&& builder) {
             for (auto& phi : to->phis()) {
-              auto ass = load.findValue(&phi);
+              auto ass = std::static_pointer_cast<MiniMC::Model::Register> (load.findValue(&phi));
               auto incoming = load.findValue(phi.getIncomingValueForBlock(from));
               builder.template addInstr<MiniMC::Model::InstructionCode::Assign>(ass, incoming);
             }
@@ -413,7 +413,7 @@ namespace MiniMC {
       {
 	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
 	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
-	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
+	builder.addInstr<MiniMC::Model::InstructionCode::Call>(std::static_pointer_cast<MiniMC::Model::Register> (result), funcpointer, params);
       }
       auto entry_symb = program.getRootFrame().makeSymbol (name);
       program.addFunction(entry_symb, {},

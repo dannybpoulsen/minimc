@@ -52,6 +52,11 @@ class Operand:
     def isMultiParam (self):
         return self._multi
 
+    def isRegister (self):
+        return self._name == "res"
+
+    
+
     def getType(self):
         return self._type
     

@@ -114,30 +114,30 @@ namespace MiniMC {
 	auto op1 = context.findValue (inst->getOperand(0));
 	auto op2 = context.findValue (inst->getOperand(1));
 	gather.template addInstr<code> (
-	  res,
-	  op1,
-	  op2
+					std::static_pointer_cast<MiniMC::Model::Register> (res),
+					op1,
+					op2
 	  );
       }
 
       else if constexpr (MiniMC::Model::InstructionData<code>::isCast ) {
 	gather.template addInstr<code> (
-	    context.findValue (inst),
-	    context.findValue (inst->getOperand (0))
+					std::static_pointer_cast<MiniMC::Model::Register> (context.findValue (inst)),
+					context.findValue (inst->getOperand (0))
 	  );
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Load == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Load>(
-	    context.findValue (inst),
-	    context.getHeapMem(),
-	    context.findValue (inst->getOperand (0))
+								       std::static_pointer_cast<MiniMC::Model::Register> (context.findValue (inst)),
+								       context.getHeapMem(),
+								       context.findValue (inst->getOperand (0))
 	  );
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Store == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Store>(
-									context.getHeapMem(),
+									std::static_pointer_cast<MiniMC::Model::Register> (context.getHeapMem()),
 									context.getHeapMem(),
 									context.findValue (inst->getOperand(1)),
 									context.findValue (inst->getOperand (0))
@@ -162,10 +162,10 @@ namespace MiniMC {
 	 auto res = context.findValue(inst);
 	  
 	 gather.template addInstr<MiniMC::Model::InstructionCode::InsertValue>(
-	     context.findValue(inst),
-	     aggre,
-	     skipee,
-	     insertee);;
+									       std::static_pointer_cast<MiniMC::Model::Register> (context.findValue(inst)),
+									       aggre,
+									       skipee,
+									       insertee);;
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::ExtractValue == code) {
@@ -180,7 +180,7 @@ namespace MiniMC {
 	  }
 	  auto value = context.findValue(cur);
 	  auto res = context.findValue(inst);
-	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>( res,
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>( std::static_pointer_cast<MiniMC::Model::Register> (res),
 									    value);
 	  
 	}
@@ -196,9 +196,9 @@ namespace MiniMC {
 	  auto res = context.findValue(inst);
 	  
 	  gather.template addInstr<MiniMC::Model::InstructionCode::ExtractValue>(
-	      res,
-	      aggre,
-	      skipee
+										 std::static_pointer_cast<MiniMC::Model::Register> (res),
+										 aggre,
+										 skipee
 	    );
 	  
 	}
@@ -232,15 +232,17 @@ namespace MiniMC {
 	    res = context.findValue(inst);
 	  }
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>(
-	      res,
-	      func_ptr,
-	      params);
+									 std::static_pointer_cast<MiniMC::Model::Register> (res),
+									 func_ptr,
+									 params);
 	}
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Ret == code) {
 	auto retinst = llvm::dyn_cast<llvm::ReturnInst>(inst);
-	gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(context.getStackPointer (),context.getStackPointerMem());
+        gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
+            std::static_pointer_cast<MiniMC::Model::Register>(context.getStackPointer()),
+            context.getStackPointerMem());
 	if (retinst->getReturnValue()) {
 	  
 	  auto res = context.findValue(retinst->getReturnValue());
@@ -366,14 +368,14 @@ namespace MiniMC {
 	 
 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrSub>(
-	     context.getStackPointer(),
+									  std::static_pointer_cast<MiniMC::Model::Register> (context.getStackPointer()),
 	     context.getStackPointer(),
 	     std::make_shared<MiniMC::Model::MulExpr>(skipsize,
 						     size)
 	   );
 	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
-	     res,
-	     context.getStackPointer()
+									  std::static_pointer_cast<MiniMC::Model::Register> (res),
+									  context.getStackPointer()
 	   );
 	 
       }
@@ -415,7 +417,8 @@ namespace MiniMC {
 	  }
 	}
 	gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>(
-									 result,
+									 std::static_pointer_cast<MiniMC::Model::Register> (result)
+,
 									 address,
 									 std::make_shared<MiniMC::Model::MulExpr>(skipsize,
 														  nbSkips));

@@ -124,12 +124,13 @@ struct VMInstructionData {};
 		    {%endfor %}
 		    {% if i.getOperands()|length > 0 %}
 		    struct Content {
-		    	   Content ({%for o in i.getOperands () %} {%if not o.isMultiParam () %} MiniMC::Model::Value_ptr {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}} {%if not loop.last %},{%endif%} {%endfor%})
+		    	   Content ({%for o in i.getOperands () %} {%if not o.isMultiParam () %} {%if o.isRegister () %}  MiniMC::Model::Register_ptr {%else%} MiniMC::Model::Value_ptr {%endif%} {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}} {%if not loop.last %},{%endif%} {%endfor%})
 			   	   : {%for o in i.getOperands () %} {{o.getName ()}}(std::move({{o.getName()}})) {%if not loop.last%},{%endif%}  {%endfor%} {}
-			   {%for o in i.getOperands () %} {%if not o.isMultiParam () %} MiniMC::Model::Value_ptr {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}};
+
+{%for o in i.getOperands () %} {%if not o.isMultiParam () %}  {%if o.isRegister () %} MiniMC::Model::Register_ptr {%else%} MiniMC::Model::Value_ptr {%endif%} {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}};
 			   {%endfor%}
 
-			   Content (const Content& oth,Replacer replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}}(replacer.Replace((oth.{{o.getName()}}))) {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
+			   Content (const Content& oth,Replacer replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}} {%if o.isRegister () %} (std::static_pointer_cast<MiniMC::Model::Register>(replacer.Replace(*oth.{{o.getName()}}))) {%else %}(replacer.Replace((oth.{{o.getName()}}))) {%endif%} {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
 			   {%for o in i.getOperands () %} {%if o.isMultiParam () %}
 			   	 std::for_each (oth.{{o.getName ()}}.begin(),oth.{{o.getName ()}}.end(),[&replacer,this](auto& v) { {{o.getName()}}.push_back (replacer.Replace(v));}); 
 			   {%endif%}

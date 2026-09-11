@@ -5,8 +5,12 @@
 	       {%if o.isMultiParam () %}
 	       std::vector<MiniMC::Model::Value_ptr> {values.begin()+{{loop.index0 }},values.end()}
 	       {%else %}
+	       {%if o.isRegister () %}
+	       std::static_pointer_cast<MiniMC::Model::Register> (values.at ({{loop.index0}}))
+	       {%else%}
 	       values.at ({{loop.index0}})
-	       {%endif %}
+	       {%endif %}	
+	       {% endif %}
 	       {%if not loop.last %}, {%endif%} 
 	 {%endfor %}
 	 );
