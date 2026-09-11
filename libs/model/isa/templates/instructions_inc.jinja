@@ -45,16 +45,25 @@ public:
    Replacer (ReplaceFunction re) : replacer(re) {}
 
    Value_ptr Replace (Value_ptr& ptr ) const {
+
    	     if (ptr) {
-	     	return MiniMC::Model::visitValue(*this,*ptr);
+	     	   auto res = MiniMC::Model::visitValue(*this,*ptr); 
+	     	   if (res)
+		      return res;
+		   else
+		      return ptr;
 	     }
 	     else
 		return nullptr;
    }
 
-   Value_ptr Replace (const Value_ptr& ptr ) const {
+      Value_ptr Replace (const Value_ptr& ptr ) const {
    	     if (ptr) {
-	     	return MiniMC::Model::visitValue(*this,const_cast<Value&>(*ptr));
+	     	   auto res = MiniMC::Model::visitValue(*this,*ptr); 
+	     	   if (res)
+		      return res;
+		   else
+		      return ptr;
 	     }
 	     else
 		return nullptr;
@@ -67,7 +76,7 @@ public:
 
    template<class T>
    Value_ptr operator() (T& ) const  {
-   	 throw MiniMC::Support::Exception ("Cannot copy");
+   	 throw MiniMC::Support::Exception (typeid(T).name ());
    }
    
 
@@ -75,10 +84,19 @@ public:
    Value_ptr operator() (T& t) const requires (MiniMC::Model::is_root<T>) {
 	return t.shared_from_this();
    }
-   	
+      	
    Value_ptr operator() (Register& r) const {
    	return replacer(r);
    }
+
+   Value_ptr operator() (SymbolicConstant& r) const {
+   	if (std::holds_alternative<MiniMC::Model::Register_ptr> (r.getValue().getUserData())) {
+	   return (*this)(*std::get<MiniMC::Model::Register_ptr> (r.getValue().getUserData()));
+	}
+	else {
+	     return r.shared_from_this();
+	}
+   }  
 
  {%for g in ISA.getGroups () %} 
    {% for i in g.getPseudoInstructions () %}

@@ -35,8 +35,6 @@ namespace MiniMC {
       }
       Function (const Function&) = delete;
       Function (Function&&) = default;
-      /*auto& getSymbol() { return name; }
-	auto& getSymbol() const { return name; }*/
       const auto& getName() const {return name;} 
       auto getParameters() const { return parameters ;}
       auto& getCFA() const { return cfa; }

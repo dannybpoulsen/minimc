@@ -15,7 +15,7 @@ namespace MiniMC {
       GLoadContext (
 		    MiniMC::Model::Value_ptr mem
 		    ) : heap_mem(mem) {}
-      GLoadContext(const GLoadContext& g) : values(g.values),heap_mem(g.heap_mem) {
+      GLoadContext(const GLoadContext& g) : values(g.values),regs(g.regs),heap_mem(g.heap_mem) {
 	
       }
       
@@ -23,12 +23,19 @@ namespace MiniMC {
       virtual ~GLoadContext () {}
       MiniMC::Model::Value_ptr findValue (const llvm::Value* val);
       void addValue (const llvm::Value* val, MiniMC::Model::Value_ptr vals) {values.emplace (val,vals);}
+      void addRegister(const llvm::Value* val, MiniMC::Model::Register_ptr vals) {
+        regs.emplace(val, vals);
+      }
+
+      MiniMC::Model::Register_ptr findRegister (const llvm::Value* val) { return regs.at(val);}
+      
       bool hasValue (const llvm::Value* v) {return values.count (v);}
       MiniMC::BV32 computeSizeInBytes (llvm::Type* );
       MiniMC::Model::Type_ptr getType (llvm::Type*);
       auto getHeapMem () const {return heap_mem;};
     private:
       std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values;
+      std::unordered_map<const llvm::Value*,MiniMC::Model::Register_ptr> regs;
       MiniMC::Model::Value_ptr heap_mem;
     };
 
@@ -110,11 +117,11 @@ namespace MiniMC {
       
       if constexpr (MiniMC::Model::InstructionData<code>::isTAC ||
 		    MiniMC::Model::InstructionData<code>::isComparison) {
-	auto res = context.findValue (inst);
+	auto res = context.findRegister (inst);
 	auto op1 = context.findValue (inst->getOperand(0));
 	auto op2 = context.findValue (inst->getOperand(1));
 	gather.template addInstr<code> (
-					std::static_pointer_cast<MiniMC::Model::Register> (res),
+					res,
 					op1,
 					op2
 	  );
@@ -122,14 +129,14 @@ namespace MiniMC {
 
       else if constexpr (MiniMC::Model::InstructionData<code>::isCast ) {
 	gather.template addInstr<code> (
-					std::static_pointer_cast<MiniMC::Model::Register> (context.findValue (inst)),
+					context.findRegister (inst),
 					context.findValue (inst->getOperand (0))
 	  );
       }
 
       else if constexpr (MiniMC::Model::InstructionCode::Load == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Load>(
-								       std::static_pointer_cast<MiniMC::Model::Register> (context.findValue (inst)),
+								       context.findRegister (inst),
 								       context.getHeapMem(),
 								       context.findValue (inst->getOperand (0))
 	  );
@@ -159,10 +166,10 @@ namespace MiniMC {
 	 
 	 auto skipee = makeInteger(skip, MiniMC::Model::TypeID::I32);
 
-	 auto res = context.findValue(inst);
-	  
+	 auto res = context.findRegister(inst);
+	 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::InsertValue>(
-									       std::static_pointer_cast<MiniMC::Model::Register> (context.findValue(inst)),
+									       context.findRegister(inst),
 									       aggre,
 									       skipee,
 									       insertee);;
@@ -179,8 +186,8 @@ namespace MiniMC {
 	    assert(cur);
 	  }
 	  auto value = context.findValue(cur);
-	  auto res = context.findValue(inst);
-	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>( std::static_pointer_cast<MiniMC::Model::Register> (res),
+	  auto res = context.findRegister(inst);
+	  gather.template addInstr<MiniMC::Model::InstructionCode::Assign>( res,
 									    value);
 	  
 	}
@@ -193,10 +200,10 @@ namespace MiniMC {
 	  }
 	  
 	  auto skipee = makeInteger(skip, MiniMC::Model::TypeID::I32);
-	  auto res = context.findValue(inst);
+	  auto res = context.findRegister(inst);
 	  
 	  gather.template addInstr<MiniMC::Model::InstructionCode::ExtractValue>(
-										 std::static_pointer_cast<MiniMC::Model::Register> (res),
+										 res,
 										 aggre,
 										 skipee
 	    );
@@ -227,12 +234,12 @@ namespace MiniMC {
 
         else {
 	  MiniMC::Model::Value_ptr func_ptr = context.findValue(cinst->getCalledOperand ());
-	  MiniMC::Model::Value_ptr res = nullptr;
+	  MiniMC::Model::Register_ptr res = nullptr;
 	  if (!inst->getType()->isVoidTy()) {
-	    res = context.findValue(inst);
+	    res = context.findRegister(inst);
 	  }
 	  gather.template addInstr<MiniMC::Model::InstructionCode::Call>(
-									 std::static_pointer_cast<MiniMC::Model::Register> (res),
+									 res,
 									 func_ptr,
 									 params);
 	}
@@ -361,7 +368,7 @@ namespace MiniMC {
 	 auto alinst = llvm::dyn_cast<llvm::AllocaInst>(inst);
 	 auto llalltype = alinst->getAllocatedType();
 	 auto outallsize = context.computeSizeInBytes(llalltype);
-	 auto res = context.findValue(inst);
+	 auto res = context.findRegister(inst);
 	 auto size = makeInteger(outallsize, MiniMC::Model::TypeID::I32);
 	 auto skipsize = makeInteger(1, MiniMC::Model::TypeID::I32);
 	 
@@ -374,7 +381,7 @@ namespace MiniMC {
 						     size)
 	   );
 	 gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
-									  std::static_pointer_cast<MiniMC::Model::Register> (res),
+									  res,
 									  context.getStackPointer()
 	   );
 	 
@@ -388,7 +395,7 @@ namespace MiniMC {
 	MiniMC::Model::Value_ptr nbSkips;
 	MiniMC::Model::Value_ptr address = context.findValue(gep->getOperand(0));
 	;
-	MiniMC::Model::Value_ptr result = context.findValue(inst);
+	MiniMC::Model::Register_ptr result = context.findRegister(inst);
 		
 	auto source = gep->getSourceElementType();
 	if (gep->getNumIndices() == 1) {
@@ -417,8 +424,7 @@ namespace MiniMC {
 	  }
 	}
 	gather.template addInstr<MiniMC::Model::InstructionCode::PtrAdd>(
-									 std::static_pointer_cast<MiniMC::Model::Register> (result)
-,
+									 result,
 									 address,
 									 std::make_shared<MiniMC::Model::MulExpr>(skipsize,
 														  nbSkips));

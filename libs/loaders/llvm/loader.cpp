@@ -166,6 +166,7 @@ namespace MiniMC {
             auto reg = load.getStack().addRegister(symb, type);
             auto symb_constant = MiniMC::Model::SymbolicConstant::make(symb);
 	    symb_constant->setType(reg->getType());
+	    load.addRegister (val,reg);
 	    load.addValue(val, symb_constant);
           }
           return load.findValue(val);
@@ -209,7 +210,7 @@ namespace MiniMC {
               edgebuilder.addInstr<MiniMC::Model::InstructionCode::RetVoid>();
             }
           }
-
+	  
           prgm.addFunction(function2symb.at (&F), params, returnTy,  std::move(cfg), F.isVarArg(), frame);
         }
 
@@ -241,7 +242,8 @@ namespace MiniMC {
 
           auto buildphi = [&load](llvm::BasicBlock* from, llvm::BasicBlock* to, auto&& builder) {
             for (auto& phi : to->phis()) {
-              auto ass = std::static_pointer_cast<MiniMC::Model::Register> (load.findValue(&phi));
+              auto ass = load.findRegister(&phi);
+	      //auto ass = std::static_pointer_cast<MiniMC::Model::Register> (load.findValue(&phi));
               auto incoming = load.findValue(phi.getIncomingValueForBlock(from));
               builder.template addInstr<MiniMC::Model::InstructionCode::Assign>(ass, incoming);
             }
@@ -395,7 +397,7 @@ namespace MiniMC {
       cfg.setInitial(init);
 
       std::vector<MiniMC::Model::Value_ptr> params;
-      MiniMC::Model::Value_ptr result = nullptr;
+      MiniMC::Model::Register_ptr result = nullptr;
       auto stack_symb = program.getRootFrame().makeFresh (name+std::string("_stack"));
       program.getHeapLayout().addBlock(stack_symb,MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),stacksize,heap_mem);
       MiniMC::Model::Value_ptr sp = MiniMC::Model::SymbolicConstant::make(stack_symb);
@@ -413,7 +415,7 @@ namespace MiniMC {
       {
 	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
 	builder.addInstr<MiniMC::Model::InstructionCode::PtrAdd>(sp_reg, sp,stacksize_p,nb_skips);
-	builder.addInstr<MiniMC::Model::InstructionCode::Call>(std::static_pointer_cast<MiniMC::Model::Register> (result), funcpointer, params);
+	builder.addInstr<MiniMC::Model::InstructionCode::Call>(result, funcpointer, params);
       }
       auto entry_symb = program.getRootFrame().makeSymbol (name);
       program.addFunction(entry_symb, {},
