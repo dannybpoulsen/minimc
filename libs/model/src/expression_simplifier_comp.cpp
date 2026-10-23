@@ -1,6 +1,7 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/host/operataions.hpp"
 #include "minimc/host/casts.hpp"
+#include "expression_simplifier_dispatch.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -23,13 +24,12 @@ namespace MiniMC {
       auto op1 = Simplify (i.op1());					\
       auto op2 = Simplify (i.op2());					\
       									\
-      return MiniMC::Model::visitValue ( MiniMC::Support::Overload {	\
-	  []<typename T>(T& l, T& r)->MiniMC::Model::Value_ptr requires MiniMC::Model::Integer<T> { \
-	    return MiniMC::Model::Bool::make (MiniMC::Host::Op<MiniMC::Host::CMP::COM> (l.getValue(),r.getValue())); \
-	  },								\
-	    [&op1,&op2](auto&, auto&)->MiniMC::Model::Value_ptr{return MiniMC::Model::makeExpr<MiniMC::Model::OP##Expr> (op1,op2);} \
-	    },								\
-	*op1,*op2);							\
+      if (auto folded = MiniMC::Model::foldMatchingIntegerOperands (	\
+	      *op1, *op2, [](auto& l, auto& r)->MiniMC::Model::Value_ptr { \
+		return MiniMC::Model::Bool::make (MiniMC::Host::Op<MiniMC::Host::CMP::COM> (l.getValue(),r.getValue())); \
+	      }))								\
+	return folded;							\
+      return MiniMC::Model::makeExpr<MiniMC::Model::OP##Expr> (op1,op2); \
       									\
     }
     

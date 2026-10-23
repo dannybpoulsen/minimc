@@ -300,12 +300,10 @@ namespace MiniMC {
 	for (auto o1 : MEval (andd.op1 ())) {
 	  for (auto o2 : MEval (andd.op2 ())) {
 	
-	  co_yield Value::visit (  MiniMC::Support::Overload {
+	  co_yield Value::visitBoolPair (  MiniMC::Support::Overload {
 	      [this] (const Value::Bool v1,Value::Bool v2)->Value  {return ops.BoolAnd (v1,v2);},
-		MiniMC::Support::Error<Value>{}
-	    },
-	    o1,o2
-	    );
+	      },
+	    o1,o2);
 	  }
 	}
       }
@@ -426,10 +424,9 @@ namespace MiniMC {
       std::generator<Value> operator() (const MiniMC::Model::CC& cc) const  { \
 	for (auto l :  MEval (cc.op1())) {				\
 	  for (auto r :  MEval (cc.op2())) {				\
-	    co_yield Value::visit (MiniMC::Support::Overload {		\
+	    co_yield Value::visitIntegerPair (MiniMC::Support::Overload {	\
 		[this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
 		  return ops.op (ll,rr);},				\
-		  [](auto&, auto& ) -> Value {throw MiniMC::Support::Exception ("Error");} \
 		  },l,r);}}						\
       }									
       OPSI
@@ -452,12 +449,11 @@ namespace MiniMC {
       std::generator<Value> operator() (const MiniMC::Model::CC& cc) const  { \
 	for (auto l : MEval (cc.op1 ())) {				\
 	  for( auto r : MEval (cc.op2 ())) {				\
-	    co_yield Value::visit (MiniMC::Support::Overload {		\
+	    co_yield Value::visitIntegerOrPointerPair (MiniMC::Support::Overload { \
 		[this]<typename T> (T& ll, T& rr) -> Value requires Integer<Value,T>  { \
 		  return ops.op (ll,rr);},				\
 		  [this]<typename T> (T& ll, T& rr) -> Value requires Pointer<Value,T>  { \
 		    return ops.op (castPtrToAppropriateInteger<T>(std::forward<T>(ll)),castPtrToAppropriateInteger<T>(std::forward<T>(rr)));}, \
-		  MiniMC::Support::Error<Value> {}			\
 		  },l,r); } }						\
       }									
       OPSI
@@ -621,7 +617,7 @@ OPSI
 
 	for (auto ptr : MEval (load.ptr())) {
 	  for (auto skipsize : MEval (load.skipsize())) {
-	      co_yield Value::visit (visitor,ptr,skipsize);  
+	      co_yield Value::visitPointerIntegerPair (visitor,ptr,skipsize);
 	    
 	  }
 	}
@@ -756,7 +752,7 @@ OPSI
 	
 	for (auto ptr : MEval(load.ptr())) {
 	  for (auto skipsize : MEval(load.skipsize ())) {
-	    co_yield Value::visit (visitor,ptr,skipsize);
+	    co_yield Value::visitPointerIntegerPair (visitor,ptr,skipsize);
 	    
 	  }
 	}

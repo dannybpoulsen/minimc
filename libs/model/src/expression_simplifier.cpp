@@ -1,6 +1,7 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/host/operataions.hpp"
 #include "minimc/host/casts.hpp"
+#include "expression_simplifier_dispatch.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -12,15 +13,12 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::LogAndExpr& i) const {
       auto l = Simplify (i.op1());
       auto r = Simplify (i.op2());
-      return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
-	  [](MiniMC::Model::Bool& ll,MiniMC::Model::Bool& rr)->MiniMC::Model::Value_ptr  {
-	    return MiniMC::Model::Bool::make (ll.getValue() && rr.getValue());
-	  },
-	  [&l,&r](auto&, auto&) {
-	    return MiniMC::Model::makeExpr<MiniMC::Model::LogAndExpr> (l,r);
-	  }
-	    },
-	*l,*r);
+      if (auto folded = MiniMC::Model::foldOperands<MiniMC::Model::Bool, MiniMC::Model::Bool> (
+	      *l, *r, [](auto& ll, auto& rr)->MiniMC::Model::Value_ptr {
+		return MiniMC::Model::Bool::make (ll.getValue() && rr.getValue());
+	      }))
+	return folded;
+      return MiniMC::Model::makeExpr<MiniMC::Model::LogAndExpr> (l,r);
     }
     
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::NotExpr& i) const {
@@ -31,27 +29,23 @@ namespace MiniMC {
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::PtrAddExpr& i) const {
       auto ptr = Simplify (i.ptr());
       auto skipsize = Simplify (i.skipsize());
-      return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
-	  [](MiniMC::Model::Pointer& p,MiniMC::Model::I64Integer& skip)->MiniMC::Model::Value_ptr  {
-	    return MiniMC::Model::Pointer::make (p.getValue().add (skip.getValue ()));
-	    },
-	    [&ptr,&skipsize](auto&, auto&) {
-	      return MiniMC::Model::makeExpr<MiniMC::Model::PtrAddExpr> (ptr,skipsize);}
-	    },
-	*ptr,*skipsize);
+      if (auto folded = MiniMC::Model::foldOperands<MiniMC::Model::Pointer, MiniMC::Model::I64Integer> (
+	      *ptr, *skipsize, [](auto& p, auto& skip)->MiniMC::Model::Value_ptr {
+		return MiniMC::Model::Pointer::make (p.getValue().add (skip.getValue()));
+	      }))
+	return folded;
+      return MiniMC::Model::makeExpr<MiniMC::Model::PtrAddExpr> (ptr,skipsize);
     }
     
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::PtrSubExpr& i) const {
         auto ptr = Simplify (i.ptr());
       auto skipsize = Simplify (i.skipsize());
-      return MiniMC::Model::visitValue ( MiniMC::Support::Overload {
-	  [](MiniMC::Model::Pointer& p,MiniMC::Model::I64Integer& skip)->MiniMC::Model::Value_ptr  {
-	    return MiniMC::Model::Pointer::make (p.getValue().sub (skip.getValue ()));
-	    },
-	    [&ptr,&skipsize](auto&, auto&) {
-	      return MiniMC::Model::makeExpr<MiniMC::Model::PtrSubExpr> (ptr,skipsize);}
-	    },
-	*ptr,*skipsize);
+      if (auto folded = MiniMC::Model::foldOperands<MiniMC::Model::Pointer, MiniMC::Model::I64Integer> (
+	      *ptr, *skipsize, [](auto& p, auto& skip)->MiniMC::Model::Value_ptr {
+		return MiniMC::Model::Pointer::make (p.getValue().sub (skip.getValue()));
+	      }))
+	return folded;
+      return MiniMC::Model::makeExpr<MiniMC::Model::PtrSubExpr> (ptr,skipsize);
     }
     
     MiniMC::Model::Value_ptr ExprSimplifier::operator() (MiniMC::Model::ExtractValueExpr& i) const {

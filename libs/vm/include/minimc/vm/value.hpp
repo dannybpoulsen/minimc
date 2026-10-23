@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <functional>
 #include <type_traits>
 #include <variant>
 #include "minimc/model/variables.hpp"
@@ -69,6 +70,69 @@ namespace MiniMC {
       template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
       static auto visit (Func f,Values... values)  {
 	return std::visit (f,values.content...);
+      }
+
+      template<class Func>
+      static auto visitIntegerPair(Func f, GenericVal lhs, GenericVal rhs) {
+	if (auto* l = std::get_if<I8>(&lhs.content))
+	  if (auto* r = std::get_if<I8>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I16>(&lhs.content))
+	  if (auto* r = std::get_if<I16>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I32>(&lhs.content))
+	  if (auto* r = std::get_if<I32>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I64>(&lhs.content))
+	  if (auto* r = std::get_if<I64>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	throw MiniMC::Support::Exception("Error");
+      }
+
+      template<class Func>
+      static auto visitIntegerOrPointerPair(Func f, GenericVal lhs, GenericVal rhs) {
+	if (auto* l = std::get_if<I8>(&lhs.content))
+	  if (auto* r = std::get_if<I8>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I16>(&lhs.content))
+	  if (auto* r = std::get_if<I16>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I32>(&lhs.content))
+	  if (auto* r = std::get_if<I32>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<I64>(&lhs.content))
+	  if (auto* r = std::get_if<I64>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<Pointer>(&lhs.content))
+	  if (auto* r = std::get_if<Pointer>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	if (auto* l = std::get_if<Pointer32>(&lhs.content))
+	  if (auto* r = std::get_if<Pointer32>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	throw MiniMC::Support::Exception("Error");
+      }
+
+      template<class Func>
+      static auto visitBoolPair(Func f, GenericVal lhs, GenericVal rhs) {
+	if (auto* l = std::get_if<Bool>(&lhs.content))
+	  if (auto* r = std::get_if<Bool>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	throw MiniMC::Support::Exception("Error");
+      }
+
+      template<class Func>
+      static auto visitPointerIntegerPair(Func f, GenericVal lhs, GenericVal rhs) {
+	if (auto* l = std::get_if<Pointer>(&lhs.content)) {
+	  if (auto* r = std::get_if<I8>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	  if (auto* r = std::get_if<I16>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	  if (auto* r = std::get_if<I32>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	  if (auto* r = std::get_if<I64>(&rhs.content))
+	    return std::invoke(f, *l, *r);
+	}
+	throw MiniMC::Support::Exception("Error");
       }
     
       auto hash () const {return std::hash<decltype(content)>{} (content);}
