@@ -387,10 +387,52 @@ default:
   
 };
 
+{%macro case(N,M) %}
+	return Dispatcher<F,V1,V2>::template dispatch<{{N}},{{M}}> (f,v1,v2);
+{%endmacro %}
 
+{%macro case_1(N) %}
+	switch (v2.type_t ()) {
+	{%for M in plain_non_generated_names %}case ValueInfo::type_t<{{M}}> ():
+	{{case(N,M)}}
+	{%endfor%}
+	{%for M in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate","memory"]) %}case ValueInfo::type_t<{{M.getName()}}Expr> ():
+	{{case(N,M.getName()+'Expr')}}
+	{%endfor%}
+default:		
+#ifdef NDEBUG
+	std::unreachable();
+#else
+	throw MiniMC::Support::Exception ("Missing category");
+#endif
+      }	
+{%endmacro %}
+
+template <class F,class V1,class V2>
+auto visitTwoValues (F&& f, V1& v1, V2& v2) {
+     switch (v1.type_t()) {
+       	{%for N in plain_non_generated_names %}case ValueInfo::type_t<{{N}}> ():
+	{{case_1(N)}}
+	{%endfor%}
+	{%for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Unary","Cast","Pointer","Aggregate","memory"]) %}case ValueInfo::type_t<{{N.getName()}}Expr> ():
+	{{case_1(N.getName()+'Expr')}}
+	{%endfor%}
+default:		
+#ifdef NDEBUG
+	std::unreachable();
+#else
+	throw MiniMC::Support::Exception ("Missing category");
+#endif     
+     }
+}
+       
 template <class F,class... V>
 auto visitValueT(F&& f,V&... v)  {
-  return (*LocateDispatcher<F,V...>::locate (v...)) (f,v...);
+     if constexpr (sizeof...(V) == 2) {
+     	return visitTwoValues(f,v...);
+     }
+     else 
+       return (*LocateDispatcher<F,V...>::locate (v...)) (f,v...);
 }
 
 

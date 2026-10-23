@@ -474,13 +474,6 @@ namespace MiniMC {
     class Register : public Value {
     public:
       Register(const std::string& name,RegisterInfo&& p);
-      virtual std::ostream& output(std::ostream& os) const {
-        return os << "<" << name << " " << *getType ()  << ">";
-      }
-
-      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
-        return os << "<" << name << " " << *getType ()  << ">";
-      }
       
       bool isRegister() const override { return true; }
       auto getName () const {return name;}
@@ -490,6 +483,15 @@ namespace MiniMC {
       auto getSystemType () const {return place.getType ();}
       const Register& asRegister () const {return *this;}
       Register& asRegister () {return *this;}
+
+      virtual std::ostream& output(std::ostream& os) const {
+        return os << "<" << name << " " << *getSystemType ()  << ">";
+      }
+
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
+        return os << "<" << name << " " << *getSystemType ()  << ">";
+      }
+      
       
     private:
       RegisterInfo place;
