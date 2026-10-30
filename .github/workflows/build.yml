@@ -8,9 +8,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: build
-        uses: devcontainers/ci@0.3
-        with: cmake -B build -S . && cmake --build build && cmake --build build --target package
+      - name: build in devcontainer
+        uses: devcontainers/ci@v0.3
+        with: 
+          runCmd: cmake -B build -S . && cmake --build build && cmake --build build --target package
       - name: upload
         - uses: actions/upload-artifact@v4
           with:
