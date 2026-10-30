@@ -277,32 +277,34 @@ namespace MiniMC {
 
               translate(&inst, edgebuilder);
 	    }
-	    
-	    if (term->getOpcode() == llvm::Instruction::Br) {
 
-	      auto brterm = llvm::dyn_cast<llvm::BranchInst>(term);
-	      if (brterm->isUnconditional()) {
-		auto succ = enqueue(term->getSuccessor(0));
-		MiniMC::Model::EdgeBuilder builder{cfg, to, succ, frame};
+            if (term->getOpcode() == llvm::Instruction::UncondBr) {
+	      auto succ = enqueue(term->getSuccessor(0));
+	      MiniMC::Model::EdgeBuilder builder{cfg, to, succ, frame};
 		builder.setPhi ();
 		buildphi(cur_bb, term->getSuccessor(0), builder);
-	      } else {
-		auto cond = load.findValue(brterm->getCondition());
-		{
-		  auto ttloc = enqueue(term->getSuccessor(0));
-		  MiniMC::Model::EdgeBuilder builder {cfg, to, ttloc, frame};
-		  builder.addInstr<MiniMC::Model::InstructionCode::Assume>(cond).setPhi ();;
-		  buildphi(cur_bb, term->getSuccessor(0), builder);
-		}
-		
-		{
-		  auto ffloc = enqueue(term->getSuccessor(1));
-		  MiniMC::Model::EdgeBuilder builder{cfg, to, ffloc, frame};
-		  builder.addInstr<MiniMC::Model::InstructionCode::NegAssume>(cond).setPhi ();
-		  buildphi(cur_bb, term->getSuccessor(1), builder);
-		}
+	    }
+            
+	    if (term->getOpcode() == llvm::Instruction::CondBr) {
+
+	      auto brterm = llvm::dyn_cast<llvm::CondBrInst>(term);
+	      
+	      auto cond = load.findValue(brterm->getCondition());
+	      {
+		auto ttloc = enqueue(term->getSuccessor(0));
+		MiniMC::Model::EdgeBuilder builder {cfg, to, ttloc, frame};
+		builder.addInstr<MiniMC::Model::InstructionCode::Assume>(cond).setPhi ();;
+		buildphi(cur_bb, term->getSuccessor(0), builder);
+	      }
+	      
+	      {
+		auto ffloc = enqueue(term->getSuccessor(1));
+		MiniMC::Model::EdgeBuilder builder{cfg, to, ffloc, frame};
+		builder.addInstr<MiniMC::Model::InstructionCode::NegAssume>(cond).setPhi ();
+		buildphi(cur_bb, term->getSuccessor(1), builder);
 	      }
 	    }
+	    
 	    
 	    else if (term->getOpcode() == llvm::Instruction::IndirectBr) {
 	      auto brterm = llvm::dyn_cast<llvm::IndirectBrInst>(term);
