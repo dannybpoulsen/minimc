@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: build in devcontainer
-        uses: devcontainers/ci@0.3
+        uses: devcontainers/ci@v0.3
         with: 
           runCmd: cmake -B build -S . && cmake --build build
    
