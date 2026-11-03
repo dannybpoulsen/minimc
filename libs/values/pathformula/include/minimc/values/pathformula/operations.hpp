@@ -43,7 +43,8 @@ namespace MiniMC {
       
       struct Operations {
 	using Domain = Value;
-	Operations (SMTLib::TermBuilder& builder) : builder(builder) {}
+	Operations (SMTLib::Context_ptr context);
+	Operations (const Operations& other);
 
 	template<class T>
 	T Not (const T&) const;
@@ -197,13 +198,14 @@ namespace MiniMC {
 
 	
       private:
+	SMTLib::Context_ptr context;
 	SMTLib::TermBuilder& builder;
       };
       
       
       class Memory  {
       public:
-	Memory (SMTLib::TermBuilder& b);
+	Memory (SMTLib::Context_ptr context);
 	Memory (const Memory&) = default;
 	Memory& operator= (Memory&& m) = default;
 	std::generator<Value::I8> loadBytes(const MemoryValue&, const typename Value::Pointer&, std::size_t) const ;
@@ -224,6 +226,7 @@ namespace MiniMC {
 	
         MemoryValue free(const MemoryValue& m, const Value::Pointer&)  {return m;}
       private:
+	SMTLib::Context_ptr context;
 	SMTLib::TermBuilder* builder;
       };
       

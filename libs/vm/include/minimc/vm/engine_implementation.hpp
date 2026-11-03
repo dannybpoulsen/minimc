@@ -17,19 +17,24 @@ namespace MiniMC {
 
 
 
-    template<typename T, Ops<T> Operations, MemoryOperations<T> MemControl>
-    struct Engine<T,Operations,MemControl>::Impl {
+    template<ValueDefinition Domain>
+    struct Engine<Domain>::Impl {
+      using T = typename Domain::Val;
+      using Operations = typename Engine<Domain>::Operations;
+      using MemControl = typename Engine<Domain>::MemControl;
+
     private:
+      Domain domain;
       const MiniMC::Model::Program& prgm;
       Operations operations;
       MemControl memcontrol;
       
     public:
-      Impl (Operations&& operations, MemControl&& memcontrol, const MiniMC::Model::Program& prgm) : prgm(prgm),operations(operations),memcontrol(memcontrol) {}
+      Impl (const Domain& domain, const MiniMC::Model::Program& prgm) : domain(domain),prgm(prgm),operations(this->domain.ops()),memcontrol(this->domain.memops()) {}
       
       template<RegisterStore<T> Regstore>
       auto makeEvaluator (Regstore store) {
-	return MiniMC::VMT::makeEvaluator<T> (store,operations);
+	return MiniMC::VMT::makeEvaluator (domain,std::move(store));
       }
 
 
@@ -270,9 +275,9 @@ namespace MiniMC {
       
       };
        
-    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
-    template<VMState<Value> State>
-    std::generator<std::shared_ptr<State>> Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::Instruction& instr,
+    template<ValueDefinition Domain>
+    template<VMState<typename Domain::Val> State>
+    std::generator<std::shared_ptr<State>> Engine<Domain>::execute(const MiniMC::Model::Instruction& instr,
 
 											const State& wstate, MiniMC::Model::proc_t id) {
       auto nstate = wstate.lcopy ();
@@ -281,9 +286,9 @@ namespace MiniMC {
       
     }
     
-    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl> 
-    template<VMState<Value> State>
-    std::generator<std::shared_ptr<State>> Engine<Value,Operations,MemControl>::execute(const MiniMC::Model::InstructionStream& instr,
+    template<ValueDefinition Domain>
+    template<VMState<typename Domain::Val> State>
+    std::generator<std::shared_ptr<State>> Engine<Domain>::execute(const MiniMC::Model::InstructionStream& instr,
 								       const State& wstate, MiniMC::Model::proc_t id) {
  
       auto end = instr.end();
@@ -311,13 +316,13 @@ namespace MiniMC {
     }
     
 
-    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
-    Engine<Value,Operations,MemControl>::Engine (Operations&& ops,MemControl&& memcontrol,const MiniMC::Model::Program& prgm)   {
-      _impl = std::make_unique<Impl> (std::move(ops),std::move(memcontrol),prgm);
+    template<ValueDefinition Domain>
+    Engine<Domain>::Engine (const Domain& domain, const MiniMC::Model::Program& prgm) {
+      _impl = std::make_unique<Impl> (domain,prgm);
     }
 
-    template <class Value,Ops<Value> Operations,MemoryOperations<Value> MemControl>
-    Engine<Value,Operations,MemControl>::~Engine () {}
+    template<ValueDefinition Domain>
+    Engine<Domain>::~Engine () {}
     
   } // namespace VMT
 } // namespace MiniMC

@@ -92,10 +92,13 @@ namespace MiniMC {
     template<class T,class R>
     concept Aggregate = std::is_same_v<R,typename T::Aggregate> ;
     
-    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
+    template<ValueDefinition Domain,RegisterStore<typename Domain::Val> RegStore>
     class MultiEvaluator {
     public:
-      MultiEvaluator (Operations ops, const RegStore regstore) : ops(ops),regstore(std::move(regstore)) {}
+      using Value = typename Domain::Val;
+      using Operations = decltype(std::declval<const Domain&>().ops());
+
+      MultiEvaluator (const Domain& domain, RegStore regstore) : ops(domain.ops()),regstore(std::move(regstore)) {}
       
       
       Value Eval (const MiniMC::Model::Value& v)  const {
@@ -853,15 +856,20 @@ OPSI
       const RegStore regstore;
     };
     
-    template<class Value,RegisterStore<Value> RegStore,Ops<Value> Operations>
-    MultiEvaluator<Value,RegStore,Operations> makeEvaluator (RegStore reg, Operations ops) {return MultiEvaluator<Value,RegStore,Operations> (ops,std::move(reg));}
+    template<ValueDefinition Domain,RegisterStore<typename Domain::Val> RegStore>
+    MultiEvaluator<Domain,RegStore> makeEvaluator (const Domain& domain, RegStore reg) {
+      return MultiEvaluator<Domain,RegStore> (domain,std::move(reg));
+    }
     
     
-    template<class Value, Ops<Value> Operations, MemoryOperations<Value> MemControl>
+    template<ValueDefinition Domain>
     class Engine {
     public:
+      using Value = typename Domain::Val;
+      using Operations = decltype(std::declval<const Domain&>().ops());
+      using MemControl = decltype(std::declval<const Domain&>().memops());
       
-      Engine (Operations&& ops,MemControl&& memcontrol, const MiniMC::Model::Program& prgm);
+      Engine (const Domain& domain, const MiniMC::Model::Program& prgm);
       ~Engine ();
       
       template<VMState<Value> VState>

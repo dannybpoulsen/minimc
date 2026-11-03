@@ -14,6 +14,12 @@ namespace MiniMC {
   namespace VMT {
     namespace Pathformula {
       static std::size_t next = 0;
+      Operations::Operations(SMTLib::Context_ptr context)
+	  : context(std::move(context)),builder(this->context->getBuilder()) {}
+
+      Operations::Operations(const Operations& other)
+	  : context(other.context),builder(context->getBuilder()) {}
+
       Value Operations::defaultValue(const MiniMC::Model::Type& t) const {
 	return unboundValue (t);
       }
@@ -116,7 +122,7 @@ namespace MiniMC {
 	return MemoryValue (0,mem_var);
       }
       
-      Memory::Memory (SMTLib::TermBuilder& b) : builder(&b) {
+      Memory::Memory (SMTLib::Context_ptr context) : context(std::move(context)),builder(&this->context->getBuilder()) {
 	/*auto arr_sort = builder->makeSort(
 	  SMTLib::SortKind::Array, {builder->makeBVSort(Value::Pointer::intbitsize()),
 	  builder->makeBVSort(8)});
@@ -324,10 +330,13 @@ namespace MiniMC {
       ValueDefinition::ValueDefinition (MiniMC::Support::SMT::SMTDescr fact) : context(fact.makeContext()) {
       }
       Operations ValueDefinition::ops () const {
-	return Operations{context->getBuilder()};
+	return Operations{context};
       }
-      Memory ValueDefinition::memops () const { return {context->getBuilder()};}
+      Memory ValueDefinition::memops () const { return {context};}
       ConstraintSolver ValueDefinition::solver() const {return ConstraintSolver{context->getSolver()};}
+      ConstraintSolver ValueDefinition::solver(MiniMC::VMT::SolverOptions options) const {
+	return ConstraintSolver{options.context->getSolver()};
+      }
       
       
     } // namespace Pathformula

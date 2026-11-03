@@ -27,8 +27,8 @@ namespace MiniMC {
                     private MiniMC::CPA::QueryBuilder
       {
       public:
-        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>&& mixin,  SMTLib::Context& ctxt) : mixin(std::move(mixin)),
-														  context(ctxt) {}
+        State(MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value>&& mixin,  SMTLib::Context_ptr context) : mixin(std::move(mixin)),
+														  context(std::move(context)) {}
         State(const State& oth) =default;
 	
 	MiniMC::Hash::hash_t hash() const override {
@@ -53,7 +53,7 @@ namespace MiniMC {
 	*/
 	auto& getMixin() {return mixin;} 
 	
-	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext (id,MiniMC::VMT::Pathformula::Memory{context.getBuilder()});}
+	auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext (id,MiniMC::VMT::Pathformula::Memory{context});}
         virtual const QueryBuilder& getBuilder() const { return *this; }
 
 	virtual QueryExpr_ptr buildValue(MiniMC::Model::proc_t p, const MiniMC::Model::Value& val) const override {
@@ -61,8 +61,9 @@ namespace MiniMC {
             throw MiniMC::Support::Exception("Not enough processes");
           }
 	  MiniMC::CPA::Common::StaticContext<MiniMC::VMT::Pathformula::Value> scontext;
-	  MiniMC::VMT::MultiEvaluator<MiniMC::VMT::Pathformula::Value,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>,MiniMC::VMT::Pathformula::Operations> eval {
-	    MiniMC::VMT::Pathformula::Operations{context.getBuilder ()},
+	  MiniMC::VMT::Pathformula::ValueDefinition domain{context};
+	  MiniMC::VMT::MultiEvaluator<MiniMC::VMT::Pathformula::ValueDefinition,MiniMC::CPA::Common::EvaluationContext<MiniMC::VMT::Pathformula::Value,MiniMC::VMT::Pathformula::Memory>> eval {
+	    domain,
 	    makeEvaluationContext (p)
 	  };
           return std::make_unique<QExpr>(eval.Eval(val));
@@ -72,7 +73,7 @@ namespace MiniMC {
 	MiniMC::CPA::Common::StateMixin<MiniMC::VMT::Pathformula::Value> mixin;
 	  
 	//SMTLib::Term_ptr pathformula;
-        SMTLib::Context& context;
+        SMTLib::Context_ptr context;
       };
       
       class Concretizer : public MiniMC::CPA::Solver {
@@ -131,7 +132,7 @@ namespace MiniMC {
       
       const Solver_ptr State::getConcretizer() const {
 		
-	auto& solver = context.getSolver();
+	auto& solver = context->getSolver();
 	auto conc = std::make_shared<Concretizer>(solver);
 	
 	solver.assert_formula(mixin.getPathform().getTerm());

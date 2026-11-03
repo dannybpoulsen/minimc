@@ -489,11 +489,8 @@ namespace MiniMC {
 	if (p >= mixin.nbOfProcesses ()) {
 	  throw MiniMC::Support::Exception ("Not enough processes");
 	}
-	MiniMC::VMT::MultiEvaluator<typename ValDef::Val,
-				    decltype(this->makeEvaluationContext(1)),
-				    decltype(valuedefinition.ops())
-				    > eval (valuedefinition.ops(),
-					makeEvaluationContext(p));
+	MiniMC::VMT::MultiEvaluator<ValDef,decltype(this->makeEvaluationContext(1))> eval (
+	    valuedefinition,makeEvaluationContext(p));
 	return std::make_unique<TQuery<typename ValDef::Val>> (eval.Eval(val));
 	
       }
@@ -554,7 +551,7 @@ namespace MiniMC {
 
       MiniMC::CPA::StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) override {
 	DummyRegisterStore<Value> regstore{*_scontext,persistent};
-	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,valdef.ops());
+	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
 	auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (block.baseobj));
 	auto size = eval.Eval (*MiniMC::Model::I64Integer::make (block.size));
         Value::visit(
@@ -613,7 +610,7 @@ namespace MiniMC {
 	  auto val = ops.defaultValue (*reg.getType ());
 	  regstore.saveValue (reg,std::move(val));
         }
-	auto eval = MiniMC::VMT::makeEvaluator<Value> (regstore,valdef.ops());
+	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
         for (auto [formal, act] : std::views::zip(f.getParameters(), params)) {
 	  auto reg =  std::get<MiniMC::Model::Register_ptr> (formal.getUserData());            
 	  regstore.saveValue  (*reg,eval.Eval (*act));
@@ -624,7 +621,7 @@ namespace MiniMC {
 
       MiniMC::CPA::StateBuilder& addConstraint(MiniMC::Model::Value& b) {
 	DummyRegisterStore<Value> regstore{*_scontext,persistent};
-        auto eval = MiniMC::VMT::makeEvaluator<Value>(regstore, valdef.ops());
+        auto eval = MiniMC::VMT::makeEvaluator(valdef, regstore);
 	auto converted = eval.Eval (b);
         Value::visit(
             MiniMC::Support::Overload{
@@ -648,7 +645,7 @@ namespace MiniMC {
     template<MiniMC::VMT::ValueDefinition ValDef>
     class Transferer : public MiniMC::CPA::Transfer {
     public:
-      Transferer(ValDef def,const MiniMC::Model::Program& prgm) : def(std::move(def)),engine(def.ops(),def.memops(),prgm) {}
+      Transferer(ValDef def,const MiniMC::Model::Program& prgm) : def(std::move(def)),engine(this->def,prgm) {}
       std::generator<State_ptr>  doTransfer(const MiniMC::CPA::State& s, const MiniMC::CPA::Transition& t )  {
 	
 	const MiniMC::Model::Edge& e = *t.edge;
@@ -672,9 +669,7 @@ namespace MiniMC {
       }
     private:
       ValDef def; 
-      MiniMC::VMT::Engine<typename ValDef::Val,
-			  decltype(def.ops()),
-			  decltype(def.memops())> engine;
+      MiniMC::VMT::Engine<ValDef> engine;
     };
 
 

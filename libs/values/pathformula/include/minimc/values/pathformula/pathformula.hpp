@@ -33,11 +33,13 @@ namespace MiniMC {
 	using Val = MiniMC::VMT::Pathformula::Value;
 	
 	ValueDefinition (MiniMC::Support::SMT::SMTDescr fact);
+	ValueDefinition (SMTLib::Context_ptr context) : context(std::move(context)) {}
 	ValueDefinition (const ValueDefinition& ) =default;
 	
 	Operations ops () const;
 	Memory memops () const ;
 	ConstraintSolver solver() const ;
+	ConstraintSolver solver(MiniMC::VMT::SolverOptions options) const;
       private:
 	SMTLib::Context_ptr context;
       };
