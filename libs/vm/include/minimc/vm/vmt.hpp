@@ -9,6 +9,7 @@
 #include "minimc/model/function.hpp"
 #include "minimc/model/instructions.hpp"
 #include "minimc/support/overload.hpp"
+#include <memory>
 #include <type_traits>
 #include <utility>
 #include <generator>
@@ -67,13 +68,15 @@ namespace MiniMC {
 
     
     template<class State,class V>
-    concept VMState =   requires (State& s,typename V::Bool&& v,FlagType t,MiniMC::Model::proc_t id) {
+    concept VMState =   requires (State& s, const State& cs, typename V::Bool&& v, FlagType t, MiniMC::Model::proc_t id) {
       {s.getStackControl (id)}->StackControl;
       {s.makeEvaluationContext (id)} ->RegisterStore<V>;
       {s.getPathform()}->std::convertible_to<typename V::Bool>;
       {s.setPathform(std::move(v))};
       {s.constraint_solver ()} -> ConstraintSolver<V>;
       {s.setFlag(t)};
+      {cs.lcopy()} -> std::convertible_to<std::shared_ptr<State>>;
+      {cs.isSet(t)} -> std::convertible_to<bool>;
     };
     
     template<class T,class R>
