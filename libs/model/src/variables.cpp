@@ -9,8 +9,8 @@
 namespace MiniMC {
   namespace Model {
     Register_ptr RegisterDescr::addRegister(Symbol name, const Type_ptr& type) {
-      auto reg = std::make_shared<Register>(name.getName(),RegisterInfo{_internal->variable_map.size(), type, _internal->types});
-      reg->setType(type);
+      auto reg = std::make_shared<Register>(name.weak(),
+					    RegisterInfo{_internal->variable_map.size(), type, _internal->types});
       _internal->variable_map[name.getName()] = reg;
       name.setUserData (reg);
       
@@ -63,11 +63,9 @@ namespace MiniMC {
     
 
     Undef::Undef(MiniMC::Model::Type_ptr t) : Constant(ValueInfo::type_t<Undef>()) {setType(t);}
-    Register::Register(const std::string& name,RegisterInfo&& place) : Value(ValueInfo::type_t<Register>()),
-								  place (std::move(place)),
-							    
-								  name(name) {}
-
+    /*Register::Register(const std::string& name, const std::string& symbol_name, RegisterInfo&& place)
+        : place(std::move(place)), name(name), symbol_name(symbol_name) {}
+    */
     
     AggregateConstant::AggregateConstant(MiniMC::Util::Array&& arr) :  Constant(ValueInfo::type_t<AggregateConstant>()),data(std::move(arr)) {
       setType (MiniMC::Model::AggregateType::get(data.getSize()));

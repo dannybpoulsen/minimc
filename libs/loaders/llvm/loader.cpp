@@ -134,7 +134,7 @@ namespace MiniMC {
 	    val = lcontext.findValue(g->getInitializer());
           }
 	  auto symbol =  prgm.getRootFrame().makeFresh (g->getName ().str());
-	  prgm.getHeapLayout().addBlock(symbol, MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,lcontext.getHeapMem(),val);
+	  prgm.getHeapLayout().addBlock(symbol, MiniMC::Model::pointer_t::makeHeapPointer (++nextHeap,0),pointTySize,lcontext.getHeapRegister(),val);
 	  auto gvar = MiniMC::Model::SymbolicConstant::make(symbol);
 	  gvar->setType(MiniMC::Model::PointerType::get());
           lcontext.addValue(&(*g), gvar);
@@ -152,10 +152,11 @@ namespace MiniMC {
         std::vector<MiniMC::Model::Symbol> params;
         MiniMC::Model::RegisterDescr variablestack;
         MiniMC::Model::LocationInfoCreator locinfoc(frame);
-   
-        auto sp_mem = variablestack.addRegister(frame.makeFresh("sp_mem"), MiniMC::Model::PointerType::get());
+
+        auto sp_mem_symb = frame.makeFresh("sp_mem");
+        auto sp_mem_reg = variablestack.addRegister(sp_mem_symb, MiniMC::Model::PointerType::get());
 	
-        LoadContext load{lcontext, variablestack, sp, sp_mem, frame};
+        LoadContext load{lcontext, variablestack, sp, MiniMC::Model::SymbolicConstant::make (sp_mem_symb), frame};
         auto returnTy = load.getType(F.getReturnType());
 
         auto makeVariable = [&load, &frame](auto val) {
@@ -256,7 +257,8 @@ namespace MiniMC {
 	  auto init = cfg.makeLocation (frame.makeFresh (),entry->getInfo());
 	  {
 	    MiniMC::Model::EdgeBuilder edgebuilder{cfg, init, entry, frame};
-	    edgebuilder.template addInstr<MiniMC::Model::InstructionCode::Assign>(sp_mem, sp );
+	    edgebuilder.template addInstr<MiniMC::Model::InstructionCode::Assign>(
+										  sp_mem_reg, sp);
 	  }
 	  cfg.setInitial(init);
           
@@ -315,13 +317,14 @@ namespace MiniMC {
 		auto splitloc = cfg.makeLocation(frame.makeFresh(), to->getInfo());
 		auto dest = enqueue(brterm->getDestination(i));
 		auto valComp = load.findValue(brterm->getDestination(i));
-		auto btype = MiniMC::Model::BoolType::get();
-		auto cond = load.getStack().addRegister(frame.makeFresh(), btype);
+                auto btype = MiniMC::Model::BoolType::get();
+                auto cond_symb = frame.makeFresh();
+		auto cond = load.getStack().addRegister(cond_symb, btype);
 		
 		MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::Eq>(cond,
 														       value,
 														       valComp)
-		  .addInstr<MiniMC::Model::InstructionCode::Assume>(cond);
+		  .addInstr<MiniMC::Model::InstructionCode::Assume>(MiniMC::Model::SymbolicConstant::make (cond_symb));
 		buildphi(cur_bb, brterm->getDestination(i), MiniMC::Model::EdgeBuilder{cfg, splitloc, dest, frame,true});
 	      }
 	    }
@@ -379,7 +382,7 @@ namespace MiniMC {
         mpm.run(module, mam);
       }
 
-      MiniMC::Model::Symbol createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, const MiniMC::Model::Symbol function_symb, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg, const MiniMC::Model::Value_ptr& heap_mem) {
+      MiniMC::Model::Symbol createEntryPoint(std::size_t stacksize, MiniMC::Model::Program& program, const MiniMC::Model::Symbol function_symb, std::vector<MiniMC::Model::Value_ptr>&&, const MiniMC::Model::Register_ptr& sp_reg, const MiniMC::Model::Register_ptr& heap_mem) {
       static std::size_t nb = 0;
       auto function = std::get<MiniMC::Model::Function_ptr> (function_symb.getUserData ());
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function_symb.getName(), ++nb);
@@ -430,12 +433,12 @@ namespace MiniMC {
       }
       
       
-      void setupEntryPoints(MiniMC::Model::Program& prgm, MiniMC::Model::Value_ptr heap_mem) {
+      void setupEntryPoints(MiniMC::Model::Program& prgm, MiniMC::Model::Register_ptr heap_mem) {
         for (const auto& e : entry) {
 	  
 	  if (auto symbol = prgm.getRootFrame().resolve (e)) {
 	    //auto func = prgm.getFunction(symbol.value());
-	    auto entry = createEntryPoint(stacksize, prgm, symbol.value(), {},sp,heap_mem);
+	    auto entry = createEntryPoint(stacksize, prgm, symbol.value(), {},MiniMC::Model::getRegister(sp),heap_mem);
 	    
 	    prgm.addEntryPoint(entry);
 	  }
@@ -444,9 +447,12 @@ namespace MiniMC {
 
       virtual LoadResult readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Support::Messager& mess) {
         MiniMC::Model::Program prgm;
-	sp = prgm.getCPURegs().addRegister(prgm.getRootFrame().makeFresh("sp"), MiniMC::Model::PointerType::get());
-	auto heap_mem = prgm.getPersistentRegs().addRegister(prgm.getRootFrame().makeFresh("heap_mem"), MiniMC::Model::MemoryType::get());
-        GLoadContext lcontext{heap_mem};
+        auto sp_symb = prgm.getRootFrame().makeFresh("sp");
+        auto sp_reg = prgm.getCPURegs().addRegister(sp_symb, MiniMC::Model::PointerType::get());
+	sp = MiniMC::Model::SymbolicConstant::make(sp_symb);
+        auto heap_mem_symb = prgm.getRootFrame().makeFresh("heap_mem");
+	auto heap_mem_reg = prgm.getPersistentRegs().addRegister(heap_mem_symb, MiniMC::Model::MemoryType::get());
+        GLoadContext lcontext{MiniMC::Model::SymbolicConstant::make(heap_mem_symb)};
 
         llvm::SMDiagnostic diag;
         std::unique_ptr<llvm::LLVMContext> context = std::make_unique<llvm::LLVMContext>();
@@ -459,7 +465,7 @@ namespace MiniMC {
         loadGlobals(lcontext, prgm, *module,mess);
         instantiateFunctions(lcontext, prgm, *module, mess);
 
-        setupEntryPoints(prgm,heap_mem);
+        setupEntryPoints(prgm,heap_mem_reg);
 
         return prgm;
       }
@@ -469,7 +475,7 @@ namespace MiniMC {
       std::vector<std::string> entry;
       bool disablePromotion;
       bool printLLVMPass;
-      MiniMC::Model::Register_ptr sp;
+      MiniMC::Model::Value_ptr sp;
       std::unordered_map<llvm::Function*,MiniMC::Model::Symbol> function2symb;
       std::size_t nextHeap{0};
       

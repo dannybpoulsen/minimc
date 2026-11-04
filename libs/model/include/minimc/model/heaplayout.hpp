@@ -11,7 +11,7 @@
 namespace MiniMC {
   namespace Model {
     struct HeapBlock {
-      MiniMC::Model::Value_ptr heap_register = nullptr;
+      MiniMC::Model::Register_ptr heap_register = nullptr;
       MiniMC::Model::pointer_t baseobj;
       MiniMC::Model::offset_t size;
       MiniMC::Model::Value_ptr value = nullptr;
@@ -23,7 +23,7 @@ namespace MiniMC {
     class HeapLayout {
     public:
       
-      auto addBlock (MiniMC::Model::Symbol symb,MiniMC::Model::pointer_t ptr, MiniMC::Model::offset_t size, MiniMC::Model::Value_ptr heap_register,MiniMC::Model::Value_ptr value = nullptr) {
+      auto addBlock (MiniMC::Model::Symbol symb,MiniMC::Model::pointer_t ptr, MiniMC::Model::offset_t size, MiniMC::Model::Register_ptr heap_register,MiniMC::Model::Value_ptr value = nullptr) {
 	_blocks.push_back (std::make_shared<HeapBlock> (heap_register,ptr,size,value,symb));
 	symb.setUserData (_blocks.back ());
 	return _blocks.back()->baseobj;

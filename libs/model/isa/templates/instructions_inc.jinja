@@ -21,7 +21,7 @@ enum class PseudoInstructionCode {
 
 
 
-using ReplaceFunction = std::function<MiniMC::Model::Value_ptr(MiniMC::Model::Register&)>;
+using ReplaceFunction = std::function<MiniMC::Model::Register_ptr(MiniMC::Model::Register&)>;
 
 template<InstructionCode>
 struct InstructionData {};
@@ -74,6 +74,11 @@ public:
 	     
   }
 
+  Register_ptr Replace (const Register_ptr& reg) const {
+   auto replacement = replacer(*reg);
+   return replacement ? replacement : reg;
+  }
+
    template<class T>
    Value_ptr operator() (T& ) const  {
    	 throw MiniMC::Support::Exception (typeid(T).name ());
@@ -85,17 +90,20 @@ public:
 	return t.shared_from_this();
    }
       	
-   Value_ptr operator() (Register& r) const {
-   	return replacer(r);
-   }
-
    Value_ptr operator() (SymbolicConstant& r) const {
-   	if (std::holds_alternative<MiniMC::Model::Register_ptr> (r.getValue().getUserData())) {
-	   return (*this)(*std::get<MiniMC::Model::Register_ptr> (r.getValue().getUserData()));
-	}
-	else {
-	     return r.shared_from_this();
-	}
+    auto symbol = r.getValue();
+    if (std::holds_alternative<MiniMC::Model::Register_ptr>(symbol.getUserData())) {
+      auto reg = std::get<MiniMC::Model::Register_ptr>(symbol.getUserData());
+      auto replacement = replacer(*reg);
+      if (replacement) {
+        auto replacement_symbol = Symbol::from_string(symbol.getFullName());
+        replacement_symbol.setUserData(replacement);
+        auto value = SymbolicConstant::make(std::move(replacement_symbol));
+        value->setType(replacement->getType());
+        return value;
+      }
+    }
+    return r.shared_from_this();
    }  
 
  {%for g in ISA.getGroups () %} 
@@ -148,7 +156,7 @@ struct VMInstructionData {};
 {%for o in i.getOperands () %} {%if not o.isMultiParam () %}  {%if o.isRegister () %} MiniMC::Model::Register_ptr {%else%} MiniMC::Model::Value_ptr {%endif%} {%else%} std::vector<MiniMC::Model::Value_ptr> {%endif%} {{o.getName ()}};
 			   {%endfor%}
 
-			   Content (const Content& oth,Replacer replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}} {%if o.isRegister () %} (std::static_pointer_cast<MiniMC::Model::Register>(replacer.Replace(*oth.{{o.getName()}}))) {%else %}(replacer.Replace((oth.{{o.getName()}}))) {%endif%} {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor%} {%endif%} {
+			   Content (const Content& oth,Replacer replacer) {%if i.getOperands ()|length > 0%}: {%for o in i.getOperands () %} {%if not o.isMultiParam () %}{{o.getName ()}} {%if o.isRegister () %} (replacer.Replace(oth.{{o.getName()}})) {%else %}(replacer.Replace((oth.{{o.getName()}}))) {%endif%} {%else %} {{o.getName()}}() {%endif%}  {%if not loop.last%},{%endif%}  {%endfor %} {%endif%} {
 			   {%for o in i.getOperands () %} {%if o.isMultiParam () %}
 			   	 std::for_each (oth.{{o.getName ()}}.begin(),oth.{{o.getName ()}}.end(),[&replacer,this](auto& v) { {{o.getName()}}.push_back (replacer.Replace(v));}); 
 			   {%endif%}
@@ -201,7 +209,7 @@ template<VMInstructionCode>
       TInstruction (typename VMInstructionData<opc>::Content content ) :  content(content) {}
       auto& getOps () const {return content;}
       static consteval auto getOpcode () {return opc;}
-      Value_ptr getDefines () const requires hasRes<opc> {return content.res;} 
+      Register_ptr getDefines () const requires hasRes<opc> {return content.res;}
       template<class Adder>
       void getUsages (Adder add) const {content.getUsages (add);}
       static constexpr bool hasOperands () {return true;}
@@ -459,6 +467,29 @@ template<VMInstructionCode>
 	       {%if not loop.last %},{%endif%}
 	     {%endfor %}
 
+	  }
+	  );
+	  }
+
+       template<class F>
+       void visitOperands (F f) const {
+       this->visit (
+       MiniMC::Support::Overload {
+	     {%for i in ISA.getVMInstructions() %}
+	       [f](const TInstruction<VMInstructionCode::{{i.getName()}}>& instruction) {
+		 {%if i.getOperands()|length > 0 %}
+		   const auto& content = instruction.getOps();
+		   {%for o in i.getOperands() %}
+		     {%if o.isMultiParam() %}
+		       for (const auto& value : content.{{o.getName()}}) f(value);
+		     {%else %}
+		       f(content.{{o.getName()}});
+		     {%endif %}
+		   {%endfor %}
+		 {%endif %}
+	       }
+	       {%if not loop.last %},{%endif%}
+	     {%endfor %}
 	  }
 	  );
 	  }

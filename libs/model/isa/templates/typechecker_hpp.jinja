@@ -38,11 +38,6 @@ namespace MiniMC {
 	return type;
 	}
 		
-	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Register& i) const  {
-	  i.setType(i.getSystemType());
-	  return i.getSystemType();
-	}
-	
 	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Bool& i) const  {
 	  i.setType(MiniMC::Model::BoolType::get());
 	  return i.getType();

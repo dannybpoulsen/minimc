@@ -15,7 +15,7 @@ namespace MiniMC {
 	for (auto t  : generator.generate(*und.getType ())) {
 	  co_yield MiniMC::Model::visitValue (
 					      MiniMC::Support::Overload {
-						[this]<typename T>(T& v)->Value requires (MiniMC::Model::is_root<T> && ! MiniMC::Model::is_register<T> && !MiniMC::Model::is_symbolic<T> ) {
+						[this]<typename T>(T& v)->Value requires (MiniMC::Model::is_root<T> && !MiniMC::Model::is_symbolic<T> ) {
 						  return this->create(v);
 						},
 						  MiniMC::Support::Error<Value> {}

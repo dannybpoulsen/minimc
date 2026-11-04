@@ -36,7 +36,6 @@ def writeExpressions(ISA,output):
         "Pointer",
         "Pointer32",
         "AggregateConstant",
-        "Register",
         "Undef",
         "SymbolicConstant",
         "LoadExpr",

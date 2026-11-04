@@ -63,7 +63,7 @@ namespace MiniMC {
 				     )
     {
       {p.push (loc,value)};
-      {p.pop ()}->std::convertible_to<MiniMC::Model::Value_ptr>;
+      {p.pop ()}->std::convertible_to<MiniMC::Model::Register_ptr>;
     };
 
     
@@ -103,7 +103,10 @@ namespace MiniMC {
 
       MultiEvaluator (const Domain& domain, RegStore regstore) : ops(domain.ops()),regstore(std::move(regstore)) {}
       
-      
+      Value Eval (const MiniMC::Model::Register& reg)  const {	
+	return regstore.lookupRegister (reg);
+	
+      }
       Value Eval (const MiniMC::Model::Value& v)  const {
 	for (Value t :  MEval (v)) {
 	  return t;

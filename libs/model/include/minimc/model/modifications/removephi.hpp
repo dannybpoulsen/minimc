@@ -21,9 +21,9 @@ namespace MiniMC {
 	      if (E->getInstructions () ) {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
-                std::unordered_map<MiniMC::Model::Value*, MiniMC::Model::Register_ptr> replacemap;
-		std::unordered_set<MiniMC::Model::Value*> used;
-                auto replacefunc = [&](MiniMC::Model::Register& reg)->MiniMC::Model::Value_ptr {
+                std::unordered_map<MiniMC::Model::Register*, MiniMC::Model::Register_ptr> replacemap;
+		std::unordered_set<MiniMC::Model::Register*> used;
+                auto replacefunc = [&](MiniMC::Model::Register& reg)->MiniMC::Model::Register_ptr {
 		  if (replacemap.count(&reg) > 0) {
 		    return replacemap.at(&reg);
 		  }
@@ -35,7 +35,6 @@ namespace MiniMC {
                     auto& content = inst.getAs<VMInstructionCode::Assign>().getOps();
 
                     MiniMC::Model::visitSubExpressions(MiniMC::Support::Overload{
-                                                            [&used](MiniMC::Model::Register& reg) { used.insert(&reg); },
                                                             [&used](MiniMC::Model::SymbolicConstant& reg) {
                                                               if (std::holds_alternative<MiniMC::Model::Register_ptr>(reg.getValue().getUserData())) {
                                                                 used.insert(std::get<MiniMC::Model::Register_ptr>(reg.getValue().getUserData()).get());
@@ -53,7 +52,8 @@ namespace MiniMC {
 		    if (used.count(content.res.get())) {
 		      auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
 		      replacemap.insert(std::make_pair(content.res.get(), nvar));
-		      stream.add<MiniMC::Model::VMInstructionCode::Assign>(replacemap.at(content.res.get()), content.res);
+		      stream.add<MiniMC::Model::VMInstructionCode::Assign>(
+			  replacemap.at(content.res.get()), MiniMC::Model::makeRegisterValue(content.res));
 		    }
 		    
 		  }

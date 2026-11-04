@@ -33,6 +33,7 @@ namespace MiniMC {
       MiniMC::BV32 computeSizeInBytes (llvm::Type* );
       MiniMC::Model::Type_ptr getType (llvm::Type*);
       auto getHeapMem () const {return heap_mem;};
+      MiniMC::Model::Register_ptr getHeapRegister () const {return MiniMC::Model::getRegister(heap_mem);}
     private:
       std::unordered_map<const llvm::Value*,MiniMC::Model::Value_ptr> values;
       std::unordered_map<const llvm::Value*,MiniMC::Model::Register_ptr> regs;
@@ -71,8 +72,8 @@ namespace MiniMC {
 	
       }
       auto& getStack () {return stack;}
-      auto& getStackPointerMem () {return sp_mem;}
-      auto& getStackPointer () {return sp;}
+      auto getStackPointerMem () {return sp_mem;}
+      auto getStackPointer () {return sp;}
       auto& getFrame () {return frame;}
     private:
       
@@ -144,7 +145,7 @@ namespace MiniMC {
 
       else if constexpr (MiniMC::Model::InstructionCode::Store == code) {
 	gather.template addInstr<MiniMC::Model::InstructionCode::Store>(
-									std::static_pointer_cast<MiniMC::Model::Register> (context.getHeapMem()),
+									MiniMC::Model::getRegister(context.getHeapMem()),
 									context.getHeapMem(),
 									context.findValue (inst->getOperand(1)),
 									context.findValue (inst->getOperand (0))
@@ -248,7 +249,7 @@ namespace MiniMC {
       else if constexpr (MiniMC::Model::InstructionCode::Ret == code) {
 	auto retinst = llvm::dyn_cast<llvm::ReturnInst>(inst);
         gather.template addInstr<MiniMC::Model::InstructionCode::Assign>(
-            std::static_pointer_cast<MiniMC::Model::Register>(context.getStackPointer()),
+            MiniMC::Model::getRegister(context.getStackPointer()),
             context.getStackPointerMem());
 	if (retinst->getReturnValue()) {
 	  
@@ -375,7 +376,7 @@ namespace MiniMC {
 	 
 
 	 gather.template addInstr<MiniMC::Model::InstructionCode::PtrSub>(
-									  std::static_pointer_cast<MiniMC::Model::Register> (context.getStackPointer()),
+									  MiniMC::Model::getRegister(context.getStackPointer()),
 	     context.getStackPointer(),
 	     std::make_shared<MiniMC::Model::MulExpr>(skipsize,
 						     size)

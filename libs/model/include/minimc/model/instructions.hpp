@@ -116,7 +116,10 @@ namespace MiniMC {
     
     std::ostream& operator<<(std::ostream& os, const InstructionStream& str);
 
-    Instruction makeInstruction (InstructionCode code, std::vector<Value_ptr> values);
+    Instruction makeInstruction (InstructionCode code, std::vector<InstructionArgument> values);
+    inline Instruction makeInstruction (InstructionCode code, std::initializer_list<InstructionArgument> values) {
+      return makeInstruction(code, std::vector<InstructionArgument>(values));
+    }
     
     
   } // namespace Model

@@ -12,6 +12,7 @@
 
 #include "minimc/hash/hashing.hpp"
 #include "minimc/io/ostream.hpp"
+#include "minimc/support/exceptions.hpp"
 
 namespace MiniMC {
   namespace Model {
@@ -61,8 +62,28 @@ namespace MiniMC {
       const UserData& getUserData () const ;
       MiniMC::Hash::hash_t hash () const;
       bool operator== (const Symbol& d) const ;
-
+      
       struct data;
+      struct WeakSymbol {
+      public:
+        WeakSymbol(std::shared_ptr<data> data) : _internal(data) {}
+        Symbol getSymbol() const {
+          auto l = _internal.lock();
+	  if (l)
+            return Symbol(l);
+          throw MiniMC::Support::Exception ("Symbol has vanished");
+	}
+
+	
+        
+      private:
+	std::weak_ptr<data> _internal;
+      
+      };
+
+      WeakSymbol weak () const {return WeakSymbol{_internal};}
+      
+      
     protected:
       explicit Symbol (const std::string&);
       Symbol (const Symbol&, std::string name);
@@ -72,6 +93,8 @@ namespace MiniMC {
       std::shared_ptr<data> _internal;
       Symbol (std::shared_ptr<data>);
     };
+
+    
     
     
     class Frame {

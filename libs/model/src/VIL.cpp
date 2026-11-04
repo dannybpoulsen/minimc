@@ -122,7 +122,7 @@ namespace MiniMC {
       
       StatementBuilder& StatementBuilder::Call (MiniMC::Model::Register_ptr r,  std::size_t nbArgs, MiniMC::Model::SourceInfo sinfo) {
 	//std::cerr << "Call with" << nbArgs << std::endl;
-	std::vector<Value_ptr> args;
+	std::vector<InstructionArgument> args;
 	std::vector<Value_ptr> _args;
  
 	auto func = get();

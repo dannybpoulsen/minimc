@@ -126,7 +126,7 @@ namespace MiniMC {
 
         if constexpr (op == MiniMC::Model::VMInstructionCode::Assign ) {
 	  auto& content = instr.getOps();
-	  auto& res = content.res->asRegister ();
+	  auto& res = *content.res;
 	  for (auto op1 : eval.MEval (*content.op1)) {
 	    auto nstate = state->lcopy();
 	    nstate->makeEvaluationContext(id).saveValue(res, std::move(op1));
@@ -226,7 +226,7 @@ namespace MiniMC {
 	    auto nstate = state->lcopy();
 	    auto ret_reg = nstate->getStackControl(id).pop();
 	    if (ret_reg) {
-	      nstate->makeEvaluationContext(id).saveValue (ret_reg->asRegister (),std::move(ret));
+	      nstate->makeEvaluationContext(id).saveValue (*ret_reg,std::move(ret));
 	      
 	    }
 	    co_yield nstate;
@@ -255,7 +255,7 @@ namespace MiniMC {
 	auto eval = makeEvaluator (state->makeEvaluationContext (id));
 	constexpr auto op = I::getOpcode ();
         auto& content = instr.getOps ();
-        auto& res = content.res->asRegister ();
+        auto& res = *content.res;
         assert(content.offset->isConstant());
         MiniMC::BV64 offset{0};
 

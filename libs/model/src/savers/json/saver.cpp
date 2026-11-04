@@ -39,17 +39,30 @@ namespace MiniMC {
     }
 
     template <class Obj, class Allocator>
+    void writeRegister(const MiniMC::Model::Register_ptr& reg, Obj& obj, Allocator& alloc) {
+      rapidjson::Value rvalue;
+      rvalue.SetObject();
+      const auto global = reg->getRegType() == MiniMC::Model::RegType::CPU ||
+                          reg->getRegType() == MiniMC::Model::RegType::Persistent;
+      rvalue.AddMember("type", rapidjson::Value().SetString(global ? "global" : "local", alloc), alloc);
+      rvalue.AddMember("value", rapidjson::Value().SetInt(reg->getId()), alloc);
+      obj.PushBack(rvalue, alloc);
+    }
+
+    template <class Obj, class Allocator>
     void writeValue(const MiniMC::Model::Value_ptr& val, Obj& obj, Allocator& alloc) {
       rapidjson::Value rvalue;
       rvalue.SetObject();
-      if (val->isRegister()) {
-        auto var = std::static_pointer_cast<MiniMC::Model::Register>(val);
-        rvalue.AddMember("type", rapidjson::Value().SetString(var->isGlobal() ? "global" : "local", alloc), alloc);
-        rvalue.AddMember("value", rapidjson::Value().SetInt(var->getId()), alloc);
-
+      auto symbolic = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(val);
+      if (symbolic) {
+        auto symbol = symbolic->getValue();
+        if (auto reg = std::get_if<MiniMC::Model::Register_ptr>(&symbol.getUserData())) {
+          writeRegister(*reg, obj, alloc);
+          return;
+        }
       }
 
-      else if (val->isConstant()) {
+      if (val->isConstant()) {
         auto constant = std::static_pointer_cast<MiniMC::Model::Constant>(val);
         if (constant->isNonCompileConstant()) {
           auto ncconstant = std::static_pointer_cast<MiniMC::Model::NonCompileConstant>(constant);
@@ -87,9 +100,14 @@ namespace MiniMC {
       rvalue.AddMember("opcode", rapidjson::Value().SetString(opstr.str().c_str(), alloc), alloc);
       rapidjson::Value params;
       params.SetArray();
-      for (auto& val : instr) {
-        writeValue(val, params, alloc);
-      }
+      instr.visitOperands([&](const auto& operand) {
+        using Operand = std::remove_cvref_t<decltype(operand)>;
+        if constexpr (std::is_same_v<Operand, MiniMC::Model::Value_ptr>) {
+          writeValue(operand, params, alloc);
+        } else {
+          writeRegister(operand, params, alloc);
+        }
+      });
       rvalue.AddMember("operands", params, alloc);
       obj.PushBack(rvalue, alloc);
     }

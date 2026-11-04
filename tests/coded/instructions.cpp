@@ -14,6 +14,22 @@
 #include "minimc/loaders/loader.hpp"
 #include "minimc/support/overload.hpp"
 
+TEST_CASE("Registers are variables, not values") {
+  static_assert(!std::is_base_of_v<MiniMC::Model::Value, MiniMC::Model::Register>);
+
+  MiniMC::Model::Program prgm;
+  MiniMC::Model::RegisterDescr descr;
+  auto frame = prgm.getRootFrame().create("Function");
+  auto symbol = frame.makeFresh("reg");
+  auto reg = descr.addRegister(symbol, MiniMC::Model::I8Type::get());
+
+  auto value = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(
+      MiniMC::Model::makeRegisterValue(reg));
+  REQUIRE(value != nullptr);
+  CHECK(value->getValue().getFullName() == symbol.getFullName());
+  CHECK(MiniMC::Model::getRegister(value) == reg);
+}
+
 TEST_CASE("Add") {
   MiniMC::Model::Program prgm;
   
@@ -54,7 +70,7 @@ TEST_CASE("Add") {
   
   REQUIRE(res_state != nullptr);
   
-  auto val = res_state->getBuilder ().buildValue (0,*res);
+  auto val = res_state->getBuilder ().buildValue (0,*MiniMC::Model::makeRegisterValue(res));
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
   auto res_val = MiniMC::Model::visitValue (MiniMC::Support::Overload {

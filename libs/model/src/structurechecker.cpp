@@ -36,7 +36,7 @@ namespace MiniMC {
       bool StructuralChecker::Check (MiniMC::Model::Program& prgm) {
 	for (auto& F : prgm.getFunctions ()) {
 	  for (auto& e : F->getCFA ().getEdges ()) {
-	    std::unordered_set<MiniMC::Model::Value_ptr> defined;
+	    std::unordered_set<MiniMC::Model::Register*> defined;
 	    for (auto& instr : e->getInstructions ()) {
 	      if (!instr.visit (MiniMC::Model::Overload {
 		    [&defined,&instr,e,this]<typename T>(const T& a) requires (T::hasOperands())  {
@@ -46,19 +46,28 @@ namespace MiniMC {
 		      
 		      
 		      for (auto& v : vals) {
-			if (!defined.count (v)) {
-			  if (v->isRegister ()) {
-			    auto casted_v = std::static_pointer_cast<MiniMC::Model::Register> (v);
-			    if (casted_v->getRegType ()== MiniMC::Model::RegType::Meta) {
-			      messager << UsedWithoutDefinition (instr,v,e);
-			      return false;
-			    }
-			  }
+			bool usedWithoutDefinition = false;
+			MiniMC::Model::visitSubExpressions(
+			    MiniMC::Support::Overload {
+			      [&defined, &usedWithoutDefinition](MiniMC::Model::SymbolicConstant& symbolic) {
+			      auto symbol = symbolic.getValue();
+			      if (auto reg = std::get_if<MiniMC::Model::Register_ptr>(&symbol.getUserData());
+				  reg && (*reg)->getRegType() == MiniMC::Model::RegType::Meta &&
+				  !defined.count(reg->get())) {
+				usedWithoutDefinition = true;
+			      }
+			      },
+			      MiniMC::Support::Ignore{}
+			    },
+			    *v);
+			if (usedWithoutDefinition) {
+			  messager << UsedWithoutDefinition (instr,v,e);
+			  return false;
 			}
 		      }
 		      
 		      if constexpr (T::hasResult ()) {
-			defined.insert( a.getDefines());
+			defined.insert(a.getDefines().get());
 			return true;
 			
 		      }

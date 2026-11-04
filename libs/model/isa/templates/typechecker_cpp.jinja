@@ -676,10 +676,10 @@ namespace MiniMC {
 	    
 	    for (auto [form_param,act_param] : std::views::zip(func->getParameters(),content.params)) {
 	    	auto form_reg = std::get<MiniMC::Model::Register_ptr> (form_param.getUserData());
-		auto form_type = CheckType(*form_reg);	     
+    auto form_type = form_reg->getType();
 	      auto act_type = CheckType(*act_param);
 	      if (form_type != act_type) {
-		messager << MustBeGivenType {inst,form_reg,act_type};
+		messager << MustBeGivenType {inst,MiniMC::Model::makeRegisterValue(form_reg),act_type};
 
 		return false;
 	      }
@@ -689,7 +689,7 @@ namespace MiniMC {
 	    messager << MiniMC::Support::TWarning<std::string> {function_is_var_args.format (func->getName ())};
 	  }
 	  if (content.res) {
-	    auto resType = CheckType(*content.res);
+	    auto resType = content.res->getType();
 	    if (resType != func->getReturnType()) {
 	      messager << MiniMC::Support::TError {inconsistent_parameters.format (func->getName ())};
 	      return false;
@@ -702,9 +702,9 @@ namespace MiniMC {
         else if constexpr (i == VMInstructionCode::Assign) {
 	  auto& content = tinst.getOps ();
 	  auto valT = CheckType(*content.op1);
-          auto resT = CheckType(*content.res);
+          auto resT = content.res->getType();
 	  if (*valT != *resT) {
-	    messager << MustBeSameType {inst,content.op1,content.res};
+            messager << MustBeSameType {inst,content.op1,MiniMC::Model::makeRegisterValue(content.res)};
             return false;
           }
           return true;

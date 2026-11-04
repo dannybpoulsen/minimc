@@ -18,8 +18,8 @@ namespace MiniMC {
   namespace Common {
     template<class Value>
     struct ActivationRecord {
-      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Value_ptr& ret, MiniMC::Model::Location_ptr l) : values(std::move(values)), ret(ret), loc(l) {}
-      ActivationRecord(std::size_t size, const MiniMC::Model::Value_ptr& ret, MiniMC::Model::Location_ptr l) : values(size), ret(ret), loc(l) {}
+      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Register_ptr& ret, MiniMC::Model::Location_ptr l) : values(std::move(values)), ret(ret), loc(l) {}
+      ActivationRecord(std::size_t size, const MiniMC::Model::Register_ptr& ret, MiniMC::Model::Location_ptr l) : values(size), ret(ret), loc(l) {}
 
       ActivationRecord(const ActivationRecord&) = default;
       ActivationRecord& operator= (ActivationRecord&&) =default;
@@ -55,7 +55,7 @@ namespace MiniMC {
       
     private:
       MiniMC::Model::VariableMap<Value> values;
-      MiniMC::Model::Value_ptr ret{nullptr};
+      MiniMC::Model::Register_ptr ret{nullptr};
       MiniMC::Model::Location_ptr loc;
     };
     
@@ -80,7 +80,7 @@ namespace MiniMC {
 	}
       }
       
-      void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Value_ptr& ret) {
+      void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Register_ptr& ret) {
         frames.push_back (ActivationRecord<Value>{{loc->getInfo().getFrame().numberOfRegisters()},ret,loc});
       }
 
@@ -559,7 +559,7 @@ namespace MiniMC {
                 [this, &block, &regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem) {
                   auto mem2 = valdef.memops().allocate(mem, ptr, size);
                   _scontext->addSymbol(block.symbol, ptr);
-                  regstore.saveValue(block.heap_register->asRegister(), Value{mem2});
+                  regstore.saveValue(*block.heap_register, Value{mem2});
                 },
                 MiniMC::Support::Error<void>{}},
             ptr, size, eval.Eval(*block.heap_register)
@@ -576,7 +576,7 @@ namespace MiniMC {
 		for (auto by : valdef.ops().bytes(value)) {
 		  auto mem2 = valdef.memops().store (mem,ptr_c,by);
 		  ptr_c = valdef.ops().PtrAdd (ptr_c,ones);
-		  regstore.saveValue (block.heap_register->asRegister(),Value{mem2});
+		  regstore.saveValue (*block.heap_register,Value{mem2});
 		}
 		
 	      },

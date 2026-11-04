@@ -199,14 +199,12 @@ namespace MiniMC {
      * A Value is associated to Type, and be either Variables or Constants.
      * Values can also be local or global to a given function.
      */
-    class Register;
-
+    
     class Value : public std::enable_shared_from_this<Value>{
     public:
       virtual ~Value() {}
       const Type_ptr& getType() const { return type; }
       void setType(const Type_ptr& t) { type = t; }
-      virtual bool isRegister() const { return false; }
       virtual bool isConstant() const { return false; }
       
       virtual std::ostream& output(std::ostream& os) const = 0;
@@ -228,10 +226,6 @@ namespace MiniMC {
       template<class T>
       const T& as () const;
 
-      
-      virtual const Register& asRegister () const {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
-      virtual Register& asRegister () {throw MiniMC::Support::Exception ("Cannot convert to value to register");}
-      
       type_id_t type_t() const { return val_type; }
     protected:
       Value(type_id_t v) : val_type(v) {}
@@ -384,21 +378,6 @@ namespace MiniMC {
 	return outputType (os) << ">";
       }
 
-      virtual const Register& asRegister() const {
-        if (std::holds_alternative<MiniMC::Model::Register_ptr>(symbol.getUserData())) {
-	  return *std::get<MiniMC::Model::Register_ptr>(symbol.getUserData());
-	}          
-        throw MiniMC::Support::Exception("Cannot convert to value to register");
-      }
-
-      virtual Register& asRegister() {
-	if (std::holds_alternative<MiniMC::Model::Register_ptr>(symbol.getUserData())) {
-	  return *std::get<MiniMC::Model::Register_ptr>(symbol.getUserData());
-	}
-        throw MiniMC::Support::Exception("Cannot convert to value to register");
-      }
-      
-      
     private:
       MiniMC::Model::Symbol symbol;
     };
@@ -471,34 +450,61 @@ namespace MiniMC {
     class RegisterDescr;
 
     
-    class Register : public Value {
+    class Register : public std::enable_shared_from_this<Register> {
     public:
-      Register(const std::string& name,RegisterInfo&& p);
+      Register(const MiniMC::Model::Symbol::WeakSymbol symb, RegisterInfo&& p) : place(std::move(p)),symb(symb) {}
       
-      bool isRegister() const override { return true; }
-      auto getName () const {return name;}
       auto getId  () const {return place.getId ();}
       auto getRegType() const { return place.getRegType(); }
       //In lack of better name
       auto getSystemType () const {return place.getType ();}
-      const Register& asRegister () const {return *this;}
-      Register& asRegister () {return *this;}
+      auto getType () const {return place.getType ();}
 
-      virtual std::ostream& output(std::ostream& os) const {
-        return os << "<" << name << " " << *getSystemType ()  << ">";
+      std::ostream& output(std::ostream& os) const {
+        return os << "<" << getSymbol().getName() << " " << *getSystemType ()  << ">";
       }
 
-      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
-        return os << "<" << name << " " << *getSystemType ()  << ">";
+      MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
+        return os << "<" << getSymbol().getName() << " " << *getSystemType ()  << ">";
       }
-      
+
+      MiniMC::Model::Symbol getSymbol () const {return symb.getSymbol();}
       
     private:
       RegisterInfo place;
       std::string name;
+      std::string symbol_name;
+      MiniMC::Model::Symbol::WeakSymbol symb;
     };
 
     using Register_ptr = std::shared_ptr<Register>;
+    using InstructionArgument = std::variant<Value_ptr, Register_ptr>;
+
+    inline std::ostream& operator<<(std::ostream& os, const Register& reg) {
+      return reg.output(os);
+    }
+
+    inline MiniMC::IO::ostream& operator<<(MiniMC::IO::ostream& os, const Register& reg) {
+      return reg.output(os);
+    }
+
+    inline  Value_ptr makeRegisterValue(const Register_ptr& reg) {
+      auto symbol = reg->getSymbol();
+      auto value = SymbolicConstant::make(std::move(symbol));
+      value->setType(reg->getSystemType());
+      return value;
+    }
+
+    inline Register_ptr getRegister(const Value_ptr& value) {
+      auto symbolic = std::dynamic_pointer_cast<SymbolicConstant>(value);
+      if (symbolic) {
+        auto symbol = symbolic->getValue();
+        if (auto reg = std::get_if<Register_ptr>(&symbol.getUserData())) {
+          return *reg;
+        }
+      }
+      throw MiniMC::Support::Exception("Value does not refer to a register");
+    }
     
     
     class RegisterDescr {
@@ -533,7 +539,6 @@ namespace MiniMC {
     
     template <class T>
     using VariableMap = MiniMC::Util::FixedVector<Register, T, VariablePtrIndexer>;
-
     #include "minimc/model/expr.inc"
 
     

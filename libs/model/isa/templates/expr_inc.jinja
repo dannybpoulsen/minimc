@@ -285,12 +285,8 @@ inline InsertValueExpr::InsertValueExpr (Value_ptr aggr, Value_ptr off, Value_pt
       || std::is_same_v<std::remove_const_t<A>,Pointer>
       || std::is_same_v<std::remove_const_t<A>,Pointer32>
       || std::is_same_v<std::remove_const_t<A>,SymbolicConstant>
-      || std::is_same_v<std::remove_const_t<A>,Register>
       || std::is_same_v<std::remove_const_t<A>,AggregateConstant>      
       ;
-
-    template<class A>
-   constexpr bool is_register = std::is_same_v<std::remove_const_t<A>,Register>;
 
     template<class A>
    constexpr bool is_symbolic = std::is_same_v<std::remove_const_t<A>,SymbolicConstant>;
@@ -584,6 +580,11 @@ void visitSubExpressions(F&& f,MiniMC::Model::Value& vv) {
 	    return *this;
       }
 
+      auto& operator<< (Register_ptr reg) {
+            stack.push(makeRegisterValue(reg));
+            return *this;
+      }
+
       auto& operator<< (Type_ptr ptr) {
       	    types.push(std::move(ptr));
 	    return *this;
@@ -604,7 +605,6 @@ struct ExprSimplifier  {
   }
 
 
-  MiniMC::Model::Value_ptr operator() (MiniMC::Model::Register& i) const {return i .shared_from_this();}
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::Bool& i) const {return MiniMC::Model::Bool::make(i.getValue());}
 	
 

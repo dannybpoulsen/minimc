@@ -17,15 +17,13 @@ namespace MiniMC {
                                                              const RegReplaceMap& repl,
 							     Frame frame
 							   ) {
-        auto replaceF = [&repl, &frame](const MiniMC::Model::Register& v) -> MiniMC::Model::Value_ptr {
-	  auto symbol = frame.resolve(v.getName());
-          return std::get<MiniMC::Model::Register_ptr> (repl.at (symbol.value()).getUserData());
+        auto replaceF = [&repl, &frame](const MiniMC::Model::Register& v) -> MiniMC::Model::Register_ptr {
+	  auto symbol = v.getSymbol();
+          return std::get<MiniMC::Model::Register_ptr> (repl.at (symbol).getUserData());
 	};
-        MiniMC::Model::Replacer replacer{replaceF};
-        
 	std::vector<Instruction> instrs;
 	for (auto& t : instr) {
-	  std::back_inserter (instrs) = MiniMC::Model::Instruction (t, replacer);
+	  std::back_inserter (instrs) = MiniMC::Model::Instruction (t, replaceF);
 	}
 	return {instrs};
 
