@@ -437,12 +437,13 @@ namespace MiniMC {
     
     
  
-    #include "minimc/model/expr.inc"
-
     
     
-  } // namespace Model
+  } // Namespace Model
 } // namespace MiniMC
 
+#include "minimc/model/expr.inc"
+
+    
 
 #endif

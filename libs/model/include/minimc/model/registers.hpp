@@ -52,8 +52,6 @@ namespace MiniMC {
       
     private:
       RegisterInfo place;
-      std::string name;
-      std::string symbol_name;
       MiniMC::Model::Symbol::WeakSymbol symb;
     };
 

@@ -1,6 +1,10 @@
 
      #include <concepts>
      #include "minimc/support/feedback.hpp"
+
+namespace MiniMC {
+   namespace Model {
+
 {% for N in ISA.getExpressionsFromGroups(["TAC","Comparison","Cast","Unary","Pointer","memory","loadstore"]) %}
      class {{N.getName()}}Expr : public Value {
      	   public:
@@ -651,3 +655,6 @@ const T& Value::as () const {
 
 template<class T>
 concept Integer = std::is_same_v<T,I8Integer> || std::is_same_v<T,I16Integer> || std::is_same_v<T,I32Integer>  || std::is_same_v<T,I64Integer>;
+
+}
+}
