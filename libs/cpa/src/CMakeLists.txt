@@ -6,7 +6,7 @@ target_link_libraries (cpa PUBLIC
 		      PRIVATE -Wl,-whole-archive
 		      concrete
 		      symb
-		      
+		     		      
 		      -Wl,-no-whole-archive)
 
 target_include_directories (cpa PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)

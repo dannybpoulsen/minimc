@@ -6,6 +6,7 @@
 #include "minimc/model/variables.hpp"
 #include "minimc/vm/vmt.hpp"
 #include "minimc/vm/value.hpp"
+#include "minimc/util/valuemap.hpp"
 #include "minimc/cpa/state.hpp"
 #include "minimc/cpa/interface.hpp"
 #include <memory>
