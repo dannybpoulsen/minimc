@@ -46,7 +46,7 @@ namespace MiniMC {
 	std::vector<MiniMC::CPA::QueryExpr_ptr> params_sym; 
       
 	for (auto& p : res.vars ()) {
-	  params_sym.push_back (initstate->getBuilder().buildValue (0,*MiniMC::Model::makeRegisterValue(p)));
+	  params_sym.push_back (initstate->getBuilder().buildValue (0,*MiniMC::Model::makeRegisterValue(*p)));
 	}
 	
 	

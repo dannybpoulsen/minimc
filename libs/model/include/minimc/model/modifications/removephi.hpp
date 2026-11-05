@@ -21,8 +21,8 @@ namespace MiniMC {
 	      if (E->getInstructions () ) {
                 auto& instrstream = E->getInstructions () ;
                 InstructionStream stream;
-                std::unordered_map<MiniMC::Model::Register*, MiniMC::Model::Register_ptr> replacemap;
-		std::unordered_set<MiniMC::Model::Register*> used;
+                std::unordered_map<const MiniMC::Model::Register*, MiniMC::Model::Register_ptr> replacemap;
+		std::unordered_set<const MiniMC::Model::Register*> used;
                 auto replacefunc = [&](MiniMC::Model::Register& reg)->MiniMC::Model::Register_ptr {
 		  if (replacemap.count(&reg) > 0) {
 		    return replacemap.at(&reg);
@@ -53,7 +53,7 @@ namespace MiniMC {
 		      auto nvar = prgm.getMetaRegs().addRegister( frame.makeFresh ("Phi"), content.res->getType());
 		      replacemap.insert(std::make_pair(content.res.get(), nvar));
 		      stream.add<MiniMC::Model::VMInstructionCode::Assign>(
-			  replacemap.at(content.res.get()), MiniMC::Model::makeRegisterValue(content.res));
+			  replacemap.at(content.res.get()), MiniMC::Model::makeRegisterValue(*content.res));
 		    }
 		    
 		  }

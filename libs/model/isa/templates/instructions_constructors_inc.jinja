@@ -54,7 +54,7 @@ inline MiniMC::Model::Value_ptr instructionValue(const MiniMC::Model::Instructio
 
 inline MiniMC::Model::Register_ptr instructionRegister(const MiniMC::Model::InstructionArgument& arg) {
   if (auto reg = std::get_if<MiniMC::Model::Register_ptr>(&arg)) return *reg;
-  return MiniMC::Model::getRegister(instructionValue(arg));
+  return MiniMC::Model::getRegisterPtr(*instructionValue(arg));
 }
 
 template<class Iterator>

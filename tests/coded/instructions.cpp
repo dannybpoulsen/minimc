@@ -24,10 +24,14 @@ TEST_CASE("Registers are variables, not values") {
   auto reg = descr.addRegister(symbol, MiniMC::Model::I8Type::get());
 
   auto value = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(
-      MiniMC::Model::makeRegisterValue(reg));
+      MiniMC::Model::makeRegisterValue(*reg));
   REQUIRE(value != nullptr);
   CHECK(value->getValue().getFullName() == symbol.getFullName());
-  CHECK(MiniMC::Model::getRegister(value) == reg);
+  const MiniMC::Model::Value& borrowed_value = *value;
+  const auto owner_count = reg.use_count();
+  CHECK(&MiniMC::Model::getRegister(borrowed_value) == reg.get());
+  CHECK(reg.use_count() == owner_count);
+  CHECK(MiniMC::Model::getRegisterPtr(*value) == reg);
 }
 
 TEST_CASE("Add") {
@@ -70,7 +74,7 @@ TEST_CASE("Add") {
   
   REQUIRE(res_state != nullptr);
   
-  auto val = res_state->getBuilder ().buildValue (0,*MiniMC::Model::makeRegisterValue(res));
+  auto val = res_state->getBuilder ().buildValue (0,*MiniMC::Model::makeRegisterValue(*res));
   auto result = res_state->getConcretizer ()->evaluate (*val);
 
   auto res_val = MiniMC::Model::visitValue (MiniMC::Support::Overload {

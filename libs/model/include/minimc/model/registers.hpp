@@ -66,8 +66,9 @@ namespace MiniMC {
     using Value_ptr = std::shared_ptr<Value>;
     
     
-    Value_ptr makeRegisterValue(const Register_ptr& reg);
-    Register_ptr getRegister(const Value_ptr& value);
+    Value_ptr makeRegisterValue(const Register& reg);
+    const Register& getRegister(const Value& value);
+    Register_ptr getRegisterPtr(const Value& value);
         
     
     class RegisterDescr {
@@ -79,7 +80,6 @@ namespace MiniMC {
       Register_ptr addRegister(Symbol name, const Type_ptr& type);
       auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
       bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s.getName());}
-      auto& getRegister (const Symbol& s) const {return _internal->variable_map.at(s.getName());}
       
      
       auto getTotalRegisters() const { return _internal->variable_map.size(); }

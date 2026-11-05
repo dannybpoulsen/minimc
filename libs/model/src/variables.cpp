@@ -8,16 +8,7 @@
 
 namespace MiniMC {
   namespace Model {
-    Register_ptr RegisterDescr::addRegister(Symbol name, const Type_ptr& type) {
-      auto reg = std::make_shared<Register>(name.weak(),
-					    RegisterInfo{_internal->variable_map.size(), type, _internal->types});
-      _internal->variable_map[name.getName()] = reg;
-      name.setUserData (reg);
-      
-      
-      return reg;
-    }
-
+    
         
     Constant_ptr AggregateConstantBuilder::build () {
       std::size_t size = 0;

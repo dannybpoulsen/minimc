@@ -679,7 +679,7 @@ namespace MiniMC {
     auto form_type = form_reg->getType();
 	      auto act_type = CheckType(*act_param);
 	      if (form_type != act_type) {
-		messager << MustBeGivenType {inst,MiniMC::Model::makeRegisterValue(form_reg),act_type};
+		messager << MustBeGivenType {inst,MiniMC::Model::makeRegisterValue(*form_reg),act_type};
 
 		return false;
 	      }
@@ -704,7 +704,7 @@ namespace MiniMC {
 	  auto valT = CheckType(*content.op1);
           auto resT = content.res->getType();
 	  if (*valT != *resT) {
-            messager << MustBeSameType {inst,content.op1,MiniMC::Model::makeRegisterValue(content.res)};
+            messager << MustBeSameType {inst,content.op1,MiniMC::Model::makeRegisterValue(*content.res)};
             return false;
           }
           return true;

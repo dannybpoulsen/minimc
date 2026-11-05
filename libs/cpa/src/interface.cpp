@@ -54,7 +54,7 @@ namespace MiniMC {
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 	      
 	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (
-		  MiniMC::Model::makeRegisterValue(heap_block->heap_register),constant,aggr));
+		  MiniMC::Model::makeRegisterValue(*heap_block->heap_register),constant,aggr));
 	      
 	    },
 	     MiniMC::Support::Ignore{}
@@ -118,7 +118,7 @@ namespace MiniMC {
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 	      
 	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (
-		  MiniMC::Model::makeRegisterValue(heap_block->heap_register),constant,aggr));
+		  MiniMC::Model::makeRegisterValue(*heap_block->heap_register),constant,aggr));
 	      
 	    },
 	     MiniMC::Support::Ignore{}

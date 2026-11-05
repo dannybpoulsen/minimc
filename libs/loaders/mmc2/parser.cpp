@@ -367,7 +367,7 @@ namespace MiniMC {
 	  expect (NEWLINE);
 	  prgm->getHeapLayout ().addBlock (
 	      prgm->getRootFrame().makeFresh ("heap"),pointer,size_tok.get<int64_t> (),
-	      MiniMC::Model::getRegister(heap_var),value);
+	      MiniMC::Model::getRegisterPtr(*heap_var),value);
 	    
 	  
 	}
@@ -444,8 +444,8 @@ namespace MiniMC {
 	prgm = &program;
 	MiniMC::Loaders::MMC::Token tt;
 
-	heap_var = MiniMC::Model::makeRegisterValue(
-	    program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get()));
+	auto heap_register = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());
+	heap_var = MiniMC::Model::makeRegisterValue(*heap_register);
 	
 	parseGlobalDeclaration ();
 	parseFunctionDeclarations ();

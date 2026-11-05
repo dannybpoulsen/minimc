@@ -585,7 +585,7 @@ void visitSubExpressions(F&& f,MiniMC::Model::Value& vv) {
       }
 
       auto& operator<< (Register_ptr reg) {
-            stack.push(makeRegisterValue(reg));
+            stack.push(makeRegisterValue(*reg));
             return *this;
       }
 

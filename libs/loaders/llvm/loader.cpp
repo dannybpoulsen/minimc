@@ -438,7 +438,7 @@ namespace MiniMC {
 	  
 	  if (auto symbol = prgm.getRootFrame().resolve (e)) {
 	    //auto func = prgm.getFunction(symbol.value());
-	    auto entry = createEntryPoint(stacksize, prgm, symbol.value(), {},MiniMC::Model::getRegister(sp),heap_mem);
+	    auto entry = createEntryPoint(stacksize, prgm, symbol.value(), {},MiniMC::Model::getRegisterPtr(*sp),heap_mem);
 	    
 	    prgm.addEntryPoint(entry);
 	  }

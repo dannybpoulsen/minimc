@@ -36,7 +36,7 @@ namespace MiniMC {
       bool StructuralChecker::Check (MiniMC::Model::Program& prgm) {
 	for (auto& F : prgm.getFunctions ()) {
 	  for (auto& e : F->getCFA ().getEdges ()) {
-	    std::unordered_set<MiniMC::Model::Register*> defined;
+	    std::unordered_set<const MiniMC::Model::Register*> defined;
 	    for (auto& instr : e->getInstructions ()) {
 	      if (!instr.visit (MiniMC::Model::Overload {
 		    [&defined,&instr,e,this]<typename T>(const T& a) requires (T::hasOperands())  {
