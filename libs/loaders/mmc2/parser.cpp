@@ -74,13 +74,13 @@ namespace MiniMC {
 	
       }
       
-      bool Parser::parseRegisterDeclarations (MiniMC::Model::RegisterDescr& descr) {
+      bool Parser::parseRegisterDeclarations (MiniMC::Model::RegisterFactory& descr) {
 	while (match (LANGLE)) {
 	  auto symb = parseNewSymbol ();
 	  auto type = parseType ();
 	  expect (RANGLE);
 	  expect (NEWLINE);
-	  variableMap.emplace (symb,descr.addRegister (std::move(symb),type));
+	  variableMap.emplace (symb,descr.makeRegister (std::move(symb),type));
 	}
 	return true;
       }
@@ -132,11 +132,11 @@ namespace MiniMC {
 	//expect (IDENTIFIER,&tok);
 	auto symbol = parseNewSymbol ();
 	expect (NEWLINE);
-	MiniMC::Model::RegisterDescr rdescr;
 	std::vector<MiniMC::Model::Symbol> params;
 	
-	curFrame = curFrame.create (symbol.getName ());
-	if (match (REGISTERS)) {
+	curFrame = curFrame.create (symbol.getName ());	
+	MiniMC::Model::RegisterFactory rdescr{curFrame};
+        if (match (REGISTERS)) {
 	  expect (NEWLINE);
 	  parseRegisterDeclarations(rdescr);
 	}
@@ -374,7 +374,7 @@ namespace MiniMC {
 	
       }
       
-      MiniMC::Model::CFA Parser::parseCFA (MiniMC::Model::RegisterDescr& rdescr) {
+      MiniMC::Model::CFA Parser::parseCFA (MiniMC::Model::RegisterFactory& rdescr) {
 	expect (CFA);
 	expect (NEWLINE);
 	MiniMC::Model::CFA cfa;
@@ -444,7 +444,7 @@ namespace MiniMC {
 	prgm = &program;
 	MiniMC::Loaders::MMC::Token tt;
 
-	auto heap_register = program.getPersistentRegs().addRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());
+	auto heap_register = program.getPersistentRegs().makeRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());
 	heap_var = MiniMC::Model::makeRegisterValue(*heap_register);
 	
 	parseGlobalDeclaration ();

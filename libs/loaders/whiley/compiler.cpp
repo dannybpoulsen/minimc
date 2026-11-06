@@ -76,11 +76,11 @@ namespace MiniMC {
 
 	
 	_internal->frame = _internal->prgm.getRootFrame();;
-	_internal->heap_mem = _internal->prgm.getPersistentRegs().addRegister(_internal->frame.makeSymbol("mem"), MiniMC::Model::MemoryType::get());
+	_internal->heap_mem = _internal->prgm.getPersistentRegs().makeRegister(_internal->frame.makeSymbol("mem"), MiniMC::Model::MemoryType::get());
 	for (auto var : prgm.getVars()) {
 	  std::string name = var.getName();
 	  auto symbol = _internal->frame.makeSymbol(name);
-	  auto reg = _internal->prgm.getCPURegs().addRegister(std::move(symbol), makeType(var.getType()));
+	  auto reg = _internal->prgm.getCPURegs().makeRegister(std::move(symbol), makeType(var.getType()));
 	  
 	}
 	
@@ -97,7 +97,7 @@ namespace MiniMC {
         }
 
 	
-	MiniMC::Model::RegisterDescr descr;
+	MiniMC::Model::RegisterFactory descr{_internal->frame};
         std::vector<MiniMC::Model::Symbol> params;
 	
         auto main_func_symbol = _internal->frame.makeSymbol("_main");
@@ -110,7 +110,7 @@ namespace MiniMC {
 	  auto reg = std::get<MiniMC::Model::Register_ptr> (symb.getUserData());
 	  if (var.isParamter()) {
 	    auto psymbol = _internal->frame.makeFresh(name);
-	    auto preg = descr.addRegister(psymbol, makeType(var.getType()));
+	    auto preg = descr.makeRegister(psymbol, makeType(var.getType()));
 	    params.push_back(psymbol);
 	    static_cast<MiniMC::Model::ExpressionBuilder&>(_internal->builder) << preg;
 	    _internal->builder.Assign(reg);
@@ -127,21 +127,22 @@ namespace MiniMC {
 
       void Compiler::writeFunction(Whiley::Symbol symb) {
         auto func_name = _internal->frame.resolve(symb.getName()).value();
-	MiniMC::Model::RegisterDescr descr;
 	
         _internal->frame = _internal->frame.create(symb.getName());
-	auto wh_func = std::get<Whiley::Function_ptr>(symb.getUserData());
+	MiniMC::Model::RegisterFactory descr{_internal->frame};
+	
+        auto wh_func = std::get<Whiley::Function_ptr>(symb.getUserData());
 	for (auto s : wh_func->getFrame().getLocalSymbols()) {
           std::visit(Whiley::overloaded{
 	      [&s, this, &descr](const Whiley::VarDecl& decl) {
 		std::string name = s.getName();
 		auto symbol = _internal->frame.makeSymbol(name);
-		auto reg = descr.addRegister(std::move(symbol), makeType(decl.type));
+		auto reg = descr.makeRegister(std::move(symbol), makeType(decl.type));
 	      },
 		[&s, this, &descr](const Whiley::ParamDecl& decl) {
 		  std::string name = s.getName();
 		  auto symbol = _internal->frame.makeSymbol(name);
-		  auto reg = descr.addRegister(std::move(symbol), makeType(decl.type));
+		  auto reg = descr.makeRegister(std::move(symbol), makeType(decl.type));
 		},
 		[](auto&) {}},
 	    s.getUserData());

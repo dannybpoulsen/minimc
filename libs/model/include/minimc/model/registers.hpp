@@ -27,7 +27,7 @@ namespace MiniMC {
       Type_ptr type;
     };
 
-    class RegisterDescr;
+    class RegisterFactory;
 
     
     class Register : public std::enable_shared_from_this<Register> {
@@ -71,13 +71,13 @@ namespace MiniMC {
     Register_ptr getRegisterPtr(const Value& value);
         
     
-    class RegisterDescr {
+    class RegisterFactory {
     public:
-      RegisterDescr(RegType tt = RegType::Local) : _internal(std::make_shared<Data>(tt)) {}
-      RegisterDescr(const RegisterDescr&) = default;
-      RegisterDescr(RegisterDescr&&) = default;
-      RegisterDescr& operator= (RegisterDescr&&) = default;
-      Register_ptr addRegister(Symbol name, const Type_ptr& type);
+      RegisterFactory(MiniMC::Model::Frame frame,RegType tt = RegType::Local) : _internal(std::make_shared<Data>(frame,tt)) {}
+      RegisterFactory(const RegisterFactory&) = default;
+      RegisterFactory(RegisterFactory&&) = default;
+      RegisterFactory& operator= (RegisterFactory&&) = default;
+      Register_ptr makeRegister(Symbol name, const Type_ptr& type);
       auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
       bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s.getName());}
       
@@ -85,9 +85,10 @@ namespace MiniMC {
       auto getTotalRegisters() const { return _internal->variable_map.size(); }
     private:
       struct Data {
-	Data (RegType tt) : types(tt) {}
+	Data (MiniMC::Model::Frame f, RegType tt) : types(tt),frame(f) {}
 	std::unordered_map<std::string,Register_ptr> variable_map;
-	RegType types;
+        RegType types;
+        MiniMC::Model::Frame frame;
       };
       std::shared_ptr<Data> _internal;
     };

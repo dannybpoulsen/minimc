@@ -7,9 +7,10 @@ namespace MiniMC {
   namespace Model {
       class Program  {
     public:
-      Program()  : cpu_regs(RegType::CPU),
-		   meta_regs(RegType::Meta),
-		   pers_regs(RegType::Persistent)
+      Program(MiniMC::Model::Frame frame = MiniMC::Model::Frame{"prgm"}) : cpu_regs(frame, RegType::CPU),
+                                                                           meta_regs(frame, RegType::Meta),
+                                                                           pers_regs(frame, RegType::Persistent),
+                                                                           frame(frame)
       {}
 
       Program (const Program&) = delete ;
@@ -73,9 +74,9 @@ namespace MiniMC {
       std::vector<Symbol> entrypoints;
       SymbolTable<Function_ptr> function_map;
       HeapLayout heaplayout;
-      MiniMC::Model::RegisterDescr cpu_regs;
-      MiniMC::Model::RegisterDescr meta_regs;
-      MiniMC::Model::RegisterDescr pers_regs;
+      MiniMC::Model::RegisterFactory cpu_regs;
+      MiniMC::Model::RegisterFactory meta_regs;
+      MiniMC::Model::RegisterFactory pers_regs;
       MiniMC::Model::Frame frame{"prgm"};
       
     };

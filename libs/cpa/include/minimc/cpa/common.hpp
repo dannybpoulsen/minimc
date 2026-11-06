@@ -62,7 +62,7 @@ namespace MiniMC {
     
     template <class Value>
     struct ActivationStack {
-      ActivationStack(const MiniMC::Model::RegisterDescr& cpuregs,const MiniMC::Model::RegisterDescr& metaregs)  {
+      ActivationStack(const MiniMC::Model::RegisterFactory& cpuregs,const MiniMC::Model::RegisterFactory& metaregs)  {
 	
 	metas = std::make_shared<MiniMC::Model::VariableMap<Value>> (metaregs.getTotalRegisters()); 
 	frames.push_back(ActivationRecord<Value>{cpuregs.getTotalRegisters(),nullptr,nullptr});
@@ -542,7 +542,7 @@ namespace MiniMC {
 	
       }
 
-      MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterDescr& descr) override {
+      MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterFactory& descr) override {
         persistent = ActivationRecord<typename ValDef::Val>{descr.getTotalRegisters(), nullptr, nullptr};
 	for (auto& v : descr.getRegisters()) {
 	  persistent.setValueOfRegister(v,valdef.ops().defaultValue (*v.getType()));
@@ -596,7 +596,7 @@ namespace MiniMC {
 	return *this;
       }
       
-      MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterDescr& cpuregs, const MiniMC::Model::RegisterDescr& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
+      MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterFactory& cpuregs, const MiniMC::Model::RegisterFactory& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
 	ActivationStack<Value> cs{cpuregs, metaregs};
         cs.push(f.getCFA().getInitialLocation(), nullptr);
 

@@ -62,8 +62,8 @@ namespace MiniMC {
 	void parseHeapSetup ();
 	bool parseInitialiserDeclarations ();
 	
-	bool parseRegisterDeclarations (MiniMC::Model::RegisterDescr& );
-	MiniMC::Model::CFA parseCFA (MiniMC::Model::RegisterDescr&);
+	bool parseRegisterDeclarations (MiniMC::Model::RegisterFactory& );
+	MiniMC::Model::CFA parseCFA (MiniMC::Model::RegisterFactory&);
 	MiniMC::Model::Symbol parseNewSymbol (bool fresh = false);
 	MiniMC::Model::Symbol parseSymbol ();
 	MiniMC::Model::Type_ptr parseReturns ();

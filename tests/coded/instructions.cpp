@@ -18,10 +18,11 @@ TEST_CASE("Registers are variables, not values") {
   static_assert(!std::is_base_of_v<MiniMC::Model::Value, MiniMC::Model::Register>);
 
   MiniMC::Model::Program prgm;
-  MiniMC::Model::RegisterDescr descr;
   auto frame = prgm.getRootFrame().create("Function");
+  MiniMC::Model::RegisterFactory descr{frame};
+  
   auto symbol = frame.makeFresh("reg");
-  auto reg = descr.addRegister(symbol, MiniMC::Model::I8Type::get());
+  auto reg = descr.makeRegister(symbol, MiniMC::Model::I8Type::get());
 
   auto value = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(
       MiniMC::Model::makeRegisterValue(*reg));
@@ -36,15 +37,15 @@ TEST_CASE("Registers are variables, not values") {
 
 TEST_CASE("Add") {
   MiniMC::Model::Program prgm;
+  auto frame = prgm.getRootFrame ().create ("KK");
   
-  MiniMC::Model::RegisterDescr descr;
+  MiniMC::Model::RegisterFactory descr{frame};
   
   
   
   MiniMC::Model::CFA cfa{};
-  auto frame = prgm.getRootFrame ().create ("KK");
   auto type = MiniMC::Model::I8Type::get();;
-  auto res = descr.addRegister (frame.makeFresh (),type);
+  auto res = descr.makeRegister (frame.makeFresh (),type);
   
   auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});

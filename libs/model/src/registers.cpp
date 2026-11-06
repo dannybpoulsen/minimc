@@ -33,7 +33,7 @@ namespace MiniMC {
       return getRegisterHandle(value);
     }
 
-    Register_ptr RegisterDescr::addRegister(MiniMC::Model::Symbol symbol, const Type_ptr& type) {
+    Register_ptr RegisterFactory::makeRegister(MiniMC::Model::Symbol symbol, const Type_ptr& type) {
       auto reg = std::make_shared<Register>(symbol.weak(),
 					    RegisterInfo{_internal->variable_map.size(), type, _internal->types});
       _internal->variable_map[symbol.getName()] = reg;
