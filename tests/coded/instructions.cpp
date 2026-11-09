@@ -134,3 +134,112 @@ TEST_CASE("Persistent registers are shared by the state and included in its hash
   CHECK(evaluate_register(successors[1], 1) == 2);
   CHECK(successors[0]->hash() != successors[1]->hash());
 }
+
+TEST_CASE("Meta registers are scoped to their active frames") {
+  MiniMC::Model::Program prgm;
+  auto root_meta = prgm.getRootFrame().makeRegister(
+      "root_meta", MiniMC::Model::I8Type::get(), MiniMC::Model::RegType::Meta);
+  auto callee_frame = prgm.getRootFrame().create("callee");
+  auto callee_meta = callee_frame.makeRegister("meta", MiniMC::Model::I8Type::get(),
+                                                MiniMC::Model::RegType::Meta);
+
+  MiniMC::Model::CFA callee_cfa;
+  auto callee_initial = callee_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, callee_frame});
+  auto callee_return = callee_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, callee_frame});
+  auto callee_end = callee_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, callee_frame});
+  callee_cfa.setInitial(callee_initial);
+  {
+    MiniMC::Model::EdgeBuilder builder{callee_cfa, callee_initial, callee_return, callee_frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::Assign>(
+        callee_meta, MiniMC::Model::I8Integer::make(4));
+  }
+  {
+    MiniMC::Model::EdgeBuilder builder{callee_cfa, callee_return, callee_end, callee_frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::RetVoid>();
+  }
+  auto callee_symbol = prgm.getRootFrame().makeSymbol("callee");
+  prgm.addFunction(callee_symbol, {}, MiniMC::Model::VoidType::get(),
+                   std::move(callee_cfa), false, callee_frame);
+
+  auto caller_frame = prgm.getRootFrame().create("caller");
+  auto caller_meta = caller_frame.makeRegister("meta", MiniMC::Model::I8Type::get(),
+                                                MiniMC::Model::RegType::Meta);
+  CHECK(caller_meta->getId() == callee_meta->getId());
+  auto callee_value = MiniMC::Model::SymbolicConstant::make(callee_symbol);
+  callee_value->setType(MiniMC::Model::PointerType::get());
+
+  MiniMC::Model::CFA caller_cfa;
+  auto caller_initial = caller_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, caller_frame});
+  auto caller_call = caller_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, caller_frame});
+  auto caller_end = caller_cfa.makeLocation(
+      prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, caller_frame});
+  caller_cfa.setInitial(caller_initial);
+  {
+    MiniMC::Model::EdgeBuilder builder{caller_cfa, caller_initial, caller_call, caller_frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::Assign>(
+        caller_meta, MiniMC::Model::I8Integer::make(2));
+    builder.addInstr<MiniMC::Model::InstructionCode::Assign>(
+        root_meta, MiniMC::Model::I8Integer::make(7));
+  }
+  {
+    MiniMC::Model::EdgeBuilder builder{caller_cfa, caller_call, caller_end, caller_frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::Call>(
+        nullptr, callee_value, std::vector<MiniMC::Model::Value_ptr>{});
+  }
+  auto caller_symbol = prgm.getRootFrame().makeSymbol("caller");
+  auto caller = prgm.addFunction(caller_symbol, {}, MiniMC::Model::VoidType::get(),
+                                 std::move(caller_cfa), false, caller_frame);
+
+  MiniMC::CPA::Concrete::CPA cpa{MiniMC::Model::NonDetGenerator{}};
+  auto state = cpa.makeInitialState({{caller_symbol}, {}, prgm});
+  auto transfer = cpa.makeTransfer(prgm);
+  auto step = [&](const MiniMC::CPA::State_ptr& current, MiniMC::Model::Location_ptr location) {
+    MiniMC::CPA::State_ptr next;
+    for (auto edge = location->ebegin(); edge != location->eend(); ++edge) {
+      for (auto successor : transfer->doTransfer(*current, {*edge, 0})) {
+        next = std::move(successor);
+        break;
+      }
+      if (next)
+        break;
+    }
+    if (!next)
+      throw MiniMC::Support::Exception("Expected a successor state");
+    return next;
+  };
+  auto valueOf = [](const MiniMC::CPA::State_ptr& current, const MiniMC::Model::Register_ptr& reg) {
+    auto query = current->getBuilder().buildValue(0, *MiniMC::Model::makeRegisterValue(*reg));
+    auto value = current->getConcretizer()->evaluate(*query);
+    return MiniMC::Model::visitValue(
+        MiniMC::Support::Overload{
+            [](const MiniMC::Model::I8Integer& integer) { return integer.getValue(); },
+            MiniMC::Support::Error<MiniMC::BV8>{}},
+        *value);
+  };
+
+  state = step(state, caller->getCFA().getInitialLocation());
+  CHECK(valueOf(state, caller_meta) == 2);
+  CHECK(valueOf(state, root_meta) == 7);
+
+  state = step(state, caller_call);
+  CHECK(valueOf(state, caller_meta) == 2);
+  CHECK(valueOf(state, root_meta) == 7);
+  CHECK(valueOf(state, callee_meta) == 0);
+
+  const auto before_callee_assignment = state->hash();
+  state = step(state, callee_initial);
+  CHECK(valueOf(state, caller_meta) == 2);
+  CHECK(valueOf(state, root_meta) == 7);
+  CHECK(valueOf(state, callee_meta) == 4);
+  CHECK(state->hash() != before_callee_assignment);
+
+  state = step(state, callee_return);
+  CHECK(valueOf(state, caller_meta) == 2);
+  CHECK(valueOf(state, root_meta) == 7);
+  CHECK_THROWS(valueOf(state, callee_meta));
+}

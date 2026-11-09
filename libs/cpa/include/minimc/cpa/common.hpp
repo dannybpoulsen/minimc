@@ -19,8 +19,16 @@ namespace MiniMC {
   namespace Common {
     template<class Value>
     struct ActivationRecord {
-      ActivationRecord(MiniMC::Model::VariableMap<Value>&& values, const MiniMC::Model::Register_ptr& ret, MiniMC::Model::Location_ptr l) : values(std::move(values)), ret(ret), loc(l) {}
-      ActivationRecord(std::size_t size, const MiniMC::Model::Register_ptr& ret, MiniMC::Model::Location_ptr l) : values(size), ret(ret), loc(l) {}
+      ActivationRecord(std::size_t size,
+                       const MiniMC::Model::Register_ptr& ret,
+                       MiniMC::Model::Location_ptr l)
+          : values(size), metas(0), ret(ret), loc(l) {}
+      ActivationRecord(std::size_t size,
+                       std::size_t meta_size,
+                       const MiniMC::Model::Register_ptr& ret,
+                       MiniMC::Model::Location_ptr l,
+                       MiniMC::Model::Frame frame)
+          : values(size), metas(meta_size), ret(ret), loc(l), frame(std::move(frame)) {}
 
       ActivationRecord(const ActivationRecord&) = default;
       ActivationRecord& operator= (ActivationRecord&&) =default;
@@ -28,7 +36,7 @@ namespace MiniMC {
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
-	hash << values << ret.get() << loc.get();
+	hash << values << metas << ret.get() << loc.get();
 	return hash;
       }
 
@@ -38,35 +46,37 @@ namespace MiniMC {
       
       auto returnRegister () const {return ret;}
       auto getValueOfRegister (const MiniMC::Model::Register& r) const {
+	if (r.getRegType() == MiniMC::Model::RegType::Meta)
+	  return metas[r];
 	return values[r];
       }
 
       auto isActiveRegister (const MiniMC::Model::Symbol& r) const {
-	if (!loc)
-	  return false;
-	
-	else return loc->getInfo().getFrame().hasSymbol (r);
-	
+	return frame.hasSymbol(r);
       }
 
       void setValueOfRegister (const MiniMC::Model::Register& r,Value&& v) {
-	values.set(r,std::move(v));
+	if (r.getRegType() == MiniMC::Model::RegType::Meta)
+	  metas.set(r,std::move(v));
+	else
+	  values.set(r,std::move(v));
       }
       
       
     private:
       MiniMC::Model::VariableMap<Value> values;
+      MiniMC::Model::VariableMap<Value> metas;
       MiniMC::Model::Register_ptr ret{nullptr};
       MiniMC::Model::Location_ptr loc;
+      MiniMC::Model::Frame frame;
     };
     
     template <class Value>
     struct ActivationStack {
       ActivationStack(const MiniMC::Model::Frame& frame) {
-	metas = std::make_shared<MiniMC::Model::VariableMap<Value>> (
-	    frame.numberOfRegisters(MiniMC::Model::RegType::Meta));
 	frames.push_back(ActivationRecord<Value>{
-	    frame.numberOfRegisters(MiniMC::Model::RegType::CPU), nullptr, nullptr});
+	    frame.numberOfRegisters(MiniMC::Model::RegType::CPU),
+	    frame.numberOfRegisters(MiniMC::Model::RegType::Meta), nullptr, nullptr, frame});
       } 
       
       ActivationStack(const ActivationStack&) = default;
@@ -83,7 +93,11 @@ namespace MiniMC {
       }
       
       void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Register_ptr& ret) {
-        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getFrame().numberOfRegisters(MiniMC::Model::RegType::Local)},ret,loc});
+        const auto& frame = loc->getInfo().getFrame();
+        frames.push_back(ActivationRecord<Value>{
+            frame.numberOfRegisters(MiniMC::Model::RegType::Local),
+            frame.numberOfRegisters(MiniMC::Model::RegType::Meta),
+            ret, loc, frame});
       }
 
       
@@ -104,7 +118,12 @@ namespace MiniMC {
 	switch (reg.getRegType ()) {
 	case MiniMC::Model::RegType::Local: return frames.back().getValueOfRegister(reg);
 	case MiniMC::Model::RegType::CPU: return frames.front().getValueOfRegister(reg);
-	case MiniMC::Model::RegType::Meta: return (*metas)[reg];
+	case MiniMC::Model::RegType::Meta: {
+	  auto record = searchForRecordWithSymbol(reg.getSymbol());
+	  if (!record)
+	    throw MiniMC::Support::Exception("Meta register has no active frame");
+	  return record->getValueOfRegister(reg);
+	}
 	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");
 		  
 	default:
@@ -117,7 +136,13 @@ namespace MiniMC {
 	switch (v.getRegType ()) {
 	case MiniMC::Model::RegType::Local: frames.back().setValueOfRegister (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   frames.front().setValueOfRegister (v,std::move(value));break;
-	case MiniMC::Model::RegType::Meta: metas->set(v,std::move(value));break;
+	case MiniMC::Model::RegType::Meta: {
+	  auto record = searchForRecordWithSymbol(v.getSymbol());
+	  if (!record)
+	    throw MiniMC::Support::Exception("Meta register has no active frame");
+	  record->setValueOfRegister(v,std::move(value));
+	  break;
+	}
 	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");  
 	default:
 	  std::unreachable();
@@ -134,9 +159,16 @@ namespace MiniMC {
 	return nullptr;
       }
 
-      
+      auto searchForRecordWithSymbol (const MiniMC::Model::Symbol& s) -> ActivationRecord<Value>* {
+	for (auto& a : std::ranges::reverse_view (frames)) {
+	  if (a.isActiveRegister(s)) {
+	    return &a;
+	  }
+	}
+	return nullptr;
+      }
+
       std::vector<ActivationRecord<Value>> frames;
-      std::shared_ptr<MiniMC::Model::VariableMap<Value>> metas;
     };
 
     template<class Value>
@@ -622,6 +654,10 @@ namespace MiniMC {
 	  auto val = ops.defaultValue (*reg->getType ());
 	  regstore.saveValue (*reg,std::move(val));
         }
+	for (auto [_, reg] : f.getFrame().local_registers(MiniMC::Model::RegType::Meta)) {
+	  auto val = ops.defaultValue (*reg->getType ());
+	  regstore.saveValue (*reg,std::move(val));
+	}
 	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
         for (auto [formal, act] : std::views::zip(f.getParameters(), params)) {
 	  auto reg =  std::get<MiniMC::Model::Register_ptr> (formal.getUserData());            

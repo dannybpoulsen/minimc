@@ -176,7 +176,7 @@ TEST_CASE("Frame register IDs are shared across frame copies") {
   CHECK(frame.numberOfRegisters(MiniMC::Model::RegType::Local) == 2);
 }
 
-TEST_CASE("Only root frames can contain non-local registers") {
+TEST_CASE("Only root frames can contain CPU and persistent registers") {
   MiniMC::Model::Frame root{"program"};
   auto child = root.create("function");
   auto type = MiniMC::Model::I8Type::get();
@@ -185,10 +185,15 @@ TEST_CASE("Only root frames can contain non-local registers") {
   CHECK_NOTHROW(root.makeFreshRegister(type, MiniMC::Model::RegType::Meta));
   CHECK_NOTHROW(root.makeRegister("persistent", type, MiniMC::Model::RegType::Persistent));
   CHECK_NOTHROW(child.makeRegister("local", type));
+  auto meta = child.makeFreshRegister(type, MiniMC::Model::RegType::Meta);
+  CHECK(meta->getId() == 0);
 
   const auto symbols_before = std::ranges::distance(child.local_symbols());
   CHECK_THROWS(child.makeRegister("cpu", type, MiniMC::Model::RegType::CPU));
   CHECK_THROWS(child.makeFreshRegister(type, MiniMC::Model::RegType::Persistent));
   CHECK(std::ranges::distance(child.local_symbols()) == symbols_before);
-  CHECK(child.numberOfRegisters() == 1);
+  CHECK(child.numberOfRegisters() == 2);
+  CHECK(child.numberOfRegisters(MiniMC::Model::RegType::Meta) == 1);
+  CHECK_NOTHROW(child.makeFreshRegister(type, MiniMC::Model::RegType::Meta));
+  CHECK(child.numberOfRegisters(MiniMC::Model::RegType::Meta) == 2);
 }

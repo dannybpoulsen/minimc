@@ -371,8 +371,8 @@ namespace MiniMC {
     }
 
     Register_ptr Frame::makeRegister (const std::string& name, const std::shared_ptr<Type>& type, RegType reg_type) {
-      if (reg_type != RegType::Local && !_internal->is_root)
-        throw MiniMC::Support::Exception ("Only the root frame can contain non-local registers");
+      if ((reg_type == RegType::CPU || reg_type == RegType::Persistent) && !_internal->is_root)
+        throw MiniMC::Support::Exception ("Only the root frame can contain CPU or Persistent registers");
 
       auto symbol = makeSymbol(name);
       auto& id = _internal->register_ids.at(static_cast<std::size_t>(reg_type));
@@ -383,8 +383,8 @@ namespace MiniMC {
     }
 
     Register_ptr Frame::makeFreshRegister (const std::shared_ptr<Type>& type, RegType reg_type) {
-      if (reg_type != RegType::Local && !_internal->is_root)
-        throw MiniMC::Support::Exception ("Only the root frame can contain non-local registers");
+      if ((reg_type == RegType::CPU || reg_type == RegType::Persistent) && !_internal->is_root)
+        throw MiniMC::Support::Exception ("Only the root frame can contain CPU or Persistent registers");
 
       auto symbol = makeFresh("");
       auto& id = _internal->register_ids.at(static_cast<std::size_t>(reg_type));

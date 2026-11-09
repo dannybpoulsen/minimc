@@ -41,12 +41,10 @@ namespace MiniMC {
 	Internal (SMTLib::Context_ptr context,const MiniMC::Model::Program& prgm) : context(context),
 										    engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},
 											   MiniMC::VMT::Pathformula::Memory{context->getBuilder()},
-											   prgm),
-										    metas(prgm.getRootFrame().numberOfRegisters(MiniMC::Model::RegType::Meta))
+											   prgm)
 	{}
 	SMTLib::Context_ptr context;
 	PathFormulaEngine engine;
-	MiniMC::Model::VariableMap<MiniMC::VMT::Pathformula::Value> metas;
 	  
       };
 
