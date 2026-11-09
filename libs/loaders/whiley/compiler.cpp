@@ -76,11 +76,11 @@ namespace MiniMC {
 
 	
 	_internal->frame = _internal->prgm.getRootFrame();;
-	_internal->heap_mem = _internal->prgm.getPersistentRegs().makeRegister(_internal->frame.makeSymbol("mem"), MiniMC::Model::MemoryType::get());
+	_internal->heap_mem = _internal->prgm.getPersistentRegs().makeRegister("mem", MiniMC::Model::MemoryType::get());
 	for (auto var : prgm.getVars()) {
 	  std::string name = var.getName();
-	  auto symbol = _internal->frame.makeSymbol(name);
-	  auto reg = _internal->prgm.getCPURegs().makeRegister(std::move(symbol), makeType(var.getType()));
+	  //auto symbol = _internal->frame.makeSymbol(name);
+	  auto reg = _internal->prgm.getCPURegs().makeRegister(name, makeType(var.getType()));
 	  
 	}
 	
@@ -109,9 +109,8 @@ namespace MiniMC {
 	  auto symb = _internal->frame.resolve(name).value();
 	  auto reg = std::get<MiniMC::Model::Register_ptr> (symb.getUserData());
 	  if (var.isParamter()) {
-	    auto psymbol = _internal->frame.makeFresh(name);
-	    auto preg = descr.makeRegister(psymbol, makeType(var.getType()));
-	    params.push_back(psymbol);
+	    auto preg = descr.makeRegister(name, makeType(var.getType()));
+	    params.push_back(preg->getSymbol());
 	    static_cast<MiniMC::Model::ExpressionBuilder&>(_internal->builder) << preg;
 	    _internal->builder.Assign(reg);
 	  }
@@ -136,13 +135,11 @@ namespace MiniMC {
           std::visit(Whiley::overloaded{
 	      [&s, this, &descr](const Whiley::VarDecl& decl) {
 		std::string name = s.getName();
-		auto symbol = _internal->frame.makeSymbol(name);
-		auto reg = descr.makeRegister(std::move(symbol), makeType(decl.type));
+		auto reg = descr.makeRegister(name, makeType(decl.type));
 	      },
 		[&s, this, &descr](const Whiley::ParamDecl& decl) {
 		  std::string name = s.getName();
-		  auto symbol = _internal->frame.makeSymbol(name);
-		  auto reg = descr.makeRegister(std::move(symbol), makeType(decl.type));
+		  auto reg = descr.makeRegister(name, makeType(decl.type));
 		},
 		[](auto&) {}},
 	    s.getUserData());

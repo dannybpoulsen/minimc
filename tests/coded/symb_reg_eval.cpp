@@ -23,10 +23,10 @@ TEST_CASE("Add") {
   MiniMC::Model::RegisterFactory descr{frame};
   
   auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
-  auto symb = frame.makeFresh ();
-  auto symbol_value = MiniMC::Model::SymbolicConstant::make(symb);
   
-  auto res = descr.makeRegister (std::move(symb),type);
+  auto res = descr.makeRegister (type);
+  auto symbol_value = MiniMC::Model::makeRegisterValue(*res);
+  
   
   auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});

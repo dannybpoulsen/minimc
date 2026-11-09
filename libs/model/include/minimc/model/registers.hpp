@@ -77,7 +77,8 @@ namespace MiniMC {
       RegisterFactory(const RegisterFactory&) = default;
       RegisterFactory(RegisterFactory&&) = default;
       RegisterFactory& operator= (RegisterFactory&&) = default;
-      Register_ptr makeRegister(Symbol name, const Type_ptr& type);
+      Register_ptr makeRegister(std::string  name, const Type_ptr& type);
+      Register_ptr makeRegister(const Type_ptr& type);
       auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
       bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s.getName());}
       

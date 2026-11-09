@@ -21,13 +21,12 @@ TEST_CASE("Registers are variables, not values") {
   auto frame = prgm.getRootFrame().create("Function");
   MiniMC::Model::RegisterFactory descr{frame};
   
-  auto symbol = frame.makeFresh("reg");
-  auto reg = descr.makeRegister(symbol, MiniMC::Model::I8Type::get());
+  auto reg = descr.makeRegister("reg", MiniMC::Model::I8Type::get());
 
   auto value = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(
       MiniMC::Model::makeRegisterValue(*reg));
   REQUIRE(value != nullptr);
-  CHECK(value->getValue().getFullName() == symbol.getFullName());
+  CHECK(value->getValue().getFullName() == reg->getSymbol().getFullName());
   const MiniMC::Model::Value& borrowed_value = *value;
   const auto owner_count = reg.use_count();
   CHECK(&MiniMC::Model::getRegister(borrowed_value) == reg.get());
@@ -45,7 +44,7 @@ TEST_CASE("Add") {
   
   MiniMC::Model::CFA cfa{};
   auto type = MiniMC::Model::I8Type::get();;
-  auto res = descr.makeRegister (frame.makeFresh (),type);
+  auto res = descr.makeRegister (type);
   
   auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});

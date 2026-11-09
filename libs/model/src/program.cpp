@@ -60,9 +60,8 @@ namespace MiniMC {
 	
 	MiniMC::Model::RegisterFactory varstack{frame,MiniMC::Model::RegType::Local};
         for (auto [symb, v] : function->getFrame().local_registers()) {
-	  auto nsym =  frame.makeSymbol(symb.getName());
-	  varstack.makeRegister (nsym,v->getType ());
-	  map.emplace (symb,nsym);
+	  auto reg = varstack.makeRegister (symb.getName(),v->getType ());
+	  map.emplace (symb,reg->getSymbol());
 	}
 	
 	std::vector<MiniMC::Model::Symbol> parameters;

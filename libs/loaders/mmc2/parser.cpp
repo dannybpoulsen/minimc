@@ -80,7 +80,7 @@ namespace MiniMC {
 	  auto type = parseType ();
 	  expect (RANGLE);
 	  expect (NEWLINE);
-	  variableMap.emplace (symb,descr.makeRegister (std::move(symb),type));
+	  variableMap.emplace (symb,descr.makeRegister (symb.getName(),type));
 	}
 	return true;
       }
@@ -444,7 +444,7 @@ namespace MiniMC {
 	prgm = &program;
 	MiniMC::Loaders::MMC::Token tt;
 
-	auto heap_register = program.getPersistentRegs().makeRegister (program.getRootFrame().makeSymbol ("heap"),MiniMC::Model::MemoryType::get());
+	auto heap_register = program.getPersistentRegs().makeRegister ("heap",MiniMC::Model::MemoryType::get());
 	heap_var = MiniMC::Model::makeRegisterValue(*heap_register);
 	
 	parseGlobalDeclaration ();
