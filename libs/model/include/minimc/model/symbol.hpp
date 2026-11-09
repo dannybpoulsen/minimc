@@ -18,9 +18,16 @@ namespace MiniMC {
   namespace Model {
 
     class Register;
+    class Type;
     class Function;
     class Location;
     class HeapBlock;
+    enum class RegType {
+      CPU,
+      Local,
+      Meta,
+      Persistent
+    };
     
     
     using Register_wptr = std::weak_ptr<Register>;
@@ -123,7 +130,11 @@ namespace MiniMC {
       bool hasSymbol (const Symbol& ) const;
 
       std::generator<std::tuple<Symbol,MiniMC::Model::Register_ptr>> local_registers () const ;
+      std::generator<std::tuple<Symbol,MiniMC::Model::Register_ptr>> local_registers (RegType) const ;
       std::size_t numberOfRegisters () const;
+      std::size_t numberOfRegisters (RegType) const;
+      Register_ptr makeRegister (const std::string&, const std::shared_ptr<Type>&, RegType = RegType::Local);
+      Register_ptr makeFreshRegister (const std::shared_ptr<Type>&, RegType = RegType::Local);
     private:
       struct Internal;
       Frame (std::shared_ptr<Internal>&& s) : _internal(std::move(s)) {}

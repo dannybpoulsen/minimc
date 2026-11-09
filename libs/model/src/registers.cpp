@@ -33,30 +33,5 @@ namespace MiniMC {
       return getRegisterHandle(value);
     }
 
-    Register_ptr RegisterFactory::makeRegister(std::string name, const Type_ptr& type) {
-      auto symbol = _internal->frame.makeSymbol (name);
-      auto reg = std::make_shared<Register>(symbol.weak(),
-					    RegisterInfo{_internal->variable_map.size(), type, _internal->types});
-      _internal->variable_map[symbol.getName()] = reg;
-      symbol.setUserData (reg);
-      
-      
-      return reg;
-    }
-
-    Register_ptr RegisterFactory::makeRegister(const Type_ptr& type) {
-      auto symbol = _internal->frame.makeFresh ("");
-      auto reg = std::make_shared<Register>(symbol.weak(),
-					    RegisterInfo{_internal->variable_map.size(), type, _internal->types});
-      _internal->variable_map[symbol.getName()] = reg;
-      symbol.setUserData (reg);
-      
-      
-      return reg;
-    }
-
-						    
-    
-    
   }
 }

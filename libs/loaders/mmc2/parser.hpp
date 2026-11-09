@@ -1,6 +1,7 @@
 #include "Scanner.hpp"
 #include "minimc/model/cfg.hpp"
 #include "minimc/model/function.hpp"
+#include "minimc/model/registers.hpp"
 #include <istream>
 #include <unordered_set>
 
@@ -62,8 +63,8 @@ namespace MiniMC {
 	void parseHeapSetup ();
 	bool parseInitialiserDeclarations ();
 	
-	bool parseRegisterDeclarations (MiniMC::Model::RegisterFactory& );
-	MiniMC::Model::CFA parseCFA (MiniMC::Model::RegisterFactory&);
+	bool parseRegisterDeclarations (MiniMC::Model::Frame&, MiniMC::Model::RegType);
+	MiniMC::Model::CFA parseCFA ();
 	MiniMC::Model::Symbol parseNewSymbol (bool fresh = false);
 	MiniMC::Model::Symbol parseSymbol ();
 	MiniMC::Model::Type_ptr parseReturns ();

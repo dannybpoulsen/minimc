@@ -76,11 +76,13 @@ namespace MiniMC {
 
 	
 	_internal->frame = _internal->prgm.getRootFrame();;
-	_internal->heap_mem = _internal->prgm.getPersistentRegs().makeRegister("mem", MiniMC::Model::MemoryType::get());
+	_internal->heap_mem = _internal->prgm.getRootFrame().makeRegister(
+	    "mem", MiniMC::Model::MemoryType::get(), MiniMC::Model::RegType::Persistent);
 	for (auto var : prgm.getVars()) {
 	  std::string name = var.getName();
 	  //auto symbol = _internal->frame.makeSymbol(name);
-	  auto reg = _internal->prgm.getCPURegs().makeRegister(name, makeType(var.getType()));
+	  auto reg = _internal->prgm.getRootFrame().makeRegister(
+	      name, makeType(var.getType()), MiniMC::Model::RegType::CPU);
 	  
 	}
 	
@@ -97,7 +99,6 @@ namespace MiniMC {
         }
 
 	
-	MiniMC::Model::RegisterFactory descr{_internal->frame};
         std::vector<MiniMC::Model::Symbol> params;
 	
         auto main_func_symbol = _internal->frame.makeSymbol("_main");
@@ -109,7 +110,8 @@ namespace MiniMC {
 	  auto symb = _internal->frame.resolve(name).value();
 	  auto reg = std::get<MiniMC::Model::Register_ptr> (symb.getUserData());
 	  if (var.isParamter()) {
-	    auto preg = descr.makeRegister(name, makeType(var.getType()));
+	    auto preg = _internal->frame.makeRegister(
+	        name, makeType(var.getType()), MiniMC::Model::RegType::Local);
 	    params.push_back(preg->getSymbol());
 	    static_cast<MiniMC::Model::ExpressionBuilder&>(_internal->builder) << preg;
 	    _internal->builder.Assign(reg);
@@ -128,18 +130,18 @@ namespace MiniMC {
         auto func_name = _internal->frame.resolve(symb.getName()).value();
 	
         _internal->frame = _internal->frame.create(symb.getName());
-	MiniMC::Model::RegisterFactory descr{_internal->frame};
-	
         auto wh_func = std::get<Whiley::Function_ptr>(symb.getUserData());
 	for (auto s : wh_func->getFrame().getLocalSymbols()) {
           std::visit(Whiley::overloaded{
-	      [&s, this, &descr](const Whiley::VarDecl& decl) {
+              [&s, this](const Whiley::VarDecl& decl) {
 		std::string name = s.getName();
-		auto reg = descr.makeRegister(name, makeType(decl.type));
-	      },
-		[&s, this, &descr](const Whiley::ParamDecl& decl) {
+		auto reg = _internal->frame.makeRegister(
+		    name, makeType(decl.type), MiniMC::Model::RegType::Local);
+              },
+		[&s, this](const Whiley::ParamDecl& decl) {
 		  std::string name = s.getName();
-		  auto reg = descr.makeRegister(name, makeType(decl.type));
+		  auto reg = _internal->frame.makeRegister(
+		      name, makeType(decl.type), MiniMC::Model::RegType::Local);
 		},
 		[](auto&) {}},
 	    s.getUserData());

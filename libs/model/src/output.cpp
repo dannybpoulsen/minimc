@@ -74,17 +74,17 @@ namespace MiniMC {
     void writeProgram (std::ostream& os, const MiniMC::Model::Program& p) {
       os << "# Globals" << "\n";
       os << "  .registers" << "\n";
-      for (auto& reg : p.getCPURegs().getRegisters()) {
-	os << "    " << reg << "\n";
+      for (auto [_, reg] : p.getRootFrame().local_registers(MiniMC::Model::RegType::CPU)) {
+	os << "    " << *reg << "\n";
       }
 
       os << "  .metaregisters" << "\n";
-      for (auto& reg : p.getMetaRegs().getRegisters()) {
-	os << "    " << reg << "\n";
+      for (auto [_, reg] : p.getRootFrame().local_registers(MiniMC::Model::RegType::Meta)) {
+	os << "    " << *reg << "\n";
       }
       os << "  .persistentregisters" << "\n";
-      for (auto& reg : p.getPersistentRegs().getRegisters()) {
-	os << "    " << reg << "\n";
+      for (auto [_, reg] : p.getRootFrame().local_registers(MiniMC::Model::RegType::Persistent)) {
+	os << "    " << *reg << "\n";
       }
 
       os << "# Functions" << "\n";
@@ -110,4 +110,3 @@ namespace MiniMC {
     }
   }
 }
-

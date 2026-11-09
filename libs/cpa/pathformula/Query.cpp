@@ -42,7 +42,7 @@ namespace MiniMC {
 										    engine(MiniMC::VMT::Pathformula::Operations{context->getBuilder()},
 											   MiniMC::VMT::Pathformula::Memory{context->getBuilder()},
 											   prgm),
-										    metas(prgm.getMetaRegs().getTotalRegisters())
+										    metas(prgm.getRootFrame().numberOfRegisters(MiniMC::Model::RegType::Meta))
 	{}
 	SMTLib::Context_ptr context;
 	PathFormulaEngine engine;

@@ -64,11 +64,11 @@ namespace MiniMC {
 
       LoadContext (const LoadContext& ) = delete;
       LoadContext ( const GLoadContext& c,
-		    MiniMC::Model::RegisterFactory& descr,
+		    MiniMC::Model::Frame& register_frame,
 		    const MiniMC::Model::Value_ptr& sp,
 		    const MiniMC::Model::Value_ptr& sp_mem,
 		    MiniMC::Model::Frame frame
-		    ) : GLoadContext(c),stack(descr),sp(sp),sp_mem(sp_mem),frame(frame) {
+		    ) : GLoadContext(c),stack(register_frame),sp(sp),sp_mem(sp_mem),frame(frame) {
 	
       }
       auto& getStack () {return stack;}
@@ -77,7 +77,7 @@ namespace MiniMC {
       auto& getFrame () {return frame;}
     private:
       
-      MiniMC::Model::RegisterFactory& stack;
+      MiniMC::Model::Frame& stack;
       MiniMC::Model::Value_ptr sp;
       MiniMC::Model::Value_ptr sp_mem;
       MiniMC::Model::Frame frame;

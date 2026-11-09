@@ -62,10 +62,11 @@ namespace MiniMC {
     
     template <class Value>
     struct ActivationStack {
-      ActivationStack(const MiniMC::Model::RegisterFactory& cpuregs,const MiniMC::Model::RegisterFactory& metaregs)  {
-	
-	metas = std::make_shared<MiniMC::Model::VariableMap<Value>> (metaregs.getTotalRegisters()); 
-	frames.push_back(ActivationRecord<Value>{cpuregs.getTotalRegisters(),nullptr,nullptr});
+      ActivationStack(const MiniMC::Model::Frame& frame) {
+	metas = std::make_shared<MiniMC::Model::VariableMap<Value>> (
+	    frame.numberOfRegisters(MiniMC::Model::RegType::Meta));
+	frames.push_back(ActivationRecord<Value>{
+	    frame.numberOfRegisters(MiniMC::Model::RegType::CPU), nullptr, nullptr});
       } 
       
       ActivationStack(const ActivationStack&) = default;
@@ -82,7 +83,7 @@ namespace MiniMC {
       }
       
       void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Register_ptr& ret) {
-        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getFrame().numberOfRegisters()},ret,loc});
+        frames.push_back (ActivationRecord<Value>{{loc->getInfo().getFrame().numberOfRegisters(MiniMC::Model::RegType::Local)},ret,loc});
       }
 
       
@@ -273,9 +274,9 @@ namespace MiniMC {
     };
 
     template<class Value>
-    class DummyRegisterStore {
+    class RegisterSymbolView {
     public:  
-      DummyRegisterStore (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), registers(persistent) {}
+      RegisterSymbolView (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), registers(persistent) {}
 
       Value lookupRegister (const MiniMC::Model::Register& r) const  {
 	return registers.lookupRegister(r);
@@ -551,16 +552,17 @@ namespace MiniMC {
 	
       }
 
-      MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterFactory& descr) override {
-        persistent = ActivationRecord<typename ValDef::Val>{descr.getTotalRegisters(), nullptr, nullptr};
-	for (auto& v : descr.getRegisters()) {
-	  persistent.setValueOfRegister(v,valdef.ops().defaultValue (*v.getType()));
+      MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::Frame& frame) override {
+        persistent = ActivationRecord<typename ValDef::Val>{
+	    frame.numberOfRegisters(MiniMC::Model::RegType::Persistent), nullptr, nullptr};
+	for (auto [_, reg] : frame.local_registers(MiniMC::Model::RegType::Persistent)) {
+	  persistent.setValueOfRegister(*reg,valdef.ops().defaultValue (*reg->getType()));
 	}
 	return *this;
       }
 
       MiniMC::CPA::StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) override {
-	DummyRegisterStore<Value> regstore{*_scontext,persistent};
+	RegisterSymbolView<Value> regstore{*_scontext,persistent};
 	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
 	auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (block.baseobj));
 	auto size = eval.Eval (*MiniMC::Model::I64Integer::make (block.size));
@@ -605,20 +607,20 @@ namespace MiniMC {
 	return *this;
       }
       
-      MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterFactory& cpuregs, const MiniMC::Model::RegisterFactory& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
-	ActivationStack<Value> cs{cpuregs, metaregs};
+      MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::Frame& frame, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
+	ActivationStack<Value> cs{frame};
         cs.push(f.getCFA().getInitialLocation(), nullptr);
 
         auto memops = valdef.memops();
 	auto ops = valdef.ops();
 	EvaluationContext<Value,decltype(memops)> regstore {cs,persistent,valdef.memops(),*_scontext};
-	for (auto& reg : cpuregs.getRegisters()) {
-	  auto val = ops.defaultValue (*reg.getType ());
-	  regstore.saveValue (reg,std::move(val));
+	for (auto [_, reg] : frame.local_registers(MiniMC::Model::RegType::CPU)) {
+	  auto val = ops.defaultValue (*reg->getType ());
+	  regstore.saveValue (*reg,std::move(val));
         }
-	for (auto& reg : metaregs.getRegisters()) {
-	  auto val = ops.defaultValue (*reg.getType ());
-	  regstore.saveValue (reg,std::move(val));
+	for (auto [_, reg] : frame.local_registers(MiniMC::Model::RegType::Meta)) {
+	  auto val = ops.defaultValue (*reg->getType ());
+	  regstore.saveValue (*reg,std::move(val));
         }
 	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
         for (auto [formal, act] : std::views::zip(f.getParameters(), params)) {
@@ -630,7 +632,7 @@ namespace MiniMC {
       }
 
       MiniMC::CPA::StateBuilder& addConstraint(MiniMC::Model::Value& b) {
-	DummyRegisterStore<Value> regstore{*_scontext,persistent};
+	RegisterSymbolView<Value> regstore{*_scontext,persistent};
         auto eval = MiniMC::VMT::makeEvaluator(valdef, regstore);
 	auto converted = eval.Eval (b);
         Value::visit(
@@ -690,7 +692,7 @@ namespace MiniMC {
       CPA (Args... args) : valdef(args...) {}
       State_ptr makeInitialState(const InitialiseDescr& descr) override {
 	StateBuilder<ValDef> builder{valdef};
-        builder.addPersistentRegisters(descr.getProgram().getPersistentRegs());
+        builder.addPersistentRegisters(descr.getProgram().getRootFrame());
 	
         for (auto& block : descr.getHeap().blocks()) {
 	  builder.addHeapBlock(block);
@@ -698,8 +700,7 @@ namespace MiniMC {
 	
 	for (auto& f : descr.getEntries()) {
           builder.addThread(*f.getFunction(),
-                            descr.getProgram().getCPURegs(),
-                            descr.getProgram().getMetaRegs(),
+                            descr.getProgram().getRootFrame(),
 			    f.getParams());
 	  
 	}          

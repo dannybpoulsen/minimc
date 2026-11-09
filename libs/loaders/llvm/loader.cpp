@@ -150,19 +150,19 @@ namespace MiniMC {
         auto frame = prgm.getRootFrame().create(fname);
         MiniMC::Model::CFA cfg;
         std::vector<MiniMC::Model::Symbol> params;
-        MiniMC::Model::RegisterFactory variablestack{frame};
         MiniMC::Model::LocationInfoCreator locinfoc(frame);
 
-        auto sp_mem_reg = variablestack.makeRegister("sp_mem", MiniMC::Model::PointerType::get());
+        auto sp_mem_reg = frame.makeRegister("sp_mem", MiniMC::Model::PointerType::get(),
+                                             MiniMC::Model::RegType::Local);
 	
-        LoadContext load{lcontext, variablestack, sp, MiniMC::Model::SymbolicConstant::make (sp_mem_reg->getSymbol()), frame};
+        LoadContext load{lcontext, frame, sp, MiniMC::Model::SymbolicConstant::make (sp_mem_reg->getSymbol()), frame};
         auto returnTy = load.getType(F.getReturnType());
 
         auto makeVariable = [&load, &frame](auto val) {
           if (!load.hasValue(val)) {
             auto type = load.getType(val->getType());
 	    std::string name{val->getName().str()};
-            auto reg = load.getStack().makeRegister(name, type);
+            auto reg = load.getStack().makeRegister(name, type, MiniMC::Model::RegType::Local);
             auto symb_constant = MiniMC::Model::makeRegisterValue(*reg);
 	    symb_constant->setType(reg->getType());
 	    load.addRegister (val,reg);
@@ -316,7 +316,7 @@ namespace MiniMC {
 		auto dest = enqueue(brterm->getDestination(i));
 		auto valComp = load.findValue(brterm->getDestination(i));
                 auto btype = MiniMC::Model::BoolType::get();
-		auto cond = load.getStack().makeRegister(btype);
+		auto cond = load.getStack().makeFreshRegister(btype, MiniMC::Model::RegType::Local);
 		
 		MiniMC::Model::EdgeBuilder{cfg, to, splitloc, frame}.addInstr<MiniMC::Model::InstructionCode::Eq>(cond,
 														       value,
@@ -385,7 +385,6 @@ namespace MiniMC {
       const std::string name = MiniMC::Support::Localiser("__minimc__entry_%1%-%2%").format(function_symb.getName(), ++nb);
       auto frame = program.getRootFrame().create(name);
       MiniMC::Model::CFA cfg;
-      MiniMC::Model::RegisterFactory vstack{frame};
       MiniMC::Model::LocationInfoCreator locinf(frame);
 
       auto funcpointer = MiniMC::Model::SymbolicConstant::make(function_symb);
@@ -412,7 +411,7 @@ namespace MiniMC {
       
       auto restype = function->getReturnType();
       if (restype->getTypeID() != MiniMC::Model::TypeID::Void) {
-        result = vstack.makeRegister( restype);
+        result = frame.makeFreshRegister(restype, MiniMC::Model::RegType::Local);
       }
       {
 	MiniMC::Model::EdgeBuilder builder{cfg, init, end, frame};
@@ -444,9 +443,11 @@ namespace MiniMC {
 
       virtual LoadResult readFromBuffer(std::unique_ptr<llvm::MemoryBuffer>& buffer, MiniMC::Support::Messager& mess) {
         MiniMC::Model::Program prgm;
-        auto sp_reg = prgm.getCPURegs().makeRegister("sp", MiniMC::Model::PointerType::get());
+        auto sp_reg = prgm.getRootFrame().makeRegister("sp", MiniMC::Model::PointerType::get(),
+                                                       MiniMC::Model::RegType::CPU);
 	sp = MiniMC::Model::makeRegisterValue(*sp_reg);
-        auto heap_mem_reg = prgm.getPersistentRegs().makeRegister("heap_mem", MiniMC::Model::MemoryType::get());
+        auto heap_mem_reg = prgm.getRootFrame().makeRegister("heap_mem", MiniMC::Model::MemoryType::get(),
+                                                             MiniMC::Model::RegType::Persistent);
         GLoadContext lcontext{MiniMC::Model::makeRegisterValue(*heap_mem_reg)};
 
         llvm::SMDiagnostic diag;

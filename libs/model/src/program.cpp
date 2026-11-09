@@ -58,9 +58,8 @@ namespace MiniMC {
 	auto frame = prgm.getRootFrame().create (function->getName ());
 	auto symbol = prgm.getRootFrame().makeSymbol (function->getName ());
 	
-	MiniMC::Model::RegisterFactory varstack{frame,MiniMC::Model::RegType::Local};
-        for (auto [symb, v] : function->getFrame().local_registers()) {
-	  auto reg = varstack.makeRegister (symb.getName(),v->getType ());
+        for (auto [symb, v] : function->getFrame().local_registers(MiniMC::Model::RegType::Local)) {
+	  auto reg = frame.makeRegister (symb.getName(),v->getType (),MiniMC::Model::RegType::Local);
 	  map.emplace (symb,reg->getSymbol());
 	}
 	

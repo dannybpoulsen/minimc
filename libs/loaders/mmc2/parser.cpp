@@ -74,13 +74,13 @@ namespace MiniMC {
 	
       }
       
-      bool Parser::parseRegisterDeclarations (MiniMC::Model::RegisterFactory& descr) {
+      bool Parser::parseRegisterDeclarations (MiniMC::Model::Frame& frame, MiniMC::Model::RegType reg_type) {
 	while (match (LANGLE)) {
 	  auto symb = parseNewSymbol ();
 	  auto type = parseType ();
 	  expect (RANGLE);
 	  expect (NEWLINE);
-	  variableMap.emplace (symb,descr.makeRegister (symb.getName(),type));
+	  variableMap.emplace (symb,frame.makeRegister (symb.getName(),type,reg_type));
 	}
 	return true;
       }
@@ -100,12 +100,12 @@ namespace MiniMC {
 	  expect(REGISTERS);
 	  skipBlanks ();
 	  curFrame = prgm->getRootFrame ();
-	  parseRegisterDeclarations (prgm->getCPURegs ());
+	  parseRegisterDeclarations (prgm->getRootFrame (), MiniMC::Model::RegType::CPU);
 	  skipBlanks ();
 	  if (match(METAREGISTERS)) {
 	    skipBlanks ();
 	    curFrame = prgm->getRootFrame ();
-	    parseRegisterDeclarations (prgm->getMetaRegs ());
+	    parseRegisterDeclarations (prgm->getRootFrame (), MiniMC::Model::RegType::Meta);
 	    skipBlanks ();
 	  }
 	  
@@ -135,17 +135,16 @@ namespace MiniMC {
 	std::vector<MiniMC::Model::Symbol> params;
 	
 	curFrame = curFrame.create (symbol.getName ());	
-	MiniMC::Model::RegisterFactory rdescr{curFrame};
         if (match (REGISTERS)) {
 	  expect (NEWLINE);
-	  parseRegisterDeclarations(rdescr);
+	  parseRegisterDeclarations(curFrame, MiniMC::Model::RegType::Local);
 	}
 	if (match (PARAMETERS)) {
 	  expect (NEWLINE);
 	  params = parseParameters ();
 	}
 	MiniMC::Model::Type_ptr resType = parseReturns ();
-	MiniMC::Model::CFA cfa = parseCFA (rdescr);
+	MiniMC::Model::CFA cfa = parseCFA ();
 	
 	prgm->addFunction (symbol,std::move(params),resType,std::move(cfa),false,curFrame);
 	
@@ -374,12 +373,12 @@ namespace MiniMC {
 	
       }
       
-      MiniMC::Model::CFA Parser::parseCFA (MiniMC::Model::RegisterFactory& rdescr) {
+      MiniMC::Model::CFA Parser::parseCFA () {
 	expect (CFA);
 	expect (NEWLINE);
 	MiniMC::Model::CFA cfa;
 	std::unordered_map<std::string,MiniMC::Model::Location_ptr> locations;
-	auto newLocation = [this,&rdescr,&cfa,&locations](const std::string& s, MiniMC::Model::LocFlags flags, MiniMC::Model::Symbol symbol) {
+	auto newLocation = [this,&cfa,&locations](const std::string& s, MiniMC::Model::LocFlags flags, MiniMC::Model::Symbol symbol) {
 	  if (!locations.count(s)){
 	    MiniMC::Model::LocationInfo info {flags,curFrame};
 	    auto loc = cfa.makeLocation (symbol,info);
@@ -396,7 +395,7 @@ namespace MiniMC {
 	  return locations.at (s);
 	};
 
-	auto lookupLocation = [this,&rdescr,&cfa,&locations](const std::string& s) {
+	auto lookupLocation = [this,&cfa,&locations](const std::string& s) {
 	  if (!locations.count(s)){
 	    MiniMC::Model::LocFlags flags {};
 	    MiniMC::Model::LocationInfo info {flags,curFrame};
@@ -444,7 +443,8 @@ namespace MiniMC {
 	prgm = &program;
 	MiniMC::Loaders::MMC::Token tt;
 
-	auto heap_register = program.getPersistentRegs().makeRegister ("heap",MiniMC::Model::MemoryType::get());
+	auto heap_register = program.getRootFrame().makeRegister ("heap",MiniMC::Model::MemoryType::get(),
+	                                                           MiniMC::Model::RegType::Persistent);
 	heap_var = MiniMC::Model::makeRegisterValue(*heap_register);
 	
 	parseGlobalDeclaration ();

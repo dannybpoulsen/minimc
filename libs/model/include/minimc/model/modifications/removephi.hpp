@@ -50,7 +50,7 @@ namespace MiniMC {
 		    
 		    auto& content = inst.getAs<VMInstructionCode::Assign>().getOps ();
 		    if (used.count(content.res.get())) {
-		      auto nvar = prgm.getMetaRegs().makeRegister( content.res->getType());
+		      auto nvar = prgm.getRootFrame().makeFreshRegister(content.res->getType(), MiniMC::Model::RegType::Meta);
 		      replacemap.insert(std::make_pair(content.res.get(), nvar));
 		      stream.add<MiniMC::Model::VMInstructionCode::Assign>(
 			  replacemap.at(content.res.get()), MiniMC::Model::makeRegisterValue(*content.res));

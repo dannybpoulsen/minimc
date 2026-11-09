@@ -7,13 +7,6 @@
 
 namespace MiniMC {
   namespace Model {
-    enum class RegType {
-      CPU,
-      Local,
-      Meta,
-      Persistent
-    };
-     
     class RegisterInfo {
     public:
       explicit RegisterInfo(std::size_t id,Type_ptr type,RegType rtype = RegType::Local) :  id(id),reg_type(rtype),type(type) {}
@@ -27,9 +20,6 @@ namespace MiniMC {
       Type_ptr type;
     };
 
-    class RegisterFactory;
-
-    
     class Register : public std::enable_shared_from_this<Register> {
     public:
       Register(const MiniMC::Model::Symbol::WeakSymbol symb, RegisterInfo&& p) : place(std::move(p)),symb(symb) {}
@@ -70,30 +60,6 @@ namespace MiniMC {
     const Register& getRegister(const Value& value);
     Register_ptr getRegisterPtr(const Value& value);
         
-    
-    class RegisterFactory {
-    public:
-      RegisterFactory(MiniMC::Model::Frame frame,RegType tt = RegType::Local) : _internal(std::make_shared<Data>(frame,tt)) {}
-      RegisterFactory(const RegisterFactory&) = default;
-      RegisterFactory(RegisterFactory&&) = default;
-      RegisterFactory& operator= (RegisterFactory&&) = default;
-      Register_ptr makeRegister(std::string  name, const Type_ptr& type);
-      Register_ptr makeRegister(const Type_ptr& type);
-      auto getRegisters() const { return _internal->variable_map | std::views::transform([](auto& s)->Register&{return *s.second;});}
-      bool hasSymbol (const Symbol& s) const {return _internal->variable_map.count(s.getName());}
-      
-     
-      auto getTotalRegisters() const { return _internal->variable_map.size(); }
-    private:
-      struct Data {
-	Data (MiniMC::Model::Frame f, RegType tt) : types(tt),frame(f) {}
-	std::unordered_map<std::string,Register_ptr> variable_map;
-        RegType types;
-        MiniMC::Model::Frame frame;
-      };
-      std::shared_ptr<Data> _internal;
-    };
-    
     struct VariablePtrIndexer {
       
       std::size_t operator()(const Register& t) { return t.getId(); }

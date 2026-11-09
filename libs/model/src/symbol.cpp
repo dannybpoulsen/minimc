@@ -1,4 +1,5 @@
 #include "minimc/model/symbol.hpp"
+#include "minimc/model/registers.hpp"
 #include "minimc/support/exceptions.hpp"
 #include "minimc/hash/hashing.hpp"
 #include "minimc/support/overload.hpp"
@@ -13,6 +14,7 @@
 #include <cassert>
 #include <algorithm>
 #include <variant>
+#include <array>
 
 namespace MiniMC {
   namespace Model {
@@ -155,8 +157,8 @@ namespace MiniMC {
     }
     
     struct Frame::Internal : public std::enable_shared_from_this<Internal> {
-      Internal (Symbol symb) : symb(symb) {}
-      Internal (Symbol symb,std::weak_ptr<Internal> p) : symb(symb),parent(p) {}
+      Internal (Symbol symb) : symb(symb),is_root(true) {}
+      Internal (Symbol symb,std::weak_ptr<Internal> p) : symb(symb),parent(p),is_root(false) {}
       
       
       std::optional<Symbol>resolve (const std::string& s) const {
@@ -251,7 +253,9 @@ namespace MiniMC {
       Symbol symb;
       std::weak_ptr<Internal> parent;
       std::unordered_map<std::string, Symbol> symbols;
-      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;      
+      std::unordered_map<std::string, std::shared_ptr<Internal>> frames;
+      std::array<std::size_t, 4> register_ids{};
+      bool is_root;
     };
     
     Frame::Frame (const std::string& s) : _internal(std::make_shared<Internal> (Symbol{s})) {}
@@ -343,6 +347,13 @@ namespace MiniMC {
       }
     }
 
+    std::generator<std::tuple<Symbol,MiniMC::Model::Register_ptr>> Frame::local_registers (RegType type) const {
+      for (auto [symbol, reg] : local_registers()) {
+        if (reg->getRegType() == type)
+          co_yield std::make_tuple(symbol, reg);
+      }
+    }
+
     std::size_t Frame::numberOfRegisters () const {
       std::size_t regs{0};
       for (auto t : local_symbols()) {
@@ -350,6 +361,37 @@ namespace MiniMC {
 	  regs++;
       }
       return regs;
+    }
+
+    std::size_t Frame::numberOfRegisters (RegType type) const {
+      std::size_t regs{0};
+      for (auto [_, reg] : local_registers(type))
+        regs++;
+      return regs;
+    }
+
+    Register_ptr Frame::makeRegister (const std::string& name, const std::shared_ptr<Type>& type, RegType reg_type) {
+      if (reg_type != RegType::Local && !_internal->is_root)
+        throw MiniMC::Support::Exception ("Only the root frame can contain non-local registers");
+
+      auto symbol = makeSymbol(name);
+      auto& id = _internal->register_ids.at(static_cast<std::size_t>(reg_type));
+      auto reg = std::make_shared<Register>(symbol.weak(), RegisterInfo{id, type, reg_type});
+      symbol.setUserData(reg);
+      ++id;
+      return reg;
+    }
+
+    Register_ptr Frame::makeFreshRegister (const std::shared_ptr<Type>& type, RegType reg_type) {
+      if (reg_type != RegType::Local && !_internal->is_root)
+        throw MiniMC::Support::Exception ("Only the root frame can contain non-local registers");
+
+      auto symbol = makeFresh("");
+      auto& id = _internal->register_ids.at(static_cast<std::size_t>(reg_type));
+      auto reg = std::make_shared<Register>(symbol.weak(), RegisterInfo{id, type, reg_type});
+      symbol.setUserData(reg);
+      ++id;
+      return reg;
     }
     
     bool Frame::hasSymbol (const Symbol& s) const {
@@ -362,4 +404,3 @@ namespace MiniMC {
     
   }
 }
-

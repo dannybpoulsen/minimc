@@ -78,9 +78,9 @@ namespace MiniMC {
     public:
       ~StateBuilder() {}
       virtual MiniMC::CPA::State_ptr build() = 0;
-      virtual StateBuilder& addPersistentRegisters(const MiniMC::Model::RegisterFactory& descr) = 0;
+      virtual StateBuilder& addPersistentRegisters(const MiniMC::Model::Frame& frame) = 0;
       virtual StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) = 0;
-      virtual StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::RegisterFactory& cpuregs, const MiniMC::Model::RegisterFactory& metaregs, std::vector<MiniMC::Model::Value_ptr> params  = {}) = 0;
+      virtual StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::Frame& frame, std::vector<MiniMC::Model::Value_ptr> params  = {}) = 0;
       virtual StateBuilder& addConstraint(MiniMC::Model::Value& b) = 0;
       };      
     

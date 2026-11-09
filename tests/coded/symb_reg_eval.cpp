@@ -20,11 +20,10 @@ TEST_CASE("Add") {
   
   MiniMC::Model::CFA cfa{};
   auto frame = prgm.getRootFrame ().create ("KK");
-  MiniMC::Model::RegisterFactory descr{frame};
   
   auto type = MiniMC::Model::I8Type::get();//tfac->makeIntegerType (8);
   
-  auto res = descr.makeRegister (type);
+  auto res = frame.makeFreshRegister(type, MiniMC::Model::RegType::Local);
   auto symbol_value = MiniMC::Model::makeRegisterValue(*res);
   
   

@@ -19,9 +19,8 @@ TEST_CASE("Registers are variables, not values") {
 
   MiniMC::Model::Program prgm;
   auto frame = prgm.getRootFrame().create("Function");
-  MiniMC::Model::RegisterFactory descr{frame};
   
-  auto reg = descr.makeRegister("reg", MiniMC::Model::I8Type::get());
+  auto reg = frame.makeRegister("reg", MiniMC::Model::I8Type::get(), MiniMC::Model::RegType::Local);
 
   auto value = std::dynamic_pointer_cast<MiniMC::Model::SymbolicConstant>(
       MiniMC::Model::makeRegisterValue(*reg));
@@ -38,13 +37,9 @@ TEST_CASE("Add") {
   MiniMC::Model::Program prgm;
   auto frame = prgm.getRootFrame ().create ("KK");
   
-  MiniMC::Model::RegisterFactory descr{frame};
-  
-  
-  
   MiniMC::Model::CFA cfa{};
   auto type = MiniMC::Model::I8Type::get();;
-  auto res = descr.makeRegister (type);
+  auto res = frame.makeFreshRegister(type, MiniMC::Model::RegType::Local);
   
   auto init = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
   auto end = cfa.makeLocation (prgm.getRootFrame().makeFresh(),MiniMC::Model::LocationInfo{{},frame});
@@ -92,7 +87,8 @@ TEST_CASE("Add") {
 TEST_CASE("Persistent registers are shared by the state and included in its hash") {
   MiniMC::Model::Program prgm;
   auto frame = prgm.getRootFrame().create("Function");
-  auto persistent = prgm.getPersistentRegs().makeRegister("global", MiniMC::Model::I8Type::get());
+  auto persistent = prgm.getRootFrame().makeRegister(
+      "global", MiniMC::Model::I8Type::get(), MiniMC::Model::RegType::Persistent);
 
   MiniMC::Model::CFA cfa{};
   auto initial = cfa.makeLocation(prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, frame});
