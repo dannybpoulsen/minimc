@@ -120,7 +120,8 @@ namespace MiniMC {
 	    throw MiniMC::Support::Exception("Meta register has no active frame");
 	  return record->getValueOfRegister(reg);
 	}
-	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");
+	case MiniMC::Model::RegType::Persistent:
+	  throw MiniMC::Support::Exception ("Persistent registers cannot be accessed through an activation record");
 		  
 	default:
 	  std::unreachable();
@@ -139,7 +140,8 @@ namespace MiniMC {
 	  record->setValueOfRegister(v,std::move(value));
 	  break;
 	}
-	case MiniMC::Model::RegType::Persistent: throw MiniMC::Support::Exception ("Persistent registers not implemented yet");  
+	case MiniMC::Model::RegType::Persistent:
+	  throw MiniMC::Support::Exception ("Persistent registers cannot be accessed through an activation record");
 	default:
 	  std::unreachable();
 	}
