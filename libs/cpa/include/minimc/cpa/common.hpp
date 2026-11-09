@@ -139,6 +139,33 @@ namespace MiniMC {
     };
 
     template<class Value>
+    class RegisterAccessView {
+    public:
+      RegisterAccessView (ActivationStack<Value>& values, ActivationRecord<Value>& persistent) : values(&values), persistent(persistent) {}
+      explicit RegisterAccessView (ActivationRecord<Value>& persistent) : values(nullptr), persistent(persistent) {}
+
+      Value lookupRegister (const MiniMC::Model::Register& reg) const {
+	if (reg.getRegType () == MiniMC::Model::RegType::Persistent)
+	  return persistent.getValueOfRegister(reg);
+	if (values)
+	  return values->lookupRegister(reg);
+	throw MiniMC::Support::Exception ("No registers to load fraom");
+      }
+
+      void saveValue (const MiniMC::Model::Register& reg, Value&& value) {
+	if (reg.getRegType () == MiniMC::Model::RegType::Persistent)
+	  return persistent.setValueOfRegister(reg,std::move(value));
+	if (values)
+	  return values->saveValue(reg,std::move(value));
+	throw MiniMC::Support::Exception ("No registers to save to");
+      }
+
+    private:
+      ActivationStack<Value>* values;
+      ActivationRecord<Value>& persistent;
+    };
+
+    template<class Value>
     class StaticContext {
     public:
       StaticContext (MiniMC::Model::SymbolTable<Value>&& map = MiniMC::Model::SymbolTable<Value> {}) : symbmap(std::move(map)){}
@@ -163,13 +190,10 @@ namespace MiniMC {
     template<class Value,MiniMC::VMT::MemoryOperations<Value> MemControl>
     class EvaluationContext {
     public:
-      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, MemControl memorycontrol,StaticContext<Value>& scontext) : values(values),persistent(pers),memcontrol(memorycontrol),scontext(scontext) {}
+      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, MemControl memorycontrol,StaticContext<Value>& scontext) : values(values),registers(values,pers),memcontrol(memorycontrol),scontext(scontext) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
-	if (reg.getRegType () == MiniMC::Model::RegType::Persistent) {
-	  return persistent.getValueOfRegister (reg);
-	}
-	return values.lookupRegister(reg);
+	return registers.lookupRegister(reg);
       }
 
       Value lookupSymbol (MiniMC::Model::Symbol s) const {
@@ -197,11 +221,7 @@ namespace MiniMC {
       }
       
       void saveValue(const MiniMC::Model::Register& reg, Value&& value)  {
-	if (reg.getRegType () == MiniMC::Model::RegType::Persistent) {
-	  return persistent.setValueOfRegister  (reg,std::move(value));
-	}
-	else 
-	  values.saveValue(reg,std::move(value));
+	registers.saveValue(reg,std::move(value));
       }
 
       Value load (const Value::Pointer p, const Value::Memory& m, const MiniMC::Model::Type& t) const {
@@ -247,7 +267,7 @@ namespace MiniMC {
       
     private:
       ActivationStack<Value>& values;
-      ActivationRecord<Value>& persistent;
+      RegisterAccessView<Value> registers;
       MemControl memcontrol;
       StaticContext<Value>& scontext;
     };
@@ -255,27 +275,15 @@ namespace MiniMC {
     template<class Value>
     class DummyRegisterStore {
     public:  
-      DummyRegisterStore (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), persistent(persistent) {}
+      DummyRegisterStore (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), registers(persistent) {}
 
       Value lookupRegister (const MiniMC::Model::Register& r) const  {
-	switch(r.getRegType ()) {
-	case MiniMC::Model::RegType::Persistent:
-	  return persistent.getValueOfRegister(r);
-	default:
-	  throw MiniMC::Support::Exception ("No registers to load fraom");
-	  
-	}
+	return registers.lookupRegister(r);
       }
 
       
       void saveValue(const MiniMC::Model::Register& r, Value&& v)  {
-	switch(r.getRegType ()) {
-	case MiniMC::Model::RegType::Persistent:
-	  return persistent.setValueOfRegister(r,std::move(v));
-	default:
-	  throw MiniMC::Support::Exception ("No registers to save to");
-	  
-	}
+	registers.saveValue(r,std::move(v));
       }
 
       Value load (const Value::Pointer, const Value::Memory&, const MiniMC::Model::Type&) const {
@@ -320,7 +328,7 @@ namespace MiniMC {
       
     private:
       StaticContext<Value>& scontext;
-      ActivationRecord<Value>& persistent;
+      RegisterAccessView<Value> registers;
       
     };
     
@@ -380,6 +388,7 @@ namespace MiniMC {
 	for (auto& vl : stacks) {
 	  hash << vl;
 	}
+	hash << persistent;
 	hash << getPathform ();
 	hash << flags;
 	return hash;

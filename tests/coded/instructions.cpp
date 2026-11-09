@@ -88,3 +88,53 @@ TEST_CASE("Add") {
   CHECK(res_val == 3);
   
  }
+
+TEST_CASE("Persistent registers are shared by the state and included in its hash") {
+  MiniMC::Model::Program prgm;
+  auto frame = prgm.getRootFrame().create("Function");
+  auto persistent = prgm.getPersistentRegs().makeRegister("global", MiniMC::Model::I8Type::get());
+
+  MiniMC::Model::CFA cfa{};
+  auto initial = cfa.makeLocation(prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, frame});
+  auto end = cfa.makeLocation(prgm.getRootFrame().makeFresh(), MiniMC::Model::LocationInfo{{}, frame});
+  cfa.setInitial(initial);
+  {
+    MiniMC::Model::EdgeBuilder builder{cfa, initial, end, frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::Assign>(persistent, MiniMC::Model::I8Integer::make(1));
+  }
+  {
+    MiniMC::Model::EdgeBuilder builder{cfa, initial, end, frame};
+    builder.addInstr<MiniMC::Model::InstructionCode::Assign>(persistent, MiniMC::Model::I8Integer::make(2));
+  }
+
+  auto function_symbol = prgm.getRootFrame().makeFresh();
+  auto function = prgm.addFunction(function_symbol, {}, MiniMC::Model::VoidType::get(), std::move(cfa), false, frame);
+  MiniMC::CPA::Concrete::CPA cpa{MiniMC::Model::NonDetGenerator{}};
+  auto initial_state = cpa.makeInitialState({{function_symbol, function_symbol}, {}, prgm});
+  auto transfer = cpa.makeTransfer(prgm);
+  auto register_value = MiniMC::Model::makeRegisterValue(*persistent);
+
+  auto evaluate_register = [&](const MiniMC::CPA::State_ptr& state, std::size_t process) {
+    auto query = state->getBuilder().buildValue(process, *register_value);
+    auto value = state->getConcretizer()->evaluate(*query);
+    return MiniMC::Model::visitValue(
+        MiniMC::Support::Overload{
+            [](const MiniMC::Model::I8Integer& integer) { return integer.getValue(); },
+            MiniMC::Support::Error<MiniMC::BV8>{}},
+        *value);
+  };
+
+  CHECK(evaluate_register(initial_state, 1) == 0);
+
+  std::vector<MiniMC::CPA::State_ptr> successors;
+  auto initial_location = function->getCFA().getInitialLocation();
+  for (auto edge = initial_location->ebegin(); edge != initial_location->eend(); ++edge) {
+    for (auto successor : transfer->doTransfer(*initial_state, {*edge, 0}))
+      successors.push_back(std::move(successor));
+  }
+
+  REQUIRE(successors.size() == 2);
+  CHECK(evaluate_register(successors[0], 1) == 1);
+  CHECK(evaluate_register(successors[1], 1) == 2);
+  CHECK(successors[0]->hash() != successors[1]->hash());
+}
