@@ -20,10 +20,6 @@ namespace MiniMC {
     template<class Value>
     struct ActivationRecord {
       ActivationRecord(std::size_t size,
-                       const MiniMC::Model::Register_ptr& ret,
-                       MiniMC::Model::Location_ptr l)
-          : values(size), metas(0), ret(ret), loc(l) {}
-      ActivationRecord(std::size_t size,
                        std::size_t meta_size,
                        const MiniMC::Model::Register_ptr& ret,
                        MiniMC::Model::Location_ptr l,
@@ -174,12 +170,14 @@ namespace MiniMC {
     template<class Value>
     class RegisterAccessView {
     public:
-      RegisterAccessView (ActivationStack<Value>& values, ActivationRecord<Value>& persistent) : values(&values), persistent(persistent) {}
-      explicit RegisterAccessView (ActivationRecord<Value>& persistent) : values(nullptr), persistent(persistent) {}
+      RegisterAccessView (ActivationStack<Value>& values, MiniMC::Model::VariableMap<Value>& persistent)
+          : values(&values), persistent(persistent) {}
+      explicit RegisterAccessView (MiniMC::Model::VariableMap<Value>& persistent)
+          : values(nullptr), persistent(persistent) {}
 
       Value lookupRegister (const MiniMC::Model::Register& reg) const {
 	if (reg.getRegType () == MiniMC::Model::RegType::Persistent)
-	  return persistent.getValueOfRegister(reg);
+	  return persistent[reg];
 	if (values)
 	  return values->lookupRegister(reg);
 	throw MiniMC::Support::Exception ("No registers to load fraom");
@@ -187,7 +185,7 @@ namespace MiniMC {
 
       void saveValue (const MiniMC::Model::Register& reg, Value&& value) {
 	if (reg.getRegType () == MiniMC::Model::RegType::Persistent)
-	  return persistent.setValueOfRegister(reg,std::move(value));
+	  return persistent.set(reg,std::move(value));
 	if (values)
 	  return values->saveValue(reg,std::move(value));
 	throw MiniMC::Support::Exception ("No registers to save to");
@@ -195,7 +193,7 @@ namespace MiniMC {
 
     private:
       ActivationStack<Value>* values;
-      ActivationRecord<Value>& persistent;
+      MiniMC::Model::VariableMap<Value>& persistent;
     };
 
     template<class Value>
@@ -223,7 +221,11 @@ namespace MiniMC {
     template<class Value,MiniMC::VMT::MemoryOperations<Value> MemControl>
     class EvaluationContext {
     public:
-      EvaluationContext (ActivationStack<Value>& values, ActivationRecord<Value>& pers, MemControl memorycontrol,StaticContext<Value>& scontext) : values(values),registers(values,pers),memcontrol(memorycontrol),scontext(scontext) {}
+      EvaluationContext (ActivationStack<Value>& values,
+                         MiniMC::Model::VariableMap<Value>& persistent,
+                         MemControl memorycontrol,
+                         StaticContext<Value>& scontext)
+          : values(values), registers(values, persistent), memcontrol(memorycontrol), scontext(scontext) {}
     public:
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	return registers.lookupRegister(reg);
@@ -308,7 +310,8 @@ namespace MiniMC {
     template<class Value>
     class RegisterSymbolView {
     public:  
-      RegisterSymbolView (StaticContext<Value>& scontext, ActivationRecord<Value>& persistent) : scontext(scontext), registers(persistent) {}
+      RegisterSymbolView (StaticContext<Value>& scontext, MiniMC::Model::VariableMap<Value>& persistent)
+          : scontext(scontext), registers(persistent) {}
 
       Value lookupRegister (const MiniMC::Model::Register& r) const  {
 	return registers.lookupRegister(r);
@@ -404,7 +407,7 @@ namespace MiniMC {
     class StateMixin : public MiniMC::CPA::LocationInfo   {
     public:
       StateMixin (std::vector<ActivationStack<Value>>&& stacks,
-		  ActivationRecord<Value>&& persistent,
+		  MiniMC::Model::VariableMap<Value>&& persistent,
 		  Value::Bool pathformula,
 		  std::shared_ptr<StaticContext<Value> >&& scontext = nullptr
 		  ) : stacks(std::move(stacks)),
@@ -440,7 +443,7 @@ namespace MiniMC {
 
       template<MiniMC::VMT::MemoryOperations<Value> MemControl>
       auto makeEvaluationContext (proc_id id,MemControl&& memcontrol) const {
-	return EvaluationContext<Value,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<ActivationRecord<Value>&>(persistent),std::move(memcontrol),*scontext);
+	return EvaluationContext<Value,MemControl> (const_cast<ActivationStack<Value>&>(getProc(id)),const_cast<MiniMC::Model::VariableMap<Value>&>(persistent),std::move(memcontrol),*scontext);
       }
       
       
@@ -451,7 +454,7 @@ namespace MiniMC {
       
     private:
       std::vector<ActivationStack<Value> > stacks;
-      ActivationRecord<Value> persistent;
+      MiniMC::Model::VariableMap<Value> persistent;
       std::shared_ptr<StaticContext<Value> > scontext;
       Value::Bool pathform;
       Flags flags;
@@ -585,10 +588,10 @@ namespace MiniMC {
       }
 
       MiniMC::CPA::StateBuilder& addPersistentRegisters(const MiniMC::Model::Frame& frame) override {
-        persistent = ActivationRecord<typename ValDef::Val>{
-	    frame.numberOfRegisters(MiniMC::Model::RegType::Persistent), nullptr, nullptr};
+        persistent = MiniMC::Model::VariableMap<typename ValDef::Val>{
+	    frame.numberOfRegisters(MiniMC::Model::RegType::Persistent)};
 	for (auto [_, reg] : frame.local_registers(MiniMC::Model::RegType::Persistent)) {
-	  persistent.setValueOfRegister(*reg,valdef.ops().defaultValue (*reg->getType()));
+	  persistent.set(*reg,valdef.ops().defaultValue (*reg->getType()));
 	}
 	return *this;
       }
@@ -685,7 +688,7 @@ namespace MiniMC {
     private:
       ValDef valdef;      
       std::vector<ActivationStack<Value>> stack;
-      ActivationRecord<Value> persistent{0,nullptr,nullptr};
+      MiniMC::Model::VariableMap<Value> persistent{0};
       std::shared_ptr<MiniMC::CPA::Common::StaticContext<Value>> _scontext = std::make_shared<MiniMC::CPA::Common::StaticContext<Value>>();
       Value::Bool path;
     };
