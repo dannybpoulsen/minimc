@@ -70,6 +70,15 @@ namespace MiniMC {
     
     const UserData& Symbol::getUserData  () const {return _internal->userdata;}
     void Symbol::setUserData (UserData userdata)  {_internal->userdata = userdata;}
+
+    bool SymbolPredicates::RegisterTypePredicate::operator() (const Symbol& symbol) const {
+      const auto& userdata = symbol.getUserData ();
+      if (!std::holds_alternative<Register_ptr> (userdata))
+        return false;
+
+      const auto& reg = std::get<Register_ptr> (userdata);
+      return reg && reg->getRegType () == type;
+    }
     
     std::string Symbol::getName () const {
 	return _internal->name;
@@ -357,7 +366,7 @@ namespace MiniMC {
     std::size_t Frame::numberOfRegisters () const {
       std::size_t regs{0};
       for (auto t : local_symbols()) {
-	if (std::holds_alternative<MiniMC::Model::Register_ptr> (t.getUserData()))
+	if (SymbolPredicates::is_register (t))
 	  regs++;
       }
       return regs;
@@ -365,8 +374,11 @@ namespace MiniMC {
 
     std::size_t Frame::numberOfRegisters (RegType type) const {
       std::size_t regs{0};
-      for (auto [_, reg] : local_registers(type))
-        regs++;
+      const auto is_register_of_type = SymbolPredicates::is_register_of_type (type);
+      for (auto symbol : local_symbols()) {
+        if (is_register_of_type (symbol))
+          regs++;
+      }
       return regs;
     }
 

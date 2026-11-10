@@ -101,7 +101,38 @@ namespace MiniMC {
       Symbol (std::shared_ptr<data>);
     };
 
-    
+    namespace SymbolPredicates {
+      inline bool is_register (const Symbol& symbol) {
+        return std::holds_alternative<Register_ptr> (symbol.getUserData ());
+      }
+
+      inline bool is_function (const Symbol& symbol) {
+        return std::holds_alternative<Function_ptr> (symbol.getUserData ());
+      }
+
+      inline bool is_location (const Symbol& symbol) {
+        return std::holds_alternative<Location_wptr> (symbol.getUserData ());
+      }
+
+      inline bool is_heap_block (const Symbol& symbol) {
+        return std::holds_alternative<HeapBlock_wptr> (symbol.getUserData ());
+      }
+
+      inline bool is_untyped (const Symbol& symbol) {
+        return std::holds_alternative<std::monostate> (symbol.getUserData ());
+      }
+
+      struct RegisterTypePredicate {
+        RegType type;
+        bool operator() (const Symbol& symbol) const;
+      };
+
+      inline RegisterTypePredicate is_register_of_type (RegType type) {
+        return {type};
+      }
+    }
+
+
     
     
     class Frame {

@@ -8,6 +8,7 @@
 #include <minimc/model/registers.hpp>
 #include <minimc/model/types.hpp>
 
+#include <ranges>
 
 
 
@@ -196,4 +197,89 @@ TEST_CASE("Only root frames can contain CPU and persistent registers") {
   CHECK(child.numberOfRegisters(MiniMC::Model::RegType::Meta) == 1);
   CHECK_NOTHROW(child.makeFreshRegister(type, MiniMC::Model::RegType::Meta));
   CHECK(child.numberOfRegisters(MiniMC::Model::RegType::Meta) == 2);
+}
+
+TEST_CASE("Symbol predicates classify user data kinds") {
+  using namespace MiniMC::Model;
+
+  Frame frame{"predicates"};
+  auto register_symbol = frame.makeSymbol("register");
+  register_symbol.setUserData(Register_ptr{});
+  auto function_symbol = frame.makeSymbol("function");
+  function_symbol.setUserData(Function_ptr{});
+  auto location_symbol = frame.makeSymbol("location");
+  location_symbol.setUserData(Location_wptr{});
+  auto heap_block_symbol = frame.makeSymbol("heap_block");
+  heap_block_symbol.setUserData(HeapBlock_wptr{});
+  auto untyped_symbol = frame.makeSymbol("untyped");
+
+  CHECK(SymbolPredicates::is_register(register_symbol));
+  CHECK_FALSE(SymbolPredicates::is_function(register_symbol));
+  CHECK(SymbolPredicates::is_function(function_symbol));
+  CHECK(SymbolPredicates::is_location(location_symbol));
+  CHECK(SymbolPredicates::is_heap_block(heap_block_symbol));
+  CHECK(SymbolPredicates::is_untyped(untyped_symbol));
+  CHECK_FALSE(SymbolPredicates::is_register(untyped_symbol));
+}
+
+TEST_CASE("Register type predicates filter symbol ranges") {
+  using namespace MiniMC::Model;
+
+  Frame root{"registers"};
+  auto type = I8Type::get();
+  root.makeRegister("cpu", type, RegType::CPU);
+  root.makeRegister("persistent", type, RegType::Persistent);
+  auto child = root.create("function");
+  child.makeRegister("local", type, RegType::Local);
+  child.makeRegister("meta", type, RegType::Meta);
+  auto empty_register = child.makeSymbol("empty_register");
+  empty_register.setUserData(Register_ptr{});
+  auto untyped_symbol = child.makeSymbol("untyped");
+
+  std::size_t local_register_count = 0;
+  for (const auto& symbol : child.local_symbols() | std::views::filter(SymbolPredicates::is_register)) {
+    CHECK(SymbolPredicates::is_register(symbol));
+    ++local_register_count;
+  }
+  CHECK(local_register_count == 3);
+  CHECK(child.numberOfRegisters() == 3);
+
+  std::size_t local_count = 0;
+  for (const auto& symbol : child.local_symbols()
+       | std::views::filter(SymbolPredicates::is_register_of_type(RegType::Local))) {
+    CHECK(SymbolPredicates::is_register(symbol));
+    ++local_count;
+  }
+  CHECK(local_count == 1);
+  CHECK(child.numberOfRegisters(RegType::Local) == 1);
+  CHECK(child.numberOfRegisters(RegType::Meta) == 1);
+  CHECK(child.numberOfRegisters(RegType::CPU) == 0);
+
+  std::size_t meta_count = 0;
+  for (const auto& symbol : child.local_and_parent_symbols()
+       | std::views::filter(SymbolPredicates::is_register_of_type(RegType::Meta))) {
+    CHECK(SymbolPredicates::is_register(symbol));
+    ++meta_count;
+  }
+  CHECK(meta_count == 1);
+
+  std::size_t cpu_count = 0;
+  for (const auto& symbol : child.local_and_parent_symbols()
+       | std::views::filter(SymbolPredicates::is_register_of_type(RegType::CPU))) {
+    CHECK(SymbolPredicates::is_register(symbol));
+    ++cpu_count;
+  }
+  CHECK(cpu_count == 1);
+
+  std::size_t persistent_count = 0;
+  for (const auto& symbol : child.local_and_parent_symbols()
+       | std::views::filter(SymbolPredicates::is_register_of_type(RegType::Persistent))) {
+    CHECK(SymbolPredicates::is_register(symbol));
+    ++persistent_count;
+  }
+  CHECK(persistent_count == 1);
+
+  CHECK_FALSE(SymbolPredicates::is_register_of_type(RegType::Local)(empty_register));
+  CHECK_FALSE(SymbolPredicates::is_register_of_type(RegType::CPU)(empty_register));
+  CHECK_FALSE(SymbolPredicates::is_register_of_type(RegType::Meta)(untyped_symbol));
 }
