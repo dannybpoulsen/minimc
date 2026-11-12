@@ -169,6 +169,29 @@ namespace MiniMC {
       std::vector<ActivationRecord<Value>> frames;
     };
 
+    template <class StackControl,class Operations>
+    class DefaultInitializingStackControl {
+    public:
+      DefaultInitializingStackControl ( StackControl& s, Operations op) : sc(s),ops(op) {}
+      auto pop() ->MiniMC::Model::Register_ptr  {
+	return sc.pop();
+      }
+      
+      void push(MiniMC::Model::Location_ptr loc, const MiniMC::Model::Register_ptr& ret) {
+        sc.push(loc, ret);
+	const auto& frame = loc->getInfo().getFrame();
+        for (auto[_,reg] : frame.local_registers()) {
+	  sc.saveValue(*reg, ops.defaultValue(*reg->getType()));
+	    
+	}
+      }
+      
+    private:
+      StackControl& sc;
+      Operations ops;
+    };
+      
+    
     template<class Value>
     class RegisterAccessView {
     public:
@@ -513,7 +536,7 @@ namespace MiniMC {
       CPAState (const CPAState&) = default;
       
       virtual MiniMC::Hash::hash_t hash() const override {
-	  return mixin.hash ();
+	return mixin.hash ();
       }
       
       virtual std::shared_ptr<CPAState<ValDef>>  lcopy() const  {
@@ -528,7 +551,7 @@ namespace MiniMC {
       auto& getProc(std::size_t i) const { return mixin.getProc (i); }
       
       auto makeEvaluationContext (proc_id id) const {return mixin.makeEvaluationContext(id,valuedefinition.memops());}
-      auto& getStackControl (proc_id id)  {return mixin.getProc(id);}
+      auto getStackControl (proc_id id)  {return DefaultInitializingStackControl (mixin.getProc(id),valuedefinition.ops());}
       auto getValueLookup (proc_id id)  {return mixin.getProc(id);}
       
       
@@ -645,12 +668,14 @@ namespace MiniMC {
       }
       
       MiniMC::CPA::StateBuilder& addThread(const MiniMC::Model::Function& f, const MiniMC::Model::Frame& frame, std::vector<MiniMC::Model::Value_ptr> params  = {}) override{
-	ActivationStack<Value> cs{frame};
-        cs.push(f.getCFA().getInitialLocation(), nullptr);
-
-        auto memops = valdef.memops();
+	auto memops = valdef.memops();
 	auto ops = valdef.ops();
-	EvaluationContext<Value,decltype(memops)> regstore {cs,persistent,valdef.memops(),*_scontext};
+	
+        ActivationStack<Value> cs{frame};
+	DefaultInitializingStackControl{cs, ops}.push (f.getCFA().getInitialLocation(),nullptr);
+        
+
+        EvaluationContext<Value,decltype(memops)> regstore {cs,persistent,valdef.memops(),*_scontext};
 	for (auto [_, reg] : frame.local_registers(MiniMC::Model::RegType::CPU)) {
 	  auto val = ops.defaultValue (*reg->getType ());
 	  regstore.saveValue (*reg,std::move(val));
@@ -659,10 +684,8 @@ namespace MiniMC {
 	  auto val = ops.defaultValue (*reg->getType ());
 	  regstore.saveValue (*reg,std::move(val));
         }
-	for (auto [_, reg] : f.getFrame().local_registers(MiniMC::Model::RegType::Meta)) {
-	  auto val = ops.defaultValue (*reg->getType ());
-	  regstore.saveValue (*reg,std::move(val));
-	}
+
+        
 	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
         for (auto [formal, act] : std::views::zip(f.getParameters(), params)) {
 	  auto reg =  std::get<MiniMC::Model::Register_ptr> (formal.getUserData());            

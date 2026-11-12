@@ -137,7 +137,7 @@ namespace MiniMC {
 
         else if constexpr (op == MiniMC::Model::VMInstructionCode::Call) {
 	  auto& content = instr.getOps();
-	  auto& scontrol = state->getStackControl(id);
+	  auto scontrol = state->getStackControl(id);
 	  MiniMC::Model::Value_ptr function;
           if (content.function->isConstant()) {
 	    function = content.function;
@@ -206,10 +206,6 @@ namespace MiniMC {
 	  auto res = content.res;
 	  scontrol.push(func->getCFA().getInitialLocation(),  res);
 
-	  for (auto[_,reg] : func->getFrame().local_registers()) {
-	    state->makeEvaluationContext(id).saveValue(*reg, operations.defaultValue(*reg->getType()));
-	    
-	  }
 
           for (auto [formal, actual] : std::ranges::views::zip(func->getParameters(), params)) {
 	    auto reg = std::get<MiniMC::Model::Register_ptr> (formal.getUserData());

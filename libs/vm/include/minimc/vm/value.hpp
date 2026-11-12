@@ -54,90 +54,90 @@ namespace MiniMC {
       using Aggregate = Ag;
       using Memory = Mem;
       
-      GenericVal () : content(BoolT{}) {} 
-      GenericVal (I8 val) : content(val) {}
-      GenericVal (I16 val) : content(val) {}
-      GenericVal (I32 val) : content(val) {}
-      GenericVal (I64 val) : content(val) {}
-      GenericVal (Pointer val) : content(val) {}
-      GenericVal (Pointer32 val) : content(val) {}
-      GenericVal (Bool val) : content(val) {}
-      GenericVal (Aggregate ag) : content(ag) {}
-      GenericVal (Memory mem) : content(mem) {}
+      GenericVal () : isEmpty(true),content(BoolT{})  {} 
+      GenericVal (I8 val) : isEmpty(false),content(val) {}
+      GenericVal (I16 val) : isEmpty(false),content(val) {}
+      GenericVal (I32 val) : isEmpty(false),content(val) {}
+      GenericVal (I64 val) : isEmpty(false),content(val) {}
+      GenericVal (Pointer val) : isEmpty(false),content(val) {}
+      GenericVal (Pointer32 val) : isEmpty(false),content(val) {}
+      GenericVal (Bool val) : isEmpty(false),content(val) {}
+      GenericVal (Aggregate ag) : isEmpty(false),content(ag) {}
+      GenericVal (Memory mem) : isEmpty(false),content(mem) {}
 
       GenericVal (const GenericVal&) = default;
       
       template<class Func, class... Values> requires (... && std::is_same_v<GenericVal,Values>)
       static auto visit (Func f,Values... values)  {
-	return std::visit (f,values.content...);
+	return std::visit (f,values.check_content()...);
       }
 
       template<class Func>
       static auto visitIntegerPair(Func f, GenericVal lhs, GenericVal rhs) {
-	if (auto* l = std::get_if<I8>(&lhs.content))
-	  if (auto* r = std::get_if<I8>(&rhs.content))
+	if (auto* l = std::get_if<I8>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I8>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I16>(&lhs.content))
-	  if (auto* r = std::get_if<I16>(&rhs.content))
+	if (auto* l = std::get_if<I16>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I16>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I32>(&lhs.content))
-	  if (auto* r = std::get_if<I32>(&rhs.content))
+	if (auto* l = std::get_if<I32>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I32>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I64>(&lhs.content))
-	  if (auto* r = std::get_if<I64>(&rhs.content))
+	if (auto* l = std::get_if<I64>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I64>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
 	throw MiniMC::Support::Exception("Error");
       }
 
       template<class Func>
       static auto visitIntegerOrPointerPair(Func f, GenericVal lhs, GenericVal rhs) {
-	if (auto* l = std::get_if<I8>(&lhs.content))
-	  if (auto* r = std::get_if<I8>(&rhs.content))
+	if (auto* l = std::get_if<I8>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I8>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I16>(&lhs.content))
-	  if (auto* r = std::get_if<I16>(&rhs.content))
+	if (auto* l = std::get_if<I16>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I16>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I32>(&lhs.content))
-	  if (auto* r = std::get_if<I32>(&rhs.content))
+	if (auto* l = std::get_if<I32>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I32>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<I64>(&lhs.content))
-	  if (auto* r = std::get_if<I64>(&rhs.content))
+	if (auto* l = std::get_if<I64>(&lhs.check_content()))
+	  if (auto* r = std::get_if<I64>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<Pointer>(&lhs.content))
-	  if (auto* r = std::get_if<Pointer>(&rhs.content))
+	if (auto* l = std::get_if<Pointer>(&lhs.check_content()))
+	  if (auto* r = std::get_if<Pointer>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	if (auto* l = std::get_if<Pointer32>(&lhs.content))
-	  if (auto* r = std::get_if<Pointer32>(&rhs.content))
+	if (auto* l = std::get_if<Pointer32>(&lhs.check_content()))
+	  if (auto* r = std::get_if<Pointer32>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
 	throw MiniMC::Support::Exception("Error");
       }
 
       template<class Func>
       static auto visitBoolPair(Func f, GenericVal lhs, GenericVal rhs) {
-	if (auto* l = std::get_if<Bool>(&lhs.content))
-	  if (auto* r = std::get_if<Bool>(&rhs.content))
+	if (auto* l = std::get_if<Bool>(&lhs.check_content()))
+	  if (auto* r = std::get_if<Bool>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
 	throw MiniMC::Support::Exception("Error");
       }
 
       template<class Func>
       static auto visitPointerIntegerPair(Func f, GenericVal lhs, GenericVal rhs) {
-	if (auto* l = std::get_if<Pointer>(&lhs.content)) {
-	  if (auto* r = std::get_if<I8>(&rhs.content))
+	if (auto* l = std::get_if<Pointer>(&lhs.check_content())) {
+	  if (auto* r = std::get_if<I8>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	  if (auto* r = std::get_if<I16>(&rhs.content))
+	  if (auto* r = std::get_if<I16>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	  if (auto* r = std::get_if<I32>(&rhs.content))
+	  if (auto* r = std::get_if<I32>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
-	  if (auto* r = std::get_if<I64>(&rhs.content))
+	  if (auto* r = std::get_if<I64>(&rhs.check_content()))
 	    return std::invoke(f, *l, *r);
 	}
 	throw MiniMC::Support::Exception("Error");
       }
     
-      auto hash () const {return std::hash<decltype(content)>{} (content);}
+      auto hash () const {return std::hash<decltype(content)>{} (check_content());}
       
-      auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, content);}
+      auto& output (std::ostream& os) const {return std::visit([&os](const auto& x) ->std::ostream&  { return os << x; }, check_content());}
 
       template<class V>
       static constexpr std::size_t bitsize () {
@@ -154,10 +154,26 @@ namespace MiniMC {
       static constexpr std::size_t bytesize () {
 	return bitsize<V> () / 8;
       }
- 
+
+
+   private:
+      template<class Self>
+      static auto& checked_content (Self& self) {
+	if (!self.isEmpty)
+	  return self.content;
+	throw MiniMC::Support::Exception ("Value not initialised");
+      }
+
+      auto& check_content () const {
+	return checked_content (*this);
+      }
+
+      auto& check_content () {
+	return checked_content (*this);
+      }
       
-    private:
       
+      bool isEmpty;
       std::variant<I8,I16,I32,I64,Pointer,Pointer32,Bool,Ag,Memory> content;
     };
 
