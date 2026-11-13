@@ -70,8 +70,13 @@ namespace MiniMC {
 	  return i.getType();
 	}
 
-	MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer32& i) const  {
+MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer32& i) const  {
 	  i.setType(MiniMC::Model::Pointer32Type::get());
+	  return i.getType();
+	}
+	
+	MiniMC::Model::Type_ptr operator() (MiniMC::Model::MemoryConstant& i) const  {
+	  i.setType(MiniMC::Model::MemoryType::get());
 	  return i.getType();
 	}
 

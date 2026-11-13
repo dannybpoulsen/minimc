@@ -78,8 +78,14 @@ namespace MiniMC {
       };
       
       Memory::Memory()  {}
-      
-      
+
+      std::generator<std::pair<MiniMC::Model::pointer_t, HeapEntry>> MemoryValue::entries() const {
+	auto& m = getInternal();
+        for (auto ptr : m.allocated_ptrs) {
+	  co_yield std::make_pair (ptr,m.entries.at(ptr));
+	}
+      }
+	
       
       
       std::generator<Value::I8> Memory::loadBytes(const MemoryValue& mvalue, const Value::Pointer& p, std::size_t bytes) const {

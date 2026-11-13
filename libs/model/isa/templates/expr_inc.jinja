@@ -240,9 +240,9 @@ public:
     }
     
     inline SymbolicConstant::SymbolicConstant (MiniMC::Model::Symbol val)  : Constant(ValueInfo::type_t<SymbolicConstant>()), symbol(val) {
-    	    
+    	    				      
     }
-
+    
     {% for N in ISA.getExpressionsFromGroups (["TAC","Cast","Comparison","Unary","Pointer","memory","loadstore"])%}
        
     inline {{N.getName()}}Expr::{{N.getName()}}Expr ({%for o in N.getNonResOperands () %} Value_ptr {{o.getName()}} {%if not loop.last %},{%endif %} {%endfor %}  {%if N.extratypes () | length > 0 %}
@@ -619,6 +619,8 @@ struct ExprSimplifier  {
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer& i) const {return MiniMC::Model::Pointer::make(i.getValue());}
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::Pointer32& i) const {return MiniMC::Model::Pointer32::make(i.getValue());}
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::SymbolicConstant& i) const {return MiniMC::Model::SymbolicConstant::make(i.getValue());}
+  MiniMC::Model::Value_ptr operator() (MiniMC::Model::MemoryConstant& i) const {return MiniMC::Model::MemoryConstant::make(i.getEntries());}
+  
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::Undef& i) const {return MiniMC::Model::Undef::make(i.getType());}
   MiniMC::Model::Value_ptr operator() (MiniMC::Model::AggregateConstant& i) const {
   auto aggr = i.getData();

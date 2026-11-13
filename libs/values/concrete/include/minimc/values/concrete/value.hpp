@@ -138,7 +138,8 @@ namespace MiniMC {
 	
 	MemoryValue& operator= (const MemoryValue&) = default;
 	MemoryValue& operator= (MemoryValue&&) = default;
-	auto& getInternal () const {return *_internal;}
+        auto& getInternal() const { return *_internal; }
+	std::generator<std::pair<MiniMC::Model::pointer_t,HeapEntry>> entries () const ;
 	MemoryValue deep_copy () const;
 	MiniMC::Hash::hash_t hash() const;
 	

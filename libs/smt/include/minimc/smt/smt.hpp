@@ -117,7 +117,8 @@ namespace MiniMC {
 	SMTLib::Term_ptr operator() (const MiniMC::Model::AggregateConstant&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::Register&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::Undef&) const;
-	SMTLib::Term_ptr operator() (const MiniMC::Model::SymbolicConstant&) const;
+        SMTLib::Term_ptr operator()(const MiniMC::Model::SymbolicConstant&) const;
+        SMTLib::Term_ptr operator() (const MiniMC::Model::MemoryConstant&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::StoreExpr&) const;
 	SMTLib::Term_ptr operator() (const MiniMC::Model::LoadExpr&) const;
 	

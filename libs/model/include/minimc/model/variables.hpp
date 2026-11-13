@@ -266,12 +266,12 @@ namespace MiniMC {
     public:
       virtual ~Constant() {}
       bool isConstant() const override { return true; }
-      // virtual const MiniMC::uint8_t* getData() const  = 0;
       virtual std::size_t getSize() const { return 0; }
       virtual bool isInteger() const { return false; }
       virtual bool isPointer() const { return false; }
       virtual bool isAggregate() const { return false; }
       virtual bool isBool() const { return false; }
+      virtual bool isMemory() const { return false; }
       virtual bool isUndef() const { return false; }
     protected:
       Constant(type_id_t val) : Value(val) {}
@@ -383,7 +383,52 @@ namespace MiniMC {
       MiniMC::Model::Symbol symbol;
     };
 
+    struct HeapEntry {
+      HeapEntry(MiniMC::Model::pointer_t baseobj,
+		MiniMC::Util::Array&& arr) : baseobj(baseobj), arr(std::move(arr)) {}
+      MiniMC::Model::pointer_t baseobj;
+      MiniMC::Util::Array arr;
+    };
 
+    class MemoryConstant : public Constant {
+    public:
+      static Constant_ptr make (std::span<HeapEntry> entries) {return  Constant_ptr(new MemoryConstant (std::move(entries)));}
+      MemoryConstant (std::span<HeapEntry> entries);
+      bool isMemory () const override {return true;}
+      auto& getEntries () const {return entries;}
+      auto getEntries() { return std::span<HeapEntry>{entries}; }
+      virtual std::ostream& output(std::ostream& os) const {
+	MiniMC::Support::STDEncode encoder;
+        for (auto& e : entries) {
+	  os << e.baseobj << ": " << encoder.encode(e.arr.get_direct_access ()) << "\n";
+	}
+	return os;
+      }
+      virtual MiniMC::IO::ostream& output(MiniMC::IO::ostream& os) const {
+	MiniMC::Support::STDEncode encoder;
+        for (auto& e : entries) {
+	  os << e.baseobj << ": " << encoder.encode(e.arr.get_direct_access ()) << "\n";
+	}
+	return os;
+      }
+    private:
+      std::vector<HeapEntry> entries;
+    };
+
+    class MemoryConstantBuilder {
+    public: 
+      auto& addEntry(MiniMC::Model::pointer_t ptr,
+                     MiniMC::Util::Array arr) {
+	entries.emplace_back (ptr,std::move(arr));
+	return *this;
+      }
+
+      auto build () {return MemoryConstant::make(entries);}
+      
+    private:
+      std::vector<HeapEntry> entries;
+    };
+    
     using aggr_input = std::vector<Constant_ptr>;
     
     
@@ -419,7 +464,7 @@ namespace MiniMC {
     private:
       MiniMC::Util::Array data;
     };
-
+    
     struct AggregateConstantBuilder {
 
       Constant_ptr build ();

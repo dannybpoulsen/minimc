@@ -38,6 +38,7 @@ def writeExpressions(ISA,output):
         "AggregateConstant",
         "Undef",
         "SymbolicConstant",
+        "MemoryConstant",
         "LoadExpr",
         "StoreExpr",
         "Ptr32ToPtrExpr",

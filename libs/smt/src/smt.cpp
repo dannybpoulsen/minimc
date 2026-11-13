@@ -145,7 +145,10 @@ namespace MiniMC {
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::SymbolicConstant&) const {
 	throw MiniMC::Support::Exception ("SymbolicConstants should not be present in SMT-Translated expressions");
       }
-
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::MemoryConstant&) const {
+	throw MiniMC::Support::Exception ("MemoryConstants should not be present in SMT-Translated expressions");
+      }
+      
 #define OPS					\
       X(Add)					\
       X(Sub)					\
