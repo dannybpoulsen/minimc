@@ -612,177 +612,182 @@ namespace MiniMC {
 	}
 	
 	MiniMC::Model::Constant_ptr eval (const Value& v) const {
-	  auto evalMemory = [this](Value::Memory& memory) ->MiniMC::Model::Constant_ptr {
-	    MiniMC::Model::MemoryConstantBuilder builder;
-	    for (const auto& allocation : memory.getBlock()) {
-	      auto pointerBits = std::get<SMTLib::bitvector>(
-	          solver.getModelValue(translator.Translate(*allocation.pointer)));
-	      if (pointerBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::Pointer>::bitwidth()) {
-	        throw MiniMC::Support::Exception("Invalid symbolic allocation pointer width");
-	      }
+	  return Value::visit(MiniMC::Support::Overload {
+	    [this](Value::Memory& memory) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        MiniMC::Model::MemoryConstantBuilder builder;
+	        for (const auto& allocation : memory.getBlock()) {
+	          auto pointerBits = std::get<SMTLib::bitvector>(
+	              solver.getModelValue(translator.Translate(*allocation.pointer)));
+	          if (pointerBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::Pointer>::bitwidth()) {
+	            throw MiniMC::Support::Exception("Invalid symbolic allocation pointer width");
+	          }
 
-	      MiniMC::Model::pointer_t pointer = MiniMC::Model::pointer_t::makeNullPointer();
-	      MiniMC::Model::offset_t offset{0};
-	      MiniMC::Model::base_t base{0};
-	      MiniMC::Model::seg_t segment{0};
-	      auto pointerIter = MiniMC::Support::SMT::extract(pointerBits.begin(), offset);
-	      pointerIter = MiniMC::Support::SMT::extract(pointerIter, base);
-	      MiniMC::Support::SMT::extract(pointerIter, segment);
-	      pointer.offset = offset;
-	      pointer.base = base;
-	      pointer.segment = segment;
+	          MiniMC::Model::pointer_t pointer = MiniMC::Model::pointer_t::makeNullPointer();
+	          MiniMC::Model::offset_t offset{0};
+	          MiniMC::Model::base_t base{0};
+	          MiniMC::Model::seg_t segment{0};
+	          auto pointerIter = MiniMC::Support::SMT::extract(pointerBits.begin(), offset);
+	          pointerIter = MiniMC::Support::SMT::extract(pointerIter, base);
+	          MiniMC::Support::SMT::extract(pointerIter, segment);
+	          pointer.offset = offset;
+	          pointer.base = base;
+	          pointer.segment = segment;
 
-	      auto sizeBits = std::get<SMTLib::bitvector>(
-	          solver.getModelValue(translator.Translate(*allocation.size)));
-	      if (sizeBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::I64>::bitwidth()) {
-	        throw MiniMC::Support::Exception("Invalid symbolic allocation size width");
-	      }
-	      MiniMC::BV64 allocationSize{0};
-	      MiniMC::Support::SMT::extract(sizeBits.begin(), allocationSize);
-	      if constexpr (sizeof(std::size_t) < sizeof(MiniMC::BV64)) {
-	        if (allocationSize > std::numeric_limits<std::size_t>::max()) {
-	          throw MiniMC::Support::Exception("Symbolic allocation is too large to materialize");
+	          auto sizeBits = std::get<SMTLib::bitvector>(
+	              solver.getModelValue(translator.Translate(*allocation.size)));
+	          if (sizeBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::I64>::bitwidth()) {
+	            throw MiniMC::Support::Exception("Invalid symbolic allocation size width");
+	          }
+	          MiniMC::BV64 allocationSize{0};
+	          MiniMC::Support::SMT::extract(sizeBits.begin(), allocationSize);
+	          if constexpr (sizeof(std::size_t) < sizeof(MiniMC::BV64)) {
+	            if (allocationSize > std::numeric_limits<std::size_t>::max()) {
+	              throw MiniMC::Support::Exception("Symbolic allocation is too large to materialize");
+	            }
+	          }
+
+	          MiniMC::Util::Array contents{static_cast<std::size_t>(allocationSize)};
+	          for (std::size_t i = 0; i < contents.getSize(); ++i) {
+	            TypecheckedExpressionBuilder loadBuilder;
+	            loadBuilder << memory.getMemoryValue() << MiniMC::Model::Pointer::make(pointer);
+	            if (i != 0) {
+	              loadBuilder << MiniMC::Model::I64Integer::make(static_cast<MiniMC::BV64>(i));
+	              loadBuilder.PtrAdd();
+	            }
+	            loadBuilder << MiniMC::Model::I8Type::get();
+	            loadBuilder.Load();
+
+	            auto byteBits = std::get<SMTLib::bitvector>(
+	                solver.getModelValue(translator.Translate(*loadBuilder.get())));
+	            if (byteBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::I8>::bitwidth()) {
+	              throw MiniMC::Support::Exception("Invalid symbolic memory byte width");
+	            }
+	            MiniMC::Support::SMT::extractByte(byteBits.begin(), contents.get_direct_access()[i]);
+	          }
+	          builder.addEntry(pointer, std::move(contents));
 	        }
+	        return builder.build();
+	      } catch (const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to materialize symbolic memory: ") + e.what());
 	      }
-
-	      MiniMC::Util::Array contents{static_cast<std::size_t>(allocationSize)};
-	      for (std::size_t i = 0; i < contents.getSize(); ++i) {
-	        TypecheckedExpressionBuilder loadBuilder;
-	        loadBuilder << memory.getMemoryValue() << MiniMC::Model::Pointer::make(pointer);
-	        if (i != 0) {
-	          loadBuilder << MiniMC::Model::I64Integer::make(static_cast<MiniMC::BV64>(i));
-	          loadBuilder.PtrAdd();
-	        }
-	        loadBuilder << MiniMC::Model::I8Type::get();
-	        loadBuilder.Load();
-
-	        auto byteBits = std::get<SMTLib::bitvector>(
-	            solver.getModelValue(translator.Translate(*loadBuilder.get())));
-	        if (byteBits.size() != MiniMC::Model::Type_trait<MiniMC::Model::TypeID::I8>::bitwidth()) {
-	          throw MiniMC::Support::Exception("Invalid symbolic memory byte width");
-	        }
-	        MiniMC::Support::SMT::extractByte(byteBits.begin(), contents.get_direct_access()[i]);
+	    },
+	    [this](const Value::I8& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::BV8 res;
+	        MiniMC::Support::SMT::extractByte(ires.begin(), res);
+	        return MiniMC::Model::I8Integer::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic I8 value: ") + e.what());
 	      }
-	      builder.addEntry(pointer, std::move(contents));
+	    },
+	    [this](const Value::I16& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::BV16 res;
+	        MiniMC::Support::SMT::extract(ires.begin(), res);
+	        return MiniMC::Model::I16Integer::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic I16 value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::I32& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::BV32 res{0};
+	        MiniMC::Support::SMT::extract(ires.begin(), res);
+	        return MiniMC::Model::I32Integer::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic I32 value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::I64& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::BV64 res;
+	        MiniMC::Support::SMT::extract(ires.begin(), res);
+	        return MiniMC::Model::I64Integer::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic I64 value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::Pointer& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::Model::pointer_t res = MiniMC::Model::pointer_t::makeNullPointer();
+	        decltype(res.segment) seg{0};
+	        decltype(res.offset) offset{0};
+	        decltype(res.base) base{0};
+	        auto iter = MiniMC::Support::SMT::extract(ires.begin(), offset);
+	        iter = MiniMC::Support::SMT::extract(iter, base);
+	        MiniMC::Support::SMT::extract(iter, seg);
+	        res.segment = seg;
+	        res.base = base;
+	        res.offset = offset;
+	        return MiniMC::Model::Pointer::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic pointer value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::Pointer32& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        auto ires = std::get<SMTLib::bitvector>(val);
+	        MiniMC::Model::pointer32_t res = MiniMC::Model::pointer32_t::makeNullPointer();
+	        decltype(res.segment) seg{0};
+	        decltype(res.offset) offset{0};
+	        decltype(res.base) base{0};
+	        auto iter = MiniMC::Support::SMT::extract(ires.begin(), offset);
+	        iter = MiniMC::Support::SMT::extract(iter, base);
+	        MiniMC::Support::SMT::extract(iter, seg);
+	        res.segment = seg;
+	        res.base = base;
+	        res.offset = offset;
+	        return MiniMC::Model::Pointer32::make(res);
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic 32-bit pointer value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::Bool& scalar) ->MiniMC::Model::Constant_ptr {
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        return MiniMC::Model::Bool::make(std::get<bool>(val));
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic boolean value: ") + e.what());
+	      }
+	    },
+	    [this](const Value::Aggregate& scalar) ->MiniMC::Model::Constant_ptr {
+	      const auto size = scalar.getExpr()->getType()->getSize();
+	      try {
+	        auto translated = translator.Translate(*scalar.getExpr());
+	        auto val = solver.getModelValue(translated);
+	        MiniMC::Util::Array res{size};
+	        auto aggrres = std::get<SMTLib::bitvector>(val);
+	        auto iter = aggrres.begin();
+	        for (size_t i = 0; i < size; i++) {
+	          MiniMC::BV8 buf;
+	          iter = MiniMC::Support::SMT::extractByte(iter, buf);
+	          res.get_direct_access()[i] = buf;
+	        }
+	        return MiniMC::Model::AggregateConstant::make(std::move(res));
+	      } catch(const SMTLib::Exception& e) {
+	        throw MiniMC::Support::Exception(std::string("Failed to evaluate symbolic aggregate value: ") + e.what());
+	      }
 	    }
-	    return builder.build();
-	  };
-
-	  if (Value::visit(MiniMC::Support::Overload {
-	        [](Value::Memory&) { return true; },
-	        []<typename T>(T&) { return false; }
-	      }, v)) {
-	    try {
-	      return Value::visit(MiniMC::Support::Overload {
-	        evalMemory,
-	        [](auto&) ->MiniMC::Model::Constant_ptr {
-	          throw MiniMC::Support::Exception("Unexpected non-memory value");
-	        }
-	      }, v);
-	    } catch (const SMTLib::Exception&) {
-	      throw MiniMC::Support::Exception("Failed to materialize symbolic memory");
-	    }
-	  }
-
-	  auto translated = Value::visit ([this](const auto& vv) {return translator.Translate(*vv.getExpr());},v);
-	  try {
-	    auto val = solver.getModelValue(translated);
-	    return Value::visit (MiniMC::Support::Overload {
-	      [&val](const Value::I8& ) ->MiniMC::Model::Constant_ptr {
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::BV8 res;
-		MiniMC::Support::SMT::extractByte (ires.begin(),res);
-		
-		return MiniMC::Model::I8Integer::make(res);
-	      },
-	      [&val](const Value::I16& ) ->MiniMC::Model::Constant_ptr {
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::BV16 res;
-		MiniMC::Support::SMT::extract (ires.begin(),res);
-		
-		return MiniMC::Model::I16Integer::make(res);
-
-	      },
-	      [&val](const Value::I32& ) ->MiniMC::Model::Constant_ptr {
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::BV32 res{0};
-		MiniMC::Support::SMT::extract (ires.begin(),res);
-		
-		return MiniMC::Model::I32Integer::make(res);
-
-	      },
-	      [&val](const Value::I64& ) ->MiniMC::Model::Constant_ptr{
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::BV64 res;
-		MiniMC::Support::SMT::extract (ires.begin(),res);
-		
-		return MiniMC::Model::I64Integer::make(res);
-
-	      },
-	      [&val](const Value::Pointer& ) ->MiniMC::Model::Constant_ptr {
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::Model::pointer_t res = MiniMC::Model::pointer_t::makeNullPointer();
-		decltype(res.segment) seg{0};
-		decltype(res.offset) offset{0};
-		decltype(res.base) base{0};
-
-		
-		auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
-		iter = MiniMC::Support::SMT::extract (iter,base);
-		iter = MiniMC::Support::SMT::extract (iter,seg);
-		res.segment = seg;
-		res.offset = offset;
-		res.base = base;
-		return MiniMC::Model::Pointer::make (res);
-		
-	      },
-	      [&val](const Value::Pointer32& ) ->MiniMC::Model::Constant_ptr {
-		auto ires = std::get<SMTLib::bitvector> (val);
-		MiniMC::Model::pointer32_t res = MiniMC::Model::pointer32_t::makeNullPointer();
-		decltype(res.segment) seg{0};
-		decltype(res.offset) offset{0};
-		decltype(res.base) base{0};
-
-		
-		auto iter = MiniMC::Support::SMT::extract (ires.begin(),offset);
-		iter = MiniMC::Support::SMT::extract (iter,base);
-		iter = MiniMC::Support::SMT::extract (iter,seg);
-		res.segment = seg;
-		res.offset = offset;
-		res.base = base;
-		
-		return MiniMC::Model::Pointer32::make (res);
-		
-	      },
-	      [&val](const Value::Bool& ) ->MiniMC::Model::Constant_ptr {
-		  auto bres = std::get<bool>(val);
-		  return MiniMC::Model::Bool::make(bres);
-	  
-	      },
-		[&val](const Value::Aggregate& a) ->MiniMC::Model::Constant_ptr {
-		  MiniMC::Util::Array res{a.getExpr()->getType()->getSize()};
-	  
-		  auto aggrres = std::get<SMTLib::bitvector>(val);
-		  auto iter = aggrres.begin();
-		  for (size_t i = 0; i < a.getExpr()->getType()->getSize(); i++) {
-		    MiniMC::BV8 buf;
-		    iter = MiniMC::Support::SMT::extractByte (iter,buf);
-		    res.get_direct_access ()[i] = buf;
-		  }
-		  return MiniMC::Model::AggregateConstant::make(std::move(res));
-	  
-	      },
-		[](Value::Memory&) ->MiniMC::Model::Constant_ptr {
-		  throw MiniMC::Support::Exception("Unexpected memory value");
-		}
-		
-		},v
-	    );
-	    
-	    
-	  }catch(SMTLib::Exception& e) {
-	    return MiniMC::Model::I8Integer::make(0);
-	  }
+	  }, v);
 	  
 	}
       private:
