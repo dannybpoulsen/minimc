@@ -8,24 +8,28 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions
 		   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc"
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py" "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc"  "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc"	     
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/isa.py"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/expr_inc.jinja"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_inc.jinja"
-	DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_constructors_inc.jinja"
+	    "${CMAKE_CURRENT_SOURCE_DIR}/isa2cpp.py"
+            "${CMAKE_CURRENT_SOURCE_DIR}/isa.py"
+    	     "${CMAKE_CURRENT_SOURCE_DIR}/templates/expr_inc.jinja"
+    	     "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_inc.jinja"
+     	     "${CMAKE_CURRENT_SOURCE_DIR}/templates/instructions_constructors_inc.jinja"
 	
     )
 
-add_custom_target(generateISAHEADER ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc")
+add_custom_target(generateISAHEADER ALL DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instructions.inc"
+    "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/instruction_constructors.inc"
+    "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/expr.inc"
+)
 
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/checkers/typechecker.hpp"
 	           OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/typechecker.cpp"
     COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/typecheckgen.py" "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml" "${CMAKE_CURRENT_BINARY_DIR}/minimc/model/checkers/typechecker.hpp" "${CMAKE_CURRENT_BINARY_DIR}/typechecker.cpp"	     
     DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/opcodes.yaml"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/typecheckgen.py"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/typechecker_hpp.jinja"
-    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/templates/typechecker_cpp.jinja"
+    	    "${CMAKE_CURRENT_SOURCE_DIR}/typecheckgen.py"
+    	    "${CMAKE_CURRENT_SOURCE_DIR}/templates/typechecker_hpp.jinja"
+    	    "${CMAKE_CURRENT_SOURCE_DIR}/templates/typechecker_cpp.jinja"
         
     )
 
