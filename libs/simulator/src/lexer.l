@@ -15,7 +15,6 @@ using token = MiniMC::Simulator::Parser::token;
 %}
 
 %option debug
-%option nodefault
 %option yyclass="MiniMC::Support::Scanner"
 %option noyywrap
 %option yylineno
