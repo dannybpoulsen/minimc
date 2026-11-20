@@ -18,7 +18,8 @@ namespace MiniMC {
       class Memory  {
       public:
 	Memory ();
-	std::generator<Value::I8> loadBytes(const MemoryValue& mvalue, const typename Value::Pointer& p, std::size_t bytes) const;	
+	
+        std::generator<Value::I8> loadBytes(const MemoryValue& mvalue, const typename Value::Pointer& p, std::size_t bytes) const;	
 
         // First parameter is address to store at, second is the value to state
         MemoryValue store(const MemoryValue&, const Value::Pointer&, const Value::I8&) const  ;

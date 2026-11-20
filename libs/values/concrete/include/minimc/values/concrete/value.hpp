@@ -133,7 +133,8 @@ namespace MiniMC {
       public:
 	MemoryValue ();
 	MemoryValue (std::shared_ptr<internal>&& );
-	MemoryValue (const MemoryValue&) = default;
+	MemoryValue (const MiniMC::Model::MemoryConstant&);
+        MemoryValue (const MemoryValue&) = default;
 	MemoryValue (MemoryValue&&) = default;
 	
 	MemoryValue& operator= (const MemoryValue&) = default;

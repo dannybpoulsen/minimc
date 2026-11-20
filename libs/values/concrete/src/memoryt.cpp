@@ -31,13 +31,6 @@ namespace std {
 namespace MiniMC {
   namespace VMT {
     namespace Concrete {
-      MemoryValue::MemoryValue () : _internal(std::make_shared<internal> ()) {}
-      MemoryValue::MemoryValue (std::shared_ptr<internal>&& v) : _internal(v) {}
-      
-      MemoryValue MemoryValue::deep_copy () const {
-	return {std::make_shared<internal> (*_internal)};
-      }
-      
       struct MemoryValue::internal {
 	MiniMC::Model::pointer_t allocate (const Value::I64& size) {
 	  auto pointer = MiniMC::Model::pointer_t::makeHeapPointer(next, 0);
@@ -76,6 +69,23 @@ namespace MiniMC {
 	std::vector<MiniMC::Model::pointer_t> allocated_ptrs;
 	MiniMC::Model::base_t next{0};
       };
+
+      MemoryValue::MemoryValue () : _internal(std::make_shared<internal> ()) {}
+      MemoryValue::MemoryValue (std::shared_ptr<internal>&& v) : _internal(v) {}
+      
+      MemoryValue MemoryValue::deep_copy () const {
+	return {std::make_shared<internal> (*_internal)};
+      }
+
+      MemoryValue::MemoryValue (const MiniMC::Model::MemoryConstant& mc) : _internal(std::make_shared<internal> ()) {
+        for (auto& entry : mc.getEntries()) {
+          auto ptr = _internal->allocate(entry.getArr ().getSize(),entry.getBasePtr());
+          _internal->entries.at(ptr).write (entry.getArr ().get_direct_access (),0);
+	}
+      }
+      
+      
+      
       
       Memory::Memory()  {}
 
@@ -205,6 +215,8 @@ namespace MiniMC {
 	}
 	return hash;
       }
+
+      
       
     } // namespace Concrete
   }   // namespace VMT

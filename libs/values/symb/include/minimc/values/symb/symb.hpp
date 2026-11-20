@@ -390,6 +390,15 @@ namespace MiniMC {
 	  
 	}
 
+	
+	Value::Memory create (const MiniMC::Model::MemoryConstant& v) const {
+          Value::Memory mem{MiniMC::Model::MemoryConstant::make(const_cast<MiniMC::Model::MemoryConstant&>(v).getEntries())};
+          for (auto e : v.getEntries()) {
+            mem.addAllocation(MiniMC::Model::Pointer::make(e.getBasePtr()), MiniMC::Model::I64Integer::make  (e.getArr().getSize()));
+	  }
+          return mem;
+	}
+        
 
 	Value defaultValue (const MiniMC::Model::Type& ty ) const {
 	  switch (ty.getTypeID()) {

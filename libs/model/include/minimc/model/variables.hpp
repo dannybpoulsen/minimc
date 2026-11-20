@@ -386,6 +386,9 @@ namespace MiniMC {
     struct HeapEntry {
       HeapEntry(MiniMC::Model::pointer_t baseobj,
 		MiniMC::Util::Array&& arr) : baseobj(baseobj), arr(std::move(arr)) {}
+      auto& getBasePtr() const { return baseobj; };
+      auto& getArr() const { return arr; };
+      
       MiniMC::Model::pointer_t baseobj;
       MiniMC::Util::Array arr;
     };

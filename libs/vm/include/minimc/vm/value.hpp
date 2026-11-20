@@ -346,19 +346,20 @@ namespace MiniMC {
     template<class T,class Operation>
     concept CastOperation = CastOperation_<typename T::I8,typename T::I16, typename T::I32, typename T::I64,
 					   typename T::Bool,typename T::Pointer,typename T::Pointer32,typename T::Aggregate,Operation>;
-    
 
-    template<class Creato,class Res>
-    concept Creator = requires (const Creato e,
-				const MiniMC::Model::I8Integer& i8,
-				const MiniMC::Model::I16Integer& i16,
-				const MiniMC::Model::I32Integer& i32,
-				const MiniMC::Model::I64Integer& i64,
-				const MiniMC::Model::Bool& b,
-				const MiniMC::Model::Pointer& ptr,
-				const MiniMC::Model::Pointer32& ptr32,
-				const MiniMC::Model::AggregateConstant& aggrc,
-				const MiniMC::Model::Undef& und,
+
+    template <class Creato, class Res>
+    concept Creator = requires(const Creato e,
+                               const MiniMC::Model::I8Integer& i8,
+                               const MiniMC::Model::I16Integer& i16,
+                               const MiniMC::Model::I32Integer& i32,
+                               const MiniMC::Model::I64Integer& i64,
+                               const MiniMC::Model::Bool& b,
+                               const MiniMC::Model::Pointer& ptr,
+                               const MiniMC::Model::Pointer32& ptr32,
+                               const MiniMC::Model::AggregateConstant& aggrc,
+                               const MiniMC::Model::Undef& und,
+                               const MiniMC::Model::MemoryConstant& mem,
  				const MiniMC::Model::Type& ty) {
       {e.create(i8)}->std::convertible_to<typename Res::I8>;
       {e.create(i16)}->std::convertible_to<typename Res::I16>;
@@ -368,6 +369,7 @@ namespace MiniMC {
       {e.create(ptr)}->std::convertible_to<typename Res::Pointer>;
       {e.create(ptr32)}->std::convertible_to<typename Res::Pointer32>;
       {e.create(aggrc)}->std::convertible_to<typename Res::Aggregate>;
+      {e.create(mem)}->std::convertible_to<typename Res::Memory>;
       {e.create(und)}->std::convertible_to<std::generator<Res>>;
       {e.defaultValue (ty)}->std::convertible_to<Res>;
     };
