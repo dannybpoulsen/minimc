@@ -145,9 +145,28 @@ namespace MiniMC {
       SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::SymbolicConstant&) const {
 	throw MiniMC::Support::Exception ("SymbolicConstants should not be present in SMT-Translated expressions");
       }
-      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::MemoryConstant&) const {
-	
-        throw MiniMC::Support::Exception ("MemoryConstants should not be present in SMT-Translated expressions");
+      SMTLib::Term_ptr Translator::operator() (const MiniMC::Model::MemoryConstant& val) const {
+	auto& builder = context->getBuilder();
+	auto array_sort = builder.makeSort(
+					   SMTLib::SortKind::Array, {builder.makeBVSort(64),
+								     builder.makeBVSort(8)});
+	std::stringstream str;
+	str << "Var" << ++next;
+	auto memory = builder.makeVar(array_sort, str.str());
+
+	for (const auto& entry : val.getEntries()) {
+	  MiniMC::Model::Pointer base{entry.getBasePtr()};
+	  auto address = (*this)(base);
+	  const auto& bytes = entry.getArr().get_direct_access();
+	  for (std::size_t i = 0; i < bytes.size(); ++i) {
+	    auto offset = builder.makeBVIntConst(i, 64);
+	    auto byte_address = builder.buildTerm(SMTLib::Ops::BVAdd, {address, offset});
+	    auto byte = builder.makeBVIntConst(bytes[i], 8);
+	    memory = builder.buildTerm(SMTLib::Ops::Store, {memory, byte_address, byte});
+	  }
+	}
+
+	return memory;
       }
       
 #define OPS					\
