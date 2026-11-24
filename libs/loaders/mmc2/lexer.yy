@@ -8,7 +8,6 @@ int mylineno = 0;
 #define YY_USER_ACTION  end+=yyleng;
 %}
 
-%option nodefault
 %option noyywrap
 %option c++
 %option prefix="zz"

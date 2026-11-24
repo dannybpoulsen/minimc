@@ -5,7 +5,6 @@ FetchContent_Declare(
     whiley
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/whiley
     GIT_REPOSITORY https://github.com/dannybpoulsen/whiley.git
-    GIT_TAG origin/atom
 )
 
 FetchContent_MakeAvailable(whiley)
