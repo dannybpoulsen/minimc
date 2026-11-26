@@ -630,7 +630,7 @@ namespace MiniMC {
             MiniMC::Support::Overload{
                 [this, &block, &regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem) {
                   auto mem2 = valdef.memops().allocate(mem, ptr, size);
-                  _scontext->addSymbol(block.symbol, ptr);
+                  _scontext->addSymbol(block.getSymbol(), ptr);
                   regstore.saveValue(*block.heap_register, Value{mem2});
                 },
                 MiniMC::Support::Error<void>{}},
