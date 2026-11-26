@@ -35,13 +35,14 @@ namespace MiniMC {
     
     using Function_ptr = std::shared_ptr<Function>;
     using Location_wptr = std::weak_ptr<Location>;
-    using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
+    //using HeapBlock_wptr = std::weak_ptr<HeapBlock>;
+    using HeapBlock_ptr = std::shared_ptr<HeapBlock>;
     
     
     using UserData = std::variant<Register_ptr,
 				  Function_ptr,
 				  Location_wptr,
-				  HeapBlock_wptr,
+				  HeapBlock_ptr,
 				  std::monostate>;
     
     class Symbol {
@@ -115,7 +116,7 @@ namespace MiniMC {
       }
 
       inline bool is_heap_block (const Symbol& symbol) {
-        return std::holds_alternative<HeapBlock_wptr> (symbol.getUserData ());
+        return std::holds_alternative<HeapBlock_ptr> (symbol.getUserData ());
       }
 
       inline bool is_untyped (const Symbol& symbol) {

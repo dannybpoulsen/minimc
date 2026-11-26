@@ -85,7 +85,7 @@ MiniMC::Model::Type_ptr operator() (MiniMC::Model::Pointer32& i) const  {
 	        	  [](const MiniMC::Model::Register_ptr&r ) ->MiniMC::Model::Type_ptr {return r->getSystemType();},
       	  		  [](const MiniMC::Model::Function_ptr&) ->MiniMC::Model::Type_ptr{return MiniMC::Model::PointerType::get();},
      	  		  [](const MiniMC::Model::Location_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
-	  		  [](const MiniMC::Model::HeapBlock_wptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
+	  		  [](const MiniMC::Model::HeapBlock_ptr&) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();},
 	  		  [](const std::monostate& ) ->MiniMC::Model::Type_ptr {return MiniMC::Model::PointerType::get();}
 	  	}
 	    ,i.getValue().getUserData());

@@ -210,7 +210,7 @@ TEST_CASE("Symbol predicates classify user data kinds") {
   auto location_symbol = frame.makeSymbol("location");
   location_symbol.setUserData(Location_wptr{});
   auto heap_block_symbol = frame.makeSymbol("heap_block");
-  heap_block_symbol.setUserData(HeapBlock_wptr{});
+  heap_block_symbol.setUserData(HeapBlock_ptr{});
   auto untyped_symbol = frame.makeSymbol("untyped");
 
   CHECK(SymbolPredicates::is_register(register_symbol));

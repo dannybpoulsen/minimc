@@ -55,7 +55,7 @@ namespace MiniMC {
 	  [&str](const MiniMC::Model::Register_wptr&) {str << "Register";},
 	    [&str](const MiniMC::Model::Function_ptr&) {str << "Function";},
 	    [&str](const MiniMC::Model::Location_wptr&) {str << "Location";},
-	    [&str](const MiniMC::Model::HeapBlock_wptr&) {str << "HeapObject";},
+	    [&str](const MiniMC::Model::HeapBlock_ptr&) {str << "HeapObject";},
 	    [&str](const std::monostate& ) {str << "??";}
 	    }
 	,s.getUserData());
@@ -71,9 +71,6 @@ namespace MiniMC {
 	  for (auto s : simu->getState().getLocationState().getLocation(0).getInfo().getFrame().local_and_parent_symbols()) {
 	    str << s.getFullName () << " " << symbol_descr_text(s) << MiniMC::IO::manipulator::endl;
 	  }
-	  /*for (auto t : transitions (simu->getState())) {
-	    str << t << MiniMC::IO::manipulator::endl;
-	    }*/
 	}
 	else
 	  str << "No State" << MiniMC::IO::manipulator::endl;

@@ -18,7 +18,7 @@ std::string symbol_descr_text (const MiniMC::Model::Symbol& s) {
       [&str](const MiniMC::Model::Register_wptr&) {str << "Register";},
       [&str](const MiniMC::Model::Function_ptr&) {str << "Function";},
       [&str](const MiniMC::Model::Location_wptr&) {str << "Location";},
-      [&str](const MiniMC::Model::HeapBlock_wptr&) {str << "HeapObject";},
+      [&str](const MiniMC::Model::HeapBlock_ptr&) {str << "HeapObject";},
       [&str](const std::monostate& ) {str << "??";}
 	}
     ,s.getUserData());

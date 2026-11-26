@@ -404,7 +404,7 @@ namespace MiniMC {
 	co_yield std::visit (
 		    MiniMC::Support::Overload {
 		      [this](const MiniMC::Model::Register_ptr& r)->Value {return regstore.lookupRegister (*r);},
-		      [this,&s](const MiniMC::Model::HeapBlock_wptr&)->Value {return regstore.lookupSymbol (s.getValue());},
+		      [this,&s](const MiniMC::Model::HeapBlock_ptr&)->Value {return regstore.lookupSymbol (s.getValue());},
 		      [this,&s](const MiniMC::Model::Function_ptr& f)->Value {return ops.create((f->function_ptr()));},
 			
 			MiniMC::Support::Error<Value>{}	 

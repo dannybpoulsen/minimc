@@ -48,8 +48,7 @@ namespace MiniMC {
 	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
 	  std::visit (MiniMC::Support::Overload {
 	      [&values,&p](const MiniMC::Model::Register_ptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
-	      [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
-		auto heap_block = w.lock();
+	      [this,&values,&p](const MiniMC::Model::HeapBlock_ptr& heap_block) {	
 		auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
 		auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 		
@@ -112,8 +111,7 @@ namespace MiniMC {
 	for (const auto& p: state.getLocationState().getLocation(p).getInfo().getFrame().local_and_parent_symbols()) { //prgm.getRootFrame().local_symbols ()) {
 	  std::visit (MiniMC::Support::Overload {
 	   [&values,&p](const MiniMC::Model::Register_ptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
-	    [this,&values,&p](const MiniMC::Model::HeapBlock_wptr& w) {
-	      auto heap_block = w.lock();
+	    [this,&values,&p](const MiniMC::Model::HeapBlock_ptr& heap_block) {
 	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 	      
