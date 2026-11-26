@@ -159,7 +159,7 @@ private	:
 	MiniMC::Model::Value_ptr _conv;
     };  
 
-     using Bool = TConstant<MiniMC::BV8, true>;
+    using Bool = TConstant<MiniMC::BV8, true>;
     using I8Integer = TConstant<MiniMC::BV8>;
     using I16Integer = TConstant<MiniMC::BV16>;
     using I32Integer = TConstant<MiniMC::BV32>;
@@ -167,6 +167,13 @@ private	:
     using Pointer = TConstant<MiniMC::Model::pointer64_t>;
     using Pointer32 = TConstant<MiniMC::Model::pointer32_t>;
     
+    using Bool_ptr = std::shared_ptr<Bool>;	
+    using I8Integer_ptr = std::shared_ptr<I8Integer>;
+    using I16Integer_ptr = std::shared_ptr<I16Integer>;
+    using I32Integer_ptr = std::shared_ptr<I32Integer>;
+    using I64Integer_ptr = std::shared_ptr<I64Integer>;
+    using Pointer_ptr = std::shared_ptr<Pointer>;
+   	  
     template<>
     inline Type_ptr TConstant<MiniMC::BV8,true>::_inner_type () {return MiniMC::Model::BoolType::get();}
 

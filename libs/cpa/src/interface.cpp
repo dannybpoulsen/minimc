@@ -49,7 +49,7 @@ namespace MiniMC {
 	  std::visit (MiniMC::Support::Overload {
 	      [&values,&p](const MiniMC::Model::Register_ptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
 	      [this,&values,&p](const MiniMC::Model::HeapBlock_ptr& heap_block) {	
-		auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
+		auto aggr = MiniMC::Model::AggregateType::get (heap_block->size->getValue());
 		auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 		
 		values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (
@@ -112,7 +112,7 @@ namespace MiniMC {
 	  std::visit (MiniMC::Support::Overload {
 	   [&values,&p](const MiniMC::Model::Register_ptr&) {values.emplace_back(p,std::make_shared<MiniMC::Model::SymbolicConstant> (p));},
 	    [this,&values,&p](const MiniMC::Model::HeapBlock_ptr& heap_block) {
-	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size);
+	      auto aggr = MiniMC::Model::AggregateType::get (heap_block->size->getValue());
 	      auto constant = std::make_shared<MiniMC::Model::SymbolicConstant> (p);
 	      
 	      values.emplace_back(p,std::make_shared<MiniMC::Model::LoadExpr> (

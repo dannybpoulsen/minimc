@@ -16,8 +16,8 @@ namespace MiniMC {
                 MiniMC::Model::offset_t s,
                 MiniMC::Model::Value_ptr value,
                 MiniMC::Model::Symbol symb) : heap_register(reg),
-                                              baseobj(ptr),
-                                              size(s),
+                                              baseobj(MiniMC::Model::Pointer::make(ptr)),
+                                              size(MiniMC::Model::I64Integer::make(s)),
                                               value(value),
                                               weak_symbol(symb.weak()) {}
       HeapBlock(MiniMC::Model::Register_ptr reg,
@@ -25,14 +25,14 @@ namespace MiniMC {
                 MiniMC::Model::offset_t s,
                 MiniMC::Model::Value_ptr value,
 		MiniMC::Model::Symbol::WeakSymbol symb) : heap_register(reg),
-							  baseobj(ptr),
-							  size(s),
+							  baseobj(MiniMC::Model::Pointer::make(ptr)),
+							  size(MiniMC::Model::I64Integer::make(s)),
 							  value(value),
 							  weak_symbol(symb) {}
       
       MiniMC::Model::Register_ptr heap_register = nullptr;
-      MiniMC::Model::pointer_t baseobj;
-      MiniMC::Model::offset_t size;
+      MiniMC::Model::Pointer_ptr baseobj;
+      MiniMC::Model::I64Integer_ptr size;
       MiniMC::Model::Value_ptr value = nullptr;
       MiniMC::Model::Symbol::WeakSymbol weak_symbol;
       MiniMC::Model::Symbol getSymbol () const {return weak_symbol.getSymbol ();}

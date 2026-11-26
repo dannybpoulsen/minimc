@@ -256,7 +256,7 @@ namespace MiniMC {
     }
 
     using Value_ptr = std::shared_ptr<Value>;
-
+    
     template<class T,class... Args>
     Value_ptr makeExpr (Args... args) {
       return std::make_shared<T> (std::forward<Args> (args)...);
@@ -303,7 +303,7 @@ namespace MiniMC {
     template <typename T, bool is_bool = false>
     class TConstant : public Constant {
     public:
-      static Constant_ptr make (T t) { return Constant_ptr{new TConstant<T,is_bool> (t)};}
+      static std::shared_ptr<TConstant<T,is_bool>> make (T t) { return std::shared_ptr<TConstant<T,is_bool>>{new TConstant<T,is_bool> (t)};}
       virtual ~TConstant () {}
       T getValue() const {
         return value;

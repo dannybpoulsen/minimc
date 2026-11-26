@@ -624,8 +624,8 @@ namespace MiniMC {
       MiniMC::CPA::StateBuilder& addHeapBlock(const MiniMC::Model::HeapBlock& block) override {
 	RegisterSymbolView<Value> regstore{*_scontext,persistent};
 	auto eval = MiniMC::VMT::makeEvaluator (valdef,regstore);
-	auto ptr = eval.Eval (*MiniMC::Model::Pointer::make (block.baseobj));
-	auto size = eval.Eval (*MiniMC::Model::I64Integer::make (block.size));
+	auto ptr = eval.Eval (*block.baseobj);
+	auto size = eval.Eval (*block.size);
         Value::visit(
             MiniMC::Support::Overload{
                 [this, &block, &regstore](const Value::Pointer& ptr, const Value::I64& size, const Value::Memory& mem) {
@@ -638,7 +638,7 @@ namespace MiniMC {
 		      );
 	
 	if (block.value) {
-	  Value ptr = eval.Eval (*MiniMC::Model::Pointer::make (block.baseobj));
+	  Value ptr = eval.Eval (*block.baseobj);
 	  Value valueToStor = eval.Eval(*block.value);
 	  
 	  Value::visit (MiniMC::Support::Overload {
