@@ -32,7 +32,7 @@ namespace MiniMC {
       
       MiniMC::Hash::hash_t hash() const {
 	MiniMC::Hash::Hasher hash;
-	hash << values << metas << ret.get() << loc.get();
+	hash << values << ret.get() << loc.get();
 	return hash;
       }
 
@@ -41,18 +41,25 @@ namespace MiniMC {
       bool isCPU() const {return (loc == nullptr) ;}
       
       auto returnRegister () const {return ret;}
-      auto getValueOfRegister (const MiniMC::Model::Register& r) const {
+      auto isActiveRegister (const MiniMC::Model::Symbol& r) const {
+	return frame.hasSymbol(r);
+      }
+      
+      auto getValueOfRegister(const MiniMC::Model::Register& r) const {
+        if (!isActiveRegister(r.getSymbol())) {
+	  throw MiniMC::Support::Exception ("Register is not active");
+	}
 	if (r.getRegType() == MiniMC::Model::RegType::Meta)
 	  return metas[r];
 	return values[r];
       }
 
-      auto isActiveRegister (const MiniMC::Model::Symbol& r) const {
-	return frame.hasSymbol(r);
-      }
 
       void setValueOfRegister (const MiniMC::Model::Register& r,Value&& v) {
-	if (r.getRegType() == MiniMC::Model::RegType::Meta)
+	if (!isActiveRegister(r.getSymbol())) {
+	  throw MiniMC::Support::Exception ("Register is not active");
+	}
+        if (r.getRegType() == MiniMC::Model::RegType::Meta)
 	  metas.set(r,std::move(v));
 	else
 	  values.set(r,std::move(v));
@@ -112,14 +119,10 @@ namespace MiniMC {
       
       Value lookupRegister (const MiniMC::Model::Register& reg) const  {
 	switch (reg.getRegType ()) {
+	case MiniMC::Model::RegType::Meta:
 	case MiniMC::Model::RegType::Local: return frames.back().getValueOfRegister(reg);
+            
 	case MiniMC::Model::RegType::CPU: return frames.front().getValueOfRegister(reg);
-	case MiniMC::Model::RegType::Meta: {
-	  auto record = searchForRecordWithSymbol(reg.getSymbol());
-	  if (!record)
-	    throw MiniMC::Support::Exception("Meta register has no active frame");
-	  return record->getValueOfRegister(reg);
-	}
 	case MiniMC::Model::RegType::Persistent:
 	  throw MiniMC::Support::Exception ("Persistent registers cannot be accessed through an activation record");
 		  
@@ -130,16 +133,10 @@ namespace MiniMC {
       }
       
       void saveValue(const MiniMC::Model::Register& v, Value&& value)  {
-	switch (v.getRegType ()) {
+        switch (v.getRegType()) {
+	case MiniMC::Model::RegType::Meta:
 	case MiniMC::Model::RegType::Local: frames.back().setValueOfRegister (v,std::move(value));break;
 	case MiniMC::Model::RegType::CPU:   frames.front().setValueOfRegister (v,std::move(value));break;
-	case MiniMC::Model::RegType::Meta: {
-	  auto record = searchForRecordWithSymbol(v.getSymbol());
-	  if (!record)
-	    throw MiniMC::Support::Exception("Meta register has no active frame");
-	  record->setValueOfRegister(v,std::move(value));
-	  break;
-	}
 	case MiniMC::Model::RegType::Persistent:
 	  throw MiniMC::Support::Exception ("Persistent registers cannot be accessed through an activation record");
 	default:
